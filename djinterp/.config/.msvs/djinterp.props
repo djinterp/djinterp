@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <!-- framework root directory -->
+    <DFrameworkRootDir>$([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName($(MSBuildThisFileDirectory)))))))</DFrameworkRootDir>
+	
+    <!-- framework .config directory -->
+    <DFrameworkConfigDir>$(DFrameworkRootDir)\.config</DFrameworkConfigDir>
+	
+	<!-- framework .msvs directory -->
+    <DFrameworkMSVSDir>$(DFrameworkConfigDir)\.msvs</DFrameworkMSVSDir>
+	
+	<!-- framework module directory -->
+    <DFrameworkModuleDir>$(DFrameworkMSVSDir)\modules</DFrameworkModuleDir>
+	
+	<!-- framework test module directory -->
+    <DFrameworkTestModuleDir>$(DFrameworkMSVSDir)\testing</DFrameworkTestModuleDir>
+	
+    <!-- project name without .vcxproj extension -->
+    <DProjectFullName>$([System.IO.Path]::GetFileNameWithoutExtension($(MSBuildProjectFullPath)))</DProjectFullName>
+	
+    <!-- relative path (relative to root dir) -->
+    <DProjectRelativePath>$(ProjectDir.Replace($(DFrameworkModuleDir), ''))</DProjectRelativePath>
+	
+	<!-- relative path (relative to root dir) -->
+    <DProjectRelativePath>$(ProjectDir.Replace($(DFrameworkModuleDir), ''))</DProjectRelativePath>
+	
+    <DFrameworkBinRoot>$(DFrameworkRootDir)\bin</DFrameworkBinRoot>
+    <DFrameworkBuildRoot>$(DFrameworkRootDir)\build</DFrameworkBuildRoot>
+    <DFrameworkCMakeRoot>$(DFrameworkBuildRoot)\cmake</DFrameworkCMakeRoot>
+    <DFrameworkCMakeConfigRoot>$(DFrameworkCMakeRoot)\config</DFrameworkCMakeConfigRoot>
+    <DFrameworkCMakeMsvsRoot>$(DFrameworkCMakeRoot)\config</DFrameworkCMakeMsvsRoot>
+    <DFrameworkBuildMsvsRoot>$(DFrameworkBuildRoot)\msvs</DFrameworkBuildMsvsRoot>
+    <DFrameworkIncRoot>$(DFrameworkRootDir)\inc</DFrameworkIncRoot>
+    <DFrameworkLibRoot>$(DFrameworkRootDir)\lib</DFrameworkLibRoot>
+    <DFrameworkResRoot>$(DFrameworkRootDir)\res</DFrameworkResRoot>
+    <DFrameworkSrcRoot>$(DFrameworkRootDir)\src</DFrameworkSrcRoot>
+    <DFrameworkTestRoot>$(DFrameworkRootDir)\test</DFrameworkTestRoot>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup />
+</Project>
