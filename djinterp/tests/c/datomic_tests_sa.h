@@ -14,8 +14,8 @@
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.06
 ******************************************************************************/
 
-#ifndef DJINTERP_TESTS_ATOMIC_SA_
-#define DJINTERP_TESTS_ATOMIC_SA_ 1
+#ifndef DJINTERP_TESTS_ATOMIC_STANDALONE_
+#define DJINTERP_TESTS_ATOMIC_STANDALONE_ 1
 
 #include <stddef.h>
 #include <stdint.h>
@@ -24,8 +24,7 @@
 #include "..\..\inc\c\string_fn.h"
 #include "..\..\inc\c\dtime.h"
 #include "..\..\inc\c\test\test_standalone.h"
-
-
+#include "..\..\inc\c\datomic.h"
 
 
 /******************************************************************************

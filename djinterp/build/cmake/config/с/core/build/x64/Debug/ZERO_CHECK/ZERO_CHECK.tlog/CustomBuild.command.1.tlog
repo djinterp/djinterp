@@ -1,0 +1,10 @@
+^D:\SAM\CODE\PROJECTS\REPOS\DJINTERP\DJINTERP\BUILD\CMAKE\CONFIG\С\CORE\BUILD\CMAKEFILES\55A7BCF408ECC121D7FFD576B0AEFEE4\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core -BD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build/djinterp-core.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

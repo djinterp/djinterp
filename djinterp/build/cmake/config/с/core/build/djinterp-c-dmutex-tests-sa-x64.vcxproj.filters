@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_cond.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_mutex_basic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_mutex_recursive.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_rwlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_sync.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_thread_ops.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_tss.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\tests\c\dmutex_tests_sa_utility.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\sam\code\projects\repos\djinterp\djinterp\.config\.msvs\testing\c\core\djinterp-c-dmutex-tests-sa\main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4D3900C5-9C71-36D6-8A2E-2FBDC2E34E8D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

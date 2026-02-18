@@ -1,0 +1,272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ResolveNugetPackages>false</ResolveNugetPackages>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{11CAE248-86FC-37A5-B0E4-9D1755D481D8}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core -BD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build --check-stamp-file D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_standalone.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core -BD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build --check-stamp-file D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_standalone.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core -BD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build --check-stamp-file D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_standalone.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core -BD:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build --check-stamp-file D:/sam/code/projects/repos/djinterp/djinterp/build/cmake/config/с/core/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCXXInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeGenericSystem.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeInitializeConfigs.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeLanguageInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeRCInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Compiler\MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-Initialize.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows-MSVC.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\Windows.cmake;C:\Program Files\CMake\share\cmake-3.30\Modules\Platform\WindowsPaths.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_common.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\tests_standalone.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeCXXCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeRCCompiler.cmake;D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\3.30.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\ZERO_CHECK.vcxproj">
+      <Project>{F367C3AD-AA3E-33D3-8517-6FFF32FDC0DB}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\datomic.vcxproj">
+      <Project>{FFFE02DA-F6C5-353F-88BF-6E8510A122D8}</Project>
+      <Name>datomic</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\dconfig.vcxproj">
+      <Project>{BE5E54AA-B48D-35FE-AB69-1B608F8A0B96}</Project>
+      <Name>dconfig</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\dfile.vcxproj">
+      <Project>{7D4AEB40-A704-31D9-8902-41C2A5A7E77C}</Project>
+      <Name>dfile</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\dio.vcxproj">
+      <Project>{6796ED79-D998-3ACF-BE17-AE91849BD521}</Project>
+      <Name>dio</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp.vcxproj">
+      <Project>{EE5DD6F6-7F2D-3CD3-8BC8-76D639C1C99D}</Project>
+      <Name>djinterp</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-datomic-tests-sa-x64.vcxproj">
+      <Project>{BF80B22C-8666-361A-B7E9-B5E6B19A60C8}</Project>
+      <Name>djinterp-c-datomic-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-dfile-tests-sa-x64.vcxproj">
+      <Project>{F0ADAE38-93AB-394D-B630-508AC0F0D9C6}</Project>
+      <Name>djinterp-c-dfile-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-dio-tests-sa-x64.vcxproj">
+      <Project>{45F0ADF8-80E4-3D9D-A865-3888B2212024}</Project>
+      <Name>djinterp-c-dio-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-djinterp-tests-sa-x64.vcxproj">
+      <Project>{9937CD5E-71CB-3C34-B527-6E9ACC2AFDE6}</Project>
+      <Name>djinterp-c-djinterp-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-dmacro-tests-sa-x64.vcxproj">
+      <Project>{C7746BA0-87AC-3DB3-AC8D-1320F7D36ADD}</Project>
+      <Name>djinterp-c-dmacro-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-dmemory-tests-sa-x64.vcxproj">
+      <Project>{E6B21781-FB95-308F-8FAA-D64D3849937E}</Project>
+      <Name>djinterp-c-dmemory-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-dmutex-tests-sa-x64.vcxproj">
+      <Project>{7AAE2619-1B57-35AB-8653-FC5AC7CA86A2}</Project>
+      <Name>djinterp-c-dmutex-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-dstring-tests-sa-x64.vcxproj">
+      <Project>{29C4870A-4B10-3795-A904-DF200366AD1E}</Project>
+      <Name>djinterp-c-dstring-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-dtime-tests-sa-x64.vcxproj">
+      <Project>{C869F99E-6D0D-3DD9-B08D-B3586E2518D7}</Project>
+      <Name>djinterp-c-dtime-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-env-tests-sa-x64.vcxproj">
+      <Project>{C104EFCA-2724-31BB-9E68-756FF9FADDD4}</Project>
+      <Name>djinterp-c-env-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\djinterp-c-string-fn-tests-sa-x64.vcxproj">
+      <Project>{064778F3-7893-3804-B41F-21C8A8EC03B9}</Project>
+      <Name>djinterp-c-string-fn-tests-sa-x64</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\dmemory.vcxproj">
+      <Project>{B90DBFF5-B883-3B38-ACAC-C7E1D78058E7}</Project>
+      <Name>dmemory</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\dmutex.vcxproj">
+      <Project>{EEA54F1F-6D97-3534-8418-428E021B4EC8}</Project>
+      <Name>dmutex</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\dstring.vcxproj">
+      <Project>{B17B99EF-CA8D-35EC-8291-40D6A8FD8E48}</Project>
+      <Name>dstring</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\dtime.vcxproj">
+      <Project>{A44F1DB0-6BFE-3AE8-8117-C0CD99AC551E}</Project>
+      <Name>dtime</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\env.vcxproj">
+      <Project>{8F6FC40D-9EEF-3F94-8AE5-00004634FA9E}</Project>
+      <Name>env</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\string_fn.vcxproj">
+      <Project>{21385C67-5855-3B0E-8DBF-11BF5769C3B0}</Project>
+      <Name>string_fn</Name>
+    </ProjectReference>
+    <ProjectReference Include="D:\sam\code\projects\repos\djinterp\djinterp\build\cmake\config\с\core\build\test-standalone-support.vcxproj">
+      <Project>{D237F1E6-C0C2-371F-B9BA-95199C6E52E9}</Project>
+      <Name>test-standalone-support</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
