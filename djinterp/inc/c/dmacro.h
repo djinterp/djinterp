@@ -20,7 +20,7 @@ TABLE OF CONTENTS
 0.    CONFIGURATION SYSTEM
       --------------------
       1.  User-Overridable Settings
-          a.  D_CFG_DMACRO_VARG_DEFAULT   - default variadic limit (256)
+          a.  D_CFG_DMACRO_VARG_DEFAULT   - default variadic limit (128)
           b.  D_CFG_DMACRO_VARG_MIN       - minimum allowed (64)
           c.  D_CFG_DMACRO_VARG_LIMIT     - maximum allowed (1024)
       2.  Variant Selection Constants
@@ -227,15 +227,15 @@ XIII. COMPILE-TIME ASSERTIONS
 //   1. D_CFG_DMACRO_OVERRIDE - if 1, use D_CFG_DMACRO_* values directly
 //   2. D_CFG_DMACRO_VARG_MAX - user-specified max (if override enabled)
 //   3. D_ENV_PP_MAX_MACRO_ARGS - environment-detected limit
-//   4. D_CFG_DMACRO_VARG_DEFAULT (256) - fallback default
+//   4. D_CFG_DMACRO_VARG_DEFAULT (128) - fallback default
 //
 // -----------------------------------------------------------------------------
 
 // --- 0.1  Configuration Constants ---
 
 // D_CFG_DMACRO_VARG_DEFAULT
-//   brief: default maximum variadic argument count (256)
-#define D_CFG_DMACRO_VARG_DEFAULT 256
+//   brief: default maximum variadic argument count (128)
+#define D_CFG_DMACRO_VARG_DEFAULT 128
 
 // D_CFG_DMACRO_VARG_MIN
 //   brief: minimum supported variadic argument count (64)
@@ -428,71 +428,901 @@ XIII. COMPILE-TIME ASSERTIONS
     ((n) <= D_DMACRO_4TUPLE_MAX)
 
 
-// --- 0.6  Variant File Includes ---
+// --- 0.6  Feature Include Configuration ---
 //
-// Include the appropriate variant files based on D_DMACRO_VARIANT.
-// Each file includes its predecessor, so we only need to include the highest.
+// Each generated macro family and tuple arity can be independently
+// enabled (1) or disabled (0).  All default to enabled.
+// Define any of these BEFORE including dmacro.h to override.
+//
+// EXAMPLE — keep only what you need:
+//   #define D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE           0
+//   #define D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR 0
+//   #define D_CFG_DMACRO_INCLUDE_TUPLE_5  0
+//     ...
+//   #define D_CFG_DMACRO_INCLUDE_TUPLE_16 0
+//   #include "dmacro.h"
+//
+// Core utilities (count_args, varg_has_args, varg_get_arg, inc) are always
+// included because every other feature depends on them.
+//
+// Each generated .h file contains exactly ONE macro family:
+//   FOO_0, FOO_1, ... FOO_N   and nothing else.
 
+// D_CFG_DMACRO_INCLUDE_FOR_EACH
+//   brief: D_INTERNAL_FOR_EACH_N
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR
+//   brief: D_INTERNAL_FOR_EACH_SEPARATOR_N
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR
+//   brief: D_INTERNAL_FOR_EACH_PAIR_N (even only)
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR
+//   brief: D_INTERNAL_FOR_EACH_PAIR_SEPARATOR_N (even only)
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE
+//   brief: D_INTERNAL_FOR_EACH_TRIPLE_N (div-by-3 only)
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR
+//   brief: D_INTERNAL_FOR_EACH_TRIPLE_SEPARATOR_N (div-by-3 only)
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR
+//   brief: D_INTERNAL_FOR_EACH_DATA_SEPARATOR_N
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA
+//   brief: D_INTERNAL_FOR_EACH_COMMA_N (MSVC-safe hardcoded comma)
+#ifndef D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA
+    #define D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA 1
+#endif
+
+// D_CFG_DMACRO_INCLUDE_TUPLE_1 .. D_CFG_DMACRO_INCLUDE_TUPLE_16
+//   brief: per-arity tuple iteration families (separator + comma variants)
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_1
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_1  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_2
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_2  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_3
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_3  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_4
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_4  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_5
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_5  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_6
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_6  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_7
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_7  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_8
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_8  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_9
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_9  1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_10
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_10 1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_11
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_11 1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_12
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_12 1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_13
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_13 1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_14
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_14 1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_15
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_15 1
+#endif
+#ifndef D_CFG_DMACRO_INCLUDE_TUPLE_16
+    #define D_CFG_DMACRO_INCLUDE_TUPLE_16 1
+#endif
+
+
+// --- 0.7  Variant File Includes ---
+//
+// Each .h contains exactly one macro family (FOO_0 .. FOO_N).
+// Core utilities are always pulled in; everything else honours
+// the section 0.6 toggles.
+//
+// FILE NAMING (generated by C-Macro-Generator.ps1 --generate-all-modules):
+//   for_each{N}.h               for_each_mvc.h
+//   for_each_separator{N}.h      for_each_separator_mvc.h
+//   for_each_pair{N}.h           for_each_pair_mvc.h
+//   for_each_comma{N}.h          for_each_comma_mvc.h
+//   for_each_{K}_tuple_sep{N}.h  for_each_{K}_tuple_sep_mvc.h
+//   for_each_{K}_tuple_comma{N}.h for_each_{K}_tuple_comma_mvc.h
+
+// ---- variant 64 ----
 #if (D_DMACRO_VARIANT == 64)
-    #include "./core/macro/count_args64.h"
-    #include "./core/macro/has_args64.h"
-    #include "./core/macro/get_arg64.h"
-    #include "./core/macro/inc64.h"
-    #include "./core/macro/for_each64.h"
-    #include "./core/macro/for_each_pair64.h"
-    #include "./core/macro/for_each_3_tuple_64.h"
-    #include "./core/macro/for_each_4_tuple_64.h"
+    #include ".\core\macro\count_args64.h"
+    #include ".\core\macro\varg_has_args64.h"
+    #include ".\core\macro\varg_get_arg64.h"
+    #include ".\core\macro\inc64.h"
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH == 1)
+        #include ".\core\macro\for_each64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR == 1)
+        #include ".\core\macro\for_each_separator64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR == 1)
+        #include ".\core\macro\for_each_pair64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR == 1)
+        #include ".\core\macro\for_each_pair_separator64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE == 1)
+        #include ".\core\macro\for_each_triple64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR == 1)
+        #include ".\core\macro\for_each_triple_separator64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR == 1)
+        #include ".\core\macro\for_each_data_separator64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+        #include ".\core\macro\for_each_comma64.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_1 == 1)
+        #include ".\core\macro\for_each_1_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_1_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_2 == 1)
+        #include ".\core\macro\for_each_2_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_2_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_3 == 1)
+        #include ".\core\macro\for_each_3_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_3_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_4 == 1)
+        #include ".\core\macro\for_each_4_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_4_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_5 == 1)
+        #include ".\core\macro\for_each_5_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_5_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_6 == 1)
+        #include ".\core\macro\for_each_6_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_6_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_7 == 1)
+        #include ".\core\macro\for_each_7_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_7_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_8 == 1)
+        #include ".\core\macro\for_each_8_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_8_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_9 == 1)
+        #include ".\core\macro\for_each_9_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_9_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_10 == 1)
+        #include ".\core\macro\for_each_10_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_10_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_11 == 1)
+        #include ".\core\macro\for_each_11_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_11_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_12 == 1)
+        #include ".\core\macro\for_each_12_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_12_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_13 == 1)
+        #include ".\core\macro\for_each_13_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_13_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_14 == 1)
+        #include ".\core\macro\for_each_14_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_14_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_15 == 1)
+        #include ".\core\macro\for_each_15_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_15_tuple_comma64.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_16 == 1)
+        #include ".\core\macro\for_each_16_tuple_sep64.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_16_tuple_comma64.h"
+        #endif
+    #endif
 
+// ---- variant 127 (MSVC traditional preprocessor) ----
 #elif (D_DMACRO_VARIANT == 127)
-    // MSVC traditional preprocessor compatible variants
-    #include "./core/macro/count_args_mvc.h"
-    #include "./core/macro/has_args_mvc.h"
-    #include "./core/macro/get_arg_mvc.h"
-    #include "./core/macro/inc_mvc.h"
-    #include "./core/macro/for_each_mvc.h"
-    #include "./core/macro/for_each_pair_mvc.h"
-    #include "./core/macro/for_each_3_tuple_mvc.h"
-    #include "./core/macro/for_each_4_tuple_mvc.h"
+    #include ".\core\macro\count_args_mvc.h"
+    #include ".\core\macro\varg_has_args_mvc.h"
+    #include ".\core\macro\varg_get_arg_mvc.h"
+    #include ".\core\macro\inc_mvc.h"
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH == 1)
+        #include ".\core\macro\for_each_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR == 1)
+        #include ".\core\macro\for_each_separator_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR == 1)
+        #include ".\core\macro\for_each_pair_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR == 1)
+        #include ".\core\macro\for_each_pair_separator_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE == 1)
+        #include ".\core\macro\for_each_triple_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR == 1)
+        #include ".\core\macro\for_each_triple_separator_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR == 1)
+        #include ".\core\macro\for_each_data_separator_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+        #include ".\core\macro\for_each_comma_mvc.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_1 == 1)
+        #include ".\core\macro\for_each_1_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_1_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_2 == 1)
+        #include ".\core\macro\for_each_2_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_2_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_3 == 1)
+        #include ".\core\macro\for_each_3_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_3_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_4 == 1)
+        #include ".\core\macro\for_each_4_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_4_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_5 == 1)
+        #include ".\core\macro\for_each_5_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_5_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_6 == 1)
+        #include ".\core\macro\for_each_6_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_6_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_7 == 1)
+        #include ".\core\macro\for_each_7_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_7_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_8 == 1)
+        #include ".\core\macro\for_each_8_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_8_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_9 == 1)
+        #include ".\core\macro\for_each_9_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_9_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_10 == 1)
+        #include ".\core\macro\for_each_10_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_10_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_11 == 1)
+        #include ".\core\macro\for_each_11_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_11_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_12 == 1)
+        #include ".\core\macro\for_each_12_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_12_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_13 == 1)
+        #include ".\core\macro\for_each_13_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_13_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_14 == 1)
+        #include ".\core\macro\for_each_14_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_14_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_15 == 1)
+        #include ".\core\macro\for_each_15_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_15_tuple_comma_mvc.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_16 == 1)
+        #include ".\core\macro\for_each_16_tuple_sep_mvc.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_16_tuple_comma_mvc.h"
+        #endif
+    #endif
 
+// ---- variant 128 ----
 #elif (D_DMACRO_VARIANT == 128)
-    #include "./core/macro/count_args128.h"
-    #include "./core/macro/has_args128.h"
-    #include "./core/macro/get_arg128.h"
-    #include "./core/macro/inc128.h"
-    #include "./core/macro/for_each128.h"
-    #include "./core/macro/for_each_pair128.h"
-    #include "./core/macro/for_each_3_tuple_128.h"
-    #include "./core/macro/for_each_4_tuple_128.h"
+    #include ".\core\macro\varg_count128.h"
+    #include ".\core\macro\varg_has_args128.h"
+    #include ".\core\macro\varg_get_arg128.h"
+    #include ".\core\macro\inc128.h"
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH == 1)
+        #include ".\core\macro\for_each128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR == 1)
+        #include ".\core\macro\for_each_separator128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR == 1)
+        #include ".\core\macro\for_each_pair128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR == 1)
+        #include ".\core\macro\for_each_pair_separator128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE == 1)
+        #include ".\core\macro\for_each_triple128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR == 1)
+        #include ".\core\macro\for_each_triple_separator128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR == 1)
+        #include ".\core\macro\for_each_data_separator128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+        #include ".\core\macro\for_each_comma128.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_1 == 1)
+        #include ".\core\macro\for_each_1_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_1_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_2 == 1)
+        #include ".\core\macro\for_each_2_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_2_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_3 == 1)
+        #include ".\core\macro\for_each_3_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_3_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_4 == 1)
+        #include ".\core\macro\for_each_4_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_4_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_5 == 1)
+        #include ".\core\macro\for_each_5_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_5_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_6 == 1)
+        #include ".\core\macro\for_each_6_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_6_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_7 == 1)
+        #include ".\core\macro\for_each_7_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_7_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_8 == 1)
+        #include ".\core\macro\for_each_8_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_8_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_9 == 1)
+        #include ".\core\macro\for_each_9_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_9_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_10 == 1)
+        #include ".\core\macro\for_each_10_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_10_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_11 == 1)
+        #include ".\core\macro\for_each_11_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_11_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_12 == 1)
+        #include ".\core\macro\for_each_12_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_12_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_13 == 1)
+        #include ".\core\macro\for_each_13_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_13_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_14 == 1)
+        #include ".\core\macro\for_each_14_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_14_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_15 == 1)
+        #include ".\core\macro\for_each_15_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_15_tuple_comma128.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_16 == 1)
+        #include ".\core\macro\for_each_16_tuple_sep128.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_16_tuple_comma128.h"
+        #endif
+    #endif
 
+// ---- variant 256 ----
 #elif (D_DMACRO_VARIANT == 256)
-    #include "./core/macro/count_args256.h"
-    #include "./core/macro/has_args256.h"
-    #include "./core/macro/get_arg256.h"
-    #include "./core/macro/inc256.h"
-    #include "./core/macro/for_each256.h"
-    #include "./core/macro/for_each_pair256.h"
-    #include "./core/macro/for_each_3_tuple256.h"
-    #include "./core/macro/for_each_4_tuple256.h"
+    #include ".\core\macro\count_args256.h"
+    #include ".\core\macro\varg_has_args256.h"
+    #include ".\core\macro\varg_get_arg256.h"
+    #include ".\core\macro\inc256.h"
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH == 1)
+        #include ".\core\macro\for_each256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR == 1)
+        #include ".\core\macro\for_each_separator256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR == 1)
+        #include ".\core\macro\for_each_pair256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR == 1)
+        #include ".\core\macro\for_each_pair_separator256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE == 1)
+        #include ".\core\macro\for_each_triple256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR == 1)
+        #include ".\core\macro\for_each_triple_separator256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR == 1)
+        #include ".\core\macro\for_each_data_separator256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+        #include ".\core\macro\for_each_comma256.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_1 == 1)
+        #include ".\core\macro\for_each_1_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_1_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_2 == 1)
+        #include ".\core\macro\for_each_2_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_2_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_3 == 1)
+        #include ".\core\macro\for_each_3_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_3_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_4 == 1)
+        #include ".\core\macro\for_each_4_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_4_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_5 == 1)
+        #include ".\core\macro\for_each_5_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_5_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_6 == 1)
+        #include ".\core\macro\for_each_6_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_6_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_7 == 1)
+        #include ".\core\macro\for_each_7_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_7_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_8 == 1)
+        #include ".\core\macro\for_each_8_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_8_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_9 == 1)
+        #include ".\core\macro\for_each_9_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_9_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_10 == 1)
+        #include ".\core\macro\for_each_10_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_10_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_11 == 1)
+        #include ".\core\macro\for_each_11_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_11_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_12 == 1)
+        #include ".\core\macro\for_each_12_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_12_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_13 == 1)
+        #include ".\core\macro\for_each_13_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_13_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_14 == 1)
+        #include ".\core\macro\for_each_14_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_14_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_15 == 1)
+        #include ".\core\macro\for_each_15_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_15_tuple_comma256.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_16 == 1)
+        #include ".\core\macro\for_each_16_tuple_sep256.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_16_tuple_comma256.h"
+        #endif
+    #endif
 
+// ---- variant 512 ----
 #elif (D_DMACRO_VARIANT == 512)
-    #include "./core/macro/count_args512.h"
-    #include "./core/macro/has_args512.h"
-    #include "./core/macro/get_arg512.h"
-    #include "./core/macro/inc512.h"
-    #include "./core/macro/for_each512.h"
-    #include "./core/macro/for_each_pair512.h"
-    #include "./core/macro/for_each_3_tuple512.h"
-    #include "./core/macro/for_each_4_tuple512.h"
+    #include ".\core\macro\count_args512.h"
+    #include ".\core\macro\varg_has_args512.h"
+    #include ".\core\macro\varg_get_arg512.h"
+    #include ".\core\macro\inc512.h"
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH == 1)
+        #include ".\core\macro\for_each512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR == 1)
+        #include ".\core\macro\for_each_separator512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR == 1)
+        #include ".\core\macro\for_each_pair512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR == 1)
+        #include ".\core\macro\for_each_pair_separator512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE == 1)
+        #include ".\core\macro\for_each_triple512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR == 1)
+        #include ".\core\macro\for_each_triple_separator512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR == 1)
+        #include ".\core\macro\for_each_data_separator512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+        #include ".\core\macro\for_each_comma512.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_1 == 1)
+        #include ".\core\macro\for_each_1_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_1_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_2 == 1)
+        #include ".\core\macro\for_each_2_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_2_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_3 == 1)
+        #include ".\core\macro\for_each_3_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_3_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_4 == 1)
+        #include ".\core\macro\for_each_4_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_4_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_5 == 1)
+        #include ".\core\macro\for_each_5_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_5_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_6 == 1)
+        #include ".\core\macro\for_each_6_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_6_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_7 == 1)
+        #include ".\core\macro\for_each_7_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_7_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_8 == 1)
+        #include ".\core\macro\for_each_8_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_8_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_9 == 1)
+        #include ".\core\macro\for_each_9_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_9_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_10 == 1)
+        #include ".\core\macro\for_each_10_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_10_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_11 == 1)
+        #include ".\core\macro\for_each_11_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_11_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_12 == 1)
+        #include ".\core\macro\for_each_12_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_12_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_13 == 1)
+        #include ".\core\macro\for_each_13_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_13_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_14 == 1)
+        #include ".\core\macro\for_each_14_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_14_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_15 == 1)
+        #include ".\core\macro\for_each_15_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_15_tuple_comma512.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_16 == 1)
+        #include ".\core\macro\for_each_16_tuple_sep512.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_16_tuple_comma512.h"
+        #endif
+    #endif
 
+// ---- variant 1024 (fallback) ----
 #else  // 1024
-    #include "./core/macro/count_args1024.h"
-    #include "./core/macro/has_args1024.h"
-    #include "./core/macro/get_arg1024.h"
-    #include "./core/macro/inc1024.h"
-    #include "./core/macro/for_each1024.h"
-    #include "./core/macro/for_each_pair1024.h"
-    #include "./core/macro/for_each_3_tuple1024.h"
-    #include "./core/macro/for_each_4_tuple1024.h"
+    #include ".\core\macro\count_args1024.h"
+    #include ".\core\macro\varg_has_args1024.h"
+    #include ".\core\macro\varg_get_arg1024.h"
+    #include ".\core\macro\inc1024.h"
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH == 1)
+        #include ".\core\macro\for_each1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_SEPARATOR == 1)
+        #include ".\core\macro\for_each_separator1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR == 1)
+        #include ".\core\macro\for_each_pair1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_PAIR_SEPARATOR == 1)
+        #include ".\core\macro\for_each_pair_separator1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE == 1)
+        #include ".\core\macro\for_each_triple1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_TRIPLE_SEPARATOR == 1)
+        #include ".\core\macro\for_each_triple_separator1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_DATA_SEPARATOR == 1)
+        #include ".\core\macro\for_each_data_separator1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+        #include ".\core\macro\for_each_comma1024.h"
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_1 == 1)
+        #include ".\core\macro\for_each_1_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_1_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_2 == 1)
+        #include ".\core\macro\for_each_2_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_2_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_3 == 1)
+        #include ".\core\macro\for_each_3_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_3_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_4 == 1)
+        #include ".\core\macro\for_each_4_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_4_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_5 == 1)
+        #include ".\core\macro\for_each_5_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_5_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_6 == 1)
+        #include ".\core\macro\for_each_6_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_6_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_7 == 1)
+        #include ".\core\macro\for_each_7_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_7_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_8 == 1)
+        #include ".\core\macro\for_each_8_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_8_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_9 == 1)
+        #include ".\core\macro\for_each_9_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_9_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_10 == 1)
+        #include ".\core\macro\for_each_10_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_10_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_11 == 1)
+        #include ".\core\macro\for_each_11_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_11_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_12 == 1)
+        #include ".\core\macro\for_each_12_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_12_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_13 == 1)
+        #include ".\core\macro\for_each_13_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_13_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_14 == 1)
+        #include ".\core\macro\for_each_14_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_14_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_15 == 1)
+        #include ".\core\macro\for_each_15_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_15_tuple_comma1024.h"
+        #endif
+    #endif
+    #if (D_CFG_DMACRO_INCLUDE_TUPLE_16 == 1)
+        #include ".\core\macro\for_each_16_tuple_sep1024.h"
+        #if (D_CFG_DMACRO_INCLUDE_FOR_EACH_COMMA == 1)
+            #include ".\core\macro\for_each_16_tuple_comma1024.h"
+        #endif
+    #endif
 #endif
 
 
@@ -597,6 +1427,11 @@ XIII. COMPILE-TIME ASSERTIONS
 ///                     III. ARGUMENT COUNTING UTILITIES                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
+// D_INTERNAL_VARG_GET_N
+//   macro (internal): select arg N (where N is a number token)
+#define D_INTERNAL_VARG_GET_N(_n, ...) \
+    D_CONCAT(D_VARG_GET_ARG_, _n)(__VA_ARGS__)
+
 // D_VARG_GET_FIRST through D_VARG_GET_TENTH
 //   macro (alias): convenience names for positional argument extraction.
 #define D_VARG_GET_FIRST(...)   D_VARG_GET_ARG_1(__VA_ARGS__)
@@ -618,11 +1453,6 @@ XIII. COMPILE-TIME ASSERTIONS
 
 // D_TAIL - alias for D_REST
 #define D_TAIL(first, ...) __VA_ARGS__
-
-// D_INTERNAL_VARG_GET_N
-//   macro (internal): select arg N (where N is a number token)
-#define D_INTERNAL_VARG_GET_N(_n, ...) \
-    D_CONCAT(D_VARG_GET_ARG_, _n)(__VA_ARGS__)
 
 // D_VARG_LAST
 //   macro: expands to the last argument in __VA_ARGS__
@@ -822,15 +1652,23 @@ XIII. COMPILE-TIME ASSERTIONS
 // D_FOR_EACH_SEP
 //   macro: apply function to each element with custom separator.
 // Usage: D_FOR_EACH_SEP(;, fn, a, b, c) -> fn(a); fn(b); fn(c)
-#define D_FOR_EACH_SEP(_sep, _fn, ...) \
+#define D_FOR_EACH_SEP(_sep, _fn, ...)                                      \
     D_CONCAT(D_INTERNAL_FOR_EACH_SEPARATOR_,                                \
              D_VARG_COUNT(__VA_ARGS__))(_fn, _sep, __VA_ARGS__)
 
-// D_FOR_EACH_COMMA
-//   macro: apply function to each element, comma-separated.
-// Usage: D_FOR_EACH_COMMA(fn, a, b, c) -> fn(a), fn(b), fn(c)
-#define D_FOR_EACH_COMMA(_fn, ...)                                          \
-    D_FOR_EACH_SEP(D_SEPARATOR_COMMA, _fn, __VA_ARGS__)
+#if defined(D_ENV_COMPILER_MSVC)
+    // D_FOR_EACH_COMMA
+    //   macro: apply function to each element, comma-separated.
+    #define D_FOR_EACH_COMMA(_fn, ...)                                      \
+        D_CONCAT(D_INTERNAL_FOR_EACH_COMMA_,                                \
+                 D_VARG_COUNT(__VA_ARGS__))(_fn, __VA_ARGS__)
+#else
+    // D_FOR_EACH_COMMA
+    //   macro: apply function to each element, comma-separated.
+    #define D_FOR_EACH_COMMA(_fn, ...)                                      \
+        D_FOR_EACH_SEP(D_SEPARATOR_COMMA, _fn, __VA_ARGS__)
+
+#endif
 
 // D_FOR_EACH_SEMICOLON
 //   macro: apply function to each element, semicolon-separated.
