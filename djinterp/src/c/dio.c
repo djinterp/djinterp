@@ -407,9 +407,6 @@ d_fgets
     return fgets(_str, _num, _stream);
 }
 
-#include "..\inc\c\dio.h"
-
-
 /*
 d_fgetpos
   Gets the current file position of the stream.

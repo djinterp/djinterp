@@ -118,8 +118,9 @@ function(djinterp_add_module_dependencies)
     
     # add each module's source file
     foreach(MODULE ${ARG_MODULES})
-        # skip dmacro as it's header-only
-        if(NOT MODULE STREQUAL "dmacro")
+        # skip header-only modules
+        djinterp_is_header_only_module(${MODULE} IS_HEADER_ONLY)
+        if(NOT IS_HEADER_ONLY)
             list(APPEND RESULT_LIST "${LOCAL_SOURCE_DIR}/${MODULE}.c")
         endif()
     endforeach()
@@ -196,6 +197,22 @@ function(djinterp_get_module_dependencies_default MODULE OUTPUT_VAR)
     elseif(MODULE STREQUAL "dtime")
         # dtime depends on djinterp and dmemory
         set(DEPS "djinterp" "dmemory")
+
+    elseif(MODULE STREQUAL "datomic")
+        # datomic depends on djinterp (atomic operations wrapper)
+        set(DEPS "djinterp")
+
+    elseif(MODULE STREQUAL "dio")
+        # dio depends on djinterp and dmemory
+        set(DEPS "djinterp" "dmemory")
+
+    elseif(MODULE STREQUAL "dmutex")
+        # dmutex depends on djinterp (threading/mutex wrapper)
+        set(DEPS "djinterp")
+
+    elseif(MODULE STREQUAL "dconfig")
+        # dconfig depends on djinterp and env
+        set(DEPS "djinterp" "env")
         
     else()
         message(WARNING "Unknown module: ${MODULE}, assuming depends on djinterp only")
