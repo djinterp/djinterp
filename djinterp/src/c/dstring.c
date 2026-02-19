@@ -18,7 +18,7 @@
 d_string_internal_grow
   Ensures the d_string has at least the required capacity, growing if needed.
 */
-static bool
+D_STATIC bool
 d_string_internal_grow
 (
     struct d_string* _str,
