@@ -1,12 +1,14 @@
 /******************************************************************************
-* djinterp [test]                                           dstring_tests_sa.h
+* djinterp [test]                                        string_fn_tests_sa.h
 *
-*   Unit tests for the dstring module (cross-platform string operations).
-*   Tests cover secure string copying, duplication, case operations, 
-* tokenization, length limiting, searching, and error handling.
+*   Unit tests for the string_fn module (cross-platform string operations).
+*   Tests cover secure string copying, duplication, case operations,
+* tokenization, length limiting, searching, error handling, length-aware
+* comparison, validation, counting, hashing, prefix/suffix/containment,
+* index-returning search, and in-place character replacement.
 *
 *
-* path:      \inc\c\test\dstring_tests_sa.h
+* path:      \inc\test\string_fn_tests_sa.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
@@ -14,8 +16,8 @@
 #ifndef DJINTERP_STRING_FN_TESTS_STANDALONE_
 #define DJINTERP_STRING_FN_TESTS_STANDALONE_ 1
 
-#include "..\..\inc\c\test\test_standalone.h"
-#include "..\..\inc\c\string_fn.h"
+#include "..\inc\test\test_standalone.h"
+#include "..\inc\string_fn.h"
 
 
 /******************************************************************************
@@ -41,7 +43,7 @@
 
 // D_TEST_DSTRING_UNICODE_STR
 //   constant: string with unicode/special characters.
-#define D_TEST_DSTRING_UNICODE_STR      "Café naïve résumé"
+#define D_TEST_DSTRING_UNICODE_STR      "CafÃ© naÃ¯ve rÃ©sumÃ©"
 
 // D_TEST_DSTRING_BUFFER_SIZE
 //   constant: standard buffer size for tests.
@@ -114,12 +116,56 @@ struct d_test_object* d_tests_string_fn_null_params_all(void);
 // boundary condition tests
 struct d_test_object* d_tests_string_fn_boundary_conditions_all(void);
 
+// length-aware comparison tests
+struct d_test_object* d_tests_string_fn_strcmp_n(void);
+struct d_test_object* d_tests_string_fn_strncmp_n(void);
+struct d_test_object* d_tests_string_fn_strcasecmp_n(void);
+struct d_test_object* d_tests_string_fn_strncasecmp_n(void);
+struct d_test_object* d_tests_string_fn_strequals(void);
+struct d_test_object* d_tests_string_fn_strequals_nocase(void);
+struct d_test_object* d_tests_string_fn_length_aware_cmp_all(void);
+
+// validation tests
+struct d_test_object* d_tests_string_fn_str_is_valid(void);
+struct d_test_object* d_tests_string_fn_str_is_ascii(void);
+struct d_test_object* d_tests_string_fn_str_is_numeric(void);
+struct d_test_object* d_tests_string_fn_str_is_alpha(void);
+struct d_test_object* d_tests_string_fn_str_is_alnum(void);
+struct d_test_object* d_tests_string_fn_str_is_whitespace(void);
+struct d_test_object* d_tests_string_fn_validation_all(void);
+
+// counting tests
+struct d_test_object* d_tests_string_fn_strcount_char(void);
+struct d_test_object* d_tests_string_fn_strcount_substr(void);
+struct d_test_object* d_tests_string_fn_counting_all(void);
+
+// hash tests
+struct d_test_object* d_tests_string_fn_strhash(void);
+struct d_test_object* d_tests_string_fn_hash_all(void);
+
+// prefix, suffix, and containment tests
+struct d_test_object* d_tests_string_fn_strstartswith(void);
+struct d_test_object* d_tests_string_fn_strendswith(void);
+struct d_test_object* d_tests_string_fn_strcontains(void);
+struct d_test_object* d_tests_string_fn_strcontains_char(void);
+struct d_test_object* d_tests_string_fn_prefix_suffix_all(void);
+
+// index-returning search tests
+struct d_test_object* d_tests_string_fn_strchr_index(void);
+struct d_test_object* d_tests_string_fn_strchr_index_from(void);
+struct d_test_object* d_tests_string_fn_strrchr_index(void);
+struct d_test_object* d_tests_string_fn_strstr_index(void);
+struct d_test_object* d_tests_string_fn_strstr_index_from(void);
+struct d_test_object* d_tests_string_fn_strrstr_index(void);
+struct d_test_object* d_tests_string_fn_strcasestr_index(void);
+struct d_test_object* d_tests_string_fn_index_search_all(void);
+
+// in-place character replacement tests
+struct d_test_object* d_tests_string_fn_strreplace_char(void);
+struct d_test_object* d_tests_string_fn_replace_all(void);
+
 // master test runner
 struct d_test_object* d_tests_string_fn_run_all(void);
 
 
 #endif  // DJINTERP_STRING_FN_TESTS_STANDALONE_
-
-
-
-
