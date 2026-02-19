@@ -4601,210 +4601,125 @@ d_string_concat
 
 /*
 d_string_is_valid
-  Check if d_string structure is valid.
+  Check if a `d_string` is valid: defined as non-NULL, with a non-NULL buffer,
+and a null-terminator at the index corresponding to the parameter's `size`
+field.
 
 Parameter(s):
-  _str: d_string to check.
+  _str: `d_string` being checked for validity.
 Return:
-  true if valid, false otherwise.
+  A boolean value corresponding to either:
+  - true, if and only if all characters are ASCII, or
+  - false, if one or more characters in `_string` are non-ASCII characters.
 */
-bool
+D_INLINE bool
 d_string_is_valid
 (
-    const struct d_string* _str
+    const struct d_string* _string
 )
 {
-    if (_str == NULL)
-    {
-        return false;
-    }
-
-    if (_str->text == NULL)
-    {
-        return false;
-    }
-
-    // verify null termination at reported size
-    if (_str->text[_str->size] != '\0')
-    {
-        return false;
-    }
-
-    return true;
+    return ( d_str_is_valid(_string) &&
+             (_string->text[_string->size] != '\0') );
 }
 
 /*
 d_string_is_ascii
-  Check if string contains only ASCII characters.
+  Check if a `d_string` contains only ASCII characters.
 
 Parameter(s):
-  _str: d_string to check.
+  _string: valid, non-NULL `d_string` to check.
 Return:
-  true if all ASCII, false otherwise.
+  A boolean value corresponding to either:
+  - true, if and only if all characters are ASCII, or
+  - false, if one or more characters in `_string` are non-ASCII characters.
 */
-bool
+D_INLINE bool
 d_string_is_ascii
 (
-    const struct d_string* _str
+    const struct d_string* _string
 )
 {
-    size_t i;
-
-    if ( (_str == NULL) || 
-         (_str->text == NULL) )
-    {
-        return false;
-    }
-
-    for (i = 0; i < _str->size; i++)
-    {
-        if ((unsigned char)_str->text[i] > 127)
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return d_str_is_ascii(_string);
 }
 
 /*
 d_string_is_numeric
-  Check if string contains only numeric characters.
+  Check if a `d_string` contains only numeric characters.
 
 Parameter(s):
-  _str: d_string to check.
+  _string: valid, non-NULL `d_string` to check.
 Return:
-  true if all numeric, false otherwise.
+  A boolean value corresponding to either:
+  - true, if and only if all characters are numeric, or
+  - false, if one or more characters in `_string` are non-numeric characters.
 */
-bool
+D_INLINE bool
 d_string_is_numeric
 (
-    const struct d_string* _str
+    const struct d_string* _string
 )
 {
-    size_t i;
-
-    if ( (_str == NULL) || 
-         (_str->text == NULL) || 
-         (_str->size == 0) )
-    {
-        return false;
-    }
-
-    for (i = 0; i < _str->size; i++)
-    {
-        if (!isdigit((unsigned char)_str->text[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return d_str_is_numeric(_string);
 }
 
 /*
 d_string_is_alpha
-  Check if string contains only alphabetic characters.
+  Check if a `d_string` contains only alphabetical characters.
 
 Parameter(s):
-  _str: d_string to check.
+  _string: valid, non-NULL `d_string` to check.
 Return:
-  true if all alphabetic, false otherwise.
+  A boolean value corresponding to either:
+  - true, if and only if all characters are alphabetical, or
+  - false, if one or more characters in `_string` are non-alphabetical characters.
 */
-bool
+D_INLINE bool
 d_string_is_alpha
 (
-    const struct d_string* _str
+    const struct d_string* _string
 )
 {
-    size_t i;
-
-    if ( (_str == NULL) || 
-         (_str->text == NULL) || 
-         (_str->size == 0) )
-    {
-        return false;
-    }
-
-    for (i = 0; i < _str->size; i++)
-    {
-        if (!isalpha((unsigned char)_str->text[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return d_str_is_alpha(_string);
 }
 
 /*
 d_string_is_alnum
-  Check if string contains only alphanumeric characters.
+  Check if a `d_string` contains only alphanumeric characters.
 
 Parameter(s):
-  _str: d_string to check.
+  _string: valid, non-NULL `d_string` to check.
 Return:
-  true if all alphanumeric, false otherwise.
+  A boolean value corresponding to either:
+  - true, if and only if all characters are alphanumeric, or
+  - false, if one or more characters in `_string` are non-alphanumeric characters.
 */
-bool
+D_INLINE bool
 d_string_is_alnum
 (
-    const struct d_string* _str
+    const struct d_string* _string
 )
 {
-    size_t i;
-
-    if ( (_str == NULL) || 
-         (_str->text == NULL) || 
-         (_str->size == 0) )
-    {
-        return false;
-    }
-
-    for (i = 0; i < _str->size; i++)
-    {
-        if (!isalnum((unsigned char)_str->text[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return d_str_is_alnum(_string);
 }
 
 /*
 d_string_is_whitespace
-  Check if string contains only whitespace characters.
+  Check if a `d_string` contains only whitespace characters.
 
 Parameter(s):
-  _str: d_string to check.
+  _string: valid, non-NULL `d_string` to check.
 Return:
-  true if all whitespace, false otherwise.
+  A boolean value corresponding to either:
+  - true, if and only if all characters are whitespace characters, or
+  - false, if one or more characters in `_string` are non-whitespace characters.
 */
-bool
+D_INLINE bool
 d_string_is_whitespace
 (
-    const struct d_string* _str
+    const struct d_string* _string
 )
 {
-    size_t i;
-
-    if ( (_str == NULL) || 
-         (_str->text == NULL) || 
-         (_str->size == 0) )
-    {
-        return false;
-    }
-
-    for (i = 0; i < _str->size; i++)
-    {
-        if (!isspace((unsigned char)_str->text[i]))
-        {
-            return false;
-        }
-    }
-
-    return true;
+    return d_str_is_whitespace(_string);
 }
 
 
