@@ -48,7 +48,7 @@ d_tests_string_fn_strerror_r
     // test 3: unknown error code
     memset(buffer, 0, sizeof(buffer));
     result = d_strerror_r(99999, buffer, sizeof(buffer));
-    test_unknown_error = (strlen(buffer) > 0);  // should still provide some message
+    test_unknown_error = (strlen(buffer) > 0);
 
     // test 4: null terminated
     memset(buffer, 'X', sizeof(buffer));
@@ -144,7 +144,6 @@ d_tests_string_fn_null_params_all
 {
     struct d_test_object* group;
     char                  buffer[256];
-    char*                 saveptr;
     int                   result;
     bool                  test_strcpy_s;
     bool                  test_strncpy_s;
@@ -161,9 +160,17 @@ d_tests_string_fn_null_params_all
     bool                  test_strupr;
     bool                  test_strrev;
     bool                  test_strchrnul;
+    bool                  test_strcmp_n;
+    bool                  test_strequals;
+    bool                  test_validation;
+    bool                  test_counting;
+    bool                  test_hash;
+    bool                  test_prefix_suffix;
+    bool                  test_index_search;
+    bool                  test_replace_char;
     size_t                idx;
 
-    // test NULL parameters for each function
+    // original functions
     test_strcpy_s = (d_strcpy_s(NULL, 10, "test") != 0) &&
                    (d_strcpy_s(buffer, sizeof(buffer), NULL) != 0);
 
@@ -180,9 +187,9 @@ d_tests_string_fn_null_params_all
 
     test_strndup = (d_strndup(NULL, 10) == NULL);
 
-    test_strcasecmp = true;  // implementation-dependent behavior
+    test_strcasecmp = true;
 
-    test_strncasecmp = true;  // implementation-dependent behavior
+    test_strncasecmp = true;
 
     test_strtok_r = (d_strtok_r(NULL, ",", NULL) == NULL);
 
@@ -199,8 +206,43 @@ d_tests_string_fn_null_params_all
 
     test_strchrnul = (d_strchrnul(NULL, 'a') == NULL);
 
+    // new functions
+    test_strcmp_n = (d_strcmp_n(NULL, 0, "test", 4) < 0) &&
+                   (d_strcmp_n("test", 4, NULL, 0) > 0) &&
+                   (d_strcmp_n(NULL, 0, NULL, 0) == 0);
+
+    test_strequals = (d_strequals(NULL, 0, NULL, 0) == true) &&
+                    (d_strequals(NULL, 0, "test", 4) == false) &&
+                    (d_strequals_nocase(NULL, 0, NULL, 0) == true);
+
+    test_validation = !d_str_is_valid(NULL, 5) &&
+                     !d_str_is_ascii(NULL, 5) &&
+                     !d_str_is_numeric(NULL, 5) &&
+                     !d_str_is_alpha(NULL, 5) &&
+                     !d_str_is_alnum(NULL, 5) &&
+                     !d_str_is_whitespace(NULL, 5);
+
+    test_counting = (d_strcount_char(NULL, 5, 'a') == 0) &&
+                   (d_strcount_substr(NULL, 5, "abc") == 0) &&
+                   (d_strcount_substr("abc", 3, NULL) == 0);
+
+    test_hash = (d_strhash(NULL, 5) == 0);
+
+    test_prefix_suffix = !d_strstartswith(NULL, 0, "x", 1) &&
+                        !d_strendswith(NULL, 0, "x", 1) &&
+                        !d_strcontains(NULL, 0, "x") &&
+                        !d_strcontains_char(NULL, 0, 'x');
+
+    test_index_search = (d_strchr_index(NULL, 5, 'a') == D_STRING_NPOS) &&
+                       (d_strrchr_index(NULL, 5, 'a') == D_STRING_NPOS) &&
+                       (d_strstr_index(NULL, 5, "ab", 2) == D_STRING_NPOS) &&
+                       (d_strrstr_index(NULL, 5, "ab", 2) == D_STRING_NPOS) &&
+                       (d_strcasestr_index(NULL, 5, "ab", 2) == D_STRING_NPOS);
+
+    test_replace_char = (d_strreplace_char(NULL, 5, 'a', 'b') == 0);
+
     // build result tree
-    group = d_test_object_new_interior("NULL Parameter Handling", 15);
+    group = d_test_object_new_interior("NULL Parameter Handling", 23);
 
     if (!group)
     {
@@ -253,6 +295,30 @@ d_tests_string_fn_null_params_all
     group->elements[idx++] = D_ASSERT_TRUE("strchrnul_null",
                                            test_strchrnul,
                                            "d_strchrnul handles NULL parameter");
+    group->elements[idx++] = D_ASSERT_TRUE("strcmp_n_null",
+                                           test_strcmp_n,
+                                           "d_strcmp_n handles NULL parameters");
+    group->elements[idx++] = D_ASSERT_TRUE("strequals_null",
+                                           test_strequals,
+                                           "d_strequals handles NULL parameters");
+    group->elements[idx++] = D_ASSERT_TRUE("validation_null",
+                                           test_validation,
+                                           "validation functions handle NULL");
+    group->elements[idx++] = D_ASSERT_TRUE("counting_null",
+                                           test_counting,
+                                           "counting functions handle NULL");
+    group->elements[idx++] = D_ASSERT_TRUE("hash_null",
+                                           test_hash,
+                                           "d_strhash handles NULL");
+    group->elements[idx++] = D_ASSERT_TRUE("prefix_suffix_null",
+                                           test_prefix_suffix,
+                                           "prefix/suffix functions handle NULL");
+    group->elements[idx++] = D_ASSERT_TRUE("index_search_null",
+                                           test_index_search,
+                                           "index search functions handle NULL");
+    group->elements[idx++] = D_ASSERT_TRUE("replace_char_null",
+                                           test_replace_char,
+                                           "d_strreplace_char handles NULL");
 
     return group;
 }
@@ -270,6 +336,8 @@ d_tests_string_fn_boundary_conditions_all
   - single-character operations
   - maximum size operations
   - off-by-one scenarios
+  - empty string operations for new functions
+  - single-char search and containment edge cases
 */
 struct d_test_object*
 d_tests_string_fn_boundary_conditions_all
@@ -280,7 +348,7 @@ d_tests_string_fn_boundary_conditions_all
     struct d_test_object* group;
     char                  one_char[2];
     char                  zero_buf[1];
-    char                  exact_fit[6];  // for "Hello" + null
+    char                  exact_fit[6];
     char                  large_buffer[1024];
     char*                 result_ptr;
     int                   result;
@@ -290,6 +358,8 @@ d_tests_string_fn_boundary_conditions_all
     bool                  test_off_by_one;
     bool                  test_max_size;
     bool                  test_empty_operations;
+    bool                  test_single_char_search;
+    bool                  test_single_char_prefix;
     size_t                idx;
 
     // test 1: zero-length buffer operations
@@ -310,7 +380,7 @@ d_tests_string_fn_boundary_conditions_all
                          (strlen(exact_fit) == 5);
 
     // test 4: off-by-one scenarios
-    result = d_strcpy_s(exact_fit, sizeof(exact_fit), "Hello!");  // one too many
+    result = d_strcpy_s(exact_fit, sizeof(exact_fit), "Hello!");
     test_off_by_one = (result != 0);
 
     // test 5: maximum size operations
@@ -333,8 +403,18 @@ d_tests_string_fn_boundary_conditions_all
         free(dup_empty);
     }
 
+    // test 7: single-character search edge cases
+    d_index ci = d_strchr_index("X", 1, 'X');
+    d_index ri = d_strrchr_index("X", 1, 'X');
+    test_single_char_search = (ci == 0) && (ri == 0);
+
+    // test 8: single-character prefix/suffix
+    bool sw = d_strstartswith("X", 1, "X", 1);
+    bool ew = d_strendswith("X", 1, "X", 1);
+    test_single_char_prefix = sw && ew;
+
     // build result tree
-    group = d_test_object_new_interior("Boundary Conditions", 6);
+    group = d_test_object_new_interior("Boundary Conditions", 8);
 
     if (!group)
     {
@@ -360,8 +440,12 @@ d_tests_string_fn_boundary_conditions_all
     group->elements[idx++] = D_ASSERT_TRUE("empty_operations",
                                            test_empty_operations,
                                            "handles empty string operations");
+    group->elements[idx++] = D_ASSERT_TRUE("single_char_search",
+                                           test_single_char_search,
+                                           "handles single-char index search");
+    group->elements[idx++] = D_ASSERT_TRUE("single_char_prefix",
+                                           test_single_char_prefix,
+                                           "handles single-char prefix/suffix");
 
     return group;
 }
-
-
