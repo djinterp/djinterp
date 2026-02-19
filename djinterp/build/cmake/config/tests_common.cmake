@@ -74,6 +74,18 @@ function(djinterp_gather_test_files)
 endfunction()
 
 
+function(djinterp_get_standalone_dependencies OUTPUT_VAR)
+    set(DEPS 
+        "djinterp"
+        "dmemory"
+        "string_fn"
+        "dfile"
+        "dtime"
+        "dstring"  # ADD THIS LINE
+    )
+    set(${OUTPUT_VAR} ${DEPS} PARENT_SCOPE)
+endfunction()
+
 # djinterp_add_module_dependencies
 #   function: adds module source files to a list for specific modules
 # 

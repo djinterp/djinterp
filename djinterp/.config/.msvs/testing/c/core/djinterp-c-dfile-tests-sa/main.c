@@ -117,6 +117,8 @@ main
                                     sizeof(g_dfile_notes[0]),
                                 g_dfile_notes);
 
+    d_test_sa_runner_set_wait_for_input(&runner, true);
+
     // execute all tests and return result
     return d_test_sa_runner_execute(&runner);
 }

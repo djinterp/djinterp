@@ -63,16 +63,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE INTERNAL "")
 message(STATUS "========================================")
 message(STATUS "djinterp Core Module Configuration")
 message(STATUS "========================================")
-message(STATUS "Root:              ${CORE_ROOT}")
-message(STATUS "Source dir:        ${SOURCE_DIR}")
-message(STATUS "Include dir:       ${INCLUDE_DIR}")
-message(STATUS "Test dir:          ${TEST_DIR}")
+message(STATUS "Root:               ${CORE_ROOT}")
+message(STATUS "Source dir:         ${SOURCE_DIR}")
+message(STATUS "Include dir:        ${INCLUDE_DIR}")
+message(STATUS "Test dir:           ${TEST_DIR}")
 message(STATUS "Test framework src: ${TEST_FRAMEWORK_SRC_DIR}")
 message(STATUS "Test framework inc: ${TEST_FRAMEWORK_INC_DIR}")
-message(STATUS "Bin dir:           ${CORE_ROOT}/bin/tests/c/core")
-message(STATUS "Lib dir:           ${CORE_ROOT}/lib/core/c")
-message(STATUS "Build dir:         ${CMAKE_CURRENT_BINARY_DIR}")
-message(STATUS "Platform:          ${PLATFORM_ARCH}")
+message(STATUS "Bin dir:            ${CORE_ROOT}/bin/tests/c/core")
+message(STATUS "Lib dir:            ${CORE_ROOT}/lib/core/c")
+message(STATUS "Build dir:          ${CMAKE_CURRENT_BINARY_DIR}")
+message(STATUS "Platform:           ${PLATFORM_ARCH}")
 message(STATUS "========================================")
 
 ###############################################################################
@@ -130,7 +130,8 @@ target_link_libraries(dio PUBLIC djinterp dmemory)
 # dmutex module
 add_library(dmutex STATIC "${SOURCE_DIR}/dmutex.c")
 target_include_directories(dmutex PUBLIC ${INCLUDE_DIR})
-target_link_libraries(dmutex PUBLIC djinterp)
+target_link_libraries(dmutex PUBLIC djinterp dtime)
+
 # POSIX platforms need pthreads for threading support
 if(NOT MSVC)
     find_package(Threads REQUIRED)
@@ -165,6 +166,7 @@ add_library(test-standalone-support STATIC
     "${SOURCE_DIR}/dmemory.c"
     "${SOURCE_DIR}/string_fn.c"
     "${SOURCE_DIR}/dfile.c"
+    "${SOURCE_DIR}/dstring.c"  
 )
 target_include_directories(test-standalone-support PUBLIC 
     ${INCLUDE_DIR} 
@@ -304,6 +306,82 @@ else()
     djinterp_add_standalone_test(MODULE_NAME dmutex EXTRA_LIBS dmutex)
 endif()
 
+# --------------------------------------------------------------------------
+# ALL CORE TESTS (unified runner)
+# Combines every core module into a single test executable.
+# --------------------------------------------------------------------------
+set(CORE_ALL_MAIN "${CONFIG_TEST_DIR}/djinterp-c-core-tests-sa/main.c")
+if(EXISTS "${CORE_ALL_MAIN}")
+    # Gather ALL test .c files from every core module
+    file(GLOB CORE_ALL_TEST_FILES
+        "${TEST_DIR}/env_tests_sa*.c"
+        "${TEST_DIR}/dmacro_tests_sa*.c"
+        "${TEST_DIR}/djinterp_tests_sa*.c"
+        "${TEST_DIR}/dmemory_tests_sa*.c"
+        "${TEST_DIR}/string_fn_tests_sa*.c"
+        "${TEST_DIR}/dstring_tests_sa*.c"
+        "${TEST_DIR}/dfile_tests_sa*.c"
+        "${TEST_DIR}/dio_tests_sa*.c"
+        "${TEST_DIR}/dtime_tests_sa*.c"
+        "${TEST_DIR}/datomic_tests_sa*.c"
+        "${TEST_DIR}/dmutex_tests_sa*.c"
+    )
+
+    # Filter out any _main.c files from the glob
+    set(CORE_ALL_FILTERED "")
+    foreach(FILE ${CORE_ALL_TEST_FILES})
+        get_filename_component(FILENAME "${FILE}" NAME)
+        if(NOT FILENAME MATCHES "_main\\.c$")
+            list(APPEND CORE_ALL_FILTERED "${FILE}")
+        endif()
+    endforeach()
+
+    set(CORE_ALL_TARGET "djinterp-c-core-tests-sa-${PLATFORM_ARCH}")
+
+    add_executable(${CORE_ALL_TARGET}
+        "${CORE_ALL_MAIN}"
+        ${CORE_ALL_FILTERED}
+    )
+
+    target_include_directories(${CORE_ALL_TARGET} PRIVATE
+        ${INCLUDE_DIR}
+        ${TEST_FRAMEWORK_INC_DIR}
+        ${TEST_DIR}
+    )
+
+    target_compile_definitions(${CORE_ALL_TARGET} PRIVATE D_TESTING=1)
+
+    if(MSVC)
+        target_compile_options(${CORE_ALL_TARGET} PRIVATE /FS)
+        set_target_properties(${CORE_ALL_TARGET} PROPERTIES
+            COMPILE_PDB_NAME "${CORE_ALL_TARGET}"
+            COMPILE_PDB_OUTPUT_DIRECTORY
+                "${CMAKE_CURRENT_BINARY_DIR}/${CORE_ALL_TARGET}.dir"
+        )
+    endif()
+
+    # Link support library + module libraries not already in
+    # test-standalone-support (which provides: djinterp, dmemory,
+    # string_fn, dfile, dstring)
+    target_link_libraries(${CORE_ALL_TARGET} PRIVATE
+        test-standalone-support
+        env
+        dtime
+        datomic
+        dio
+        dmutex
+    )
+
+    # POSIX threading for dmutex
+    if(NOT MSVC)
+        target_link_libraries(${CORE_ALL_TARGET} PRIVATE Threads::Threads)
+    endif()
+
+    message(STATUS "Created test executable: ${CORE_ALL_TARGET}")
+else()
+    message(STATUS "Skipping all-core test (no main.c at ${CORE_ALL_MAIN})")
+endif()
+
 ###############################################################################
 # SUMMARY
 ###############################################################################
@@ -312,6 +390,6 @@ message(STATUS "")
 message(STATUS "Build Summary:")
 message(STATUS "  Libraries:        djinterp, env, dmacro, dfile, dmemory, dstring, dtime, string_fn,")
 message(STATUS "                    datomic, dio, dmutex, dconfig")
-message(STATUS "  Test executables: 11")
+message(STATUS "  Test executables: 11 individual + 1 unified (core-tests-sa)")
 message(STATUS "  Test framework:   Standalone (library-based)")
 message(STATUS "")

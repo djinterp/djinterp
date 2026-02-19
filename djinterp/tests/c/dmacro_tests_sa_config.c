@@ -49,9 +49,9 @@ d_tests_sa_dmacro_cfg_constants
     printf("%s--- Testing Configuration Constants ---\n", D_INDENT);
 
     // verify D_CFG_DMACRO_VARG_DEFAULT
-    if (!d_assert_standalone(D_CFG_DMACRO_VARG_DEFAULT == 256,
-                             "D_CFG_DMACRO_VARG_DEFAULT == 256",
-                             "default should be 256",
+    if (!d_assert_standalone(D_CFG_DMACRO_VARG_DEFAULT == 128,
+                             "D_CFG_DMACRO_VARG_DEFAULT == 128",
+                             "default should be 128",
                              _test_info))
     {
         all_assertions_passed = false;
