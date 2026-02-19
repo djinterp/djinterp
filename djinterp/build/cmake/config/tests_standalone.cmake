@@ -282,18 +282,20 @@ function(djinterp_add_standalone_test)
     # get module dependencies and link them
     # Note: This uses the djinterp_get_module_dependencies macro which can be
     # overridden by module-specific CMakeLists.txt files
-    djinterp_get_module_dependencies(${ARG_MODULE_NAME} MODULE_DEPS)
-    foreach(DEP ${MODULE_DEPS})
-        # only link if it's not already in the support library
-        if(NOT DEP STREQUAL "djinterp" AND 
-           NOT DEP STREQUAL "dmemory" AND 
-           NOT DEP STREQUAL "string_fn" AND
-           NOT DEP STREQUAL "dfile")
-            if(TARGET ${DEP})
-                target_link_libraries(${TARGET_NAME} PRIVATE ${DEP})
-            endif()
-        endif()
-    endforeach()
+	djinterp_get_module_dependencies(${ARG_MODULE_NAME} MODULE_DEPS)
+	foreach(DEP ${MODULE_DEPS})
+		# Only skip dependencies already in test-standalone-support
+		if(NOT DEP STREQUAL "djinterp" AND 
+		   NOT DEP STREQUAL "dmemory" AND 
+		   NOT DEP STREQUAL "string_fn" AND
+		   NOT DEP STREQUAL "dfile" AND
+		   NOT DEP STREQUAL "dtime" AND
+		   NOT DEP STREQUAL "dstring")  # ADD THIS LINE
+			if(TARGET ${DEP})
+				target_link_libraries(${TARGET_NAME} PRIVATE ${DEP})
+			endif()
+		endif()
+	endforeach()
     
     # link extra libraries if specified
     if(DEFINED ARG_EXTRA_LIBS)

@@ -19,10 +19,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\inc\test\test_standalone.h"
-#include "..\inc\dio.h"
-#include "..\inc\string_fn.h"
-#include "..\inc\dstring.h"
+#include "..\..\inc\c\test\test_standalone.h"
+#include "..\..\inc\c\dio.h"
+#include "..\..\inc\c\string_fn.h"
+#include "..\..\inc\c\dstring.h"
 
 
 /******************************************************************************

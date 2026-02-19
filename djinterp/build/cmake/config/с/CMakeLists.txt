@@ -72,3 +72,9 @@ endif()
 
 # Core C module
 add_subdirectory(core)
+
+# Container module
+add_subdirectory(container)
+
+# Test framework module
+add_subdirectory(test)

@@ -11,7 +11,6 @@
 * path:      \.config\.msvs\testing\core\djinterp-c-dmacro-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-
 #include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
 #include "..\..\..\..\..\..\tests\c\dmacro_tests_sa.h"
 
@@ -102,16 +101,17 @@ main
                           "Comprehensive Testing of Preprocessor Macro "
                           "Utilities and Metaprogramming Tools");
 
-    // register the dmacro module (tree-based)
-    d_test_sa_runner_add_module(&runner,
-                                "dmacro",
-                                "Token manipulation, array utilities, "
-                                "argument counting, expansion control, "
-                                "boolean logic, iteration macros",
-                                d_tests_dmacro_run_all,
-                                sizeof(g_dmacro_notes) /
-                                    sizeof(g_dmacro_notes[0]),
-                                g_dmacro_notes);
+    d_test_sa_runner_add_module_counter(&runner,
+                                         "dmacro",
+                                         "Token manipulation, array utilities, "
+                                         "argument counting, expansion control, "
+                                         "boolean logic, iteration macros",
+                                         d_tests_sa_dmacro_all,
+                                         sizeof(g_dmacro_notes) /
+                                             sizeof(g_dmacro_notes[0]),
+                                         g_dmacro_notes);
+
+    d_test_sa_runner_set_wait_for_input(&runner, true);
 
     // execute all tests and return result
     return d_test_sa_runner_execute(&runner);

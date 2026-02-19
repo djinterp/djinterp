@@ -1,0 +1,16 @@
+# Generated build files (NOT version controlled)
+/build/cmake/msvs/
+/bin/
+/lib/
+
+# CMake generated files anywhere
+**/CMakeCache.txt
+**/CMakeFiles/
+**/*.sln
+**/*.vcxproj
+**/*.vcxproj.filters
+**/*.vcxproj.user
+**/cmake_install.cmake
+
+# But keep config files (VERSION CONTROLLED)
+!/build/cmake/config/

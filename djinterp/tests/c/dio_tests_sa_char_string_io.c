@@ -101,8 +101,20 @@ d_tests_sa_dio_gets_s
             _counter) && result;
     }
 
-    // Note: We don't restore stdin as it's not portable to do so reliably
-    // The test framework will handle stdin state
+    // Note: we don't restore stdin as it's not portable to do so reliably
+    // The test framework will handle stdin state?
+    // CORRECTION: restore stdin to console
+#if defined(D_ENV_PLATFORM_WINDOWS)
+    {
+        FILE* restored = NULL;
+        d_freopen_s(&restored, "CON", "r", stdin);
+    }
+#else
+    {
+        FILE* restored = NULL;
+        d_freopen_s(&restored, "/dev/tty", "r", stdin);
+    }
+#endif
 
     // cleanup
     d_remove(temp_filename);

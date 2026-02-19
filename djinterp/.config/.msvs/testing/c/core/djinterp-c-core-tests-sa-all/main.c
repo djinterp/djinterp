@@ -1,104 +1,65 @@
 /******************************************************************************
 * djinterp [test]                                                       main.c
 *
-*   Test runner for djinterp core header standalone tests.
-*   Tests core types, functions, and macros including d_index functions,
-*   index manipulation macros, array utility macros, boolean constants,
-*   function pointer types, and edge case/boundary conditions.
+*   Unified test runner for all core module standalone tests.
+*   Runs every core module test suite in a single executable:
+*     env, dmacro, djinterp, dmemory, string_fn, dstring, dfile, dio,
+*     dtime, datomic, dmutex
 *
 *
-* path:      \.config\.msvs\testing\c\core\djinterp-c-header-tests-sa\main.c
+* path:      \.config\.msvs\testing\core\djinterp-c-core-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
 #include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
+#include "..\..\..\..\..\..\tests\c\env_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\dmacro_tests_sa.h"
 #include "..\..\..\..\..\..\tests\c\djinterp_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\dmemory_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\string_fn_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\dstring_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\dfile_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\dio_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\dtime_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\datomic_tests_sa.h"
+#include "..\..\..\..\..\..\tests\c\dmutex_tests_sa.h"
 
 
 /******************************************************************************
  * IMPLEMENTATION NOTES
  *****************************************************************************/
 
-static const struct d_test_sa_note_item g_djinterp_status_items[] =
+static const struct d_test_sa_note_item g_core_status_items[] =
 {
-    { "[INFO]", "d_index core functions (convert_fast, convert_safe, "
-                "is_valid) validated" },
-    { "[INFO]", "Critical safety macros (D_SAFE_ARR_IDX, D_CLAMP_INDEX) "
-                "thoroughly tested" },
-    { "[INFO]", "Index manipulation macros working for positive, negative, "
-                "and edge case indices" },
-    { "[INFO]", "Array utility macros functioning for size calculations and "
-                "element counting" },
-    { "[INFO]", "Boolean constants and evaluation macros established and "
-                "tested" },
-    { "[INFO]", "Function pointer types defined and validated for callback "
-                "patterns" },
-    { "[INFO]", "Edge case handling verified for boundary conditions and "
-                "extreme values" }
+    { "[INFO]", "Environment detection (env) validated" },
+    { "[INFO]", "Preprocessor macro utilities (dmacro) tested" },
+    { "[INFO]", "Core types and indexing (djinterp) verified" },
+    { "[INFO]", "Memory operations (dmemory) functional" },
+    { "[INFO]", "C string functions (string_fn) working" },
+    { "[INFO]", "Safe string type (dstring) validated" },
+    { "[INFO]", "File I/O operations (dfile) tested" },
+    { "[INFO]", "Formatted I/O operations (dio) verified" },
+    { "[INFO]", "Time utilities (dtime) functional" },
+    { "[INFO]", "Atomic operations (datomic) validated" },
+    { "[INFO]", "Mutex and threading (dmutex) tested" }
 };
 
-static const struct d_test_sa_note_item g_djinterp_issues_items[] =
+static const struct d_test_sa_note_item g_core_issues_items[] =
 {
-    { "[WARN]", "Some test modules still in stub form (marked with TODO)" },
-    { "[WARN]", "Function pointer tests need mock implementations" },
-    { "[WARN]", "Edge case tests need comprehensive boundary value "
-                "analysis" },
-    { "[WARN]", "Array macro tests need porting from existing test suite" },
-    { "[WARN]", "Performance benchmarks not yet implemented" }
+    { "[WARN]", "MSVC preprocessor requires /Zc:preprocessor for dmacro" },
+    { "[WARN]", "Some secure variants are no-ops on POSIX" },
+    { "[NOTE]", "dio gets_s tests redirect stdin; restored after tests" },
+    { "[NOTE]", "dtime sleep tests have platform-dependent precision" },
+    { "[NOTE]", "dmutex tests require threading support" }
 };
 
-static const struct d_test_sa_note_item g_djinterp_steps_items[] =
-{
-    { "[TODO]", "Complete implementation of djinterp_tests_sa_index.c "
-                "(port from existing tests)" },
-    { "[TODO]", "Complete implementation of djinterp_tests_sa_array.c "
-                "(port from existing tests)" },
-    { "[TODO]", "Implement djinterp_tests_sa_boolean.c with macro "
-                "evaluation tests" },
-    { "[TODO]", "Implement djinterp_tests_sa_function_ptr.c with mock "
-                "function tests" },
-    { "[TODO]", "Implement djinterp_tests_sa_edge.c with comprehensive "
-                "boundary tests" },
-    { "[TODO]", "Add performance benchmarks for index conversion "
-                "operations" },
-    { "[TODO]", "Integrate test suite with CI/CD pipeline" },
-    { "[TODO]", "Add code coverage analysis tooling" }
-};
-
-static const struct d_test_sa_note_item g_djinterp_guidelines_items[] =
-{
-    { "[BEST]", "Always use d_index_is_valid() before "
-                "d_index_convert_fast() for safety" },
-    { "[BEST]", "Prefer D_SAFE_ARR_IDX over D_ARR_IDX for production "
-                "code" },
-    { "[BEST]", "Use D_CLAMP_INDEX when you need guaranteed valid indices "
-                "without errors" },
-    { "[BEST]", "Test all index-related code with both positive and "
-                "negative indices" },
-    { "[BEST]", "Verify array size calculations with D_ARRAY_TOTAL_SIZE "
-                "before memory operations" },
-    { "[BEST]", "Use D_IS_VALID_INDEX_N for stricter validation in "
-                "critical code paths" },
-    { "[BEST]", "Document any use of d_index_convert_fast() with clear "
-                "precondition comments" },
-    { "[BEST]", "Run the full test suite before committing changes to "
-                "core index functionality" }
-};
-
-static const struct d_test_sa_note_section g_djinterp_notes[] =
+static const struct d_test_sa_note_section g_core_notes[] =
 {
     { "CURRENT STATUS",
-      sizeof(g_djinterp_status_items) / sizeof(g_djinterp_status_items[0]),
-      g_djinterp_status_items },
+      sizeof(g_core_status_items) / sizeof(g_core_status_items[0]),
+      g_core_status_items },
     { "KNOWN ISSUES",
-      sizeof(g_djinterp_issues_items) / sizeof(g_djinterp_issues_items[0]),
-      g_djinterp_issues_items },
-    { "NEXT STEPS",
-      sizeof(g_djinterp_steps_items) / sizeof(g_djinterp_steps_items[0]),
-      g_djinterp_steps_items },
-    { "USAGE GUIDELINES",
-      sizeof(g_djinterp_guidelines_items) /
-          sizeof(g_djinterp_guidelines_items[0]),
-      g_djinterp_guidelines_items }
+      sizeof(g_core_issues_items) / sizeof(g_core_issues_items[0]),
+      g_core_issues_items }
 };
 
 
@@ -121,174 +82,99 @@ main
 
     // initialize the test runner
     d_test_sa_runner_init(&runner,
-        "djinterp Core",
-        "Comprehensive Testing of Core Types, Functions, "
-        "and Macros");
+                          "djinterp Core Modules",
+                          "Comprehensive Testing of All Core Module "
+                          "Standalone Test Suites");
 
-    // register the djinterp module (tree-based)
     //
-    // NOTE: d_tests_djinterp_run_all should be declared in djinterp_tests_sa.h
-    // and defined in djinterp_tests_sa.c. It must aggregate all sub-test
-    // functions (index, index_macros, array, boolean, function_ptr, edge).
-    // If this function does not exist yet, create it following the pattern
-    // used by d_tests_dfile_run_all / d_tests_dtime_run_all.
-    d_test_sa_runner_add_module(&runner,
-        "djinterp",
-        "d_index functions, index manipulation macros, "
-        "array utility macros, boolean constants, "
-        "function pointer types, and edge case "
-        "boundary conditions",
-        d_tests_djinterp_run_all,
-        sizeof(g_djinterp_notes) /
-        sizeof(g_djinterp_notes[0]),
-        g_djinterp_notes);
-
-    // execute all tests and return result
-    return d_test_sa_runner_execute(&runner);
-}/******************************************************************************
-* djinterp [test]                                                       main.c
-*
-*   Test runner for djinterp core header standalone tests.
-*   Tests core types, functions, and macros including d_index functions,
-*   index manipulation macros, array utility macros, boolean constants,
-*   function pointer types, and edge case/boundary conditions.
-*
-*
-* path:      \.config\.msvs\testing\c\core\djinterp-c-header-tests-sa\main.c
-* author(s): Samuel 'teer' Neal-Blim
-******************************************************************************/
-#include "..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\tests\c\djinterp_tests_sa.h"
-
-
-/******************************************************************************
- * IMPLEMENTATION NOTES
- *****************************************************************************/
-
-static const struct d_test_sa_note_item g_djinterp_status_items[] =
-{
-    { "[INFO]", "d_index core functions (convert_fast, convert_safe, "
-                "is_valid) validated" },
-    { "[INFO]", "Critical safety macros (D_SAFE_ARR_IDX, D_CLAMP_INDEX) "
-                "thoroughly tested" },
-    { "[INFO]", "Index manipulation macros working for positive, negative, "
-                "and edge case indices" },
-    { "[INFO]", "Array utility macros functioning for size calculations and "
-                "element counting" },
-    { "[INFO]", "Boolean constants and evaluation macros established and "
-                "tested" },
-    { "[INFO]", "Function pointer types defined and validated for callback "
-                "patterns" },
-    { "[INFO]", "Edge case handling verified for boundary conditions and "
-                "extreme values" }
-};
-
-static const struct d_test_sa_note_item g_djinterp_issues_items[] =
-{
-    { "[WARN]", "Some test modules still in stub form (marked with TODO)" },
-    { "[WARN]", "Function pointer tests need mock implementations" },
-    { "[WARN]", "Edge case tests need comprehensive boundary value "
-                "analysis" },
-    { "[WARN]", "Array macro tests need porting from existing test suite" },
-    { "[WARN]", "Performance benchmarks not yet implemented" }
-};
-
-static const struct d_test_sa_note_item g_djinterp_steps_items[] =
-{
-    { "[TODO]", "Complete implementation of djinterp_tests_sa_index.c "
-                "(port from existing tests)" },
-    { "[TODO]", "Complete implementation of djinterp_tests_sa_array.c "
-                "(port from existing tests)" },
-    { "[TODO]", "Implement djinterp_tests_sa_boolean.c with macro "
-                "evaluation tests" },
-    { "[TODO]", "Implement djinterp_tests_sa_function_ptr.c with mock "
-                "function tests" },
-    { "[TODO]", "Implement djinterp_tests_sa_edge.c with comprehensive "
-                "boundary tests" },
-    { "[TODO]", "Add performance benchmarks for index conversion "
-                "operations" },
-    { "[TODO]", "Integrate test suite with CI/CD pipeline" },
-    { "[TODO]", "Add code coverage analysis tooling" }
-};
-
-static const struct d_test_sa_note_item g_djinterp_guidelines_items[] =
-{
-    { "[BEST]", "Always use d_index_is_valid() before "
-                "d_index_convert_fast() for safety" },
-    { "[BEST]", "Prefer D_SAFE_ARR_IDX over D_ARR_IDX for production "
-                "code" },
-    { "[BEST]", "Use D_CLAMP_INDEX when you need guaranteed valid indices "
-                "without errors" },
-    { "[BEST]", "Test all index-related code with both positive and "
-                "negative indices" },
-    { "[BEST]", "Verify array size calculations with D_ARRAY_TOTAL_SIZE "
-                "before memory operations" },
-    { "[BEST]", "Use D_IS_VALID_INDEX_N for stricter validation in "
-                "critical code paths" },
-    { "[BEST]", "Document any use of d_index_convert_fast() with clear "
-                "precondition comments" },
-    { "[BEST]", "Run the full test suite before committing changes to "
-                "core index functionality" }
-};
-
-static const struct d_test_sa_note_section g_djinterp_notes[] =
-{
-    { "CURRENT STATUS",
-      sizeof(g_djinterp_status_items) / sizeof(g_djinterp_status_items[0]),
-      g_djinterp_status_items },
-    { "KNOWN ISSUES",
-      sizeof(g_djinterp_issues_items) / sizeof(g_djinterp_issues_items[0]),
-      g_djinterp_issues_items },
-    { "NEXT STEPS",
-      sizeof(g_djinterp_steps_items) / sizeof(g_djinterp_steps_items[0]),
-      g_djinterp_steps_items },
-    { "USAGE GUIDELINES",
-      sizeof(g_djinterp_guidelines_items) /
-          sizeof(g_djinterp_guidelines_items[0]),
-      g_djinterp_guidelines_items }
-};
-
-
-/******************************************************************************
- * MAIN ENTRY POINT
- *****************************************************************************/
-
-int
-main
-(
-    int    _argc,
-    char** _argv
-)
-{
-    struct d_test_sa_runner runner;
-
-    // suppress unused parameter warnings
-    (void)_argc;
-    (void)_argv;
-
-    // initialize the test runner
-    d_test_sa_runner_init(&runner,
-                          "djinterp Core",
-                          "Comprehensive Testing of Core Types, Functions, "
-                          "and Macros");
-
-    // register the djinterp module (tree-based)
+    // counter-based modules: bool (*)(struct d_test_counter*)
     //
-    // NOTE: d_tests_djinterp_run_all should be declared in djinterp_tests_sa.h
-    // and defined in djinterp_tests_sa.c. It must aggregate all sub-test
-    // functions (index, index_macros, array, boolean, function_ptr, edge).
-    // If this function does not exist yet, create it following the pattern
-    // used by d_tests_dfile_run_all / d_tests_dtime_run_all.
+
+    d_test_sa_runner_add_module_counter(&runner,
+                                        "env",
+                                        "Environment detection and platform "
+                                        "configuration",
+                                        d_tests_sa_env_all,
+                                        0, NULL);
+
+    d_test_sa_runner_add_module_counter(&runner,
+                                        "dmacro",
+                                        "Preprocessor macro utilities and "
+                                        "metaprogramming tools",
+                                        d_tests_sa_dmacro_all,
+                                        0, NULL);
+
+    d_test_sa_runner_add_module_counter(&runner,
+                                        "djinterp",
+                                        "Core types, indexing, and fundamental "
+                                        "definitions",
+                                        d_tests_sa_run_all,
+                                        0, NULL);
+
+    d_test_sa_runner_add_module_counter(&runner,
+                                        "dio",
+                                        "Formatted input/output, secure variants, "
+                                        "character and string I/O, large file "
+                                        "stream positioning, and error handling",
+                                        d_tests_sa_dio_run_all,
+                                        0, NULL);
+
+    d_test_sa_runner_add_module_counter(&runner,
+                                        "datomic",
+                                        "Atomic operations, memory fences, and "
+                                        "lock-free primitives",
+                                        d_tests_sa_atomic_run_all,
+                                        0, NULL);
+
+    d_test_sa_runner_add_module_counter(&runner,
+                                        "dmutex",
+                                        "Mutex, threading, condition variables, "
+                                        "and read-write locks",
+                                        d_tests_sa_dmutex_run_all,
+                                        0, NULL);
+
+    //
+    // tree-based modules: struct d_test_object* (*)(void)
+    //
+
     d_test_sa_runner_add_module(&runner,
-                                "djinterp",
-                                "d_index functions, index manipulation macros, "
-                                "array utility macros, boolean constants, "
-                                "function pointer types, and edge case "
+                                "dmemory",
+                                "Memory copy, duplication, set, and "
                                 "boundary conditions",
-                                d_tests_djinterp_run_all,
-                                sizeof(g_djinterp_notes) /
-                                    sizeof(g_djinterp_notes[0]),
-                                g_djinterp_notes);
+                                d_tests_dmemory_run_all,
+                                0, NULL);
+
+    d_test_sa_runner_add_module(&runner,
+                                "string_fn",
+                                "C string operations: copy, compare, "
+                                "tokenize, search, case conversion",
+                                d_tests_string_fn_run_all,
+                                0, NULL);
+
+    d_test_sa_runner_add_module(&runner,
+                                "dstring",
+                                "Safe string type: creation, modification, "
+                                "search, comparison, formatting",
+                                d_tests_sa_dstring_all,
+                                0, NULL);
+
+    d_test_sa_runner_add_module(&runner,
+                                "dfile",
+                                "File I/O: secure open, large file support, "
+                                "descriptors, locking, metadata, paths",
+                                d_tests_dfile_run_all,
+                                0, NULL);
+
+    d_test_sa_runner_add_module(&runner,
+                                "dtime",
+                                "Time utilities: thread-safe conversion, "
+                                "high-resolution, sleep, arithmetic",
+                                d_tests_dtime_run_all,
+                                0, NULL);
+
+    // configuration
+    d_test_sa_runner_set_wait_for_input(&runner, true);
+    d_test_sa_runner_set_show_notes(&runner, true);
 
     // execute all tests and return result
     return d_test_sa_runner_execute(&runner);
