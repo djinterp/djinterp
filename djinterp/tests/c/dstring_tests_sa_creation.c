@@ -17,7 +17,8 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
-#include ".\dstring_tests_sa.h"
+
+#include "..\tests\dstring_tests_sa.h"
 
 
 /******************************************************************************
@@ -321,7 +322,6 @@ d_tests_sa_dstring_new_from_cstr
     struct d_test_object* group;
     struct d_string*      str;
     size_t                child_idx;
-    const char*           long_str;
 
     group     = d_test_object_new_interior("d_string_new_from_cstr", 12);
     child_idx = 0;
@@ -1570,6 +1570,3 @@ d_tests_sa_dstring_creation_all
 
     return group;
 }
-
-
-

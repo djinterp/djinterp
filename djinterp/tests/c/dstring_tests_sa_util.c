@@ -42,7 +42,7 @@ d_tests_sa_dstring_is_valid
 
     if (str)
     {
-        result = d_string_is_valid(str);
+        result = d_string_is_valid(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_valid_normal_string",
             result == true,
@@ -63,7 +63,7 @@ d_tests_sa_dstring_is_valid
 
     if (str)
     {
-        result = d_string_is_valid(str);
+        result = d_string_is_valid(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_valid_empty_string",
             result == true,
@@ -80,7 +80,7 @@ d_tests_sa_dstring_is_valid
     }
 
     // test: NULL string returns false
-    result = d_string_is_valid(NULL);
+    result = d_string_is_valid(NULL, 0);
     group->elements[idx++] = D_ASSERT_FALSE(
         "is_valid_null_string",
         result,
@@ -123,7 +123,7 @@ d_tests_sa_dstring_is_ascii
 
     if (str)
     {
-        result = d_string_is_ascii(str);
+        result = d_string_is_ascii(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_ascii_all_ascii",
             result == true,
@@ -144,7 +144,7 @@ d_tests_sa_dstring_is_ascii
 
     if (str)
     {
-        result = d_string_is_ascii(str);
+        result = d_string_is_ascii(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_ascii_non_ascii",
             result,
@@ -165,7 +165,7 @@ d_tests_sa_dstring_is_ascii
 
     if (str)
     {
-        result = d_string_is_ascii(str);
+        result = d_string_is_ascii(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_ascii_empty_string",
             result == true,
@@ -182,7 +182,7 @@ d_tests_sa_dstring_is_ascii
     }
 
     // test: NULL string handling
-    result = d_string_is_ascii(NULL);
+    result = d_string_is_ascii(NULL, 0);
     group->elements[idx++] = D_ASSERT_FALSE(
         "is_ascii_null_string",
         result,
@@ -226,7 +226,7 @@ d_tests_sa_dstring_is_numeric
 
     if (str)
     {
-        result = d_string_is_numeric(str);
+        result = d_string_is_numeric(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_numeric_all_digits",
             result == true,
@@ -247,7 +247,7 @@ d_tests_sa_dstring_is_numeric
 
     if (str)
     {
-        result = d_string_is_numeric(str);
+        result = d_string_is_numeric(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_numeric_with_letters",
             result,
@@ -268,7 +268,7 @@ d_tests_sa_dstring_is_numeric
 
     if (str)
     {
-        result = d_string_is_numeric(str);
+        result = d_string_is_numeric(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_numeric_with_spaces",
             result,
@@ -289,7 +289,7 @@ d_tests_sa_dstring_is_numeric
 
     if (str)
     {
-        result = d_string_is_numeric(str);
+        result = d_string_is_numeric(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_numeric_empty_string",
             result,
@@ -306,7 +306,7 @@ d_tests_sa_dstring_is_numeric
     }
 
     // test: NULL string handling
-    result = d_string_is_numeric(NULL);
+    result = d_string_is_numeric(NULL, 0);
     group->elements[idx++] = D_ASSERT_FALSE(
         "is_numeric_null_string",
         result,
@@ -351,7 +351,7 @@ d_tests_sa_dstring_is_alpha
 
     if (str)
     {
-        result = d_string_is_alpha(str);
+        result = d_string_is_alpha(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_alpha_all_letters",
             result == true,
@@ -372,7 +372,7 @@ d_tests_sa_dstring_is_alpha
 
     if (str)
     {
-        result = d_string_is_alpha(str);
+        result = d_string_is_alpha(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_alpha_with_digits",
             result,
@@ -393,7 +393,7 @@ d_tests_sa_dstring_is_alpha
 
     if (str)
     {
-        result = d_string_is_alpha(str);
+        result = d_string_is_alpha(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_alpha_with_spaces",
             result,
@@ -414,7 +414,7 @@ d_tests_sa_dstring_is_alpha
 
     if (str)
     {
-        result = d_string_is_alpha(str);
+        result = d_string_is_alpha(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_alpha_mixed_case",
             result == true,
@@ -435,7 +435,7 @@ d_tests_sa_dstring_is_alpha
 
     if (str)
     {
-        result = d_string_is_alpha(str);
+        result = d_string_is_alpha(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_alpha_empty_string",
             result,
@@ -452,7 +452,7 @@ d_tests_sa_dstring_is_alpha
     }
 
     // test: NULL string handling
-    result = d_string_is_alpha(NULL);
+    result = d_string_is_alpha(NULL, 0);
     group->elements[idx++] = D_ASSERT_FALSE(
         "is_alpha_null_string",
         result,
@@ -497,7 +497,7 @@ d_tests_sa_dstring_is_alnum
 
     if (str)
     {
-        result = d_string_is_alnum(str);
+        result = d_string_is_alnum(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_alnum_all_letters",
             result == true,
@@ -518,7 +518,7 @@ d_tests_sa_dstring_is_alnum
 
     if (str)
     {
-        result = d_string_is_alnum(str);
+        result = d_string_is_alnum(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_alnum_all_digits",
             result == true,
@@ -539,7 +539,7 @@ d_tests_sa_dstring_is_alnum
 
     if (str)
     {
-        result = d_string_is_alnum(str);
+        result = d_string_is_alnum(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_alnum_mixed",
             result == true,
@@ -560,7 +560,7 @@ d_tests_sa_dstring_is_alnum
 
     if (str)
     {
-        result = d_string_is_alnum(str);
+        result = d_string_is_alnum(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_alnum_with_special",
             result,
@@ -581,7 +581,7 @@ d_tests_sa_dstring_is_alnum
 
     if (str)
     {
-        result = d_string_is_alnum(str);
+        result = d_string_is_alnum(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_alnum_empty_string",
             result,
@@ -598,7 +598,7 @@ d_tests_sa_dstring_is_alnum
     }
 
     // test: NULL string handling
-    result = d_string_is_alnum(NULL);
+    result = d_string_is_alnum(NULL, 0);
     group->elements[idx++] = D_ASSERT_FALSE(
         "is_alnum_null_string",
         result,
@@ -643,7 +643,7 @@ d_tests_sa_dstring_is_whitespace
 
     if (str)
     {
-        result = d_string_is_whitespace(str);
+        result = d_string_is_whitespace(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_whitespace_spaces_only",
             result == true,
@@ -664,7 +664,7 @@ d_tests_sa_dstring_is_whitespace
 
     if (str)
     {
-        result = d_string_is_whitespace(str);
+        result = d_string_is_whitespace(str->text, str->size);
         group->elements[idx++] = D_ASSERT_TRUE(
             "is_whitespace_mixed_whitespace",
             result == true,
@@ -685,7 +685,7 @@ d_tests_sa_dstring_is_whitespace
 
     if (str)
     {
-        result = d_string_is_whitespace(str);
+        result = d_string_is_whitespace(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_whitespace_non_whitespace",
             result,
@@ -706,7 +706,7 @@ d_tests_sa_dstring_is_whitespace
 
     if (str)
     {
-        result = d_string_is_whitespace(str);
+        result = d_string_is_whitespace(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_whitespace_mixed_content",
             result,
@@ -727,7 +727,7 @@ d_tests_sa_dstring_is_whitespace
 
     if (str)
     {
-        result = d_string_is_whitespace(str);
+        result = d_string_is_whitespace(str->text, str->size);
         group->elements[idx++] = D_ASSERT_FALSE(
             "is_whitespace_empty_string",
             result,
@@ -744,7 +744,7 @@ d_tests_sa_dstring_is_whitespace
     }
 
     // test: NULL string handling
-    result = d_string_is_whitespace(NULL);
+    result = d_string_is_whitespace(NULL, 0);
     group->elements[idx++] = D_ASSERT_FALSE(
         "is_whitespace_null_string",
         result,

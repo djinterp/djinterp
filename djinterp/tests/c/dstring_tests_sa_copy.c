@@ -12,7 +12,8 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
-#include ".\dstring_tests_sa.h"
+
+#include "..\tests\dstring_tests_sa.h"
 
 
 /******************************************************************************
@@ -66,7 +67,7 @@ d_tests_sa_dstring_copy_s
 
     if (src)
     {
-        result = d_string_copy_s(NULL, src);
+        result = d_string_copy_s(NULL, src->text, src->size);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_dest_returns_error",
@@ -88,7 +89,7 @@ d_tests_sa_dstring_copy_s
 
     if (dest)
     {
-        result = d_string_copy_s(dest, NULL);
+        result = d_string_copy_s(dest, NULL, 42);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_src_returns_error",
@@ -109,9 +110,10 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new();
     src  = d_string_new();
 
-    if (dest && src)
+    if ( (dest) &&
+         (src) )
     {
-        result = d_string_copy_s(dest, src);
+        result = d_string_copy_s(dest, src->text, src->size);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "empty_to_empty_succeeds",
@@ -130,8 +132,16 @@ d_tests_sa_dstring_copy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("ee_skipped", false, "skip");
         group->elements[child_idx++] = D_ASSERT_TRUE("ee_size_skip", false, "skip");
     }
@@ -140,9 +150,10 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Hello World");
 
-    if (dest && src)
+    if ( (dest) && 
+         (src) )
     {
-        result = d_string_copy_s(dest, src);
+        result = d_string_copy_s(dest, src->text, src->size);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "nonempty_to_empty_succeeds",
@@ -161,8 +172,16 @@ d_tests_sa_dstring_copy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("ne_skipped", false, "skip");
         group->elements[child_idx++] = D_ASSERT_TRUE("ne_content_skip", false, "skip");
     }
@@ -171,9 +190,10 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new_from_cstr("Old Content");
     src  = d_string_new_from_cstr("New Content");
 
-    if (dest && src)
+    if ( (dest) && 
+         (src) )
     {
-        result = d_string_copy_s(dest, src);
+        result = d_string_copy_s(dest, src->text, src->size);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "replaces_existing",
@@ -186,8 +206,16 @@ d_tests_sa_dstring_copy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("repl_skipped", false, "skip");
     }
 
@@ -195,9 +223,10 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new_with_capacity(8);
     src  = d_string_new_from_cstr("This is a much longer string");
 
-    if (dest && src)
+    if ( (dest) && 
+         (src) )
     {
-        result = d_string_copy_s(dest, src);
+        result = d_string_copy_s(dest, src->text, src->size);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "grows_when_needed_succeeds",
@@ -216,8 +245,16 @@ d_tests_sa_dstring_copy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("grow_skipped", false, "skip");
         group->elements[child_idx++] = D_ASSERT_TRUE("grow_content_skip", false, "skip");
     }
@@ -226,9 +263,10 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Source String");
 
-    if (dest && src)
+    if ( (dest) && 
+         (src) )
     {
-        d_string_copy_s(dest, src);
+        d_string_copy_s(dest, src, src->size);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "source_preserved",
@@ -241,8 +279,16 @@ d_tests_sa_dstring_copy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("src_pres_skip", false, "skip");
     }
 
@@ -250,9 +296,10 @@ d_tests_sa_dstring_copy_s
     dest = d_string_new_from_cstr("Has Content");
     src  = d_string_new();
 
-    if (dest && src)
+    if ( (dest) && 
+         (src) )
     {
-        result = d_string_copy_s(dest, src);
+        result = d_string_copy_s(dest, src, src->size);
 
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "empty_src_clears_dest",
@@ -265,8 +312,16 @@ d_tests_sa_dstring_copy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("clear_skip", false, "skip");
     }
 
@@ -488,7 +543,7 @@ d_tests_sa_dstring_ncopy_s
 
     if (src)
     {
-        result = d_string_ncopy_s(NULL, src, 4);
+        result = d_string_ncopy_s(NULL, src->text, 4, 42);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_dest_returns_error",
@@ -508,7 +563,7 @@ d_tests_sa_dstring_ncopy_s
 
     if (dest)
     {
-        result = d_string_ncopy_s(dest, NULL, 4);
+        result = d_string_ncopy_s(dest, NULL, 4, 42);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_src_returns_error",
@@ -527,9 +582,10 @@ d_tests_sa_dstring_ncopy_s
     dest = d_string_new_from_cstr("Has Content");
     src  = d_string_new_from_cstr("Source");
 
-    if (dest && src)
+    if ( (dest) &&
+         (src) )
     {
-        result = d_string_ncopy_s(dest, src, 0);
+        result = d_string_ncopy_s(dest, src->text, src->size, 0);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "copy_0_succeeds",
@@ -548,8 +604,16 @@ d_tests_sa_dstring_ncopy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("c0_skip", false, "skip");
         group->elements[child_idx++] = D_ASSERT_TRUE("c0_clr_skip", false, "skip");
     }
@@ -558,9 +622,10 @@ d_tests_sa_dstring_ncopy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Hello World");
 
-    if (dest && src)
+    if ( (dest) && 
+         (src) )
     {
-        result = d_string_ncopy_s(dest, src, 5);
+        result = d_string_ncopy_s(dest, src->text, src->size, 5);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_partial",
@@ -579,8 +644,16 @@ d_tests_sa_dstring_ncopy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("partial_skip", false, "skip");
         group->elements[child_idx++] = D_ASSERT_TRUE("partial_sz_skip", false, "skip");
     }
@@ -589,9 +662,10 @@ d_tests_sa_dstring_ncopy_s
     dest = d_string_new();
     src  = d_string_new_from_cstr("Short");
 
-    if (dest && src)
+    if ( (dest) && 
+         (src) )
     {
-        result = d_string_ncopy_s(dest, src, 100);
+        result = d_string_ncopy_s(dest, src->text, src->size, 42);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_more_than_length",
@@ -604,18 +678,30 @@ d_tests_sa_dstring_ncopy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("more_skip", false, "skip");
     }
 
     // test 6: copy exact source length
-    dest = d_string_new();
-    src  = d_string_new_from_cstr("Exact");
+    const char TEST_STRING1[]  = "Exact";
+    size_t TEST_STRING1_LENGTH = sizeof(TEST_STRING1) - 1;
 
-    if (dest && src)
+    dest = d_string_new();
+    src  = d_string_new_from_cstr(TEST_STRING1);
+
+    if ( (dest) &&
+         (src) )
     {
-        result = d_string_ncopy_s(dest, src, 5);
+        result = d_string_ncopy_s(dest, src->text, src->size, TEST_STRING1_LENGTH);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_exact_length",
@@ -628,8 +714,16 @@ d_tests_sa_dstring_ncopy_s
     }
     else
     {
-        if (dest) d_string_free(dest);
-        if (src) d_string_free(src);
+        if (dest)
+        {
+            d_string_free(dest);
+        }
+
+        if (src)
+        {
+            d_string_free(src);
+        }
+
         group->elements[child_idx++] = D_ASSERT_TRUE("exact_skip", false, "skip");
     }
 
@@ -1047,5 +1141,3 @@ d_tests_sa_dstring_copy_all
 
     return group;
 }
-
-

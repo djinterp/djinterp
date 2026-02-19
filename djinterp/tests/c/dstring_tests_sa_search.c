@@ -2466,7 +2466,8 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello world");
     suffix = d_string_new_from_cstr("world");
 
-    if (str && suffix)
+    if ( (str) && 
+         (suffix) )
     {
         result = d_string_ends_with(str, suffix);
         group->elements[idx++] = D_ASSERT_TRUE(
@@ -2489,7 +2490,8 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello world");
     suffix = d_string_new_from_cstr("hello");
 
-    if (str && suffix)
+    if ( (str) && 
+         (suffix) )
     {
         result = d_string_ends_with(str, suffix);
         group->elements[idx++] = D_ASSERT_FALSE(
@@ -2512,7 +2514,8 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello");
     suffix = d_string_new_from_cstr("hello");
 
-    if (str && suffix)
+    if ( (str) && 
+         (suffix) )
     {
         result = d_string_ends_with(str, suffix);
         group->elements[idx++] = D_ASSERT_TRUE(
@@ -2535,7 +2538,8 @@ d_tests_sa_dstring_ends_with
     str    = d_string_new_from_cstr("hello");
     suffix = d_string_new_from_cstr("");
 
-    if (str && suffix)
+    if ( (str) && 
+         (suffix) )
     {
         result = d_string_ends_with(str, suffix);
         group->elements[idx++] = D_ASSERT_TRUE(
