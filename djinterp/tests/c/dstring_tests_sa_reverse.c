@@ -9,7 +9,8 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
-#include ".\dstring_tests_sa.h"
+
+#include "..\tests\dstring_tests_sa.h"
 
 
 
@@ -751,5 +752,3 @@ d_tests_sa_dstring_reversal_all
 
     return group;
 }
-
-

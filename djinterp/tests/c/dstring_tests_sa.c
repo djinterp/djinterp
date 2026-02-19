@@ -1,4 +1,4 @@
-#include ".\dstring_tests_sa.h"
+#include "..\tests\dstring_tests_sa.h"
 
 
 /******************************************************************************
@@ -102,5 +102,3 @@ struct d_test_object*
 
     return group;
 }
-
-

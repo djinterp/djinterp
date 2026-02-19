@@ -2,8 +2,8 @@
 * djinterp [test]                                       dstring_tests_compare.c
 *
 *   Unit tests for d_string comparison functions:
-*     - d_string_cmp
-*     - d_string_cmp_cstr
+*     - d_string_compare
+*     - d_string_compare_cstr
 *     - d_string_ncmp
 *     - d_string_ncmp_cstr
 *     - d_string_casecmp
@@ -19,7 +19,8 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
-#include ".\dstring_tests_sa.h"
+
+#include "..\tests\dstring_tests_sa.h"
 
 
 /******************************************************************************
@@ -28,7 +29,7 @@
 
 /*
 d_tests_sa_dstring_cmp
-  Tests d_string_cmp() which compares two d_strings lexicographically.
+  Tests d_string_compare() which compares two d_strings lexicographically.
 
 Test cases:
   1.  Both NULL returns 0
@@ -59,7 +60,7 @@ d_tests_sa_dstring_cmp
     size_t                child_idx;
     int                   result;
 
-    group     = d_test_object_new_interior("d_string_cmp", 12);
+    group     = d_test_object_new_interior("d_string_compare", 12);
     child_idx = 0;
 
     if (!group)
@@ -68,7 +69,7 @@ d_tests_sa_dstring_cmp
     }
 
     // test 1: both NULL returns 0
-    result = d_string_cmp(NULL, NULL);
+    result = d_string_compare(NULL, NULL);
     group->elements[child_idx++] = D_ASSERT_EQUAL(
         "both_null_returns_0",
         result, 0,
@@ -80,7 +81,7 @@ d_tests_sa_dstring_cmp
 
     if (str2)
     {
-        result = d_string_cmp(NULL, str2);
+        result = d_string_compare(NULL, str2);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "first_null_negative",
@@ -100,7 +101,7 @@ d_tests_sa_dstring_cmp
 
     if (str1)
     {
-        result = d_string_cmp(str1, NULL);
+        result = d_string_compare(str1, NULL);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "second_null_positive",
@@ -121,7 +122,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "equal_strings_return_0",
@@ -145,7 +146,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "apple_less_than_banana",
@@ -169,7 +170,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "zebra_greater_than_apple",
@@ -193,7 +194,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "empty_strings_equal",
@@ -217,7 +218,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "empty_less_than_nonempty",
@@ -241,7 +242,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "prefix_less_than_full",
@@ -265,7 +266,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "case_sensitive_upper_less",
@@ -288,7 +289,7 @@ d_tests_sa_dstring_cmp
 
     if (str1)
     {
-        result = d_string_cmp(str1, str1);
+        result = d_string_compare(str1, str1);
 
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "self_compare_equals_0",
@@ -309,7 +310,7 @@ d_tests_sa_dstring_cmp
 
     if (str1 && str2)
     {
-        result = d_string_cmp(str1, str2);
+        result = d_string_compare(str1, str2);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "middle_difference",
@@ -337,7 +338,7 @@ d_tests_sa_dstring_cmp
 
 /*
 d_tests_sa_dstring_cmp_cstr
-  Tests d_string_cmp_cstr() which compares a d_string with a C string.
+  Tests d_string_compare_cstr() which compares a d_string with a C string.
 
 Test cases:
   1. Both NULL returns 0
@@ -364,7 +365,7 @@ d_tests_sa_dstring_cmp_cstr
     size_t                child_idx;
     int                   result;
 
-    group     = d_test_object_new_interior("d_string_cmp_cstr", 9);
+    group     = d_test_object_new_interior("d_string_compare_cstr", 9);
     child_idx = 0;
 
     if (!group)
@@ -373,7 +374,7 @@ d_tests_sa_dstring_cmp_cstr
     }
 
     // test 1: both NULL returns 0
-    result = d_string_cmp_cstr(NULL, NULL);
+    result = d_string_compare_cstr(NULL, NULL);
     group->elements[child_idx++] = D_ASSERT_EQUAL(
         "both_null_returns_0",
         result, 0,
@@ -381,7 +382,7 @@ d_tests_sa_dstring_cmp_cstr
     );
 
     // test 2: d_string NULL returns negative
-    result = d_string_cmp_cstr(NULL, "test");
+    result = d_string_compare_cstr(NULL, "test");
     group->elements[child_idx++] = D_ASSERT_TRUE(
         "dstring_null_negative",
         result < 0,
@@ -393,7 +394,7 @@ d_tests_sa_dstring_cmp_cstr
 
     if (str)
     {
-        result = d_string_cmp_cstr(str, NULL);
+        result = d_string_compare_cstr(str, NULL);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "cstr_null_positive",
@@ -413,7 +414,7 @@ d_tests_sa_dstring_cmp_cstr
 
     if (str)
     {
-        result = d_string_cmp_cstr(str, "Match");
+        result = d_string_compare_cstr(str, "Match");
 
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "equal_returns_0",
@@ -433,7 +434,7 @@ d_tests_sa_dstring_cmp_cstr
 
     if (str)
     {
-        result = d_string_cmp_cstr(str, "BBB");
+        result = d_string_compare_cstr(str, "BBB");
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "dstring_less_than_cstr",
@@ -453,7 +454,7 @@ d_tests_sa_dstring_cmp_cstr
 
     if (str)
     {
-        result = d_string_cmp_cstr(str, "AAA");
+        result = d_string_compare_cstr(str, "AAA");
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "dstring_greater_than_cstr",
@@ -473,7 +474,7 @@ d_tests_sa_dstring_cmp_cstr
 
     if (str)
     {
-        result = d_string_cmp_cstr(str, "");
+        result = d_string_compare_cstr(str, "");
 
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "empty_vs_empty",
@@ -493,7 +494,7 @@ d_tests_sa_dstring_cmp_cstr
 
     if (str)
     {
-        result = d_string_cmp_cstr(str, "Hello");
+        result = d_string_compare_cstr(str, "Hello");
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "case_sensitive",
@@ -513,7 +514,7 @@ d_tests_sa_dstring_cmp_cstr
 
     if (str)
     {
-        result = d_string_cmp_cstr(str, "Testing");
+        result = d_string_compare_cstr(str, "Testing");
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "prefix_less",
@@ -2204,6 +2205,3 @@ d_tests_sa_dstring_compare_all
 
     return group;
 }
-
-
-

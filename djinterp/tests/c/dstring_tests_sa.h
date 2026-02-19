@@ -7,30 +7,30 @@
 * manageable.
 *
 *
-* path:      \inc\c\test\dstring_tests_sa.h
+* path:      \inc\test\dstring_tests_sa.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
 /*
 TABLE OF CONTENTS
 =================
-I.    CREATION & DESTRUCTION TESTS     (dstring_tests_creation.c)
-II.   CAPACITY MANAGEMENT TESTS        (dstring_tests_capacity.c)
-III.  ACCESS FUNCTION TESTS            (dstring_tests_access.c)
-IV.   SAFE COPY TESTS                  (dstring_tests_copy.c)
-V.    CONCATENATION TESTS              (dstring_tests_concat.c)
-VI.   DUPLICATION TESTS                (dstring_tests_dup.c)
-VII.  COMPARISON TESTS                 (dstring_tests_compare.c)
-VIII. SEARCH TESTS                     (dstring_tests_search.c)
-IX.   MODIFICATION TESTS               (dstring_tests_modify.c)
-X.    CASE CONVERSION TESTS            (dstring_tests_case.c)
-XI.   REVERSAL TESTS                   (dstring_tests_reverse.c)
-XII.  TRIMMING TESTS                   (dstring_tests_trim.c)
-XIII. TOKENIZATION TESTS               (dstring_tests_token.c)
-XIV.  JOIN TESTS                       (dstring_tests_join.c)
-XV.   UTILITY TESTS                    (dstring_tests_util.c)
-XVI.  ERROR STRING TESTS               (dstring_tests_error.c)
-XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
+  I.    CREATION & DESTRUCTION TESTS     (dstring_tests_creation.c)
+  II.   CAPACITY MANAGEMENT TESTS        (dstring_tests_capacity.c)
+  III.  ACCESS FUNCTION TESTS            (dstring_tests_access.c)
+  IV.   SAFE COPY TESTS                  (dstring_tests_copy.c)
+  V.    CONCATENATION TESTS              (dstring_tests_concat.c)
+  VI.   DUPLICATION TESTS                (dstring_tests_dup.c)
+  VII.  COMPARISON TESTS                 (dstring_tests_compare.c)
+  VIII. SEARCH TESTS                     (dstring_tests_search.c)
+  IX.   MODIFICATION TESTS               (dstring_tests_modify.c)
+  X.    CASE CONVERSION TESTS            (dstring_tests_case.c)
+  XI.   REVERSAL TESTS                   (dstring_tests_reverse.c)
+  XII.  TRIMMING TESTS                   (dstring_tests_trim.c)
+  XIII. TOKENIZATION TESTS               (dstring_tests_token.c)
+  XIV.  JOIN TESTS                       (dstring_tests_join.c)
+  XV.   UTILITY TESTS                    (dstring_tests_util.c)
+  XVI.  ERROR STRING TESTS               (dstring_tests_error.c)
+  XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
 */
 
 
@@ -41,10 +41,10 @@ XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "..\..\inc\c\djinterp.h"
-#include "..\..\inc\c\dmemory.h"
-#include "..\..\inc\c\test\test_standalone.h"
-#include "..\..\inc\c\dstring.h"
+#include "..\inc\djinterp.h"
+#include "..\inc\dmemory.h"
+#include "..\inc\test\test_standalone.h"
+#include "..\inc\dstring.h"
 
 
 // Test Suite Configuration
@@ -56,10 +56,7 @@ XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
 #endif
 
 
-/******************************************************************************
-* Test String Constants
-******************************************************************************/
-
+// Test String Constants
 // D_d_tests_sa_dstring_BUFFER_SIZE
 //   constant: standard buffer size for test operations.
 #define D_TESTS_DSTRING_BUFFER_SIZE 256
@@ -107,76 +104,27 @@ XVII. FORMATTED STRING TESTS           (dstring_tests_format.c)
 #define D_TESTS_DSTRING_ALNUM_STR "ABC123def456"
 
 
-/******************************************************************************
-* I. CREATION & DESTRUCTION TESTS
-******************************************************************************/
-
-// d_tests_sa_dstring_new
-//   function: tests d_string_new() - creates empty string with default capacity.
+// I. CREATION & DESTRUCTION TESTS
 struct d_test_object* d_tests_sa_dstring_new(void);
-
-// d_tests_sa_dstring_new_with_capacity
-//   function: tests d_string_new_with_capacity() - creates empty string with
-// specified initial capacity.
 struct d_test_object* d_tests_sa_dstring_new_with_capacity(void);
-
-// d_tests_sa_dstring_new_from_cstr
-//   function: tests d_string_new_from_cstr() - creates string from C string.
 struct d_test_object* d_tests_sa_dstring_new_from_cstr(void);
-
-// d_tests_sa_dstring_new_from_cstr_n
-//   function: tests d_string_new_from_cstr_n() - creates string from C string
-// with maximum length.
 struct d_test_object* d_tests_sa_dstring_new_from_cstr_n(void);
-
-// d_tests_sa_dstring_new_from_buffer
-//   function: tests d_string_new_from_buffer() - creates string from raw
-// buffer with specified length.
 struct d_test_object* d_tests_sa_dstring_new_from_buffer(void);
-
-// d_tests_sa_dstring_new_copy
-//   function: tests d_string_new_copy() - creates deep copy of existing string.
 struct d_test_object* d_tests_sa_dstring_new_copy(void);
-
-// d_tests_sa_dstring_new_fill
-//   function: tests d_string_new_fill() - creates string filled with character.
 struct d_test_object* d_tests_sa_dstring_new_fill(void);
-
-// d_tests_sa_dstring_new_formatted
-//   function: tests d_string_new_formatted() - creates string using printf
-// format specifiers.
 struct d_test_object* d_tests_sa_dstring_new_formatted(void);
-
-// d_tests_sa_dstring_free
-//   function: tests d_string_free() - frees string and its contents.
 struct d_test_object* d_tests_sa_dstring_free(void);
-
-// d_tests_sa_dstring_free_contents
-//   function: tests d_string_free_contents() - frees string contents but not
-// the structure itself.
 struct d_test_object* d_tests_sa_dstring_free_contents(void);
-
-// d_tests_sa_dstring_creation_all
-//   function: runs all creation and destruction tests, returns aggregate
-// test object containing all results.
 struct d_test_object* d_tests_sa_dstring_creation_all(void);
 
-
-/******************************************************************************
-* II. CAPACITY MANAGEMENT TESTS
-******************************************************************************/
-
+// II. CAPACITY MANAGEMENT TESTS
 struct d_test_object* d_tests_sa_dstring_reserve(void);
 struct d_test_object* d_tests_sa_dstring_shrink_to_fit(void);
 struct d_test_object* d_tests_sa_dstring_capacity(void);
 struct d_test_object* d_tests_sa_dstring_resize(void);
 struct d_test_object* d_tests_sa_dstring_capacity_all(void);
 
-
-/******************************************************************************
-* III. ACCESS FUNCTION TESTS
-******************************************************************************/
-
+// III. ACCESS FUNCTION TESTS
 struct d_test_object* d_tests_sa_dstring_length(void);
 struct d_test_object* d_tests_sa_dstring_size(void);
 struct d_test_object* d_tests_sa_dstring_cstr(void);
@@ -188,11 +136,7 @@ struct d_test_object* d_tests_sa_dstring_front(void);
 struct d_test_object* d_tests_sa_dstring_back(void);
 struct d_test_object* d_tests_sa_dstring_access_all(void);
 
-
-/******************************************************************************
-* IV. SAFE COPY TESTS
-******************************************************************************/
-
+// IV. SAFE COPY TESTS
 struct d_test_object* d_tests_sa_dstring_copy_s(void);
 struct d_test_object* d_tests_sa_dstring_copy_cstr_s(void);
 struct d_test_object* d_tests_sa_dstring_ncopy_s(void);
@@ -200,32 +144,20 @@ struct d_test_object* d_tests_sa_dstring_ncopy_cstr_s(void);
 struct d_test_object* d_tests_sa_dstring_to_buffer_s(void);
 struct d_test_object* d_tests_sa_dstring_copy_all(void);
 
-
-/******************************************************************************
-* V. CONCATENATION TESTS
-******************************************************************************/
-
+// V. CONCATENATION TESTS
 struct d_test_object* d_tests_sa_dstring_cat_s(void);
 struct d_test_object* d_tests_sa_dstring_cat_cstr_s(void);
 struct d_test_object* d_tests_sa_dstring_ncat_s(void);
 struct d_test_object* d_tests_sa_dstring_ncat_cstr_s(void);
 struct d_test_object* d_tests_sa_dstring_concat_all(void);
 
-
-/******************************************************************************
-* VI. DUPLICATION TESTS
-******************************************************************************/
-
+// VI. DUPLICATION TESTS
 struct d_test_object* d_tests_sa_dstring_dup(void);
 struct d_test_object* d_tests_sa_dstring_ndup(void);
 struct d_test_object* d_tests_sa_dstring_substr(void);
 struct d_test_object* d_tests_sa_dstring_dup_all(void);
 
-
-/******************************************************************************
-* VII. COMPARISON TESTS
-******************************************************************************/
-
+// VII. COMPARISON TESTS
 struct d_test_object* d_tests_sa_dstring_cmp(void);
 struct d_test_object* d_tests_sa_dstring_cmp_cstr(void);
 struct d_test_object* d_tests_sa_dstring_ncmp(void);
@@ -240,11 +172,7 @@ struct d_test_object* d_tests_sa_dstring_equals_ignore_case(void);
 struct d_test_object* d_tests_sa_dstring_equals_cstr_ignore_case(void);
 struct d_test_object* d_tests_sa_dstring_compare_all(void);
 
-
-/******************************************************************************
-* VIII. SEARCH TESTS
-******************************************************************************/
-
+// VIII. SEARCH TESTS
 struct d_test_object* d_tests_sa_dstring_find_char(void);
 struct d_test_object* d_tests_sa_dstring_find_char_from(void);
 struct d_test_object* d_tests_sa_dstring_rfind_char(void);
@@ -273,11 +201,7 @@ struct d_test_object* d_tests_sa_dstring_cspn(void);
 struct d_test_object* d_tests_sa_dstring_pbrk(void);
 struct d_test_object* d_tests_sa_dstring_search_all(void);
 
-
-/******************************************************************************
-* IX. MODIFICATION TESTS
-******************************************************************************/
-
+// IX. MODIFICATION TESTS
 struct d_test_object* d_tests_sa_dstring_assign(void);
 struct d_test_object* d_tests_sa_dstring_assign_cstr(void);
 struct d_test_object* d_tests_sa_dstring_assign_buffer(void);
@@ -303,31 +227,19 @@ struct d_test_object* d_tests_sa_dstring_replace_all_cstr(void);
 struct d_test_object* d_tests_sa_dstring_replace_char(void);
 struct d_test_object* d_tests_sa_dstring_modify_all(void);
 
-
-/******************************************************************************
-* X. CASE CONVERSION TESTS
-******************************************************************************/
-
+// X. CASE CONVERSION TESTS
 struct d_test_object* d_tests_sa_dstring_to_lower(void);
 struct d_test_object* d_tests_sa_dstring_to_upper(void);
 struct d_test_object* d_tests_sa_dstring_lower(void);
 struct d_test_object* d_tests_sa_dstring_upper(void);
 struct d_test_object* d_tests_sa_dstring_case_all(void);
 
-
-/******************************************************************************
-* XI. REVERSAL TESTS
-******************************************************************************/
-
+// XI. REVERSAL TESTS
 struct d_test_object* d_tests_sa_dstring_reverse(void);
 struct d_test_object* d_tests_sa_dstring_reversed(void);
 struct d_test_object* d_tests_sa_dstring_reversal_all(void);
 
-
-/******************************************************************************
-* XII. TRIMMING TESTS
-******************************************************************************/
-
+// XII. TRIMMING TESTS
 struct d_test_object* d_tests_sa_dstring_trim(void);
 struct d_test_object* d_tests_sa_dstring_trim_left(void);
 struct d_test_object* d_tests_sa_dstring_trim_right(void);
@@ -337,31 +249,19 @@ struct d_test_object* d_tests_sa_dstring_trimmed_left(void);
 struct d_test_object* d_tests_sa_dstring_trimmed_right(void);
 struct d_test_object* d_tests_sa_dstring_trim_all(void);
 
-
-/******************************************************************************
-* XIII. TOKENIZATION TESTS
-******************************************************************************/
-
+// XIII. TOKENIZATION TESTS
 struct d_test_object* d_tests_sa_dstring_tokenize(void);
 struct d_test_object* d_tests_sa_dstring_split(void);
 struct d_test_object* d_tests_sa_dstring_split_free(void);
 struct d_test_object* d_tests_sa_dstring_token_all(void);
 
-
-/******************************************************************************
-* XIV. JOIN TESTS
-******************************************************************************/
-
+// XIV. JOIN TESTS
 struct d_test_object* d_tests_sa_dstring_join(void);
 struct d_test_object* d_tests_sa_dstring_join_cstr(void);
 struct d_test_object* d_tests_sa_dstring_concat(void);
 struct d_test_object* d_tests_sa_dstring_join_all(void);
 
-
-/******************************************************************************
-* XV. UTILITY TESTS
-******************************************************************************/
-
+// XV. UTILITY TESTS
 struct d_test_object* d_tests_sa_dstring_is_valid(void);
 struct d_test_object* d_tests_sa_dstring_is_ascii(void);
 struct d_test_object* d_tests_sa_dstring_is_numeric(void);
@@ -373,37 +273,19 @@ struct d_test_object* d_tests_sa_dstring_count_substr(void);
 struct d_test_object* d_tests_sa_dstring_hash(void);
 struct d_test_object* d_tests_sa_dstring_util_all(void);
 
-
-/******************************************************************************
-* XVI. ERROR STRING TESTS
-******************************************************************************/
-
+// XVI. ERROR STRING TESTS
 struct d_test_object* d_tests_sa_dstring_error(void);
 struct d_test_object* d_tests_sa_dstring_error_r(void);
 struct d_test_object* d_tests_sa_dstring_error_all(void);
 
-
-/******************************************************************************
-* XVII. FORMATTED STRING TESTS
-******************************************************************************/
-
+// XVII. FORMATTED STRING TESTS
 struct d_test_object* d_tests_sa_dstring_printf(void);
 struct d_test_object* d_tests_sa_dstring_vprintf(void);
 struct d_test_object* d_tests_sa_dstring_sprintf(void);
 struct d_test_object* d_tests_sa_dstring_format_all(void);
 
-
-/******************************************************************************
-* MASTER TEST RUNNER
-******************************************************************************/
-
-// d_tests_sa_dstring_all
-//   function: runs all d_string unit tests and returns aggregate results.
+// master test runner
 struct d_test_object* d_tests_sa_dstring_all(void);
 
 
 #endif  // DJINTERP_DSTRING_TESTS_STANDALONE_
-
-
-
-
