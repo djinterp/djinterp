@@ -10,9 +10,7 @@
 #include "..\..\inc\c\dstring.h"
 
 
-/******************************************************************************
-* Internal Helper Functions
-******************************************************************************/
+// internal helper functions
 
 /*
 d_string_internal_grow
@@ -55,6 +53,7 @@ d_string_internal_grow
     // allocate new buffer
     new_text = malloc(new_capacity);
 
+    // ensure that memory allocation was successful
     if (new_text == NULL)
     {
         return false;
@@ -79,22 +78,19 @@ d_string_internal_grow
     return true;
 }
 
-/******************************************************************************
-* Creation and Destruction Functions
-******************************************************************************/
-
+// creation and destruction functions
 /*
 d_string_new
-  Creates an empty d_string with default capacity.
+  Creates an empty `d_string` with default capacity.
 
 Parameter(s):
   (none)
 Return:
   A pointer value corresponding to either:
-  - newly allocated d_string, if successful, or
+  - newly allocated `d_string`, if successful, or
   - NULL, if memory allocation failed.
 */
-struct d_string*
+D_INLINE struct d_string*
 d_string_new
 (
     void
@@ -130,13 +126,15 @@ d_string_new_with_capacity
 
     str = malloc(sizeof(struct d_string));
 
+    // ensure that memory allocation was successful
     if (str == NULL)
     {
         return NULL;
     }
 
     str->text = malloc(_capacity);
-
+  
+    // ensure that memory allocation was successful
     if (str->text == NULL)
     {
         free(str);
@@ -182,6 +180,7 @@ d_string_new_from_cstr
 
     str = d_string_new_with_capacity(capacity);
 
+    // ensure that memory allocation was successful
     if (str == NULL)
     {
         return NULL;
@@ -401,74 +400,10 @@ d_string_new_formatted
     return str;
 }
 
-/*
-d_string_free
-  Frees a d_string and its contents.
-
-Parameter(s):
-  _str: d_string to free.
-Return:
-  (none)
-*/
-void
-d_string_free
-(
-    struct d_string* _str
-)
-{
-    if (_str == NULL)
-    {
-        return;
-    }
-
-    if (_str->text != NULL)
-    {
-        free(_str->text);
-    }
-
-    free(_str);
-
-    return;
-}
-
-/*
-d_string_free_contents
-  Frees the text buffer of a d_string but not the struct itself.
-
-Parameter(s):
-  _str: d_string whose contents to free.
-Return:
-  (none)
-*/
-void
-d_string_free_contents
-(
-    struct d_string* _str
-)
-{
-    if (_str == NULL)
-    {
-        return;
-    }
-
-    if (_str->text != NULL)
-    {
-        free(_str->text);
-        _str->text = NULL;
-    }
-
-    _str->size     = 0;
-    _str->capacity = 0;
-
-    return;
-}
-
 
 /******************************************************************************
 * Capacity Management Functions
 ******************************************************************************/
-
-
 /*
 d_string_reserve
   Ensures the d_string has at least the specified capacity.
@@ -5214,3 +5149,65 @@ d_string_sprintf
     return len;
 }
 
+
+/*
+d_string_free
+  Frees a d_string and its contents.
+
+Parameter(s):
+  _str: d_string to free.
+Return:
+  (none)
+*/
+void
+d_string_free
+(
+    struct d_string* _str
+)
+{
+    if (_str == NULL)
+    {
+        return;
+    }
+
+    if (_str->text != NULL)
+    {
+        free(_str->text);
+    }
+
+    free(_str);
+
+    return;
+}
+
+/*
+d_string_free_contents
+  Frees the text buffer of a d_string but not the struct itself.
+
+Parameter(s):
+  _str: d_string whose contents to free.
+Return:
+  (none)
+*/
+void
+d_string_free_contents
+(
+    struct d_string* _str
+)
+{
+    if (_str == NULL)
+    {
+        return;
+    }
+
+    if (_str->text != NULL)
+    {
+        free(_str->text);
+        _str->text = NULL;
+    }
+
+    _str->size     = 0;
+    _str->capacity = 0;
+
+    return;
+}
