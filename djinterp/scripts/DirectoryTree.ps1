@@ -1,4 +1,4 @@
-﻿<# DirectoryTree.ps1
+<# DirectoryTree.ps1
 
 One big (optionally pruned) tree printer for PowerShell 5.1+.
 
@@ -18,7 +18,7 @@ Notes:
 - If -OutFile is supplied, it writes the merged output to those files too.
 
 .EXAMPLE
-  .\DirectoryTree.ps1 -Root "..\" -IncludeHidden | Out-File -Encoding utf8 -Width 300 ".\tree.txt"
+	.\DirectoryTree.ps1 -Root "..\" -Extensions ".h", ".c" -IncludeNoExtension -ListMatchingFolders -IncludeHidden | Out-File -Encoding utf8 -Width 300 ".\tree.txt"
 #>
 
 [CmdletBinding()]
