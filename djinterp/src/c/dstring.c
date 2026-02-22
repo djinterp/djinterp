@@ -7,7 +7,7 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
-#include "..\..\inc\c\dstring.h"
+#include "../../inc/c/dstring.h"
 
 
 // internal helper functions
@@ -791,8 +791,8 @@ d_string_copy_s
   Safe copy from d_string to d_string.
 
 Parameter(s):
-  _dest: destination d_string.
-  _src:  source d_string.
+  _destination: destination d_string.
+  _source:      source d_string.
 Return:
   An integer value corresponding to either:
   - 0, if copy was successful, or
@@ -801,23 +801,23 @@ Return:
 int
 d_string_copy_s
 (
-    struct d_string* restrict       _dest,
-    const struct d_string* restrict _src
+    struct d_string*       _destination,
+    const struct d_string* _source
 )
 {
-    if ( (_dest == NULL) || 
-         (_src == NULL) )
+    if ( (!_destination) ||
+         (!_source) )
     {
         return EINVAL;
     }
 
-    if (!d_string_internal_grow(_dest, _src->size + 1))
+    if (!d_string_internal_grow(_destination, _source->size + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_dest->text, _src->text, _src->size + 1);
-    _dest->size = _src->size;
+    d_memcpy(_destination->text, _source->text, _source->size + 1);
+    _destination->size = _source->size;
 
     return 0;
 }
@@ -837,14 +837,14 @@ Return:
 int
 d_string_copy_cstr_s
 (
-    struct d_string* restrict _dest,
-    const char* restrict      _src
+    struct d_string* _dest,
+    const char*      _src
 )
 {
     size_t len;
 
-    if ( (_dest == NULL) || 
-         (_src == NULL) )
+    if ( (!_dest) || 
+         (!_src) )
     {
         return EINVAL;
     }
@@ -857,6 +857,7 @@ d_string_copy_cstr_s
     }
 
     d_memcpy(_dest->text, _src, len + 1);
+
     _dest->size = len;
 
     return 0;
@@ -878,15 +879,15 @@ Return:
 int
 d_string_ncopy_s
 (
-    struct d_string* restrict       _dest,
-    const struct d_string* restrict _src,
-    size_t                          _count
+    struct d_string*        _dest,
+    const struct d_string*  _src,
+    size_t                  _count
 )
 {
     size_t copy_len;
 
-    if ( (_dest == NULL) || 
-         (_src == NULL) )
+    if ( (!_dest) || 
+         (!_src) )
     {
         return EINVAL;
     }
@@ -921,15 +922,15 @@ Return:
 int
 d_string_ncopy_cstr_s
 (
-    struct d_string* restrict _dest,
-    const char* restrict      _src,
-    size_t                    _count
+    struct d_string* _dest,
+    const char*      _src,
+    size_t           _count
 )
 {
     size_t copy_len;
 
-    if ( (_dest == NULL) || 
-         (_src == NULL) )
+    if ( (!_dest) || 
+         (!_src) )
     {
         return EINVAL;
     }
@@ -965,9 +966,9 @@ Return:
 int
 d_string_to_buffer_s
 (
-    char* restrict                  _dest,
-    size_t                          _dest_size,
-    const struct d_string* restrict _src
+    char* restrict         _dest,
+    size_t                 _dest_size,
+    const struct d_string* _src
 )
 {
     if ( (_dest == NULL) || 
@@ -1273,101 +1274,85 @@ d_string_substr
 ******************************************************************************/
 
 /*
-d_string_cmp
-  Compare two d_strings.
+d_string_compare
+  Compares two d_strings lexicographically using length-aware comparison.
 
 Parameter(s):
-  _s1: first d_string.
-  _s2: second d_string.
+  _s1: the first string to compare.
+  _s2: the second string to compare.
 Return:
-  An integer value indicating relationship:
-  - negative if _s1 < _s2,
-  - zero if _s1 == _s2, or
-  - positive if _s1 > _s2.
+  A value less than, equal to, or greater than zero if _s1 is found to be
+  less than, equal to, or greater than _s2, respectively. Returns 0 if both
+  are NULL.
 */
 int
-d_string_cmp
+d_string_compare
 (
     const struct d_string* _s1,
     const struct d_string* _s2
 )
 {
-    size_t min_len;
-    int    result;
-
-    if ( (_s1 == NULL) && 
-         (_s2 == NULL) )
+    if ( (!_s1) && (!_s2) )
     {
         return 0;
     }
-    else if (_s1 == NULL)
-    {
-        return -1;
-    }
-    else if (_s2 == NULL)
-    {
-        return 1;
-    }
 
-    min_len = (_s1->size < _s2->size)
-        ? _s1->size 
-        : _s2->size;
-
-    result  = memcmp(_s1->text, _s2->text, min_len);
-
-    if (result != 0)
-    {
-        return result;
-    }
-
-    // strings equal up to min_len, compare lengths
-    if (_s1->size < _s2->size)
+    if (!_s1)
     {
         return -1;
     }
 
-    if (_s1->size > _s2->size)
+    if (!_s2)
     {
         return 1;
     }
 
-    return 0;
+    return d_strcmp_n(_s1->text,
+                     _s1->size,
+                     _s2->text,
+                     _s2->size);
 }
 
 /*
-d_string_cmp_cstr
-  Compare d_string to C string.
+d_string_compare_cstr
+  Compares a d_string against a C string lexicographically using length-aware
+  comparison.
 
 Parameter(s):
-  _s1: d_string.
-  _s2: C string.
+  _s1: the d_string to compare.
+  _s2: the C string to compare against; may be NULL.
 Return:
-  An integer value indicating relationship.
+  A value less than, equal to, or greater than zero if _s1 is found to be
+  less than, equal to, or greater than _s2, respectively. Returns 0 if both
+  are NULL.
 */
-int
-d_string_cmp_cstr
+D_INLINE int
+d_string_compare_cstr
 (
     const struct d_string* _s1,
     const char*            _s2
 )
 {
-    if ( (_s1 == NULL) && 
-         (_s2 == NULL) )
+    if ( (!_s1) && 
+         (!_s2) )
     {
         return 0;
     }
 
-    if (_s1 == NULL)
+    if (!_s1)
     {
         return -1;
     }
 
-    if (_s2 == NULL)
+    if (!_s2)
     {
         return 1;
     }
 
-    return strcmp(_s1->text, _s2);
+    return d_strcmp_n(_s1->text,
+                     _s1->size,
+                     _s2,
+                     strlen(_s2));
 }
 
 /*
@@ -1381,7 +1366,7 @@ Parameter(s):
 Return:
   An integer value indicating relationship.
 */
-int
+D_INLINE int
 d_string_ncmp
 (
     const struct d_string* _s1,
@@ -1394,29 +1379,33 @@ d_string_ncmp
     size_t min_len;
     int    result;
 
-    if (_n == 0)
+    if (!_n)
     {
         return 0;
     }
 
-    if ( (_s1 == NULL) && 
-         (_s2 == NULL) )
+    if ( (!_s1) && 
+         (!_s2) )
     {
         return 0;
     }
 
-    if (_s1 == NULL)
+    if (!_s1)
     {
         return -1;
     }
 
-    if (_s2 == NULL)
+    if (!_s2)
     {
         return 1;
     }
 
-    len1    = (_n < _s1->size) ? _n : _s1->size;
-    len2    = (_n < _s2->size) ? _n : _s2->size;
+    len1    = (_n < _s1->size) 
+        ? _n
+        : _s1->size;
+    len2    = (_n < _s2->size)
+        ? _n
+        : _s2->size;
     min_len = (len1 < len2) ? len1 : len2;
 
     result = memcmp(_s1->text, _s2->text, min_len);
@@ -1650,14 +1639,14 @@ Parameter(s):
 Return:
   A boolean value: true if equal, false otherwise.
 */
-bool
+D_INLINE bool
 d_string_equals
 (
     const struct d_string* _s1,
     const struct d_string* _s2
 )
 {
-    return (d_string_cmp(_s1, _s2) == 0);
+    return (d_string_compare(_s1, _s2) == 0);
 }
 
 /*
@@ -1670,14 +1659,14 @@ Parameter(s):
 Return:
   A boolean value: true if equal, false otherwise.
 */
-bool
+D_INLINE bool
 d_string_equals_cstr
 (
     const struct d_string* _s1,
     const char*            _s2
 )
 {
-    return (d_string_cmp_cstr(_s1, _s2) == 0);
+    return (d_string_compare_cstr(_s1, _s2) == 0);
 }
 
 /*
@@ -1690,7 +1679,7 @@ Parameter(s):
 Return:
   A boolean value: true if equal ignoring case, false otherwise.
 */
-bool
+D_INLINE bool
 d_string_equals_ignore_case
 (
     const struct d_string* _s1,
@@ -1710,7 +1699,7 @@ Parameter(s):
 Return:
   A boolean value: true if equal ignoring case, false otherwise.
 */
-bool
+D_INLINE bool
 d_string_equals_cstr_ignore_case
 (
     const struct d_string* _s1,
@@ -1720,6 +1709,17 @@ d_string_equals_cstr_ignore_case
     return (d_string_casecmp_cstr(_s1, _s2) == 0);
 }
 
+/*
+d_string_find_char
+  Searches for the first occurrence of a character in a d_string.
+
+Parameter(s):
+  _str: the string to search.
+  _c:   the character to find.
+Return:
+  The index of the first occurrence of _c in the string, or D_STRING_NPOS
+  if _c was not found or _str is NULL.
+*/
 d_index
 d_string_find_char
 (
@@ -1729,8 +1729,8 @@ d_string_find_char
 {
     const char* p;
 
-    if ( (_str == NULL) || 
-         (_str->text == NULL) )
+    if ( (!_str) || 
+         (!_str->text) )
     {
         return -1;
     }
@@ -2591,8 +2591,8 @@ d_string_assign
     const struct d_string* _other
 )
 {
-    if ( (_str == NULL) || 
-         (_other == NULL) )
+    if ( (!_str) || 
+         (!_other) )
     {
         return false;
     }
@@ -4618,7 +4618,7 @@ d_string_is_valid
     const struct d_string* _string
 )
 {
-    return ( d_str_is_valid(_string) &&
+    return ( d_str_is_valid(_string->text, _string->size) &&
              (_string->text[_string->size] != '\0') );
 }
 
@@ -4639,7 +4639,7 @@ d_string_is_ascii
     const struct d_string* _string
 )
 {
-    return d_str_is_ascii(_string);
+    return d_str_is_ascii(_string->text, _string->size);
 }
 
 /*
@@ -4659,7 +4659,7 @@ d_string_is_numeric
     const struct d_string* _string
 )
 {
-    return d_str_is_numeric(_string);
+    return d_str_is_numeric(_string->text, _string->size);
 }
 
 /*
@@ -4679,7 +4679,7 @@ d_string_is_alpha
     const struct d_string* _string
 )
 {
-    return d_str_is_alpha(_string);
+    return d_str_is_alpha(_string->text, _string->size);
 }
 
 /*
@@ -4699,7 +4699,7 @@ d_string_is_alnum
     const struct d_string* _string
 )
 {
-    return d_str_is_alnum(_string);
+    return d_str_is_alnum(_string->text, _string->size);
 }
 
 /*
@@ -4719,7 +4719,7 @@ d_string_is_whitespace
     const struct d_string* _string
 )
 {
-    return d_str_is_whitespace(_string);
+    return d_str_is_whitespace(_string->text, _string->size);
 }
 
 

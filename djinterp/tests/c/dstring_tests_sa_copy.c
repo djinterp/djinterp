@@ -13,7 +13,7 @@
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
 
-#include "..\tests\dstring_tests_sa.h"
+#include "../../tests/c/dstring_tests_sa.h"
 
 
 /******************************************************************************
@@ -67,7 +67,7 @@ d_tests_sa_dstring_copy_s
 
     if (src)
     {
-        result = d_string_copy_s(NULL, src->text, src->size);
+        result = d_string_copy_s(NULL, src);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_dest_returns_error",
@@ -89,7 +89,7 @@ d_tests_sa_dstring_copy_s
 
     if (dest)
     {
-        result = d_string_copy_s(dest, NULL, 42);
+        result = d_string_copy_s(dest, NULL);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_src_returns_error",
@@ -113,7 +113,7 @@ d_tests_sa_dstring_copy_s
     if ( (dest) &&
          (src) )
     {
-        result = d_string_copy_s(dest, src->text, src->size);
+        result = d_string_copy_s(dest, src);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "empty_to_empty_succeeds",
@@ -153,7 +153,7 @@ d_tests_sa_dstring_copy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_copy_s(dest, src->text, src->size);
+        result = d_string_copy_s(dest, src);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "nonempty_to_empty_succeeds",
@@ -193,7 +193,7 @@ d_tests_sa_dstring_copy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_copy_s(dest, src->text, src->size);
+        result = d_string_copy_s(dest, src);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "replaces_existing",
@@ -226,7 +226,7 @@ d_tests_sa_dstring_copy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_copy_s(dest, src->text, src->size);
+        result = d_string_copy_s(dest, src);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "grows_when_needed_succeeds",
@@ -266,7 +266,7 @@ d_tests_sa_dstring_copy_s
     if ( (dest) && 
          (src) )
     {
-        d_string_copy_s(dest, src, src->size);
+        d_string_copy_s(dest, src);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "source_preserved",
@@ -299,7 +299,7 @@ d_tests_sa_dstring_copy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_copy_s(dest, src, src->size);
+        result = d_string_copy_s(dest, src);
 
         group->elements[child_idx++] = D_ASSERT_EQUAL(
             "empty_src_clears_dest",
@@ -543,7 +543,7 @@ d_tests_sa_dstring_ncopy_s
 
     if (src)
     {
-        result = d_string_ncopy_s(NULL, src->text, 4, 42);
+        result = d_string_ncopy_s(NULL, src->text, 4);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_dest_returns_error",
@@ -563,7 +563,7 @@ d_tests_sa_dstring_ncopy_s
 
     if (dest)
     {
-        result = d_string_ncopy_s(dest, NULL, 4, 42);
+        result = d_string_ncopy_s(dest, NULL, 4);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_src_returns_error",
@@ -585,7 +585,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) &&
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, src->size, 0);
+        result = d_string_ncopy_s(dest, src->text, 0);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "copy_0_succeeds",
@@ -625,7 +625,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, src->size, 5);
+        result = d_string_ncopy_s(dest, src->text, 5);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_partial",
@@ -665,7 +665,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, src->size, 42);
+        result = d_string_ncopy_s(dest, src->text, 42);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_more_than_length",
@@ -701,7 +701,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) &&
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, src->size, TEST_STRING1_LENGTH);
+        result = d_string_ncopy_s(dest, src->text, TEST_STRING1_LENGTH);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_exact_length",

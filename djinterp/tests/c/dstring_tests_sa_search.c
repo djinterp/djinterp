@@ -1,4 +1,4 @@
-#include ".\dstring_tests_sa.h"
+#include "./dstring_tests_sa.h"
 
 
 // D_INTERNAL_INDEX_NOT_FOUND

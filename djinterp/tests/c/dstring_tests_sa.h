@@ -41,10 +41,10 @@ TABLE OF CONTENTS
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "..\inc\djinterp.h"
-#include "..\inc\dmemory.h"
-#include "..\inc\test\test_standalone.h"
-#include "..\inc\dstring.h"
+#include "../../inc/c/djinterp.h"
+#include "../../inc/c/dmemory.h"
+#include "../../inc/c/test/test_standalone.h"
+#include "../../inc/c/dstring.h"
 
 
 // Test Suite Configuration
