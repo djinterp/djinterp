@@ -23,8 +23,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include ".\djinterp.h"
-#include ".\string_fn.h"
+#include "./djinterp.h"
+#include "./string_fn.h"
 
 
 // d_string
@@ -69,16 +69,16 @@ char             d_string_front(const struct d_string* _string);
 char             d_string_back(const struct d_string* _string);
 
 // Safe copy functions (C11 `strcpy_s` equivalents)
-int              d_string_copy_s(struct d_string* restrict _destination, const char* restrict _source, size_t _source_length);
-int              d_string_ncopy_s(struct d_string* restrict _destination, const char* restrict _source, size_t _source_length, size_t _count);
-int              d_string_ncopy_cstr_s(struct d_string* restrict _dest, const char* restrict _src, size_t _count);
-int              d_string_to_buffer_s(char* restrict _dest, size_t _dest_size, const struct d_string* restrict _src);
+int              d_string_copy_s(struct d_string* _destination, const struct d_string* _source);
+int              d_string_ncopy_s(struct d_string* _destination, const struct d_string* _source, size_t _count);
+int              d_string_ncopy_cstr_s(struct d_string* _dest, const char* _source, size_t _count);
+int              d_string_to_buffer_s(char* restrict _dest, size_t _dest_size, const struct d_string* _source);
 
 // Concatenation functions (C11 `strcat_s` equivalents)
-int              d_string_cat_s(struct d_string* restrict _dest, const struct d_string* restrict _src);
-int              d_string_cat_cstr_s(struct d_string* restrict _dest, const char* restrict _src);
-int              d_string_ncat_s(struct d_string* restrict _dest, const struct d_string* restrict _src, size_t _count);
-int              d_string_ncat_cstr_s(struct d_string* restrict _dest, const char* restrict _src, size_t _count);
+int              d_string_cat_s(struct d_string* restrict _dest, const struct d_string* restrict _source);
+int              d_string_cat_cstr_s(struct d_string* restrict _dest, const char* restrict _source);
+int              d_string_ncat_s(struct d_string* restrict _dest, const struct d_string* restrict _source, size_t _count);
+int              d_string_ncat_cstr_s(struct d_string* restrict _dest, const char* restrict _source, size_t _count);
 
 // Duplication functions (POSIX `strdup` equivalents)
 struct d_string* d_string_dup(const struct d_string* _string);
@@ -201,12 +201,12 @@ struct d_string* d_string_concat(size_t _count, ...);
 
 // Utility functions
 //   validation
-bool             d_string_is_valid(const char* _text, size_t _length);
-bool             d_string_is_ascii(const char* _text, size_t _length);
-bool             d_string_is_numeric(const char* _text, size_t _length);
-bool             d_string_is_alpha(const char* _text, size_t _length);
-bool             d_string_is_alnum(const char* _text, size_t _length);
-bool             d_string_is_whitespace(const char* _text, size_t _length);
+bool             d_string_is_valid(const struct d_string* _string);
+bool             d_string_is_ascii(const struct d_string* _string);
+bool             d_string_is_numeric(const struct d_string* _string);
+bool             d_string_is_alpha(const struct d_string* _string);
+bool             d_string_is_alnum(const struct d_string* _string);
+bool             d_string_is_whitespace(const struct d_string* _string);
 //   counting
 size_t           d_string_count_char(const struct d_string* _string, char _c);
 size_t           d_string_count_substr(const struct d_string* _string, const char* _substr);

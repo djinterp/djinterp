@@ -1,4 +1,4 @@
-#include "..\tests\dstring_tests_sa.h"
+#include "../../tests/c/dstring_tests_sa.h"
 
 
 /******************************************************************************
