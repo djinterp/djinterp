@@ -211,17 +211,13 @@ function(djinterp_add_standalone_test)
         # 1. First priority: tests directory with standard naming
         list(APPEND MAIN_SEARCH_PATHS "${TEST_DIR}/${ARG_MODULE_NAME}_tests_sa_main.c")
         
-        # 2. Second priority: CONFIG_TEST_DIR with hyphenated module name
+        # 2. Second priority: .config with hyphenated module name
         #    (e.g., string_fn -> djinterp-c-string-fn-tests-sa)
-        #    CONFIG_TEST_DIR should be set by the calling CMakeLists.txt
-        #    (e.g., "${CORE_ROOT}/.config/.msvs/testing/c/core")
-        if(DEFINED CONFIG_TEST_DIR)
-            list(APPEND MAIN_SEARCH_PATHS "${CONFIG_TEST_DIR}/djinterp-c-${MODULE_PATH_NAME}-tests-sa/main.c")
-            
-            # 3. Third priority: special case for djinterp module (uses "header-tests" name)
-            if(ARG_MODULE_NAME STREQUAL "djinterp")
-                list(APPEND MAIN_SEARCH_PATHS "${CONFIG_TEST_DIR}/djinterp-c-header-tests-sa/main.c")
-            endif()
+        list(APPEND MAIN_SEARCH_PATHS "${CORE_ROOT}/.config/.msvs/testing/core/djinterp-c-${MODULE_PATH_NAME}-tests-sa/main.c")
+        
+        # 3. Third priority: special case for djinterp module (uses "header-tests" name)
+        if(ARG_MODULE_NAME STREQUAL "djinterp")
+            list(APPEND MAIN_SEARCH_PATHS "${CORE_ROOT}/.config/.msvs/testing/core/djinterp-c-header-tests-sa/main.c")
         endif()
         
         foreach(MAIN_PATH ${MAIN_SEARCH_PATHS})
@@ -282,20 +278,18 @@ function(djinterp_add_standalone_test)
     # get module dependencies and link them
     # Note: This uses the djinterp_get_module_dependencies macro which can be
     # overridden by module-specific CMakeLists.txt files
-	djinterp_get_module_dependencies(${ARG_MODULE_NAME} MODULE_DEPS)
-	foreach(DEP ${MODULE_DEPS})
-		# Only skip dependencies already in test-standalone-support
-		if(NOT DEP STREQUAL "djinterp" AND 
-		   NOT DEP STREQUAL "dmemory" AND 
-		   NOT DEP STREQUAL "string_fn" AND
-		   NOT DEP STREQUAL "dfile" AND
-		   NOT DEP STREQUAL "dtime" AND
-		   NOT DEP STREQUAL "dstring")  # ADD THIS LINE
-			if(TARGET ${DEP})
-				target_link_libraries(${TARGET_NAME} PRIVATE ${DEP})
-			endif()
-		endif()
-	endforeach()
+    djinterp_get_module_dependencies(${ARG_MODULE_NAME} MODULE_DEPS)
+    foreach(DEP ${MODULE_DEPS})
+        # only link if it's not already in the support library
+        if(NOT DEP STREQUAL "djinterp" AND 
+           NOT DEP STREQUAL "dmemory" AND 
+           NOT DEP STREQUAL "string_fn" AND
+           NOT DEP STREQUAL "dfile")
+            if(TARGET ${DEP})
+                target_link_libraries(${TARGET_NAME} PRIVATE ${DEP})
+            endif()
+        endif()
+    endforeach()
     
     # link extra libraries if specified
     if(DEFINED ARG_EXTRA_LIBS)
