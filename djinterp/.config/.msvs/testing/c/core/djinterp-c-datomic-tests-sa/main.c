@@ -8,8 +8,8 @@
 * path:      \.config\.msvs\testing\atomic\djinterp-c-datomic-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-#include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\c\datomic_tests_sa.h"
+#include "..\..\..\..\..\inc\test\test_standalone.h"
+#include "..\..\..\..\..\tests\datomic_tests_sa.h"
 
 
 /******************************************************************************

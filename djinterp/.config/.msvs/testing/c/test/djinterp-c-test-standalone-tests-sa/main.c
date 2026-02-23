@@ -11,8 +11,8 @@
 * path:      \.config\.msvs\testing\test\djinterp-c-test-standalone-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-#include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\c\test\test_standalone_tests_sa.h"
+#include "../../../../../../inc/c/test/test_standalone.h"
+#include "../../../../../../tests/c/test/test_standalone_tests_sa.h"
 
 
 /******************************************************************************

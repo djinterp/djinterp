@@ -8,8 +8,8 @@
 * path:      \.config\.msvs\testing\test\djinterp-c-test-common-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-#include "..\..\..\..\..\..\..\inc\c\test_standalone.h"
-#include "..\..\..\..\..\..\..\tests\c\test\test_common_tests_sa.h"
+#include "../../../../../../inc/c/test/test_standalone.h"
+#include "../../../../../../tests/c/test/test_common_tests_sa.h"
 
 
 /******************************************************************************

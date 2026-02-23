@@ -11,8 +11,8 @@
 * path:      \.config\.msvs\testing\core\djinterp-c-dfile-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-#include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\c\dfile_tests_sa.h"
+#include "..\..\..\..\..\inc\test\test_standalone.h"
+#include "..\..\..\..\..\tests\dfile_tests_sa.h"
 
 
 /******************************************************************************
@@ -116,8 +116,6 @@ main
                                 sizeof(g_dfile_notes) /
                                     sizeof(g_dfile_notes[0]),
                                 g_dfile_notes);
-
-    d_test_sa_runner_set_wait_for_input(&runner, true);
 
     // execute all tests and return result
     return d_test_sa_runner_execute(&runner);

@@ -9,8 +9,8 @@
 * path:      \.config\.msvs\testing\dmutex\djinterp-c-dmutex-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-#include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\c\dmutex_tests_sa.h"
+#include "..\..\..\..\..\inc\test\test_standalone.h"
+#include "..\..\..\..\..\tests\dmutex_tests_sa.h"
 
 
 /******************************************************************************

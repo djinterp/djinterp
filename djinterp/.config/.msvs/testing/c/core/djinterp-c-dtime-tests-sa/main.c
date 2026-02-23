@@ -10,8 +10,9 @@
 * path:      \.config\.msvs\testing\core\djinterp-c-dtime-tests-sa\main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-#include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\c\dtime_tests_sa.h"
+
+#include "..\..\..\..\..\inc\test\test_standalone.h"
+#include "..\..\..\..\..\tests\dtime_tests_sa.h"
 
 
 /******************************************************************************

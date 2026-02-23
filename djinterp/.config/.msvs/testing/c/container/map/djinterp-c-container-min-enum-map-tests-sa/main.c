@@ -8,8 +8,8 @@
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
 
-#include "..\..\..\..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\..\..\..\tests\c\container\map\min_enum_map_tests_sa.h"
+#include "..\..\..\..\..\..\inc\test\test_standalone.h"
+#include "..\..\..\..\..\..\tests\container\map\min_enum_map_tests_sa.h"
 
 
 /******************************************************************************

@@ -9,8 +9,8 @@
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
 
-#include "..\..\..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\c\string_fn_tests_sa.h"
+#include "..\..\..\..\..\inc\test\test_standalone.h"
+#include "..\..\..\..\..\tests\string_fn_tests_sa.h"
 
 
 /******************************************************************************
