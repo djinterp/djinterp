@@ -1,24 +1,24 @@
 /******************************************************************************
 * djinterp [test]                                                       main.c
 *
-*   Test runner for dio module unit tests.
-*   Executes comprehensive standalone tests for all dio.h functions including
-* formatted input/output (secure variants), character and string I/O, large
-* file stream positioning, and error handling.
+*   Test runner for compose module unit tests.
+*   Executes comprehensive standalone tests for all function composition and
+* partial application functions including transformer composition, partial
+* consumer operations, and composition application.
 *
 *
-* path:      \tests\c\core\dio\main.c
+* path:      /tests/functional/compose/main.c
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.16
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.09
 ******************************************************************************/
-#include "..\..\..\..\..\inc\test\test_standalone.h"
-#include "..\..\..\..\..\tests\dio_tests_sa.h"
+#include "../../../../../../inc/c/test/test_standalone.h"
+#include "../../../../../../tests/c/functional/compose_tests_sa.h"
 
 
 /*
 main
-  Entry point for the dio test suite.
-  Sets up the test runner, registers the dio module, executes all tests,
+  Entry point for the compose test suite.
+  Sets up the test runner, registers the compose module, executes all tests,
 and displays comprehensive results.
 
 Parameter(s):
@@ -42,15 +42,15 @@ main
 
     // initialize the test runner
     d_test_sa_runner_init(&runner,
-                          "DIO Module Test Suite",
-                          "Comprehensive unit tests for dio.h");
+                          "Compose Module Test Suite",
+                          "Comprehensive unit tests for compose.h");
 
-    // register the dio module
+    // register the compose module
     d_test_sa_runner_add_module_counter(
         &runner,
-        "DIO Functions",
-        "Tests for formatted I/O, character/string I/O, file positioning, and error handling",
-        d_tests_sa_dio_run_all,
+        "Function Composition & Partial Application",
+        "Tests for transformer composition and partial consumers",
+        d_tests_sa_compose_run_all,
         0,
         NULL);
 
