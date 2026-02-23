@@ -87,8 +87,8 @@ IX.   UTILITY FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <stddef.h>      // for size_t
-#include ".\djinterp.h"
-#include ".\dtime.h"     // for timespec and time utilities
+#include "./djinterp.h"
+#include "./dtime.h"
 
 
 // D_MUTEX_HAS_C11_THREADS

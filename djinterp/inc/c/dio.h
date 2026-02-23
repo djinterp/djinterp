@@ -19,9 +19,9 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-#include ".\djinterp.h"
-#include ".\dfile.h"
-#include ".\djinterp.h"
+#include "./djinterp.h"
+#include "./dfile.h"
+#include "./djinterp.h"
 
 
 // I.   formatted input (secure variants)

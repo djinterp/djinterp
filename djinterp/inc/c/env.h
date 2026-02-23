@@ -48,7 +48,7 @@
     #define D_CFG_ENV_CUSTOM 0
 #endif
 
-#include ".\core\config\env_config.h"
+#include "./core/config/env_config.h"
 
 // =============================================================================
 // II.  LANGUAGE ENVIRONMENT 
@@ -75,9 +75,9 @@
 
         // only include C++98 header detection if not using modern C++ features
         #if (__cplusplus < D_ENV_LANG_CPP_STANDARD_CPP11)
-            #include ".\core\env\env_cpp98.h"
+            #include "./core/env/env_cpp98.h"
         #else
-            #include ".\core\env\env_cpp_features.h"
+            #include "./core/env/env_cpp_features.h"
         #endif
 
         // C++ standard detection
@@ -2113,7 +2113,7 @@
 #endif
 
 // D_ENV_C_HAS_ALIGNED_MALLOC
-//   feature: detect if _aligned_malloc is available (Windows)
+//   feature: detect if _alignemalloc is available (Windows)
 #ifndef D_ENV_C_HAS_ALIGNED_MALLOC
     #if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
         #define D_ENV_C_HAS_ALIGNED_MALLOC 1

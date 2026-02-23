@@ -55,7 +55,7 @@ XI.   MEMORY ORDERING AND FENCES
 #include <stddef.h>      // for size_t
 #include <stdint.h>      // for fixed-width types
 #include <stdbool.h>     // for bool
-#include ".\djinterp.h"
+#include "./djinterp.h"
 
 
 // D_ATOMIC_USE_STDATOMIC
@@ -237,7 +237,7 @@ XI.   MEMORY ORDERING AND FENCES
     X(size,   size_t,             d_atomic_size_t, (size_t)0)
 
 
-// declaration stamp macros (D_INTERNAL_ — used only within this header)
+// declaration stamp macros (D_INTERNAL_ ï¿½ used only within this header)
 
 #define D_INTERNAL_ATOMIC_DECL_INIT(sfx, vtype, atype, zero)           \
     void  d_atomic_init_##sfx(atype* _obj, vtype _value);

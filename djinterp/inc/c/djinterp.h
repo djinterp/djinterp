@@ -111,8 +111,8 @@ Do something with this, either here or in env.h OR in dconfig.h
 #define	DJINTERP_ 1
 
 #include <stdint.h>
-#include ".\env.h"
-#include ".\dmacro.h"
+#include "./env.h"
+#include "./dmacro.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -258,64 +258,67 @@ Do something with this, either here or in env.h OR in dconfig.h
         #endif
     #endif
 #endif
-
-                        // D_INLINE
-//   constant: used for inlining functions; should be turned off with 
-// `/D D_TESTING=1` in compiler args.
+// ============================================================================
+// D_INLINE
+//   Used for inlining functions; stripped when D_TESTING is defined.
+// ============================================================================
 #ifdef D_TESTING
-    #define D_INLINE  
-    #define D_STATIC
-    #define D_STATIC_INLINE
-    #define D_CONSTEXPR
-    #define D_STATIC_CONSTEXPR
-    #define D_CONSTEXPR_INLINE
-    #define D_STATIC_CONSTEXPR_INLINE
+    #define D_INLINE
 #else
-    #define D_STATIC        static 
-    
-    // per-compiler inline attributes for optimal performance
     #if defined(D_ENV_COMPILER_MSVC)
         #define D_INLINE        __forceinline
-        #define D_STATIC_INLINE static __forceinline
     #elif ( defined(D_ENV_COMPILER_GCC) ||  \
             defined(D_ENV_COMPILER_CLANG) )
         #define D_INLINE        inline __attribute__((always_inline))
-        #define D_STATIC_INLINE static inline __attribute__((always_inline))
     #else
         #define D_INLINE        inline
-        #define D_STATIC_INLINE static inline
-    #endif
-
-    // D_CONSTEXPR, D_STATIC_CONSTEXPR, D_CONSTEXPR_INLINE, 
-    // D_STATIC_CONSTEXPR_INLINE
-    //   constants: constexpr qualifiers for C++ (C++11 and above); fall back
-    // to const (or const + inline/static) in C or pre-C++11 environments.
-    #if defined(D_ENV_LANG_DETECTED_CPP) &&                             \
-        (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP11)
-        #define D_CONSTEXPR                 constexpr
-        #define D_STATIC_CONSTEXPR          static constexpr
-        #define D_CONSTEXPR_INLINE          constexpr D_INLINE
-        #define D_STATIC_CONSTEXPR_INLINE   static constexpr D_INLINE
-    #else
-        #define D_CONSTEXPR                 const
-        #define D_STATIC_CONSTEXPR          static const
-        #define D_CONSTEXPR_INLINE          const D_INLINE
-        #define D_STATIC_CONSTEXPR_INLINE   static const D_INLINE
     #endif
 #endif
 
 // D_NOINLINE
-//   constant: used to explicitly prevent inlining for debugging/profiling.
+//   Explicitly prevents inlining for debugging/profiling.
 #if defined(D_ENV_COMPILER_MSVC)
-    #define D_NOINLINE     __declspec(noinline)
-
+    #define D_NOINLINE          __declspec(noinline)
 #elif ( defined(D_ENV_COMPILER_GCC) ||  \
         defined(D_ENV_COMPILER_CLANG) )
-    #define D_NOINLINE     __attribute__((noinline))
-
+    #define D_NOINLINE          __attribute__((noinline))
 #else
     #define D_NOINLINE
 #endif
+
+// D_STATIC
+//   Stripped when D_TESTING is defined, but only in C++ (where linkage can be
+//   worked around); retained in C to avoid duplicate-symbol errors across TUs.
+#if defined(D_TESTING) &&                                               \
+    defined(D_ENV_LANG_USING_CPP) && (D_ENV_LANG_USING_CPP == 1)
+    #define D_STATIC
+#else
+    #define D_STATIC            static
+#endif
+
+// D_CONSTEXPR
+//   constexpr in C++11+; falls back to const in C or pre-C++11.
+//   Stripped when D_TESTING_CONSTEXPR is defined and == 1.
+#if defined(D_TESTING_CONSTEXPR) && (D_TESTING_CONSTEXPR == 1)
+    #define D_CONSTEXPR
+#else
+    #if defined(D_ENV_LANG_DETECTED_CPP) &&                             \
+        (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP11)
+        #define D_CONSTEXPR     constexpr
+    #else
+        #define D_CONSTEXPR     const
+    #endif
+#endif
+
+// ============================================================================
+// Compound qualifiers (official specifier order: static constexpr inline)
+//   Composed from the primitives above so they respect every toggle
+//   independently.
+// ============================================================================
+#define D_STATIC_INLINE                 D_STATIC D_INLINE
+#define D_STATIC_CONSTEXPR              D_STATIC D_CONSTEXPR
+#define D_CONSTEXPR_INLINE              D_CONSTEXPR D_INLINE
+#define D_STATIC_CONSTEXPR_INLINE       D_STATIC D_CONSTEXPR D_INLINE
 
 /// I.i.2.   Additional types
 
