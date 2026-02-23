@@ -4,7 +4,7 @@
 *   
 * 
 * 
-* path:      \inc\djinterp.h
+* path:      /inc/djinterp.h
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                             date: 2023.11.12
 ******************************************************************************/
@@ -441,24 +441,6 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 //   alias: corresponds to a FAILED operation; evaluates to D_FALSE.
 #define D_DISABLED false
 
-// D_IS_ENABLED
-//   macro: returns a value equivalent to `true` if and only if parameter
-// `token` is both defined AND equal to the value held by `D_IS_ENABLED`.
-#define D_IS_ENABLED(token)                  \
-    ( ( defined(token) ) &&                  \
-      ( (token) == (D_ENABLED) ) ) ? true :  \
-                                     false
-
-// D_IS_DISABLED
-//   macro: returns a value equivalent to `false` if and only if parameter
-// `token` is both: 
-// 1. defined, and
-// 2. equal to the value held by `D_ENABLED`.
-#define D_IS_DISABLED(token)                  \
-    ( ( defined(token) ) &&                   \
-      ( (token) == (D_DISABLED) ) ) ? true :  \
-                                      false
-
 // D_INDENT
 //   constant: string corresponding to one (1) level of indentation. Defaults
 // to two single spaces; 
@@ -475,58 +457,62 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 typedef ssize_t d_index;
 
 
-size_t d_index_convert_fast(d_index _index,
-                            size_t  _count);
-bool   d_index_convert_safe(d_index _index, 
-                            size_t  _count, 
-                            size_t* _destination);
-bool   d_index_is_valid(d_index _index, 
-                        size_t  _count);
+size_t d_index_convert_fast(d_index _index, size_t _count);
+bool   d_index_convert_safe(d_index _index, size_t _count, size_t* _destination);
+bool   d_index_is_valid(d_index _index, size_t _count);
 
 
 // D_ARRAY_TOTAL_SIZE
 //   macro: shorthand for calculating the total memory occupied, in bytes, of 
 // an vector of elements.
-// Equal to the product of `ELEMENT_SIZE` and `ELEMENTS_COUNT`.
-#define D_ARRAY_TOTAL_SIZE(ELEMENT_SIZE, ELEMENTS_COUNT)	\
-	((size_t)( (ELEMENT_SIZE) * (ELEMENTS_COUNT) ))
+// Equal to the product of `element_size` and `elements_count`.
+#define D_ARRAY_STATIC_SIZE(_array)	                                        \
+	((size_t)(sizeof(_array) / sizeof((_array)[0]) )
+
+// D_ARRAY_TOTAL_SIZE
+//   macro: shorthand for calculating the total memory occupied, in bytes, of 
+// an vector of elements.
+// Equal to the product of `element_size` and `elements_count`.
+#define D_ARRAY_TOTAL_SIZE(_element_size, _elements_count)	                \
+	((size_t)( (_element_size) * (_elements_count) ))
 
 // D_CLAMP_INDEX
 //   macro: clamps an index to valid range for given array size
 //   Returns 0 for negative indices, (SIZE-1) for too-large indices
-#define D_CLAMP_INDEX(index, arr_size)          \
-    ( (arr_size) == 0                           \
-      ? 0                                       \
-      : ( (index) < 0                           \
-          ? 0                                   \
-          : ( (index) >= (ssize_t)(arr_size) )  \
-            ? ( (arr_size) - 1 )                \
+#define D_CLAMP_INDEX(index, arr_size)                                      \
+    ( (arr_size) == 0                                                       \
+      ? 0                                                                   \
+      : ( (index) < 0                                                       \
+          ? 0                                                               \
+          : ( (index) >= (ssize_t)(arr_size) )                              \
+            ? ( (arr_size) - 1 )                                            \
             : (index) ) )
 
 // D_INDEX_IN_BOUNDS  
 //   macro: alias for D_IS_VALID_INDEX_N for compatibility
-#define D_INDEX_IN_BOUNDS(index, arr_size) \
-    D_IS_VALID_INDEX_N((index), (arr_size))
+#define D_INDEX_IN_BOUNDS(_index, _arr_size)                                \
+    D_IS_VALID_INDEX_N((_index), (_arr_size))
 
 // D_SAFE_ARR_IDX
 //   macro: safe array indexing that returns the element value, not a pointer
 //   Note: only to be used on stack-allocated arrays whose size is known at compile time
-#define D_SAFE_ARR_IDX(arr, arr_size)                                \
-    ( D_IS_VALID_INDEX_N((arr_size), sizeof(arr)/sizeof((arr)[0]) )  \
-        ? D_ARR_IDX((arr), (arr_size))                               \
-        : (arr)[0] )
+#define D_SAFE_ARR_IDX(_arr, _arr_size)                                     \
+    ( D_IS_VALID_INDEX_N((_arr_size), sizeof(_arr)/sizeof((_arr)[0]) )      \
+        ? D_ARR_IDX((_arr), (_arr_size))                                    \
+        : (_arr)[0] )
 
 // D_IS_VALID_INDEX
-//   macro: validates that an INDEX is within bounds for an array of given SIZE
-#define D_IS_VALID_INDEX(INDEX, SIZE)                   \
-    ( ((SIZE) > 0) &&                                   \
-      ( ((INDEX) >= 0 && (INDEX) < (ssize_t)(SIZE)) ||  \
-        ((INDEX) < 0 && (-(INDEX)) <= (ssize_t)(SIZE)) ) )
+//   macro: validates that an `_index` is within bounds for an array of given
+// `_count`.
+#define D_IS_VALID_INDEX(_index, _count)                                    \
+    ( ((_count) > 0) &&                                                     \
+      ( ((_index) >= 0 && (_index) < (ssize_t)(_count)) ||                  \
+        ((_index) < 0 && (-(_index)) <= (ssize_t)(_count)) ) )
 
 // D_IS_VALID_INDEX_N
 //   macro: 
-#define D_IS_VALID_INDEX_N(INDEX, SIZE)		\
-    ((INDEX) >= -(ssize_t)(SIZE) && (INDEX) < (ssize_t)(SIZE))
+#define D_IS_VALID_INDEX_N(_index, _count)		                            \
+    ( (_index) >= -(ssize_t)(_count) && (_index) < (ssize_t)(_count) )
 
 // D_NEG_IDX
 //   macro: given a negative index and the size of the vector (in number of
@@ -534,18 +520,19 @@ bool   d_index_is_valid(d_index _index,
 //   Note: this does not check if INDEX corresponds to a valid index within the
 // span of the vector; that must be done by the caller to avoid an out-of-bounds
 // index.
-#define D_NEG_IDX(INDEX, SIZE)          \
-	( (INDEX) < 0 ? (SIZE) + (INDEX) :  \
-				    (INDEX) )
+#define D_NEG_IDX(_index, _count)                                           \
+	( (_count) < 0 ? (_count) + (_index) :                                  \
+				    (_index) )
 
 // D_ARR_IDX
 //   macro: given a negative index and array, returns the array element at the
 // equivalent positive index.
 // Note: only to be used on stack-allocated arrays whose size is known at
 // compile time.
-#define D_ARR_IDX(ARR, INDEX)           \
-     (ARR)[(INDEX) < 0 ? ( (sizeof(ARR)/sizeof((ARR)[0])) + (INDEX) ) :  \
-                                                            (INDEX)]
+#define D_ARR_IDX(_array, _index)                                           \
+    ( (_array)[(_index) < 0                                                 \
+        ? ( (sizeof(_array)/sizeof((_array)[0])) + (_index) )               \
+        : (_index)] )
 
 #ifdef __cplusplus
     //#include <cstddef>
