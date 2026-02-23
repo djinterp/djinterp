@@ -173,6 +173,13 @@ if(NOT TARGET dfile)
     target_link_libraries(dfile PUBLIC djinterp dmemory string_fn)
 endif()
 
+# dio module (formatted I/O abstraction)
+if(NOT TARGET dio)
+    add_library(dio STATIC "${SOURCE_DIR}/dio.c")
+    target_include_directories(dio PUBLIC ${INCLUDE_DIR})
+    target_link_libraries(dio PUBLIC djinterp)
+endif()
+
 # dstring module (dynamic string type)
 if(NOT TARGET dstring)
     add_library(dstring STATIC "${SOURCE_DIR}/dstring.c")

@@ -1,103 +1,78 @@
 ﻿D:\sam\code\projects\repos\djinterp\djinterp
 ├── 📁 .config
 │   └── 📁 .msvs
-│       ├── 📁 testing
-│       │   └── 📁 c
-│       │       ├── 📁 container
-│       │       │   └── 📁 map
-│       │       │       ├── 📁 djinterp-c-container-enum-map-entry-tests-sa
-│       │       │       │   └── 📄 main.c
-│       │       │       └── 📁 djinterp-c-container-min-enum-map-tests-sa
-│       │       │           └── 📄 main.c
-│       │       ├── 📁 core
-│       │       │   ├── 📁 djinterp-c-core-tests-sa-all
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-datomic-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-dfile-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-dio-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-dmacro-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-dmemory-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-dmutex-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-dstring-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-dtime-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-env-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   ├── 📁 djinterp-c-header-tests-sa
-│       │       │   │   └── 📄 main.c
-│       │       │   └── 📁 djinterp-c-string-fn-tests-sa
-│       │       │       └── 📄 main.c
-│       │       └── 📁 test
-│       │           ├── 📁 djinterp-c-test-common-tests-sa
-│       │           │   └── 📄 main.c
-│       │           └── 📁 djinterp-c-test-standalone-tests-sa
-│       │               └── 📄 main.c
-│       └── 📄 djinterp.props
-├── 📁 bin
-│   └── 📁 tests
-│       └── 📁 c
-│           └── 📁 core
-│               ├── 📄 djinterp-c-datomic-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-datomic-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-dfile-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-dfile-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-dio-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-dio-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-djinterp-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-djinterp-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-dmacro-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-dmacro-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-dmemory-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-dmemory-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-dmutex-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-dmutex-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-dstring-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-dstring-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-dtime-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-dtime-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-env-tests-sa-x64.exe
-│               ├── 📄 djinterp-c-env-tests-sa-x64.pdb
-│               ├── 📄 djinterp-c-string-fn-tests-sa-x64.exe
-│               └── 📄 djinterp-c-string-fn-tests-sa-x64.pdb
-├── 📁 build
-│   └── 📁 cmake
-│       ├── 📁 config
-│       │   ├── 📁 с
-│       │   │   ├── 📁 container
-│       │   │   │   └── 📄 CMakeLists.txt
-│       │   │   ├── 📁 core
-│       │   │   │   ├── 📁 build
-│       │   │   │   └── 📄 CMakeLists.txt
-│       │   │   ├── 📁 test
-│       │   │   │   └── 📄 CMakeLists.txt
-│       │   │   └── 📄 CMakeLists.txt
-│       │   ├── 📄 CMakeLists.txt
-│       │   ├── 📄 common.cmake
-│       │   ├── 📄 tests_common.cmake
-│       │   └── 📄 tests_standalone.cmake
-│       └── 📁 msvs
+│       └── 📁 testing
 │           └── 📁 c
 │               ├── 📁 container
-│               └── 📁 core
-├── 📁 docs
+│               │   └── 📁 map
+│               │       ├── 📁 djinterp-c-container-enum-map-entry-tests-sa
+│               │       │   └── 📄 main.c
+│               │       └── 📁 djinterp-c-container-min-enum-map-tests-sa
+│               │           └── 📄 main.c
+│               ├── 📁 core
+│               │   ├── 📁 djinterp-c-core-tests-sa-all
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-datomic-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-dfile-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-dio-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-dmacro-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-dmemory-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-dmutex-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-dstring-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-dtime-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-env-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-header-tests-sa
+│               │   │   └── 📄 main.c
+│               │   └── 📁 djinterp-c-string-fn-tests-sa
+│               │       └── 📄 main.c
+│               ├── 📁 function
+│               │   ├── 📁 djinterp-c-functional-common-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-functional-compose-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-functional-filter-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-functional-fn-builder-tests-sa
+│               │   │   └── 📄 main.c
+│               │   ├── 📁 djinterp-c-functional-pipeline-tests-sa
+│               │   │   └── 📄 main.c
+│               │   └── 📁 djinterp-c-functional-predicate-tests-sa
+│               │       └── 📄 main.c
+│               └── 📁 test
+│                   ├── 📁 djinterp-c-test-common-tests-sa
+│                   │   └── 📄 main.c
+│                   └── 📁 djinterp-c-test-standalone-tests-sa
+│                       └── 📄 main.c
 ├── 📁 inc
-│   ├── 📁 build
 │   ├── 📁 c
 │   │   ├── 📁 container
+│   │   │   ├── 📁 array
+│   │   │   │   ├── 📄 array_common.h
+│   │   │   │   └── 📄 array_filter.h
 │   │   │   ├── 📁 map
 │   │   │   │   ├── 📄 enum_map_entry.h
 │   │   │   │   ├── 📄 map.h
 │   │   │   │   └── 📄 min_enum_map.h
+│   │   │   ├── 📁 registry
+│   │   │   │   ├── 📄 registry.h
+│   │   │   │   └── 📄 registry_common.h
 │   │   │   └── 📄 container.h
 │   │   ├── 📁 core
 │   │   │   ├── 📁 config
+│   │   │   │   ├── 📁 container
+│   │   │   │   │   ├── 📁 array
+│   │   │   │   │   │   └── 📄 array_config.h
+│   │   │   │   │   └── 📄 container_config.h
+│   │   │   │   ├── 📄 dmacro_config.h
 │   │   │   │   └── 📄 env_config.h
 │   │   │   └── 📁 macro
 │   │   │       ├── 📄 for_each_1_tuple_comma_mvc.h
@@ -366,8 +341,19 @@
 │   │   │       ├── 📄 varg_has_args256.h
 │   │   │       ├── 📄 varg_has_args512.h
 │   │   │       └── 📄 varg_has_args64.h
+│   │   ├── 📁 functional
+│   │   │   ├── 📄 compose.h
+│   │   │   ├── 📄 filter.h
+│   │   │   ├── 📄 fn_builder.h
+│   │   │   ├── 📄 functional.h
+│   │   │   ├── 📄 functional_common.h
+│   │   │   ├── 📄 pipeline.h
+│   │   │   └── 📄 predicate.h
 │   │   ├── 📁 test
+│   │   │   ├── 📄 assert.h
 │   │   │   ├── 📄 test_common.h
+│   │   │   ├── 📄 test_config.h
+│   │   │   ├── 📄 test_cvar.h
 │   │   │   └── 📄 test_standalone.h
 │   │   ├── 📄 datomic.h
 │   │   ├── 📄 dconfig.h
@@ -380,265 +366,344 @@
 │   │   ├── 📄 dstring.h
 │   │   ├── 📄 dtime.h
 │   │   ├── 📄 env.h
+│   │   ├── 📄 iterator.h
 │   │   └── 📄 string_fn.h
-│   ├── 📁 core
-│   │   ├── 📁 container
-│   │   ├── 📁 db
-│   │   ├── 📁 event
-│   │   ├── 📁 functional
-│   │   ├── 📁 math
-│   │   ├── 📁 meta
-│   │   ├── 📁 test
-│   │   ├── 📁 text
-│   │   ├── 📁 util
-│   │   ├── 📄 concepts.hpp
-│   │   ├── 📄 dtuple.hpp
-│   │   └── 📄 type_traits.hpp
-│   ├── 📁 parse
-│   │   ├── 📁 grammar
-│   │   │   ├── 📄 parse_abnf.h
-│   │   │   ├── 📄 parse_bnf.h
-│   │   │   ├── 📄 parse_bnf_common.h
-│   │   │   └── 📄 parse_ebnf.h
-│   │   ├── 📄 parse.h
-│   │   └── 📄 parse_runtime.h
-│   ├── 📁 parsegen
-│   │   └── 📄 parsegen.hpp
-│   └── 📁 tools
-├── 📁 lib
-│   └── 📁 core
-│       └── 📁 c
-│           ├── 📄 datomic.lib
-│           ├── 📄 datomic.pdb
-│           ├── 📄 dconfig.lib
-│           ├── 📄 dconfig.pdb
-│           ├── 📄 dfile.lib
-│           ├── 📄 dfile.pdb
-│           ├── 📄 dio.lib
-│           ├── 📄 dio.pdb
-│           ├── 📄 djinterp.lib
-│           ├── 📄 djinterp.pdb
-│           ├── 📄 dmemory.lib
-│           ├── 📄 dmemory.pdb
-│           ├── 📄 dmutex.lib
-│           ├── 📄 dmutex.pdb
-│           ├── 📄 dstring.lib
-│           ├── 📄 dstring.pdb
-│           ├── 📄 dtime.lib
-│           ├── 📄 dtime.pdb
-│           ├── 📄 env.lib
-│           ├── 📄 env.pdb
-│           ├── 📄 string_fn.lib
-│           ├── 📄 string_fn.pdb
-│           ├── 📄 test-standalone-support.lib
-│           └── 📄 test-standalone-support.pdb
-├── 📁 res
-├── 📁 scripts
-│   ├── 📄 C-Macro-Generator.ps1
-│   ├── 📄 DirectoryTree.ps1
-│   ├── 📄 format_macro.py
-│   ├── 📄 gen_inc.py
-│   ├── 📄 generate_cpp_features_header.py
-│   ├── 📄 generator_macro_tuple.py
-│   ├── 📄 generator_macro_varg_count.py
-│   ├── 📄 generator_macro_varg_get_arg.py
-│   ├── 📄 macro_inc.py
-│   └── 📄 tree.txt
+│   └── 📁 parse
+│       ├── 📁 grammar
+│       │   ├── 📄 parse_abnf.h
+│       │   ├── 📄 parse_bnf.h
+│       │   ├── 📄 parse_bnf_common.h
+│       │   └── 📄 parse_ebnf.h
+│       ├── 📄 parse.h
+│       └── 📄 parse_runtime.h
 ├── 📁 src
-│   ├── 📁 build
-│   ├── 📁 c
-│   │   ├── 📁 container
-│   │   │   ├── 📁 map
-│   │   │   │   ├── 📄 enum_map_entry.c
-│   │   │   │   ├── 📄 map.c
-│   │   │   │   └── 📄 min_enum_map.c
-│   │   │   └── 📄 container.c
-│   │   ├── 📁 test
-│   │   │   ├── 📄 test_common.c
-│   │   │   └── 📄 test_standalone.c
-│   │   ├── 📄 datomic.c
-│   │   ├── 📄 dconfig.c
-│   │   ├── 📄 dfile.c
-│   │   ├── 📄 dio.c
-│   │   ├── 📄 djinterp.c
-│   │   ├── 📄 dmemory.c
-│   │   ├── 📄 dmutex.c
-│   │   ├── 📄 dstring.c
-│   │   ├── 📄 dtime.c
-│   │   ├── 📄 env.c
-│   │   └── 📄 string_fn.c
-│   ├── 📁 core
-│   ├── 📁 parse
-│   ├── 📁 parsegen
-│   └── 📁 tools
+│   └── 📁 c
+│       ├── 📁 container
+│       │   ├── 📁 array
+│       │   │   ├── 📄 array_common.c
+│       │   │   └── 📄 array_filter.c
+│       │   ├── 📁 map
+│       │   │   ├── 📄 enum_map_entry.c
+│       │   │   ├── 📄 map.c
+│       │   │   └── 📄 min_enum_map.c
+│       │   ├── 📁 registry
+│       │   │   ├── 📄 registry.c
+│       │   │   └── 📄 registry_common.c
+│       │   └── 📄 container.c
+│       ├── 📁 functional
+│       │   ├── 📄 compose.c
+│       │   ├── 📄 filter.c
+│       │   ├── 📄 fn_builder.c
+│       │   ├── 📄 functional.c
+│       │   ├── 📄 functional_common.c
+│       │   ├── 📄 pipeline.c
+│       │   └── 📄 predicate.c
+│       ├── 📁 test
+│       │   ├── 📄 assert.c
+│       │   ├── 📄 test_common.c
+│       │   ├── 📄 test_config.c
+│       │   ├── 📄 test_cvar.c
+│       │   └── 📄 test_standalone.c
+│       ├── 📄 datomic.c
+│       ├── 📄 dconfig.c
+│       ├── 📄 dfile.c
+│       ├── 📄 dio.c
+│       ├── 📄 djinterp.c
+│       ├── 📄 dmemory.c
+│       ├── 📄 dmutex.c
+│       ├── 📄 dstring.c
+│       ├── 📄 dtime.c
+│       ├── 📄 env.c
+│       └── 📄 string_fn.c
 └── 📁 tests
-    ├── 📁 c
-    │   ├── 📁 container
-    │   │   └── 📁 map
-    │   │       ├── 📄 enum_map_entry_tests_sa.c
-    │   │       ├── 📄 enum_map_entry_tests_sa.h
-    │   │       ├── 📄 enum_map_tests_sa.c
-    │   │       ├── 📄 enum_map_tests_sa.h
-    │   │       ├── 📄 min_enum_map_tests_sa.c
-    │   │       ├── 📄 min_enum_map_tests_sa.h
-    │   │       ├── 📄 min_enum_map_tests_sa_core.c
-    │   │       └── 📄 min_enum_map_tests_sa_memory.c
-    │   ├── 📁 test
-    │   │   ├── 📄 test_common_tests_sa.c
-    │   │   ├── 📄 test_common_tests_sa.h
-    │   │   ├── 📄 test_common_tests_sa_arg.c
-    │   │   ├── 📄 test_common_tests_sa_discriminator.c
-    │   │   ├── 📄 test_common_tests_sa_fn.c
-    │   │   ├── 📄 test_common_tests_sa_fn_wrapper.c
-    │   │   ├── 📄 test_common_tests_sa_lifecycle.c
-    │   │   ├── 📄 test_common_tests_sa_macro.c
-    │   │   ├── 📄 test_common_tests_sa_symbols.c
-    │   │   ├── 📄 test_common_tests_sa_test_fn.c
-    │   │   ├── 📄 test_common_tests_sa_type.c
-    │   │   ├── 📄 test_standalone_tests_sa.c
-    │   │   ├── 📄 test_standalone_tests_sa.h
-    │   │   ├── 📄 test_standalone_tests_sa_assert_fn.c
-    │   │   ├── 📄 test_standalone_tests_sa_assertion.c
-    │   │   ├── 📄 test_standalone_tests_sa_constant.c
-    │   │   ├── 📄 test_standalone_tests_sa_counter.c
-    │   │   ├── 📄 test_standalone_tests_sa_fn_ptr.c
-    │   │   ├── 📄 test_standalone_tests_sa_note.c
-    │   │   ├── 📄 test_standalone_tests_sa_object.c
-    │   │   ├── 📄 test_standalone_tests_sa_results.c
-    │   │   ├── 📄 test_standalone_tests_sa_runner.c
-    │   │   ├── 📄 test_standalone_tests_sa_runner_fn.c
-    │   │   ├── 📄 test_standalone_tests_sa_runner_struct.c
-    │   │   ├── 📄 test_standalone_tests_sa_template.c
-    │   │   └── 📄 test_standalone_tests_sa_utility.c
-    │   ├── 📄 datomic_tests_sa.c
-    │   ├── 📄 datomic_tests_sa.h
-    │   ├── 📄 datomic_tests_sa_cas.c
-    │   ├── 📄 datomic_tests_sa_exchange.c
-    │   ├── 📄 datomic_tests_sa_fence.c
-    │   ├── 📄 datomic_tests_sa_fetch.c
-    │   ├── 📄 datomic_tests_sa_flag.c
-    │   ├── 📄 datomic_tests_sa_init.c
-    │   ├── 📄 datomic_tests_sa_load.c
-    │   ├── 📄 datomic_tests_sa_null.c
-    │   ├── 📄 datomic_tests_sa_store.c
-    │   ├── 📄 dfile_tests_sa.c
-    │   ├── 📄 dfile_tests_sa.h
-    │   ├── 📄 dfile_tests_sa_binary.c
-    │   ├── 📄 dfile_tests_sa_desc.c
-    │   ├── 📄 dfile_tests_sa_dir.c
-    │   ├── 📄 dfile_tests_sa_large.c
-    │   ├── 📄 dfile_tests_sa_lock.c
-    │   ├── 📄 dfile_tests_sa_meta.c
-    │   ├── 📄 dfile_tests_sa_null.c
-    │   ├── 📄 dfile_tests_sa_open.c
-    │   ├── 📄 dfile_tests_sa_ops.c
-    │   ├── 📄 dfile_tests_sa_path.c
-    │   ├── 📄 dfile_tests_sa_pipe.c
-    │   ├── 📄 dfile_tests_sa_symlink.c
-    │   ├── 📄 dfile_tests_sa_sync.c
-    │   ├── 📄 dfile_tests_sa_temp.c
-    │   ├── 📄 dfile_tests_sa_util.c
-    │   ├── 📄 dio_tests_sa.c
-    │   ├── 📄 dio_tests_sa.h
-    │   ├── 📄 dio_tests_sa_char_string_io.c
-    │   ├── 📄 dio_tests_sa_error_handling.c
-    │   ├── 📄 dio_tests_sa_file_positioning.c
-    │   ├── 📄 dio_tests_sa_formatted_input.c
-    │   ├── 📄 dio_tests_sa_formatted_output.c
-    │   ├── 📄 djinterp_tests_sa.c
-    │   ├── 📄 djinterp_tests_sa.h
-    │   ├── 📄 djinterp_tests_sa_array.c
-    │   ├── 📄 djinterp_tests_sa_boolean.c
-    │   ├── 📄 djinterp_tests_sa_edge.c
-    │   ├── 📄 djinterp_tests_sa_function_ptr.c
-    │   ├── 📄 djinterp_tests_sa_index.c
-    │   ├── 📄 djinterp_tests_sa_index_macros.c
-    │   ├── 📄 djinterp_type_tests_sa.c
-    │   ├── 📄 djinterp_type_tests_sa.h
-    │   ├── 📄 dmacro_tests_sa.c
-    │   ├── 📄 dmacro_tests_sa.h
-    │   ├── 📄 dmacro_tests_sa_arg_count.c
-    │   ├── 📄 dmacro_tests_sa_array_util.c
-    │   ├── 📄 dmacro_tests_sa_boolean.c
-    │   ├── 📄 dmacro_tests_sa_config.c
-    │   ├── 📄 dmacro_tests_sa_eval.c
-    │   ├── 📄 dmacro_tests_sa_for_each.c
-    │   ├── 📄 dmacro_tests_sa_iter_adv.c
-    │   ├── 📄 dmacro_tests_sa_iter_core.c
-    │   ├── 📄 dmacro_tests_sa_member.c
-    │   ├── 📄 dmacro_tests_sa_pair_idx.c
-    │   ├── 📄 dmacro_tests_sa_ptr_array.c
-    │   ├── 📄 dmacro_tests_sa_selection.c
-    │   ├── 📄 dmacro_tests_sa_static_assert.c
-    │   ├── 📄 dmacro_tests_sa_token_manip.c
-    │   ├── 📄 dmacro_tests_sa_utility.c
-    │   ├── 📄 dmemory_tests_sa.c
-    │   ├── 📄 dmemory_tests_sa.h
-    │   ├── 📄 dmemory_tests_sa_copy.c
-    │   ├── 📄 dmemory_tests_sa_dup.c
-    │   ├── 📄 dmemory_tests_sa_runner.c
-    │   ├── 📄 dmemory_tests_sa_special.c
-    │   ├── 📄 dmutex_tests_sa.c
-    │   ├── 📄 dmutex_tests_sa.h
-    │   ├── 📄 dmutex_tests_sa_cond.c
-    │   ├── 📄 dmutex_tests_sa_mutex_basic.c
-    │   ├── 📄 dmutex_tests_sa_mutex_recursive.c
-    │   ├── 📄 dmutex_tests_sa_rwlock.c
-    │   ├── 📄 dmutex_tests_sa_sync.c
-    │   ├── 📄 dmutex_tests_sa_thread_ops.c
-    │   ├── 📄 dmutex_tests_sa_tss.c
-    │   ├── 📄 dmutex_tests_sa_utility.c
-    │   ├── 📄 dstring_tests_concat.c
-    │   ├── 📄 dstring_tests_copy.c
-    │   ├── 📄 dstring_tests_sa.c
-    │   ├── 📄 dstring_tests_sa.h
-    │   ├── 📄 dstring_tests_sa_access.c
-    │   ├── 📄 dstring_tests_sa_capacity.c
-    │   ├── 📄 dstring_tests_sa_case_conv.c
-    │   ├── 📄 dstring_tests_sa_compare.c
-    │   ├── 📄 dstring_tests_sa_copy.c
-    │   ├── 📄 dstring_tests_sa_creation.c
-    │   ├── 📄 dstring_tests_sa_dup.c
-    │   ├── 📄 dstring_tests_sa_error.c
-    │   ├── 📄 dstring_tests_sa_format.c
-    │   ├── 📄 dstring_tests_sa_join.c
-    │   ├── 📄 dstring_tests_sa_manip.c
-    │   ├── 📄 dstring_tests_sa_modify.c
-    │   ├── 📄 dstring_tests_sa_reverse.c
-    │   ├── 📄 dstring_tests_sa_search.c
-    │   ├── 📄 dstring_tests_sa_token.c
-    │   ├── 📄 dstring_tests_sa_trim.c
-    │   ├── 📄 dstring_tests_sa_util.c
-    │   ├── 📄 dtime_tests_sa.c
-    │   ├── 📄 dtime_tests_sa.h
-    │   ├── 📄 dtime_tests_sa_arith.c
-    │   ├── 📄 dtime_tests_sa_convert.c
-    │   ├── 📄 dtime_tests_sa_highres.c
-    │   ├── 📄 dtime_tests_sa_monotonic.c
-    │   ├── 📄 dtime_tests_sa_norm.c
-    │   ├── 📄 dtime_tests_sa_null.c
-    │   ├── 📄 dtime_tests_sa_sleep.c
-    │   ├── 📄 dtime_tests_sa_strtime.c
-    │   ├── 📄 dtime_tests_sa_tz.c
-    │   ├── 📄 env_tests_sa.c
-    │   ├── 📄 env_tests_sa.h
-    │   ├── 📄 env_tests_sa_arch.c
-    │   ├── 📄 env_tests_sa_build.c
-    │   ├── 📄 env_tests_sa_cfg.c
-    │   ├── 📄 env_tests_sa_compiler.c
-    │   ├── 📄 env_tests_sa_lang.c
-    │   ├── 📄 env_tests_sa_os.c
-    │   ├── 📄 env_tests_sa_posix.c
-    │   ├── 📄 env_tests_sa_pp_limits.c
-    │   ├── 📄 env_tests_sa_stdlib.c
-    │   ├── 📄 string_fn_tests_sa.c
-    │   ├── 📄 string_fn_tests_sa.h
-    │   ├── 📄 string_fn_tests_sa_copy.c
-    │   ├── 📄 string_fn_tests_sa_dup.c
-    │   ├── 📄 string_fn_tests_sa_error.c
-    │   ├── 📄 string_fn_tests_sa_manip.c
-    │   └── 📄 test_env_config.h
-    ├── 📁 core
-    ├── 📁 parse
-    ├── 📁 parsegen
-    └── 📁 tools
+    └── 📁 c
+        ├── 📁 container
+        │   ├── 📁 array
+        │   │   ├── 📄 array_common_tests_sa.c
+        │   │   ├── 📄 array_common_tests_sa.h
+        │   │   ├── 📄 array_common_tests_sa_free.c
+        │   │   ├── 📄 array_common_tests_sa_init.c
+        │   │   ├── 📄 array_common_tests_sa_manip.c
+        │   │   ├── 📄 array_common_tests_sa_util.c
+        │   │   ├── 📄 array_filter_tests_sa.c
+        │   │   ├── 📄 array_filter_tests_sa.h
+        │   │   ├── 📄 array_filter_tests_sa_builder.c
+        │   │   ├── 📄 array_filter_tests_sa_chain.c
+        │   │   ├── 📄 array_filter_tests_sa_fixtures.c
+        │   │   ├── 📄 array_filter_tests_sa_in_place.c
+        │   │   ├── 📄 array_filter_tests_sa_macros.c
+        │   │   ├── 📄 array_filter_tests_sa_query.c
+        │   │   ├── 📄 array_filter_tests_sa_result.c
+        │   │   ├── 📄 array_filter_tests_sa_result_mgmt.c
+        │   │   └── 📄 array_filter_tests_sa_single_op.c
+        │   ├── 📁 map
+        │   │   ├── 📄 enum_map_entry_tests_sa.c
+        │   │   ├── 📄 enum_map_entry_tests_sa.h
+        │   │   ├── 📄 enum_map_tests_sa.c
+        │   │   ├── 📄 enum_map_tests_sa.h
+        │   │   ├── 📄 min_enum_map_tests_sa.c
+        │   │   ├── 📄 min_enum_map_tests_sa.h
+        │   │   ├── 📄 min_enum_map_tests_sa_core.c
+        │   │   └── 📄 min_enum_map_tests_sa_memory.c
+        │   └── 📁 registry
+        │       ├── 📄 registry_common_tests_sa.c
+        │       ├── 📄 registry_common_tests_sa.h
+        │       ├── 📄 registry_common_tests_sa_schema.c
+        │       ├── 📄 registry_common_tests_sa_strcmp.c
+        │       ├── 📄 registry_tests_sa.c
+        │       ├── 📄 registry_tests_sa.h
+        │       ├── 📄 registry_tests_sa_aliases.c
+        │       ├── 📄 registry_tests_sa_common.c
+        │       ├── 📄 registry_tests_sa_comparison.c
+        │       ├── 📄 registry_tests_sa_constructors.c
+        │       ├── 📄 registry_tests_sa_destructor.c
+        │       ├── 📄 registry_tests_sa_iterators.c
+        │       ├── 📄 registry_tests_sa_lookup.c
+        │       ├── 📄 registry_tests_sa_lookup_maint.c
+        │       ├── 📄 registry_tests_sa_queries.c
+        │       ├── 📄 registry_tests_sa_row_manipulation.c
+        │       └── 📄 registry_tests_sa_utility.c
+        ├── 📁 functional
+        │   ├── 📄 compose_tests_sa.c
+        │   ├── 📄 compose_tests_sa.h
+        │   ├── 📄 compose_tests_sa_helpers.h
+        │   ├── 📄 compose_tests_sa_macro.c
+        │   ├── 📄 compose_tests_sa_partial.c
+        │   ├── 📄 compose_tests_sa_transformer.c
+        │   ├── 📄 filter_tests_sa.c
+        │   ├── 📄 filter_tests_sa.h
+        │   ├── 📄 filter_tests_sa_builder.c
+        │   ├── 📄 filter_tests_sa_chain.c
+        │   ├── 📄 filter_tests_sa_combinators.c
+        │   ├── 📄 filter_tests_sa_execution.c
+        │   ├── 📄 filter_tests_sa_iterator.c
+        │   ├── 📄 filter_tests_sa_macros.c
+        │   ├── 📄 filter_tests_sa_operations.c
+        │   ├── 📄 filter_tests_sa_utility.c
+        │   ├── 📄 fn_builder_tests_sa.c
+        │   ├── 📄 fn_builder_tests_sa.h
+        │   ├── 📄 fn_builder_tests_sa_cleanup.c
+        │   ├── 📄 fn_builder_tests_sa_creation.c
+        │   ├── 📄 fn_builder_tests_sa_execution.c
+        │   ├── 📄 fn_builder_tests_sa_operations.c
+        │   ├── 📄 functional_common_tests_sa.c
+        │   ├── 📄 functional_common_tests_sa.h
+        │   ├── 📄 functional_common_tests_sa_comparison.c
+        │   ├── 📄 functional_common_tests_sa_constant.c
+        │   ├── 📄 functional_common_tests_sa_fold.c
+        │   ├── 📄 functional_common_tests_sa_higher_order.c
+        │   ├── 📄 functional_common_tests_sa_identity.c
+        │   ├── 📄 functional_common_tests_sa_iteration.c
+        │   ├── 📄 functional_common_tests_sa_predicate.c
+        │   ├── 📄 functional_common_tests_sa_quantifier.c
+        │   ├── 📄 functional_common_tests_sa_utility.c
+        │   ├── 📄 pipeline_tests_sa.c
+        │   ├── 📄 pipeline_tests_sa.h
+        │   ├── 📄 pipeline_tests_sa_creation.c
+        │   ├── 📄 pipeline_tests_sa_finalization.c
+        │   ├── 📄 pipeline_tests_sa_operations.c
+        │   ├── 📄 predicate_tests_sa.c
+        │   ├── 📄 predicate_tests_sa.h
+        │   ├── 📄 predicate_tests_sa_constructor.c
+        │   ├── 📄 predicate_tests_sa_eval.c
+        │   ├── 📄 predicate_tests_sa_helpers.h
+        │   └── 📄 predicate_tests_sa_macro.c
+        ├── 📁 test
+        │   ├── 📄 assert_tests_sa.c
+        │   ├── 📄 assert_tests_sa.h
+        │   ├── 📄 assert_tests_sa_advanced.c
+        │   ├── 📄 assert_tests_sa_array.c
+        │   ├── 📄 assert_tests_sa_compare.c
+        │   ├── 📄 assert_tests_sa_core.c
+        │   ├── 📄 assert_tests_sa_null.c
+        │   ├── 📄 assert_tests_sa_string.c
+        │   ├── 📄 assert_tests_sa_utility.c
+        │   ├── 📄 test_common_tests_sa.c
+        │   ├── 📄 test_common_tests_sa.h
+        │   ├── 📄 test_common_tests_sa_arg.c
+        │   ├── 📄 test_common_tests_sa_discriminator.c
+        │   ├── 📄 test_common_tests_sa_fn.c
+        │   ├── 📄 test_common_tests_sa_fn_wrapper.c
+        │   ├── 📄 test_common_tests_sa_lifecycle.c
+        │   ├── 📄 test_common_tests_sa_macro.c
+        │   ├── 📄 test_common_tests_sa_symbols.c
+        │   ├── 📄 test_common_tests_sa_test_fn.c
+        │   ├── 📄 test_common_tests_sa_type.c
+        │   ├── 📄 test_config_tests_sa.c
+        │   ├── 📄 test_config_tests_sa.h
+        │   ├── 📄 test_config_tests_sa_combinations.c
+        │   ├── 📄 test_config_tests_sa_defaults.c
+        │   ├── 📄 test_config_tests_sa_enums.c
+        │   ├── 📄 test_config_tests_sa_flag_macros.c
+        │   ├── 📄 test_config_tests_sa_getters.c
+        │   ├── 📄 test_config_tests_sa_key_lookup.c
+        │   ├── 📄 test_config_tests_sa_lifecycle.c
+        │   ├── 📄 test_config_tests_sa_masks.c
+        │   ├── 📄 test_config_tests_sa_modes.c
+        │   ├── 📄 test_config_tests_sa_semantic.c
+        │   ├── 📄 test_config_tests_sa_setters.c
+        │   ├── 📄 test_config_tests_sa_struct.c
+        │   ├── 📄 test_config_tests_sa_utility_macros.c
+        │   ├── 📄 test_cvar_tests_sa.c
+        │   ├── 📄 test_cvar_tests_sa.h
+        │   ├── 📄 test_cvar_tests_sa_aliases.c
+        │   ├── 📄 test_cvar_tests_sa_defaults.c
+        │   ├── 📄 test_cvar_tests_sa_find.c
+        │   ├── 📄 test_cvar_tests_sa_get_set.c
+        │   ├── 📄 test_cvar_tests_sa_init.c
+        │   ├── 📄 test_cvar_tests_sa_predicates.c
+        │   ├── 📄 test_cvar_tests_sa_reset.c
+        │   ├── 📄 test_cvar_tests_sa_row_flags.c
+        │   ├── 📄 test_cvar_tests_sa_row_struct.c
+        │   ├── 📄 test_cvar_tests_sa_table_integrity.c
+        │   ├── 📄 test_cvar_tests_sa_typed_macros.c
+        │   ├── 📄 test_cvar_tests_sa_valid_arg.c
+        │   ├── 📄 test_cvar_tests_sa_value_union.c
+        │   ├── 📄 test_standalone_tests_sa.c
+        │   ├── 📄 test_standalone_tests_sa.h
+        │   ├── 📄 test_standalone_tests_sa_assert_fn.c
+        │   ├── 📄 test_standalone_tests_sa_assertion.c
+        │   ├── 📄 test_standalone_tests_sa_constant.c
+        │   ├── 📄 test_standalone_tests_sa_counter.c
+        │   ├── 📄 test_standalone_tests_sa_fn_ptr.c
+        │   ├── 📄 test_standalone_tests_sa_note.c
+        │   ├── 📄 test_standalone_tests_sa_object.c
+        │   ├── 📄 test_standalone_tests_sa_results.c
+        │   ├── 📄 test_standalone_tests_sa_runner.c
+        │   ├── 📄 test_standalone_tests_sa_runner_fn.c
+        │   ├── 📄 test_standalone_tests_sa_runner_struct.c
+        │   ├── 📄 test_standalone_tests_sa_template.c
+        │   └── 📄 test_standalone_tests_sa_utility.c
+        ├── 📄 datomic_tests_sa.c
+        ├── 📄 datomic_tests_sa.h
+        ├── 📄 datomic_tests_sa_cas.c
+        ├── 📄 datomic_tests_sa_exchange.c
+        ├── 📄 datomic_tests_sa_fence.c
+        ├── 📄 datomic_tests_sa_fetch.c
+        ├── 📄 datomic_tests_sa_flag.c
+        ├── 📄 datomic_tests_sa_init.c
+        ├── 📄 datomic_tests_sa_load.c
+        ├── 📄 datomic_tests_sa_null.c
+        ├── 📄 datomic_tests_sa_store.c
+        ├── 📄 dfile_tests_sa.c
+        ├── 📄 dfile_tests_sa.h
+        ├── 📄 dfile_tests_sa_binary.c
+        ├── 📄 dfile_tests_sa_desc.c
+        ├── 📄 dfile_tests_sa_dir.c
+        ├── 📄 dfile_tests_sa_large.c
+        ├── 📄 dfile_tests_sa_lock.c
+        ├── 📄 dfile_tests_sa_meta.c
+        ├── 📄 dfile_tests_sa_null.c
+        ├── 📄 dfile_tests_sa_open.c
+        ├── 📄 dfile_tests_sa_ops.c
+        ├── 📄 dfile_tests_sa_path.c
+        ├── 📄 dfile_tests_sa_pipe.c
+        ├── 📄 dfile_tests_sa_symlink.c
+        ├── 📄 dfile_tests_sa_sync.c
+        ├── 📄 dfile_tests_sa_temp.c
+        ├── 📄 dfile_tests_sa_util.c
+        ├── 📄 dio_tests_sa.c
+        ├── 📄 dio_tests_sa.h
+        ├── 📄 dio_tests_sa_char_string_io.c
+        ├── 📄 dio_tests_sa_error_handling.c
+        ├── 📄 dio_tests_sa_file_positioning.c
+        ├── 📄 dio_tests_sa_formatted_input.c
+        ├── 📄 dio_tests_sa_formatted_output.c
+        ├── 📄 djinterp_tests_sa.c
+        ├── 📄 djinterp_tests_sa.h
+        ├── 📄 djinterp_tests_sa_array.c
+        ├── 📄 djinterp_tests_sa_boolean.c
+        ├── 📄 djinterp_tests_sa_edge.c
+        ├── 📄 djinterp_tests_sa_function_ptr.c
+        ├── 📄 djinterp_tests_sa_index.c
+        ├── 📄 djinterp_tests_sa_index_macros.c
+        ├── 📄 djinterp_type_tests_sa.c
+        ├── 📄 djinterp_type_tests_sa.h
+        ├── 📄 dmacro_tests_sa.c
+        ├── 📄 dmacro_tests_sa.h
+        ├── 📄 dmacro_tests_sa_arg_count.c
+        ├── 📄 dmacro_tests_sa_array_util.c
+        ├── 📄 dmacro_tests_sa_boolean.c
+        ├── 📄 dmacro_tests_sa_config.c
+        ├── 📄 dmacro_tests_sa_eval.c
+        ├── 📄 dmacro_tests_sa_for_each.c
+        ├── 📄 dmacro_tests_sa_iter_adv.c
+        ├── 📄 dmacro_tests_sa_iter_core.c
+        ├── 📄 dmacro_tests_sa_member.c
+        ├── 📄 dmacro_tests_sa_pair_idx.c
+        ├── 📄 dmacro_tests_sa_ptr_array.c
+        ├── 📄 dmacro_tests_sa_selection.c
+        ├── 📄 dmacro_tests_sa_static_assert.c
+        ├── 📄 dmacro_tests_sa_token_manip.c
+        ├── 📄 dmacro_tests_sa_utility.c
+        ├── 📄 dmemory_tests_sa.c
+        ├── 📄 dmemory_tests_sa.h
+        ├── 📄 dmemory_tests_sa_copy.c
+        ├── 📄 dmemory_tests_sa_dup.c
+        ├── 📄 dmemory_tests_sa_runner.c
+        ├── 📄 dmemory_tests_sa_special.c
+        ├── 📄 dmutex_tests_sa.c
+        ├── 📄 dmutex_tests_sa.h
+        ├── 📄 dmutex_tests_sa_cond.c
+        ├── 📄 dmutex_tests_sa_mutex_basic.c
+        ├── 📄 dmutex_tests_sa_mutex_recursive.c
+        ├── 📄 dmutex_tests_sa_rwlock.c
+        ├── 📄 dmutex_tests_sa_sync.c
+        ├── 📄 dmutex_tests_sa_thread_ops.c
+        ├── 📄 dmutex_tests_sa_tss.c
+        ├── 📄 dmutex_tests_sa_utility.c
+        ├── 📄 dstring_tests_concat.c
+        ├── 📄 dstring_tests_copy.c
+        ├── 📄 dstring_tests_sa.c
+        ├── 📄 dstring_tests_sa.h
+        ├── 📄 dstring_tests_sa_access.c
+        ├── 📄 dstring_tests_sa_capacity.c
+        ├── 📄 dstring_tests_sa_case_conv.c
+        ├── 📄 dstring_tests_sa_compare.c
+        ├── 📄 dstring_tests_sa_copy.c
+        ├── 📄 dstring_tests_sa_creation.c
+        ├── 📄 dstring_tests_sa_dup.c
+        ├── 📄 dstring_tests_sa_error.c
+        ├── 📄 dstring_tests_sa_format.c
+        ├── 📄 dstring_tests_sa_join.c
+        ├── 📄 dstring_tests_sa_manip.c
+        ├── 📄 dstring_tests_sa_modify.c
+        ├── 📄 dstring_tests_sa_reverse.c
+        ├── 📄 dstring_tests_sa_search.c
+        ├── 📄 dstring_tests_sa_token.c
+        ├── 📄 dstring_tests_sa_trim.c
+        ├── 📄 dstring_tests_sa_util.c
+        ├── 📄 dtime_tests_sa.c
+        ├── 📄 dtime_tests_sa.h
+        ├── 📄 dtime_tests_sa_arith.c
+        ├── 📄 dtime_tests_sa_convert.c
+        ├── 📄 dtime_tests_sa_highres.c
+        ├── 📄 dtime_tests_sa_monotonic.c
+        ├── 📄 dtime_tests_sa_norm.c
+        ├── 📄 dtime_tests_sa_null.c
+        ├── 📄 dtime_tests_sa_sleep.c
+        ├── 📄 dtime_tests_sa_strtime.c
+        ├── 📄 dtime_tests_sa_tz.c
+        ├── 📄 env_tests_sa.c
+        ├── 📄 env_tests_sa.h
+        ├── 📄 env_tests_sa_arch.c
+        ├── 📄 env_tests_sa_build.c
+        ├── 📄 env_tests_sa_cfg.c
+        ├── 📄 env_tests_sa_compiler.c
+        ├── 📄 env_tests_sa_lang.c
+        ├── 📄 env_tests_sa_os.c
+        ├── 📄 env_tests_sa_posix.c
+        ├── 📄 env_tests_sa_pp_limits.c
+        ├── 📄 env_tests_sa_stdlib.c
+        ├── 📄 string_fn_tests_sa.c
+        ├── 📄 string_fn_tests_sa.h
+        ├── 📄 string_fn_tests_sa_cmp_n.c
+        ├── 📄 string_fn_tests_sa_copy.c
+        ├── 📄 string_fn_tests_sa_count.c
+        ├── 📄 string_fn_tests_sa_dup.c
+        ├── 📄 string_fn_tests_sa_error.c
+        ├── 📄 string_fn_tests_sa_index.c
+        ├── 📄 string_fn_tests_sa_manip.c
+        ├── 📄 string_fn_tests_sa_prefix.c
+        ├── 📄 string_fn_tests_sa_validate.c
+        └── 📄 test_env_config.h

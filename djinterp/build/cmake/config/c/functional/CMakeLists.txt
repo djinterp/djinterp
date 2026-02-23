@@ -139,7 +139,7 @@ endif()
 if(NOT TARGET filter)
     add_library(filter STATIC "${SOURCE_DIR}/filter.c")
     target_include_directories(filter PUBLIC ${C_INCLUDE_DIR})
-    target_link_libraries(filter PUBLIC functional functional_common djinterp dmemory)
+    target_link_libraries(filter PUBLIC functional functional_common djinterp dmemory dio)
 endif()
 
 # fn_builder module (generic function builder / closure construction)
@@ -243,15 +243,23 @@ _functional_add_test(compose
 
 # filter tests
 _functional_add_test(filter
-    EXTRA_LIBS filter functional functional_common)
+    EXTRA_LIBS filter predicate functional functional_common)
 
 # fn_builder tests
 _functional_add_test(fn_builder
     EXTRA_LIBS fn_builder functional functional_common)
 
-# functional_common tests
-_functional_add_test(functional_common
-    EXTRA_LIBS functional_common functional)
+# functional_common tests (special .config name: omits redundant "functional-" prefix)
+set(_fc_main "${CONFIG_TEST_DIR}/djinterp-c-functional-common-tests-sa/main.c")
+if(EXISTS "${_fc_main}")
+    djinterp_add_standalone_test(
+        MODULE_NAME functional_common
+        EXTRA_LIBS functional_common functional
+        MAIN_FILE "${_fc_main}")
+else()
+    _functional_add_test(functional_common
+        EXTRA_LIBS functional_common functional)
+endif()
 
 # pipeline tests
 _functional_add_test(pipeline
