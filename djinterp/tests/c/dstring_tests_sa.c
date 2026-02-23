@@ -35,10 +35,10 @@
    Test object containing all d_string test results.
  */
 struct d_test_object*
-    d_tests_sa_dstring_all
-    (
-        void
-    )
+d_tests_sa_dstring_all
+(
+    void
+)
 {
     struct d_test_object* group;
     size_t                child_idx;

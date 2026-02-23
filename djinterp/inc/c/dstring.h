@@ -2,14 +2,14 @@
 * djinterp [core]                                                    dstring.h
 *
 *   Safe string type containing a textual value and its length. Distinguished
-* from `text_buffer.h` in that `d_string` is optimized for strings that may 
-* occasionally be resized but are not expected to undergo frequent 
-* modifications. 
-*   Provides cross-platform string operations mirroring `string_fn.h` but 
+* from `text_buffer.h` in that `d_string` is optimized for strings that may
+* occasionally be resized but are not expected to undergo frequent
+* modifications.
+*   Provides cross-platform string operations mirroring `string_fn.h` but
 * operating on d_string types.
 *
-* 
-* path:      \inc\dstring.h                                  
+*
+* path:      \inc\dstring.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
 ******************************************************************************/
@@ -34,9 +34,9 @@
 // occasionally be resized but do not undergo frequent modifications.
 struct d_string
 {
-    size_t size;        // length of string (excluding null terminator)
-    char*  text;        // null-terminated string data
-    size_t capacity;    // allocated capacity (including space for null)
+    size_t size;       // length of string (excluding null terminator)
+    char* text;        // null-terminated string data
+    size_t capacity;   // allocated capacity (including space for null)
 };
 
 // creation functions
@@ -59,8 +59,8 @@ bool             d_string_resize(struct d_string* _string, size_t _new_size);
 //   basic accessors
 size_t           d_string_length(const struct d_string* _string);
 size_t           d_string_size(const struct d_string* _string);
-const char*      d_string_cstr(const struct d_string* _string);
-char*            d_string_data(struct d_string* _string);
+const char* d_string_cstr(const struct d_string* _string);
+char* d_string_data(struct d_string* _string);
 bool             d_string_is_empty(const struct d_string* _string);
 //   character access
 char             d_string_char_at(const struct d_string* _string, d_index _index);
@@ -70,15 +70,16 @@ char             d_string_back(const struct d_string* _string);
 
 // Safe copy functions (C11 `strcpy_s` equivalents)
 int              d_string_copy_s(struct d_string* _destination, const struct d_string* _source);
+int              d_string_copy_cstr_s(struct d_string* _destination, const char* _source);
 int              d_string_ncopy_s(struct d_string* _destination, const struct d_string* _source, size_t _count);
-int              d_string_ncopy_cstr_s(struct d_string* _dest, const char* _source, size_t _count);
-int              d_string_to_buffer_s(char* restrict _dest, size_t _dest_size, const struct d_string* _source);
+int              d_string_ncopy_cstr_s(struct d_string* _destination, const char* _source, size_t _count);
+int              d_string_to_buffer_s(char* restrict _destination, size_t _destination_size, const struct d_string* _source);
 
 // Concatenation functions (C11 `strcat_s` equivalents)
-int              d_string_cat_s(struct d_string* restrict _dest, const struct d_string* restrict _source);
-int              d_string_cat_cstr_s(struct d_string* restrict _dest, const char* restrict _source);
-int              d_string_ncat_s(struct d_string* restrict _dest, const struct d_string* restrict _source, size_t _count);
-int              d_string_ncat_cstr_s(struct d_string* restrict _dest, const char* restrict _source, size_t _count);
+int              d_string_cat_s(struct d_string* restrict _destination, const struct d_string* restrict _source);
+int              d_string_cat_cstr_s(struct d_string* restrict _destination, const char* restrict _source);
+int              d_string_ncat_s(struct d_string* restrict _destination, const struct d_string* restrict _source, size_t _count);
+int              d_string_ncat_cstr_s(struct d_string* restrict _destination, const char* restrict _source, size_t _count);
 
 // Duplication functions (POSIX `strdup` equivalents)
 struct d_string* d_string_dup(const struct d_string* _string);
@@ -107,9 +108,9 @@ bool             d_string_equals_cstr_ignore_case(const struct d_string* _s1, co
 d_index          d_string_find_char(const struct d_string* _string, char _c);
 d_index          d_string_find_char_from(const struct d_string* _string, char _c, d_index _start);
 d_index          d_string_rfind_char(const struct d_string* _string, char _c);
-char*            d_string_chr(const struct d_string* _string, int _c);
-char*            d_string_rchr(const struct d_string* _string, int _c);
-char*            d_string_chrnul(const struct d_string* _string, int _c);
+char* d_string_chr(const struct d_string* _string, int _c);
+char* d_string_rchr(const struct d_string* _string, int _c);
+char* d_string_chrnul(const struct d_string* _string, int _c);
 //   substring search
 d_index          d_string_find(const struct d_string* _string, const struct d_string* _substr);
 d_index          d_string_find_cstr(const struct d_string* _string, const char* _substr);
@@ -117,11 +118,11 @@ d_index          d_string_find_from(const struct d_string* _string, const struct
 d_index          d_string_find_cstr_from(const struct d_string* _string, const char* _substr, d_index _start);
 d_index          d_string_rfind(const struct d_string* _string, const struct d_string* _substr);
 d_index          d_string_rfind_cstr(const struct d_string* _string, const char* _substr);
-char*            d_string_str(const struct d_string* _haystack, const char* _needle);
+char* d_string_str(const struct d_string* _haystack, const char* _needle);
 //   case-insensitive search
 d_index          d_string_casefind(const struct d_string* _string, const struct d_string* _substr);
 d_index          d_string_casefind_cstr(const struct d_string* _string, const char* _substr);
-char*            d_string_casestr(const struct d_string* _haystack, const char* _needle);
+char* d_string_casestr(const struct d_string* _haystack, const char* _needle);
 //   containment checks
 bool             d_string_contains(const struct d_string* _string, const struct d_string* _substr);
 bool             d_string_contains_cstr(const struct d_string* _string, const char* _substr);
@@ -133,7 +134,7 @@ bool             d_string_ends_with_cstr(const struct d_string* _string, const c
 //   span functions
 size_t           d_string_spn(const struct d_string* _string, const char* _accept);
 size_t           d_string_cspn(const struct d_string* _string, const char* _reject);
-char*            d_string_pbrk(const struct d_string* _string, const char* _accept);
+char* d_string_pbrk(const struct d_string* _string, const char* _accept);
 
 // Modification functions (in-place)
 // assignment
@@ -190,7 +191,7 @@ struct d_string* d_string_trimmed_left(const struct d_string* _string);
 struct d_string* d_string_trimmed_right(const struct d_string* _string);
 
 // Tokenization functions (POSIX `strtok_r` equivalent)
-char*            d_string_tokenize(struct d_string* _string, const char* _delim, char** _saveptr);
+char* d_string_tokenize(struct d_string* _string, const char* _delim, char** _saveptr);
 size_t           d_string_split(const struct d_string* _string, const char* _delim, struct d_string*** _tokens);
 void             d_string_split_free(struct d_string** _tokens, size_t _count);
 

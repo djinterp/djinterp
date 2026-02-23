@@ -54,7 +54,7 @@ d_tests_sa_dstring_copy_s
     size_t                child_idx;
     int                   result;
 
-    group     = d_test_object_new_interior("d_string_copy_s", 12);
+    group     = d_test_object_new_interior("d_string_copy_s", 11);
     child_idx = 0;
 
     if (!group)
@@ -530,7 +530,7 @@ d_tests_sa_dstring_ncopy_s
     size_t                child_idx;
     int                   result;
 
-    group     = d_test_object_new_interior("d_string_ncopy_s", 9);
+    group     = d_test_object_new_interior("d_string_ncopy_s", 8);
     child_idx = 0;
 
     if (!group)
@@ -543,7 +543,7 @@ d_tests_sa_dstring_ncopy_s
 
     if (src)
     {
-        result = d_string_ncopy_s(NULL, src->text, 4);
+        result = d_string_ncopy_s(NULL, src, 4);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "null_dest_returns_error",
@@ -585,7 +585,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) &&
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, 0);
+        result = d_string_ncopy_s(dest, src, 0);
 
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "copy_0_succeeds",
@@ -625,7 +625,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, 5);
+        result = d_string_ncopy_s(dest, src, 5);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_partial",
@@ -665,7 +665,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) && 
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, 42);
+        result = d_string_ncopy_s(dest, src, 42);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_more_than_length",
@@ -701,7 +701,7 @@ d_tests_sa_dstring_ncopy_s
     if ( (dest) &&
          (src) )
     {
-        result = d_string_ncopy_s(dest, src->text, TEST_STRING1_LENGTH);
+        result = d_string_ncopy_s(dest, src, TEST_STRING1_LENGTH);
 
         group->elements[child_idx++] = D_ASSERT_STR_EQUAL(
             "copy_exact_length",
@@ -1051,15 +1051,15 @@ d_tests_sa_dstring_to_buffer_s
 
     if (str)
     {
-        memset(small_buffer, 0, sizeof(small_buffer));
+        memset(small_buffer, 'X', sizeof(small_buffer));
         result = d_string_to_buffer_s(small_buffer, sizeof(small_buffer), str);
 
-        // either truncates (result == 0) or returns error (result != 0)
-        // but buffer should be null-terminated either way
+        // implementation clears buffer on truncation (_destination[0] = '\0')
+        // and returns ERANGE
         group->elements[child_idx++] = D_ASSERT_TRUE(
             "smaller_buffer_safe",
-            small_buffer[sizeof(small_buffer) - 1] == '\0',
-            "buffer should always be null-terminated"
+            (result != 0) && (small_buffer[0] == '\0'),
+            "truncation should return error and null-terminate buffer"
         );
 
         d_string_free(str);

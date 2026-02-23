@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strcount_char
+d_tests_sa_string_fn_strcount_char
   Tests d_strcount_char for character counting.
   Tests the following:
   - counts single occurrence
@@ -17,7 +17,7 @@ d_tests_string_fn_strcount_char
   - counts at boundaries
 */
 struct d_test_object*
-d_tests_string_fn_strcount_char
+d_tests_sa_string_fn_strcount_char
 (
     void
 )
@@ -88,7 +88,7 @@ d_tests_string_fn_strcount_char
 }
 
 /*
-d_tests_string_fn_strcount_substr
+d_tests_sa_string_fn_strcount_substr
   Tests d_strcount_substr for substring counting.
   Tests the following:
   - counts non-overlapping occurrences
@@ -99,7 +99,7 @@ d_tests_string_fn_strcount_substr
   - counts adjacent occurrences
 */
 struct d_test_object*
-d_tests_string_fn_strcount_substr
+d_tests_sa_string_fn_strcount_substr
 (
     void
 )
@@ -171,14 +171,14 @@ d_tests_string_fn_strcount_substr
 }
 
 /*
-d_tests_string_fn_counting_all
+d_tests_sa_string_fn_counting_all
   Runs all counting tests.
   Tests the following:
   - d_strcount_char
   - d_strcount_substr
 */
 struct d_test_object*
-d_tests_string_fn_counting_all
+d_tests_sa_string_fn_counting_all
 (
     void
 )
@@ -194,8 +194,8 @@ d_tests_string_fn_counting_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strcount_char();
-    group->elements[idx++] = d_tests_string_fn_strcount_substr();
+    group->elements[idx++] = d_tests_sa_string_fn_strcount_char();
+    group->elements[idx++] = d_tests_sa_string_fn_strcount_substr();
 
     return group;
 }
@@ -206,7 +206,7 @@ d_tests_string_fn_counting_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strhash
+d_tests_sa_string_fn_strhash
   Tests d_strhash for string hashing.
   Tests the following:
   - produces consistent hash for same input
@@ -216,7 +216,7 @@ d_tests_string_fn_strhash
   - hash changes with length
 */
 struct d_test_object*
-d_tests_string_fn_strhash
+d_tests_sa_string_fn_strhash
 (
     void
 )
@@ -283,13 +283,13 @@ d_tests_string_fn_strhash
 }
 
 /*
-d_tests_string_fn_hash_all
+d_tests_sa_string_fn_hash_all
   Runs all hash tests.
   Tests the following:
   - d_strhash
 */
 struct d_test_object*
-d_tests_string_fn_hash_all
+d_tests_sa_string_fn_hash_all
 (
     void
 )
@@ -305,7 +305,7 @@ d_tests_string_fn_hash_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strhash();
+    group->elements[idx++] = d_tests_sa_string_fn_strhash();
 
     return group;
 }

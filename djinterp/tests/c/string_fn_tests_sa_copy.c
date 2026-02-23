@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strcpy_s
+d_tests_sa_string_fn_strcpy_s
   Tests d_strcpy_s for safe string copying.
   Tests the following:
   - copies string correctly to adequate buffer
@@ -19,7 +19,7 @@ d_tests_string_fn_strcpy_s
   - preserves destination on error
 */
 struct d_test_object*
-d_tests_string_fn_strcpy_s
+d_tests_sa_string_fn_strcpy_s
 (
     void
 )
@@ -76,7 +76,7 @@ d_tests_string_fn_strcpy_s
     test_empty_src = (result == 0) && (dest[0] == '\0');
 
     // test 8: preserve destination on error
-    strcpy(dest, "Original");
+    d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Original");
     result = d_strcpy_s(dest, 5, D_TEST_DSTRING_LONG_STR);  // too small
     test_preserve_on_error = (result != 0) && (dest[0] == '\0');  // should be nulled
 
@@ -119,7 +119,7 @@ d_tests_string_fn_strcpy_s
 
 
 /*
-d_tests_string_fn_strncpy_s
+d_tests_sa_string_fn_strncpy_s
   Tests d_strncpy_s for safe counted string copying.
   Tests the following:
   - copies n characters correctly
@@ -131,7 +131,7 @@ d_tests_string_fn_strncpy_s
   - handles count equal to buffer size
 */
 struct d_test_object*
-d_tests_string_fn_strncpy_s
+d_tests_sa_string_fn_strncpy_s
 (
     void
 )
@@ -226,7 +226,7 @@ d_tests_string_fn_strncpy_s
 
 
 /*
-d_tests_string_fn_strcat_s
+d_tests_sa_string_fn_strcat_s
   Tests d_strcat_s for safe string concatenation.
   Tests the following:
   - concatenates strings correctly
@@ -238,7 +238,7 @@ d_tests_string_fn_strcat_s
   - handles exact-fit scenario
 */
 struct d_test_object*
-d_tests_string_fn_strcat_s
+d_tests_sa_string_fn_strcat_s
 (
     void
 )
@@ -258,7 +258,7 @@ d_tests_string_fn_strcat_s
     size_t                idx;
 
     // test 1: normal concatenation
-    strcpy(dest, D_TEST_DSTRING_SHORT_STR);
+    d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, D_TEST_DSTRING_SHORT_STR);
     result = d_strcat_s(dest, sizeof(dest), " World");
     test_normal_concat = (result == 0) && 
                         (strcmp(dest, "Hello World") == 0);
@@ -270,13 +270,13 @@ d_tests_string_fn_strcat_s
                      (strcmp(dest, D_TEST_DSTRING_SHORT_STR) == 0);
 
     // test 3: empty source
-    strcpy(dest, D_TEST_DSTRING_SHORT_STR);
+    d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, D_TEST_DSTRING_SHORT_STR);
     result = d_strcat_s(dest, sizeof(dest), "");
     test_empty_src = (result == 0) && 
                     (strcmp(dest, D_TEST_DSTRING_SHORT_STR) == 0);
 
     // test 4: insufficient buffer
-    strcpy(small_dest, "12345678");  // 8 chars
+    d_strcpy_s(small_dest, D_TEST_DSTRING_BUFFER_SIZE, "12345678");  // 8 chars
     result = d_strcat_s(small_dest, sizeof(small_dest), "ABCDEF");  // would overflow
     test_overflow = (result != 0);
 
@@ -285,12 +285,12 @@ d_tests_string_fn_strcat_s
     test_null_params = (result != 0);
 
     // test 6: preserve on error
-    strcpy(small_dest, "Original");
+    d_strcpy_s(small_dest, D_TEST_DSTRING_BUFFER_SIZE, "Original");
     result = d_strcat_s(small_dest, sizeof(small_dest), D_TEST_DSTRING_LONG_STR);
     test_preserve_on_error = (result != 0) && (small_dest[0] == '\0');
 
     // test 7: exact fit
-    strcpy(exact_dest, "Hello");
+    d_strcpy_s(exact_dest, 11, "Hello");
     result = d_strcat_s(exact_dest, sizeof(exact_dest), "World");
     test_exact_fit = (result == 0) && 
                     (strcmp(exact_dest, "HelloWorld") == 0);
@@ -330,7 +330,7 @@ d_tests_string_fn_strcat_s
 }
 
 /*
-d_tests_string_fn_strncat_s
+d_tests_sa_string_fn_strncat_s
   Tests d_strncat_s for safe counted string concatenation.
   Tests the following:
   - concatenates n characters correctly
@@ -341,7 +341,7 @@ d_tests_string_fn_strncat_s
   - preserves termination
 */
 struct d_test_object*
-d_tests_string_fn_strncat_s
+d_tests_sa_string_fn_strncat_s
 (
     void
 )
@@ -359,19 +359,19 @@ d_tests_string_fn_strncat_s
     size_t                idx;
 
     // test 1: partial concatenation
-    strcpy(dest, "Hello");
+    d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Hello");
     result = d_strncat_s(dest, sizeof(dest), " World!", 6);  // just " World"
     test_partial_concat = (result == 0) && 
                          (strcmp(dest, "Hello World") == 0);
 
     // test 2: count larger than source
-    strcpy(dest, "Test");
+    d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Test");
     result = d_strncat_s(dest, sizeof(dest), "123", 100);
     test_count_larger = (result == 0) && 
                        (strcmp(dest, "Test123") == 0);
 
     // test 3: insufficient buffer
-    strcpy(small_dest, "12345678");
+    d_strcpy_s(small_dest, D_TEST_DSTRING_BUFFER_SIZE, "12345678");
     result = d_strncat_s(small_dest, sizeof(small_dest), "ABCDEF", 5);
     test_overflow = (result != 0);
 
@@ -380,14 +380,14 @@ d_tests_string_fn_strncat_s
     test_null_params = (result != 0);
 
     // test 5: zero count
-    strcpy(dest, "Original");
+    d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Original");
     result = d_strncat_s(dest, sizeof(dest), "Should not appear", 0);
     test_zero_count = (result == 0) && 
                      (strcmp(dest, "Original") == 0);
 
     // test 6: preserves termination
     memset(dest, 'X', sizeof(dest));
-    strcpy(dest, "Start");
+    d_strcpy_s(dest, D_TEST_DSTRING_BUFFER_SIZE, "Start");
     result = d_strncat_s(dest, sizeof(dest), "End", 3);
     test_termination = (result == 0) && 
                       (dest[strlen("StartEnd")] == '\0');
@@ -424,7 +424,7 @@ d_tests_string_fn_strncat_s
 }
 
 /*
-d_tests_string_fn_safe_copy_all
+d_tests_sa_string_fn_safe_copy_all
   Runs all safe string copy tests.
   Tests the following:
   - d_strcpy_s
@@ -433,7 +433,7 @@ d_tests_string_fn_safe_copy_all
   - d_strncat_s
 */
 struct d_test_object*
-d_tests_string_fn_safe_copy_all
+d_tests_sa_string_fn_safe_copy_all
 (
     void
 )
@@ -449,10 +449,10 @@ d_tests_string_fn_safe_copy_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strcpy_s();
-    group->elements[idx++] = d_tests_string_fn_strncpy_s();
-    group->elements[idx++] = d_tests_string_fn_strcat_s();
-    group->elements[idx++] = d_tests_string_fn_strncat_s();
+    group->elements[idx++] = d_tests_sa_string_fn_strcpy_s();
+    group->elements[idx++] = d_tests_sa_string_fn_strncpy_s();
+    group->elements[idx++] = d_tests_sa_string_fn_strcat_s();
+    group->elements[idx++] = d_tests_sa_string_fn_strncat_s();
 
     return group;
 }

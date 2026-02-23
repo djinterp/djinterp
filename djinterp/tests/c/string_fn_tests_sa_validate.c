@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_str_is_valid
+d_tests_sa_string_fn_str_is_valid
   Tests d_str_is_valid for string validity checking.
   Tests the following:
   - returns true for normal string
@@ -15,7 +15,7 @@ d_tests_string_fn_str_is_valid
   - handles empty string (length 0)
 */
 struct d_test_object*
-d_tests_string_fn_str_is_valid
+d_tests_sa_string_fn_str_is_valid
 (
     void
 )
@@ -66,7 +66,7 @@ d_tests_string_fn_str_is_valid
 }
 
 /*
-d_tests_string_fn_str_is_ascii
+d_tests_sa_string_fn_str_is_ascii
   Tests d_str_is_ascii for ASCII validation.
   Tests the following:
   - returns true for pure ASCII
@@ -75,7 +75,7 @@ d_tests_string_fn_str_is_ascii
   - handles empty string
 */
 struct d_test_object*
-d_tests_string_fn_str_is_ascii
+d_tests_sa_string_fn_str_is_ascii
 (
     void
 )
@@ -126,7 +126,7 @@ d_tests_string_fn_str_is_ascii
 }
 
 /*
-d_tests_string_fn_str_is_numeric
+d_tests_sa_string_fn_str_is_numeric
   Tests d_str_is_numeric for numeric validation.
   Tests the following:
   - returns true for all digits
@@ -136,7 +136,7 @@ d_tests_string_fn_str_is_numeric
   - returns false for NULL
 */
 struct d_test_object*
-d_tests_string_fn_str_is_numeric
+d_tests_sa_string_fn_str_is_numeric
 (
     void
 )
@@ -184,7 +184,7 @@ d_tests_string_fn_str_is_numeric
 }
 
 /*
-d_tests_string_fn_str_is_alpha
+d_tests_sa_string_fn_str_is_alpha
   Tests d_str_is_alpha for alphabetic validation.
   Tests the following:
   - returns true for all letters
@@ -194,7 +194,7 @@ d_tests_string_fn_str_is_alpha
   - handles both cases
 */
 struct d_test_object*
-d_tests_string_fn_str_is_alpha
+d_tests_sa_string_fn_str_is_alpha
 (
     void
 )
@@ -242,7 +242,7 @@ d_tests_string_fn_str_is_alpha
 }
 
 /*
-d_tests_string_fn_str_is_alnum
+d_tests_sa_string_fn_str_is_alnum
   Tests d_str_is_alnum for alphanumeric validation.
   Tests the following:
   - returns true for letters and digits
@@ -252,7 +252,7 @@ d_tests_string_fn_str_is_alnum
   - handles pure letters
 */
 struct d_test_object*
-d_tests_string_fn_str_is_alnum
+d_tests_sa_string_fn_str_is_alnum
 (
     void
 )
@@ -300,7 +300,7 @@ d_tests_string_fn_str_is_alnum
 }
 
 /*
-d_tests_string_fn_str_is_whitespace
+d_tests_sa_string_fn_str_is_whitespace
   Tests d_str_is_whitespace for whitespace validation.
   Tests the following:
   - returns true for all whitespace
@@ -309,7 +309,7 @@ d_tests_string_fn_str_is_whitespace
   - handles mixed whitespace types
 */
 struct d_test_object*
-d_tests_string_fn_str_is_whitespace
+d_tests_sa_string_fn_str_is_whitespace
 (
     void
 )
@@ -352,7 +352,7 @@ d_tests_string_fn_str_is_whitespace
 }
 
 /*
-d_tests_string_fn_validation_all
+d_tests_sa_string_fn_validation_all
   Runs all validation tests.
   Tests the following:
   - d_str_is_valid
@@ -363,7 +363,7 @@ d_tests_string_fn_validation_all
   - d_str_is_whitespace
 */
 struct d_test_object*
-d_tests_string_fn_validation_all
+d_tests_sa_string_fn_validation_all
 (
     void
 )
@@ -379,12 +379,12 @@ d_tests_string_fn_validation_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_str_is_valid();
-    group->elements[idx++] = d_tests_string_fn_str_is_ascii();
-    group->elements[idx++] = d_tests_string_fn_str_is_numeric();
-    group->elements[idx++] = d_tests_string_fn_str_is_alpha();
-    group->elements[idx++] = d_tests_string_fn_str_is_alnum();
-    group->elements[idx++] = d_tests_string_fn_str_is_whitespace();
+    group->elements[idx++] = d_tests_sa_string_fn_str_is_valid();
+    group->elements[idx++] = d_tests_sa_string_fn_str_is_ascii();
+    group->elements[idx++] = d_tests_sa_string_fn_str_is_numeric();
+    group->elements[idx++] = d_tests_sa_string_fn_str_is_alpha();
+    group->elements[idx++] = d_tests_sa_string_fn_str_is_alnum();
+    group->elements[idx++] = d_tests_sa_string_fn_str_is_whitespace();
 
     return group;
 }
