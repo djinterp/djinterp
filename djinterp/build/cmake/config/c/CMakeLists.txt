@@ -120,6 +120,7 @@ set(DJINTERPC_CORE_SOURCES
     "${C_SOURCE_DIR}/dmemory.c"
     "${C_SOURCE_DIR}/string_fn.c"
     "${C_SOURCE_DIR}/dfile.c"
+    "${C_SOURCE_DIR}/dio.c"
     "${C_SOURCE_DIR}/dstring.c"
     "${C_SOURCE_DIR}/dtime.c"
 )
