@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strchr_index
+d_tests_sa_string_fn_strchr_index
   Tests d_strchr_index for character index search.
   Tests the following:
   - finds first occurrence
@@ -17,7 +17,7 @@ d_tests_string_fn_strchr_index
   - finds at last position
 */
 struct d_test_object*
-d_tests_string_fn_strchr_index
+d_tests_sa_string_fn_strchr_index
 (
     void
 )
@@ -88,7 +88,7 @@ d_tests_string_fn_strchr_index
 }
 
 /*
-d_tests_string_fn_strchr_index_from
+d_tests_sa_string_fn_strchr_index_from
   Tests d_strchr_index_from for character search from offset.
   Tests the following:
   - finds from given start position
@@ -97,7 +97,7 @@ d_tests_string_fn_strchr_index_from
   - returns D_STRING_NPOS when not found after start
 */
 struct d_test_object*
-d_tests_string_fn_strchr_index_from
+d_tests_sa_string_fn_strchr_index_from
 (
     void
 )
@@ -152,7 +152,7 @@ d_tests_string_fn_strchr_index_from
 }
 
 /*
-d_tests_string_fn_strrchr_index
+d_tests_sa_string_fn_strrchr_index
   Tests d_strrchr_index for reverse character index search.
   Tests the following:
   - finds last occurrence
@@ -162,7 +162,7 @@ d_tests_string_fn_strrchr_index
   - handles empty string
 */
 struct d_test_object*
-d_tests_string_fn_strrchr_index
+d_tests_sa_string_fn_strrchr_index
 (
     void
 )
@@ -225,7 +225,7 @@ d_tests_string_fn_strrchr_index
 }
 
 /*
-d_tests_string_fn_strstr_index
+d_tests_sa_string_fn_strstr_index
   Tests d_strstr_index for substring index search.
   Tests the following:
   - finds substring
@@ -236,7 +236,7 @@ d_tests_string_fn_strstr_index
   - finds at beginning
 */
 struct d_test_object*
-d_tests_string_fn_strstr_index
+d_tests_sa_string_fn_strstr_index
 (
     void
 )
@@ -307,7 +307,7 @@ d_tests_string_fn_strstr_index
 }
 
 /*
-d_tests_string_fn_strstr_index_from
+d_tests_sa_string_fn_strstr_index_from
   Tests d_strstr_index_from for substring search from offset.
   Tests the following:
   - finds from given start position
@@ -316,7 +316,7 @@ d_tests_string_fn_strstr_index_from
   - returns D_STRING_NPOS when not found after start
 */
 struct d_test_object*
-d_tests_string_fn_strstr_index_from
+d_tests_sa_string_fn_strstr_index_from
 (
     void
 )
@@ -371,7 +371,7 @@ d_tests_string_fn_strstr_index_from
 }
 
 /*
-d_tests_string_fn_strrstr_index
+d_tests_sa_string_fn_strrstr_index
   Tests d_strrstr_index for reverse substring index search.
   Tests the following:
   - finds last occurrence
@@ -381,7 +381,7 @@ d_tests_string_fn_strrstr_index
   - handles empty substring
 */
 struct d_test_object*
-d_tests_string_fn_strrstr_index
+d_tests_sa_string_fn_strrstr_index
 (
     void
 )
@@ -444,7 +444,7 @@ d_tests_string_fn_strrstr_index
 }
 
 /*
-d_tests_string_fn_strcasestr_index
+d_tests_sa_string_fn_strcasestr_index
   Tests d_strcasestr_index for case-insensitive substring index search.
   Tests the following:
   - finds case-insensitive match
@@ -454,7 +454,7 @@ d_tests_string_fn_strcasestr_index
   - handles empty substring
 */
 struct d_test_object*
-d_tests_string_fn_strcasestr_index
+d_tests_sa_string_fn_strcasestr_index
 (
     void
 )
@@ -517,7 +517,7 @@ d_tests_string_fn_strcasestr_index
 }
 
 /*
-d_tests_string_fn_index_search_all
+d_tests_sa_string_fn_index_search_all
   Runs all index-returning search tests.
   Tests the following:
   - d_strchr_index
@@ -529,7 +529,7 @@ d_tests_string_fn_index_search_all
   - d_strcasestr_index
 */
 struct d_test_object*
-d_tests_string_fn_index_search_all
+d_tests_sa_string_fn_index_search_all
 (
     void
 )
@@ -545,13 +545,13 @@ d_tests_string_fn_index_search_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strchr_index();
-    group->elements[idx++] = d_tests_string_fn_strchr_index_from();
-    group->elements[idx++] = d_tests_string_fn_strrchr_index();
-    group->elements[idx++] = d_tests_string_fn_strstr_index();
-    group->elements[idx++] = d_tests_string_fn_strstr_index_from();
-    group->elements[idx++] = d_tests_string_fn_strrstr_index();
-    group->elements[idx++] = d_tests_string_fn_strcasestr_index();
+    group->elements[idx++] = d_tests_sa_string_fn_strchr_index();
+    group->elements[idx++] = d_tests_sa_string_fn_strchr_index_from();
+    group->elements[idx++] = d_tests_sa_string_fn_strrchr_index();
+    group->elements[idx++] = d_tests_sa_string_fn_strstr_index();
+    group->elements[idx++] = d_tests_sa_string_fn_strstr_index_from();
+    group->elements[idx++] = d_tests_sa_string_fn_strrstr_index();
+    group->elements[idx++] = d_tests_sa_string_fn_strcasestr_index();
 
     return group;
 }
@@ -562,7 +562,7 @@ d_tests_string_fn_index_search_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strreplace_char
+d_tests_sa_string_fn_strreplace_char
   Tests d_strreplace_char for in-place character replacement.
   Tests the following:
   - replaces all occurrences
@@ -573,7 +573,7 @@ d_tests_string_fn_strreplace_char
   - replaces at boundaries
 */
 struct d_test_object*
-d_tests_string_fn_strreplace_char
+d_tests_sa_string_fn_strreplace_char
 (
     void
 )
@@ -648,13 +648,13 @@ d_tests_string_fn_strreplace_char
 }
 
 /*
-d_tests_string_fn_replace_all
+d_tests_sa_string_fn_replace_all
   Runs all replacement tests.
   Tests the following:
   - d_strreplace_char
 */
 struct d_test_object*
-d_tests_string_fn_replace_all
+d_tests_sa_string_fn_replace_all
 (
     void
 )
@@ -670,7 +670,7 @@ d_tests_string_fn_replace_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strreplace_char();
+    group->elements[idx++] = d_tests_sa_string_fn_strreplace_char();
 
     return group;
 }

@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strstartswith
+d_tests_sa_string_fn_strstartswith
   Tests d_strstartswith for prefix checking.
   Tests the following:
   - returns true for matching prefix
@@ -17,7 +17,7 @@ d_tests_string_fn_strstartswith
   - returns true when prefix equals string
 */
 struct d_test_object*
-d_tests_string_fn_strstartswith
+d_tests_sa_string_fn_strstartswith
 (
     void
 )
@@ -71,7 +71,7 @@ d_tests_string_fn_strstartswith
 }
 
 /*
-d_tests_string_fn_strendswith
+d_tests_sa_string_fn_strendswith
   Tests d_strendswith for suffix checking.
   Tests the following:
   - returns true for matching suffix
@@ -82,7 +82,7 @@ d_tests_string_fn_strendswith
   - returns true when suffix equals string
 */
 struct d_test_object*
-d_tests_string_fn_strendswith
+d_tests_sa_string_fn_strendswith
 (
     void
 )
@@ -136,7 +136,7 @@ d_tests_string_fn_strendswith
 }
 
 /*
-d_tests_string_fn_strcontains
+d_tests_sa_string_fn_strcontains
   Tests d_strcontains for substring containment.
   Tests the following:
   - finds substring in middle
@@ -147,7 +147,7 @@ d_tests_string_fn_strcontains
   - handles empty substring
 */
 struct d_test_object*
-d_tests_string_fn_strcontains
+d_tests_sa_string_fn_strcontains
 (
     void
 )
@@ -201,7 +201,7 @@ d_tests_string_fn_strcontains
 }
 
 /*
-d_tests_string_fn_strcontains_char
+d_tests_sa_string_fn_strcontains_char
   Tests d_strcontains_char for character containment.
   Tests the following:
   - finds character present
@@ -210,7 +210,7 @@ d_tests_string_fn_strcontains_char
   - handles empty string
 */
 struct d_test_object*
-d_tests_string_fn_strcontains_char
+d_tests_sa_string_fn_strcontains_char
 (
     void
 )
@@ -253,7 +253,7 @@ d_tests_string_fn_strcontains_char
 }
 
 /*
-d_tests_string_fn_prefix_suffix_all
+d_tests_sa_string_fn_prefix_suffix_all
   Runs all prefix, suffix, and containment tests.
   Tests the following:
   - d_strstartswith
@@ -262,7 +262,7 @@ d_tests_string_fn_prefix_suffix_all
   - d_strcontains_char
 */
 struct d_test_object*
-d_tests_string_fn_prefix_suffix_all
+d_tests_sa_string_fn_prefix_suffix_all
 (
     void
 )
@@ -278,10 +278,10 @@ d_tests_string_fn_prefix_suffix_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strstartswith();
-    group->elements[idx++] = d_tests_string_fn_strendswith();
-    group->elements[idx++] = d_tests_string_fn_strcontains();
-    group->elements[idx++] = d_tests_string_fn_strcontains_char();
+    group->elements[idx++] = d_tests_sa_string_fn_strstartswith();
+    group->elements[idx++] = d_tests_sa_string_fn_strendswith();
+    group->elements[idx++] = d_tests_sa_string_fn_strcontains();
+    group->elements[idx++] = d_tests_sa_string_fn_strcontains_char();
 
     return group;
 }

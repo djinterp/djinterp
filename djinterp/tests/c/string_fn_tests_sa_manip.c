@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strtok_r
+d_tests_sa_string_fn_strtok_r
   Tests d_strtok_r for thread-safe tokenization.
   Tests the following:
   - tokenizes string correctly
@@ -18,7 +18,7 @@ d_tests_string_fn_strtok_r
   - handles single character delimiters
 */
 struct d_test_object*
-d_tests_string_fn_strtok_r
+d_tests_sa_string_fn_strtok_r
 (
     void
 )
@@ -137,13 +137,13 @@ d_tests_string_fn_strtok_r
 }
 
 /*
-d_tests_string_fn_tokenization_all
+d_tests_sa_string_fn_tokenization_all
   Runs all tokenization tests.
   Tests the following:
   - d_strtok_r
 */
 struct d_test_object*
-d_tests_string_fn_tokenization_all
+d_tests_sa_string_fn_tokenization_all
 (
     void
 )
@@ -159,7 +159,7 @@ d_tests_string_fn_tokenization_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strtok_r();
+    group->elements[idx++] = d_tests_sa_string_fn_strtok_r();
 
     return group;
 }
@@ -170,7 +170,7 @@ d_tests_string_fn_tokenization_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strnlen
+d_tests_sa_string_fn_strnlen
   Tests d_strnlen for length with limit.
   Tests the following:
   - returns actual length when less than max
@@ -181,7 +181,7 @@ d_tests_string_fn_strnlen
   - handles exact length match
 */
 struct d_test_object*
-d_tests_string_fn_strnlen
+d_tests_sa_string_fn_strnlen
 (
     void
 )
@@ -252,13 +252,13 @@ d_tests_string_fn_strnlen
 }
 
 /*
-d_tests_string_fn_length_all
+d_tests_sa_string_fn_length_all
   Runs all string length tests.
   Tests the following:
   - d_strnlen
 */
 struct d_test_object*
-d_tests_string_fn_length_all
+d_tests_sa_string_fn_length_all
 (
     void
 )
@@ -274,7 +274,7 @@ d_tests_string_fn_length_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strnlen();
+    group->elements[idx++] = d_tests_sa_string_fn_strnlen();
 
     return group;
 }
@@ -285,7 +285,7 @@ d_tests_string_fn_length_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strcasestr
+d_tests_sa_string_fn_strcasestr
   Tests d_strcasestr for case-insensitive substring search.
   Tests the following:
   - finds substring with same case
@@ -297,7 +297,7 @@ d_tests_string_fn_strcasestr
   - handles empty needle
 */
 struct d_test_object*
-d_tests_string_fn_strcasestr
+d_tests_sa_string_fn_strcasestr
 (
     void
 )
@@ -379,7 +379,7 @@ d_tests_string_fn_strcasestr
 }
 
 /*
-d_tests_string_fn_strchrnul
+d_tests_sa_string_fn_strchrnul
   Tests d_strchrnul for character search returning end pointer.
   Tests the following:
   - finds character when present
@@ -390,7 +390,7 @@ d_tests_string_fn_strchrnul
   - handles empty string
 */
 struct d_test_object*
-d_tests_string_fn_strchrnul
+d_tests_sa_string_fn_strchrnul
 (
     void
 )
@@ -466,14 +466,14 @@ d_tests_string_fn_strchrnul
 }
 
 /*
-d_tests_string_fn_search_all
+d_tests_sa_string_fn_search_all
   Runs all string search tests.
   Tests the following:
   - d_strcasestr
   - d_strchrnul
 */
 struct d_test_object*
-d_tests_string_fn_search_all
+d_tests_sa_string_fn_search_all
 (
     void
 )
@@ -489,8 +489,8 @@ d_tests_string_fn_search_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strcasestr();
-    group->elements[idx++] = d_tests_string_fn_strchrnul();
+    group->elements[idx++] = d_tests_sa_string_fn_strcasestr();
+    group->elements[idx++] = d_tests_sa_string_fn_strchrnul();
 
     return group;
 }
@@ -501,7 +501,7 @@ d_tests_string_fn_search_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strlwr
+d_tests_sa_string_fn_strlwr
   Tests d_strlwr for lowercase conversion.
   Tests the following:
   - converts uppercase to lowercase
@@ -513,7 +513,7 @@ d_tests_string_fn_strlwr
   - modifies in place
 */
 struct d_test_object*
-d_tests_string_fn_strlwr
+d_tests_sa_string_fn_strlwr
 (
     void
 )
@@ -598,7 +598,7 @@ d_tests_string_fn_strlwr
 }
 
 /*
-d_tests_string_fn_strupr
+d_tests_sa_string_fn_strupr
   Tests d_strupr for uppercase conversion.
   Tests the following:
   - converts lowercase to uppercase
@@ -610,7 +610,7 @@ d_tests_string_fn_strupr
   - modifies in place
 */
 struct d_test_object*
-d_tests_string_fn_strupr
+d_tests_sa_string_fn_strupr
 (
     void
 )
@@ -695,14 +695,14 @@ d_tests_string_fn_strupr
 }
 
 /*
-d_tests_string_fn_case_conversion_all
+d_tests_sa_string_fn_case_conversion_all
   Runs all case conversion tests.
   Tests the following:
   - d_strlwr
   - d_strupr
 */
 struct d_test_object*
-d_tests_string_fn_case_conversion_all
+d_tests_sa_string_fn_case_conversion_all
 (
     void
 )
@@ -718,8 +718,8 @@ d_tests_string_fn_case_conversion_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strlwr();
-    group->elements[idx++] = d_tests_string_fn_strupr();
+    group->elements[idx++] = d_tests_sa_string_fn_strlwr();
+    group->elements[idx++] = d_tests_sa_string_fn_strupr();
 
     return group;
 }
@@ -730,7 +730,7 @@ d_tests_string_fn_case_conversion_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strrev
+d_tests_sa_string_fn_strrev
   Tests d_strrev for string reversal.
   Tests the following:
   - reverses normal string
@@ -742,7 +742,7 @@ d_tests_string_fn_strrev
   - modifies in place
 */
 struct d_test_object*
-d_tests_string_fn_strrev
+d_tests_sa_string_fn_strrev
 (
     void
 )
@@ -828,13 +828,13 @@ d_tests_string_fn_strrev
 }
 
 /*
-d_tests_string_fn_manipulation_all
+d_tests_sa_string_fn_manipulation_all
   Runs all string manipulation tests.
   Tests the following:
   - d_strrev
 */
 struct d_test_object*
-d_tests_string_fn_manipulation_all
+d_tests_sa_string_fn_manipulation_all
 (
     void
 )
@@ -850,7 +850,7 @@ d_tests_string_fn_manipulation_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strrev();
+    group->elements[idx++] = d_tests_sa_string_fn_strrev();
 
     return group;
 }

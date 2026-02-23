@@ -1,4 +1,4 @@
-#include "..\inc\string_fn.h"
+#include "../../inc/c/string_fn.h"
 
 
 /*
@@ -8,19 +8,19 @@ d_strcpy_s
 Parameter(s):
   _destination:      destination buffer to copy string into
   _dest_size: size of destination buffer including null terminator space
-  _src:       source null-terminated string to copy
+  _source:       source null-terminated string to copy
 Return:
   An integer value corresponding to either:
   0 on success, or error code:
-  - EINVAL if _destination or _src is NULL
-  - ERANGE if _dest_size is 0 or _src is too long to fit in _destination
+  - EINVAL if _destination or _source is NULL
+  - ERANGE if _dest_size is 0 or _source is too long to fit in _destination
 */
 int
 d_strcpy_s
 (
     char* restrict       _destination,
     size_t               _dest_size,
-    const char* restrict _src
+    const char* restrict _source
 )
 {
     if (_destination == NULL)
@@ -33,13 +33,13 @@ d_strcpy_s
         return ERANGE;
     }
     
-    if (_src == NULL)
+    if (_source == NULL)
     {
         _destination[0] = '\0';
         return EINVAL;
     }
     
-    size_t src_len = strlen(_src);
+    size_t src_len = strlen(_source);
     
     if (src_len >= _dest_size)
     {
@@ -47,7 +47,7 @@ d_strcpy_s
         return ERANGE;
     }
     
-    d_memcpy(_destination, _src, src_len + 1);
+    d_memcpy(_destination, _source, src_len + 1);
     return 0;
 }
 
@@ -58,11 +58,11 @@ d_strncpy_s
 Parameter(s):
   _destination:      destination buffer to copy string into
   _dest_size: size of destination buffer including null terminator space
-  _src:       source null-terminated string to copy
+  _source:       source null-terminated string to copy
   _count:     maximum number of characters to copy from source
 Return:
   0 on success, or error code:
-  - EINVAL if _destination or _src is NULL
+  - EINVAL if _destination or _source is NULL
   - ERANGE if _dest_size is 0 or result would not fit in _destination
 */
 int
@@ -70,7 +70,7 @@ d_strncpy_s
 (
     char* restrict       _destination,
     size_t              _dest_size,
-    const char* restrict _src,
+    const char* restrict _source,
     size_t              _count
 )
 {
@@ -84,13 +84,13 @@ d_strncpy_s
         return ERANGE;
     }
     
-    if (_src == NULL)
+    if (_source == NULL)
     {
         _destination[0] = '\0';
         return EINVAL;
     }
     
-    size_t src_len = d_strnlen(_src, _count);
+    size_t src_len = d_strnlen(_source, _count);
     
     if (src_len >= _dest_size)
     {
@@ -98,7 +98,7 @@ d_strncpy_s
         return ERANGE;
     }
     
-    d_memcpy(_destination, _src, src_len);
+    d_memcpy(_destination, _source, src_len);
     _destination[src_len] = '\0';
     return 0;
 }
@@ -110,10 +110,10 @@ d_strcat_s
 Parameter(s):
   _destination:      destination buffer containing existing string
   _dest_size: total size of destination buffer including null terminator space
-  _src:       source null-terminated string to append
+  _source:       source null-terminated string to append
 Return:
   0 on success, or error code:
-  - EINVAL if _destination or _src is NULL
+  - EINVAL if _destination or _source is NULL
   - ERANGE if result would not fit in _destination
 */
 int
@@ -121,10 +121,10 @@ d_strcat_s
 (
     char* restrict       _destination,
     size_t              _dest_size,
-    const char* restrict _src
+    const char* restrict _source
 )
 {
-    if (_destination == NULL || _src == NULL)
+    if (_destination == NULL || _source == NULL)
     {
         if (_destination != NULL && _dest_size > 0)
         {
@@ -139,7 +139,7 @@ d_strcat_s
     }
     
     size_t dest_len = d_strnlen(_destination, _dest_size);
-    size_t src_len = strlen(_src);
+    size_t src_len = strlen(_source);
     
     if (dest_len + src_len >= _dest_size)
     {
@@ -147,7 +147,7 @@ d_strcat_s
         return ERANGE;
     }
     
-    d_memcpy(_destination + dest_len, _src, src_len + 1);
+    d_memcpy(_destination + dest_len, _source, src_len + 1);
     return 0;
 }
 
@@ -158,11 +158,11 @@ d_strncat_s
 Parameter(s):
   _destination:      destination buffer containing existing string
   _dest_size: total size of destination buffer including null terminator space
-  _src:       source null-terminated string to append
+  _source:       source null-terminated string to append
   _count:     maximum number of characters to append from source
 Return:
   0 on success, or error code:
-  - EINVAL if _destination or _src is NULL
+  - EINVAL if _destination or _source is NULL
   - ERANGE if result would not fit in _destination
 */
 int
@@ -170,11 +170,11 @@ d_strncat_s
 (
     char* restrict       _destination,
     size_t              _dest_size,
-    const char* restrict _src,
+    const char* restrict _source,
     size_t              _count
 )
 {
-    if (_destination == NULL || _src == NULL)
+    if (_destination == NULL || _source == NULL)
     {
         if (_destination != NULL && _dest_size > 0)
         {
@@ -189,7 +189,7 @@ d_strncat_s
     }
     
     size_t dest_len = d_strnlen(_destination, _dest_size);
-    size_t src_len = d_strnlen(_src, _count);
+    size_t src_len = d_strnlen(_source, _count);
     
     if (dest_len + src_len >= _dest_size)
     {
@@ -197,7 +197,7 @@ d_strncat_s
         return ERANGE;
     }
     
-    d_memcpy(_destination + dest_len, _src, src_len);
+    d_memcpy(_destination + dest_len, _source, src_len);
     _destination[dest_len + src_len] = '\0';
     return 0;
 }
@@ -1139,7 +1139,7 @@ d_str_is_valid
 {
     size_t i;
 
-    if (_text == NULL)
+    if (!_text)
     {
         return false;
     }

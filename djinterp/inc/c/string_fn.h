@@ -117,8 +117,8 @@ xvii. In-place character replacement
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include ".\djinterp.h"
-#include ".\dmemory.h"
+#include "./djinterp.h"
+#include "./dmemory.h"
 
 
 // d_index
@@ -132,10 +132,10 @@ xvii. In-place character replacement
 
 
 // i.    safe string copying & concatenation
-int      d_strcpy_s(char* restrict _destination, size_t _dest_size, const char* restrict _src);
-int      d_strncpy_s(char* restrict _destination, size_t _dest_size, const char* restrict _src, size_t _count);
-int      d_strcat_s(char* restrict _destination, size_t _dest_size, const char* restrict _src);
-int      d_strncat_s(char* restrict _destination, size_t _dest_size, const char* restrict _src, size_t _count);
+int      d_strcpy_s(char* restrict _destination, size_t _dest_size, const char* restrict _source);
+int      d_strncpy_s(char* restrict _destination, size_t _dest_size, const char* restrict _source, size_t _count);
+int      d_strcat_s(char* restrict _destination, size_t _dest_size, const char* restrict _source);
+int      d_strncat_s(char* restrict _destination, size_t _dest_size, const char* restrict _source, size_t _count);
 
 // ii.   string duplication
 char*    d_strdup(const char* _str);

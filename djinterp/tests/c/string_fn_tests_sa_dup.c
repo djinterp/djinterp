@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strdup
+d_tests_sa_string_fn_strdup
   Tests d_strdup for string duplication.
   Tests the following:
   - duplicates normal string correctly
@@ -17,7 +17,7 @@ d_tests_string_fn_strdup
   - handles strings with special characters
 */
 struct d_test_object*
-d_tests_string_fn_strdup
+d_tests_sa_string_fn_strdup
 (
     void
 )
@@ -114,7 +114,7 @@ d_tests_string_fn_strdup
 
 
 /*
-d_tests_string_fn_strndup
+d_tests_sa_string_fn_strndup
   Tests d_strndup for counted string duplication.
   Tests the following:
   - duplicates n characters correctly
@@ -125,7 +125,7 @@ d_tests_string_fn_strndup
   - truncates at specified length
 */
 struct d_test_object*
-d_tests_string_fn_strndup
+d_tests_sa_string_fn_strndup
 (
     void
 )
@@ -216,14 +216,14 @@ d_tests_string_fn_strndup
 
 
 /*
-d_tests_string_fn_duplication_all
+d_tests_sa_string_fn_duplication_all
   Runs all string duplication tests.
   Tests the following:
   - d_strdup
   - d_strndup
 */
 struct d_test_object*
-d_tests_string_fn_duplication_all
+d_tests_sa_string_fn_duplication_all
 (
     void
 )
@@ -239,8 +239,8 @@ d_tests_string_fn_duplication_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strdup();
-    group->elements[idx++] = d_tests_string_fn_strndup();
+    group->elements[idx++] = d_tests_sa_string_fn_strdup();
+    group->elements[idx++] = d_tests_sa_string_fn_strndup();
 
     return group;
 }
@@ -251,7 +251,7 @@ d_tests_string_fn_duplication_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strcasecmp
+d_tests_sa_string_fn_strcasecmp
   Tests d_strcasecmp for case-insensitive comparison.
   Tests the following:
   - returns 0 for identical strings
@@ -263,7 +263,7 @@ d_tests_string_fn_strcasecmp
   - handles mixed alphanumeric
 */
 struct d_test_object*
-d_tests_string_fn_strcasecmp
+d_tests_sa_string_fn_strcasecmp
 (
     void
 )
@@ -347,7 +347,7 @@ d_tests_string_fn_strcasecmp
 
 
 /*
-d_tests_string_fn_strncasecmp
+d_tests_sa_string_fn_strncasecmp
   Tests d_strncasecmp for counted case-insensitive comparison.
   Tests the following:
   - compares n characters correctly
@@ -358,7 +358,7 @@ d_tests_string_fn_strncasecmp
   - case-insensitive within n chars
 */
 struct d_test_object*
-d_tests_string_fn_strncasecmp
+d_tests_sa_string_fn_strncasecmp
 (
     void
 )
@@ -431,14 +431,14 @@ d_tests_string_fn_strncasecmp
 
 
 /*
-d_tests_string_fn_case_comparison_all
+d_tests_sa_string_fn_case_comparison_all
   Runs all case-insensitive comparison tests.
   Tests the following:
   - d_strcasecmp
   - d_strncasecmp
 */
 struct d_test_object*
-d_tests_string_fn_case_comparison_all
+d_tests_sa_string_fn_case_comparison_all
 (
     void
 )
@@ -454,8 +454,8 @@ d_tests_string_fn_case_comparison_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strcasecmp();
-    group->elements[idx++] = d_tests_string_fn_strncasecmp();
+    group->elements[idx++] = d_tests_sa_string_fn_strcasecmp();
+    group->elements[idx++] = d_tests_sa_string_fn_strncasecmp();
 
     return group;
 }

@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 #include <errno.h>
 
 
@@ -7,7 +7,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strerror_r
+d_tests_sa_string_fn_strerror_r
   Tests d_strerror_r for thread-safe error strings.
   Tests the following:
   - returns valid error string for known error
@@ -18,7 +18,7 @@ d_tests_string_fn_strerror_r
   - handles zero buffer size
 */
 struct d_test_object*
-d_tests_string_fn_strerror_r
+d_tests_sa_string_fn_strerror_r
 (
     void
 )
@@ -96,13 +96,13 @@ d_tests_string_fn_strerror_r
 
 
 /*
-d_tests_string_fn_error_handling_all
+d_tests_sa_string_fn_error_handling_all
   Runs all error handling tests.
   Tests the following:
   - d_strerror_r
 */
 struct d_test_object*
-d_tests_string_fn_error_handling_all
+d_tests_sa_string_fn_error_handling_all
 (
     void
 )
@@ -118,7 +118,7 @@ d_tests_string_fn_error_handling_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strerror_r();
+    group->elements[idx++] = d_tests_sa_string_fn_strerror_r();
 
     return group;
 }
@@ -129,7 +129,7 @@ d_tests_string_fn_error_handling_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_null_params_all
+d_tests_sa_string_fn_null_params_all
   Tests NULL parameter handling across all functions.
   Tests the following:
   - all functions handle NULL parameters gracefully
@@ -137,7 +137,7 @@ d_tests_string_fn_null_params_all
   - no crashes or undefined behavior
 */
 struct d_test_object*
-d_tests_string_fn_null_params_all
+d_tests_sa_string_fn_null_params_all
 (
     void
 )
@@ -329,7 +329,7 @@ d_tests_string_fn_null_params_all
  *****************************************************************************/
 
 /*
-d_tests_string_fn_boundary_conditions_all
+d_tests_sa_string_fn_boundary_conditions_all
   Tests boundary conditions across all functions.
   Tests the following:
   - zero-length buffers
@@ -340,7 +340,7 @@ d_tests_string_fn_boundary_conditions_all
   - single-char search and containment edge cases
 */
 struct d_test_object*
-d_tests_string_fn_boundary_conditions_all
+d_tests_sa_string_fn_boundary_conditions_all
 (
     void
 )

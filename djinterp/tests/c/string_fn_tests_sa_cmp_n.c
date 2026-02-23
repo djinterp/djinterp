@@ -1,4 +1,4 @@
-#include ".\string_fn_tests_sa.h"
+#include "./string_fn_tests_sa.h"
 
 
 /******************************************************************************
@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_string_fn_strcmp_n
+d_tests_sa_string_fn_strcmp_n
   Tests d_strcmp_n for length-aware string comparison.
   Tests the following:
   - returns 0 for identical strings
@@ -17,7 +17,7 @@ d_tests_string_fn_strcmp_n
   - handles zero-length strings
 */
 struct d_test_object*
-d_tests_string_fn_strcmp_n
+d_tests_sa_string_fn_strcmp_n
 (
     void
 )
@@ -92,7 +92,7 @@ d_tests_string_fn_strcmp_n
 }
 
 /*
-d_tests_string_fn_strncmp_n
+d_tests_sa_string_fn_strncmp_n
   Tests d_strncmp_n for bounded length-aware comparison.
   Tests the following:
   - compares only first n characters
@@ -103,7 +103,7 @@ d_tests_string_fn_strncmp_n
   - handles strings shorter than n
 */
 struct d_test_object*
-d_tests_string_fn_strncmp_n
+d_tests_sa_string_fn_strncmp_n
 (
     void
 )
@@ -175,7 +175,7 @@ d_tests_string_fn_strncmp_n
 }
 
 /*
-d_tests_string_fn_strcasecmp_n
+d_tests_sa_string_fn_strcasecmp_n
   Tests d_strcasecmp_n for length-aware case-insensitive comparison.
   Tests the following:
   - returns 0 for case-different equal strings
@@ -186,7 +186,7 @@ d_tests_string_fn_strcasecmp_n
   - shorter prefix compares less
 */
 struct d_test_object*
-d_tests_string_fn_strcasecmp_n
+d_tests_sa_string_fn_strcasecmp_n
 (
     void
 )
@@ -259,7 +259,7 @@ d_tests_string_fn_strcasecmp_n
 }
 
 /*
-d_tests_string_fn_strncasecmp_n
+d_tests_sa_string_fn_strncasecmp_n
   Tests d_strncasecmp_n for bounded length-aware case-insensitive comparison.
   Tests the following:
   - compares first n characters case-insensitively
@@ -270,7 +270,7 @@ d_tests_string_fn_strncasecmp_n
   - handles mixed case within n
 */
 struct d_test_object*
-d_tests_string_fn_strncasecmp_n
+d_tests_sa_string_fn_strncasecmp_n
 (
     void
 )
@@ -342,7 +342,7 @@ d_tests_string_fn_strncasecmp_n
 }
 
 /*
-d_tests_string_fn_strequals
+d_tests_sa_string_fn_strequals
   Tests d_strequals for length-aware equality check.
   Tests the following:
   - returns true for identical strings
@@ -353,7 +353,7 @@ d_tests_string_fn_strequals
   - returns false for partial match
 */
 struct d_test_object*
-d_tests_string_fn_strequals
+d_tests_sa_string_fn_strequals
 (
     void
 )
@@ -426,7 +426,7 @@ d_tests_string_fn_strequals
 }
 
 /*
-d_tests_string_fn_strequals_nocase
+d_tests_sa_string_fn_strequals_nocase
   Tests d_strequals_nocase for case-insensitive equality.
   Tests the following:
   - returns true for case-different equal strings
@@ -437,7 +437,7 @@ d_tests_string_fn_strequals_nocase
   - handles empty strings
 */
 struct d_test_object*
-d_tests_string_fn_strequals_nocase
+d_tests_sa_string_fn_strequals_nocase
 (
     void
 )
@@ -509,7 +509,7 @@ d_tests_string_fn_strequals_nocase
 }
 
 /*
-d_tests_string_fn_length_aware_cmp_all
+d_tests_sa_string_fn_length_aware_cmp_all
   Runs all length-aware comparison tests.
   Tests the following:
   - d_strcmp_n
@@ -520,7 +520,7 @@ d_tests_string_fn_length_aware_cmp_all
   - d_strequals_nocase
 */
 struct d_test_object*
-d_tests_string_fn_length_aware_cmp_all
+d_tests_sa_string_fn_length_aware_cmp_all
 (
     void
 )
@@ -536,12 +536,12 @@ d_tests_string_fn_length_aware_cmp_all
     }
 
     idx = 0;
-    group->elements[idx++] = d_tests_string_fn_strcmp_n();
-    group->elements[idx++] = d_tests_string_fn_strncmp_n();
-    group->elements[idx++] = d_tests_string_fn_strcasecmp_n();
-    group->elements[idx++] = d_tests_string_fn_strncasecmp_n();
-    group->elements[idx++] = d_tests_string_fn_strequals();
-    group->elements[idx++] = d_tests_string_fn_strequals_nocase();
+    group->elements[idx++] = d_tests_sa_string_fn_strcmp_n();
+    group->elements[idx++] = d_tests_sa_string_fn_strncmp_n();
+    group->elements[idx++] = d_tests_sa_string_fn_strcasecmp_n();
+    group->elements[idx++] = d_tests_sa_string_fn_strncasecmp_n();
+    group->elements[idx++] = d_tests_sa_string_fn_strequals();
+    group->elements[idx++] = d_tests_sa_string_fn_strequals_nocase();
 
     return group;
 }
