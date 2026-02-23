@@ -15,7 +15,7 @@
 #include <stddef.h>      // for size_t
 #include <stdlib.h>      // for malloc
 #include <string.h>      // for memcpy
-#include ".\djinterp.h"
+#include "./djinterp.h"
 
 
 // compatibility constants and types
@@ -52,7 +52,7 @@ int     d_memcpy_s(void*       _destination,
                    size_t      _destSize,
                    const void* _source,
                    size_t      _count);
-void*   d_memdup_s(const void* _src,
+void*   d_memdup_s(const void* _source,
                    size_t      _size);
 void*   d_memset(void*  _ptr,
                  int    _value,

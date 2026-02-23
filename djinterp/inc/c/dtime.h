@@ -87,8 +87,9 @@ IX.   MONOTONIC TIME UTILITIES
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include ".\djinterp.h"
-#include ".\dmemory.h"
+#include "./djinterp.h"
+#include "./dmemory.h"
+#include "./string_fn.h"
 
 
 // platform-specific includes

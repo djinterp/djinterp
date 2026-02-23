@@ -134,9 +134,9 @@ XIV.  PIPE OPERATIONS
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include ".\djinterp.h"
-#include ".\dmemory.h"
-#include ".\string_fn.h"
+#include "./djinterp.h"
+#include "./dmemory.h"
+#include "./string_fn.h"
 
 
 // I. Platform detection and includes
@@ -558,8 +558,8 @@ int                d_unlink(const char* _path);
 int                d_rename(const char* _oldpath,
                             const char* _newpath,
                             int         _overwrite);
-int                d_copy_file(const char* _src,
-                               const char* _dst);
+int                d_copy_file(const char* _source,
+                               const char* _destination);
 
 // XII. Path utilities
 char*              d_getcwd(char*  _buf,
