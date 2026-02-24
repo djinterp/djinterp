@@ -1,4 +1,22 @@
-#include "..\..\..\inc\c\test\test_standalone.h"
+#include "../../../inc/c/test/test_standalone.h"
+
+
+/******************************************************************************
+ * INTERNAL DUAL-OUTPUT HELPER
+ *****************************************************************************/
+
+// D_INTERNAL_TPRINTF
+//   macro: prints to both stdout and the global output file (if open).
+// Use in place of printf within framework output functions.
+#define D_INTERNAL_TPRINTF(...)                         \
+    do {                                                \
+        printf(__VA_ARGS__);                            \
+        if (g_d_test_output_file)                       \
+        {                                               \
+            fprintf(g_d_test_output_file,                \
+                    __VA_ARGS__);                        \
+        }                                               \
+    } while (0)
 
 
 /******************************************************************************
@@ -13,42 +31,41 @@ Parameter(s):
   _dest:          destination buffer
   _dest_capacity: total capacity of destination buffer
   _dest_len:      current length of string in destination (updated on success)
-  _src:           source string to append
-  _src_len:       length of source string to append
+  _source:           source string to append
+  _source_len:       length of source string to append
 Return:
   0 on success, non-zero on failure (buffer too small).
 */
-static int
+int
 d_test_internal_strcat_safe
 (
     char*       _dest,
     size_t      _dest_capacity,
     size_t*     _dest_len,
-    const char* _src,
-    size_t      _src_len
+    const char* _source,
+    size_t      _source_len
 )
 {
     if ( (!_dest)     ||
          (!_dest_len) ||
-         (!_src) )
+         (!_source) )
     {
         return EINVAL;
     }
 
     // check if there's room (need space for src + null terminator)
-    if (*_dest_len + _src_len >= _dest_capacity)
+    if (*_dest_len + _source_len >= _dest_capacity)
     {
         return ERANGE;
     }
 
     // copy source to end of destination
-    d_memcpy(_dest + *_dest_len, _src, _src_len);
-    *_dest_len        += _src_len;
+    d_memcpy(_dest + *_dest_len, _source, _source_len);
+    *_dest_len        += _source_len;
     _dest[*_dest_len]  = '\0';
 
     return 0;
 }
-
 
 /******************************************************************************
  * ASSERTION FUNCTION
@@ -56,7 +73,8 @@ d_test_internal_strcat_safe
 
 /*
 d_assert_standalone
-  Performs an assertion and updates the test counter.
+  Performs an assertion and updates the test counter. Respects global
+options for assertion numbering, failure tracking, and file mirroring.
 
 Parameter(s):
   _condition: the condition to test
@@ -66,7 +84,7 @@ Parameter(s):
 Return:
   The condition value (true if passed, false if failed).
 */
-D_STATIC_INLINE bool
+bool
 d_assert_standalone
 (
     bool                   _condition,
@@ -85,20 +103,101 @@ d_assert_standalone
     if (_condition)
     {
         _test_info->assertions_passed++;
-        printf("%s    %s %s\n", D_INDENT, D_TEST_SYMBOL_PASS, _test_name);
+
+        // check if numbering is enabled
+        if ( (g_d_test_options)                        &&
+             (g_d_test_options->number_assertions) )
+        {
+            g_d_test_assertion_number++;
+            printf("%s    %s %zu. %s\n",
+                   D_INDENT,
+                   D_TEST_SYMBOL_PASS,
+                   g_d_test_assertion_number,
+                   _test_name);
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "%s    %s %zu. %s\n",
+                        D_INDENT,
+                        D_TEST_SYMBOL_PASS,
+                        g_d_test_assertion_number,
+                        _test_name);
+            }
+        }
+        else
+        {
+            printf("%s    %s %s\n",
+                   D_INDENT,
+                   D_TEST_SYMBOL_PASS,
+                   _test_name);
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "%s    %s %s\n",
+                        D_INDENT,
+                        D_TEST_SYMBOL_PASS,
+                        _test_name);
+            }
+        }
     }
     else
     {
-        printf("%s    %s %s - %s\n",
-               D_INDENT,
-               D_TEST_SYMBOL_FAIL,
-               _test_name,
-               _message);
+        // check if numbering is enabled
+        if ( (g_d_test_options)                        &&
+             (g_d_test_options->number_assertions) )
+        {
+            g_d_test_assertion_number++;
+            printf("%s    %s %zu. %s - %s\n",
+                   D_INDENT,
+                   D_TEST_SYMBOL_FAIL,
+                   g_d_test_assertion_number,
+                   _test_name,
+                   _message);
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "%s    %s %zu. %s - %s\n",
+                        D_INDENT,
+                        D_TEST_SYMBOL_FAIL,
+                        g_d_test_assertion_number,
+                        _test_name,
+                        _message);
+            }
+        }
+        else
+        {
+            printf("%s    %s %s - %s\n",
+                   D_INDENT,
+                   D_TEST_SYMBOL_FAIL,
+                   _test_name,
+                   _message);
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "%s    %s %s - %s\n",
+                        D_INDENT,
+                        D_TEST_SYMBOL_FAIL,
+                        _test_name,
+                        _message);
+            }
+        }
+
+        // track failure if enabled
+        if (g_d_test_failures)
+        {
+            d_test_sa_failure_list_add(g_d_test_failures,
+                                        g_d_test_current_module,
+                                        _test_name,
+                                        _message);
+        }
     }
 
     return _condition;
 }
-
 
 /******************************************************************************
  * TEST OBJECT FUNCTIONS
@@ -286,7 +385,6 @@ d_test_object_add_child
     return;
 }
 
-
 /******************************************************************************
  * TEST COUNTER FUNCTIONS
  *****************************************************************************/
@@ -325,7 +423,7 @@ d_test_counter_add
 
 Parameter(s):
   _dest: destination counter to add to
-  _src:  source counter to add from
+  _source:  source counter to add from
 Return:
   none.
 */
@@ -333,23 +431,22 @@ void
 d_test_counter_add
 (
     struct d_test_counter*       _dest,
-    const struct d_test_counter* _src
+    const struct d_test_counter* _source
 )
 {
     if ( (!_dest) ||
-         (!_src) )
+         (!_source) )
     {
         return;
     }
 
-    _dest->assertions_total  += _src->assertions_total;
-    _dest->assertions_passed += _src->assertions_passed;
-    _dest->tests_total       += _src->tests_total;
-    _dest->tests_passed      += _src->tests_passed;
+    _dest->assertions_total  += _source->assertions_total;
+    _dest->assertions_passed += _source->assertions_passed;
+    _dest->tests_total       += _source->tests_total;
+    _dest->tests_passed      += _source->tests_passed;
 
     return;
 }
-
 
 /******************************************************************************
  * TEMPLATE SUBSTITUTION
@@ -593,16 +690,16 @@ d_test_substitute_template
     return result;
 }
 
-
 /******************************************************************************
  * DEFAULT PRINT FUNCTIONS
  *****************************************************************************/
 
 /*
 d_test_default_print_object
-  Default recursive print function for test objects.
+  Default recursive print function for test objects. Respects global
+options for assertion/test numbering, failure tracking, and file mirroring.
   Prints leaves as assertions with pass/fail symbols, interior nodes as
-  groups with nested indentation.
+groups with nested indentation.
 
 Parameter(s):
   _obj:          test object to print
@@ -631,6 +728,11 @@ d_test_default_print_object
     for (i = 0; i < _indent_level; i++)
     {
         printf("  ");
+
+        if (g_d_test_output_file)
+        {
+            fprintf(g_d_test_output_file, "  ");
+        }
     }
 
     if (_obj->is_leaf)
@@ -639,10 +741,39 @@ d_test_default_print_object
         const char* symbol = _obj->result
             ? D_TEST_SYMBOL_PASS 
             : D_TEST_SYMBOL_FAIL;
-
-        printf("%s %s\n", symbol, _obj->message 
+        const char* msg = _obj->message
             ? _obj->message
-            : "");
+            : "";
+
+        // check if numbering is enabled
+        if ( (g_d_test_options)                        &&
+             (g_d_test_options->number_assertions) )
+        {
+            g_d_test_assertion_number++;
+            printf("%s %zu. %s\n",
+                   symbol,
+                   g_d_test_assertion_number,
+                   msg);
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "%s %zu. %s\n",
+                        symbol,
+                        g_d_test_assertion_number,
+                        msg);
+            }
+        }
+        else
+        {
+            printf("%s %s\n", symbol, msg);
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "%s %s\n", symbol, msg);
+            }
+        }
 
         // update counter if provided
         if (_counter)
@@ -653,14 +784,57 @@ d_test_default_print_object
             {
                 _counter->assertions_passed++;
             }
+            else
+            {
+                // track failure if enabled
+                if (g_d_test_failures)
+                {
+                    d_test_sa_failure_list_add(
+                        g_d_test_failures,
+                        g_d_test_current_module,
+                        _obj->name,
+                        _obj->message);
+                }
+            }
         }
     }
     else
     {
         // interior node - print group header and recurse
-        printf("--- Testing %s ---\n", _obj->name 
-            ? _obj->name
-            : "(unnamed)");
+        if ( (g_d_test_options)                  &&
+             (g_d_test_options->number_tests) )
+        {
+            g_d_test_test_number++;
+            printf("--- %zu. Testing %s ---\n",
+                   g_d_test_test_number,
+                   _obj->name ? _obj->name : "(unnamed)");
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "--- %zu. Testing %s ---\n",
+                        g_d_test_test_number,
+                        _obj->name
+                            ? _obj->name
+                            : "(unnamed)");
+            }
+        }
+        else
+        {
+            printf("--- Testing %s ---\n",
+                   _obj->name
+                       ? _obj->name
+                       : "(unnamed)");
+
+            if (g_d_test_output_file)
+            {
+                fprintf(g_d_test_output_file,
+                        "--- Testing %s ---\n",
+                        _obj->name
+                            ? _obj->name
+                            : "(unnamed)");
+            }
+        }
 
         // update test counter for interior nodes
         if (_counter)
@@ -675,9 +849,10 @@ d_test_default_print_object
         {
             if (_obj->elements[j])
             {
-                d_test_default_print_object(_obj->elements[j],
-                                            (_indent_level + 1),
-                                            _counter);
+                d_test_default_print_object(
+                    _obj->elements[j],
+                    (_indent_level + 1),
+                    _counter);
 
                 // check if this child (if leaf) failed
                 if ( _obj->elements[j]->is_leaf &&
@@ -799,7 +974,6 @@ d_test_default_print_object_to_file
 
     return;
 }
-
 
 /******************************************************************************
  * OUTPUT FUNCTIONS
@@ -931,7 +1105,6 @@ d_test_standalone_output_file
     return;
 }
 
-
 /******************************************************************************
  * UTILITY FUNCTIONS
  *****************************************************************************/
@@ -1016,7 +1189,6 @@ d_test_sa_get_elapsed_time
     return (double)(_end - _start) / CLOCKS_PER_SEC;
 }
 
-
 /******************************************************************************
  * STANDALONE TEST OUTPUT FORMATTING FUNCTIONS
  *****************************************************************************/
@@ -1050,17 +1222,17 @@ d_test_sa_create_framework_header
     }
 
     printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-    printf("  TESTING: %s\n", _suite_name);
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-    printf("  Description: %s\n", _description);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("  TESTING: %s\n", _suite_name);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("  Description: %s\n", _description);
     printf("  Date/Time:   ");
     d_test_sa_print_timestamp();
     printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-    printf("\n");
-    printf("  Starting test suite execution...\n");
-    printf("\n");
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("  Starting test suite execution...\n");
+    D_INTERNAL_TPRINTF("\n");
 
     return;
 }
@@ -1087,20 +1259,22 @@ d_test_sa_create_module_test_header
         _module_name = "(unknown)";
     }
 
-    printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
 
     if (_description)
     {
-        printf("  MODULE: `%s`\n", _module_name);
-        printf("  %s\n", _description);
+        D_INTERNAL_TPRINTF("  MODULE: `%s`\n",
+                           _module_name);
+        D_INTERNAL_TPRINTF("  %s\n", _description);
     }
     else
     {
-        printf("  MODULE: `%s`\n", _module_name);
+        D_INTERNAL_TPRINTF("  MODULE: `%s`\n",
+                           _module_name);
     }
 
-    printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
-    printf("\n");
+    D_INTERNAL_TPRINTF("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    D_INTERNAL_TPRINTF("\n");
 
     return;
 }
@@ -1133,12 +1307,16 @@ d_test_sa_create_module_test_results
 
     if (!_counter)
     {
-        printf("\n");
-        printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
-        printf("  MODULE RESULTS: %s\n", _module_name);
-        printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
-        printf("  (no results available)\n");
-        printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF("%s\n",
+                           D_TEST_SA_SEPARATOR_SINGLE);
+        D_INTERNAL_TPRINTF("  MODULE RESULTS: %s\n",
+                           _module_name);
+        D_INTERNAL_TPRINTF("%s\n",
+                           D_TEST_SA_SEPARATOR_SINGLE);
+        D_INTERNAL_TPRINTF("  (no results available)\n");
+        D_INTERNAL_TPRINTF("%s\n",
+                           D_TEST_SA_SEPARATOR_SINGLE);
 
         return;
     }
@@ -1154,36 +1332,46 @@ d_test_sa_create_module_test_results
                    (double)_counter->tests_total)
         : 0.0;
 
-    passed = (_counter->assertions_passed == _counter->assertions_total) &&
-             (_counter->tests_passed == _counter->tests_total);
+    passed = (_counter->assertions_passed ==
+              _counter->assertions_total) &&
+             (_counter->tests_passed ==
+              _counter->tests_total);
 
-    printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
-    printf("  MODULE RESULTS: %s\n", _module_name);
-    printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
-    printf("  Assertions: %zu/%zu passed (%.2f%%)\n",
-           _counter->assertions_passed,
-           _counter->assertions_total,
-           assertion_rate);
-    printf("  Unit Tests: %zu/%zu passed (%.2f%%)\n",
-           _counter->tests_passed,
-           _counter->tests_total,
-           test_rate);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_SINGLE);
+    D_INTERNAL_TPRINTF("  MODULE RESULTS: %s\n",
+                       _module_name);
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_SINGLE);
+    D_INTERNAL_TPRINTF(
+        "  Assertions: %zu/%zu passed (%.2f%%)\n",
+        _counter->assertions_passed,
+        _counter->assertions_total,
+        assertion_rate);
+    D_INTERNAL_TPRINTF(
+        "  Unit Tests: %zu/%zu passed (%.2f%%)\n",
+        _counter->tests_passed,
+        _counter->tests_total,
+        test_rate);
 
     if (passed)
     {
-        printf("  Status:     %s %s MODULE PASSED\n",
-               D_TEST_SYMBOL_PASS,
-               _module_name);
+        D_INTERNAL_TPRINTF(
+            "  Status:     %s %s MODULE PASSED\n",
+            D_TEST_SYMBOL_PASS,
+            _module_name);
     }
     else
     {
-        printf("  Status:     %s %s MODULE FAILED\n",
-               D_TEST_SYMBOL_FAIL,
-               _module_name);
+        D_INTERNAL_TPRINTF(
+            "  Status:     %s %s MODULE FAILED\n",
+            D_TEST_SYMBOL_FAIL,
+            _module_name);
     }
 
-    printf("%s\n", D_TEST_SA_SEPARATOR_SINGLE);
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_SINGLE);
 
     return;
 }
@@ -1212,12 +1400,17 @@ d_test_sa_create_comprehensive_results
 
     if (!_suite)
     {
-        printf("\n");
-        printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-        printf("  COMPREHENSIVE TEST RESULTS\n");
-        printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-        printf("  (no suite results available)\n");
-        printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF("%s\n",
+                           D_TEST_SA_SEPARATOR_DOUBLE);
+        D_INTERNAL_TPRINTF(
+            "  COMPREHENSIVE TEST RESULTS\n");
+        D_INTERNAL_TPRINTF("%s\n",
+                           D_TEST_SA_SEPARATOR_DOUBLE);
+        D_INTERNAL_TPRINTF(
+            "  (no suite results available)\n");
+        D_INTERNAL_TPRINTF("%s\n",
+                           D_TEST_SA_SEPARATOR_DOUBLE);
 
         return;
     }
@@ -1242,67 +1435,108 @@ d_test_sa_create_comprehensive_results
                         _suite->totals.assertions_passed;
     tests_failed      = _suite->totals.tests_total -
                         _suite->totals.tests_passed;
-    all_passed        = (_suite->modules_passed == _suite->modules_total);
+    all_passed        = (_suite->modules_passed ==
+                         _suite->modules_total);
 
-    printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-    printf("  COMPREHENSIVE TEST RESULTS\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF(
+        "  COMPREHENSIVE TEST RESULTS\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
 
     // module summary
-    printf("\n");
-    printf("  MODULE SUMMARY:\n");
-    printf("    Modules Tested:       %zu\n", _suite->modules_total);
-    printf("    Modules Passed:       %zu\n", _suite->modules_passed);
-    printf("    Module Success Rate:  %.2f%%\n", module_rate);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("  MODULE SUMMARY:\n");
+    D_INTERNAL_TPRINTF(
+        "    Modules Tested:       %zu\n",
+        _suite->modules_total);
+    D_INTERNAL_TPRINTF(
+        "    Modules Passed:       %zu\n",
+        _suite->modules_passed);
+    D_INTERNAL_TPRINTF(
+        "    Module Success Rate:  %.2f%%\n",
+        module_rate);
 
     // assertion summary
-    printf("\n");
-    printf("  ASSERTION SUMMARY:\n");
-    printf("    Total Assertions:     %zu\n", _suite->totals.assertions_total);
-    printf("    Assertions Passed:    %zu\n", _suite->totals.assertions_passed);
-    printf("    Assertions Failed:    %zu\n", assertions_failed);
-    printf("    Assertion Pass Rate:  %.2f%%\n", assertion_rate);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("  ASSERTION SUMMARY:\n");
+    D_INTERNAL_TPRINTF(
+        "    Total Assertions:     %zu\n",
+        _suite->totals.assertions_total);
+    D_INTERNAL_TPRINTF(
+        "    Assertions Passed:    %zu\n",
+        _suite->totals.assertions_passed);
+    D_INTERNAL_TPRINTF(
+        "    Assertions Failed:    %zu\n",
+        assertions_failed);
+    D_INTERNAL_TPRINTF(
+        "    Assertion Pass Rate:  %.2f%%\n",
+        assertion_rate);
 
     // unit test summary
-    printf("\n");
-    printf("  UNIT TEST SUMMARY:\n");
-    printf("    Total Unit Tests:     %zu\n", _suite->totals.tests_total);
-    printf("    Unit Tests Passed:    %zu\n", _suite->totals.tests_passed);
-    printf("    Unit Tests Failed:    %zu\n", tests_failed);
-    printf("    Unit Test Pass Rate:  %.2f%%\n", test_rate);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("  UNIT TEST SUMMARY:\n");
+    D_INTERNAL_TPRINTF(
+        "    Total Unit Tests:     %zu\n",
+        _suite->totals.tests_total);
+    D_INTERNAL_TPRINTF(
+        "    Unit Tests Passed:    %zu\n",
+        _suite->totals.tests_passed);
+    D_INTERNAL_TPRINTF(
+        "    Unit Tests Failed:    %zu\n",
+        tests_failed);
+    D_INTERNAL_TPRINTF(
+        "    Unit Test Pass Rate:  %.2f%%\n",
+        test_rate);
 
     // execution time if available
     if (_suite->total_time > 0.0)
     {
-        printf("\n");
-        printf("  EXECUTION TIME:\n");
-        printf("    Total Time:           %.3f seconds\n", _suite->total_time);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF("  EXECUTION TIME:\n");
+        D_INTERNAL_TPRINTF(
+            "    Total Time:           %.3f seconds\n",
+            _suite->total_time);
     }
 
     // overall assessment
-    printf("\n");
-    printf("  OVERALL ASSESSMENT:\n");
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("  OVERALL ASSESSMENT:\n");
 
     if (all_passed)
     {
-        printf("    %s ALL TESTS PASSED\n", D_TEST_SYMBOL_PASS);
-        printf("    %s Framework is ready for use\n", D_TEST_SYMBOL_PASS);
+        D_INTERNAL_TPRINTF(
+            "    %s ALL TESTS PASSED\n",
+            D_TEST_SYMBOL_PASS);
+        D_INTERNAL_TPRINTF(
+            "    %s Framework is ready for use\n",
+            D_TEST_SYMBOL_PASS);
     }
     else
     {
-        printf("    %s SOME TESTS FAILED - ATTENTION REQUIRED\n",
-               D_TEST_SYMBOL_FAIL);
-        printf("    %s Review failed tests before proceeding\n",
-               D_TEST_SYMBOL_FAIL);
-        printf("    %s Check for memory leaks or logic errors\n",
-               D_TEST_SYMBOL_FAIL);
-        printf("    %s Verify all edge cases are handled properly\n",
-               D_TEST_SYMBOL_FAIL);
+        D_INTERNAL_TPRINTF(
+            "    %s SOME TESTS FAILED - "
+            "ATTENTION REQUIRED\n",
+            D_TEST_SYMBOL_FAIL);
+        D_INTERNAL_TPRINTF(
+            "    %s Review failed tests before "
+            "proceeding\n",
+            D_TEST_SYMBOL_FAIL);
+        D_INTERNAL_TPRINTF(
+            "    %s Check for memory leaks or "
+            "logic errors\n",
+            D_TEST_SYMBOL_FAIL);
+        D_INTERNAL_TPRINTF(
+            "    %s Verify all edge cases are "
+            "handled properly\n",
+            D_TEST_SYMBOL_FAIL);
     }
 
-    printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
 
     return;
 }
@@ -1327,16 +1561,21 @@ d_test_sa_create_implementation_notes
     size_t i;
     size_t j;
 
-    printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-    printf("  IMPLEMENTATION NOTES & RECOMMENDATIONS\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF(
+        "  IMPLEMENTATION NOTES & RECOMMENDATIONS\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
 
     if ( (!_sections) ||
          (_section_count == 0) )
     {
-        printf("  (no implementation notes)\n");
-        printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+        D_INTERNAL_TPRINTF(
+            "  (no implementation notes)\n");
+        D_INTERNAL_TPRINTF("%s\n",
+                           D_TEST_SA_SEPARATOR_DOUBLE);
 
         return;
     }
@@ -1348,28 +1587,33 @@ d_test_sa_create_implementation_notes
             continue;
         }
 
-        printf("\n");
-        printf("  %s:\n", _sections[i].title);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF("  %s:\n",
+                           _sections[i].title);
 
         if ( _sections[i].items &&
              _sections[i].count > 0 )
         {
             for (j = 0; j < _sections[i].count; j++)
             {
-                const char* prefix = _sections[i].items[j].prefix
-                                         ? _sections[i].items[j].prefix
-                                         : "[INFO]";
-                const char* message = _sections[i].items[j].message
-                                          ? _sections[i].items[j].message
-                                          : "";
+                const char* prefix =
+                    _sections[i].items[j].prefix
+                        ? _sections[i].items[j].prefix
+                        : "[INFO]";
+                const char* message =
+                    _sections[i].items[j].message
+                        ? _sections[i].items[j].message
+                        : "";
 
-                printf("    %s %s\n", prefix, message);
+                D_INTERNAL_TPRINTF("    %s %s\n",
+                                   prefix, message);
             }
         }
     }
 
-    printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
 
     return;
 }
@@ -1396,42 +1640,56 @@ d_test_sa_create_final_status
         _framework_name = "(unknown)";
     }
 
-    printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
-    printf("  FINAL STATUS\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("  FINAL STATUS\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
 
     if (_passed)
     {
-        printf("\n");
-        printf("  %s %s Test Suite COMPLETED SUCCESSFULLY\n",
-               D_TEST_SYMBOL_SUCCESS,
-               _framework_name);
-        printf("\n");
-        printf("  %s All modules validated and ready for use\n",
-               D_TEST_SYMBOL_PASS);
-        printf("  %s Proceed with confidence in framework stability\n",
-               D_TEST_SYMBOL_PASS);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF(
+            "  %s %s Test Suite COMPLETED "
+            "SUCCESSFULLY\n",
+            D_TEST_SYMBOL_SUCCESS,
+            _framework_name);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF(
+            "  %s All modules validated and ready "
+            "for use\n",
+            D_TEST_SYMBOL_PASS);
+        D_INTERNAL_TPRINTF(
+            "  %s Proceed with confidence in "
+            "framework stability\n",
+            D_TEST_SYMBOL_PASS);
     }
     else
     {
-        printf("\n");
-        printf("  %s %s Test Suite COMPLETED WITH FAILURES\n",
-               D_TEST_SYMBOL_FAIL,
-               _framework_name);
-        printf("\n");
-        printf("  %s Review and fix all failures before proceeding\n",
-               D_TEST_SYMBOL_FAIL);
-        printf("  %s Framework stability may be compromised\n",
-               D_TEST_SYMBOL_FAIL);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF(
+            "  %s %s Test Suite COMPLETED "
+            "WITH FAILURES\n",
+            D_TEST_SYMBOL_FAIL,
+            _framework_name);
+        D_INTERNAL_TPRINTF("\n");
+        D_INTERNAL_TPRINTF(
+            "  %s Review and fix all failures "
+            "before proceeding\n",
+            D_TEST_SYMBOL_FAIL);
+        D_INTERNAL_TPRINTF(
+            "  %s Framework stability may be "
+            "compromised\n",
+            D_TEST_SYMBOL_FAIL);
     }
 
-    printf("\n");
-    printf("%s\n", D_TEST_SA_SEPARATOR_DOUBLE);
+    D_INTERNAL_TPRINTF("\n");
+    D_INTERNAL_TPRINTF("%s\n",
+                       D_TEST_SA_SEPARATOR_DOUBLE);
 
     return;
 }
-
 
 /******************************************************************************
  * UNIFIED TEST RUNNER FUNCTIONS
@@ -1467,12 +1725,47 @@ d_test_sa_runner_init
     _runner->wait_for_input    = true;
     _runner->show_notes        = true;
 
+    // initialize options to defaults
+    d_test_sa_options_init(&_runner->options);
+
+    // initialize failure tracking
+    d_test_sa_failure_list_init(&_runner->failures);
+
     // initialize results
     _runner->results.modules_total  = 0;
     _runner->results.modules_passed = 0;
     _runner->results.total_time     = 0.0;
     _runner->results.modules        = NULL;
     d_test_counter_reset(&_runner->results.totals);
+
+    return;
+}
+
+/*
+d_test_sa_runner_set_options
+  Copies parsed CLI options into the runner. Should be called after
+d_test_sa_runner_init and d_test_sa_options_parse, before execute.
+
+Parameter(s):
+  _runner:  the runner to configure
+  _options: options struct to copy from
+Return:
+  none.
+*/
+void
+d_test_sa_runner_set_options
+(
+    struct d_test_sa_runner*        _runner,
+    const struct d_test_sa_options* _options
+)
+{
+    if ( (!_runner) ||
+         (!_options) )
+    {
+        return;
+    }
+
+    _runner->options = *_options;
 
     return;
 }
@@ -1644,6 +1937,8 @@ d_test_sa_runner_set_show_notes
 /*
 d_test_sa_runner_execute
   Executes all registered test modules and generates comprehensive output.
+Respects CLI options for numbering, footers, file output, and failure
+listing.
 
 Parameter(s):
   _runner: the runner to execute
@@ -1670,6 +1965,28 @@ d_test_sa_runner_execute
         return 1;
     }
 
+    // set up global state for assertion functions
+    g_d_test_options        = &_runner->options;
+    g_d_test_failures       = &_runner->failures;
+    g_d_test_assertion_number = 0;
+    g_d_test_test_number      = 0;
+    g_d_test_current_module   = NULL;
+    g_d_test_output_file      = NULL;
+
+    // open output file if specified
+    if (_runner->options.output_file)
+    {
+        g_d_test_output_file = d_fopen(
+            _runner->options.output_file, "w");
+
+        if (!g_d_test_output_file)
+        {
+            printf("WARNING: could not open output file "
+                   "'%s'\n",
+                   _runner->options.output_file);
+        }
+    }
+
     // initialize tracking
     overall_result = true;
     modules_passed = 0;
@@ -1679,8 +1996,9 @@ d_test_sa_runner_execute
     suite_start = clock();
 
     // print framework header
-    d_test_sa_create_framework_header(_runner->suite_name,
-                                      _runner->suite_description);
+    d_test_sa_create_framework_header(
+        _runner->suite_name,
+        _runner->suite_description);
 
     // execute each registered module
     for (i = 0; i < _runner->module_count; i++)
@@ -1691,9 +2009,20 @@ d_test_sa_runner_execute
         d_test_counter_reset(&module_counter);
         module_result = false;
 
+        // set current module name for failure tracking
+        g_d_test_current_module = _runner->modules[i].name;
+
+        // reset per-module numbering unless global
+        if (!_runner->options.global_numbering)
+        {
+            g_d_test_assertion_number = 0;
+            g_d_test_test_number      = 0;
+        }
+
         // print module header
-        d_test_sa_create_module_test_header(_runner->modules[i].name,
-                                            _runner->modules[i].description);
+        d_test_sa_create_module_test_header(
+            _runner->modules[i].name,
+            _runner->modules[i].description);
 
         // record module start time
         module_start = clock();
@@ -1708,7 +2037,8 @@ d_test_sa_runner_execute
 
             if (test_results)
             {
-                d_test_default_print_object(test_results, 0, &module_counter);
+                d_test_default_print_object(
+                    test_results, 0, &module_counter);
 
                 module_result =
                     (module_counter.assertions_passed ==
@@ -1722,15 +2052,21 @@ d_test_sa_runner_execute
         else if (_runner->modules[i].run_counter)
         {
             // counter-based test function
-            module_result = _runner->modules[i].run_counter(&module_counter);
+            module_result =
+                _runner->modules[i].run_counter(
+                    &module_counter);
         }
 
         // record module end time
         module_end = clock();
 
-        // print module results
-        d_test_sa_create_module_test_results(_runner->modules[i].name,
-                                             &module_counter);
+        // print module results (if footers enabled)
+        if (_runner->options.show_module_footer)
+        {
+            d_test_sa_create_module_test_results(
+                _runner->modules[i].name,
+                &module_counter);
+        }
 
         // print module notes if enabled
         if ( _runner->show_notes              &&
@@ -1743,7 +2079,8 @@ d_test_sa_runner_execute
         }
 
         // update overall counters
-        d_test_counter_add(&overall_counter, &module_counter);
+        d_test_counter_add(&overall_counter,
+                           &module_counter);
 
         if (module_result)
         {
@@ -1760,14 +2097,41 @@ d_test_sa_runner_execute
     _runner->results.modules_total  = _runner->module_count;
     _runner->results.modules_passed = modules_passed;
     _runner->results.totals         = overall_counter;
-    _runner->results.total_time     = d_test_sa_get_elapsed_time(suite_start,
-                                                                  suite_end);
+    _runner->results.total_time     =
+        d_test_sa_get_elapsed_time(suite_start, suite_end);
 
     // print comprehensive results
-    d_test_sa_create_comprehensive_results(&_runner->results);
+    d_test_sa_create_comprehensive_results(
+        &_runner->results);
+
+    // print failure summary if enabled
+    if (_runner->options.list_failures)
+    {
+        d_test_sa_failure_list_print(&_runner->failures);
+
+        if (g_d_test_output_file)
+        {
+            d_test_sa_failure_list_print_file(
+                g_d_test_output_file,
+                &_runner->failures);
+        }
+    }
 
     // print final status
-    d_test_sa_create_final_status(_runner->suite_name, overall_result);
+    d_test_sa_create_final_status(_runner->suite_name,
+                                  overall_result);
+
+    // close output file if opened
+    if (g_d_test_output_file)
+    {
+        fclose(g_d_test_output_file);
+        g_d_test_output_file = NULL;
+    }
+
+    // clear global state
+    g_d_test_options        = NULL;
+    g_d_test_failures       = NULL;
+    g_d_test_current_module = NULL;
 
     // wait for user input if configured
     if (_runner->wait_for_input)
@@ -1781,7 +2145,8 @@ d_test_sa_runner_execute
 
 /*
 d_test_sa_runner_cleanup
-  Cleans up any resources allocated by the runner.
+  Cleans up any resources allocated by the runner, including the failure
+tracking list and module results array.
 
 Parameter(s):
   _runner: the runner to clean up
@@ -1799,6 +2164,9 @@ d_test_sa_runner_cleanup
         return;
     }
 
+    // free failure tracking list
+    d_test_sa_failure_list_free(&_runner->failures);
+
     // free module results array if allocated
     if (_runner->results.modules)
     {
@@ -1808,4 +2176,3 @@ d_test_sa_runner_cleanup
 
     return;
 }
-
