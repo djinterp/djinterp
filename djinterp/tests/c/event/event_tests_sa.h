@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.03
 ******************************************************************************/
 
-#ifndef DJINTERP_C_TESTS_EVENT_STANDALONE_
-#define DJINTERP_C_TESTS_EVENT_STANDALONE_ 1
+#ifndef DJINTERP_TESTING_EVENT_TESTS_STANDALONE_
+#define DJINTERP_TESTING_EVENT_TESTS_STANDALONE_ 1
 
 #include <stddef.h>
 #include <stdint.h>
@@ -133,4 +133,4 @@ bool d_tests_sa_event_free_all(struct d_test_counter* _counter);
 bool d_tests_sa_event_run_all(struct d_test_counter* _counter);
 
 
-#endif  // DJINTERP_C_TESTS_EVENT_STANDALONE_
+#endif  // DJINTERP_TESTING_EVENT_TESTS_STANDALONE_
