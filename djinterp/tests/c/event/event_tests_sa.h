@@ -10,7 +10,7 @@
 *   No external container modules are required.
 *
 *
-* path:      /tests/event/event_tests_sa.h
+* path:      /tests/c/event/event_tests_sa.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.03
 ******************************************************************************/
