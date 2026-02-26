@@ -1,5 +1,4 @@
-#include "..\..\..\inc\container\registry\registry_common.h"
-
+#include "..\..\..\..\inc\c\container\registry\registry_common.h"
 
 
 //==============================================================================

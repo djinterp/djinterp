@@ -1,5 +1,5 @@
-/*******************************************************************************
-* djinterp [container]                                        registry_common.h
+/******************************************************************************
+* djinterp [container]                                       registry_common.h
 *
 *   Shared types/utilities for:
 *     1) in-memory djinterp cvar registry (Source-style cvars)
@@ -9,10 +9,10 @@
 *   with the general-purpose `d_registry` in registry.h.  Both headers may
 *   be included in the same translation unit.
 *
-* path:      \inc\container\registry\registry_common.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                           date: 2025.12.16
-*******************************************************************************/
+* path:      /inc/c/container/registry/registry_common.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
+******************************************************************************/
 
 #ifndef DJINTERP_C_CONTAINER_REGISTRY_COMMON_
 #define DJINTERP_C_CONTAINER_REGISTRY_COMMON_ 1
@@ -20,8 +20,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "..\..\djinterp.h"
-#include "..\..\meta\type_info.h"
-
+#include "..\..\type_info.h"
 
 
 // `d_cvar_registry` flags

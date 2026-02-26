@@ -18,9 +18,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\..\inc\test\test_standalone.h"
-#include "..\..\..\inc\container\registry\registry_common.h"
-#include "..\..\..\inc\string_fn.h"
+#include "../../../../inc/c/test/test_standalone.h"
+#include "../../../../inc/c/container/registry/registry_common.h"
+#include "../../../../inc/c/string_fn.h"
 
 
 /******************************************************************************

@@ -1,4 +1,4 @@
-#include ".\registry_common_tests_sa.h"
+#include "./registry_common_tests_sa.h"
 
 
 /******************************************************************************
