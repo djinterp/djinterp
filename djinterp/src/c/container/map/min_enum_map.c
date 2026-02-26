@@ -9,7 +9,8 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.15
 ******************************************************************************/
-#include "..\..\..\..\inc\c\container\map\min_enum_map.h"
+
+#include "../../../../inc/c/container/map/min_enum_map.h"
 
 
 // =============================================================================
@@ -26,7 +27,7 @@ Parameter(s):
 Return:
   The index of the entry if found, or -1 if not found.
 */
-static ssize_t
+D_STATIC ssize_t
 d_internal_min_enum_map_find_index
 (
     const struct d_min_enum_map* _map,
@@ -80,7 +81,7 @@ Parameter(s):
 Return:
   The index where the key should be inserted.
 */
-static size_t
+D_STATIC size_t
 d_internal_min_enum_map_find_insert_pos
 (
     const struct d_min_enum_map* _map,
@@ -127,7 +128,7 @@ Parameter(s):
 Return:
   true if successful, false if allocation failed.
 */
-static bool
+D_STATIC bool
 d_internal_min_enum_map_grow
 (
     struct d_min_enum_map* _map
@@ -181,18 +182,77 @@ d_min_enum_map_new
     void
 )
 {
-    struct d_min_enum_map* new_map;
+    struct d_min_enum_map* new_map = malloc(sizeof(struct d_min_enum_map));
 
-    new_map = malloc(sizeof(struct d_min_enum_map));
-
-    if (new_map)
+    // ensure that memory allocation was successful
+    if (!new_map)
     {
-        new_map->entries  = NULL;
-        new_map->count    = 0;
-        new_map->capacity = 0;
+        return new_map;
     }
 
+    new_map->entries  = NULL;
+    new_map->count    = 0;
+    new_map->capacity = 0;
+
     return new_map;
+}
+
+struct d_min_enum_map*
+d_min_enum_map_new_copy
+(
+    const struct d_min_enum_map* _source
+)
+{
+    struct d_min_enum_map* new_copy;
+
+    if (!_source)
+    {
+        return NULL;
+    }
+
+    // basic sanity: if count says there are entries, entries must exist. */
+    if ( (_source->count != 0u) && 
+         (!_source->entries) )
+    {
+        return NULL;
+    }
+
+    new_copy = malloc(sizeof(struct d_min_enum_map));
+
+    // ensure that memory allocation was successful
+    if (!new_copy)
+    {
+        return NULL;
+    }
+
+    new_copy->count    = _source->count;
+    new_copy->capacity = _source->capacity;
+    
+    if ( (_source->capacity > 0) && 
+         (_source->entries) )
+    {
+        new_copy->entries = malloc(_source->capacity * 
+                                   sizeof(struct d_enum_map_entry));
+
+        //   ensure that memory allocation for `d_enum_map_entry` array was
+        // successful.
+        if (!new_copy->entries)
+        {
+            free(new_copy);
+
+            return NULL;
+        }
+
+        memcpy(new_copy->entries,
+               _source->entries,
+               (sizeof(struct d_enum_map_entry) * _source->count) );
+    }
+    else 
+    {
+        new_copy->entries = NULL;
+    }
+
+    return new_copy;
 }
 
 /*
@@ -324,6 +384,7 @@ d_min_enum_map_merge
         new_entries[out_i++] = _destination->entries[dst_i++];
     }
 
+    // gives static analysis false positive in MVC
     while (src_i < _source->count)
     {
         new_entries[out_i++] = _source->entries[src_i++];
@@ -544,4 +605,3 @@ d_min_enum_map_free
 
     return;
 }
-

@@ -6,7 +6,7 @@
 *   Does NOT test min_enum_map operations - that's a separate test suite.
 *
 *
-* path:      \test\container\map\enum_map_entry_tests_sa.h
+* path:      /test/container/map/enum_map_entry_tests_sa.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
 ******************************************************************************/
@@ -14,8 +14,8 @@
 #ifndef DJINTERP_ENUM_MAP_ENTRY_TESTS_STANDALONE_
 #define DJINTERP_ENUM_MAP_ENTRY_TESTS_STANDALONE_ 1
 
-#include "..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\inc\c\container\map\enum_map_entry.h"
+#include "../../../../inc/c/test/test_standalone.h"
+#include "../../../../inc/c/container/map/enum_map_entry.h"
 
 
 /******************************************************************************
@@ -24,13 +24,13 @@
 
 // test_color_enum
 //   enum: sample enumeration for testing.
-enum test_color_enum
+enum d_test_color_enum_map_entry
 {
-    TEST_COLOR_RED    = 0,
-    TEST_COLOR_GREEN  = 1,
-    TEST_COLOR_BLUE   = 2,
-    TEST_COLOR_YELLOW = 3,
-    TEST_COLOR_PURPLE = 4
+    D_TEST_COLOR_ENUM_MAP_ENTRY_RED    = 0,
+    D_TEST_COLOR_ENUM_MAP_ENTRY_GREEN  = 1,
+    D_TEST_COLOR_ENUM_MAP_ENTRY_BLUE   = 2,
+    D_TEST_COLOR_ENUM_MAP_ENTRY_YELLOW = 3,
+    D_TEST_COLOR_ENUM_MAP_ENTRY_PURPLE = 4
 };
 
 

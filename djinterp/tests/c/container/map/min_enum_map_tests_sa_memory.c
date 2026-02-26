@@ -5,12 +5,12 @@
 *   Tests clear, free, merge operations, and edge cases.
 *
 *
-* path:      \test\container\map\min_enum_map_tests_sa_memory.c
+* path:      /test/container/map/min_enum_map_tests_sa_memory.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
 ******************************************************************************/
 
-#include ".\min_enum_map_tests_sa.h"
+#include "./min_enum_map_tests_sa.h"
 
 
 /******************************************************************************
@@ -437,29 +437,29 @@ d_tests_min_enum_map_entry_macros
     size_t                idx;
 
     // test D_ENUM_ENTRY
-    struct d_enum_map_entry e1 = D_ENUM_ENTRY(TEST_COLOR_RED, (void*)0x1234);
-    test_entry = ( (e1.key == TEST_COLOR_RED) && 
+    struct d_enum_map_entry e1 = D_ENUM_ENTRY(D_TEST_COLOR_MIN_ENUM_MAP_RED, (void*)0x1234);
+    test_entry = ( (e1.key == D_TEST_COLOR_MIN_ENUM_MAP_RED) && 
                    (e1.value == (void*)0x1234) );
 
     // test D_ENUM_ENTRY_STR
-    struct d_enum_map_entry e2 = D_ENUM_ENTRY_STR(TEST_COLOR_GREEN, "green");
-    test_entry_str = ( (e2.key == TEST_COLOR_GREEN) && 
+    struct d_enum_map_entry e2 = D_ENUM_ENTRY_STR(D_TEST_COLOR_MIN_ENUM_MAP_GREEN, "green");
+    test_entry_str = ( (e2.key == D_TEST_COLOR_MIN_ENUM_MAP_GREEN) && 
                        (strcmp((char*)e2.value, "green") == 0) );
 
     // test D_ENUM_ENTRY_INT
-    struct d_enum_map_entry e3 = D_ENUM_ENTRY_INT(TEST_COLOR_BLUE, 42);
-    test_entry_int = ( (e3.key == TEST_COLOR_BLUE) && 
+    struct d_enum_map_entry e3 = D_ENUM_ENTRY_INT(D_TEST_COLOR_MIN_ENUM_MAP_BLUE, 42);
+    test_entry_int = ( (e3.key == D_TEST_COLOR_MIN_ENUM_MAP_BLUE) && 
                        ((intptr_t)e3.value == 42) );
 
     // test D_ENUM_ENTRY_NULL
-    struct d_enum_map_entry e4 = D_ENUM_ENTRY_NULL(TEST_COLOR_YELLOW);
-    test_entry_null = ( (e4.key == TEST_COLOR_YELLOW) &&
+    struct d_enum_map_entry e4 = D_ENUM_ENTRY_NULL(D_TEST_COLOR_MIN_ENUM_MAP_YELLOW);
+    test_entry_null = ( (e4.key == D_TEST_COLOR_MIN_ENUM_MAP_YELLOW) &&
                         (e4.value == NULL) );
 
     // test D_ENUM_ENTRY_SELF
-    struct d_enum_map_entry e5 = D_ENUM_ENTRY_SELF(TEST_COLOR_PURPLE);
-    test_entry_self = ( (e5.key == TEST_COLOR_PURPLE) && 
-                        ((intptr_t)e5.value == TEST_COLOR_PURPLE) );
+    struct d_enum_map_entry e5 = D_ENUM_ENTRY_SELF(D_TEST_COLOR_MIN_ENUM_MAP_PURPLE);
+    test_entry_self = ( (e5.key == D_TEST_COLOR_MIN_ENUM_MAP_PURPLE) && 
+                        ((intptr_t)e5.value == D_TEST_COLOR_MIN_ENUM_MAP_PURPLE) );
 
     // test D_ENUM_ENTRY_SENTINEL
     struct d_enum_map_entry sent = D_ENUM_ENTRY_SENTINEL;

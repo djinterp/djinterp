@@ -5,12 +5,12 @@
 *   Tests creation, insertion, retrieval, and removal operations.
 *
 *
-* path:      \test\container\map\min_enum_map_tests_sa_core.c
+* path:      /test/container/map/min_enum_map_tests_sa_core.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
 ******************************************************************************/
 
-#include ".\min_enum_map_tests_sa.h"
+#include "./min_enum_map_tests_sa.h"
 
 
 /******************************************************************************
@@ -131,7 +131,7 @@ d_tests_min_enum_map_new
     if (map1)
     {
         int* value = d_test_min_enum_map_create_int(42);
-        bool result = d_min_enum_map_put(map1, TEST_COLOR_RED, value);
+        bool result = d_min_enum_map_put(map1, D_TEST_COLOR_MIN_ENUM_MAP_RED, value);
         test_ready_for_use = result;
         
         if (value)
@@ -241,7 +241,7 @@ d_tests_min_enum_map_put
     value3 = d_test_min_enum_map_create_int(30);
 
     // test 1: NULL map returns false
-    result = d_min_enum_map_put(NULL, TEST_COLOR_RED, value1);
+    result = d_min_enum_map_put(NULL, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
     test_null_map = !(result);
 
     // test 2: single insert succeeds
@@ -249,7 +249,7 @@ d_tests_min_enum_map_put
     
     if (map)
     {
-        result = d_min_enum_map_put(map, TEST_COLOR_RED, value1);
+        result = d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
     }
     else
     {
@@ -265,7 +265,7 @@ d_tests_min_enum_map_put
     // test 4: can retrieve inserted value
     if (map)
     {
-        retrieved = d_min_enum_map_get(map, TEST_COLOR_RED);
+        retrieved = d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     }
     else
     {
@@ -278,9 +278,9 @@ d_tests_min_enum_map_put
     if (map)
     {
         // get old value before replacing
-        old_value = (int*)d_min_enum_map_get(map, TEST_COLOR_RED);
-        d_min_enum_map_put(map, TEST_COLOR_RED, value2);
-        retrieved = d_min_enum_map_get(map, TEST_COLOR_RED);
+        old_value = (int*)d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value2);
+        retrieved = d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     }
     else
     {
@@ -301,8 +301,8 @@ d_tests_min_enum_map_put
     // test 6: multiple inserts (reusing value2, and adding value3)
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_GREEN, value2);
-        d_min_enum_map_put(map, TEST_COLOR_BLUE, value3);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN, value2);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE, value3);
     }
     
     test_multiple_inserts = ( (map) && 
@@ -459,13 +459,13 @@ d_tests_min_enum_map_get
     size_t                 idx;
 
     // test 1: NULL map returns NULL
-    result = d_min_enum_map_get(NULL, TEST_COLOR_RED);
+    result = d_min_enum_map_get(NULL, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     test_null_map = (result == NULL);
 
     // test 2: empty map returns NULL
     map = d_min_enum_map_new();
     result = map 
-             ? d_min_enum_map_get(map, TEST_COLOR_RED)
+             ? d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_RED)
              : NULL;
     test_empty_map = (result == NULL);
 
@@ -474,8 +474,8 @@ d_tests_min_enum_map_get
     
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_RED, value1);
-        result = d_min_enum_map_get(map, TEST_COLOR_RED);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
+        result = d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     }
     else
     {
@@ -486,7 +486,7 @@ d_tests_min_enum_map_get
 
     // test 4: returns NULL for missing key
     result = map 
-             ? d_min_enum_map_get(map, TEST_COLOR_BLUE)
+             ? d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE)
              : NULL;
     test_missing_key = (result == NULL);
 
@@ -495,11 +495,11 @@ d_tests_min_enum_map_get
     
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_GREEN, value2);
-        d_min_enum_map_put(map, TEST_COLOR_BLUE, value1);
-        d_min_enum_map_put(map, TEST_COLOR_YELLOW, value2);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN, value2);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE, value1);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_YELLOW, value2);
 
-        result = d_min_enum_map_get(map, TEST_COLOR_GREEN);
+        result = d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN);
     }
     else
     {
@@ -511,9 +511,9 @@ d_tests_min_enum_map_get
     // test 6: handles NULL value correctly
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_PURPLE, NULL);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE, NULL);
 
-        result = d_min_enum_map_get(map, TEST_COLOR_PURPLE);
+        result = d_min_enum_map_get(map, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE);
     }
     else
     {
@@ -523,7 +523,7 @@ d_tests_min_enum_map_get
     // Note: getting NULL could mean "not found" or "value is NULL"
     // We need to use contains to distinguish
     bool contains = map 
-                    ? d_min_enum_map_contains(map, TEST_COLOR_PURPLE)
+                    ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE)
                     : false;
     test_null_value = ( (result == NULL) && 
                         (contains) );
@@ -605,13 +605,13 @@ d_tests_min_enum_map_contains
     size_t                 idx;
 
     // test 1: NULL map returns false
-    result = d_min_enum_map_contains(NULL, TEST_COLOR_RED);
+    result = d_min_enum_map_contains(NULL, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     test_null_map = !(result);
 
     // test 2: empty map returns false
     map = d_min_enum_map_new();
     result = map 
-             ? d_min_enum_map_contains(map, TEST_COLOR_RED) 
+             ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_RED) 
              : false;
     test_empty_map = !(result);
 
@@ -620,8 +620,8 @@ d_tests_min_enum_map_contains
     
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_RED, value1);
-        result = d_min_enum_map_contains(map, TEST_COLOR_RED);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
+        result = d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     }
     else
     {
@@ -631,29 +631,29 @@ d_tests_min_enum_map_contains
     test_existing_key = result;
 
     // test 4: returns false for missing key
-    result = map ? d_min_enum_map_contains(map, TEST_COLOR_BLUE) : true;
+    result = map ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE) : true;
     test_missing_key = !result;
 
     // test 5: distinguishes NULL value from missing key
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_GREEN, NULL);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN, NULL);
     }
     
     bool contains_null = map 
-                         ? d_min_enum_map_contains(map, TEST_COLOR_GREEN)
+                         ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN)
                          : false;
     bool contains_missing = map 
-                            ? d_min_enum_map_contains(map, TEST_COLOR_PURPLE)
+                            ? d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE)
                             : true;
     test_null_value_distinction = contains_null && !contains_missing;
 
     // test 6: works after removals
     if (map)
     {
-        d_min_enum_map_remove(map, TEST_COLOR_RED);
+        d_min_enum_map_remove(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
 
-        result = d_min_enum_map_contains(map, TEST_COLOR_RED);
+        result = d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     }
     else
     {
@@ -747,9 +747,9 @@ d_tests_min_enum_map_count
     
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_RED, value1);
-        d_min_enum_map_put(map, TEST_COLOR_GREEN, value1);
-        d_min_enum_map_put(map, TEST_COLOR_BLUE, value1);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN, value1);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE, value1);
         count = d_min_enum_map_count(map);
     }
     else
@@ -762,7 +762,7 @@ d_tests_min_enum_map_count
     // test 4: updates after removals
     if (map)
     {
-        d_min_enum_map_remove(map, TEST_COLOR_GREEN);
+        d_min_enum_map_remove(map, D_TEST_COLOR_MIN_ENUM_MAP_GREEN);
         count = d_min_enum_map_count(map);
     }
     else
@@ -788,9 +788,9 @@ d_tests_min_enum_map_count
     // test 6: no change on update
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_RED, value1);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
         size_t count1 = d_min_enum_map_count(map);
-        d_min_enum_map_put(map, TEST_COLOR_RED, value1);  // update
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);  // update
         size_t count2 = d_min_enum_map_count(map);
         test_after_update = (count1 == 1) && (count2 == 1);
     }
@@ -880,13 +880,13 @@ d_tests_min_enum_map_remove
     size_t                 idx;
 
     // test 1: NULL map returns false
-    result = d_min_enum_map_remove(NULL, TEST_COLOR_RED);
+    result = d_min_enum_map_remove(NULL, D_TEST_COLOR_MIN_ENUM_MAP_RED);
     test_null_map = !(result);
 
     // test 2: empty map returns false
     map = d_min_enum_map_new();
     result = map 
-             ? d_min_enum_map_remove(map, TEST_COLOR_RED)
+             ? d_min_enum_map_remove(map, D_TEST_COLOR_MIN_ENUM_MAP_RED)
              : false;
     test_empty_map = !result;
 
@@ -895,9 +895,9 @@ d_tests_min_enum_map_remove
     
     if (map)
     {
-        d_min_enum_map_put(map, TEST_COLOR_RED, value1);
-        result = d_min_enum_map_remove(map, TEST_COLOR_RED);
-        bool still_contains = d_min_enum_map_contains(map, TEST_COLOR_RED);
+        d_min_enum_map_put(map, D_TEST_COLOR_MIN_ENUM_MAP_RED, value1);
+        result = d_min_enum_map_remove(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
+        bool still_contains = d_min_enum_map_contains(map, D_TEST_COLOR_MIN_ENUM_MAP_RED);
         test_existing_entry = result && !still_contains;
     }
     else
@@ -907,7 +907,7 @@ d_tests_min_enum_map_remove
 
     // test 4: returns false for missing key
     result = map 
-             ? d_min_enum_map_remove(map, TEST_COLOR_BLUE)
+             ? d_min_enum_map_remove(map, D_TEST_COLOR_MIN_ENUM_MAP_BLUE)
              : true;
     test_missing_key = !result;
 
@@ -1021,6 +1021,216 @@ d_tests_min_enum_map_remove
     return group;
 }
 
+/******************************************************************************
+ * MAP COPY TESTS
+ *****************************************************************************/
+
+/*
+d_tests_min_enum_map_new_copy
+  Tests d_min_enum_map_new_copy for creating a copy of an existing map.
+  Tests the following:
+  - returns NULL for NULL source
+  - copies empty map successfully
+  - copy has correct count
+  - copy has correct capacity
+  - copy retrieves same values
+  - copy maintains sorted order
+  - copy is independent (modifying copy doesn't affect original)
+  - original is independent (modifying original doesn't affect copy)
+*/
+struct d_test_object*
+d_tests_min_enum_map_new_copy
+(
+    void
+)
+{
+    struct d_test_object*  group;
+    struct d_min_enum_map* original;
+    struct d_min_enum_map* copy;
+    int*                   value1;
+    int*                   value2;
+    int*                   value3;
+    int*                   value4;
+    bool                   test_null_source;
+    bool                   test_empty_copy;
+    bool                   test_count_matches;
+    bool                   test_capacity_matches;
+    bool                   test_values_match;
+    bool                   test_sorted_order;
+    bool                   test_copy_independent;
+    bool                   test_original_independent;
+    size_t                 idx;
+
+    // allocate test values
+    value1 = d_test_min_enum_map_create_int(10);
+    value2 = d_test_min_enum_map_create_int(20);
+    value3 = d_test_min_enum_map_create_int(30);
+    value4 = d_test_min_enum_map_create_int(40);
+
+    // test 1: NULL source returns NULL
+    copy = d_min_enum_map_new_copy(NULL);
+    test_null_source = (copy == NULL);
+
+    // test 2: copy of empty map
+    original = d_min_enum_map_new();
+    copy = d_min_enum_map_new_copy(original);
+    test_empty_copy = ( (copy != NULL)      &&
+                        (copy != original)  &&
+                        (copy->count == 0) );
+
+    if (copy)
+    {
+        d_min_enum_map_free(copy);
+        copy = NULL;
+    }
+
+    // populate original for remaining tests
+    if (original)
+    {
+        d_min_enum_map_put(original, D_TEST_COLOR_MIN_ENUM_MAP_BLUE,   value1);
+        d_min_enum_map_put(original, D_TEST_COLOR_MIN_ENUM_MAP_GREEN,  value2);
+        d_min_enum_map_put(original, D_TEST_COLOR_MIN_ENUM_MAP_YELLOW, value3);
+        d_min_enum_map_put(original, D_TEST_COLOR_MIN_ENUM_MAP_RED,    value4);
+    }
+
+    copy = d_min_enum_map_new_copy(original);
+
+    // test 3: count matches
+    test_count_matches = ( (original)   &&
+                           (copy)       &&
+                           (copy->count == original->count) );
+
+    // test 4: capacity matches
+    test_capacity_matches = ( (original)   &&
+                              (copy)       &&
+                              (copy->capacity == original->capacity) );
+
+    // test 5: all values retrievable and correct
+    test_values_match = false;
+
+    if ( (original) &&
+         (copy) )
+    {
+        void* v1 = d_min_enum_map_get(copy, D_TEST_COLOR_MIN_ENUM_MAP_BLUE);
+        void* v2 = d_min_enum_map_get(copy, D_TEST_COLOR_MIN_ENUM_MAP_GREEN);
+        void* v3 = d_min_enum_map_get(copy, D_TEST_COLOR_MIN_ENUM_MAP_YELLOW);
+        void* v4 = d_min_enum_map_get(copy, D_TEST_COLOR_MIN_ENUM_MAP_RED);
+
+        test_values_match = ( (v1 == value1) &&
+                              (v2 == value2) &&
+                              (v3 == value3) &&
+                              (v4 == value4) );
+    }
+
+    // test 6: copy maintains sorted order
+    test_sorted_order = false;
+
+    if ( (copy)          &&
+         (copy->entries) &&
+         (copy->count >= 4) )
+    {
+        test_sorted_order = ( (copy->entries[0].key < copy->entries[1].key) &&
+                              (copy->entries[1].key < copy->entries[2].key) &&
+                              (copy->entries[2].key < copy->entries[3].key) );
+    }
+
+    // test 7: modifying copy doesn't affect original
+    test_copy_independent = false;
+
+    if ( (original) &&
+         (copy) )
+    {
+        d_min_enum_map_put(copy, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE, value1);
+        d_min_enum_map_remove(copy, D_TEST_COLOR_MIN_ENUM_MAP_RED);
+
+        test_copy_independent =
+            ( (d_min_enum_map_count(original) == 4) &&
+              (!d_min_enum_map_contains(original, D_TEST_COLOR_MIN_ENUM_MAP_PURPLE)) &&
+              (d_min_enum_map_contains(original, D_TEST_COLOR_MIN_ENUM_MAP_RED)) );
+    }
+
+    // test 8: modifying original doesn't affect copy
+    test_original_independent = false;
+
+    if ( (original) &&
+         (copy) )
+    {
+        d_min_enum_map_put(original, D_TEST_COLOR_MIN_ENUM_MAP_ORANGE, value2);
+        d_min_enum_map_remove(original, D_TEST_COLOR_MIN_ENUM_MAP_BLUE);
+
+        test_original_independent =
+            ( (!d_min_enum_map_contains(copy, D_TEST_COLOR_MIN_ENUM_MAP_ORANGE)) &&
+              (d_min_enum_map_contains(copy, D_TEST_COLOR_MIN_ENUM_MAP_BLUE)) );
+    }
+
+    // cleanup
+    if (value1)
+    {
+        free(value1);
+    }
+
+    if (value2)
+    {
+        free(value2);
+    }
+
+    if (value3)
+    {
+        free(value3);
+    }
+
+    if (value4)
+    {
+        free(value4);
+    }
+
+    if (original)
+    {
+        d_min_enum_map_free(original);
+    }
+
+    if (copy)
+    {
+        d_min_enum_map_free(copy);
+    }
+
+    // build result tree
+    group = d_test_object_new_interior("d_min_enum_map_new_copy", 8);
+
+    if (!group)
+    {
+        return NULL;
+    }
+
+    idx = 0;
+    group->elements[idx++] = D_ASSERT_TRUE("null_source",
+                                           test_null_source,
+                                           "returns NULL for NULL source");
+    group->elements[idx++] = D_ASSERT_TRUE("empty_copy",
+                                           test_empty_copy,
+                                           "copies empty map successfully");
+    group->elements[idx++] = D_ASSERT_TRUE("count_matches",
+                                           test_count_matches,
+                                           "copy has correct count");
+    group->elements[idx++] = D_ASSERT_TRUE("capacity_matches",
+                                           test_capacity_matches,
+                                           "copy has correct capacity");
+    group->elements[idx++] = D_ASSERT_TRUE("values_match",
+                                           test_values_match,
+                                           "copy retrieves same values");
+    group->elements[idx++] = D_ASSERT_TRUE("sorted_order",
+                                           test_sorted_order,
+                                           "copy maintains sorted order");
+    group->elements[idx++] = D_ASSERT_TRUE("copy_independent",
+                                           test_copy_independent,
+                                           "modifying copy preserves original");
+    group->elements[idx++] = D_ASSERT_TRUE("original_independent",
+                                           test_original_independent,
+                                           "modifying original preserves copy");
+
+    return group;
+}
+
 
 /******************************************************************************
  * CORE OPERATIONS AGGREGATOR
@@ -1046,7 +1256,7 @@ d_tests_min_enum_map_core_all
     struct d_test_object* group;
     size_t                idx;
 
-    group = d_test_object_new_interior("Core Map Operations", 6);
+    group = d_test_object_new_interior("Core Map Operations", 7);
 
     if (!group)
     {
@@ -1055,6 +1265,7 @@ d_tests_min_enum_map_core_all
 
     idx = 0;
     group->elements[idx++] = d_tests_min_enum_map_new();
+    group->elements[idx++] = d_tests_min_enum_map_new_copy();
     group->elements[idx++] = d_tests_min_enum_map_put();
     group->elements[idx++] = d_tests_min_enum_map_get();
     group->elements[idx++] = d_tests_min_enum_map_contains();
