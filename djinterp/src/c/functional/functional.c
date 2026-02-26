@@ -1,4 +1,4 @@
-#include "..\..\inc\functional\functional.h"
+#include "../../../inc/c/functional/functional.h"
 
 
 D_INLINE bool

@@ -1,4 +1,4 @@
-#include "..\..\inc\functional\functional_common.h"
+#include "../../../inc/c/functional/functional_common.h"
 
 
 /*

@@ -1,4 +1,4 @@
-#include ".\functional_common_tests_sa.h"
+#include "./functional_common_tests_sa.h"
 
 
 // helper functions for testing
@@ -338,7 +338,7 @@ d_tests_sa_fc_fold_left
         d_functional_fold_left(NULL,
                                &acc,
                                5,
-                               sizeof(int),
+                               (void*)sizeof(int),
                                accumulate_sum,
                                NULL) == false,
         "fold_left_null_input",
@@ -348,7 +348,7 @@ d_tests_sa_fc_fold_left
     // test 2: NULL accumulator should return false
     result = d_assert_standalone(
         d_functional_fold_left(input,
-                               NULL,
+                               (void*)NULL,
                                5,
                                sizeof(int),
                                accumulate_sum,
@@ -363,7 +363,7 @@ d_tests_sa_fc_fold_left
         d_functional_fold_left(input,
                                &acc,
                                5,
-                               sizeof(int),
+                               (void*)sizeof(int),
                                accumulate_sum,
                                NULL) == true,
         "fold_left_success",
@@ -382,7 +382,7 @@ d_tests_sa_fc_fold_left
         d_functional_fold_left(input,
                                &acc,
                                5,
-                               sizeof(int),
+                               (void*)sizeof(int),
                                accumulate_sum,
                                NULL) == true,
         "fold_left_with_init",
@@ -424,7 +424,7 @@ d_tests_sa_fc_fold_right
         d_functional_fold_right(input,
                                 &acc,
                                 5,
-                                sizeof(int),
+                                (void*)sizeof(int),
                                 accumulate_sum,
                                 NULL) == true,
         "fold_right_success",

@@ -1,4 +1,4 @@
-#include "..\..\inc\functional\pipeline.h"
+#include "../../../inc/c/functional/pipeline.h"
 
 
 /*

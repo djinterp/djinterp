@@ -1,5 +1,4 @@
-#include ".\predicate_tests_sa.h"
-#include ".\predicate_tests_sa_helpers.h"
+#include "./predicate_tests_sa.h"
 
 
 /*

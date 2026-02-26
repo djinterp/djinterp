@@ -6,7 +6,7 @@
 * composition macros, and composable function template utilities.
 *
 * 
-* path:      \inc\functional\compose.h
+* path:      /inc/functional/compose.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
 ******************************************************************************/
@@ -15,8 +15,8 @@
 #define DJINTERP_C_FUNCTIONAL_COMPOSE_ 1
 
 #include <stdlib.h>
-#include "..\djinterp.h"
-#include ".\functional_common.h"
+#include "../djinterp.h"
+#include "./functional_common.h"
 
 // convenience composition marcos
 

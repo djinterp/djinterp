@@ -1,4 +1,4 @@
-#include "..\..\inc\functional\filter.h"
+#include "../../../inc/c/functional/filter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -864,7 +864,7 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-D_INLINE bool
+bool
 d_filter_chain_add_take_first
 (
     struct d_filter_chain* _chain,
@@ -884,7 +884,7 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-D_INLINE bool
+bool
 d_filter_chain_add_take_last
 (
     struct d_filter_chain* _chain,
@@ -904,7 +904,7 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-D_INLINE bool
+bool
 d_filter_chain_add_skip_first
 (
     struct d_filter_chain* _chain,
@@ -924,7 +924,7 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-D_INLINE bool
+bool
 d_filter_chain_add_skip_last
 (
     struct d_filter_chain* _chain,
@@ -945,7 +945,7 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-D_INLINE bool
+bool
 d_filter_chain_add_range
 (
     struct d_filter_chain* _chain,
@@ -966,11 +966,11 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-D_INLINE bool
+bool
 d_filter_chain_add_where
 (
     struct d_filter_chain* _chain,
-    fn_predicate            _test
+    fn_predicate           _test
 )
 {
     return d_filter_chain_add(_chain, d_filter_where(_test));
@@ -987,11 +987,11 @@ Parameter(s):
 Return:
   A boolean value; true if the operation was added successfully.
 */
-D_INLINE bool
+bool
 d_filter_chain_add_where_context
 (
     struct d_filter_chain* _chain,
-    fn_predicate            _test,
+    fn_predicate           _test,
     void*                  _context
 )
 {
@@ -4125,7 +4125,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_take_first
 (
     struct d_filter_builder* _builder,
@@ -4145,7 +4145,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_take_last
 (
     struct d_filter_builder* _builder,
@@ -4165,7 +4165,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_take_nth
 (
     struct d_filter_builder* _builder,
@@ -4185,7 +4185,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_skip_first
 (
     struct d_filter_builder* _builder,
@@ -4205,7 +4205,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_skip_last
 (
     struct d_filter_builder* _builder,
@@ -4225,7 +4225,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_where
 (
     struct d_filter_builder* _builder,
@@ -4246,7 +4246,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_where_context
 (
     struct d_filter_builder* _builder,
@@ -4267,7 +4267,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_where_not
 (
     struct d_filter_builder* _builder,
@@ -4288,7 +4288,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_range
 (
     struct d_filter_builder* _builder,
@@ -4312,7 +4312,7 @@ Return:
   The builder pointer for chaining.
 */
 
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_slice
 (
     struct d_filter_builder* _builder,
@@ -4334,7 +4334,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_distinct
 (
     struct d_filter_builder* _builder,
@@ -4353,7 +4353,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_reverse
 (
     struct d_filter_builder* _builder
@@ -4372,7 +4372,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_at
 (
     struct d_filter_builder* _builder,
@@ -4393,7 +4393,7 @@ Parameter(s):
 Return:
   The builder pointer for chaining.
 */
-D_INLINE struct d_filter_builder*
+struct d_filter_builder*
 d_filter_builder_at_indices
 (
     struct d_filter_builder* _builder,

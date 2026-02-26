@@ -1,5 +1,5 @@
-#include ".\compose_tests_sa.h"
-#include ".\compose_tests_sa_helpers.h"
+#include "./compose_tests_sa.h"
+#include "./compose_tests_sa_helpers.h"
 
 
 /*

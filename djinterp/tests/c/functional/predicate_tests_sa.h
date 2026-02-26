@@ -19,10 +19,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\inc\djinterp.h"
-#include "..\..\inc\string_fn.h"
-#include "..\..\inc\test\test_standalone.h"
-#include "..\..\inc\functional\predicate.h"
+#include "../../../inc/c/djinterp.h"
+#include "../../../inc/c/string_fn.h"
+#include "../../../inc/c/test/test_standalone.h"
+#include "../../../inc/c/functional/predicate.h"
+#include "./predicate_tests_sa_helpers.h"
 
 
 // constructor function tests
