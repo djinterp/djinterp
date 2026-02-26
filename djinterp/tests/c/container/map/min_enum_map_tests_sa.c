@@ -5,11 +5,11 @@
 *   Coordinates execution of all test categories.
 *
 *
-* path:      \test\container\map\min_enum_map_tests_sa.c
+* path:      /test/container/map/min_enum_map_tests_sa.c
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
 ******************************************************************************/
-#include ".\min_enum_map_tests_sa.h"
+#include "./min_enum_map_tests_sa.h"
 
 
 /*

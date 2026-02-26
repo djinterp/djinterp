@@ -16,8 +16,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\djinterp.h"
-#include "..\container.h"
+#include "../../../../inc/c/djinterp.h"
+#include "../../../../inc/c/container/container.h"
 
 
 // d_enum_map_entry

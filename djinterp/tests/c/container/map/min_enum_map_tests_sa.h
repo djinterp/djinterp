@@ -6,7 +6,7 @@
 * and comprehensive edge cases.
 *
 *
-* path:      \test\container\map\min_enum_map_tests_sa.h
+* path:      /test/container/map/min_enum_map_tests_sa.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.01.24
 ******************************************************************************/
@@ -14,11 +14,11 @@
 #ifndef DJINTERP_MIN_ENUM_MAP_TESTS_STANDALONE_
 #define DJINTERP_MIN_ENUM_MAP_TESTS_STANDALONE_ 1
 
-#include "..\..\..\..\inc\c\djinterp.h"
-#include "..\..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\..\inc\c\container\map\min_enum_map.h"
-#include "..\..\..\..\inc\c\container\map\enum_map_entry.h"
-#include "..\..\..\..\inc\c\string_fn.h"
+#include "../../../../inc/c/djinterp.h"
+#include "../../../../inc/c/string_fn.h"
+#include "../../../../inc/c/test/test_standalone.h"
+#include "../../../../inc/c/container/map/enum_map_entry.h"
+#include "../../../../inc/c/container/map/min_enum_map.h"
 
 
 /******************************************************************************
@@ -48,16 +48,16 @@
 
 // test_color_enum
 //   enum: sample enumeration for testing.
-enum test_color_enum
+enum d_test_color_min_enum_map
 {
-    TEST_COLOR_RED    = 0,
-    TEST_COLOR_GREEN  = 1,
-    TEST_COLOR_BLUE   = 2,
-    TEST_COLOR_YELLOW = 3,
-    TEST_COLOR_PURPLE = 4,
-    TEST_COLOR_ORANGE = 5,
-    TEST_COLOR_BLACK  = 6,
-    TEST_COLOR_WHITE  = 7
+    D_TEST_COLOR_MIN_ENUM_MAP_RED    = 0,
+    D_TEST_COLOR_MIN_ENUM_MAP_GREEN  = 1,
+    D_TEST_COLOR_MIN_ENUM_MAP_BLUE   = 2,
+    D_TEST_COLOR_MIN_ENUM_MAP_YELLOW = 3,
+    D_TEST_COLOR_MIN_ENUM_MAP_PURPLE = 4,
+    D_TEST_COLOR_MIN_ENUM_MAP_ORANGE = 5,
+    D_TEST_COLOR_MIN_ENUM_MAP_BLACK  = 6,
+    D_TEST_COLOR_MIN_ENUM_MAP_WHITE  = 7
 };
 
 // test_status_enum
@@ -90,6 +90,7 @@ char* d_test_min_enum_map_create_string(const char* _str);
 
 // creation tests
 struct d_test_object* d_tests_min_enum_map_new(void);
+struct d_test_object* d_tests_min_enum_map_new_copy(void);
 
 // insertion tests
 struct d_test_object* d_tests_min_enum_map_put(void);
@@ -158,6 +159,3 @@ struct d_test_object* d_tests_min_enum_map_run_all(void);
 
 
 #endif  // DJINTERP_MIN_ENUM_MAP_TESTS_STANDALONE_
-
-
-

@@ -19,9 +19,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include "..\..\djinterp.h"
-#include "..\container.h"
-#include ".\enum_map_entry.h"
+#include "../../djinterp.h"
+#include "../container.h"
+#include "./enum_map_entry.h"
 
 
 // D_MIN_ENUM_MAP_DEFAULT_CAPACITY
@@ -42,13 +42,14 @@ struct d_min_enum_map
 
 // creation function
 struct d_min_enum_map* d_min_enum_map_new(void);
+struct d_min_enum_map* d_min_enum_map_new_copy(const struct d_min_enum_map* _source);
 
 // manipulation functions
 void   d_min_enum_map_clear(struct d_min_enum_map* _map);
 bool   d_min_enum_map_contains(const struct d_min_enum_map* _map, int _key);
 size_t d_min_enum_map_count(const struct d_min_enum_map* _map);
 void*  d_min_enum_map_get(const struct d_min_enum_map* _map, int _key);
-bool   d_min_enum_map_merge(struct d_min_enum_map* _dst, const struct d_min_enum_map* _src, bool _overwrite); 
+bool   d_min_enum_map_merge(struct d_min_enum_map* _destination, const struct d_min_enum_map* _source, bool _overwrite); 
 bool   d_min_enum_map_put(struct d_min_enum_map* _map, int _key, void* _value);
 bool   d_min_enum_map_remove(struct d_min_enum_map* _map, int _key);
 
