@@ -38,10 +38,10 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
-#include "..\..\..\inc\djinterp.h"
-#include "..\..\..\inc\dmemory.h"
-#include "..\..\..\inc\test\test_standalone.h"
-#include "..\..\..\inc\container\array\array_common.h"
+#include "../../../../inc/c/djinterp.h"
+#include "../../../../inc/c/dmemory.h"
+#include "../../../../inc/c/test/test_standalone.h"
+#include "../../../../inc/c/container/array/array_common.h"
 
 
 /******************************************************************************
