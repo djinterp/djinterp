@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_array_filter_result_data
-  Tests the d_array_filter_result_data function.
+  Tests the d_contiguous_filter_result_data function.
   Tests the following:
   - Returns pointer to internal data on valid result
   - Returns NULL for result with no data
@@ -20,19 +20,19 @@ d_tests_sa_array_filter_result_data
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
     void*                        ptr;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: valid result returns data pointer
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     5);
-    ptr = d_array_filter_result_data(&res);
+    ptr = d_contiguous_filter_result_data(&res);
 
     result = d_assert_standalone(
         ( (ptr != NULL) &&
@@ -41,14 +41,14 @@ d_tests_sa_array_filter_result_data
         "result_data should return the internal data pointer",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 2: empty result returns NULL
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     0);
-    ptr = d_array_filter_result_data(&res);
+    ptr = d_contiguous_filter_result_data(&res);
 
     result = d_assert_standalone(
         ptr == NULL,
@@ -56,10 +56,10 @@ d_tests_sa_array_filter_result_data
         "result_data on empty result should return NULL",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 3: NULL result pointer
-    ptr = d_array_filter_result_data(NULL);
+    ptr = d_contiguous_filter_result_data(NULL);
 
     result = d_assert_standalone(
         ptr == NULL,
@@ -73,7 +73,7 @@ d_tests_sa_array_filter_result_data
 
 /*
 d_tests_sa_array_filter_result_count_fn
-  Tests the d_array_filter_result_count function.
+  Tests the d_contiguous_filter_result_count function.
   Tests the following:
   - Returns correct count on valid result
   - Returns 0 for empty result
@@ -86,19 +86,19 @@ d_tests_sa_array_filter_result_count_fn
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
     size_t                       cnt;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: valid result
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     7);
-    cnt = d_array_filter_result_count(&res);
+    cnt = d_contiguous_filter_result_count(&res);
 
     result = d_assert_standalone(
         cnt == 7,
@@ -106,14 +106,14 @@ d_tests_sa_array_filter_result_count_fn
         "result_count should return 7",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 2: empty result
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     0);
-    cnt = d_array_filter_result_count(&res);
+    cnt = d_contiguous_filter_result_count(&res);
 
     result = d_assert_standalone(
         cnt == 0,
@@ -121,10 +121,10 @@ d_tests_sa_array_filter_result_count_fn
         "result_count on empty result should return 0",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 3: NULL pointer
-    cnt = d_array_filter_result_count(NULL);
+    cnt = d_contiguous_filter_result_count(NULL);
 
     result = d_assert_standalone(
         cnt == 0,
@@ -138,7 +138,7 @@ d_tests_sa_array_filter_result_count_fn
 
 /*
 d_tests_sa_array_filter_result_ok
-  Tests the d_array_filter_result_ok function.
+  Tests the d_contiguous_filter_result_ok function.
   Tests the following:
   - Returns true for D_FILTER_RESULT_SUCCESS
   - Returns true for D_FILTER_RESULT_EMPTY
@@ -152,58 +152,58 @@ d_tests_sa_array_filter_result_ok
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: successful operation -> true
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     3);
 
     result = d_assert_standalone(
-        d_array_filter_result_ok(&res) == true,
+        d_contiguous_filter_result_ok(&res) == true,
         "result_ok_success",
         "result_ok should be true for successful operation",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 2: empty result (non-error) -> true
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     0);
 
     result = d_assert_standalone(
-        d_array_filter_result_ok(&res) == true,
+        d_contiguous_filter_result_ok(&res) == true,
         "result_ok_empty",
         "result_ok should be true for empty (non-error) result",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 3: error status -> false
-    res = d_array_filter_where(NULL,
-                               D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_where(NULL,
+                               D_TEST_ARRAY_FILTER_DATA_SIZE,
                                sizeof(int),
-                               d_tests_array_filter_is_even,
+                               d_test_af_is_even,
                                NULL);
 
     result = d_assert_standalone(
-        d_array_filter_result_ok(&res) == false,
+        d_contiguous_filter_result_ok(&res) == false,
         "result_ok_error",
         "result_ok should be false for error result",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 4: NULL pointer -> false
     result = d_assert_standalone(
-        d_array_filter_result_ok(NULL) == false,
+        d_contiguous_filter_result_ok(NULL) == false,
         "result_ok_null",
         "result_ok(NULL) should be false",
         _counter) && result;
@@ -214,7 +214,7 @@ d_tests_sa_array_filter_result_ok
 
 /*
 d_tests_sa_array_filter_result_release
-  Tests the d_array_filter_result_release function.
+  Tests the d_contiguous_filter_result_release function.
   Tests the following:
   - Returns data pointer and transfers ownership
   - Sets result data to NULL after release
@@ -229,23 +229,23 @@ d_tests_sa_array_filter_result_release
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
     void*                        released;
     size_t                       out_count;
     int*                         out;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: release transfers ownership
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     4);
 
     out_count = 0;
-    released = d_array_filter_result_release(&res, &out_count);
+    released = d_contiguous_filter_result_release(&res, &out_count);
 
     result = d_assert_standalone(
         released != NULL,
@@ -283,7 +283,7 @@ d_tests_sa_array_filter_result_release
     }
 
     // test 4: NULL result
-    released = d_array_filter_result_release(NULL, &out_count);
+    released = d_contiguous_filter_result_release(NULL, &out_count);
 
     result = d_assert_standalone(
         released == NULL,
@@ -292,12 +292,12 @@ d_tests_sa_array_filter_result_release
         _counter) && result;
 
     // test 5: NULL out_count is tolerated
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     2);
 
-    released = d_array_filter_result_release(&res, NULL);
+    released = d_contiguous_filter_result_release(&res, NULL);
 
     result = d_assert_standalone(
         released != NULL,
@@ -316,7 +316,7 @@ d_tests_sa_array_filter_result_release
 
 /*
 d_tests_sa_array_filter_result_free
-  Tests the d_array_filter_result_free function.
+  Tests the d_contiguous_filter_result_free function.
   Tests the following:
   - Frees a valid result without crash
   - NULL pointer is handled safely
@@ -329,18 +329,18 @@ d_tests_sa_array_filter_result_free
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: free valid result
-    res = d_array_filter_take_first(data,
-                                    D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_take_first(data,
+                                    D_TEST_ARRAY_FILTER_DATA_SIZE,
                                     sizeof(int),
                                     5);
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     result = d_assert_standalone(
         true,
@@ -356,7 +356,7 @@ d_tests_sa_array_filter_result_free
         _counter) && result;
 
     // test 3: NULL pointer
-    d_array_filter_result_free(NULL);
+    d_contiguous_filter_result_free(NULL);
 
     result = d_assert_standalone(
         true,
@@ -365,7 +365,7 @@ d_tests_sa_array_filter_result_free
         _counter) && result;
 
     // test 4: double-free safety
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     result = d_assert_standalone(
         true,

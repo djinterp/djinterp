@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_array_filter_result_struct
-  Tests the d_array_filter_result structure.
+  Tests the d_contiguous_filter_result structure.
   Tests the following:
   - data member is accessible and assignable
   - count member is accessible and assignable
@@ -23,7 +23,7 @@ d_tests_sa_array_filter_result_struct
 )
 {
     bool                         result;
-    struct d_array_filter_result res;
+    struct d_contiguous_filter_result res;
 
     result = true;
 

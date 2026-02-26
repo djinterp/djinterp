@@ -6,7 +6,7 @@
  *****************************************************************************/
 
 /*
-d_tests_array_filter_fill_sequential
+d_test_af_fill_sequential
   Fills an int array with sequential values [0, 1, 2, ..., count-1].
 
 Parameter(s):
@@ -16,7 +16,7 @@ Return:
   none.
 */
 void
-d_tests_array_filter_fill_sequential
+d_test_af_fill_sequential
 (
     int*   _arr,
     size_t _count
@@ -39,7 +39,7 @@ d_tests_array_filter_fill_sequential
 
 
 /*
-d_tests_array_filter_fill_with_duplicates
+d_test_af_fill_with_duplicates
   Fills an int array with a fixed pattern containing duplicates:
   {3, 1, 4, 1, 5, 9, 2, 6, 5, 3}.  If _count < 10, only the first
   _count values are written.  If _count > 10, remaining slots are 0.
@@ -51,7 +51,7 @@ Return:
   none.
 */
 void
-d_tests_array_filter_fill_with_duplicates
+d_test_af_fill_with_duplicates
 (
     int*   _arr,
     size_t _count
@@ -78,7 +78,7 @@ d_tests_array_filter_fill_with_duplicates
 
 
 /*
-d_tests_array_filter_is_even
+d_test_af_is_even
   Predicate: returns true if the int element is even.
 
 Parameter(s):
@@ -88,7 +88,7 @@ Return:
   true if *_element is divisible by 2, false otherwise.
 */
 bool
-d_tests_array_filter_is_even
+d_test_af_is_even
 (
     const void* _element,
     void*       _context
@@ -106,7 +106,7 @@ d_tests_array_filter_is_even
 
 
 /*
-d_tests_array_filter_is_positive
+d_test_af_is_positive
   Predicate: returns true if the int element is strictly positive.
 
 Parameter(s):
@@ -116,7 +116,7 @@ Return:
   true if *_element > 0, false otherwise.
 */
 bool
-d_tests_array_filter_is_positive
+d_test_af_is_positive
 (
     const void* _element,
     void*       _context
@@ -134,7 +134,7 @@ d_tests_array_filter_is_positive
 
 
 /*
-d_tests_array_filter_is_greater_than
+d_test_af_is_greater_than
   Predicate: returns true if the int element is greater than the
   threshold stored in _context.
 
@@ -145,7 +145,7 @@ Return:
   true if *_element > *(int*)_context, false otherwise.
 */
 bool
-d_tests_array_filter_is_greater_than
+d_test_af_is_greater_than
 (
     const void* _element,
     void*       _context
@@ -162,7 +162,7 @@ d_tests_array_filter_is_greater_than
 
 
 /*
-d_tests_array_filter_always_true
+d_test_af_always_true
   Predicate: returns true for any element.
 
 Parameter(s):
@@ -172,7 +172,7 @@ Return:
   true.
 */
 bool
-d_tests_array_filter_always_true
+d_test_af_always_true
 (
     const void* _element,
     void*       _context
@@ -186,7 +186,7 @@ d_tests_array_filter_always_true
 
 
 /*
-d_tests_array_filter_always_false
+d_test_af_always_false
   Predicate: returns false for any element.
 
 Parameter(s):
@@ -196,7 +196,7 @@ Return:
   false.
 */
 bool
-d_tests_array_filter_always_false
+d_test_af_always_false
 (
     const void* _element,
     void*       _context
@@ -210,7 +210,7 @@ d_tests_array_filter_always_false
 
 
 /*
-d_tests_array_filter_compare_int
+d_test_af_compare_int
   Comparator: three-way comparison for int elements.
 
 Parameter(s):
@@ -221,7 +221,7 @@ Return:
   negative if *_a < *_b, 0 if equal, positive if *_a > *_b.
 */
 int
-d_tests_array_filter_compare_int
+d_test_af_compare_int
 (
     const void* _a,
     const void* _b,

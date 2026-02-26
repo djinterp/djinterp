@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_array_filter_count_where
-  Tests the d_array_filter_count_where function.
+  Tests the d_contiguous_filter_count_where function.
   Tests the following:
   - Counts even numbers correctly
   - Counts with context-based predicate
@@ -23,18 +23,18 @@ d_tests_sa_array_filter_count_where
 )
 {
     bool   result;
-    int    data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int    data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     size_t cnt;
     int    threshold;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: count even in {0..9} -> 5
-    cnt = d_array_filter_count_where(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    cnt = d_contiguous_filter_count_where(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
-                                     d_tests_array_filter_is_even,
+                                     d_test_af_is_even,
                                      NULL);
 
     result = d_assert_standalone(
@@ -45,10 +45,10 @@ d_tests_sa_array_filter_count_where
 
     // test 2: count > 5 -> 4 elements (6,7,8,9)
     threshold = 5;
-    cnt = d_array_filter_count_where(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    cnt = d_contiguous_filter_count_where(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
-                                     d_tests_array_filter_is_greater_than,
+                                     d_test_af_is_greater_than,
                                      &threshold);
 
     result = d_assert_standalone(
@@ -58,23 +58,23 @@ d_tests_sa_array_filter_count_where
         _counter) && result;
 
     // test 3: always_true -> full count
-    cnt = d_array_filter_count_where(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    cnt = d_contiguous_filter_count_where(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
-                                     d_tests_array_filter_always_true,
+                                     d_test_af_always_true,
                                      NULL);
 
     result = d_assert_standalone(
-        cnt == D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        cnt == D_TEST_ARRAY_FILTER_DATA_SIZE,
         "count_where_all",
         "count_where(always_true) should return full count",
         _counter) && result;
 
     // test 4: always_false -> 0
-    cnt = d_array_filter_count_where(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    cnt = d_contiguous_filter_count_where(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
-                                     d_tests_array_filter_always_false,
+                                     d_test_af_always_false,
                                      NULL);
 
     result = d_assert_standalone(
@@ -84,10 +84,10 @@ d_tests_sa_array_filter_count_where
         _counter) && result;
 
     // test 5: empty array
-    cnt = d_array_filter_count_where(data,
+    cnt = d_contiguous_filter_count_where(data,
                                      0,
                                      sizeof(int),
-                                     d_tests_array_filter_is_even,
+                                     d_test_af_is_even,
                                      NULL);
 
     result = d_assert_standalone(
@@ -97,10 +97,10 @@ d_tests_sa_array_filter_count_where
         _counter) && result;
 
     // test 6: NULL input
-    cnt = d_array_filter_count_where(NULL,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    cnt = d_contiguous_filter_count_where(NULL,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
-                                     d_tests_array_filter_is_even,
+                                     d_test_af_is_even,
                                      NULL);
 
     result = d_assert_standalone(
@@ -115,7 +115,7 @@ d_tests_sa_array_filter_count_where
 
 /*
 d_tests_sa_array_filter_any_match
-  Tests the d_array_filter_any_match function.
+  Tests the d_contiguous_filter_any_match function.
   Tests the following:
   - Returns true when at least one element matches
   - Returns false when no elements match
@@ -129,18 +129,18 @@ d_tests_sa_array_filter_any_match
 )
 {
     bool result;
-    int  data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int  data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     int  threshold;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: at least one even in {0..9} -> true
     result = d_assert_standalone(
-        d_array_filter_any_match(data,
-                                 D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        d_contiguous_filter_any_match(data,
+                                 D_TEST_ARRAY_FILTER_DATA_SIZE,
                                  sizeof(int),
-                                 d_tests_array_filter_is_even,
+                                 d_test_af_is_even,
                                  NULL) == true,
         "any_match_even",
         "any_match(is_even) on {0..9} should be true",
@@ -150,10 +150,10 @@ d_tests_sa_array_filter_any_match
     threshold = 100;
 
     result = d_assert_standalone(
-        d_array_filter_any_match(data,
-                                 D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        d_contiguous_filter_any_match(data,
+                                 D_TEST_ARRAY_FILTER_DATA_SIZE,
                                  sizeof(int),
-                                 d_tests_array_filter_is_greater_than,
+                                 d_test_af_is_greater_than,
                                  &threshold) == false,
         "any_match_none",
         "any_match(>100) on {0..9} should be false",
@@ -161,10 +161,10 @@ d_tests_sa_array_filter_any_match
 
     // test 3: empty array -> false
     result = d_assert_standalone(
-        d_array_filter_any_match(data,
+        d_contiguous_filter_any_match(data,
                                  0,
                                  sizeof(int),
-                                 d_tests_array_filter_is_even,
+                                 d_test_af_is_even,
                                  NULL) == false,
         "any_match_empty",
         "any_match on empty array should be false",
@@ -177,10 +177,10 @@ d_tests_sa_array_filter_any_match
         single = 4;
 
         result = d_assert_standalone(
-            d_array_filter_any_match(&single,
+            d_contiguous_filter_any_match(&single,
                                      1,
                                      sizeof(int),
-                                     d_tests_array_filter_is_even,
+                                     d_test_af_is_even,
                                      NULL) == true,
             "any_match_single",
             "any_match(is_even) on {4} should be true",
@@ -193,7 +193,7 @@ d_tests_sa_array_filter_any_match
 
 /*
 d_tests_sa_array_filter_all_match
-  Tests the d_array_filter_all_match function.
+  Tests the d_contiguous_filter_all_match function.
   Tests the following:
   - Returns true when all elements match
   - Returns false when at least one doesn't match
@@ -206,19 +206,19 @@ d_tests_sa_array_filter_all_match
 )
 {
     bool result;
-    int  data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int  data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     int  all_even[4];
     int  threshold;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: not all even in {0..9} -> false
     result = d_assert_standalone(
-        d_array_filter_all_match(data,
-                                 D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        d_contiguous_filter_all_match(data,
+                                 D_TEST_ARRAY_FILTER_DATA_SIZE,
                                  sizeof(int),
-                                 d_tests_array_filter_is_even,
+                                 d_test_af_is_even,
                                  NULL) == false,
         "all_match_mixed",
         "all_match(is_even) on {0..9} should be false",
@@ -231,10 +231,10 @@ d_tests_sa_array_filter_all_match
     all_even[3] = 8;
 
     result = d_assert_standalone(
-        d_array_filter_all_match(all_even,
+        d_contiguous_filter_all_match(all_even,
                                  4,
                                  sizeof(int),
-                                 d_tests_array_filter_is_even,
+                                 d_test_af_is_even,
                                  NULL) == true,
         "all_match_all_even",
         "all_match(is_even) on {2,4,6,8} should be true",
@@ -244,10 +244,10 @@ d_tests_sa_array_filter_all_match
     threshold = -1;
 
     result = d_assert_standalone(
-        d_array_filter_all_match(data,
-                                 D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        d_contiguous_filter_all_match(data,
+                                 D_TEST_ARRAY_FILTER_DATA_SIZE,
                                  sizeof(int),
-                                 d_tests_array_filter_is_greater_than,
+                                 d_test_af_is_greater_than,
                                  &threshold) == true,
         "all_match_ctx",
         "all_match(>-1) on {0..9} should be true",
@@ -255,10 +255,10 @@ d_tests_sa_array_filter_all_match
 
     // test 4: empty array -> true (vacuous truth)
     result = d_assert_standalone(
-        d_array_filter_all_match(data,
+        d_contiguous_filter_all_match(data,
                                  0,
                                  sizeof(int),
-                                 d_tests_array_filter_is_even,
+                                 d_test_af_is_even,
                                  NULL) == true,
         "all_match_empty",
         "all_match on empty array should be true (vacuous truth)",
@@ -270,7 +270,7 @@ d_tests_sa_array_filter_all_match
 
 /*
 d_tests_sa_array_filter_none_match
-  Tests the d_array_filter_none_match function.
+  Tests the d_contiguous_filter_none_match function.
   Tests the following:
   - Returns true when no elements match
   - Returns false when at least one matches
@@ -283,20 +283,20 @@ d_tests_sa_array_filter_none_match
 )
 {
     bool result;
-    int  data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int  data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     int  threshold;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: none > 100 in {0..9} -> true
     threshold = 100;
 
     result = d_assert_standalone(
-        d_array_filter_none_match(data,
-                                  D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        d_contiguous_filter_none_match(data,
+                                  D_TEST_ARRAY_FILTER_DATA_SIZE,
                                   sizeof(int),
-                                  d_tests_array_filter_is_greater_than,
+                                  d_test_af_is_greater_than,
                                   &threshold) == true,
         "none_match_true",
         "none_match(>100) on {0..9} should be true",
@@ -304,10 +304,10 @@ d_tests_sa_array_filter_none_match
 
     // test 2: none even in {0..9} -> false (there are even numbers)
     result = d_assert_standalone(
-        d_array_filter_none_match(data,
-                                  D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        d_contiguous_filter_none_match(data,
+                                  D_TEST_ARRAY_FILTER_DATA_SIZE,
                                   sizeof(int),
-                                  d_tests_array_filter_is_even,
+                                  d_test_af_is_even,
                                   NULL) == false,
         "none_match_false",
         "none_match(is_even) on {0..9} should be false",
@@ -315,10 +315,10 @@ d_tests_sa_array_filter_none_match
 
     // test 3: empty array -> true
     result = d_assert_standalone(
-        d_array_filter_none_match(data,
+        d_contiguous_filter_none_match(data,
                                   0,
                                   sizeof(int),
-                                  d_tests_array_filter_is_even,
+                                  d_test_af_is_even,
                                   NULL) == true,
         "none_match_empty",
         "none_match on empty array should be true",
@@ -330,7 +330,7 @@ d_tests_sa_array_filter_none_match
 
 /*
 d_tests_sa_array_filter_find_first
-  Tests the d_array_filter_find_first function.
+  Tests the d_contiguous_filter_find_first function.
   Tests the following:
   - Finds the first matching element
   - Returns correct pointer into the source array
@@ -345,18 +345,18 @@ d_tests_sa_array_filter_find_first
 )
 {
     bool result;
-    int  data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int  data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     int  threshold;
     int* found;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: first even in {0..9} -> pointer to 0
-    found = (int*)d_array_filter_find_first(data,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    found = (int*)d_contiguous_filter_find_first(data,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
-                                            d_tests_array_filter_is_even,
+                                            d_test_af_is_even,
                                             NULL);
 
     result = d_assert_standalone(
@@ -368,10 +368,10 @@ d_tests_sa_array_filter_find_first
 
     // test 2: first > 5 -> pointer to 6
     threshold = 5;
-    found = (int*)d_array_filter_find_first(data,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    found = (int*)d_contiguous_filter_find_first(data,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
-                                            d_tests_array_filter_is_greater_than,
+                                            d_test_af_is_greater_than,
                                             &threshold);
 
     result = d_assert_standalone(
@@ -383,10 +383,10 @@ d_tests_sa_array_filter_find_first
 
     // test 3: no match -> NULL
     threshold = 100;
-    found = (int*)d_array_filter_find_first(data,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    found = (int*)d_contiguous_filter_find_first(data,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
-                                            d_tests_array_filter_is_greater_than,
+                                            d_test_af_is_greater_than,
                                             &threshold);
 
     result = d_assert_standalone(
@@ -396,10 +396,10 @@ d_tests_sa_array_filter_find_first
         _counter) && result;
 
     // test 4: empty array -> NULL
-    found = (int*)d_array_filter_find_first(data,
+    found = (int*)d_contiguous_filter_find_first(data,
                                             0,
                                             sizeof(int),
-                                            d_tests_array_filter_is_even,
+                                            d_test_af_is_even,
                                             NULL);
 
     result = d_assert_standalone(
@@ -409,10 +409,10 @@ d_tests_sa_array_filter_find_first
         _counter) && result;
 
     // test 5: NULL input -> NULL
-    found = (int*)d_array_filter_find_first(NULL,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    found = (int*)d_contiguous_filter_find_first(NULL,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
-                                            d_tests_array_filter_is_even,
+                                            d_test_af_is_even,
                                             NULL);
 
     result = d_assert_standalone(
@@ -427,7 +427,7 @@ d_tests_sa_array_filter_find_first
 
 /*
 d_tests_sa_array_filter_find_last
-  Tests the d_array_filter_find_last function.
+  Tests the d_contiguous_filter_find_last function.
   Tests the following:
   - Finds the last matching element
   - Returns correct pointer
@@ -440,18 +440,18 @@ d_tests_sa_array_filter_find_last
 )
 {
     bool result;
-    int  data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int  data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     int  threshold;
     int* found;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: last even in {0..9} -> pointer to 8
-    found = (int*)d_array_filter_find_last(data,
-                                           D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    found = (int*)d_contiguous_filter_find_last(data,
+                                           D_TEST_ARRAY_FILTER_DATA_SIZE,
                                            sizeof(int),
-                                           d_tests_array_filter_is_even,
+                                           d_test_af_is_even,
                                            NULL);
 
     result = d_assert_standalone(
@@ -463,10 +463,10 @@ d_tests_sa_array_filter_find_last
 
     // test 2: last > 5 -> pointer to 9
     threshold = 5;
-    found = (int*)d_array_filter_find_last(data,
-                                           D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    found = (int*)d_contiguous_filter_find_last(data,
+                                           D_TEST_ARRAY_FILTER_DATA_SIZE,
                                            sizeof(int),
-                                           d_tests_array_filter_is_greater_than,
+                                           d_test_af_is_greater_than,
                                            &threshold);
 
     result = d_assert_standalone(
@@ -478,10 +478,10 @@ d_tests_sa_array_filter_find_last
 
     // test 3: no match -> NULL
     threshold = 100;
-    found = (int*)d_array_filter_find_last(data,
-                                           D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    found = (int*)d_contiguous_filter_find_last(data,
+                                           D_TEST_ARRAY_FILTER_DATA_SIZE,
                                            sizeof(int),
-                                           d_tests_array_filter_is_greater_than,
+                                           d_test_af_is_greater_than,
                                            &threshold);
 
     result = d_assert_standalone(
