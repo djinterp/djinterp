@@ -1,4 +1,4 @@
-#include "..\..\..\inc\container\array\array_common.h"
+#include "../../../../inc/c/container/array/array_common.h"
 
 
 /*

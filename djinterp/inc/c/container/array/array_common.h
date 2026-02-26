@@ -16,9 +16,9 @@
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include "..\..\djinterp.h"
-#include "..\..\dmemory.h"
-#include "..\container.h"
+#include "../../djinterp.h"
+#include "../../dmemory.h"
+#include "../container.h"
 
 
 #ifndef D_ARRAY_DEFAULT_CAPACITY
