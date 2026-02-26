@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_array_filter_in_place
-  Tests the d_array_filter_in_place function.
+  Tests the d_contiguous_filter_in_place function.
   Tests the following:
   - Filters in-place by predicate (even numbers)
   - Returns correct new count
@@ -24,18 +24,18 @@ d_tests_sa_array_filter_in_place
 )
 {
     bool   result;
-    int    data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int    data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     size_t new_count;
 
     result = true;
 
     // test 1: filter even from {0..9} -> compacted {0,2,4,6,8}
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place(data,
-                                        D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place(data,
+                                        D_TEST_ARRAY_FILTER_DATA_SIZE,
                                         sizeof(int),
-                                        d_tests_array_filter_is_even,
+                                        d_test_af_is_even,
                                         NULL);
 
     result = d_assert_standalone(
@@ -56,12 +56,12 @@ d_tests_sa_array_filter_in_place
         _counter) && result;
 
     // test 3: always_false -> 0 survivors
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place(data,
-                                        D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place(data,
+                                        D_TEST_ARRAY_FILTER_DATA_SIZE,
                                         sizeof(int),
-                                        d_tests_array_filter_always_false,
+                                        d_test_af_always_false,
                                         NULL);
 
     result = d_assert_standalone(
@@ -71,25 +71,25 @@ d_tests_sa_array_filter_in_place
         _counter) && result;
 
     // test 4: always_true -> all survive
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place(data,
-                                        D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place(data,
+                                        D_TEST_ARRAY_FILTER_DATA_SIZE,
                                         sizeof(int),
-                                        d_tests_array_filter_always_true,
+                                        d_test_af_always_true,
                                         NULL);
 
     result = d_assert_standalone(
-        new_count == D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        new_count == D_TEST_ARRAY_FILTER_DATA_SIZE,
         "in_place_all",
         "in_place(always_true) should return original count",
         _counter) && result;
 
     // test 5: NULL input
-    new_count = d_array_filter_in_place(NULL,
-                                        D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place(NULL,
+                                        D_TEST_ARRAY_FILTER_DATA_SIZE,
                                         sizeof(int),
-                                        d_tests_array_filter_is_even,
+                                        d_test_af_is_even,
                                         NULL);
 
     result = d_assert_standalone(
@@ -99,8 +99,8 @@ d_tests_sa_array_filter_in_place
         _counter) && result;
 
     // test 6: NULL predicate
-    new_count = d_array_filter_in_place(data,
-                                        D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place(data,
+                                        D_TEST_ARRAY_FILTER_DATA_SIZE,
                                         sizeof(int),
                                         NULL,
                                         NULL);
@@ -117,7 +117,7 @@ d_tests_sa_array_filter_in_place
 
 /*
 d_tests_sa_array_filter_in_place_not
-  Tests the d_array_filter_in_place_not function.
+  Tests the d_contiguous_filter_in_place_not function.
   Tests the following:
   - Inverts predicate: keeps elements that do NOT match
   - Returns correct new count
@@ -130,18 +130,18 @@ d_tests_sa_array_filter_in_place_not
 )
 {
     bool   result;
-    int    data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int    data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     size_t new_count;
 
     result = true;
 
     // test 1: remove even (keep odd) from {0..9} -> {1,3,5,7,9}
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place_not(data,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_not(data,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
-                                            d_tests_array_filter_is_even,
+                                            d_test_af_is_even,
                                             NULL);
 
     result = d_assert_standalone(
@@ -162,16 +162,16 @@ d_tests_sa_array_filter_in_place_not
         _counter) && result;
 
     // test 3: in_place_not(always_false) -> keep all
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place_not(data,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_not(data,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
-                                            d_tests_array_filter_always_false,
+                                            d_test_af_always_false,
                                             NULL);
 
     result = d_assert_standalone(
-        new_count == D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        new_count == D_TEST_ARRAY_FILTER_DATA_SIZE,
         "in_place_not_keep_all",
         "in_place_not(always_false) should keep all elements",
         _counter) && result;
@@ -182,7 +182,7 @@ d_tests_sa_array_filter_in_place_not
 
 /*
 d_tests_sa_array_filter_in_place_take_first
-  Tests the d_array_filter_in_place_take_first function.
+  Tests the d_contiguous_filter_in_place_take_first function.
   Tests the following:
   - Truncates to first n elements
   - n=0 returns 0
@@ -195,15 +195,15 @@ d_tests_sa_array_filter_in_place_take_first
 )
 {
     bool   result;
-    int    data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int    data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     size_t new_count;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: truncate to first 4
-    new_count = d_array_filter_in_place_take_first(data,
-                                                   D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_take_first(data,
+                                                   D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                    sizeof(int),
                                                    4);
 
@@ -221,8 +221,8 @@ d_tests_sa_array_filter_in_place_take_first
         _counter) && result;
 
     // test 2: n=0
-    new_count = d_array_filter_in_place_take_first(data,
-                                                   D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_take_first(data,
+                                                   D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                    sizeof(int),
                                                    0);
 
@@ -233,15 +233,15 @@ d_tests_sa_array_filter_in_place_take_first
         _counter) && result;
 
     // test 3: n >= count
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place_take_first(data,
-                                                   D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_take_first(data,
+                                                   D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                    sizeof(int),
                                                    100);
 
     result = d_assert_standalone(
-        new_count == D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        new_count == D_TEST_ARRAY_FILTER_DATA_SIZE,
         "in_place_take_first_overflow",
         "in_place_take_first(100) should return original count",
         _counter) && result;
@@ -252,7 +252,7 @@ d_tests_sa_array_filter_in_place_take_first
 
 /*
 d_tests_sa_array_filter_in_place_skip_first
-  Tests the d_array_filter_in_place_skip_first function.
+  Tests the d_contiguous_filter_in_place_skip_first function.
   Tests the following:
   - Removes first n elements by shifting remainder left
   - n=0 returns original count
@@ -265,15 +265,15 @@ d_tests_sa_array_filter_in_place_skip_first
 )
 {
     bool   result;
-    int    data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int    data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     size_t new_count;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: skip first 3 -> {3,4,5,6,7,8,9}
-    new_count = d_array_filter_in_place_skip_first(data,
-                                                   D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_skip_first(data,
+                                                   D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                    sizeof(int),
                                                    3);
 
@@ -291,22 +291,22 @@ d_tests_sa_array_filter_in_place_skip_first
         _counter) && result;
 
     // test 2: n=0
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place_skip_first(data,
-                                                   D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_skip_first(data,
+                                                   D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                    sizeof(int),
                                                    0);
 
     result = d_assert_standalone(
-        new_count == D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        new_count == D_TEST_ARRAY_FILTER_DATA_SIZE,
         "in_place_skip_first_zero",
         "in_place_skip_first(0) should return original count",
         _counter) && result;
 
     // test 3: n >= count
-    new_count = d_array_filter_in_place_skip_first(data,
-                                                   D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_skip_first(data,
+                                                   D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                    sizeof(int),
                                                    100);
 
@@ -322,7 +322,7 @@ d_tests_sa_array_filter_in_place_skip_first
 
 /*
 d_tests_sa_array_filter_in_place_distinct
-  Tests the d_array_filter_in_place_distinct function.
+  Tests the d_contiguous_filter_in_place_distinct function.
   Tests the following:
   - Removes duplicates in-place
   - Returns new count of unique elements
@@ -335,18 +335,18 @@ d_tests_sa_array_filter_in_place_distinct
 )
 {
     bool   result;
-    int    data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ];
+    int    data[D_TEST_ARRAY_FILTER_DATA_SIZE];
     size_t new_count;
 
     result = true;
 
     // test 1: duplicates -> 7 unique
-    d_tests_array_filter_fill_with_duplicates(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_with_duplicates(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place_distinct(data,
-                                                 D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_distinct(data,
+                                                 D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                  sizeof(int),
-                                                 d_tests_array_filter_compare_int);
+                                                 d_test_af_compare_int);
 
     result = d_assert_standalone(
         new_count == 7,
@@ -355,15 +355,15 @@ d_tests_sa_array_filter_in_place_distinct
         _counter) && result;
 
     // test 2: already unique -> same count
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE );
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
-    new_count = d_array_filter_in_place_distinct(data,
-                                                 D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+    new_count = d_contiguous_filter_in_place_distinct(data,
+                                                 D_TEST_ARRAY_FILTER_DATA_SIZE,
                                                  sizeof(int),
-                                                 d_tests_array_filter_compare_int);
+                                                 d_test_af_compare_int);
 
     result = d_assert_standalone(
-        new_count == D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE ,
+        new_count == D_TEST_ARRAY_FILTER_DATA_SIZE,
         "in_place_distinct_unique",
         "in_place_distinct on unique data should return original count",
         _counter) && result;

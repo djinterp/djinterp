@@ -7,7 +7,7 @@
 
 /*
 d_tests_sa_array_filter_apply_chain
-  Tests the d_array_filter_apply_chain function.
+  Tests the d_contiguous_filter_apply_chain function.
   Tests the following:
   - Single-operation chain produces correct result
   - Multi-operation chain (skip 2, then take 3) works
@@ -23,20 +23,20 @@ d_tests_sa_array_filter_apply_chain
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
     struct d_filter_chain*       chain;
     int*                         out;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: single-op chain (take_first 5)
     chain = d_filter_chain_new();
     d_filter_chain_add_take_first(chain, 5);
 
-    res = d_array_filter_apply_chain(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_chain(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      chain);
 
@@ -46,7 +46,7 @@ d_tests_sa_array_filter_apply_chain
         "Chain with take_first(5) should produce 5 elements",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_chain_free(chain);
 
     // test 2: multi-op chain: skip 2 -> take 3 -> {2, 3, 4}
@@ -54,8 +54,8 @@ d_tests_sa_array_filter_apply_chain
     d_filter_chain_add_skip_first(chain, 2);
     d_filter_chain_add_take_first(chain, 3);
 
-    res = d_array_filter_apply_chain(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_chain(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      chain);
 
@@ -78,29 +78,29 @@ d_tests_sa_array_filter_apply_chain
             _counter) && result;
     }
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_chain_free(chain);
 
     // test 3: empty chain returns all elements
     chain = d_filter_chain_new();
 
-    res = d_array_filter_apply_chain(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_chain(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      chain);
 
     result = d_assert_standalone(
-        res.count == D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+        res.count == D_TEST_ARRAY_FILTER_DATA_SIZE,
         "chain_empty",
         "Empty chain should return all elements",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_chain_free(chain);
 
     // test 4: NULL chain
-    res = d_array_filter_apply_chain(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_chain(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      NULL);
 
@@ -110,14 +110,14 @@ d_tests_sa_array_filter_apply_chain
         "NULL chain should return error status",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     // test 5: NULL elements
     chain = d_filter_chain_new();
     d_filter_chain_add_take_first(chain, 3);
 
-    res = d_array_filter_apply_chain(NULL,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_chain(NULL,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      chain);
 
@@ -127,16 +127,16 @@ d_tests_sa_array_filter_apply_chain
         "NULL elements should return error status",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_chain_free(chain);
 
     // test 6: chain with where (filter even, then take first 3)
     chain = d_filter_chain_new();
-    d_filter_chain_add_where(chain, d_tests_array_filter_is_even);
+    d_filter_chain_add_where(chain, d_test_af_is_even);
     d_filter_chain_add_take_first(chain, 3);
 
-    res = d_array_filter_apply_chain(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_chain(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      chain);
 
@@ -159,7 +159,7 @@ d_tests_sa_array_filter_apply_chain
             _counter) && result;
     }
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_chain_free(chain);
 
     return result;
@@ -168,7 +168,7 @@ d_tests_sa_array_filter_apply_chain
 
 /*
 d_tests_sa_array_filter_apply_union
-  Tests the d_array_filter_apply_union function.
+  Tests the d_contiguous_filter_apply_union function.
   Tests the following:
   - Union of two non-overlapping filters produces correct combined set
   - Union with empty filter equals the other filter
@@ -181,18 +181,18 @@ d_tests_sa_array_filter_apply_union
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
     struct d_filter_union*       combo;
     struct d_filter_chain*       chain_even;
     struct d_filter_chain*       chain_gt7;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: union of (even) | (>7) -> {0,2,4,6,8,9} = 6 unique
     chain_even = d_filter_chain_new();
-    d_filter_chain_add_where(chain_even, d_tests_array_filter_is_even);
+    d_filter_chain_add_where(chain_even, d_test_af_is_even);
 
     chain_gt7 = d_filter_chain_new();
     {
@@ -200,7 +200,7 @@ d_tests_sa_array_filter_apply_union
 
         threshold = 7;
         d_filter_chain_add_where_context(chain_gt7,
-                                         d_tests_array_filter_is_greater_than,
+                                         d_test_af_is_greater_than,
                                          &threshold);
     }
 
@@ -208,11 +208,11 @@ d_tests_sa_array_filter_apply_union
     d_filter_union_add(combo, chain_even);
     d_filter_union_add(combo, chain_gt7);
 
-    res = d_array_filter_apply_union(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_union(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      combo,
-                                     d_tests_array_filter_compare_int);
+                                     d_test_af_compare_int);
 
     result = d_assert_standalone(
         res.count >= 6,
@@ -220,15 +220,15 @@ d_tests_sa_array_filter_apply_union
         "Union of (even)|(>7) should yield at least 6 elements",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_union_free(combo);
 
     // test 2: NULL combinator
-    res = d_array_filter_apply_union(data,
-                                     D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_union(data,
+                                     D_TEST_ARRAY_FILTER_DATA_SIZE,
                                      sizeof(int),
                                      NULL,
-                                     d_tests_array_filter_compare_int);
+                                     d_test_af_compare_int);
 
     result = d_assert_standalone(
         res.status < 0,
@@ -236,7 +236,7 @@ d_tests_sa_array_filter_apply_union
         "NULL union combinator should return error",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     return result;
 }
@@ -244,7 +244,7 @@ d_tests_sa_array_filter_apply_union
 
 /*
 d_tests_sa_array_filter_apply_intersection
-  Tests the d_array_filter_apply_intersection function.
+  Tests the d_contiguous_filter_apply_intersection function.
   Tests the following:
   - Intersection of two overlapping filters produces correct common set
   - Intersection with disjoint filters produces empty result
@@ -257,8 +257,8 @@ d_tests_sa_array_filter_apply_intersection
 )
 {
     bool                             result;
-    int                              data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result     res;
+    int                              data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result     res;
     struct d_filter_intersection*    combo;
     struct d_filter_chain*           chain_even;
     struct d_filter_chain*           chain_gt3;
@@ -266,26 +266,26 @@ d_tests_sa_array_filter_apply_intersection
 
     result    = true;
     threshold = 3;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: intersection of (even) & (>3) -> {4, 6, 8}
     chain_even = d_filter_chain_new();
-    d_filter_chain_add_where(chain_even, d_tests_array_filter_is_even);
+    d_filter_chain_add_where(chain_even, d_test_af_is_even);
 
     chain_gt3 = d_filter_chain_new();
     d_filter_chain_add_where_context(chain_gt3,
-                                     d_tests_array_filter_is_greater_than,
+                                     d_test_af_is_greater_than,
                                      &threshold);
 
     combo = d_filter_intersection_new(2);
     d_filter_intersection_add(combo, chain_even);
     d_filter_intersection_add(combo, chain_gt3);
 
-    res = d_array_filter_apply_intersection(data,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_intersection(data,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
                                             combo,
-                                            d_tests_array_filter_compare_int);
+                                            d_test_af_compare_int);
 
     result = d_assert_standalone(
         res.count == 3,
@@ -293,15 +293,15 @@ d_tests_sa_array_filter_apply_intersection
         "Intersection of (even)&(>3) should yield 3 elements",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_intersection_free(combo);
 
     // test 2: NULL combinator
-    res = d_array_filter_apply_intersection(data,
-                                            D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_intersection(data,
+                                            D_TEST_ARRAY_FILTER_DATA_SIZE,
                                             sizeof(int),
                                             NULL,
-                                            d_tests_array_filter_compare_int);
+                                            d_test_af_compare_int);
 
     result = d_assert_standalone(
         res.status < 0,
@@ -309,7 +309,7 @@ d_tests_sa_array_filter_apply_intersection
         "NULL intersection combinator should return error",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     return result;
 }
@@ -317,7 +317,7 @@ d_tests_sa_array_filter_apply_intersection
 
 /*
 d_tests_sa_array_filter_apply_difference
-  Tests the d_array_filter_apply_difference function.
+  Tests the d_contiguous_filter_apply_difference function.
   Tests the following:
   - Difference A - B removes B's elements from A
   - Difference with empty B equals A
@@ -330,29 +330,29 @@ d_tests_sa_array_filter_apply_difference
 )
 {
     bool                         result;
-    int                          data[D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE];
-    struct d_array_filter_result res;
+    int                          data[D_TEST_ARRAY_FILTER_DATA_SIZE];
+    struct d_contiguous_filter_result res;
     struct d_filter_difference*  diff;
     struct d_filter_chain*       chain_all;
     struct d_filter_chain*       chain_even;
 
     result = true;
-    d_tests_array_filter_fill_sequential(data, D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE);
+    d_test_af_fill_sequential(data, D_TEST_ARRAY_FILTER_DATA_SIZE);
 
     // test 1: (all) - (even) -> odd numbers {1,3,5,7,9}
     chain_all = d_filter_chain_new();
     // empty chain = all elements
 
     chain_even = d_filter_chain_new();
-    d_filter_chain_add_where(chain_even, d_tests_array_filter_is_even);
+    d_filter_chain_add_where(chain_even, d_test_af_is_even);
 
     diff = d_filter_difference_new(chain_all, chain_even);
 
-    res = d_array_filter_apply_difference(data,
-                                          D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_difference(data,
+                                          D_TEST_ARRAY_FILTER_DATA_SIZE,
                                           sizeof(int),
                                           diff,
-                                          d_tests_array_filter_compare_int);
+                                          d_test_af_compare_int);
 
     result = d_assert_standalone(
         res.count == 5,
@@ -360,15 +360,15 @@ d_tests_sa_array_filter_apply_difference
         "Difference (all)-(even) should yield 5 odd elements",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
     d_filter_difference_free(diff);
 
     // test 2: NULL combinator
-    res = d_array_filter_apply_difference(data,
-                                          D_INTERNAL_TEST_ARRAY_FILTER_DATA_SIZE,
+    res = d_contiguous_filter_apply_difference(data,
+                                          D_TEST_ARRAY_FILTER_DATA_SIZE,
                                           sizeof(int),
                                           NULL,
-                                          d_tests_array_filter_compare_int);
+                                          d_test_af_compare_int);
 
     result = d_assert_standalone(
         res.status < 0,
@@ -376,7 +376,7 @@ d_tests_sa_array_filter_apply_difference
         "NULL difference combinator should return error",
         _counter) && result;
 
-    d_array_filter_result_free(&res);
+    d_contiguous_filter_result_free(&res);
 
     return result;
 }

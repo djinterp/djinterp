@@ -1,54 +1,54 @@
 /******************************************************************************
-* djinterp [container]                                          array_filter.c
+* djinterp [container]                                    contiguous_filter.c
 *
-*   Implementation of zero-overhead filter operations for contiguous arrays.
+*   Implementation of zero-overhead filter operations for contiguous containers.
 *   All functions operate on raw (void*, count, element_size) triples and
 * delegate to the functional module's filter.h where appropriate.
 *
-*   This file is compiled only when D_CFG_CONTAINER_FILTER_ARRAY is enabled.
+*   This file is compiled only when D_CFG_CONTAINER_ARRAY_FILTER is enabled.
 *
 *
-* path:      \src\container\array\array_filter.c
+* path:      \src\container\contiguous_filter.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.20
 ******************************************************************************/
-#include "..\..\..\inc\container\array\array_filter.h"
+#include "..\..\..\..\inc\c\container\array\array_filter.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             INTERNAL HELPERS                                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// D_INTERNAL_ARRAY_FILTER_ELEMENT
+// D_ARRAY_FILTER_ELEM
 //   macro: returns a pointer to the element at index _i within a contiguous
 // byte buffer.  Casts the base pointer to unsigned char* for byte arithmetic.
-#define D_INTERNAL_ARRAY_FILTER_ELEMENT(base, i, elem_size)                 \
-    ((const unsigned char*)(base) + ((i) * (elem_size)))
+#define D_ARRAY_FILTER_ELEM(_base, _i, _elem_size) \
+    ((const unsigned char*)(_base) + ((_i) * (_elem_size)))
 
-// D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE
-//   macro: mutable variant of D_INTERNAL_ARRAY_FILTER_ELEMENT for in-place operations.
-#define D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(base, i, elem_size)         \
-    ((unsigned char*)(base) + ((i) * (elem_size)))
+// D_ARRAY_FILTER_ELEM_MUT
+//   macro: mutable variant of D_ARRAY_FILTER_ELEM for in-place operations.
+#define D_ARRAY_FILTER_ELEM_MUT(_base, _i, _elem_size) \
+    ((unsigned char*)(_base) + ((_i) * (_elem_size)))
 
 
 /*
-d_array_filter_result_error
-  Internal: constructs an error d_array_filter_result.
+d_cf_result_error
+  Internal: constructs an error d_contiguous_filter_result.
 
 Parameter(s):
   _status:       error status code (must be < 0).
   _element_size: element size to record in the result.
 Return:
-  d_array_filter_result with NULL data, count 0, and the given status.
+  d_contiguous_filter_result with NULL data, count 0, and the given status.
 */
-static struct d_array_filter_result
-d_array_filter_result_error
+static struct d_contiguous_filter_result
+d_cf_result_error
 (
     enum d_filter_result_type _status,
     size_t                    _element_size
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
 
     res.data           = NULL;
     res.count          = 0;
@@ -61,21 +61,21 @@ d_array_filter_result_error
 
 
 /*
-d_array_filter_result_empty
-  Internal: constructs an empty (non-error) d_array_filter_result.
+d_cf_result_empty
+  Internal: constructs an empty (non-error) d_contiguous_filter_result.
 
 Parameter(s):
   _element_size: element size to record in the result.
 Return:
-  d_array_filter_result with NULL data, count 0, and EMPTY status.
+  d_contiguous_filter_result with NULL data, count 0, and EMPTY status.
 */
-static struct d_array_filter_result
-d_array_filter_result_empty
+static struct d_contiguous_filter_result
+d_cf_result_empty
 (
     size_t _element_size
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
 
     res.data           = NULL;
     res.count          = 0;
@@ -88,7 +88,7 @@ d_array_filter_result_empty
 
 
 /*
-d_array_filter_copy_range
+d_cf_copy_range
   Internal: allocates a new buffer and copies a contiguous range of elements
   from source [_start, _start + _out_count) into it.
 
@@ -98,10 +98,10 @@ Parameter(s):
   _start:        index of first element to copy.
   _out_count:    number of elements to copy.
 Return:
-  d_array_filter_result owning the new buffer, or a NO_MEMORY error.
+  d_contiguous_filter_result owning the new buffer, or a NO_MEMORY error.
 */
-static struct d_array_filter_result
-d_array_filter_copy_range
+static struct d_contiguous_filter_result
+d_cf_copy_range
 (
     const void* _elements,
     size_t      _element_size,
@@ -109,7 +109,7 @@ d_array_filter_copy_range
     size_t      _out_count
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
 
     res.source_indices = NULL;
     res.element_size   = _element_size;
@@ -134,7 +134,7 @@ d_array_filter_copy_range
     }
 
     d_memcpy(res.data,
-             D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, _start, _element_size),
+             D_ARRAY_FILTER_ELEM(_elements, _start, _element_size),
              _out_count * _element_size);
 
     res.count  = _out_count;
@@ -153,7 +153,7 @@ d_array_filter_copy_range
 // ---------------------------------------------------------------------------
 
 /*
-d_array_filter_take_first
+d_contiguous_filter_take_first
   Returns a new result containing the first _n elements.
 
 Parameter(s):
@@ -162,10 +162,10 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to take.
 Return:
-  d_array_filter_result owning a copy of the first min(_n, _count) elements.
+  d_contiguous_filter_result owning a copy of the first min(_n, _count) elements.
 */
-struct d_array_filter_result
-d_array_filter_take_first
+struct d_contiguous_filter_result
+d_contiguous_filter_take_first
 (
     const void* _elements,
     size_t      _count,
@@ -177,24 +177,24 @@ d_array_filter_take_first
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if ( (_count == 0) ||
          (_n == 0) )
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     actual = (_n < _count) ? _n : _count;
 
-    return d_array_filter_copy_range(_elements, _element_size, 0, actual);
+    return d_cf_copy_range(_elements, _element_size, 0, actual);
 }
 
 
 /*
-d_array_filter_take_last
+d_contiguous_filter_take_last
   Returns a new result containing the last _n elements.
 
 Parameter(s):
@@ -203,10 +203,10 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to take from the end.
 Return:
-  d_array_filter_result owning a copy of the last min(_n, _count) elements.
+  d_contiguous_filter_result owning a copy of the last min(_n, _count) elements.
 */
-struct d_array_filter_result
-d_array_filter_take_last
+struct d_contiguous_filter_result
+d_contiguous_filter_take_last
 (
     const void* _elements,
     size_t      _count,
@@ -219,25 +219,25 @@ d_array_filter_take_last
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if ( (_count == 0) ||
          (_n == 0) )
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     actual = (_n < _count) ? _n : _count;
     start  = _count - actual;
 
-    return d_array_filter_copy_range(_elements, _element_size, start, actual);
+    return d_cf_copy_range(_elements, _element_size, start, actual);
 }
 
 
 /*
-d_array_filter_take_nth
+d_contiguous_filter_take_nth
   Returns every _n-th element (indices 0, _n, 2*_n, ...).
 
 Parameter(s):
@@ -246,10 +246,10 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            step interval (must be > 0).
 Return:
-  d_array_filter_result owning a copy of every _n-th element.
+  d_contiguous_filter_result owning a copy of every _n-th element.
 */
-struct d_array_filter_result
-d_array_filter_take_nth
+struct d_contiguous_filter_result
+d_contiguous_filter_take_nth
 (
     const void* _elements,
     size_t      _count,
@@ -257,26 +257,26 @@ d_array_filter_take_nth
     size_t      _n
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
     size_t                       out_count;
     size_t                       src;
     size_t                       dst;
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_n == 0)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // calculate output count: ceil(_count / _n)
@@ -286,7 +286,7 @@ d_array_filter_take_nth
 
     if (!res.data)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -294,8 +294,8 @@ d_array_filter_take_nth
 
     for (src = 0; src < _count; src += _n)
     {
-        d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(res.data, dst, _element_size),
-                 D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, src, _element_size),
+        d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, dst, _element_size),
+                 D_ARRAY_FILTER_ELEM(_elements, src, _element_size),
                  _element_size);
         ++dst;
     }
@@ -310,7 +310,7 @@ d_array_filter_take_nth
 
 
 /*
-d_array_filter_head
+d_contiguous_filter_head
   Returns a result containing only the first element.
 
 Parameter(s):
@@ -318,23 +318,23 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_array_filter_result owning a copy of the first element, or empty if
+  d_contiguous_filter_result owning a copy of the first element, or empty if
   the source is empty.
 */
-struct d_array_filter_result
-d_array_filter_head
+struct d_contiguous_filter_result
+d_contiguous_filter_head
 (
     const void* _elements,
     size_t      _count,
     size_t      _element_size
 )
 {
-    return d_array_filter_take_first(_elements, _count, _element_size, 1);
+    return d_contiguous_filter_take_first(_elements, _count, _element_size, 1);
 }
 
 
 /*
-d_array_filter_tail
+d_contiguous_filter_tail
   Returns a result containing only the last element.
 
 Parameter(s):
@@ -342,18 +342,18 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_array_filter_result owning a copy of the last element, or empty if
+  d_contiguous_filter_result owning a copy of the last element, or empty if
   the source is empty.
 */
-struct d_array_filter_result
-d_array_filter_tail
+struct d_contiguous_filter_result
+d_contiguous_filter_tail
 (
     const void* _elements,
     size_t      _count,
     size_t      _element_size
 )
 {
-    return d_array_filter_take_last(_elements, _count, _element_size, 1);
+    return d_contiguous_filter_take_last(_elements, _count, _element_size, 1);
 }
 
 
@@ -362,7 +362,7 @@ d_array_filter_tail
 // ---------------------------------------------------------------------------
 
 /*
-d_array_filter_skip_first
+d_contiguous_filter_skip_first
   Returns all elements except the first _n.
 
 Parameter(s):
@@ -371,10 +371,10 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to skip from the front.
 Return:
-  d_array_filter_result owning a copy of elements [_n .. _count).
+  d_contiguous_filter_result owning a copy of elements [_n .. _count).
 */
-struct d_array_filter_result
-d_array_filter_skip_first
+struct d_contiguous_filter_result
+d_contiguous_filter_skip_first
 (
     const void* _elements,
     size_t      _count,
@@ -384,22 +384,22 @@ d_array_filter_skip_first
 {
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if ( (_count == 0) ||
          (_n >= _count) )
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
-    return d_array_filter_copy_range(_elements, _element_size, _n, _count - _n);
+    return d_cf_copy_range(_elements, _element_size, _n, _count - _n);
 }
 
 
 /*
-d_array_filter_skip_last
+d_contiguous_filter_skip_last
   Returns all elements except the last _n.
 
 Parameter(s):
@@ -408,10 +408,10 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _n:            number of elements to skip from the end.
 Return:
-  d_array_filter_result owning a copy of elements [0 .. _count - _n).
+  d_contiguous_filter_result owning a copy of elements [0 .. _count - _n).
 */
-struct d_array_filter_result
-d_array_filter_skip_last
+struct d_contiguous_filter_result
+d_contiguous_filter_skip_last
 (
     const void* _elements,
     size_t      _count,
@@ -421,22 +421,22 @@ d_array_filter_skip_last
 {
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if ( (_count == 0) ||
          (_n >= _count) )
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
-    return d_array_filter_copy_range(_elements, _element_size, 0, _count - _n);
+    return d_cf_copy_range(_elements, _element_size, 0, _count - _n);
 }
 
 
 /*
-d_array_filter_init
+d_contiguous_filter_init
   Returns all elements except the last (Haskell-style init).
 
 Parameter(s):
@@ -444,22 +444,22 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_array_filter_result owning elements [0 .. _count - 1).
+  d_contiguous_filter_result owning elements [0 .. _count - 1).
 */
-struct d_array_filter_result
-d_array_filter_init
+struct d_contiguous_filter_result
+d_contiguous_filter_init
 (
     const void* _elements,
     size_t      _count,
     size_t      _element_size
 )
 {
-    return d_array_filter_skip_last(_elements, _count, _element_size, 1);
+    return d_contiguous_filter_skip_last(_elements, _count, _element_size, 1);
 }
 
 
 /*
-d_array_filter_rest
+d_contiguous_filter_rest
   Returns all elements except the first (Haskell-style tail / rest).
 
 Parameter(s):
@@ -467,17 +467,17 @@ Parameter(s):
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_array_filter_result owning elements [1 .. _count).
+  d_contiguous_filter_result owning elements [1 .. _count).
 */
-struct d_array_filter_result
-d_array_filter_rest
+struct d_contiguous_filter_result
+d_contiguous_filter_rest
 (
     const void* _elements,
     size_t      _count,
     size_t      _element_size
 )
 {
-    return d_array_filter_skip_first(_elements, _count, _element_size, 1);
+    return d_contiguous_filter_skip_first(_elements, _count, _element_size, 1);
 }
 
 
@@ -486,7 +486,7 @@ d_array_filter_rest
 // ---------------------------------------------------------------------------
 
 /*
-d_array_filter_range
+d_contiguous_filter_range
   Returns elements in the half-open range [_start, _end).
   Clamps _end to _count.
 
@@ -497,10 +497,10 @@ Parameter(s):
   _start:        start index (inclusive).
   _end:          end index (exclusive).
 Return:
-  d_array_filter_result owning a copy of the selected range.
+  d_contiguous_filter_result owning a copy of the selected range.
 */
-struct d_array_filter_result
-d_array_filter_range
+struct d_contiguous_filter_result
+d_contiguous_filter_range
 (
     const void* _elements,
     size_t      _count,
@@ -513,13 +513,13 @@ d_array_filter_range
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // clamp end to count
@@ -528,16 +528,16 @@ d_array_filter_range
     // inverted or empty range
     if (_start >= clamped_end)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
-    return d_array_filter_copy_range(_elements, _element_size,
+    return d_cf_copy_range(_elements, _element_size,
                            _start, clamped_end - _start);
 }
 
 
 /*
-d_array_filter_slice
+d_contiguous_filter_slice
   Returns elements selected by [_start : _end : _step] semantics.
   Clamps _end to _count.
 
@@ -549,10 +549,10 @@ Parameter(s):
   _end:          end index (exclusive).
   _step:         step interval (must be > 0).
 Return:
-  d_array_filter_result owning a copy of the selected elements.
+  d_contiguous_filter_result owning a copy of the selected elements.
 */
-struct d_array_filter_result
-d_array_filter_slice
+struct d_contiguous_filter_result
+d_contiguous_filter_slice
 (
     const void* _elements,
     size_t      _count,
@@ -562,7 +562,7 @@ d_array_filter_slice
     size_t      _step
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
     size_t                       clamped_end;
     size_t                       range_len;
     size_t                       out_count;
@@ -571,32 +571,32 @@ d_array_filter_slice
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_step == 0)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     clamped_end = (_end < _count) ? _end : _count;
 
     if (_start >= clamped_end)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // step == 1 is a contiguous copy
     if (_step == 1)
     {
-        return d_array_filter_copy_range(_elements, _element_size,
+        return d_cf_copy_range(_elements, _element_size,
                                _start, clamped_end - _start);
     }
 
@@ -607,7 +607,7 @@ d_array_filter_slice
 
     if (!res.data)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -615,8 +615,8 @@ d_array_filter_slice
 
     for (src = _start; src < clamped_end; src += _step)
     {
-        d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(res.data, dst, _element_size),
-                 D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, src, _element_size),
+        d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, dst, _element_size),
+                 D_ARRAY_FILTER_ELEM(_elements, src, _element_size),
                  _element_size);
         ++dst;
     }
@@ -635,7 +635,7 @@ d_array_filter_slice
 // ---------------------------------------------------------------------------
 
 /*
-d_array_filter_where
+d_contiguous_filter_where
   Returns all elements for which _test returns true.
   Performs a two-pass approach: first counts matching elements, then copies.
 
@@ -646,10 +646,10 @@ Parameter(s):
   _test:         predicate function.
   _context:      opaque context passed to the predicate.
 Return:
-  d_array_filter_result owning a copy of all matching elements.
+  d_contiguous_filter_result owning a copy of all matching elements.
 */
-struct d_array_filter_result
-d_array_filter_where
+struct d_contiguous_filter_result
+d_contiguous_filter_where
 (
     const void*  _elements,
     size_t       _count,
@@ -658,26 +658,26 @@ d_array_filter_where
     void*        _context
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
     size_t                       match_count;
     size_t                       i;
     size_t                       dst;
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (!_test)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // pass 1: count matches
@@ -685,7 +685,7 @@ d_array_filter_where
 
     for (i = 0; i < _count; ++i)
     {
-        if (_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
             ++match_count;
         }
@@ -693,7 +693,7 @@ d_array_filter_where
 
     if (match_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // pass 2: copy matching elements
@@ -701,7 +701,7 @@ d_array_filter_where
 
     if (!res.data)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -709,10 +709,10 @@ d_array_filter_where
 
     for (i = 0; i < _count; ++i)
     {
-        if (_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
-            d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(res.data, dst, _element_size),
-                     D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, dst, _element_size),
+                     D_ARRAY_FILTER_ELEM(_elements, i, _element_size),
                      _element_size);
             ++dst;
         }
@@ -728,7 +728,7 @@ d_array_filter_where
 
 
 /*
-d_array_filter_where_not
+d_contiguous_filter_where_not
   Returns all elements for which _test returns false.
 
 Parameter(s):
@@ -738,10 +738,10 @@ Parameter(s):
   _test:         predicate function; elements that FAIL are kept.
   _context:      opaque context passed to the predicate.
 Return:
-  d_array_filter_result owning a copy of all non-matching elements.
+  d_contiguous_filter_result owning a copy of all non-matching elements.
 */
-struct d_array_filter_result
-d_array_filter_where_not
+struct d_contiguous_filter_result
+d_contiguous_filter_where_not
 (
     const void*  _elements,
     size_t       _count,
@@ -750,26 +750,26 @@ d_array_filter_where_not
     void*        _context
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
     size_t                       match_count;
     size_t                       i;
     size_t                       dst;
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (!_test)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // pass 1: count non-matches
@@ -777,7 +777,7 @@ d_array_filter_where_not
 
     for (i = 0; i < _count; ++i)
     {
-        if (!_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (!_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
             ++match_count;
         }
@@ -785,7 +785,7 @@ d_array_filter_where_not
 
     if (match_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // pass 2: copy
@@ -793,7 +793,7 @@ d_array_filter_where_not
 
     if (!res.data)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -801,10 +801,10 @@ d_array_filter_where_not
 
     for (i = 0; i < _count; ++i)
     {
-        if (!_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (!_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
-            d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(res.data, dst, _element_size),
-                     D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, dst, _element_size),
+                     D_ARRAY_FILTER_ELEM(_elements, i, _element_size),
                      _element_size);
             ++dst;
         }
@@ -824,7 +824,7 @@ d_array_filter_where_not
 // ---------------------------------------------------------------------------
 
 /*
-d_array_filter_at_indices
+d_contiguous_filter_at_indices
   Returns elements at the specified indices.  Duplicate indices are honoured
   (the same element is copied multiple times).  Out-of-bounds indices are
   silently skipped.
@@ -836,10 +836,10 @@ Parameter(s):
   _indices:      array of indices to select.
   _index_count:  number of indices.
 Return:
-  d_array_filter_result owning copies of the selected elements.
+  d_contiguous_filter_result owning copies of the selected elements.
 */
-struct d_array_filter_result
-d_array_filter_at_indices
+struct d_contiguous_filter_result
+d_contiguous_filter_at_indices
 (
     const void*   _elements,
     size_t        _count,
@@ -848,26 +848,26 @@ d_array_filter_at_indices
     size_t        _index_count
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
     size_t                       valid_count;
     size_t                       i;
     size_t                       dst;
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (!_indices)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_index_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // pass 1: count valid (in-bounds) indices
@@ -883,14 +883,14 @@ d_array_filter_at_indices
 
     if (valid_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     res.data = malloc(valid_count * _element_size);
 
     if (!res.data)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -901,8 +901,8 @@ d_array_filter_at_indices
     {
         if (_indices[i] < _count)
         {
-            d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(res.data, dst, _element_size),
-                     D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, _indices[i], _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, dst, _element_size),
+                     D_ARRAY_FILTER_ELEM(_elements, _indices[i], _element_size),
                      _element_size);
             ++dst;
         }
@@ -922,10 +922,10 @@ d_array_filter_at_indices
 // ---------------------------------------------------------------------------
 
 /*
-d_array_filter_distinct
-  Returns a copy of the array with duplicate elements removed.
+d_contiguous_filter_distinct
+  Returns a copy of the data with duplicate elements removed.
   Preserves the order of first occurrence.  Uses an O(n^2) scan suitable
-  for moderate array sizes; a sort-based approach can be substituted for
+  for moderate data sizes; a sort-based approach can be substituted for
   large datasets.
 
 Parameter(s):
@@ -934,10 +934,10 @@ Parameter(s):
   _element_size: size of each element in bytes.
   _comparator:   three-way comparator for element equality (0 == equal).
 Return:
-  d_array_filter_result owning a deduplicated copy.
+  d_contiguous_filter_result owning a deduplicated copy.
 */
-struct d_array_filter_result
-d_array_filter_distinct
+struct d_contiguous_filter_result
+d_contiguous_filter_distinct
 (
     const void*            _elements,
     size_t                 _count,
@@ -945,7 +945,7 @@ d_array_filter_distinct
     fn_function_comparator _comparator
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
     size_t                       unique_count;
     size_t                       i;
     size_t                       j;
@@ -953,19 +953,19 @@ d_array_filter_distinct
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (!_comparator)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // worst case: all unique -> allocate for _count elements
@@ -973,7 +973,7 @@ d_array_filter_distinct
 
     if (!res.data)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -990,8 +990,8 @@ d_array_filter_distinct
         // check against all previously accepted unique elements
         for (j = 0; j < unique_count; ++j)
         {
-            if (_comparator(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size),
-                            D_INTERNAL_ARRAY_FILTER_ELEMENT(res.data, j, _element_size),
+            if (_comparator(D_ARRAY_FILTER_ELEM(_elements, i, _element_size),
+                            D_ARRAY_FILTER_ELEM(res.data, j, _element_size),
                             NULL) == 0)
             {
                 is_dup = true;
@@ -1002,8 +1002,8 @@ d_array_filter_distinct
 
         if (!is_dup)
         {
-            d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(res.data, unique_count, _element_size),
-                     D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, unique_count, _element_size),
+                     D_ARRAY_FILTER_ELEM(_elements, i, _element_size),
                      _element_size);
             ++unique_count;
         }
@@ -1019,50 +1019,50 @@ d_array_filter_distinct
 
 
 /*
-d_array_filter_reverse
-  Returns a copy of the array with elements in reverse order.
+d_contiguous_filter_reverse
+  Returns a copy of the data with elements in reverse order.
 
 Parameter(s):
   _elements:     source array.
   _count:        number of elements in source.
   _element_size: size of each element in bytes.
 Return:
-  d_array_filter_result owning a reversed copy.
+  d_contiguous_filter_result owning a reversed copy.
 */
-struct d_array_filter_result
-d_array_filter_reverse
+struct d_contiguous_filter_result
+d_contiguous_filter_reverse
 (
     const void* _elements,
     size_t      _count,
     size_t      _element_size
 )
 {
-    struct d_array_filter_result res = {0};
+    struct d_contiguous_filter_result res = {0};
     size_t                       i;
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     res.data = malloc(_count * _element_size);
 
     if (!res.data)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
     for (i = 0; i < _count; ++i)
     {
-        d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(res.data, i, _element_size),
-                 D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, _count - 1 - i, _element_size),
+        d_memcpy(D_ARRAY_FILTER_ELEM_MUT(res.data, i, _element_size),
+                 D_ARRAY_FILTER_ELEM(_elements, _count - 1 - i, _element_size),
                  _element_size);
     }
 
@@ -1080,8 +1080,8 @@ d_array_filter_reverse
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
-d_array_filter_in_place
-  Filters the array in-place, keeping only elements where _test returns true.
+d_contiguous_filter_in_place
+  Filters the data in-place, keeping only elements where _test returns true.
   Surviving elements are compacted to the front of the buffer.
 
 Parameter(s):
@@ -1094,7 +1094,7 @@ Return:
   New count of surviving elements.
 */
 size_t
-d_array_filter_in_place
+d_contiguous_filter_in_place
 (
     void*        _elements,
     size_t       _count,
@@ -1117,12 +1117,12 @@ d_array_filter_in_place
 
     for (read = 0; read < _count; ++read)
     {
-        if (_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, read, _element_size), _context))
+        if (_test(D_ARRAY_FILTER_ELEM(_elements, read, _element_size), _context))
         {
             if (write != read)
             {
-                memmove(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(_elements, write, _element_size),
-                          D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, read, _element_size),
+                memmove(D_ARRAY_FILTER_ELEM_MUT(_elements, write, _element_size),
+                          D_ARRAY_FILTER_ELEM(_elements, read, _element_size),
                           _element_size);
             }
 
@@ -1135,8 +1135,8 @@ d_array_filter_in_place
 
 
 /*
-d_array_filter_in_place_not
-  Filters the array in-place, keeping only elements where _test returns false.
+d_contiguous_filter_in_place_not
+  Filters the data in-place, keeping only elements where _test returns false.
 
 Parameter(s):
   _elements:     mutable source array.
@@ -1148,7 +1148,7 @@ Return:
   New count of surviving elements.
 */
 size_t
-d_array_filter_in_place_not
+d_contiguous_filter_in_place_not
 (
     void*        _elements,
     size_t       _count,
@@ -1171,12 +1171,12 @@ d_array_filter_in_place_not
 
     for (read = 0; read < _count; ++read)
     {
-        if (!_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, read, _element_size), _context))
+        if (!_test(D_ARRAY_FILTER_ELEM(_elements, read, _element_size), _context))
         {
             if (write != read)
             {
-                memmove(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(_elements, write, _element_size),
-                          D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, read, _element_size),
+                memmove(D_ARRAY_FILTER_ELEM_MUT(_elements, write, _element_size),
+                          D_ARRAY_FILTER_ELEM(_elements, read, _element_size),
                           _element_size);
             }
 
@@ -1189,8 +1189,8 @@ d_array_filter_in_place_not
 
 
 /*
-d_array_filter_in_place_take_first
-  Truncates the array in-place to the first _n elements.
+d_contiguous_filter_in_place_take_first
+  Truncates the data in-place to the first _n elements.
   (No data is moved; the caller simply uses the returned count.)
 
 Parameter(s):
@@ -1203,7 +1203,7 @@ Return:
   min(_n, _count).
 */
 size_t
-d_array_filter_in_place_take_first
+d_contiguous_filter_in_place_take_first
 (
     void*  _elements,
     size_t _count,
@@ -1223,7 +1223,7 @@ d_array_filter_in_place_take_first
 
 
 /*
-d_array_filter_in_place_skip_first
+d_contiguous_filter_in_place_skip_first
   Removes the first _n elements by shifting the remainder to the front.
 
 Parameter(s):
@@ -1235,7 +1235,7 @@ Return:
   New count after shifting (_count - _n, or 0 if _n >= _count).
 */
 size_t
-d_array_filter_in_place_skip_first
+d_contiguous_filter_in_place_skip_first
 (
     void*  _elements,
     size_t _count,
@@ -1263,7 +1263,7 @@ d_array_filter_in_place_skip_first
     remaining = _count - _n;
 
     memmove(_elements,
-              D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, _n, _element_size),
+              D_ARRAY_FILTER_ELEM(_elements, _n, _element_size),
               remaining * _element_size);
 
     return remaining;
@@ -1271,7 +1271,7 @@ d_array_filter_in_place_skip_first
 
 
 /*
-d_array_filter_in_place_distinct
+d_contiguous_filter_in_place_distinct
   Removes duplicate elements in-place.  Preserves order of first occurrence.
 
 Parameter(s):
@@ -1283,7 +1283,7 @@ Return:
   New count of unique elements.
 */
 size_t
-d_array_filter_in_place_distinct
+d_contiguous_filter_in_place_distinct
 (
     void*                  _elements,
     size_t                 _count,
@@ -1315,8 +1315,8 @@ d_array_filter_in_place_distinct
 
         for (j = 0; j < unique; ++j)
         {
-            if (_comparator(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size),
-                            D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, j, _element_size),
+            if (_comparator(D_ARRAY_FILTER_ELEM(_elements, i, _element_size),
+                            D_ARRAY_FILTER_ELEM(_elements, j, _element_size),
                             NULL) == 0)
             {
                 is_dup = true;
@@ -1329,8 +1329,8 @@ d_array_filter_in_place_distinct
         {
             if (unique != i)
             {
-                memmove(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(_elements, unique, _element_size),
-                          D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size),
+                memmove(D_ARRAY_FILTER_ELEM_MUT(_elements, unique, _element_size),
+                          D_ARRAY_FILTER_ELEM(_elements, i, _element_size),
                           _element_size);
             }
 
@@ -1347,9 +1347,9 @@ d_array_filter_in_place_distinct
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
-d_array_filter_apply_single_op
-  Internal: applies a single d_filter_operation to array data, producing
-  a new d_array_filter_result.  Used as the inner step of chain execution.
+d_cf_apply_single_op
+  Internal: applies a single d_filter_operation to contiguous data, producing
+  a new d_contiguous_filter_result.  Used as the inner step of chain execution.
 
 Parameter(s):
   _elements:     source array.
@@ -1357,10 +1357,10 @@ Parameter(s):
   _element_size: element size in bytes.
   _op:           filter operation to apply.
 Return:
-  d_array_filter_result for the single operation.
+  d_contiguous_filter_result for the single operation.
 */
-static struct d_array_filter_result
-d_array_filter_apply_single_op
+static struct d_contiguous_filter_result
+d_cf_apply_single_op
 (
     const void*                    _elements,
     size_t                         _count,
@@ -1370,103 +1370,103 @@ d_array_filter_apply_single_op
 {
     if (!_op)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     switch (_op->type)
     {
         case D_FILTER_OP_TAKE_FIRST:
-            return d_array_filter_take_first(_elements, _count,
+            return d_contiguous_filter_take_first(_elements, _count,
                                             _element_size,
                                             _op->params.count);
 
         case D_FILTER_OP_TAKE_LAST:
-            return d_array_filter_take_last(_elements, _count,
+            return d_contiguous_filter_take_last(_elements, _count,
                                            _element_size,
                                            _op->params.count);
 
         case D_FILTER_OP_TAKE_NTH:
-            return d_array_filter_take_nth(_elements, _count,
+            return d_contiguous_filter_take_nth(_elements, _count,
                                           _element_size,
                                           _op->params.step);
 
         case D_FILTER_OP_HEAD:
-            return d_array_filter_head(_elements, _count,
+            return d_contiguous_filter_head(_elements, _count,
                                       _element_size);
 
         case D_FILTER_OP_TAIL:
-            return d_array_filter_tail(_elements, _count,
+            return d_contiguous_filter_tail(_elements, _count,
                                       _element_size);
 
         case D_FILTER_OP_SKIP_FIRST:
-            return d_array_filter_skip_first(_elements, _count,
+            return d_contiguous_filter_skip_first(_elements, _count,
                                             _element_size,
                                             _op->params.count);
 
         case D_FILTER_OP_SKIP_LAST:
-            return d_array_filter_skip_last(_elements, _count,
+            return d_contiguous_filter_skip_last(_elements, _count,
                                            _element_size,
                                            _op->params.count);
 
         case D_FILTER_OP_INIT:
-            return d_array_filter_init(_elements, _count,
+            return d_contiguous_filter_init(_elements, _count,
                                       _element_size);
 
         case D_FILTER_OP_REST:
-            return d_array_filter_rest(_elements, _count,
+            return d_contiguous_filter_rest(_elements, _count,
                                       _element_size);
 
         case D_FILTER_OP_RANGE:
-            return d_array_filter_range(_elements, _count,
+            return d_contiguous_filter_range(_elements, _count,
                                        _element_size,
                                        _op->params.start,
                                        _op->params.end);
 
         case D_FILTER_OP_SLICE:
-            return d_array_filter_slice(_elements, _count,
+            return d_contiguous_filter_slice(_elements, _count,
                                        _element_size,
                                        _op->params.start,
                                        _op->params.end,
                                        _op->params.step);
 
         case D_FILTER_OP_WHERE:
-            return d_array_filter_where(_elements, _count,
+            return d_contiguous_filter_where(_elements, _count,
                                        _element_size,
                                        _op->params.test,
                                        _op->params.context);
 
         case D_FILTER_OP_WHERE_NOT:
-            return d_array_filter_where_not(_elements, _count,
+            return d_contiguous_filter_where_not(_elements, _count,
                                            _element_size,
                                            _op->params.test,
                                            _op->params.context);
 
         case D_FILTER_OP_INDICES:
-            return d_array_filter_at_indices(_elements, _count,
+            return d_contiguous_filter_at_indices(_elements, _count,
                                             _element_size,
                                             _op->params.indices,
                                             _op->params.indices_count);
 
         case D_FILTER_OP_DISTINCT:
-            return d_array_filter_distinct(_elements, _count,
+            return d_contiguous_filter_distinct(_elements, _count,
                                           _element_size,
                                           _op->params.comparator);
 
         case D_FILTER_OP_REVERSE:
-            return d_array_filter_reverse(_elements, _count,
+            return d_contiguous_filter_reverse(_elements, _count,
                                          _element_size);
 
         case D_FILTER_OP_NONE:
         default:
             // identity: copy everything
-            return d_array_filter_copy_range(_elements, _element_size, 0, _count);
+            return d_cf_copy_range(_elements, _element_size, 0, _count);
     }
 }
 
 
 /*
-d_array_filter_apply_chain
+d_contiguous_filter_apply_chain
   Sequentially applies each operation in a filter chain, piping the output
   of one step as the input of the next.
 
@@ -1476,10 +1476,10 @@ Parameter(s):
   _element_size: element size in bytes.
   _chain:        chain of operations to apply.
 Return:
-  d_array_filter_result for the final output.
+  d_contiguous_filter_result for the final output.
 */
-struct d_array_filter_result
-d_array_filter_apply_chain
+struct d_contiguous_filter_result
+d_contiguous_filter_apply_chain
 (
     const void*                  _elements,
     size_t                       _count,
@@ -1487,8 +1487,8 @@ d_array_filter_apply_chain
     const struct d_filter_chain* _chain
 )
 {
-    struct d_array_filter_result current = {0};
-    struct d_array_filter_result next = {0};
+    struct d_contiguous_filter_result current = {0};
+    struct d_contiguous_filter_result next = {0};
     const void*                  input_data;
     size_t                       input_count;
     size_t                       i;
@@ -1496,20 +1496,20 @@ d_array_filter_apply_chain
 
     if (!_chain)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (!_elements)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     // empty chain -> copy everything
     if (_chain->count == 0)
     {
-        return d_array_filter_copy_range(_elements, _element_size, 0, _count);
+        return d_cf_copy_range(_elements, _element_size, 0, _count);
     }
 
     // first operation: input is the original array (not owned by us)
@@ -1519,7 +1519,7 @@ d_array_filter_apply_chain
 
     for (i = 0; i < _chain->count; ++i)
     {
-        next = d_array_filter_apply_single_op(input_data,
+        next = d_cf_apply_single_op(input_data,
                                     input_count,
                                     _element_size,
                                     &_chain->operations[i]);
@@ -1527,7 +1527,7 @@ d_array_filter_apply_chain
         // free the intermediate buffer (but not the original input)
         if (owns_current)
         {
-            d_array_filter_result_free(&current);
+            d_contiguous_filter_result_free(&current);
         }
 
         // propagate errors immediately
@@ -1553,7 +1553,7 @@ d_array_filter_apply_chain
 
 
 /*
-d_array_filter_apply_union
+d_contiguous_filter_apply_union
   Applies multiple filter chains and produces their union (elements that
   appear in any chain's output).  Deduplication uses the provided comparator.
 
@@ -1564,10 +1564,10 @@ Parameter(s):
   _combo:        union combinator containing multiple chains.
   _comparator:   comparator for deduplication.
 Return:
-  d_array_filter_result owning the union of all chain outputs.
+  d_contiguous_filter_result owning the union of all chain outputs.
 */
-struct d_array_filter_result
-d_array_filter_apply_union
+struct d_contiguous_filter_result
+d_contiguous_filter_apply_union
 (
     const void*                 _elements,
     size_t                      _count,
@@ -1576,8 +1576,8 @@ d_array_filter_apply_union
     fn_function_comparator      _comparator
 )
 {
-    struct d_array_filter_result* chain_results = NULL;
-    struct d_array_filter_result  merged = {0};
+    struct d_contiguous_filter_result* chain_results = NULL;
+    struct d_contiguous_filter_result  merged = {0};
     size_t                        total;
     size_t                        pos;
     size_t                        i;
@@ -1585,23 +1585,23 @@ d_array_filter_apply_union
     if ( (!_combo) ||
          (!_elements) )
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_combo->count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // apply each chain independently
-    chain_results = (struct d_array_filter_result*)
+    chain_results = (struct d_contiguous_filter_result*)
                     calloc(_combo->count,
-                             sizeof(struct d_array_filter_result));
+                             sizeof(struct d_contiguous_filter_result));
 
     if (!chain_results)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -1609,7 +1609,7 @@ d_array_filter_apply_union
 
     for (i = 0; i < _combo->count; ++i)
     {
-        chain_results[i] = d_array_filter_apply_chain(_elements,
+        chain_results[i] = d_contiguous_filter_apply_chain(_elements,
                                                       _count,
                                                       _element_size,
                                                       _combo->filters[i]);
@@ -1624,12 +1624,12 @@ d_array_filter_apply_union
     {
         for (i = 0; i < _combo->count; ++i)
         {
-            d_array_filter_result_free(&chain_results[i]);
+            d_contiguous_filter_result_free(&chain_results[i]);
         }
 
         free(chain_results);
 
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -1639,13 +1639,13 @@ d_array_filter_apply_union
     {
         if (chain_results[i].data && chain_results[i].count > 0)
         {
-            d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(merged.data, pos, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(merged.data, pos, _element_size),
                      chain_results[i].data,
                      chain_results[i].count * _element_size);
             pos += chain_results[i].count;
         }
 
-        d_array_filter_result_free(&chain_results[i]);
+        d_contiguous_filter_result_free(&chain_results[i]);
     }
 
     free(chain_results);
@@ -1660,7 +1660,7 @@ d_array_filter_apply_union
     if ( (_comparator) &&
          (merged.count > 1) )
     {
-        merged.count = d_array_filter_in_place_distinct(merged.data,
+        merged.count = d_contiguous_filter_in_place_distinct(merged.data,
                                                         merged.count,
                                                         _element_size,
                                                         _comparator);
@@ -1671,7 +1671,7 @@ d_array_filter_apply_union
 
 
 /*
-d_array_filter_apply_intersection
+d_contiguous_filter_apply_intersection
   Applies multiple filter chains and produces their intersection (elements
   that appear in every chain's output).
 
@@ -1682,10 +1682,10 @@ Parameter(s):
   _combo:        intersection combinator.
   _comparator:   comparator for element equality.
 Return:
-  d_array_filter_result owning the intersection.
+  d_contiguous_filter_result owning the intersection.
 */
-struct d_array_filter_result
-d_array_filter_apply_intersection
+struct d_contiguous_filter_result
+d_contiguous_filter_apply_intersection
 (
     const void*                         _elements,
     size_t                              _count,
@@ -1694,8 +1694,8 @@ d_array_filter_apply_intersection
     fn_function_comparator              _comparator
 )
 {
-    struct d_array_filter_result* chain_results = NULL;
-    struct d_array_filter_result  result = {0};
+    struct d_contiguous_filter_result* chain_results = NULL;
+    struct d_contiguous_filter_result  result = {0};
     size_t                        i;
     size_t                        j;
     size_t                        k;
@@ -1706,29 +1706,29 @@ d_array_filter_apply_intersection
          (!_elements)  ||
          (!_comparator) )
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
     if (_combo->count == 0)
     {
-        return d_array_filter_result_empty(_element_size);
+        return d_cf_result_empty(_element_size);
     }
 
     // apply each chain
-    chain_results = (struct d_array_filter_result*)
+    chain_results = (struct d_contiguous_filter_result*)
                     calloc(_combo->count,
-                             sizeof(struct d_array_filter_result));
+                             sizeof(struct d_contiguous_filter_result));
 
     if (!chain_results)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
     for (i = 0; i < _combo->count; ++i)
     {
-        chain_results[i] = d_array_filter_apply_chain(_elements,
+        chain_results[i] = d_contiguous_filter_apply_chain(_elements,
                                                       _count,
                                                       _element_size,
                                                       _combo->filters[i]);
@@ -1743,12 +1743,12 @@ d_array_filter_apply_intersection
     {
         for (i = 0; i < _combo->count; ++i)
         {
-            d_array_filter_result_free(&chain_results[i]);
+            d_contiguous_filter_result_free(&chain_results[i]);
         }
 
         free(chain_results);
 
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -1767,8 +1767,8 @@ d_array_filter_apply_intersection
             for (k = 0; k < chain_results[i].count; ++k)
             {
                 if (_comparator(
-                        D_INTERNAL_ARRAY_FILTER_ELEMENT(chain_results[0].data, j, _element_size),
-                        D_INTERNAL_ARRAY_FILTER_ELEMENT(chain_results[i].data, k, _element_size),
+                        D_ARRAY_FILTER_ELEM(chain_results[0].data, j, _element_size),
+                        D_ARRAY_FILTER_ELEM(chain_results[i].data, k, _element_size),
                         NULL) == 0)
                 {
                     found = true;
@@ -1787,8 +1787,8 @@ d_array_filter_apply_intersection
 
         if (in_all)
         {
-            d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(result.data, out_count, _element_size),
-                     D_INTERNAL_ARRAY_FILTER_ELEMENT(chain_results[0].data, j, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(result.data, out_count, _element_size),
+                     D_ARRAY_FILTER_ELEM(chain_results[0].data, j, _element_size),
                      _element_size);
             ++out_count;
         }
@@ -1796,7 +1796,7 @@ d_array_filter_apply_intersection
 
     for (i = 0; i < _combo->count; ++i)
     {
-        d_array_filter_result_free(&chain_results[i]);
+        d_contiguous_filter_result_free(&chain_results[i]);
     }
 
     free(chain_results);
@@ -1812,7 +1812,7 @@ d_array_filter_apply_intersection
 
 
 /*
-d_array_filter_apply_difference
+d_contiguous_filter_apply_difference
   Applies two filter chains (A and B) and returns A - B (elements in A's
   output that do not appear in B's output).
 
@@ -1823,10 +1823,10 @@ Parameter(s):
   _diff:         difference combinator (contains include and exclude chains).
   _comparator:   comparator for element equality.
 Return:
-  d_array_filter_result owning A minus B.
+  d_contiguous_filter_result owning A minus B.
 */
-struct d_array_filter_result
-d_array_filter_apply_difference
+struct d_contiguous_filter_result
+d_contiguous_filter_apply_difference
 (
     const void*                       _elements,
     size_t                            _count,
@@ -1835,9 +1835,9 @@ d_array_filter_apply_difference
     fn_function_comparator            _comparator
 )
 {
-    struct d_array_filter_result result_a = {0};
-    struct d_array_filter_result result_b = {0};
-    struct d_array_filter_result result = {0};
+    struct d_contiguous_filter_result result_a = {0};
+    struct d_contiguous_filter_result result_b = {0};
+    struct d_contiguous_filter_result result = {0};
     size_t                       out_count;
     size_t                       i;
     size_t                       j;
@@ -1847,21 +1847,21 @@ d_array_filter_apply_difference
          (!_elements)  ||
          (!_comparator) )
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
-    result_a = d_array_filter_apply_chain(_elements, _count,
+    result_a = d_contiguous_filter_apply_chain(_elements, _count,
                                           _element_size,
                                           _diff->include);
-    result_b = d_array_filter_apply_chain(_elements, _count,
+    result_b = d_contiguous_filter_apply_chain(_elements, _count,
                                           _element_size,
                                           _diff->exclude);
 
     // if A is empty, result is empty
     if (result_a.count == 0)
     {
-        d_array_filter_result_free(&result_b);
+        d_contiguous_filter_result_free(&result_b);
 
         return result_a;
     }
@@ -1869,7 +1869,7 @@ d_array_filter_apply_difference
     // if B is empty, result is all of A
     if (result_b.count == 0)
     {
-        d_array_filter_result_free(&result_b);
+        d_contiguous_filter_result_free(&result_b);
 
         return result_a;
     }
@@ -1878,10 +1878,10 @@ d_array_filter_apply_difference
 
     if (!result.data)
     {
-        d_array_filter_result_free(&result_a);
-        d_array_filter_result_free(&result_b);
+        d_contiguous_filter_result_free(&result_a);
+        d_contiguous_filter_result_free(&result_b);
 
-        return d_array_filter_result_error(D_FILTER_RESULT_NO_MEMORY,
+        return d_cf_result_error(D_FILTER_RESULT_NO_MEMORY,
                                  _element_size);
     }
 
@@ -1894,8 +1894,8 @@ d_array_filter_apply_difference
         for (j = 0; j < result_b.count; ++j)
         {
             if (_comparator(
-                    D_INTERNAL_ARRAY_FILTER_ELEMENT(result_a.data, i, _element_size),
-                    D_INTERNAL_ARRAY_FILTER_ELEMENT(result_b.data, j, _element_size),
+                    D_ARRAY_FILTER_ELEM(result_a.data, i, _element_size),
+                    D_ARRAY_FILTER_ELEM(result_b.data, j, _element_size),
                     NULL) == 0)
             {
                 found = true;
@@ -1906,15 +1906,15 @@ d_array_filter_apply_difference
 
         if (!found)
         {
-            d_memcpy(D_INTERNAL_ARRAY_FILTER_ELEMENT_MUTABLE(result.data, out_count, _element_size),
-                     D_INTERNAL_ARRAY_FILTER_ELEMENT(result_a.data, i, _element_size),
+            d_memcpy(D_ARRAY_FILTER_ELEM_MUT(result.data, out_count, _element_size),
+                     D_ARRAY_FILTER_ELEM(result_a.data, i, _element_size),
                      _element_size);
             ++out_count;
         }
     }
 
-    d_array_filter_result_free(&result_a);
-    d_array_filter_result_free(&result_b);
+    d_contiguous_filter_result_free(&result_a);
+    d_contiguous_filter_result_free(&result_b);
 
     result.count          = out_count;
     result.element_size   = _element_size;
@@ -1931,7 +1931,7 @@ d_array_filter_apply_difference
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
-d_array_filter_count_where
+d_contiguous_filter_count_where
   Counts the number of elements satisfying a predicate.
 
 Parameter(s):
@@ -1944,7 +1944,7 @@ Return:
   Number of elements for which _test returns true.
 */
 size_t
-d_array_filter_count_where
+d_contiguous_filter_count_where
 (
     const void*  _elements,
     size_t       _count,
@@ -1966,7 +1966,7 @@ d_array_filter_count_where
 
     for (i = 0; i < _count; ++i)
     {
-        if (_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
             ++matches;
         }
@@ -1977,7 +1977,7 @@ d_array_filter_count_where
 
 
 /*
-d_array_filter_any_match
+d_contiguous_filter_any_match
   Returns true if at least one element satisfies the predicate.
   Short-circuits on first match.
 
@@ -1991,7 +1991,7 @@ Return:
   true if any element matches, false otherwise.
 */
 bool
-d_array_filter_any_match
+d_contiguous_filter_any_match
 (
     const void*  _elements,
     size_t       _count,
@@ -2011,7 +2011,7 @@ d_array_filter_any_match
 
     for (i = 0; i < _count; ++i)
     {
-        if (_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
             return true;
         }
@@ -2022,9 +2022,9 @@ d_array_filter_any_match
 
 
 /*
-d_array_filter_all_match
+d_contiguous_filter_all_match
   Returns true if every element satisfies the predicate (vacuously true
-  for empty arrays).  Short-circuits on first non-match.
+  for empty inputs).  Short-circuits on first non-match.
 
 Parameter(s):
   _elements:     source array.
@@ -2036,7 +2036,7 @@ Return:
   true if all elements match, false otherwise.
 */
 bool
-d_array_filter_all_match
+d_contiguous_filter_all_match
 (
     const void*  _elements,
     size_t       _count,
@@ -2061,7 +2061,7 @@ d_array_filter_all_match
 
     for (i = 0; i < _count; ++i)
     {
-        if (!_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (!_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
             return false;
         }
@@ -2072,9 +2072,9 @@ d_array_filter_all_match
 
 
 /*
-d_array_filter_none_match
+d_contiguous_filter_none_match
   Returns true if no element satisfies the predicate (vacuously true
-  for empty arrays).  Short-circuits on first match.
+  for empty inputs).  Short-circuits on first match.
 
 Parameter(s):
   _elements:     source array.
@@ -2086,7 +2086,7 @@ Return:
   true if no elements match, false otherwise.
 */
 bool
-d_array_filter_none_match
+d_contiguous_filter_none_match
 (
     const void*  _elements,
     size_t       _count,
@@ -2095,13 +2095,13 @@ d_array_filter_none_match
     void*        _context
 )
 {
-    return !d_array_filter_any_match(_elements, _count,
+    return !d_contiguous_filter_any_match(_elements, _count,
                                      _element_size, _test, _context);
 }
 
 
 /*
-d_array_filter_find_first
+d_contiguous_filter_find_first
   Returns a pointer to the first matching element in the source array.
   Does NOT allocate; the returned pointer points into the original array.
 
@@ -2115,7 +2115,7 @@ Return:
   Pointer into _elements, or NULL if no match.
 */
 void*
-d_array_filter_find_first
+d_contiguous_filter_find_first
 (
     const void*  _elements,
     size_t       _count,
@@ -2135,11 +2135,11 @@ d_array_filter_find_first
 
     for (i = 0; i < _count; ++i)
     {
-        if (_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
             // cast away const: caller received const void* but
             // the returned pointer is to the original mutable source
-            return (void*)D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size);
+            return (void*)D_ARRAY_FILTER_ELEM(_elements, i, _element_size);
         }
     }
 
@@ -2148,7 +2148,7 @@ d_array_filter_find_first
 
 
 /*
-d_array_filter_find_last
+d_contiguous_filter_find_last
   Returns a pointer to the last matching element in the source array.
   Does NOT allocate; the returned pointer points into the original array.
 
@@ -2162,7 +2162,7 @@ Return:
   Pointer into _elements, or NULL if no match.
 */
 void*
-d_array_filter_find_last
+d_contiguous_filter_find_last
 (
     const void*  _elements,
     size_t       _count,
@@ -2187,9 +2187,9 @@ d_array_filter_find_last
     {
         --i;
 
-        if (_test(D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size), _context))
+        if (_test(D_ARRAY_FILTER_ELEM(_elements, i, _element_size), _context))
         {
-            return (void*)D_INTERNAL_ARRAY_FILTER_ELEMENT(_elements, i, _element_size);
+            return (void*)D_ARRAY_FILTER_ELEM(_elements, i, _element_size);
         }
     }
 
@@ -2202,7 +2202,7 @@ d_array_filter_find_last
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
-d_array_filter_result_data
+d_contiguous_filter_result_data
   Returns the data pointer from a filter result.
 
 Parameter(s):
@@ -2211,9 +2211,9 @@ Return:
   The internal data pointer, or NULL if _result is NULL or has no data.
 */
 void*
-d_array_filter_result_data
+d_contiguous_filter_result_data
 (
-    const struct d_array_filter_result* _result
+    const struct d_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2226,7 +2226,7 @@ d_array_filter_result_data
 
 
 /*
-d_array_filter_result_count
+d_contiguous_filter_result_count
   Returns the element count from a filter result.
 
 Parameter(s):
@@ -2235,9 +2235,9 @@ Return:
   Number of elements, or 0 if _result is NULL.
 */
 size_t
-d_array_filter_result_count
+d_contiguous_filter_result_count
 (
-    const struct d_array_filter_result* _result
+    const struct d_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2250,7 +2250,7 @@ d_array_filter_result_count
 
 
 /*
-d_array_filter_result_ok
+d_contiguous_filter_result_ok
   Returns true if the result status is non-negative (SUCCESS or EMPTY).
 
 Parameter(s):
@@ -2259,9 +2259,9 @@ Return:
   true if OK, false on error or NULL.
 */
 bool
-d_array_filter_result_ok
+d_contiguous_filter_result_ok
 (
-    const struct d_array_filter_result* _result
+    const struct d_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2274,7 +2274,7 @@ d_array_filter_result_ok
 
 
 /*
-d_array_filter_result_release
+d_contiguous_filter_result_release
   Transfers ownership of the data buffer to the caller.
   After this call, the result's data pointer is set to NULL.
 
@@ -2285,9 +2285,9 @@ Return:
   The data pointer (caller must free), or NULL.
 */
 void*
-d_array_filter_result_release
+d_contiguous_filter_result_release
 (
-    struct d_array_filter_result* _result,
+    struct d_contiguous_filter_result* _result,
     size_t*                       _out_count
 )
 {
@@ -2319,7 +2319,7 @@ d_array_filter_result_release
 
 
 /*
-d_array_filter_result_free
+d_contiguous_filter_result_free
   Frees the data buffer and source_indices owned by the result.
   Safe to call on NULL or already-freed results.
 
@@ -2329,9 +2329,9 @@ Return:
   none.
 */
 void
-d_array_filter_result_free
+d_contiguous_filter_result_free
 (
-    struct d_array_filter_result* _result
+    struct d_contiguous_filter_result* _result
 )
 {
     if (!_result)
@@ -2362,10 +2362,10 @@ d_array_filter_result_free
 ///////////////////////////////////////////////////////////////////////////////
 
 /*
-d_array_filter_apply_builder
-  Bridges the fluent builder API to array_filter semantics.
+d_contiguous_filter_apply_builder
+  Bridges the fluent builder API to contiguous_filter semantics.
   Builds a chain from the builder, applies it, and returns an
-  array_filter_result.
+  contiguous_filter_result.
 
 Parameter(s):
   _builder:      the fluent filter builder.
@@ -2373,10 +2373,10 @@ Parameter(s):
   _count:        number of elements.
   _element_size: element size in bytes.
 Return:
-  d_array_filter_result for the composed operation.
+  d_contiguous_filter_result for the composed operation.
 */
-struct d_array_filter_result
-d_array_filter_apply_builder
+struct d_contiguous_filter_result
+d_contiguous_filter_apply_builder
 (
     struct d_filter_builder* _builder,
     const void*              _elements,
@@ -2385,11 +2385,11 @@ d_array_filter_apply_builder
 )
 {
     struct d_filter_chain*       chain;
-    struct d_array_filter_result result = {0};
+    struct d_contiguous_filter_result result = {0};
 
     if (!_builder)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
@@ -2397,7 +2397,7 @@ d_array_filter_apply_builder
     {
         d_filter_builder_free(_builder);
 
-        return d_array_filter_result_error(D_FILTER_RESULT_INVALID,
+        return d_cf_result_error(D_FILTER_RESULT_INVALID,
                                  _element_size);
     }
 
@@ -2406,11 +2406,11 @@ d_array_filter_apply_builder
 
     if (!chain)
     {
-        return d_array_filter_result_error(D_FILTER_RESULT_ERROR,
+        return d_cf_result_error(D_FILTER_RESULT_ERROR,
                                  _element_size);
     }
 
-    result = d_array_filter_apply_chain(_elements, _count,
+    result = d_contiguous_filter_apply_chain(_elements, _count,
                                         _element_size, chain);
 
     d_filter_chain_free(chain);

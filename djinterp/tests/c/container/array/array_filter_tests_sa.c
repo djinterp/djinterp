@@ -3,9 +3,9 @@
 
 /*
 d_tests_sa_array_filter_run_all
-  Module-level aggregation function that runs all array_filter tests.
+  Module-level aggregation function that runs all contiguous_filter tests.
   Executes tests for all categories:
-  - Result structure (d_array_filter_result struct, d_filter_result_type enum)
+  - Result structure (d_contiguous_filter_result struct, d_filter_result_type enum)
   - Single-operation filters (take, skip, range, slice, predicate, index,
     transformation)
   - In-place filter operations (predicate, positional, distinct)
