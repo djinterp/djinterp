@@ -2,7 +2,7 @@
  * SECTION XI: REGISTRY_COMMON FUNCTION TESTS
  *****************************************************************************/
 
-#include ".\registry_tests_sa.h"
+#include "./registry_tests_sa.h"
 
 
 /*

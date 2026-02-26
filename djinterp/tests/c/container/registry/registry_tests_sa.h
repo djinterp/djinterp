@@ -6,25 +6,24 @@
 *   functions and one *_all aggregation function.
 *
 *
-* path:      \tests\container\registry\registry_tests_sa.h
+* path:      \tests\c\container\registry\registry_tests_sa.h
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
 
-#ifndef DJINTERP_TESTS_REGISTRY_SA_
-#define DJINTERP_TESTS_REGISTRY_SA_ 1
+#ifndef DJINTERP_TESTS_REGISTRY_STANDALONE_
+#define DJINTERP_TESTS_REGISTRY_STANDALONE_ 1
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "..\..\..\inc\test\test_standalone.h"
-#include "..\..\..\inc\container\registry\registry.h"
-#include "..\..\..\inc\container\registry\registry_common.h"
-#include "..\..\..\inc\string_fn.h"
-#include "..\..\..\inc\dstring.h"
-#include "..\..\..\inc\dmemory.h"
+#include "../../../../inc/c/djinterp.h"
+#include "../../../../inc/c/test/test_standalone.h"
+#include "../../../../inc/c/container/registry/registry.h"
+#include "../../../../inc/c/container/registry/registry_common.h"
+#include "../../../../inc/c/string_fn.h"
+#include "../../../../inc/c/dstring.h"
+#include "../../../../inc/c/dmemory.h"
 
 
 /******************************************************************************
@@ -178,4 +177,4 @@ bool d_tests_sa_registry_common_all(struct d_test_counter* _counter);
 bool d_tests_sa_registry_run_all(struct d_test_counter* _counter);
 
 
-#endif  // DJINTERP_TESTS_REGISTRY_SA_
+#endif  // DJINTERP_TESTS_REGISTRY_STANDALONE_
