@@ -26,6 +26,23 @@
 #include "../../../../../../tests/c/env_tests_sa.h"
 #include "../../../../../../tests/c/string_fn_tests_sa.h"
 
+// container test headers
+//    array
+#include "../../../../../../tests/c/container/array/array_common_tests_sa.h"
+#include "../../../../../../tests/c/container/array/circular_array_tests_sa.h"
+#include "../../../../../../tests/c/container/array/ptr_array_tests_sa.h"
+#include "../../../../../../tests/c/container/array/array_filter_tests_sa.h"
+//    map
+#include "../../../../../../tests/c/container/map/enum_map_entry_tests_sa.h"
+#include "../../../../../../tests/c/container/map/min_enum_map_tests_sa.h"
+//    registry
+#include "../../../../../../tests/c/container/registry/registry_common_tests_sa.h"
+#include "../../../../../../tests/c/container/registry/registry_tests_sa.h"
+//    vector
+#include "../../../../../../tests/c/container/vector/vector_common_tests_sa.h"
+#include "../../../../../../tests/c/container/vector/vector_tests_sa.h"
+#include "../../../../../../tests/c/container/vector/ptr_vector_tests_sa.h"
+
 // functional test headers
 #include "../../../../../../tests/c/functional/compose_tests_sa.h"
 #include "../../../../../../tests/c/functional/filter_tests_sa.h"
@@ -33,10 +50,6 @@
 #include "../../../../../../tests/c/functional/functional_common_tests_sa.h"
 #include "../../../../../../tests/c/functional/pipeline_tests_sa.h"
 #include "../../../../../../tests/c/functional/predicate_tests_sa.h"
-
-// container test headers
-#include "../../../../../../tests/c/container/map/enum_map_entry_tests_sa.h"
-#include "../../../../../../tests/c/container/map/min_enum_map_tests_sa.h"
 
 // test framework test headers
 #include "../../../../../../tests/c/test/test_common_tests_sa.h"
@@ -180,6 +193,106 @@ main
         NULL);
 
     ///////////////////////////////////////////////////////////////////////////
+    //  container modules
+    ///////////////////////////////////////////////////////////////////////////
+
+    //   array   ////////////////
+    // array_common
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`array_common`",
+        "standalone unit tests for `array_common`.",
+        d_tests_sa_array_common_all,
+        0,
+        NULL);
+
+    // circular_array
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`circular_array`",
+        "standalone unit tests for `circular_array`.",
+        d_tests_sa_circular_array_run_all,
+        0,
+        NULL);
+    // ptr_array
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`ptr_array`",
+        "standalone unit tests for `ptr_array`.",
+        d_tests_sa_ptr_array_run_all,
+        0,
+        NULL);
+    // array_filter
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`array_filter`",
+        "standalone unit tests for `array_filter`.",
+        d_tests_sa_array_filter_run_all,
+        0,
+        NULL);
+
+    //   map   ////////////////
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`enum_map_entry`",
+        "standalone unit tests for `enum_map_entry`.",
+        d_tests_enum_map_entry_run_all,
+        0,
+        NULL);
+
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`min_enum_map`",
+        "standalone unit tests for `min_enum_map`.",
+        d_tests_min_enum_map_run_all,
+        0,
+        NULL);
+
+    //   registry   ////////////////
+    // registry
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`registry_common`",
+        "standalone unit tests for `registry_common`.",
+        d_tests_sa_registry_common_run_all,
+        0,
+        NULL);
+    // registry_common
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`registry`",
+        "standalone unit tests for `registry`.",
+        d_tests_sa_registry_run_all,
+        0,
+        NULL);
+
+    //   vector   ////////////////
+    // vector_common
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`vector_common`",
+        "standalone unit tests for `vector_common`.",
+        d_tests_sa_vector_common_run_all,
+        0,
+        NULL);
+    // vector
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`vector`",
+        "standalone unit tests for `vector`.",
+        d_tests_sa_vector_run_all,
+        0,
+        NULL);
+    // ptr_vector
+    d_test_sa_runner_add_module_counter(
+        &runner,
+        "`ptr_vector`",
+        "standalone unit tests for `ptr_vector`.",
+        d_tests_sa_ptr_vector_run_all,
+        0,
+        NULL);
+
+    ///////////////////////////////////////////////////////////////////////////
     //  functional modules
     ///////////////////////////////////////////////////////////////////////////
 
@@ -234,28 +347,6 @@ main
         "Predicate Operations",
         "Tests for predicate.h predicate operations",
         d_tests_sa_predicate_run_all,
-        0,
-        NULL);
-
-    ///////////////////////////////////////////////////////////////////////////
-    //  container modules
-    ///////////////////////////////////////////////////////////////////////////
-
-    // register enum_map_entry module
-    d_test_sa_runner_add_module_counter(
-        &runner,
-        "Enum Map Entry",
-        "Tests for enum_map_entry.h map entry operations",
-        d_tests_enum_map_entry_run_all,
-        0,
-        NULL);
-
-    // register min_enum_map module
-    d_test_sa_runner_add_module_counter(
-        &runner,
-        "Min Enum Map",
-        "Tests for min_enum_map.h minimal enum map",
-        d_tests_min_enum_map_run_all,
         0,
         NULL);
 

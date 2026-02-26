@@ -5,11 +5,12 @@
 *   Tests the `d_min_enum_map` type and associated map operations.
 *
 *
+* path:      /.config/.msvs/testing/c/container/map/
+*                djinterp-c-container-min-enum-map-tests-sa/main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-
-#include "..\..\..\..\..\..\inc\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\container\map\min_enum_map_tests_sa.h"
+#include "../../../../../../../inc/c/test/test_standalone.h"
+#include "../../../../../../../tests/c/container/map/min_enum_map_tests_sa.h"
 
 
 /******************************************************************************
