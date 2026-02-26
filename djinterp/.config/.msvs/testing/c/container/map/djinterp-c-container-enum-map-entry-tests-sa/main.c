@@ -5,12 +5,12 @@
 *   Tests the d_enum_map_entry type and associated macros.
 *
 *
-* path:      \.config\.msvs\testing\container\djinterp-c-enum-map-entry-tests-sa\main.c
+* path:      /.config/.msvs/testing/c/container/map/
+*                djinterp-c-container-enum-map-entry-tests-sa/main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
-
-#include "..\..\..\..\..\..\inc\test\test_standalone.h"
-#include "..\..\..\..\..\..\tests\container\map\enum_map_entry_tests_sa.h"
+#include "../../../../../../../inc/c/test/test_standalone.h"
+#include "../../../../../../../tests/c/container/map/enum_map_entry_tests_sa.h"
 
 
 /******************************************************************************
