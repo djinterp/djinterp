@@ -1,4 +1,4 @@
-#include ".\functional_common_tests_sa.h"
+#include "./functional_common_tests_sa.h"
 
 
 // --- local helper: accumulator that sums ints ---

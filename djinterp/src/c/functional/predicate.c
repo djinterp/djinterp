@@ -1,4 +1,4 @@
-#include "..\..\inc\functional\predicate.h"
+#include "../../../inc/c/functional/predicate.h"
 
 
 /*
@@ -167,7 +167,7 @@ Return:
   - false, if _combo was NULL, _combo->pred1 was NULL, _combo->pred2 was
     NULL, or either predicate returned false.
 */
-D_INLINE bool
+bool
 d_predicate_and_eval
 (
     const struct d_predicate_and* _combo,
@@ -197,7 +197,7 @@ Return:
   - false, if _combo was NULL, _combo->pred1 was NULL, _combo->pred2 was
     NULL, or both predicates returned false.
 */
-D_INLINE bool
+bool
 d_predicate_or_eval
 (
     const struct d_predicate_or* _combo,
@@ -227,7 +227,7 @@ Return:
   - false, if _combo was NULL, _combo->pred1 was NULL, _combo->pred2 was
     NULL, or both predicates returned the same value.
 */
-D_INLINE bool
+bool
 d_predicate_xor_eval
 (
     const struct d_predicate_xor* _combo,
@@ -257,7 +257,7 @@ Return:
   - false, if _combo was NULL, _combo->pred was NULL, or the underlying
     predicate returned true.
 */
-D_INLINE bool
+bool
 d_predicate_not_eval
 (
     const struct d_predicate_not* _combo,

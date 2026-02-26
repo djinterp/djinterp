@@ -1,4 +1,4 @@
-#include "..\..\inc\functional\compose.h"
+#include "../../../inc/c/functional/compose.h"
 
 
 /*

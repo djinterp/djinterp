@@ -1,5 +1,5 @@
-#include ".\compose_tests_sa.h"
-#include ".\compose_tests_sa_helpers.h"
+#include "./compose_tests_sa.h"
+#include "./compose_tests_sa_helpers.h"
 
 
 /*
@@ -694,13 +694,12 @@ d_tests_sa_compose_apply
     // input: 3 -> square -> 9 -> double -> 18
     {
         struct d_composed_transformer* inner;
-        struct d_composed_transformer* outer;
 
         inner = d_functional_compose_new(transform_square,
-                                          NULL,
-                                          transform_double,
-                                          NULL,
-                                          sizeof(int));
+                                         NULL,
+                                         transform_double,
+                                         NULL,
+                                         sizeof(int));
 
         if (inner)
         {

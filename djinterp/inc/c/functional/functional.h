@@ -24,7 +24,7 @@
 * XVII.     Guarded execution macros
 *
 *
-* path:      \inc\functional\functional.h
+* path:      /inc/functional/functional.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.10
 ******************************************************************************/
@@ -32,12 +32,12 @@
 #ifndef DJINTERP_C_FUNCTIONAL_
 #define DJINTERP_C_FUNCTIONAL_ 1
 
-#include "..\djinterp.h"
-#include ".\functional_common.h"
-#include ".\predicate.h"
-#include ".\compose.h"
-#include ".\fn_builder.h"
-#include ".\pipeline.h"
+#include "../djinterp.h"
+#include "./functional_common.h"
+#include "./predicate.h"
+#include "./compose.h"
+#include "./fn_builder.h"
+#include "./pipeline.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////

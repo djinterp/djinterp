@@ -16,7 +16,8 @@
 *   fn_comparator        - function comparing two values
 *   fn_accumulator       - function combining accumulated value with element
 *
-* path:      \inc\functional\functional_common.h
+* 
+* path:      /inc/functional/functional_common.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
 ******************************************************************************/
@@ -26,7 +27,7 @@
 
 #include <stddef.h>
 #include <string.h>
-#include "..\djinterp.h"
+#include "../djinterp.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -17,11 +17,11 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include "..\..\inc\djinterp.h"
-#include "..\..\inc\dmemory.h"
-#include "..\..\inc\string_fn.h"
-#include "..\..\inc\functional\functional_common.h"
-#include "..\..\inc\test\test_standalone.h"
+#include "../../../inc/c/djinterp.h"
+#include "../../../inc/c/dmemory.h"
+#include "../../../inc/c/string_fn.h"
+#include "../../../inc/c/functional/functional_common.h"
+#include "../../../inc/c/test/test_standalone.h"
 
 
 // i.    identity function tests

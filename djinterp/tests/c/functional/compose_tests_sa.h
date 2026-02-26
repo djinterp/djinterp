@@ -19,10 +19,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\inc\djinterp.h"
-#include "..\..\inc\test\test_standalone.h"
-#include "..\..\inc\string_fn.h"
-#include "..\..\inc\functional\compose.h"
+#include "../../../inc/c/djinterp.h"
+#include "../../../inc/c/test/test_standalone.h"
+#include "../../../inc/c/string_fn.h"
+#include "../../../inc/c/functional/compose.h"
 
 
 /******************************************************************************

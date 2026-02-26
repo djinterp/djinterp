@@ -7,7 +7,7 @@
 * with nullable context fields.
 *
 * 
-* path:      \inc\functional\predicate.h
+* path:      /inc/functional/predicate.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
 ******************************************************************************/
@@ -16,8 +16,8 @@
 #define DJINTERP_C_FUNCTIONAL_PREDICATE_ 1
 
 #include <stdlib.h>
-#include "..\djinterp.h"
-#include ".\functional_common.h"
+#include "../djinterp.h"
+#include "./functional_common.h"
 
 
 // d_predicate_and

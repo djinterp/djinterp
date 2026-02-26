@@ -8,7 +8,7 @@
 * DTest should use DTest for unit tests.
 *
 *
-* path:      \test\functional\fn_builder_tests_sa.h
+* path:      /test/functional/fn_builder_tests_sa.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.10
 ******************************************************************************/
@@ -17,12 +17,12 @@
 #define DJINTERP_TESTING_FN_BUILDER_STANDALONE_ 1
 
 #include <stdlib.h>
-#include "..\..\inc\djinterp.h"
-#include "..\..\inc\dmemory.h"
-#include "..\..\inc\string_fn.h"
-#include "..\..\inc\test\test_standalone.h"
-#include "..\..\inc\functional\functional_common.h"
-#include "..\..\inc\functional\fn_builder.h"
+#include "../../../inc/c/djinterp.h"
+#include "../../../inc/c/dmemory.h"
+#include "../../../inc/c/string_fn.h"
+#include "../../../inc/c/test/test_standalone.h"
+#include "../../../inc/c/functional/functional_common.h"
+#include "../../../inc/c/functional/fn_builder.h"
 
 
 // i.    builder creation tests

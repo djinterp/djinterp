@@ -7,7 +7,7 @@
 * operation accepts a void* _context parameter (may be NULL) that is
 * forwarded to the callback.
 *
-* path:      \inc\functional\pipeline.h
+* path:      /inc/functional/pipeline.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.09
 ******************************************************************************/
@@ -16,8 +16,8 @@
 #define DJINTERP_C_FUNCTIONAL_PIPELINE_ 1
 
 #include <stdlib.h>
-#include "..\djinterp.h"
-#include ".\functional_common.h"
+#include "../djinterp.h"
+#include "./functional_common.h"
 
 
 // d_functional_pipeline

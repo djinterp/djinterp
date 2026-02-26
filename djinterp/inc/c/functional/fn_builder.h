@@ -5,8 +5,8 @@
 *   Provides a builder struct that accumulates transformers and predicates,
 * with fluent (chainable) operations for map, filter, and_then, and where.
 *
-* path:      \inc\functional\fn_builder.h
-* link:      TBA
+* path:      /inc/functional/fn_builder.h
+* link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.06
 ******************************************************************************/
 
@@ -15,8 +15,8 @@
 
 #include <stddef.h>
 #include <stdlib.h>
-#include "..\djinterp.h"
-#include ".\functional_common.h"
+#include "../djinterp.h"
+#include "./functional_common.h"
 
 
 // D_FN_BUILDER_INITIAL_CAPACITY

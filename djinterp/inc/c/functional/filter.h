@@ -29,8 +29,8 @@
 *   - Iterate lazily over filtered results
 *
 *
-* path:      \inc\functional\filter.h
-* link:      TBA
+* path:      /inc/functional/filter.h
+* link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.06
 ******************************************************************************/
 
@@ -131,10 +131,10 @@ XI.   TYPED FILTER WRAPPERS (C11+)
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "..\djinterp.h"
-#include "..\dmemory.h"
-#include "..\dio.h"
-#include ".\functional.h"
+#include "../djinterp.h"
+#include "../dmemory.h"
+#include "../dio.h"
+#include "./functional.h"
 
 // D_FILTER_MAX_CHAIN_LENGTH
 //   constant: maximum number of operations in a filter chain.
@@ -277,39 +277,26 @@ void d_filter_operation_free(struct d_filter_operation* _op);
 // i.    chain creation
 struct d_filter_chain* d_filter_chain_new(void);
 struct d_filter_chain* d_filter_chain_new_with_capacity(size_t _capacity);
-struct d_filter_chain* d_filter_chain_clone(
-                           const struct d_filter_chain* _chain);
+struct d_filter_chain* d_filter_chain_clone(const struct d_filter_chain* _chain);
 
 // ii.   adding operations (generic)
-bool d_filter_chain_add(struct d_filter_chain* _chain,
-                         const struct d_filter_operation* _op);
+bool d_filter_chain_add(struct d_filter_chain* _chain, const struct d_filter_operation* _op);
 
 // iii.  convenience add helpers
-bool d_filter_chain_add_take_first(struct d_filter_chain* _chain,
-                                    size_t _n);
-bool d_filter_chain_add_take_last(struct d_filter_chain* _chain,
-                                   size_t _n);
-bool d_filter_chain_add_skip_first(struct d_filter_chain* _chain,
-                                    size_t _n);
-bool d_filter_chain_add_skip_last(struct d_filter_chain* _chain,
-                                   size_t _n);
-bool d_filter_chain_add_range(struct d_filter_chain* _chain,
-                               size_t _start, size_t _end);
-bool d_filter_chain_add_where(struct d_filter_chain* _chain,
-                               fn_predicate _test);
-bool d_filter_chain_add_where_context(struct d_filter_chain* _chain,
-                                   fn_predicate _test, void* _context);
+bool d_filter_chain_add_take_first(struct d_filter_chain* _chain, size_t _n);
+bool d_filter_chain_add_take_last(struct d_filter_chain* _chain, size_t _n);
+bool d_filter_chain_add_skip_first(struct d_filter_chain* _chain, size_t _n);
+bool d_filter_chain_add_skip_last(struct d_filter_chain* _chain, size_t _n);
+bool d_filter_chain_add_range(struct d_filter_chain* _chain, size_t _start, size_t _end);
+bool d_filter_chain_add_where(struct d_filter_chain* _chain, fn_predicate _test);
+bool d_filter_chain_add_where_context(struct d_filter_chain* _chain, fn_predicate _test, void* _context);
 
 // iv.   combining chains
-struct d_filter_chain* d_filter_chain_concat(
-                           const struct d_filter_chain* _first,
-                           const struct d_filter_chain* _second);
-bool d_filter_chain_append(struct d_filter_chain* _dest,
-                            const struct d_filter_chain* _source);
+struct d_filter_chain* d_filter_chain_concat(const struct d_filter_chain* _first, const struct d_filter_chain* _second);
+bool d_filter_chain_append(struct d_filter_chain* _dest, const struct d_filter_chain* _source);
 
 // v.    chain manipulation
-bool d_filter_chain_insert(struct d_filter_chain* _chain, size_t _index,
-                            const struct d_filter_operation* _op);
+bool d_filter_chain_insert(struct d_filter_chain* _chain, size_t _index, const struct d_filter_operation* _op);
 bool d_filter_chain_remove(struct d_filter_chain* _chain, size_t _index);
 void d_filter_chain_clear(struct d_filter_chain* _chain);
 
@@ -356,25 +343,17 @@ struct d_filter_difference
 
 // i.    combinator creation
 struct d_filter_union*        d_filter_union_new(size_t _capacity);
-struct d_filter_intersection* d_filter_intersection_new(
-                                  size_t _capacity);
-struct d_filter_difference*   d_filter_difference_new(
-                                  struct d_filter_chain* _include,
-                                  struct d_filter_chain* _exclude);
+struct d_filter_intersection* d_filter_intersection_new(size_t _capacity);
+struct d_filter_difference*   d_filter_difference_new(struct d_filter_chain* _include, struct d_filter_chain* _exclude);
 
 // ii.   adding filters to combinators
-bool d_filter_union_add(struct d_filter_union* _union,
-                         const struct d_filter_chain* _filter);
-bool d_filter_intersection_add(
-         struct d_filter_intersection* _intersection,
-         const struct d_filter_chain* _filter);
+bool d_filter_union_add(struct d_filter_union* _union, const struct d_filter_chain* _filter);
+bool d_filter_intersection_add(struct d_filter_intersection* _intersection, const struct d_filter_chain* _filter);
 
 // iii.  combinator cleanup
 void d_filter_union_free(struct d_filter_union* _union);
-void d_filter_intersection_free(
-         struct d_filter_intersection* _intersection);
-void d_filter_difference_free(
-         struct d_filter_difference* _difference);
+void d_filter_intersection_free(struct d_filter_intersection* _intersection);
+void d_filter_difference_free(struct d_filter_difference* _difference);
 
 
 ///////////////////////////////////////////////////////////////////////////////
