@@ -1,4 +1,4 @@
-#include ".\test_standalone_tests_sa.h"
+#include "./test_standalone_tests_sa.h"
 
 
 /******************************************************************************
@@ -262,7 +262,7 @@ d_tests_sa_standalone_runner_struct
   Tests the d_test_sa_runner structure.
   Tests the following:
   - Structure has expected members
-  - All members are accessible
+  - All members are accessible including options and failures
   - modules array has correct size
 */
 bool
@@ -340,13 +340,48 @@ d_tests_sa_standalone_runner_struct
         _counter) && result;
 
     // test 8: modules array has D_TEST_SA_MAX_MODULES elements
-    // verify by setting the last element
     runner.modules[D_TEST_SA_MAX_MODULES - 1].name = "last_module";
 
     result = d_assert_standalone(
         runner.modules[D_TEST_SA_MAX_MODULES - 1].name != NULL,
         "runner_modules_max_size",
         "modules array should have D_TEST_SA_MAX_MODULES elements",
+        _counter) && result;
+
+    // test 9: options member is accessible
+    runner.options.number_assertions = true;
+
+    result = d_assert_standalone(
+        runner.options.number_assertions == true,
+        "runner_options_accessible",
+        "options member should be accessible",
+        _counter) && result;
+
+    // test 10: options.output_file member is accessible
+    runner.options.output_file = NULL;
+
+    result = d_assert_standalone(
+        runner.options.output_file == NULL,
+        "runner_options_output_file_accessible",
+        "options.output_file member should be accessible",
+        _counter) && result;
+
+    // test 11: failures member is accessible
+    runner.failures.count = 0;
+
+    result = d_assert_standalone(
+        runner.failures.count == 0,
+        "runner_failures_accessible",
+        "failures member should be accessible",
+        _counter) && result;
+
+    // test 12: failures.entries member is accessible
+    runner.failures.entries = NULL;
+
+    result = d_assert_standalone(
+        runner.failures.entries == NULL,
+        "runner_failures_entries_accessible",
+        "failures.entries member should be accessible",
         _counter) && result;
 
     return result;

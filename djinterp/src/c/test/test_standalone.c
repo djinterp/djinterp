@@ -1,4 +1,4 @@
-#include "../../../inc/c/test/test_standalone.h"
+﻿#include "../../../../inc/djinterp/c/test/test_standalone.h"
 
 
 /******************************************************************************
@@ -17,6 +17,18 @@
                     __VA_ARGS__);                        \
         }                                               \
     } while (0)
+
+
+/******************************************************************************
+ * GLOBAL TEST STATE DEFINITIONS
+ *****************************************************************************/
+
+struct d_test_sa_options*      g_d_test_options          = NULL;
+struct d_test_sa_failure_list* g_d_test_failures         = NULL;
+const char*                    g_d_test_current_module   = NULL;
+size_t                         g_d_test_assertion_number = 0;
+size_t                         g_d_test_test_number      = 0;
+FILE*                          g_d_test_output_file      = NULL;
 
 
 /******************************************************************************
@@ -66,6 +78,479 @@ d_test_internal_strcat_safe
 
     return 0;
 }
+
+
+/******************************************************************************
+ * CLI OPTION FUNCTIONS
+ *****************************************************************************/
+
+/*
+d_test_sa_options_init
+  Initializes a test options struct to default values. All output features
+are enabled, numbering is disabled, and no output file is set.
+
+Parameter(s):
+  _options: the options struct to initialize
+Return:
+  none.
+*/
+void
+d_test_sa_options_init
+(
+    struct d_test_sa_options* _options
+)
+{
+    if (!_options)
+    {
+        return;
+    }
+
+    _options->number_assertions  = false;
+    _options->number_tests       = false;
+    _options->global_numbering   = false;
+    _options->show_info          = true;
+    _options->show_module_footer = true;
+    _options->list_failures      = false;
+    _options->output_file        = NULL;
+
+    return;
+}
+
+/*
+d_test_sa_options_parse
+  Parses command-line arguments into a test options struct.
+Recognized flags:
+  -na             number assertions
+  -nt             number unit tests
+  -gn             use global (continuous) numbering across modules
+  -ni             suppress [INFO] diagnostic lines
+  -nf             suppress per-module result footers
+  -lf             list all failures at end of run
+  -o <filepath>   mirror output to file
+  -h, --help      print usage and return false
+
+Parameter(s):
+  _options: options struct to populate (should be pre-initialized)
+  _argc:    argument count from main
+  _argv:    argument vector from main
+Return:
+  true if parsing succeeded and execution should continue, false if the
+program should exit (e.g. --help was requested).
+*/
+bool
+d_test_sa_options_parse
+(
+    struct d_test_sa_options* _options,
+    int                       _argc,
+    char*                     _argv[]
+)
+{
+    int i;
+
+    if ( (!_options) ||
+         (!_argv) )
+    {
+        return true;
+    }
+
+    for (i = 1; i < _argc; i++)
+    {
+        if (!_argv[i])
+        {
+            continue;
+        }
+
+        // -na : number assertions
+        if (strcmp(_argv[i], "-na") == 0)
+        {
+            _options->number_assertions = true;
+        }
+        // -nt : number unit tests
+        else if (strcmp(_argv[i], "-nt") == 0)
+        {
+            _options->number_tests = true;
+        }
+        // -gn : global numbering (continuous across modules)
+        else if (strcmp(_argv[i], "-gn") == 0)
+        {
+            _options->global_numbering = true;
+        }
+        // -ni : no info lines
+        else if (strcmp(_argv[i], "-ni") == 0)
+        {
+            _options->show_info = false;
+        }
+        // -nf : no per-module footers
+        else if (strcmp(_argv[i], "-nf") == 0)
+        {
+            _options->show_module_footer = false;
+        }
+        // -lf : list failures at end
+        else if (strcmp(_argv[i], "-lf") == 0)
+        {
+            _options->list_failures = true;
+        }
+        // -o <file> : output to file
+        else if (strcmp(_argv[i], "-o") == 0)
+        {
+            if (i + 1 < _argc)
+            {
+                i++;
+                _options->output_file = _argv[i];
+            }
+            else
+            {
+                printf("ERROR: -o requires a file path "
+                       "argument\n");
+
+                return false;
+            }
+        }
+        // -h / --help : print usage
+        else if ( (strcmp(_argv[i], "-h") == 0)    ||
+                  (strcmp(_argv[i], "--help") == 0) )
+        {
+            d_test_sa_options_print_usage(_argv[0]);
+
+            return false;
+        }
+        else
+        {
+            printf("WARNING: unknown option '%s' "
+                   "(ignored)\n",
+                   _argv[i]);
+        }
+    }
+
+    return true;
+}
+
+/*
+d_test_sa_options_print_usage
+  Prints a usage/help message listing all available CLI flags.
+
+Parameter(s):
+  _program_name: name of the executable (argv[0])
+Return:
+  none.
+*/
+void
+d_test_sa_options_print_usage
+(
+    const char* _program_name
+)
+{
+    if (!_program_name)
+    {
+        _program_name = "test_runner";
+    }
+
+    printf("\n");
+    printf("Usage: %s [options]\n", _program_name);
+    printf("\n");
+    printf("Options:\n");
+    printf("  -na          Number assertions in "
+           "output\n");
+    printf("  -nt          Number unit tests in "
+           "output\n");
+    printf("  -gn          Global numbering "
+           "(continuous across modules)\n");
+    printf("  -ni          Suppress [INFO] diagnostic "
+           "lines\n");
+    printf("  -nf          Suppress per-module result "
+           "footers\n");
+    printf("  -lf          List all failures at end "
+           "of run\n");
+    printf("  -o <file>    Mirror all output to "
+           "file\n");
+    printf("  -h, --help   Show this help message\n");
+    printf("\n");
+    printf("Defaults: no numbering, all output shown, "
+           "stdout only.\n");
+    printf("\n");
+
+    return;
+}
+
+
+/******************************************************************************
+ * FAILURE TRACKING FUNCTIONS
+ *****************************************************************************/
+
+/*
+d_test_sa_failure_list_init
+  Initializes a failure list to empty state with pre-allocated capacity.
+
+Parameter(s):
+  _list: the failure list to initialize
+Return:
+  none.
+*/
+void
+d_test_sa_failure_list_init
+(
+    struct d_test_sa_failure_list* _list
+)
+{
+    if (!_list)
+    {
+        return;
+    }
+
+    _list->count    = 0;
+    _list->capacity = 64;
+    _list->entries  = (struct d_test_sa_failure_entry*)
+        calloc(_list->capacity,
+               sizeof(struct d_test_sa_failure_entry));
+
+    // if alloc fails, set capacity to 0 (tracking disabled)
+    if (!_list->entries)
+    {
+        _list->capacity = 0;
+    }
+
+    return;
+}
+
+/*
+d_test_sa_failure_list_add
+  Records a failure entry. Grows the list if needed, up to
+D_TEST_SA_MAX_FAILURES.
+
+Parameter(s):
+  _list:    the failure list to add to
+  _module:  name of the module where the failure occurred
+  _name:    name of the assertion or test that failed
+  _message: failure message/description
+Return:
+  none.
+*/
+void
+d_test_sa_failure_list_add
+(
+    struct d_test_sa_failure_list* _list,
+    const char*                    _module,
+    const char*                    _name,
+    const char*                    _message
+)
+{
+    struct d_test_sa_failure_entry* new_entries;
+    size_t                         new_capacity;
+
+    if (!_list)
+    {
+        return;
+    }
+
+    // enforce hard limit
+    if (_list->count >= D_TEST_SA_MAX_FAILURES)
+    {
+        return;
+    }
+
+    // grow if needed
+    if (_list->count >= _list->capacity)
+    {
+        new_capacity = (_list->capacity > 0)
+                           ? _list->capacity * 2
+                           : 64;
+
+        if (new_capacity > D_TEST_SA_MAX_FAILURES)
+        {
+            new_capacity = D_TEST_SA_MAX_FAILURES;
+        }
+
+        new_entries =
+            (struct d_test_sa_failure_entry*)realloc(
+                _list->entries,
+                new_capacity *
+                    sizeof(struct d_test_sa_failure_entry));
+
+        if (!new_entries)
+        {
+            return;
+        }
+
+        _list->entries  = new_entries;
+        _list->capacity = new_capacity;
+    }
+
+    // store the entry (pointers only, no copies)
+    _list->entries[_list->count].module_name = _module;
+    _list->entries[_list->count].test_name   = _name;
+    _list->entries[_list->count].message     = _message;
+    _list->count++;
+
+    return;
+}
+
+/*
+d_test_sa_failure_list_print
+  Prints all recorded failures to stdout as a summary block.
+Does nothing if the list is empty.
+
+Parameter(s):
+  _list: the failure list to print
+Return:
+  none.
+*/
+void
+d_test_sa_failure_list_print
+(
+    const struct d_test_sa_failure_list* _list
+)
+{
+    size_t      i;
+    const char* mod;
+    const char* name;
+    const char* msg;
+
+    if ( (!_list)            ||
+         (_list->count == 0) )
+    {
+        return;
+    }
+
+    printf("\n");
+    printf("========================================"
+           "========================================\n");
+    printf("  FAILURE SUMMARY (%zu failure%s)\n",
+           _list->count,
+           (_list->count == 1) ? "" : "s");
+    printf("========================================"
+           "========================================\n");
+
+    for (i = 0; i < _list->count; i++)
+    {
+        mod = _list->entries[i].module_name
+                  ? _list->entries[i].module_name
+                  : "(unknown)";
+        name = _list->entries[i].test_name
+                   ? _list->entries[i].test_name
+                   : "(unnamed)";
+        msg = _list->entries[i].message
+                  ? _list->entries[i].message
+                  : "";
+
+        printf("  %3zu) [%s] %s", (i + 1), mod, name);
+
+        if (msg[0] != '\0')
+        {
+            printf(" - %s", msg);
+        }
+
+        printf("\n");
+    }
+
+    printf("========================================"
+           "========================================\n");
+
+    return;
+}
+
+/*
+d_test_sa_failure_list_print_file
+  Prints all recorded failures to a file stream as a summary
+block. Does nothing if the list is empty or the file is NULL.
+
+Parameter(s):
+  _file: the file stream to write to
+  _list: the failure list to print
+Return:
+  none.
+*/
+void
+d_test_sa_failure_list_print_file
+(
+    FILE*                                _file,
+    const struct d_test_sa_failure_list* _list
+)
+{
+    size_t      i;
+    const char* mod;
+    const char* name;
+    const char* msg;
+
+    if ( (!_file)            ||
+         (!_list)            ||
+         (_list->count == 0) )
+    {
+        return;
+    }
+
+    fprintf(_file, "\n");
+    fprintf(_file,
+            "========================================"
+            "========================================\n");
+    fprintf(_file, "  FAILURE SUMMARY (%zu failure%s)\n",
+            _list->count,
+            (_list->count == 1) ? "" : "s");
+    fprintf(_file,
+            "========================================"
+            "========================================\n");
+
+    for (i = 0; i < _list->count; i++)
+    {
+        mod = _list->entries[i].module_name
+                  ? _list->entries[i].module_name
+                  : "(unknown)";
+        name = _list->entries[i].test_name
+                   ? _list->entries[i].test_name
+                   : "(unnamed)";
+        msg = _list->entries[i].message
+                  ? _list->entries[i].message
+                  : "";
+
+        fprintf(_file, "  %3zu) [%s] %s",
+                (i + 1), mod, name);
+
+        if (msg[0] != '\0')
+        {
+            fprintf(_file, " - %s", msg);
+        }
+
+        fprintf(_file, "\n");
+    }
+
+    fprintf(_file,
+            "========================================"
+            "========================================\n");
+
+    return;
+}
+
+/*
+d_test_sa_failure_list_free
+  Frees all memory associated with a failure list.
+
+Parameter(s):
+  _list: the failure list to free
+Return:
+  none.
+*/
+void
+d_test_sa_failure_list_free
+(
+    struct d_test_sa_failure_list* _list
+)
+{
+    if (!_list)
+    {
+        return;
+    }
+
+    if (_list->entries)
+    {
+        free(_list->entries);
+        _list->entries = NULL;
+    }
+
+    _list->count    = 0;
+    _list->capacity = 0;
+
+    return;
+}
+
 
 /******************************************************************************
  * ASSERTION FUNCTION

@@ -1,4 +1,4 @@
-#include ".\test_standalone_tests_sa.h"
+#include "./test_standalone_tests_sa.h"
 
 
 /******************************************************************************
@@ -296,6 +296,65 @@ d_tests_sa_standalone_max_modules
 
 
 /*
+d_tests_sa_standalone_max_failures
+  Tests the D_TEST_SA_MAX_FAILURES constant.
+  Tests the following:
+  - Macro is defined
+  - Value is 512
+  - Value is positive
+  - Value is reasonable for failure tracking
+*/
+bool
+d_tests_sa_standalone_max_failures
+(
+    struct d_test_counter* _counter
+)
+{
+    bool result;
+
+    result = true;
+
+    // test 1: D_TEST_SA_MAX_FAILURES is defined
+    #ifdef D_TEST_SA_MAX_FAILURES
+        result = d_assert_standalone(
+            true,
+            "max_failures_defined",
+            "D_TEST_SA_MAX_FAILURES should be defined",
+            _counter) && result;
+    #else
+        result = d_assert_standalone(
+            false,
+            "max_failures_defined",
+            "D_TEST_SA_MAX_FAILURES should be defined",
+            _counter) && result;
+    #endif
+
+    // test 2: value is 512
+    result = d_assert_standalone(
+        D_TEST_SA_MAX_FAILURES == 512,
+        "max_failures_value",
+        "D_TEST_SA_MAX_FAILURES should be 512",
+        _counter) && result;
+
+    // test 3: value is positive
+    result = d_assert_standalone(
+        D_TEST_SA_MAX_FAILURES > 0,
+        "max_failures_positive",
+        "D_TEST_SA_MAX_FAILURES should be positive",
+        _counter) && result;
+
+    // test 4: value is >= MAX_MODULES
+    result = d_assert_standalone(
+        D_TEST_SA_MAX_FAILURES >= D_TEST_SA_MAX_MODULES,
+        "max_failures_gte_modules",
+        "MAX_FAILURES should be >= MAX_MODULES",
+        _counter) && result;
+
+    return result;
+}
+
+
+/*
 d_tests_sa_standalone_constant_all
   Aggregation function that runs all constant macro tests.
 */
@@ -316,6 +375,7 @@ d_tests_sa_standalone_constant_all
     result = d_tests_sa_standalone_line_width(_counter) && result;
     result = d_tests_sa_standalone_separators(_counter) && result;
     result = d_tests_sa_standalone_max_modules(_counter) && result;
+    result = d_tests_sa_standalone_max_failures(_counter) && result;
 
     return result;
 }
