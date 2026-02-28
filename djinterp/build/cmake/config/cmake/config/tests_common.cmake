@@ -189,6 +189,10 @@ function(djinterp_get_module_dependencies_default MODULE OUTPUT_VAR)
         # dfile depends on djinterp, dmemory, and string_fn
         set(DEPS "djinterp" "dmemory" "string_fn")
         
+    elseif(MODULE STREQUAL "dio")
+        # dio depends on djinterp
+        set(DEPS "djinterp")
+
     elseif(MODULE STREQUAL "dstring")
         # dstring depends on djinterp and dmemory
         set(DEPS "djinterp" "dmemory")
@@ -196,7 +200,66 @@ function(djinterp_get_module_dependencies_default MODULE OUTPUT_VAR)
     elseif(MODULE STREQUAL "dtime")
         # dtime depends on djinterp and dmemory
         set(DEPS "djinterp" "dmemory")
-        
+
+    elseif(MODULE STREQUAL "datomic")
+        # datomic depends on djinterp
+        set(DEPS "djinterp")
+
+    elseif(MODULE STREQUAL "dmutex")
+        # dmutex depends on djinterp
+        set(DEPS "djinterp")
+
+    elseif(MODULE STREQUAL "dconfig")
+        # dconfig depends on djinterp, dmemory, string_fn
+        set(DEPS "djinterp" "dmemory" "string_fn")
+
+    # --- container modules ---
+    elseif(MODULE STREQUAL "container" OR
+           MODULE STREQUAL "array_common" OR MODULE STREQUAL "array_filter" OR
+           MODULE STREQUAL "circular_array" OR MODULE STREQUAL "ptr_array" OR
+           MODULE STREQUAL "enum_map_entry" OR MODULE STREQUAL "min_enum_map" OR
+           MODULE STREQUAL "dictionary" OR MODULE STREQUAL "enum_map" OR
+           MODULE STREQUAL "registry_common" OR MODULE STREQUAL "registry" OR
+           MODULE STREQUAL "vector_common" OR MODULE STREQUAL "vector" OR
+           MODULE STREQUAL "ptr_vector")
+        set(DEPS "djinterp" "dmemory" "string_fn")
+
+    # --- functional modules ---
+    elseif(MODULE STREQUAL "functional" OR MODULE STREQUAL "functional_common")
+        set(DEPS "djinterp" "dmemory")
+
+    elseif(MODULE STREQUAL "compose")
+        set(DEPS "djinterp" "dmemory" "functional" "functional_common")
+
+    elseif(MODULE STREQUAL "filter")
+        set(DEPS "djinterp" "dmemory" "dio" "functional" "functional_common")
+
+    elseif(MODULE STREQUAL "fn_builder")
+        set(DEPS "djinterp" "dmemory" "functional" "functional_common")
+
+    elseif(MODULE STREQUAL "pipeline")
+        set(DEPS "djinterp" "dmemory" "functional" "functional_common" "compose")
+
+    elseif(MODULE STREQUAL "predicate")
+        set(DEPS "djinterp" "dmemory" "functional" "functional_common")
+
+    # --- event modules ---
+    elseif(MODULE STREQUAL "event" OR MODULE STREQUAL "event_table_common")
+        set(DEPS "djinterp" "dmemory" "string_fn")
+
+    elseif(MODULE STREQUAL "event_table")
+        set(DEPS "djinterp" "dmemory" "event_table_common" "event")
+
+    elseif(MODULE STREQUAL "event_handler")
+        set(DEPS "djinterp" "dmemory" "event_table" "event")
+
+    # --- test framework modules ---
+    elseif(MODULE STREQUAL "test_common" OR MODULE STREQUAL "test_standalone" OR
+           MODULE STREQUAL "test_config" OR MODULE STREQUAL "test_cvar" OR
+           MODULE STREQUAL "test_module" OR MODULE STREQUAL "test_assert" OR
+           MODULE STREQUAL "assert_tests_sa")
+        set(DEPS "djinterp" "dmemory" "string_fn")
+
     else()
         message(WARNING "Unknown module: ${MODULE}, assuming depends on djinterp only")
         set(DEPS "djinterp")
