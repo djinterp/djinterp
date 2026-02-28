@@ -1,4 +1,4 @@
-#include ".\test_common_tests_sa.h"
+#include "./test_common_tests_sa.h"
 
 
 /******************************************************************************

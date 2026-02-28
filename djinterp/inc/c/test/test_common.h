@@ -16,16 +16,12 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include "..\djinterp.h"
-#include "..\container\map\min_enum_map.h"
+#include <string.h>
+#include "../djinterp.h"
+#include "../container/map/min_enum_map.h"
 
-
-#define D_KEYWORD_TEST_ASSERTION   assertion
-#define D_KEYWORD_TEST_TEST_FN     test_fn
-#define D_KEYWORD_TEST_TEST        test
-#define D_KEYWORD_TEST_BLOCK       block
-#define D_KEYWORD_TEST_MODULE      module
 
 // D_TEST_PASS
 //   definition: evaluates in an evaluation, assertion, test, etc. passing
@@ -36,6 +32,12 @@
 //   definition: evaluates in an evaluation, assertion, test, etc. failing
 // to have the desired outcome.
 #define D_TEST_FAIL D_FAILURE
+
+#define D_KEYWORD_TEST_ASSERTION   assertion
+#define D_KEYWORD_TEST_TEST_FN     test_fn
+#define D_KEYWORD_TEST_TEST        test
+#define D_KEYWORD_TEST_BLOCK       block
+#define D_KEYWORD_TEST_MODULE      module
 
 // d_test_id
 //   type: 
