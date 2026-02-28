@@ -23,24 +23,12 @@ project(djinterp-c-functional VERSION 0.1 LANGUAGES C CXX)
 
 ###############################################################################
 # DIRECTORY SETUP
-#
-# Functional source/header files live under src/c/functional/ and
-# inc/c/functional/.  Tests live under tests/c/functional/.
-#
-# Parent scope (c/CMakeLists.txt) provides:
-#   C_SOURCE_DIR, C_INCLUDE_DIR, C_TEST_DIR,
-#   C_TEST_FRAMEWORK_SRC_DIR, C_TEST_FRAMEWORK_INC_DIR,
-#   C_CONFIG_TEST_DIR, DJINTERP_ROOT, PLATFORM_ARCH
 ###############################################################################
 
-# Determine the project root if not inherited (standalone invocation)
-# This file is at: <root>/build/cmake/config/c/functional/CMakeLists.txt
-#   functional -> c -> config -> cmake -> build -> <root>  (5 levels)
 if(NOT DEFINED DJINTERP_ROOT)
     get_filename_component(DJINTERP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../../.." ABSOLUTE)
 endif()
 
-# Parent-level C directories
 if(NOT DEFINED C_SOURCE_DIR)
     set(C_SOURCE_DIR "${DJINTERP_ROOT}/src/c")
 endif()
@@ -60,10 +48,6 @@ if(NOT DEFINED C_CONFIG_TEST_DIR)
     set(C_CONFIG_TEST_DIR "${DJINTERP_ROOT}/.config/.msvs/testing/c")
 endif()
 
-# Local aliases expected by tests_standalone.cmake / tests_common.cmake
-# SOURCE_DIR points at the functional subdirectory (where .c files live)
-# INCLUDE_DIR points at the C include root (headers are included as
-#   "functional/compose.h" etc.)
 set(SOURCE_DIR              "${C_SOURCE_DIR}/functional")
 set(INCLUDE_DIR             "${C_INCLUDE_DIR}")
 set(TEST_DIR                "${C_TEST_DIR}/functional")
@@ -71,10 +55,8 @@ set(TEST_FRAMEWORK_SRC_DIR  "${C_TEST_FRAMEWORK_SRC_DIR}")
 set(TEST_FRAMEWORK_INC_DIR  "${C_TEST_FRAMEWORK_INC_DIR}")
 set(CONFIG_TEST_DIR         "${C_CONFIG_TEST_DIR}/functional")
 
-# Parent-level test dir for shared test headers
 set(C_TEST_BASE_DIR "${DJINTERP_ROOT}/tests/c")
 
-# Detect platform if not inherited
 if(NOT DEFINED PLATFORM_ARCH)
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(PLATFORM_ARCH "x64")
@@ -95,13 +77,9 @@ foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${DJINTERP_ROOT}/lib/c/functional")
 endforeach()
 
-# Include shared cmake utilities
-# From config/c/functional/ we go up 2 levels to reach config/
-#   functional -> c -> config
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../common.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../tests_standalone.cmake)
 
-# Print configuration
 message(STATUS "  ---- Functional Component ----")
 message(STATUS "  Source dir:        ${SOURCE_DIR}")
 message(STATUS "  Include dir:       ${INCLUDE_DIR}")
@@ -114,53 +92,53 @@ message(STATUS "  Lib dir:           ${DJINTERP_ROOT}/lib/c/functional")
 # FUNCTIONAL LIBRARIES
 ###############################################################################
 
-# functional module (base types and dispatch)
 if(NOT TARGET functional)
     add_library(functional STATIC "${SOURCE_DIR}/functional.c")
     target_include_directories(functional PUBLIC ${C_INCLUDE_DIR})
     target_link_libraries(functional PUBLIC djinterp dmemory)
+    target_compile_definitions(functional PRIVATE D_TESTING=1)
 endif()
 
-# functional_common module (shared helpers — identity, fold, quantifiers, etc.)
 if(NOT TARGET functional_common)
     add_library(functional_common STATIC "${SOURCE_DIR}/functional_common.c")
     target_include_directories(functional_common PUBLIC ${C_INCLUDE_DIR})
     target_link_libraries(functional_common PUBLIC functional djinterp dmemory)
+    target_compile_definitions(functional_common PRIVATE D_TESTING=1)
 endif()
 
-# compose module (function composition and transformers)
 if(NOT TARGET compose)
     add_library(compose STATIC "${SOURCE_DIR}/compose.c")
     target_include_directories(compose PUBLIC ${C_INCLUDE_DIR})
     target_link_libraries(compose PUBLIC functional functional_common djinterp dmemory)
+    target_compile_definitions(compose PRIVATE D_TESTING=1)
 endif()
 
-# filter module (filter builders, combinators, iterators)
 if(NOT TARGET filter)
     add_library(filter STATIC "${SOURCE_DIR}/filter.c")
     target_include_directories(filter PUBLIC ${C_INCLUDE_DIR})
     target_link_libraries(filter PUBLIC functional functional_common djinterp dmemory dio)
+    target_compile_definitions(filter PRIVATE D_TESTING=1)
 endif()
 
-# fn_builder module (generic function builder / closure construction)
 if(NOT TARGET fn_builder)
     add_library(fn_builder STATIC "${SOURCE_DIR}/fn_builder.c")
     target_include_directories(fn_builder PUBLIC ${C_INCLUDE_DIR})
     target_link_libraries(fn_builder PUBLIC functional functional_common djinterp dmemory)
+    target_compile_definitions(fn_builder PRIVATE D_TESTING=1)
 endif()
 
-# pipeline module (staged pipeline creation and execution)
 if(NOT TARGET pipeline)
     add_library(pipeline STATIC "${SOURCE_DIR}/pipeline.c")
     target_include_directories(pipeline PUBLIC ${C_INCLUDE_DIR})
     target_link_libraries(pipeline PUBLIC functional functional_common compose djinterp dmemory)
+    target_compile_definitions(pipeline PRIVATE D_TESTING=1)
 endif()
 
-# predicate module (predicate constructors, evaluators, macros)
 if(NOT TARGET predicate)
     add_library(predicate STATIC "${SOURCE_DIR}/predicate.c")
     target_include_directories(predicate PUBLIC ${C_INCLUDE_DIR})
     target_link_libraries(predicate PUBLIC functional functional_common djinterp dmemory)
+    target_compile_definitions(predicate PRIVATE D_TESTING=1)
 endif()
 
 ###############################################################################
@@ -173,9 +151,6 @@ endif()
 
 ###############################################################################
 # TEST SUPPORT LIBRARY
-#
-# If test-standalone-support was already created by core, reuse it.
-# Otherwise create it here (for standalone invocation).
 ###############################################################################
 
 if(NOT TARGET test-standalone-support)
@@ -210,19 +185,13 @@ endif()
 
 ###############################################################################
 # TEST EXECUTABLES
-#
-# Each functional module gets a standalone test executable.
-# Naming convention: djinterp-c-<module>-tests-sa-<arch>
 ###############################################################################
 
-# --- helper macro to reduce repetition ---
+# --- helper macro ---
 macro(_functional_add_test MODULE_NAME)
     set(_extra_args ${ARGN})
-
-    # Convert underscores to hyphens for the .config directory name
     djinterp_module_name_to_path("${MODULE_NAME}" _path_name)
     set(_main "${CONFIG_TEST_DIR}/djinterp-c-functional-${_path_name}-tests-sa/main.c")
-
     if(EXISTS "${_main}")
         djinterp_add_standalone_test(
             MODULE_NAME ${MODULE_NAME}
@@ -270,6 +239,58 @@ _functional_add_test(predicate
     EXTRA_LIBS predicate functional functional_common)
 
 ###############################################################################
+# COMBINED TEST EXECUTABLE: functional-tests-sa-all
+###############################################################################
+
+set(FUNC_ALL_MAIN "${CONFIG_TEST_DIR}/djinterp-c-functional-tests-sa-all/main.c")
+if(EXISTS "${FUNC_ALL_MAIN}")
+    file(GLOB FUNC_ALL_TEST_FILES "${TEST_DIR}/*_tests_sa*.c")
+
+    set(FUNC_ALL_FILTERED "")
+    foreach(FILE ${FUNC_ALL_TEST_FILES})
+        get_filename_component(FILENAME "${FILE}" NAME)
+        if(NOT FILENAME MATCHES "_main\\.c$")
+            list(APPEND FUNC_ALL_FILTERED "${FILE}")
+        endif()
+    endforeach()
+
+    set(FUNC_ALL_TARGET "djinterp-c-functional-tests-sa-all-${PLATFORM_ARCH}")
+
+    add_executable(${FUNC_ALL_TARGET}
+        "${FUNC_ALL_MAIN}"
+        ${FUNC_ALL_FILTERED}
+    )
+
+    target_include_directories(${FUNC_ALL_TARGET} PRIVATE
+        ${INCLUDE_DIR}
+        ${TEST_FRAMEWORK_INC_DIR}
+        ${C_TEST_BASE_DIR}
+        ${TEST_DIR}
+    )
+
+    target_compile_definitions(${FUNC_ALL_TARGET} PRIVATE D_TESTING=1)
+
+    if(MSVC)
+        target_compile_options(${FUNC_ALL_TARGET} PRIVATE /FS)
+        set_target_properties(${FUNC_ALL_TARGET} PROPERTIES
+            COMPILE_PDB_NAME "${FUNC_ALL_TARGET}"
+            COMPILE_PDB_OUTPUT_DIRECTORY
+                "${CMAKE_CURRENT_BINARY_DIR}/${FUNC_ALL_TARGET}.dir"
+        )
+    endif()
+
+    target_link_libraries(${FUNC_ALL_TARGET} PRIVATE
+        test-standalone-support
+        filter predicate compose fn_builder pipeline
+        functional functional_common dio
+    )
+
+    message(STATUS "  Created test executable: ${FUNC_ALL_TARGET}")
+else()
+    message(STATUS "  Skipping functional-tests-sa-all (no main.c at ${FUNC_ALL_MAIN})")
+endif()
+
+###############################################################################
 # SUMMARY
 ###############################################################################
 
@@ -277,6 +298,6 @@ message(STATUS "")
 message(STATUS "  Functional Build Summary:")
 message(STATUS "    Libraries:        functional, functional_common, compose,")
 message(STATUS "                      filter, fn_builder, pipeline, predicate")
-message(STATUS "    Test executables:  6")
+message(STATUS "    Test executables:  6 individual + 1 combined")
 message(STATUS "    Test framework:    Standalone (library-based)")
 message(STATUS "")

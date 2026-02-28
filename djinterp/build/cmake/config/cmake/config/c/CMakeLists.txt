@@ -78,20 +78,27 @@ endif()
 #
 # Each submodule defines its own libraries, test support, and test executables.
 # Variables prefixed with C_ are available in child scopes.
+#
+# NOTE: functional is built BEFORE container because container/array/array_filter
+#       tests link against filter, predicate, etc.
 ###############################################################################
 
 # Core C module — fundamental types and utilities
 #   Libraries: djinterp, env, dmacro, dmemory, string_fn, dfile, dstring, dtime
 add_subdirectory(core)
 
-# Container module — data structure implementations
-#   Libraries: container (enum_map_entry, min_enum_map, etc.)
-add_subdirectory(container)
-
 # Functional module — functional programming primitives
 #   Libraries: functional, functional_common, compose, filter, fn_builder,
 #              pipeline, predicate
 add_subdirectory(functional)
+
+# Container module — data structure implementations
+#   Libraries: container (enum_map_entry, min_enum_map, etc.)
+add_subdirectory(container)
+
+# Event module — event system
+#   Libraries: event, event_handler, event_table, event_table_common
+add_subdirectory(event)
 
 # Test framework module — standalone test infrastructure self-tests
 #   Libraries: test-standalone-support (if not already created by core)
@@ -123,6 +130,9 @@ set(DJINTERPC_CORE_SOURCES
     "${C_SOURCE_DIR}/dio.c"
     "${C_SOURCE_DIR}/dstring.c"
     "${C_SOURCE_DIR}/dtime.c"
+    "${C_SOURCE_DIR}/datomic.c"
+    "${C_SOURCE_DIR}/dmutex.c"
+    "${C_SOURCE_DIR}/dconfig.c"
 )
 
 # Collect container module sources
@@ -131,6 +141,14 @@ if(EXISTS "${C_SOURCE_DIR}/container")
     file(GLOB_RECURSE CONTAINER_C_FILES "${C_SOURCE_DIR}/container/*.c")
     list(APPEND DJINTERPC_CONTAINER_SOURCES ${CONTAINER_C_FILES})
 endif()
+
+# Collect event module sources
+set(DJINTERPC_EVENT_SOURCES
+    "${C_SOURCE_DIR}/event/event.c"
+    "${C_SOURCE_DIR}/event/event_handler.c"
+    "${C_SOURCE_DIR}/event/event_table.c"
+    "${C_SOURCE_DIR}/event/event_table_common.c"
+)
 
 # Collect functional module sources
 set(DJINTERPC_FUNCTIONAL_SOURCES
@@ -143,15 +161,25 @@ set(DJINTERPC_FUNCTIONAL_SOURCES
     "${C_SOURCE_DIR}/functional/predicate.c"
 )
 
+# Collect util module sources (if present)
+set(DJINTERPC_UTIL_SOURCES "")
+if(EXISTS "${C_SOURCE_DIR}/util")
+    file(GLOB_RECURSE UTIL_C_FILES "${C_SOURCE_DIR}/util/*.c")
+    list(APPEND DJINTERPC_UTIL_SOURCES ${UTIL_C_FILES})
+endif()
+
 # Object library for master-level aggregation
 add_library(djinterpc-objects OBJECT
     ${DJINTERPC_CORE_SOURCES}
     ${DJINTERPC_CONTAINER_SOURCES}
+    ${DJINTERPC_EVENT_SOURCES}
     ${DJINTERPC_FUNCTIONAL_SOURCES}
+    ${DJINTERPC_UTIL_SOURCES}
 )
 target_include_directories(djinterpc-objects PUBLIC
     ${C_INCLUDE_DIR}
 )
+target_compile_definitions(djinterpc-objects PRIVATE D_TESTING=1)
 
 # Static library: djinterpc.lib
 add_library(djinterpc STATIC $<TARGET_OBJECTS:djinterpc-objects>)
@@ -175,6 +203,6 @@ message(STATUS "Created combined C library: djinterpc.lib")
 
 message(STATUS "")
 message(STATUS "djinterp C Build Summary:")
-message(STATUS "  Submodules:       core, container, functional, test")
+message(STATUS "  Submodules:       core, functional, container, event, test")
 message(STATUS "  Combined library: djinterpc.lib")
 message(STATUS "")
