@@ -1,11 +1,12 @@
-/******************************************************************************
+﻿/******************************************************************************
 * djinterp [test]                                     test_standalone_tests_sa.h
 *
 *   Unit test declarations for `test_standalone.h` module.
 *   Provides comprehensive testing of all test_standalone functions including
 * assertion macros, test object constants, test counter operations, test object
 * creation/destruction, template substitution, print functions, output
-* functions, formatting functions, unified test runner, and utility functions.
+* functions, formatting functions, CLI options, failure tracking, global state,
+* unified test runner, and utility functions.
 *
 *
 * path:      \tests\test\test_standalone_tests_sa.h
@@ -19,8 +20,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\..\inc\c\test\test_standalone.h"
-#include "..\..\..\inc\c\string_fn.h"
+#include "../../../../inc/djinterp/c/test/test_standalone.h"
+#include "../../../../inc/djinterp/c/dstring.h"
 
 
 /******************************************************************************
@@ -54,6 +55,8 @@ bool d_tests_sa_standalone_line_width(struct d_test_counter* _counter);
 bool d_tests_sa_standalone_separators(struct d_test_counter* _counter);
 // D_TEST_SA_MAX_MODULES
 bool d_tests_sa_standalone_max_modules(struct d_test_counter* _counter);
+// D_TEST_SA_MAX_FAILURES
+bool d_tests_sa_standalone_max_failures(struct d_test_counter* _counter);
 
 // II.  aggregation function
 bool d_tests_sa_standalone_constant_all(struct d_test_counter* _counter);
@@ -168,6 +171,8 @@ bool d_tests_sa_standalone_template_all(struct d_test_counter* _counter);
  *****************************************************************************/
 // d_test_sa_runner_init function
 bool d_tests_sa_standalone_runner_init(struct d_test_counter* _counter);
+// d_test_sa_runner_set_options function
+bool d_tests_sa_standalone_runner_set_options(struct d_test_counter* _counter);
 // d_test_sa_runner_add_module function
 bool d_tests_sa_standalone_runner_add_module(struct d_test_counter* _counter);
 // d_test_sa_runner_add_module_counter function
@@ -188,9 +193,59 @@ bool d_tests_sa_standalone_runner_fn_all(struct d_test_counter* _counter);
  *****************************************************************************/
 // d_test_sa_get_elapsed_time function
 bool d_tests_sa_standalone_get_elapsed_time(struct d_test_counter* _counter);
+// d_test_sa_print_timestamp function
+bool d_tests_sa_standalone_print_timestamp(struct d_test_counter* _counter);
 
 // XII. aggregation function
 bool d_tests_sa_standalone_utility_all(struct d_test_counter* _counter);
+
+
+/******************************************************************************
+ * XIII. CLI OPTIONS TESTS
+ *****************************************************************************/
+// d_test_sa_options structure
+bool d_tests_sa_standalone_options_struct(struct d_test_counter* _counter);
+// d_test_sa_options_init function
+bool d_tests_sa_standalone_options_init(struct d_test_counter* _counter);
+// d_test_sa_options_parse function
+bool d_tests_sa_standalone_options_parse(struct d_test_counter* _counter);
+// d_test_sa_options_print_usage function
+bool d_tests_sa_standalone_options_print_usage(struct d_test_counter* _counter);
+
+// XIII. aggregation function
+bool d_tests_sa_standalone_options_all(struct d_test_counter* _counter);
+
+
+/******************************************************************************
+ * XIV. FAILURE TRACKING TESTS
+ *****************************************************************************/
+// d_test_sa_failure_entry structure
+bool d_tests_sa_standalone_failure_entry_struct(struct d_test_counter* _counter);
+// d_test_sa_failure_list structure
+bool d_tests_sa_standalone_failure_list_struct(struct d_test_counter* _counter);
+// d_test_sa_failure_list_init function
+bool d_tests_sa_standalone_failure_list_init(struct d_test_counter* _counter);
+// d_test_sa_failure_list_add function
+bool d_tests_sa_standalone_failure_list_add(struct d_test_counter* _counter);
+// d_test_sa_failure_list_print function
+bool d_tests_sa_standalone_failure_list_print_fn(struct d_test_counter* _counter);
+// d_test_sa_failure_list_print_file function
+bool d_tests_sa_standalone_failure_list_print_file_fn(struct d_test_counter* _counter);
+// d_test_sa_failure_list_free function
+bool d_tests_sa_standalone_failure_list_free(struct d_test_counter* _counter);
+
+// XIV. aggregation function
+bool d_tests_sa_standalone_failure_all(struct d_test_counter* _counter);
+
+
+/******************************************************************************
+ * XV. GLOBAL STATE TESTS
+ *****************************************************************************/
+// global variable accessibility
+bool d_tests_sa_standalone_global_state(struct d_test_counter* _counter);
+
+// XV.  aggregation function
+bool d_tests_sa_standalone_global_all(struct d_test_counter* _counter);
 
 
 /******************************************************************************
@@ -200,8 +255,3 @@ bool d_tests_sa_standalone_run_all(struct d_test_counter* _counter);
 
 
 #endif  // DJINTERP_TESTS_TEST_STANDALONE_SA_
-
-
-
-
-

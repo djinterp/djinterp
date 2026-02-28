@@ -1,4 +1,4 @@
-#include ".\test_standalone_tests_sa.h"
+#include "./test_standalone_tests_sa.h"
 
 
 /*
@@ -6,7 +6,8 @@ d_tests_sa_standalone_run_all
   Module-level aggregation function that runs all test_standalone tests.
   Executes tests for all categories:
   - Assertion macros (TRUE, FALSE, NULL, NOT_NULL, EQUAL, STR_EQUAL)
-  - Constant macros (LEAF, INTERIOR, LINE_WIDTH, separators, MAX_MODULES)
+  - Constant macros (LEAF, INTERIOR, LINE_WIDTH, separators, MAX_MODULES,
+    MAX_FAILURES)
   - Test counter operations (struct, reset, add)
   - Test object operations (struct, new_leaf, new_interior, add_child, free)
   - Results structures (module_results, suite_results)
@@ -15,8 +16,13 @@ d_tests_sa_standalone_run_all
   - Function pointer types (fn_print_object, fn_print_object_file)
   - Assertion function (d_assert_standalone)
   - Template substitution (d_test_substitute_template)
-  - Runner functions (init, add_module, set_wait, set_notes, cleanup)
-  - Utility functions (get_elapsed_time)
+  - Runner functions (init, set_options, add_module, set_wait, set_notes,
+    cleanup)
+  - Utility functions (get_elapsed_time, print_timestamp)
+  - CLI options (struct, init, parse, print_usage)
+  - Failure tracking (entry struct, list struct, init, add, print,
+    print_file, free)
+  - Global state (options, failures, module name, counters, output file)
 */
 bool
 d_tests_sa_standalone_run_all
@@ -41,6 +47,9 @@ d_tests_sa_standalone_run_all
     result = d_tests_sa_standalone_template_all(_counter) && result;
     result = d_tests_sa_standalone_runner_fn_all(_counter) && result;
     result = d_tests_sa_standalone_utility_all(_counter) && result;
+    result = d_tests_sa_standalone_options_all(_counter) && result;
+    result = d_tests_sa_standalone_failure_all(_counter) && result;
+    result = d_tests_sa_standalone_global_all(_counter) && result;
 
     return result;
 }

@@ -1,4 +1,4 @@
-/******************************************************************************
+﻿/******************************************************************************
 * djinterp [test]                                             test_standalone.h
 *
 *   Standalone test framework with simple tree structure for tests and 
@@ -17,12 +17,12 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\djinterp.h"
-#include "..\dmemory.h"
-#include "..\dfile.h"
-#include "..\dstring.h"
-#include "..\dtime.h"
-#include ".\test_common.h"
+#include "../../../../inc/djinterp/c/djinterp.h"
+#include "../../../../inc/djinterp/c/dmemory.h"
+#include "../../../../inc/djinterp/c/dfile.h"
+#include "../../../../inc/djinterp/c/dstring.h"
+#include "../../../../inc/djinterp/c/dtime.h"
+#include "./test_common.h"
 
 
 /******************************************************************************
@@ -31,35 +31,35 @@
 
 // D_ASSERT_TRUE
 //   macro: creates a leaf test object asserting that a condition is true.
-#define D_ASSERT_TRUE(_name, _condition, _message)          \
+#define D_ASSERT_TRUE(_name, _condition, _message)                          \
     d_test_object_new_leaf(_name, _message, (_condition))
 
 // D_ASSERT_FALSE
 //   macro: creates a leaf test object asserting that a condition is false.
-#define D_ASSERT_FALSE(_name, _condition, _message)         \
+#define D_ASSERT_FALSE(_name, _condition, _message)                         \
     d_test_object_new_leaf(_name, _message, !(_condition))
 
 // D_ASSERT_NULL
 //   macro: creates a leaf test object asserting that a pointer is NULL.
-#define D_ASSERT_NULL(_name, _ptr, _message)                \
+#define D_ASSERT_NULL(_name, _ptr, _message)                                \
     d_test_object_new_leaf(_name, _message, (_ptr) == NULL)
 
 // D_ASSERT_NOT_NULL
 //   macro: creates a leaf test object asserting that a pointer is not NULL.
-#define D_ASSERT_NOT_NULL(_name, _ptr, _message)            \
+#define D_ASSERT_NOT_NULL(_name, _ptr, _message)                            \
     d_test_object_new_leaf(_name, _message, (_ptr) != NULL)
 
 // D_ASSERT_EQUAL
 //   macro: creates a leaf test object asserting two values are equal.
-#define D_ASSERT_EQUAL(_name, _val1, _val2, _message)       \
+#define D_ASSERT_EQUAL(_name, _val1, _val2, _message)                       \
     d_test_object_new_leaf(_name, _message, (_val1) == (_val2))
 
 // D_ASSERT_STR_EQUAL
 //   macro: creates a leaf test object asserting two strings are equal.
-#define D_ASSERT_STR_EQUAL(_name, _str1, _str2, _message)   \
-    d_test_object_new_leaf(_name, _message,                 \
-        ( (_str1) &&                                        \
-          (_str2) &&                                        \
+#define D_ASSERT_STR_EQUAL(_name, _str1, _str2, _message)                   \
+    d_test_object_new_leaf(_name, _message,                                 \
+        ( (_str1) &&                                                        \
+          (_str2) &&                                                        \
           (strcmp(_str1, _str2) == 0)) )
 
 
@@ -81,17 +81,24 @@
 
 // D_TEST_SA_SEPARATOR_DOUBLE
 //   macro: double-line separator for major sections.
-#define D_TEST_SA_SEPARATOR_DOUBLE \
-    "================================================================================"
+#define D_TEST_SA_SEPARATOR_DOUBLE                                          \
+    "========================================"                              \
+    "========================================"
 
 // D_TEST_SA_SEPARATOR_SINGLE
 //   macro: single-line separator for minor sections.
-#define D_TEST_SA_SEPARATOR_SINGLE \
-    "--------------------------------------------------------------------------------"
+#define D_TEST_SA_SEPARATOR_SINGLE                                          \
+    "----------------------------------------"                              \
+    "----------------------------------------"                             
 
 // D_TEST_SA_MAX_MODULES
 //   constant: maximum number of modules that can be registered in a runner.
 #define D_TEST_SA_MAX_MODULES 64
+
+// D_TEST_SA_MAX_FAILURES
+//   constant: maximum number of individual failure entries that can be
+// tracked for the end-of-run failure summary.
+#define D_TEST_SA_MAX_FAILURES 512
 
 
 /******************************************************************************
@@ -126,6 +133,48 @@ struct d_test_object
     struct d_test_arg_list* args;       // optional arguments
     size_t                  count;      // number of children
     struct d_test_object**  elements;   // array of child pointers
+};
+
+
+/******************************************************************************
+ * CLI OPTIONS
+ *****************************************************************************/
+
+// d_test_sa_options
+//   struct: CLI-configurable options controlling test runner output
+// formatting and behavior. Parsed from main() arguments.
+struct d_test_sa_options
+{
+    bool        number_assertions;   // prefix assertions with index
+    bool        number_tests;        // prefix unit tests with index
+    bool        global_numbering;    // continuous numbering across modules
+    bool        show_info;           // display [INFO] diagnostic lines
+    bool        show_module_footer;  // display per-module result footer
+    bool        list_failures;       // print failure summary at end
+    const char* output_file;         // path to output file, NULL = none
+};
+
+
+/******************************************************************************
+ * FAILURE TRACKING
+ *****************************************************************************/
+
+// d_test_sa_failure_entry
+//   struct: records a single test failure for the end-of-run summary.
+struct d_test_sa_failure_entry
+{
+    const char* module_name;
+    const char* test_name;
+    const char* message;
+};
+
+// d_test_sa_failure_list
+//   struct: growable list of recorded failure entries.
+struct d_test_sa_failure_list
+{
+    size_t                          count;
+    size_t                          capacity;
+    struct d_test_sa_failure_entry* entries;
 };
 
 
@@ -214,14 +263,51 @@ struct d_test_sa_module_entry
 // execution, and result aggregation.
 struct d_test_sa_runner
 {
-    const char*                   suite_name;        // overall suite name
-    const char*                   suite_description; // suite description
-    size_t                        module_count;      // registered modules
-    struct d_test_sa_module_entry modules[D_TEST_SA_MAX_MODULES];
-    struct d_test_sa_suite_results results;          // aggregated results
-    bool                          wait_for_input;    // pause before exit
-    bool                          show_notes;        // display impl. notes
+    const char*                    suite_name;        // overall suite name
+    const char*                    suite_description; // suite description
+    size_t                         module_count;      // registered modules
+    struct d_test_sa_module_entry  modules[D_TEST_SA_MAX_MODULES];
+    struct d_test_sa_suite_results results;           // aggregated results
+    bool                           wait_for_input;    // pause before exit
+    bool                           show_notes;        // display impl. notes
+    struct d_test_sa_options       options;            // CLI options
+    struct d_test_sa_failure_list  failures;           // tracked failures
 };
+
+
+/******************************************************************************
+ * GLOBAL TEST STATE
+ *****************************************************************************/
+
+// g_d_test_options
+//   global: pointer to the active test options. Set by the runner before
+// module execution; read by assertion and print functions.
+extern struct d_test_sa_options*      g_d_test_options;
+
+// g_d_test_failures
+//   global: pointer to the active failure list. Set by the runner before
+// module execution; written to by assertion functions on failure.
+extern struct d_test_sa_failure_list* g_d_test_failures;
+
+// g_d_test_current_module
+//   global: name of the currently executing module. Set by the runner
+// before each module runs.
+extern const char*                    g_d_test_current_module;
+
+// g_d_test_assertion_number
+//   global: running assertion index. Incremented by assertion functions
+// when numbering is enabled.
+extern size_t                         g_d_test_assertion_number;
+
+// g_d_test_test_number
+//   global: running unit test index. Incremented by print/assert
+// functions when test numbering is enabled.
+extern size_t                         g_d_test_test_number;
+
+// g_d_test_output_file
+//   global: file stream for mirrored output. NULL when file output is
+// not active.
+extern FILE*                          g_d_test_output_file;
 
 
 /******************************************************************************
@@ -265,7 +351,7 @@ void                  d_test_object_add_child(struct d_test_object* _parent,
 // II.   test counter operations
 void d_test_counter_reset(struct d_test_counter* _counter);
 void d_test_counter_add(struct d_test_counter*       _dest,
-                        const struct d_test_counter* _src);
+                        const struct d_test_counter* _source);
 
 
 /******************************************************************************
@@ -343,13 +429,45 @@ void d_test_sa_create_final_status(const char* _framework_name,
 
 
 /******************************************************************************
+ * CLI OPTION FUNCTIONS
+ *****************************************************************************/
+
+// VIII. option initialization and parsing
+void d_test_sa_options_init(struct d_test_sa_options* _options);
+bool d_test_sa_options_parse(struct d_test_sa_options* _options,
+                             int                       _argc,
+                             char*                     _argv[]);
+void d_test_sa_options_print_usage(const char* _program_name);
+
+
+/******************************************************************************
+ * FAILURE TRACKING FUNCTIONS
+ *****************************************************************************/
+
+// IX.   failure list management
+void d_test_sa_failure_list_init(struct d_test_sa_failure_list* _list);
+void d_test_sa_failure_list_add(struct d_test_sa_failure_list* _list,
+                                const char*                    _module,
+                                const char*                    _name,
+                                const char*                    _message);
+void d_test_sa_failure_list_print(
+         const struct d_test_sa_failure_list* _list);
+void d_test_sa_failure_list_print_file(
+         FILE*                                _file,
+         const struct d_test_sa_failure_list* _list);
+void d_test_sa_failure_list_free(struct d_test_sa_failure_list* _list);
+
+
+/******************************************************************************
  * UNIFIED TEST RUNNER FUNCTIONS
  *****************************************************************************/
 
-// VIII. unified test runner
+// X.    unified test runner
 void d_test_sa_runner_init(struct d_test_sa_runner* _runner,
                            const char*              _suite_name,
                            const char*              _suite_description);
+void d_test_sa_runner_set_options(struct d_test_sa_runner*       _runner,
+                                  const struct d_test_sa_options* _options);
 void d_test_sa_runner_add_module(struct d_test_sa_runner*             _runner,
                                  const char*                          _name,
                                  const char*                          _description,
@@ -374,7 +492,7 @@ void d_test_sa_runner_cleanup(struct d_test_sa_runner* _runner);
  * UTILITY FUNCTIONS
  *****************************************************************************/
 
-// IX.   utility functions
+// XI.   utility functions
 void   d_test_sa_print_timestamp(void);
 double d_test_sa_get_elapsed_time(clock_t _start, clock_t _end);
 

@@ -1,4 +1,4 @@
-#include ".\test_standalone_tests_sa.h"
+#include "./test_standalone_tests_sa.h"
 
 
 /******************************************************************************
@@ -48,11 +48,11 @@ d_tests_sa_standalone_get_elapsed_time
         "end > start should return positive value",
         _counter) && result;
 
-    // test 3: returns approximately 1 second for CLOCKS_PER_SEC difference
+    // test 3: returns approximately 1 second for CLOCKS_PER_SEC
     result = d_assert_standalone(
         (elapsed >= 0.99) && (elapsed <= 1.01),
         "elapsed_time_one_second",
-        "CLOCKS_PER_SEC ticks should be approximately 1 second",
+        "CLOCKS_PER_SEC ticks should be ~1 second",
         _counter) && result;
 
     // test 4: works with actual clock values
@@ -71,7 +71,8 @@ d_tests_sa_standalone_get_elapsed_time
         }
 
         actual_end     = clock();
-        actual_elapsed = d_test_sa_get_elapsed_time(actual_start, actual_end);
+        actual_elapsed = d_test_sa_get_elapsed_time(actual_start,
+                                                     actual_end);
 
         result = d_assert_standalone(
             actual_elapsed >= 0.0,
@@ -88,7 +89,7 @@ d_tests_sa_standalone_get_elapsed_time
     result = d_assert_standalone(
         (elapsed >= 0.49) && (elapsed <= 0.51),
         "elapsed_time_half_second",
-        "Half CLOCKS_PER_SEC should be approximately 0.5 seconds",
+        "Half CLOCKS_PER_SEC should be ~0.5 seconds",
         _counter) && result;
 
     // test 6: handles multiple seconds
@@ -99,7 +100,47 @@ d_tests_sa_standalone_get_elapsed_time
     result = d_assert_standalone(
         (elapsed >= 4.99) && (elapsed <= 5.01),
         "elapsed_time_five_seconds",
-        "5 * CLOCKS_PER_SEC should be approximately 5 seconds",
+        "5 * CLOCKS_PER_SEC should be ~5 seconds",
+        _counter) && result;
+
+    return result;
+}
+
+
+/*
+d_tests_sa_standalone_print_timestamp
+  Tests the d_test_sa_print_timestamp function.
+  Tests the following:
+  - Function does not crash when called
+  - Function produces output (writes to stdout)
+*/
+bool
+d_tests_sa_standalone_print_timestamp
+(
+    struct d_test_counter* _counter
+)
+{
+    bool result;
+
+    result = true;
+
+    // test 1: function does not crash
+    d_test_sa_print_timestamp();
+
+    result = d_assert_standalone(
+        true,
+        "print_timestamp_no_crash",
+        "d_test_sa_print_timestamp should not crash",
+        _counter) && result;
+
+    // test 2: function can be called multiple times
+    d_test_sa_print_timestamp();
+    d_test_sa_print_timestamp();
+
+    result = d_assert_standalone(
+        true,
+        "print_timestamp_multiple_calls",
+        "print_timestamp should handle multiple calls",
         _counter) && result;
 
     return result;
@@ -124,6 +165,7 @@ d_tests_sa_standalone_utility_all
     printf("  ----------------------------\n");
 
     result = d_tests_sa_standalone_get_elapsed_time(_counter) && result;
+    result = d_tests_sa_standalone_print_timestamp(_counter) && result;
 
     return result;
 }

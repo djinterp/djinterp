@@ -1,4 +1,4 @@
-#include ".\test_standalone_tests_sa.h"
+#include "./test_standalone_tests_sa.h"
 
 
 /******************************************************************************
@@ -52,6 +52,9 @@ d_tests_sa_standalone_runner_init
   - Suite description is stored
   - module_count is initialized to 0
   - Default settings are applied
+  - Options are initialized to defaults
+  - Failure list is initialized
+  - Results are initialized
 */
 bool
 d_tests_sa_standalone_runner_init
@@ -96,7 +99,8 @@ d_tests_sa_standalone_runner_init
         _counter) && result;
 
     result = d_assert_standalone(
-        d_strcasecmp(runner.suite_description, "Suite Description") == 0,
+        d_strcasecmp(runner.suite_description,
+                     "Suite Description") == 0,
         "runner_init_description_value",
         "suite_description should match input",
         _counter) && result;
@@ -135,6 +139,149 @@ d_tests_sa_standalone_runner_init
         "results.totals should be reset",
         _counter) && result;
 
+    // test 8: options are initialized to defaults
+    result = d_assert_standalone(
+        runner.options.number_assertions == false,
+        "runner_init_options_num_assertions",
+        "options.number_assertions should default to false",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.show_info == true,
+        "runner_init_options_show_info",
+        "options.show_info should default to true",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.show_module_footer == true,
+        "runner_init_options_show_footer",
+        "options.show_module_footer should default to true",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.list_failures == false,
+        "runner_init_options_list_failures",
+        "options.list_failures should default to false",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.output_file == NULL,
+        "runner_init_options_output_file",
+        "options.output_file should default to NULL",
+        _counter) && result;
+
+    // test 9: failure list is initialized
+    result = d_assert_standalone(
+        runner.failures.count == 0,
+        "runner_init_failures_count",
+        "failures.count should be 0",
+        _counter) && result;
+
+    // cleanup failure list allocated by init
+    d_test_sa_failure_list_free(&runner.failures);
+
+    return result;
+}
+
+
+/*
+d_tests_sa_standalone_runner_set_options
+  Tests the d_test_sa_runner_set_options function.
+  Tests the following:
+  - NULL runner is handled safely
+  - NULL options is handled safely
+  - Options are copied to runner
+  - All option fields are transferred
+*/
+bool
+d_tests_sa_standalone_runner_set_options
+(
+    struct d_test_counter* _counter
+)
+{
+    bool                       result;
+    struct d_test_sa_runner    runner;
+    struct d_test_sa_options   opts;
+
+    result = true;
+
+    // test 1: NULL runner is handled safely
+    d_test_sa_options_init(&opts);
+    d_test_sa_runner_set_options(NULL, &opts);
+
+    result = d_assert_standalone(
+        true,
+        "runner_set_options_null_runner_safe",
+        "set_options with NULL runner should not crash",
+        _counter) && result;
+
+    // test 2: NULL options is handled safely
+    d_test_sa_runner_init(&runner, "Test", "Desc");
+    d_test_sa_runner_set_options(&runner, NULL);
+
+    result = d_assert_standalone(
+        true,
+        "runner_set_options_null_opts_safe",
+        "set_options with NULL options should not crash",
+        _counter) && result;
+
+    // test 3: options are copied to runner
+    d_test_sa_options_init(&opts);
+    opts.number_assertions  = true;
+    opts.number_tests       = true;
+    opts.global_numbering   = true;
+    opts.show_info          = false;
+    opts.show_module_footer = false;
+    opts.list_failures      = true;
+    opts.output_file        = "/tmp/test_output.txt";
+
+    d_test_sa_runner_set_options(&runner, &opts);
+
+    result = d_assert_standalone(
+        runner.options.number_assertions == true,
+        "runner_set_options_num_assertions",
+        "number_assertions should be copied",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.number_tests == true,
+        "runner_set_options_num_tests",
+        "number_tests should be copied",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.global_numbering == true,
+        "runner_set_options_global_num",
+        "global_numbering should be copied",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.show_info == false,
+        "runner_set_options_show_info",
+        "show_info should be copied",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.show_module_footer == false,
+        "runner_set_options_show_footer",
+        "show_module_footer should be copied",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.list_failures == true,
+        "runner_set_options_list_failures",
+        "list_failures should be copied",
+        _counter) && result;
+
+    result = d_assert_standalone(
+        runner.options.output_file != NULL,
+        "runner_set_options_output_file",
+        "output_file should be copied",
+        _counter) && result;
+
+    // cleanup failure list allocated by runner_init
+    d_test_sa_failure_list_free(&runner.failures);
+
     return result;
 }
 
@@ -160,7 +307,9 @@ d_tests_sa_standalone_runner_add_module
     result = true;
 
     // test 1: NULL runner is handled safely
-    d_test_sa_runner_add_module(NULL, "test", "desc", helper_runner_module_tree, 0, NULL);
+    d_test_sa_runner_add_module(NULL, "test", "desc",
+                                helper_runner_module_tree,
+                                0, NULL);
 
     result = d_assert_standalone(
         true,
@@ -170,7 +319,8 @@ d_tests_sa_standalone_runner_add_module
 
     // test 2: NULL run_fn is handled safely
     d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_add_module(&runner, "test", "desc", NULL, 0, NULL);
+    d_test_sa_runner_add_module(&runner, "test", "desc",
+                                NULL, 0, NULL);
 
     result = d_assert_standalone(
         runner.module_count == 0,
@@ -179,9 +329,9 @@ d_tests_sa_standalone_runner_add_module
         _counter) && result;
 
     // test 3: module is added correctly
-    d_test_sa_runner_init(&runner, "Test", "Desc");
     d_test_sa_runner_add_module(&runner, "module1", "Module 1",
-                                 helper_runner_module_tree, 0, NULL);
+                                helper_runner_module_tree,
+                                0, NULL);
 
     result = d_assert_standalone(
         runner.module_count == 1,
@@ -198,7 +348,8 @@ d_tests_sa_standalone_runner_add_module
 
     // test 5: module description is stored
     result = d_assert_standalone(
-        d_strcasecmp(runner.modules[0].description, "Module 1") == 0,
+        d_strcasecmp(runner.modules[0].description,
+                     "Module 1") == 0,
         "runner_add_module_description",
         "Module description should be stored",
         _counter) && result;
@@ -219,13 +370,17 @@ d_tests_sa_standalone_runner_add_module
 
     // test 8: multiple modules can be added
     d_test_sa_runner_add_module(&runner, "module2", "Module 2",
-                                 helper_runner_module_tree, 0, NULL);
+                                helper_runner_module_tree,
+                                0, NULL);
 
     result = d_assert_standalone(
         runner.module_count == 2,
         "runner_add_module_multiple",
         "Should be able to add multiple modules",
         _counter) && result;
+
+    // cleanup failure list allocated by runner_init
+    d_test_sa_failure_list_free(&runner.failures);
 
     return result;
 }
@@ -252,7 +407,8 @@ d_tests_sa_standalone_runner_add_module_counter
 
     // test 1: NULL runner is handled safely
     d_test_sa_runner_add_module_counter(NULL, "test", "desc",
-                                         helper_runner_module_counter, 0, NULL);
+                                        helper_runner_module_counter,
+                                        0, NULL);
 
     result = d_assert_standalone(
         true,
@@ -262,18 +418,21 @@ d_tests_sa_standalone_runner_add_module_counter
 
     // test 2: NULL run_fn is handled safely
     d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_add_module_counter(&runner, "test", "desc", NULL, 0, NULL);
+    d_test_sa_runner_add_module_counter(&runner, "test", "desc",
+                                        NULL, 0, NULL);
 
     result = d_assert_standalone(
         runner.module_count == 0,
         "runner_add_counter_null_fn_safe",
-        "add_module_counter with NULL run_fn should not add module",
+        "add_module_counter with NULL run_fn should not add",
         _counter) && result;
 
     // test 3: module is added correctly
-    d_test_sa_runner_init(&runner, "Test", "Desc");
-    d_test_sa_runner_add_module_counter(&runner, "counter_module", "Counter Module",
-                                         helper_runner_module_counter, 0, NULL);
+    d_test_sa_runner_add_module_counter(&runner,
+                                        "counter_module",
+                                        "Counter Module",
+                                        helper_runner_module_counter,
+                                        0, NULL);
 
     result = d_assert_standalone(
         runner.module_count == 1,
@@ -290,10 +449,14 @@ d_tests_sa_standalone_runner_add_module_counter
 
     // test 5: run_counter is stored
     result = d_assert_standalone(
-        runner.modules[0].run_counter == helper_runner_module_counter,
+        runner.modules[0].run_counter ==
+            helper_runner_module_counter,
         "runner_add_counter_run_counter",
         "run_counter should be stored",
         _counter) && result;
+
+    // cleanup failure list allocated by runner_init
+    d_test_sa_failure_list_free(&runner.failures);
 
     return result;
 }
@@ -324,7 +487,7 @@ d_tests_sa_standalone_runner_set_wait
     result = d_assert_standalone(
         true,
         "runner_set_wait_null_safe",
-        "set_wait_for_input with NULL runner should not crash",
+        "set_wait_for_input with NULL should not crash",
         _counter) && result;
 
     // test 2: wait_for_input can be set to false
@@ -345,6 +508,9 @@ d_tests_sa_standalone_runner_set_wait
         "runner_set_wait_true",
         "wait_for_input should be set to true",
         _counter) && result;
+
+    // cleanup failure list allocated by runner_init
+    d_test_sa_failure_list_free(&runner.failures);
 
     return result;
 }
@@ -375,7 +541,7 @@ d_tests_sa_standalone_runner_set_notes
     result = d_assert_standalone(
         true,
         "runner_set_notes_null_safe",
-        "set_show_notes with NULL runner should not crash",
+        "set_show_notes with NULL should not crash",
         _counter) && result;
 
     // test 2: show_notes can be set to false
@@ -397,6 +563,9 @@ d_tests_sa_standalone_runner_set_notes
         "show_notes should be set to true",
         _counter) && result;
 
+    // cleanup failure list allocated by runner_init
+    d_test_sa_failure_list_free(&runner.failures);
+
     return result;
 }
 
@@ -407,6 +576,7 @@ d_tests_sa_standalone_runner_cleanup
   Tests the following:
   - NULL runner is handled safely
   - Cleanup with no allocated resources is safe
+  - Failure list is freed
 */
 bool
 d_tests_sa_standalone_runner_cleanup
@@ -428,7 +598,7 @@ d_tests_sa_standalone_runner_cleanup
         "d_test_sa_runner_cleanup(NULL) should not crash",
         _counter) && result;
 
-    // test 2: cleanup with no allocated resources is safe
+    // test 2: cleanup with initialized runner is safe
     d_test_sa_runner_init(&runner, "Test", "Desc");
     d_test_sa_runner_cleanup(&runner);
 
@@ -467,8 +637,10 @@ d_tests_sa_standalone_runner_fn_all
     printf("  ---------------------------\n");
 
     result = d_tests_sa_standalone_runner_init(_counter) && result;
+    result = d_tests_sa_standalone_runner_set_options(_counter) && result;
     result = d_tests_sa_standalone_runner_add_module(_counter) && result;
-    result = d_tests_sa_standalone_runner_add_module_counter(_counter) && result;
+    result = d_tests_sa_standalone_runner_add_module_counter(_counter)
+             && result;
     result = d_tests_sa_standalone_runner_set_wait(_counter) && result;
     result = d_tests_sa_standalone_runner_set_notes(_counter) && result;
     result = d_tests_sa_standalone_runner_cleanup(_counter) && result;
