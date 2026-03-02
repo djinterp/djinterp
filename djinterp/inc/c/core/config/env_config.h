@@ -12,7 +12,7 @@
 #ifndef DJINTERP_CONFIG_ENVIRONMENT_
 #define DJINTERP_CONFIG_ENVIRONMENT_ 1
 
-#include "..\..\dconfig.h"
+#include "../../../../inc/c/dconfig.h"
 
 
 // section bit positions for D_CFG_ENV_CUSTOM bitfield
