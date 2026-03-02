@@ -17,8 +17,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "..\djinterp.h"
-#include "..\container\map\min_enum_map.h"
+#include "../djinterp.h"
+#include "../container/map/min_enum_map.h"
 
 
 /******************************************************************************
@@ -31,12 +31,12 @@
 
 // D_TEST_SETTINGS_TO_FLAGS
 //   macro: shifts settings flags from bits 0-3 to bits 16-19
-#define D_TEST_SETTINGS_TO_FLAGS(settings) \
+#define D_TEST_SETTINGS_TO_FLAGS(settings)                                  \
     ((uint32_t)(settings) << D_TEST_SETTINGS_SHIFT)
 
 // D_TEST_FLAGS_TO_SETTINGS
 //   macro: extracts and shifts settings flags from bits 16-19 to bits 0-3
-#define D_TEST_FLAGS_TO_SETTINGS(flags) \
+#define D_TEST_FLAGS_TO_SETTINGS(flags)                                     \
     (((flags) & D_TEST_MASK_SETTINGS_FLAGS) >> D_TEST_SETTINGS_SHIFT)
 
 
@@ -130,9 +130,11 @@ enum DTestConfigKey
 
 // DTestMetadataFlag
 //   enum: common enum types for test tree metadata
+//   NOTE: starts at 0x100 to avoid collision with DTestConfigKey values
+//   in flag-based linear scans (d_test_registry_get/set/reset).
 enum DTestMetadataFlag
 {
-    D_TEST_METADATA_UNKNOWN = 0,
+    D_TEST_METADATA_UNKNOWN = 0x100,
     D_TEST_METADATA_AUTHORS,            // char*  - author(s)' name(s)
     D_TEST_METADATA_CATEGORY,           // char*  - test category
     D_TEST_METADATA_CUSTOM_DATA,        // void*  - arbitrary custom data
@@ -175,52 +177,52 @@ enum DTestEvent
 
  // D_TEST_MSG_COUNT_FAIL_ALL
  //   constant: count ALL failures (all counter fail flags)
-#define D_TEST_MSG_COUNT_FAIL_ALL               \
-    (D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |       \
-     D_TEST_MSG_FLAG_COUNT_TESTS_FAIL   |       \
-     D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL  |       \
+#define D_TEST_MSG_COUNT_FAIL_ALL                                           \
+    (D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |                                   \
+     D_TEST_MSG_FLAG_COUNT_TESTS_FAIL   |                                   \
+     D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL  |                                   \
      D_TEST_MSG_FLAG_COUNT_MODULES_FAIL)
 
 // D_TEST_MSG_COUNT_PASS_ALL
 //   constant: count all passes (all counter pass flags)
-#define D_TEST_MSG_COUNT_PASS_ALL               \
-    (D_TEST_MSG_FLAG_COUNT_ASSERTS_PASS |       \
-     D_TEST_MSG_FLAG_COUNT_TESTS_PASS   |       \
-     D_TEST_MSG_FLAG_COUNT_BLOCKS_PASS  |       \
+#define D_TEST_MSG_COUNT_PASS_ALL                                           \
+    (D_TEST_MSG_FLAG_COUNT_ASSERTS_PASS |                                   \
+     D_TEST_MSG_FLAG_COUNT_TESTS_PASS   |                                   \
+     D_TEST_MSG_FLAG_COUNT_BLOCKS_PASS  |                                   \
      D_TEST_MSG_FLAG_COUNT_MODULES_PASS)
 
 // D_TEST_MSG_COUNT_ALL
 //   constant: count everything (all counter flags)
-#define D_TEST_MSG_COUNT_ALL                    \
-    (D_TEST_MSG_COUNT_FAIL_ALL |                \
+#define D_TEST_MSG_COUNT_ALL                                                \
+    (D_TEST_MSG_COUNT_FAIL_ALL |                                            \
      D_TEST_MSG_COUNT_PASS_ALL)
 
 // D_TEST_MSG_PRINT_FAIL_ALL
 //   constant: print all failures (all print fail flags)
-#define D_TEST_MSG_PRINT_FAIL_ALL               \
-    (D_TEST_MSG_FLAG_PRINT_ASSERTS_FAIL |       \
-     D_TEST_MSG_FLAG_PRINT_TESTS_FAIL   |       \
-     D_TEST_MSG_FLAG_PRINT_BLOCKS_FAIL  |       \
+#define D_TEST_MSG_PRINT_FAIL_ALL                                           \
+    (D_TEST_MSG_FLAG_PRINT_ASSERTS_FAIL |                                   \
+     D_TEST_MSG_FLAG_PRINT_TESTS_FAIL   |                                   \
+     D_TEST_MSG_FLAG_PRINT_BLOCKS_FAIL  |                                   \
      D_TEST_MSG_FLAG_PRINT_MODULES_FAIL)
 
 // D_TEST_MSG_PRINT_PASS_ALL
 //   constant: print all passes (all print pass flags)
-#define D_TEST_MSG_PRINT_PASS_ALL               \
-    (D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS |       \
-     D_TEST_MSG_FLAG_PRINT_TESTS_PASS   |       \
-     D_TEST_MSG_FLAG_PRINT_BLOCKS_PASS  |       \
+#define D_TEST_MSG_PRINT_PASS_ALL                                           \
+    (D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS |                                   \
+     D_TEST_MSG_FLAG_PRINT_TESTS_PASS   |                                   \
+     D_TEST_MSG_FLAG_PRINT_BLOCKS_PASS  |                                   \
      D_TEST_MSG_FLAG_PRINT_MODULES_PASS)
 
 // D_TEST_MSG_PRINT_ALL
 //   constant: print everything (all print flags)
-#define D_TEST_MSG_PRINT_ALL                    \
-    (D_TEST_MSG_PRINT_FAIL_ALL |                \
+#define D_TEST_MSG_PRINT_ALL                                                \
+    (D_TEST_MSG_PRINT_FAIL_ALL |                                            \
      D_TEST_MSG_PRINT_PASS_ALL)
 
 // D_TEST_MSG_ALL
 //   constant: all message flags (counter + print)
-#define D_TEST_MSG_ALL                          \
-    (D_TEST_MSG_COUNT_ALL |                     \
+#define D_TEST_MSG_ALL                                                      \
+    (D_TEST_MSG_COUNT_ALL |                                                 \
      D_TEST_MSG_PRINT_ALL)
 
 
@@ -229,55 +231,55 @@ enum DTestEvent
  *****************************************************************************/
 
  // assertions - count and print
-#define D_TEST_MSG_ASSERTS_FAIL_ONLY            \
-    (D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |       \
-     D_TEST_MSG_FLAG_PRINT_ASSERTS_FAIL)
-
-#define D_TEST_MSG_ASSERTS_PASS_ONLY            \
-    (D_TEST_MSG_FLAG_COUNT_ASSERTS_PASS |       \
-     D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS)
-
-#define D_TEST_MSG_ASSERTS_ALL                  \
-    (D_TEST_MSG_ASSERTS_FAIL_ONLY |             \
-     D_TEST_MSG_ASSERTS_PASS_ONLY)
-
-// tests - count and print
-#define D_TEST_MSG_TESTS_FAIL_ONLY              \
-    (D_TEST_MSG_FLAG_COUNT_TESTS_FAIL |         \
-     D_TEST_MSG_FLAG_PRINT_TESTS_FAIL)
-
-#define D_TEST_MSG_TESTS_PASS_ONLY              \
-    (D_TEST_MSG_FLAG_COUNT_TESTS_PASS |         \
-     D_TEST_MSG_FLAG_PRINT_TESTS_PASS)
-
-#define D_TEST_MSG_TESTS_ALL                    \
-    (D_TEST_MSG_TESTS_FAIL_ONLY |               \
-     D_TEST_MSG_TESTS_PASS_ONLY)
-
-// test blocks - count and print
-#define D_TEST_MSG_BLOCKS_FAIL_ONLY             \
-    (D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL |        \
-     D_TEST_MSG_FLAG_PRINT_BLOCKS_FAIL)
-
-#define D_TEST_MSG_BLOCKS_PASS_ONLY             \
-    (D_TEST_MSG_FLAG_COUNT_BLOCKS_PASS |        \
-     D_TEST_MSG_FLAG_PRINT_BLOCKS_PASS)
-
-#define D_TEST_MSG_BLOCKS_ALL                   \
-    (D_TEST_MSG_BLOCKS_FAIL_ONLY |              \
-     D_TEST_MSG_BLOCKS_PASS_ONLY)
-
-// modules - count and print
-#define D_TEST_MSG_MODULES_FAIL_ONLY            \
-    (D_TEST_MSG_FLAG_COUNT_MODULES_FAIL |       \
-     D_TEST_MSG_FLAG_PRINT_MODULES_FAIL)
-
-#define D_TEST_MSG_MODULES_PASS_ONLY            \
-    (D_TEST_MSG_FLAG_COUNT_MODULES_PASS |       \
-     D_TEST_MSG_FLAG_PRINT_MODULES_PASS)
-
-#define D_TEST_MSG_MODULES_ALL                  \
-    (D_TEST_MSG_MODULES_FAIL_ONLY |             \
+#define D_TEST_MSG_ASSERTS_FAIL_ONLY                                        \
+    (D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |                                   \
+     D_TEST_MSG_FLAG_PRINT_ASSERTS_FAIL)                                    
+                                                                            
+#define D_TEST_MSG_ASSERTS_PASS_ONLY                                        \
+    (D_TEST_MSG_FLAG_COUNT_ASSERTS_PASS |                                   \
+     D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS)                                    
+                                                                            
+#define D_TEST_MSG_ASSERTS_ALL                                              \
+    (D_TEST_MSG_ASSERTS_FAIL_ONLY |                                         \
+     D_TEST_MSG_ASSERTS_PASS_ONLY)                                          
+                                                                            
+// tests - count and print                                                  
+#define D_TEST_MSG_TESTS_FAIL_ONLY                                          \
+    (D_TEST_MSG_FLAG_COUNT_TESTS_FAIL |                                     \
+     D_TEST_MSG_FLAG_PRINT_TESTS_FAIL)                                      
+                                                                            
+#define D_TEST_MSG_TESTS_PASS_ONLY                                          \
+    (D_TEST_MSG_FLAG_COUNT_TESTS_PASS |                                     \
+     D_TEST_MSG_FLAG_PRINT_TESTS_PASS)                                      
+                                                                            
+#define D_TEST_MSG_TESTS_ALL                                                \
+    (D_TEST_MSG_TESTS_FAIL_ONLY |                                           \
+     D_TEST_MSG_TESTS_PASS_ONLY)                                            
+                                                                            
+// test blocks - count and print                                            
+#define D_TEST_MSG_BLOCKS_FAIL_ONLY                                         \
+    (D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL |                                    \
+     D_TEST_MSG_FLAG_PRINT_BLOCKS_FAIL)                                     
+                                                                            
+#define D_TEST_MSG_BLOCKS_PASS_ONLY                                         \
+    (D_TEST_MSG_FLAG_COUNT_BLOCKS_PASS |                                    \
+     D_TEST_MSG_FLAG_PRINT_BLOCKS_PASS)                                     
+                                                                            
+#define D_TEST_MSG_BLOCKS_ALL                                               \
+    (D_TEST_MSG_BLOCKS_FAIL_ONLY |                                          \
+     D_TEST_MSG_BLOCKS_PASS_ONLY)                                           
+                                                                            
+// modules - count and print                                                
+#define D_TEST_MSG_MODULES_FAIL_ONLY                                        \
+    (D_TEST_MSG_FLAG_COUNT_MODULES_FAIL |                                   \
+     D_TEST_MSG_FLAG_PRINT_MODULES_FAIL)                                    
+                                                                            
+#define D_TEST_MSG_MODULES_PASS_ONLY                                        \
+    (D_TEST_MSG_FLAG_COUNT_MODULES_PASS |                                   \
+     D_TEST_MSG_FLAG_PRINT_MODULES_PASS)                                    
+                                                                            
+#define D_TEST_MSG_MODULES_ALL                                              \
+    (D_TEST_MSG_MODULES_FAIL_ONLY |                                         \
      D_TEST_MSG_MODULES_PASS_ONLY)
 
 
@@ -287,11 +289,11 @@ enum DTestEvent
 
  // D_TEST_SETTINGS_STACK_PUSH_ALL
  //   constant: stack push all message types
-#define D_TEST_SETTINGS_STACK_PUSH_ALL                  \
-    D_TEST_SETTINGS_TO_FLAGS(                           \
-        D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL    |       \
-        D_TEST_SETTINGS_FLAG_STACK_PUSH_PASS    |       \
-        D_TEST_SETTINGS_FLAG_STACK_PUSH_WARNING |       \
+#define D_TEST_SETTINGS_STACK_PUSH_ALL                                      \
+    D_TEST_SETTINGS_TO_FLAGS(                                               \
+        D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL    |                           \
+        D_TEST_SETTINGS_FLAG_STACK_PUSH_PASS    |                           \
+        D_TEST_SETTINGS_FLAG_STACK_PUSH_WARNING |                           \
         D_TEST_SETTINGS_FLAG_STACK_PUSH_INFO)
 
 
@@ -305,17 +307,17 @@ enum DTestEvent
 
 // D_TEST_MODE_MINIMAL
 //   constant: count failures, print test failures only
-#define D_TEST_MODE_MINIMAL                     \
-    (D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |       \
-     D_TEST_MSG_FLAG_COUNT_TESTS_FAIL   |       \
-     D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL  |       \
-     D_TEST_MSG_FLAG_COUNT_MODULES_FAIL |       \
+#define D_TEST_MODE_MINIMAL                                                 \
+    (D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |                                   \
+     D_TEST_MSG_FLAG_COUNT_TESTS_FAIL   |                                   \
+     D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL  |                                   \
+     D_TEST_MSG_FLAG_COUNT_MODULES_FAIL |                                   \
      D_TEST_MSG_FLAG_PRINT_TESTS_FAIL)
 
 // D_TEST_MODE_NORMAL
 //   constant: count everything, print failures
-#define D_TEST_MODE_NORMAL                      \
-    (D_TEST_MSG_COUNT_ALL |                     \
+#define D_TEST_MODE_NORMAL                                                  \
+    (D_TEST_MSG_COUNT_ALL |                                                 \
      D_TEST_MSG_PRINT_FAIL_ALL)
 
 // D_TEST_MODE_VERBOSE
@@ -339,37 +341,37 @@ enum DTestEvent
 
   // D_TEST_HAS_FLAG
   //   macro: check if specific flag is set (all bits of flag must match)
-#define D_TEST_HAS_FLAG(test_config, flag_mask) \
+#define D_TEST_HAS_FLAG(test_config, flag_mask)                             \
     (((test_config)->flags & (flag_mask)) == (flag_mask))
 
 // D_TEST_HAS_ANY_FLAG
 //   macro: check if any of the flags are set
-#define D_TEST_HAS_ANY_FLAG(test_config, flag_mask) \
+#define D_TEST_HAS_ANY_FLAG(test_config, flag_mask)                         \
     (((test_config)->flags & (flag_mask)) != 0)
 
 // D_TEST_GET_MESSAGE_FLAGS
 //   macro: extract just the message flags (bits 0-15)
-#define D_TEST_GET_MESSAGE_FLAGS(test_config) \
+#define D_TEST_GET_MESSAGE_FLAGS(test_config)                               \
     ((test_config)->flags & D_TEST_MASK_MESSAGE_FLAGS)
 
 // D_TEST_GET_SETTINGS_FLAGS
 //   macro: extract just the settings flags (bits 16-31)
-#define D_TEST_GET_SETTINGS_FLAGS(test_config) \
+#define D_TEST_GET_SETTINGS_FLAGS(test_config)                              \
     ((test_config)->flags & D_TEST_MASK_SETTINGS_FLAGS)
 
 // D_TEST_IS_SILENT
 //   macro: check if in silent mode (no message flags set)
-#define D_TEST_IS_SILENT(test_config) \
+#define D_TEST_IS_SILENT(test_config)                                       \
     (D_TEST_GET_MESSAGE_FLAGS(test_config) == 0)
 
 // D_TEST_IS_VERBOSE
 //   macro: check if in verbose mode (all message flags set)
-#define D_TEST_IS_VERBOSE(test_config) \
+#define D_TEST_IS_VERBOSE(test_config)                                      \
     ((D_TEST_GET_MESSAGE_FLAGS(test_config) & D_TEST_MSG_ALL) == D_TEST_MSG_ALL)
 
 // D_TEST_IS_MODE
 //   macro: check if mode matches exactly
-#define D_TEST_IS_MODE(test_config, mode) \
+#define D_TEST_IS_MODE(test_config, mode)                                   \
     (D_TEST_GET_MESSAGE_FLAGS(test_config) == (mode))
 
 
@@ -378,65 +380,65 @@ enum DTestEvent
  *****************************************************************************/
 
  // counter semantic checks
-#define D_TEST_SHOULD_COUNT_FAILURES(config)  \
+#define D_TEST_SHOULD_COUNT_FAILURES(config)                                \
     D_TEST_HAS_ANY_FLAG(config, D_TEST_MSG_COUNT_FAIL_ALL)
 
-#define D_TEST_SHOULD_COUNT_PASSES(config)  \
+#define D_TEST_SHOULD_COUNT_PASSES(config)                                  \
     D_TEST_HAS_ANY_FLAG(config, D_TEST_MSG_COUNT_PASS_ALL)
 
-#define D_TEST_SHOULD_COUNT_ASSERTS_FAIL(config)  \
+#define D_TEST_SHOULD_COUNT_ASSERTS_FAIL(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL)
 
-#define D_TEST_SHOULD_COUNT_ASSERTS_PASS(config)  \
+#define D_TEST_SHOULD_COUNT_ASSERTS_PASS(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_ASSERTS_PASS)
 
-#define D_TEST_SHOULD_COUNT_TESTS_FAIL(config)  \
+#define D_TEST_SHOULD_COUNT_TESTS_FAIL(config)                              \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_TESTS_FAIL)
 
-#define D_TEST_SHOULD_COUNT_TESTS_PASS(config)  \
+#define D_TEST_SHOULD_COUNT_TESTS_PASS(config)                              \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_TESTS_PASS)
 
-#define D_TEST_SHOULD_COUNT_BLOCKS_FAIL(config)  \
+#define D_TEST_SHOULD_COUNT_BLOCKS_FAIL(config)                             \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_BLOCKS_FAIL)
 
-#define D_TEST_SHOULD_COUNT_BLOCKS_PASS(config)  \
+#define D_TEST_SHOULD_COUNT_BLOCKS_PASS(config)                             \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_BLOCKS_PASS)
 
-#define D_TEST_SHOULD_COUNT_MODULES_FAIL(config) \
+#define D_TEST_SHOULD_COUNT_MODULES_FAIL(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_MODULES_FAIL)
 
-#define D_TEST_SHOULD_COUNT_MODULES_PASS(config) \
+#define D_TEST_SHOULD_COUNT_MODULES_PASS(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_COUNT_MODULES_PASS)
 
 // print semantic checks
-#define D_TEST_SHOULD_PRINT_FAILURES(config) \
+#define D_TEST_SHOULD_PRINT_FAILURES(config)                                \
     D_TEST_HAS_ANY_FLAG(config, D_TEST_MSG_PRINT_FAIL_ALL)
 
-#define D_TEST_SHOULD_PRINT_PASSES(config) \
+#define D_TEST_SHOULD_PRINT_PASSES(config)                                  \
     D_TEST_HAS_ANY_FLAG(config, D_TEST_MSG_PRINT_PASS_ALL)
 
-#define D_TEST_SHOULD_PRINT_ASSERTS_FAIL(config) \
+#define D_TEST_SHOULD_PRINT_ASSERTS_FAIL(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_ASSERTS_FAIL)
 
-#define D_TEST_SHOULD_PRINT_ASSERTS_PASS(config) \
+#define D_TEST_SHOULD_PRINT_ASSERTS_PASS(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_ASSERTS_PASS)
 
-#define D_TEST_SHOULD_PRINT_TESTS_FAIL(config) \
+#define D_TEST_SHOULD_PRINT_TESTS_FAIL(config)                              \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_TESTS_FAIL)
 
-#define D_TEST_SHOULD_PRINT_TESTS_PASS(config) \
+#define D_TEST_SHOULD_PRINT_TESTS_PASS(config)                              \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_TESTS_PASS)
 
-#define D_TEST_SHOULD_PRINT_BLOCKS_FAIL(config) \
+#define D_TEST_SHOULD_PRINT_BLOCKS_FAIL(config)                             \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_BLOCKS_FAIL)
 
-#define D_TEST_SHOULD_PRINT_BLOCKS_PASS(config) \
+#define D_TEST_SHOULD_PRINT_BLOCKS_PASS(config)                             \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_BLOCKS_PASS)
 
-#define D_TEST_SHOULD_PRINT_MODULES_FAIL(config) \
+#define D_TEST_SHOULD_PRINT_MODULES_FAIL(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_MODULES_FAIL)
 
-#define D_TEST_SHOULD_PRINT_MODULES_PASS(config) \
+#define D_TEST_SHOULD_PRINT_MODULES_PASS(config)                            \
     D_TEST_HAS_FLAG(config, D_TEST_MSG_FLAG_PRINT_MODULES_PASS)
 
 
@@ -444,23 +446,37 @@ enum DTestEvent
  * SEMANTIC CHECKS - Settings flags
  *****************************************************************************/
 
-#define D_TEST_SHOULD_PUSH_FAILURES(test_config) \
-    D_TEST_HAS_FLAG(test_config, D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL))
+#define D_TEST_SHOULD_PUSH_FAILURES(test_config)                            \
+    ( D_TEST_HAS_FLAG(test_config,                                          \
+         D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_FAIL)) )
 
-#define D_TEST_SHOULD_PUSH_PASSES(test_config) \
-    D_TEST_HAS_FLAG(test_config, D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_PASS))
+#define D_TEST_SHOULD_PUSH_PASSES(test_config)                              \
+    ( D_TEST_HAS_FLAG(                                                      \
+          test_config,                                                      \
+          D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_PASS)) )
 
-#define D_TEST_SHOULD_PUSH_WARNINGS(test_config) \
-    D_TEST_HAS_FLAG(test_config, D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_WARNING))
+#define D_TEST_SHOULD_PUSH_WARNINGS(test_config)                            \
+    ( D_TEST_HAS_FLAG(                                                      \
+        test_config,                                                        \
+        D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_WARNING)) ) 
 
-#define D_TEST_SHOULD_PUSH_INFO(test_config) \
-    D_TEST_HAS_FLAG(test_config, D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_INFO))
+#define D_TEST_SHOULD_PUSH_INFO(test_config)                                \
+    ( D_TEST_HAS_FLAG(                                                      \
+          test_config,                                                      \
+          D_TEST_SETTINGS_TO_FLAGS(D_TEST_SETTINGS_FLAG_STACK_PUSH_INFO)) )
 
  // legacy aliases for test compatibility
-#define D_TEST_SHOULD_STACK_PUSH_FAIL(config)    D_TEST_SHOULD_PUSH_FAILURES(config)
-#define D_TEST_SHOULD_STACK_PUSH_PASS(config)    D_TEST_SHOULD_PUSH_PASSES(config)
-#define D_TEST_SHOULD_STACK_PUSH_WARNING(config) D_TEST_SHOULD_PUSH_WARNINGS(config)
-#define D_TEST_SHOULD_STACK_PUSH_INFO(config)    D_TEST_SHOULD_PUSH_INFO(config)
+#define D_TEST_SHOULD_STACK_PUSH_FAIL(config)                               \
+    D_TEST_SHOULD_PUSH_FAILURES(config)
+
+#define D_TEST_SHOULD_STACK_PUSH_PASS(config)                               \
+    D_TEST_SHOULD_PUSH_PASSES(config)
+
+#define D_TEST_SHOULD_STACK_PUSH_WARNING(config)                            \
+    D_TEST_SHOULD_PUSH_WARNINGS(config)
+
+#define D_TEST_SHOULD_STACK_PUSH_INFO(config)                               \
+    D_TEST_SHOULD_PUSH_INFO(config)
 
 
 /******************************************************************************
@@ -468,9 +484,9 @@ enum DTestEvent
  *****************************************************************************/
 
 #define D_TEST_DEFAULT_INDENT       "  "
-#define D_TEST_DEFAULT_MAX_INDENT   ((uint16_t)10)
-#define D_TEST_DEFAULT_MAX_FAILURES ((size_t)0)
-#define D_TEST_DEFAULT_TIMEOUT      ((size_t)1000)
+#define D_TEST_DEFAULT_MAX_INDENT   ( (uint16_t)10 )
+#define D_TEST_DEFAULT_MAX_FAILURES ( (size_t)0 )
+#define D_TEST_DEFAULT_TIMEOUT      ( (size_t)1000 )
 
 
 /******************************************************************************

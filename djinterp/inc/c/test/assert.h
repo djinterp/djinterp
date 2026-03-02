@@ -15,13 +15,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "..\djinterp.h"
+#include "../djinterp.h"
 
 
 // D_INTERNAL_TEST_ASSERT_BOOLEAN_FN_BODY
 //   macro (internal) 
 #define D_INTERNAL_TEST_ASSERT_FN_BODY(fn_body)                              \
-	struct d_assert* new_assertion = malloc(sizeof(struct d_assert));  \
+	struct d_assert* new_assertion = malloc(sizeof(struct d_assert));        \
                                                                              \
     if (!new_assertion)                                                      \
     {                                                                        \

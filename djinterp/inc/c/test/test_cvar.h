@@ -10,8 +10,8 @@
 * container. Storage and lookup tables live in test_registry.c.
 *
 * 
-* path:      \inc\test\test_cvar.h
-* link:      TBA
+* path:      \inc\test\c\test_cvar.h
+* link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
 ******************************************************************************/
 
@@ -20,10 +20,10 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "..\djinterp.h"
-#include "..\container\registry\registry.h"
-#include "..\meta\type_info.h"
-#include ".\test_config.h"
+#include "../djinterp.h"
+#include "../container/registry/registry.h"
+#include "../type_info.h"
+#include "./test_config.h"
 
 
 /******************************************************************************
@@ -117,53 +117,72 @@ union d_test_value d_test_registry_get_default_by_key(const char* _key);
 
 // D_TEST_REGISTRY_GET
 //   macro: looks up a registry row by key string.
-#define D_TEST_REGISTRY_GET(key) \
-    D_REGISTRY_GET(d_test_registry_registry(), key, struct d_test_registry_row)
+#define D_TEST_REGISTRY_GET(key)                                            \
+    D_REGISTRY_GET(d_test_registry_registry(),                              \
+                   key,                                                     \
+                   struct d_test_registry_row)
 
 // D_TEST_REGISTRY_VALUE_PTR
 //   macro: gets the pointer value from a registry row.
-#define D_TEST_REGISTRY_VALUE_PTR(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->value.ptr : NULL)
-
+#define D_TEST_REGISTRY_VALUE_PTR(key)                                      \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->value.ptr                               \
+        : NULL)
 // D_TEST_REGISTRY_VALUE_BOOL
 //   macro: gets the boolean value from a registry row.
-#define D_TEST_REGISTRY_VALUE_BOOL(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->value.b : false)
+#define D_TEST_REGISTRY_VALUE_BOOL(key)                                     \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->value.b                                 \
+        : false)
 
 // D_TEST_REGISTRY_VALUE_SIZE_T
 //   macro: gets the size_t value from a registry row.
-#define D_TEST_REGISTRY_VALUE_SIZE_T(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->value.z : 0)
+#define D_TEST_REGISTRY_VALUE_SIZE_T(key)                                   \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->value.z                                 \
+        : 0)
 
 // D_TEST_REGISTRY_VALUE_UINT32
 //   macro: gets the uint32_t value from a registry row.
-#define D_TEST_REGISTRY_VALUE_UINT32(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->value.u32 : 0)
+#define D_TEST_REGISTRY_VALUE_UINT32(key)                                   \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->value.u32                               \
+        : 0)
 
 // D_TEST_REGISTRY_VALUE_UINT16
 //   macro: gets the uint16_t value from a registry row.
-#define D_TEST_REGISTRY_VALUE_UINT16(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->value.u16 : 0)
+#define D_TEST_REGISTRY_VALUE_UINT16(key)                                   \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->value.u16                               \
+        : 0)
 
 // D_TEST_REGISTRY_VALUE_INT32
 //   macro: gets the int32_t value from a registry row.
-#define D_TEST_REGISTRY_VALUE_INT32(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->value.i32 : 0)
+#define D_TEST_REGISTRY_VALUE_INT32(key)                                    \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->value.i32                               \
+        : 0)
 
 // D_TEST_REGISTRY_HELP
 //   macro: gets the help text from a registry row.
-#define D_TEST_REGISTRY_HELP(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->help : NULL)
+#define D_TEST_REGISTRY_HELP(key)                                           \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->help                                    \
+        : NULL)
 
 // D_TEST_REGISTRY_FLAG
 //   macro: gets the flag value from a registry row.
-#define D_TEST_REGISTRY_FLAG(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->flag : 0)
+#define D_TEST_REGISTRY_FLAG(key)                                           \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->flag                                    \
+        : 0)
 
 // D_TEST_REGISTRY_TYPE
 //   macro: gets the value_type from a registry row.
-#define D_TEST_REGISTRY_TYPE(key) \
-    (D_TEST_REGISTRY_GET(key) ? D_TEST_REGISTRY_GET(key)->value_type : 0)
+#define D_TEST_REGISTRY_TYPE(key)                                           \
+    (D_TEST_REGISTRY_GET(key)                                               \
+        ? D_TEST_REGISTRY_GET(key)->value_type                              \
+        : 0)
 
 
 /******************************************************************************
@@ -181,9 +200,9 @@ bool d_test_registry_is_required_row(const void* _row, const void* _context);
 
 // D_TEST_REGISTRY_FOREACH
 //   macro: iterates over all rows in the test registry.
-#define D_TEST_REGISTRY_FOREACH(var_name) \
-    D_REGISTRY_FOREACH(d_test_registry_registry(), \
-                       struct d_test_registry_row, \
+#define D_TEST_REGISTRY_FOREACH(var_name)                                    \
+    D_REGISTRY_FOREACH(d_test_registry_registry(),                           \
+                       struct d_test_registry_row,                           \
                        var_name)
 
 // D_TEST_REGISTRY_FOREACH_CONFIG
