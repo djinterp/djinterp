@@ -59,7 +59,7 @@
 #ifndef DJINTERP_C_CONTAINER_ARRAY_CONFIG_
 #define DJINTERP_C_CONTAINER_ARRAY_CONFIG_ 1
 
-#include "..\container_config.h"
+#include "../container_config.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////

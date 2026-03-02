@@ -11,7 +11,7 @@
 *   container_config.h
 *       |-- D_CFG_CONTAINER_FILTER         (all containers)
 *       |      |
-*       |      |-- D_CFG_CONTAINER_FILTER_CONTIGUOUS
+*       |      |-- D_CFG_CONTAINER_ARRAY_FILTER
 *       |      |      (array, vector, buffer, matrix, bit, stack)
 *       |      |
 *       |      |-- D_CFG_CONTAINER_FILTER_ASSOCIATIVE
@@ -54,7 +54,7 @@
 #ifndef DJINTERP_C_CONTAINER_CONFIG_
 #define DJINTERP_C_CONTAINER_CONFIG_ 1
 
-#include "..\..\..\dconfig.h"
+#include "../../../dconfig.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,13 +74,13 @@
 ///             II.   CATEGORY-LEVEL TOGGLES                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// D_CFG_CONTAINER_FILTER_CONTIGUOUS
+// D_CFG_CONTAINER_ARRAY_FILTER
 //   configuration: enable filter for contiguous (array-like) containers.
 // Applies to: array, vector, buffer, matrix, bit, stack.
 // Inherits from D_CFG_CONTAINER_FILTER.
-#ifndef D_CFG_CONTAINER_FILTER_CONTIGUOUS
-    #define D_CFG_CONTAINER_FILTER_CONTIGUOUS D_CFG_CONTAINER_FILTER
-#endif  // D_CFG_CONTAINER_FILTER_CONTIGUOUS
+#ifndef D_CFG_CONTAINER_ARRAY_FILTER
+    #define D_CFG_CONTAINER_ARRAY_FILTER D_CFG_CONTAINER_FILTER
+#endif  // D_CFG_CONTAINER_ARRAY_FILTER
 
 // D_CFG_CONTAINER_FILTER_ASSOCIATIVE
 //   configuration: enable filter for associative (key-value) containers.
