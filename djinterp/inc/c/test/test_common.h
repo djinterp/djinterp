@@ -276,21 +276,24 @@ enum DTestMetadataKey
  * COUNTER FIELD BITFIELD
  *****************************************************************************/
 
-#define D_TEST_COUNT_TOTAL_IDX     0
-#define D_TEST_COUNT_PASSED_IDX    1
-#define D_TEST_COUNT_FAILED_IDX    2
-#define D_TEST_COUNT_REMAINING_IDX 3
-#define D_TEST_COUNT_FIELD_MAX     4
-
 // DTestCountField
 //   enum: bitfield flags selecting which counter fields are active.
+// Each flag corresponds to one slot in the counter's compact amount
+// array. The slot index is not fixed; it is the popcount of all
+// lower-order active flags in the counter's field mask.
 enum DTestCountField
 {
-    D_TEST_COUNT_TOTAL     = (1 << D_TEST_COUNT_TOTAL_IDX),
-    D_TEST_COUNT_PASSED    = (1 << D_TEST_COUNT_PASSED_IDX),
-    D_TEST_COUNT_FAILED    = (1 << D_TEST_COUNT_FAILED_IDX),
-    D_TEST_COUNT_REMAINING = (1 << D_TEST_COUNT_REMAINING_IDX)
+    D_TEST_COUNT_TOTAL     = (1 << 0),
+    D_TEST_COUNT_PASSED    = (1 << 1),
+    D_TEST_COUNT_FAILED    = (1 << 2),
+    D_TEST_COUNT_REMAINING = (1 << 3)
 };
+
+// D_TEST_COUNT_FIELD_MAX
+//   constant: maximum number of distinct field flags. This is the
+// width of the field nibble, not the size of any particular counter's
+// amount array (which is popcount(fields)).
+#define D_TEST_COUNT_FIELD_MAX 4
 
 #define D_TEST_COUNT_ALL                                                    \
     ( D_TEST_COUNT_TOTAL     |                                              \
@@ -302,6 +305,166 @@ enum DTestCountField
     ( D_TEST_COUNT_TOTAL  |                                                 \
       D_TEST_COUNT_PASSED |                                                 \
       D_TEST_COUNT_FAILED )
+
+
+/******************************************************************************
+ * COUNTER SPEC ENCODING
+ *****************************************************************************/
+
+// A counter spec is a uint16_t that fully encodes what a d_test_counter
+// requires in binary:
+//
+//   bits [0..7]   test_type   (DTestTypeFlag)
+//   bits [8..11]  fields      (DTestCountField bitmask)
+//   bits [12..15] reserved    (zero)
+//
+// From the spec alone, the init function can determine the test type,
+// which fields are active, and how many amount slots to allocate
+// (popcount of the field nibble).
+//
+//   layout diagram (MSB → LSB):
+//
+//     15  14  13  12  11  10   9   8   7   6   5   4   3   2   1   0
+//    ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
+//    │ 0   0   0   0 │ R │ F │ P │ T │       test_type (0-255)       │
+//    └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘
+//                      │   │   │   │
+//                      │   │   │   └── D_TEST_COUNT_TOTAL
+//                      │   │   └────── D_TEST_COUNT_PASSED
+//                      │   └────────── D_TEST_COUNT_FAILED
+//                      └────────────── D_TEST_COUNT_REMAINING
+//
+// The compact amount array has exactly popcount(fields) elements.
+// A field flag's index into the array is popcount(fields & (flag-1)):
+//
+//   example: fields = T|P|F  (0b0111), 3 slots
+//     TOTAL     → popcount(0b0111 & 0b0000) = 0
+//     PASSED    → popcount(0b0111 & 0b0001) = 1
+//     FAILED    → popcount(0b0111 & 0b0011) = 2
+//     REMAINING → not active, access returns 0
+
+// D_TEST_COUNTER_SPEC_TYPE_BITS
+//   constant: bit width of the test_type field in a counter spec.
+#define D_TEST_COUNTER_SPEC_TYPE_BITS   8
+
+// D_TEST_COUNTER_SPEC_TYPE_MASK
+//   constant: bitmask isolating the test_type field.
+#define D_TEST_COUNTER_SPEC_TYPE_MASK   ((uint16_t)0x00FF)
+
+// D_TEST_COUNTER_SPEC_FIELD_SHIFT
+//   constant: bit offset of the fields nibble in a counter spec.
+#define D_TEST_COUNTER_SPEC_FIELD_SHIFT 8
+
+// D_TEST_COUNTER_SPEC_FIELD_MASK
+//   constant: bitmask isolating the fields nibble (post-shift).
+#define D_TEST_COUNTER_SPEC_FIELD_MASK  ((uint16_t)0x000F)
+
+// D_TEST_COUNTER_SPEC
+//   macro: encodes a test type and field bitmask into a single
+// uint16_t counter spec.
+#define D_TEST_COUNTER_SPEC(_type, _fields)                                 \
+    ((uint16_t)(                                                            \
+        ( ((uint16_t)(_type))   & D_TEST_COUNTER_SPEC_TYPE_MASK )  |        \
+        ( (((uint16_t)(_fields)) & D_TEST_COUNTER_SPEC_FIELD_MASK)          \
+              << D_TEST_COUNTER_SPEC_FIELD_SHIFT )                          \
+    ))
+
+// D_TEST_COUNTER_SPEC_TYPE
+//   macro: extracts the test_type from a counter spec.
+#define D_TEST_COUNTER_SPEC_TYPE(_spec)                                     \
+    ((uint16_t)((_spec) & D_TEST_COUNTER_SPEC_TYPE_MASK))
+
+// D_TEST_COUNTER_SPEC_FIELDS
+//   macro: extracts the field bitmask from a counter spec.
+#define D_TEST_COUNTER_SPEC_FIELDS(_spec)                                   \
+    ((uint16_t)(((_spec) >> D_TEST_COUNTER_SPEC_FIELD_SHIFT)                \
+                & D_TEST_COUNTER_SPEC_FIELD_MASK))
+
+
+/******************************************************************************
+ * COUNTER SPEC FIELD INDEXING
+ *****************************************************************************/
+
+// d_test_popcount4
+//   function (inline): population count of the lower 4 bits.
+// Returns the number of active field slots in a counter.
+static inline uint16_t
+d_test_popcount4
+(
+    uint16_t _mask
+)
+{
+    // isolate lower nibble and sum adjacent bit pairs
+    _mask = _mask & 0x0Fu;
+    _mask = (_mask & 0x05u) + ((_mask >> 1) & 0x05u);
+    _mask = (_mask & 0x03u) + ((_mask >> 2) & 0x03u);
+
+    return _mask;
+}
+
+// D_TEST_COUNTER_SPEC_COUNT
+//   macro: number of amount slots required by a counter spec.
+// This is the popcount of the spec's field nibble.
+#define D_TEST_COUNTER_SPEC_COUNT(_spec)                                    \
+    d_test_popcount4(D_TEST_COUNTER_SPEC_FIELDS(_spec))
+
+// D_TEST_COUNTER_FIELD_COUNT
+//   macro: number of active fields in a raw field bitmask.
+#define D_TEST_COUNTER_FIELD_COUNT(_fields)                                 \
+    d_test_popcount4((uint16_t)(_fields))
+
+// D_TEST_COUNTER_FIELD_INDEX
+//   macro: compact array index of a single field flag within an
+// active-field bitmask. The index is the number of set bits in
+// _fields that are lower than _flag.
+//
+//   _fields: the counter's active field bitmask
+//   _flag:   a single DTestCountField flag (must be a power of 2)
+//
+// Precondition: (_fields & _flag) != 0. If the flag is not active,
+// the index is meaningless.
+#define D_TEST_COUNTER_FIELD_INDEX(_fields, _flag)                          \
+    d_test_popcount4((uint16_t)((_fields) & ((_flag) - 1)))
+
+// D_TEST_COUNTER_FIELD_ACTIVE
+//   macro: evaluates true if _flag is active in _fields.
+#define D_TEST_COUNTER_FIELD_ACTIVE(_fields, _flag)                         \
+    (((_fields) & (_flag)) != 0)
+
+
+/******************************************************************************
+ * PREDEFINED COUNTER SPECS
+ *****************************************************************************/
+
+// Standard presets: test_type | TOTAL + PASSED + FAILED (3 slots)
+#define D_TEST_COUNTER_ASSERT_STD                                           \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_ASSERT, D_TEST_COUNT_STANDARD)
+
+#define D_TEST_COUNTER_TEST_STD                                             \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_TEST, D_TEST_COUNT_STANDARD)
+
+#define D_TEST_COUNTER_TEST_FN_STD                                          \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_TEST_FN, D_TEST_COUNT_STANDARD)
+
+#define D_TEST_COUNTER_BLOCK_STD                                            \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_TEST_BLOCK, D_TEST_COUNT_STANDARD)
+
+#define D_TEST_COUNTER_MODULE_STD                                           \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_MODULE, D_TEST_COUNT_STANDARD)
+
+// Full presets: test_type | all 4 fields (4 slots)
+#define D_TEST_COUNTER_ASSERT_ALL                                           \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_ASSERT, D_TEST_COUNT_ALL)
+
+#define D_TEST_COUNTER_TEST_ALL                                             \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_TEST, D_TEST_COUNT_ALL)
+
+// Minimal presets: test_type | TOTAL only (1 slot)
+#define D_TEST_COUNTER_ASSERT_TOTAL                                         \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_ASSERT, D_TEST_COUNT_TOTAL)
+
+#define D_TEST_COUNTER_TEST_TOTAL                                           \
+    D_TEST_COUNTER_SPEC(D_TEST_TYPE_TEST, D_TEST_COUNT_TOTAL)
 
 
 /******************************************************************************
@@ -404,11 +567,14 @@ struct d_test_note_section
 
 // d_test_counter
 //   struct: configurable counter for tracking test/assertion progress.
+// The amount array is heap-allocated with exactly popcount(fields)
+// elements. Each active field flag maps to a compact index via
+// D_TEST_COUNTER_FIELD_INDEX(fields, flag).
 struct d_test_counter
 {
     uint16_t test_type;
     uint16_t fields;
-    size_t   amount[D_TEST_COUNT_FIELD_MAX];
+    size_t*  amount;
 };
 
 
@@ -443,7 +609,8 @@ void                  d_test_object_set_args(struct d_test_object* _obj, struct 
  * TEST COUNTER FUNCTIONS
  *****************************************************************************/
 
-void   d_test_counter_init(struct d_test_counter* _counter, uint16_t _test_type, uint16_t _fields);
+int    d_test_counter_init(struct d_test_counter* _counter, uint16_t _spec);
+void   d_test_counter_free(struct d_test_counter* _counter);
 void   d_test_counter_reset(struct d_test_counter* _counter);
 void   d_test_counter_increment(struct d_test_counter* _counter, uint16_t _field);
 size_t d_test_counter_get(const struct d_test_counter* _counter, uint16_t _field);
