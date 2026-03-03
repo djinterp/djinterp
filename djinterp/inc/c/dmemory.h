@@ -47,11 +47,11 @@
 
 void*   d_memcpy(void*       _destination,
                  const void* _source,
-                 size_t      _count);
+                 size_t      _amount);
 int     d_memcpy_s(void*       _destination,
-                   size_t      _destSize,
+                   size_t      _destination_size,
                    const void* _source,
-                   size_t      _count);
+                   size_t      _amount);
 void*   d_memdup_s(const void* _source,
                    size_t      _size);
 void*   d_memset(void*  _ptr,
