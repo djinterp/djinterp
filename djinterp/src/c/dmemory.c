@@ -1,4 +1,4 @@
-#include "..\..\inc\c\dmemory.h"
+#include "../../inc/c/dmemory.h"
 
 
 /*
@@ -9,7 +9,7 @@ to destination buffer.
 Parameter(s):
   _destination: pointer to the destination buffer where data will be copied.
   _source:      pointer to the source buffer containing data to copy.
-  _count:       number of bytes to copy from source to destination.
+  _amount:      number of bytes to copy from source to destination.
 
 Return:
   A pointer value corresponding to either:
@@ -23,29 +23,29 @@ d_memcpy
 (
     void*       _destination,
     const void* _source,
-    size_t      _count
+    size_t      _amount
 )
 {
-    if ( (_destination == NULL) || 
-         (_source == NULL) )
+    if ( (!_destination) || 
+         (!_source) )
     {
         return NULL;
     }
 
 #if defined(_MSC_VER)
     // Microsoft compiler
-    return memcpy(_destination, _source, _count);
+    return memcpy(_destination, _source, _amount);
 
 #elif defined(__GNUC__) || defined(__clang__)
     // GCC or Clang
-    return memcpy(_destination, _source, _count);
+    return memcpy(_destination, _source, _amount);
 
 #else
     // generic fallback
     char*       d = (char*)_destination;
     const char* s = (const char*)_source;
 
-    while (_count--) 
+    while (_amount--)
     {
         *(d)++ = *(s)++;
     }
@@ -60,10 +60,10 @@ d_memcpy_s
   validates buffer sizes to prevent buffer overflows.
 
 Parameter(s):
-  _destination: Pointer to the destination buffer where data will be copied.
-  _destSize:    Size of the destination buffer in bytes.
-  _source:      Pointer to the source buffer containing data to copy.
-  _count:       Number of bytes to copy from source to destination.
+  _destination: pointer to the destination buffer where data will be copied.
+  _destSize:    size of the destination buffer in bytes.
+  _source:      pointer to the source buffer containing data to copy.
+  _amount:      number of bytes to copy from source to destination.
 Return:
   An integer value corresponding to either:
   - 0, if the copy operation was successful, or
@@ -77,9 +77,9 @@ int
 d_memcpy_s
 (
     void*       _destination,
-    size_t      _destSize,
+    size_t      _destination_size,
     const void* _source,
-    size_t      _count
+    size_t      _amount
 )
 {
     // input validation
@@ -91,29 +91,29 @@ d_memcpy_s
     if (_source == NULL)
     {
         // clear destination buffer on error
-        memset(_destination, 0, _destSize);
+        memset(_destination, 0, _destination_size);
         return EINVAL;
     }
 
-    if (_destSize < _count)
+    if (_destination_size < _amount)
     {
         // destination buffer too small
-        memset(_destination, 0, _destSize);
+        memset(_destination, 0, _destination_size);
         return ERANGE;
     }
 
     // perform the copy operation
 #if defined(_MSC_VER) && _MSC_VER >= 1400
     // use secure function on Microsoft compilers
-    return memcpy_s(_destination, _destSize, _source, _count);
+    return memcpy_s(_destination, _destination_size, _source, _amount);
 
 #elif defined(__STDC_LIB_EXT1__) && __STDC_WANT_LIB_EXT1__
     // use C11 secure functions if available
-    return memcpy_s(_destination, _destSize, _source, _count);
+    return memcpy_s(_destination, _destSize, _source, _amount);
 
 #else
     // use standard memcpy on other platforms
-    memcpy(_destination, _source, _count);
+    memcpy(_destination, _source, _amount);
     return 0;
 
 #endif
@@ -125,28 +125,28 @@ d_memdup_s
   operations with proper error checking.
 
 Parameter(s):
-  _src:  Pointer to the source data to copy.
+  _source:  Pointer to the source data to copy.
   _size: Size of the data to copy in bytes.
 Return:
   A pointer value corresponding to either:
-  - pointer to newly allocated memory containing a copy of _src, if the
+  - pointer to newly allocated memory containing a copy of _source, if the
     operation was successful, or
   - NULL, if any of the following conditions were true:
-    - _src was NULL,
+    - _source was NULL,
     - _size was 0,
     - memory allocation failed.
 */
 void*
 d_memdup_s
 (
-    const void* _src,
+    const void* _source,
     size_t      _size
 )
 {
     void* dest;
 
     // validate input parameters
-    if ( (_src == NULL) || 
+    if ( (_source == NULL) || 
          (_size == 0) )
     {
         return NULL;
@@ -161,7 +161,7 @@ d_memdup_s
     }
 
     // copy the data
-    memcpy(dest, _src, _size);
+    memcpy(dest, _source, _size);
 
     return dest;
 }
@@ -274,4 +274,3 @@ d_memset_s
         ? ERANGE 
         : 0;
 }
-
