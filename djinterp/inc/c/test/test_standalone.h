@@ -284,7 +284,7 @@ struct d_test_counter*                 d_test_runner_get_assertion_counter(const
 struct d_test_counter*                 d_test_runner_get_test_counter(const struct d_test_standalone_runner* _runner);
 struct d_test_standalone_failure_list* d_test_runner_get_failure_list(const struct d_test_standalone_runner* _runner);
 size_t                                 d_test_runner_get_depth(const struct d_test_standalone_runner* _runner);
-struct d_test_standalone_runner*        d_test_runner_get_parent(const struct d_test_standalone_runner* _runner);
+struct d_test_standalone_runner*       d_test_runner_get_parent(const struct d_test_standalone_runner* _runner);
 
 
 /******************************************************************************

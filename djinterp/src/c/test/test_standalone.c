@@ -1003,8 +1003,7 @@ d_test_standalone_runner_init
     if (a_totals)
     {
         d_test_counter_init(a_totals,
-                            D_TEST_TYPE_ASSERT,
-                            D_TEST_COUNT_STANDARD);
+                            D_TEST_COUNTER_ASSERT_STD);
         d_test_arg_list_set(_runner->args,
             D_TEST_ARG_ASSERTION_COUNTER,
             (void*)a_totals);
@@ -1016,8 +1015,7 @@ d_test_standalone_runner_init
     if (t_totals)
     {
         d_test_counter_init(t_totals,
-                            D_TEST_TYPE_TEST,
-                            D_TEST_COUNT_STANDARD);
+                            D_TEST_COUNTER_TEST_STD);
         d_test_arg_list_set(_runner->args,
             D_TEST_ARG_TEST_COUNTER,
             (void*)t_totals);
@@ -1424,11 +1422,9 @@ d_test_standalone_runner_execute
         t_ctr = &result_t_ctrs[i];
 
         d_test_counter_init(a_ctr,
-                            D_TEST_TYPE_ASSERT,
-                            D_TEST_COUNT_STANDARD);
+                            D_TEST_COUNTER_ASSERT_STD);
         d_test_counter_init(t_ctr,
-                            D_TEST_TYPE_TEST,
-                            D_TEST_COUNT_STANDARD);
+                            D_TEST_COUNTER_TEST_STD);
 
         module_result = false;
         mod_name =
@@ -1721,6 +1717,7 @@ d_test_standalone_runner_cleanup
         struct d_test_counter* ra;
         struct d_test_counter* rt;
         double*                re;
+        size_t                 rc;
 
         ra = (struct d_test_counter*)
                  d_test_arg_list_get(
@@ -1737,8 +1734,33 @@ d_test_standalone_runner_cleanup
                      _runner->args,
                      D_TEST_ARG_RESULT_ELAPSED_TIMES);
 
-        if (ra) { free(ra); }
-        if (rt) { free(rt); }
+        rc = d_test_arg_list_get_size(
+                 _runner->args,
+                 D_TEST_ARG_MODULE_RESULT_COUNT,
+                 0);
+
+        // free each counter's amount array before
+        // freeing the backing arrays themselves
+        if (ra)
+        {
+            for (i = 0; i < rc; i++)
+            {
+                d_test_counter_free(&ra[i]);
+            }
+
+            free(ra);
+        }
+
+        if (rt)
+        {
+            for (i = 0; i < rc; i++)
+            {
+                d_test_counter_free(&rt[i]);
+            }
+
+            free(rt);
+        }
+
         if (re) { free(re); }
     }
 
@@ -1773,8 +1795,8 @@ d_test_standalone_runner_cleanup
                      _runner->args,
                      D_TEST_ARG_TEST_COUNTER);
 
-        if (ac) { free(ac); }
-        if (tc) { free(tc); }
+        if (ac) { d_test_counter_free(ac); free(ac); }
+        if (tc) { d_test_counter_free(tc); free(tc); }
     }
 
     // --- free elapsed time ---
