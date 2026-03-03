@@ -1,10 +1,11 @@
-﻿/******************************************************************************
+/******************************************************************************
 * djinterp [test]                                         test_common_tests_sa.h
 *
 *   Unit test declarations for `test_common.h` module.
 *   Provides comprehensive testing of all test_common types, macros, and
 * structures including macro definitions, type definitions, argument structures,
-* test function wrappers, lifecycle stages, and type discriminators.
+* test function wrappers, lifecycle stages, type discriminators, and counter
+* spec encoding.
 *
 *   Tests are provided in two styles:
 *   - counter-based (bool return + d_test_counter* parameter)
@@ -24,9 +25,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../../inc/djinterp/c/test/test_standalone.h"
-#include "../../../../inc/djinterp/c/test/test_common.h"
-#include "../../../../inc/djinterp/c/string_fn.h"
+#include "../../../inc/c/test/test_standalone.h"
+#include "../../../inc/c/test/test_common.h"
+#include "../../../inc/c/string_fn.h"
 
 
 /******************************************************************************
@@ -60,9 +61,9 @@ bool d_tests_sa_test_common_type_all(struct d_test_counter* _counter);
 /******************************************************************************
  * III. ARGUMENT STRUCTURE TESTS (counter-based)
  *****************************************************************************/
-// d_test_arg structure
+// d_test_arg structure (int16_t key + void* value)
 bool d_tests_sa_test_common_test_arg(struct d_test_counter* _counter);
-// d_test_arg_list structure
+// d_test_arg_list structure (args + count + capacity)
 bool d_tests_sa_test_common_test_arg_list(struct d_test_counter* _counter);
 
 // III. aggregation function
@@ -72,7 +73,7 @@ bool d_tests_sa_test_common_arg_all(struct d_test_counter* _counter);
 /******************************************************************************
  * IV. TEST FUNCTION WRAPPER TESTS (counter-based)
  *****************************************************************************/
-// d_test_fn structure
+// d_test_fn structure (test_fn + context)
 bool d_tests_sa_test_common_test_fn(struct d_test_counter* _counter);
 
 // IV.  aggregation function
@@ -106,7 +107,21 @@ bool d_tests_sa_test_common_discriminator_all(struct d_test_counter* _counter);
 
 
 /******************************************************************************
- * VII. SYMBOLS AND CONSTANTS (tree-based)
+ * VII. COUNTER SPEC ENCODING TESTS (counter-based)
+ *****************************************************************************/
+// spec encoding/decoding macros
+bool d_tests_sa_test_common_counter_spec_encode(struct d_test_counter* _counter);
+// popcount, field count, field index macros
+bool d_tests_sa_test_common_counter_spec_popcount(struct d_test_counter* _counter);
+// spec-based counter init, increment, get, add, reset, free
+bool d_tests_sa_test_common_counter_spec_init(struct d_test_counter* _counter);
+
+// VII. aggregation function
+bool d_tests_sa_test_common_counter_spec_all(struct d_test_counter* _counter);
+
+
+/******************************************************************************
+ * VIII. SYMBOLS AND CONSTANTS (tree-based)
  *****************************************************************************/
 struct d_test_object* d_tests_sa_tc_symbols_defined(void);
 struct d_test_object* d_tests_sa_tc_pass_fail_constants(void);
@@ -114,7 +129,7 @@ struct d_test_object* d_tests_sa_tc_symbols_all(void);
 
 
 /******************************************************************************
- * VIII. FUNCTION POINTER TYPES (tree-based)
+ * IX. FUNCTION POINTER TYPES (tree-based)
  *****************************************************************************/
 struct d_test_object* d_tests_sa_tc_fn_test_basic(void);
 struct d_test_object* d_tests_sa_tc_fn_test_null(void);
@@ -124,7 +139,7 @@ struct d_test_object* d_tests_sa_tc_fn_all(void);
 
 
 /******************************************************************************
- * IX. d_test_fn STRUCTURE (tree-based)
+ * X. d_test_fn STRUCTURE (tree-based)
  *****************************************************************************/
 struct d_test_object* d_tests_sa_tc_test_fn_init(void);
 struct d_test_object* d_tests_sa_tc_test_fn_fields(void);
