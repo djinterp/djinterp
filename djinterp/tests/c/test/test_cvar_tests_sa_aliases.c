@@ -1,4 +1,4 @@
-#include ".\test_cvar_tests_sa.h"
+#include "./test_cvar_tests_sa.h"
 
 
 /******************************************************************************
@@ -53,7 +53,7 @@ d_tests_sa_cvar_alias_indent
   Tests the "indent" alias for "indent-string".
   Tests the following:
   - "indent" resolves to a non-NULL row
-  - Resolved row flag matches D_TEST_CONFIG_INDENT_STR
+  - Resolved row flag matches D_TEST_OPTIONS_INDENT_STR
 */
 bool
 d_tests_sa_cvar_alias_indent
@@ -77,12 +77,12 @@ d_tests_sa_cvar_alias_indent
         "'indent' alias should resolve to a row",
         _counter) && result;
 
-    // test 2: flag matches D_TEST_CONFIG_INDENT_STR
+    // test 2: flag matches D_TEST_OPTIONS_INDENT_STR
     result = d_assert_standalone(
         alias_row != NULL &&
-            alias_row->flag == D_TEST_CONFIG_INDENT_STR,
+            alias_row->flag == D_TEST_OPTIONS_INDENT_STR,
         "alias_indent_flag_matches",
-        "'indent' should map to D_TEST_CONFIG_INDENT_STR",
+        "'indent' should map to D_TEST_OPTIONS_INDENT_STR",
         _counter) && result;
 
     return result;
@@ -154,7 +154,7 @@ d_tests_sa_cvar_alias_timeout
   Tests the "timeout-ms" alias for "timeout".
   Tests the following:
   - "timeout-ms" resolves to the "timeout" row
-  - Resolved flag matches D_TEST_CONFIG_TIMEOUT_MS
+  - Resolved flag matches D_TEST_OPTIONS_TIMEOUT_MS
 */
 bool
 d_tests_sa_cvar_alias_timeout
@@ -178,12 +178,12 @@ d_tests_sa_cvar_alias_timeout
         "'timeout-ms' alias should resolve to a row",
         _counter) && result;
 
-    // test 2: flag matches D_TEST_CONFIG_TIMEOUT_MS
+    // test 2: flag matches D_TEST_OPTIONS_TIMEOUT_MS
     result = d_assert_standalone(
         alias_row != NULL &&
-            alias_row->flag == D_TEST_CONFIG_TIMEOUT_MS,
+            alias_row->flag == D_TEST_OPTIONS_TIMEOUT_MS,
         "alias_timeout_ms_flag_matches",
-        "'timeout-ms' should map to D_TEST_CONFIG_TIMEOUT_MS",
+        "'timeout-ms' should map to D_TEST_OPTIONS_TIMEOUT_MS",
         _counter) && result;
 
     return result;

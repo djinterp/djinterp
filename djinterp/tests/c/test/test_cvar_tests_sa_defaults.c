@@ -1,4 +1,4 @@
-#include ".\test_cvar_tests_sa.h"
+#include "./test_cvar_tests_sa.h"
 
 
 /******************************************************************************
@@ -133,17 +133,17 @@ d_tests_sa_cvar_default_after_set
 
     // modify ENABLED to false
     val.b = false;
-    d_test_registry_set(D_TEST_CONFIG_ENABLED, val);
+    d_test_registry_set(D_TEST_OPTIONS_ENABLED, val);
 
     // modify TIMEOUT_MS to 9999
     val.z = 9999;
-    d_test_registry_set(D_TEST_CONFIG_TIMEOUT_MS, val);
+    d_test_registry_set(D_TEST_OPTIONS_TIMEOUT_MS, val);
 
     // reset all to defaults
     d_test_registry_reset_all();
 
     // test 1: ENABLED restored to true
-    val = d_test_registry_get(D_TEST_CONFIG_ENABLED);
+    val = d_test_registry_get(D_TEST_OPTIONS_ENABLED);
 
     result = d_assert_standalone(
         val.b == true,
@@ -152,7 +152,7 @@ d_tests_sa_cvar_default_after_set
         _counter) && result;
 
     // test 2: TIMEOUT_MS restored to default
-    val = d_test_registry_get(D_TEST_CONFIG_TIMEOUT_MS);
+    val = d_test_registry_get(D_TEST_OPTIONS_TIMEOUT_MS);
 
     result = d_assert_standalone(
         val.z == D_TEST_DEFAULT_TIMEOUT,
@@ -188,7 +188,7 @@ d_tests_sa_cvar_default_known_values
     d_test_registry_reset_all();
 
     // test 1: MAX_FAILURES default
-    val = d_test_registry_get(D_TEST_CONFIG_MAX_FAILURES);
+    val = d_test_registry_get(D_TEST_OPTIONS_MAX_FAILURES);
 
     result = d_assert_standalone(
         val.z == D_TEST_DEFAULT_MAX_FAILURES,
@@ -197,7 +197,7 @@ d_tests_sa_cvar_default_known_values
         _counter) && result;
 
     // test 2: INDENT_MAX_LEVEL default
-    val = d_test_registry_get(D_TEST_CONFIG_INDENT_MAX_LEVEL);
+    val = d_test_registry_get(D_TEST_OPTIONS_INDENT_MAX_LEVEL);
 
     result = d_assert_standalone(
         val.u16 == D_TEST_DEFAULT_MAX_INDENT,
@@ -206,7 +206,7 @@ d_tests_sa_cvar_default_known_values
         _counter) && result;
 
     // test 3: MESSAGE_FLAGS default is 0
-    val = d_test_registry_get(D_TEST_CONFIG_MESSAGE_FLAGS);
+    val = d_test_registry_get(D_TEST_OPTIONS_MESSAGE_FLAGS);
 
     result = d_assert_standalone(
         val.u32 == 0,
@@ -215,7 +215,7 @@ d_tests_sa_cvar_default_known_values
         _counter) && result;
 
     // test 4: PRIORITY default is 0
-    val = d_test_registry_get(D_TEST_CONFIG_PRIORITY);
+    val = d_test_registry_get(D_TEST_OPTIONS_PRIORITY);
 
     result = d_assert_standalone(
         val.i32 == 0,

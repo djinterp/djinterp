@@ -14,8 +14,8 @@
 #ifndef DJINTERP_TESTING_ASSERT_STANDALONE_
 #define DJINTERP_TESTING_ASSERT_STANDALONE_ 1
 
-#include "..\..\inc\test\test_standalone.h"
-#include "..\..\inc\test\assert.h"
+#include "../../../inc/c/test/test_standalone.h"
+#include "../../../inc/c/test/assert.h"
 
 
 /******************************************************************************

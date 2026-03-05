@@ -66,7 +66,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
     // config entries
     D_INTERNAL_TEST_REGISTRY_ROW_BOOL(
         "config-enabled",
-        D_TEST_CONFIG_ENABLED,
+        D_TEST_OPTIONS_ENABLED,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_BOOL,
         true,
@@ -122,7 +122,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
 
     D_INTERNAL_TEST_REGISTRY_ROW_PTR(
         "indent-string",
-        D_TEST_CONFIG_INDENT_STR,
+        D_TEST_OPTIONS_INDENT_STR,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_STRING,
         D_TEST_DEFAULT_INDENT,
@@ -130,7 +130,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
 
     D_INTERNAL_TEST_REGISTRY_ROW_SIZE_T(
         "max-failures",
-        D_TEST_CONFIG_MAX_FAILURES,
+        D_TEST_OPTIONS_MAX_FAILURES,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_SIZE_T,
         D_TEST_DEFAULT_MAX_FAILURES,
@@ -138,7 +138,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
 
     D_INTERNAL_TEST_REGISTRY_ROW_UINT16(
         "max-indent",
-        D_TEST_CONFIG_INDENT_MAX_LEVEL,
+        D_TEST_OPTIONS_INDENT_MAX_LEVEL,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_UINT16,
         D_TEST_DEFAULT_MAX_INDENT,
@@ -146,7 +146,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
 
     D_INTERNAL_TEST_REGISTRY_ROW_UINT32(
         "message-flags",
-        D_TEST_CONFIG_MESSAGE_FLAGS,
+        D_TEST_OPTIONS_MESSAGE_FLAGS,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_UINT32,
         0,
@@ -178,7 +178,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
 
     D_INTERNAL_TEST_REGISTRY_ROW_INT32(
         "priority",
-        D_TEST_CONFIG_PRIORITY,
+        D_TEST_OPTIONS_PRIORITY,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_INT32,
         0,
@@ -186,7 +186,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
 
     D_INTERNAL_TEST_REGISTRY_ROW_BOOL(
         "skip",
-        D_TEST_CONFIG_SKIP,
+        D_TEST_OPTIONS_SKIP,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_BOOL,
         false,
@@ -218,7 +218,7 @@ static struct d_test_registry_row g_test_registry_rows[] =
 
     D_INTERNAL_TEST_REGISTRY_ROW_SIZE_T(
         "timeout",
-        D_TEST_CONFIG_TIMEOUT_MS,
+        D_TEST_OPTIONS_TIMEOUT_MS,
         D_TEST_REGISTRY_FLAG_IS_CONFIG,
         D_TYPE_INFO_SIZE_T,
         D_TEST_DEFAULT_TIMEOUT,

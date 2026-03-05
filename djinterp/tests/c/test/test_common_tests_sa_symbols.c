@@ -42,8 +42,7 @@ d_tests_sa_tc_symbols_defined
                            (strlen(D_TEST_SYMBOL_WARNING) > 0);
 
     // build result tree
-    group = d_test_standalone_object_new_interior(
-                "Symbol Definitions", 5);
+    group = d_test_object_new_interior("Symbol Definitions", 5);
 
     if (!group)
     {
@@ -51,31 +50,21 @@ d_tests_sa_tc_symbols_defined
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("pass_defined",
-                       test_pass_defined,
-                       "D_TEST_SYMBOL_PASS is defined"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("fail_defined",
-                       test_fail_defined,
-                       "D_TEST_SYMBOL_FAIL is defined"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("success_defined",
-                       test_success_defined,
-                       "D_TEST_SYMBOL_SUCCESS is defined"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("info_defined",
-                       test_info_defined,
-                       "D_TEST_SYMBOL_INFO is defined"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("warning_defined",
-                       test_warning_defined,
-                       "D_TEST_SYMBOL_WARNING is defined"),
-        idx++);
+    group->elements[idx++] = D_ASSERT_TRUE("pass_defined",
+                                           test_pass_defined,
+                                           "D_TEST_SYMBOL_PASS is defined");
+    group->elements[idx++] = D_ASSERT_TRUE("fail_defined",
+                                           test_fail_defined,
+                                           "D_TEST_SYMBOL_FAIL is defined");
+    group->elements[idx++] = D_ASSERT_TRUE("success_defined",
+                                           test_success_defined,
+                                           "D_TEST_SYMBOL_SUCCESS is defined");
+    group->elements[idx++] = D_ASSERT_TRUE("info_defined",
+                                           test_info_defined,
+                                           "D_TEST_SYMBOL_INFO is defined");
+    group->elements[idx++] = D_ASSERT_TRUE("warning_defined",
+                                           test_warning_defined,
+                                           "D_TEST_SYMBOL_WARNING is defined");
 
     return group;
 }
@@ -117,8 +106,7 @@ d_tests_sa_tc_pass_fail_constants
     test_fail_falsy          = (D_TEST_FAIL == false);
 
     // build result tree
-    group = d_test_standalone_object_new_interior(
-                "Pass/Fail Constants", 5);
+    group = d_test_object_new_interior("Pass/Fail Constants", 5);
 
     if (!group)
     {
@@ -126,31 +114,21 @@ d_tests_sa_tc_pass_fail_constants
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("pass_equals_success",
-                       test_pass_equals_success,
-                       "D_TEST_PASS equals D_SUCCESS"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("fail_equals_failure",
-                       test_fail_equals_failure,
-                       "D_TEST_FAIL equals D_FAILURE"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("different",
-                       test_different,
-                       "D_TEST_PASS and D_TEST_FAIL differ"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("pass_truthy",
-                       test_pass_truthy,
-                       "D_TEST_PASS is true"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("fail_falsy",
-                       test_fail_falsy,
-                       "D_TEST_FAIL is false"),
-        idx++);
+    group->elements[idx++] = D_ASSERT_TRUE("pass_equals_success",
+                                           test_pass_equals_success,
+                                           "D_TEST_PASS equals D_SUCCESS");
+    group->elements[idx++] = D_ASSERT_TRUE("fail_equals_failure",
+                                           test_fail_equals_failure,
+                                           "D_TEST_FAIL equals D_FAILURE");
+    group->elements[idx++] = D_ASSERT_TRUE("different",
+                                           test_different,
+                                           "D_TEST_PASS and D_TEST_FAIL differ");
+    group->elements[idx++] = D_ASSERT_TRUE("pass_truthy",
+                                           test_pass_truthy,
+                                           "D_TEST_PASS is true");
+    group->elements[idx++] = D_ASSERT_TRUE("fail_falsy",
+                                           test_fail_falsy,
+                                           "D_TEST_FAIL is false");
 
     return group;
 }
@@ -176,8 +154,7 @@ d_tests_sa_tc_symbols_all
     struct d_test_object* group;
     size_t                idx;
 
-    group = d_test_standalone_object_new_interior(
-                "Symbols and Constants", 2);
+    group = d_test_object_new_interior("Symbols and Constants", 2);
 
     if (!group)
     {
@@ -185,10 +162,8 @@ d_tests_sa_tc_symbols_all
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_symbols_defined(), idx++);
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_pass_fail_constants(), idx++);
+    group->elements[idx++] = d_tests_sa_tc_symbols_defined();
+    group->elements[idx++] = d_tests_sa_tc_pass_fail_constants();
 
     return group;
 }

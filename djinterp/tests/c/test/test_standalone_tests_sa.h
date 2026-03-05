@@ -20,8 +20,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../../../../inc/djinterp/c/test/test_standalone.h"
-#include "../../../../inc/djinterp/c/dstring.h"
+#include "../../../inc/c/test/test_standalone.h"
+#include "../../../inc/c/dstring.h"
 
 
 /******************************************************************************

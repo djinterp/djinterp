@@ -87,8 +87,7 @@ d_tests_sa_tc_fn_test_basic
     test_call_fail = (fail_fn() == D_TEST_FAIL);
 
     // build result tree
-    group = d_test_standalone_object_new_interior(
-                "fn_test Basic", 4);
+    group = d_test_object_new_interior("fn_test Basic", 4);
 
     if (!group)
     {
@@ -96,26 +95,18 @@ d_tests_sa_tc_fn_test_basic
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("assign_pass",
-                       test_assign_pass,
-                       "can assign passing test function"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("assign_fail",
-                       test_assign_fail,
-                       "can assign failing test function"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("call_pass",
-                       test_call_pass,
-                       "returns D_TEST_PASS correctly"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("call_fail",
-                       test_call_fail,
-                       "returns D_TEST_FAIL correctly"),
-        idx++);
+    group->elements[idx++] = D_ASSERT_TRUE("assign_pass",
+                                           test_assign_pass,
+                                           "can assign passing test function");
+    group->elements[idx++] = D_ASSERT_TRUE("assign_fail",
+                                           test_assign_fail,
+                                           "can assign failing test function");
+    group->elements[idx++] = D_ASSERT_TRUE("call_pass",
+                                           test_call_pass,
+                                           "returns D_TEST_PASS correctly");
+    group->elements[idx++] = D_ASSERT_TRUE("call_fail",
+                                           test_call_fail,
+                                           "returns D_TEST_FAIL correctly");
 
     return group;
 }
@@ -147,8 +138,7 @@ d_tests_sa_tc_fn_test_null
     test_check_null  = (null_fn == NULL);
 
     // build result tree
-    group = d_test_standalone_object_new_interior(
-                "fn_test NULL", 2);
+    group = d_test_object_new_interior("fn_test NULL", 2);
 
     if (!group)
     {
@@ -156,16 +146,12 @@ d_tests_sa_tc_fn_test_null
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("assign_null",
-                       test_assign_null,
-                       "can be assigned NULL"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("check_null",
-                       test_check_null,
-                       "NULL check works correctly"),
-        idx++);
+    group->elements[idx++] = D_ASSERT_TRUE("assign_null",
+                                           test_assign_null,
+                                           "can be assigned NULL");
+    group->elements[idx++] = D_ASSERT_TRUE("check_null",
+                                           test_check_null,
+                                           "NULL check works correctly");
 
     return group;
 }
@@ -205,8 +191,7 @@ d_tests_sa_tc_fn_stage_basic
     test_result = (stage_fn(NULL) == D_SUCCESS);
 
     // build result tree
-    group = d_test_standalone_object_new_interior(
-                "fn_stage Basic", 3);
+    group = d_test_object_new_interior("fn_stage Basic", 3);
 
     if (!group)
     {
@@ -214,21 +199,15 @@ d_tests_sa_tc_fn_stage_basic
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("assign",
-                       test_assign,
-                       "can assign stage hook function"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("call",
-                       test_call,
-                       "can call with NULL parameter"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("result",
-                       test_result,
-                       "returns D_SUCCESS correctly"),
-        idx++);
+    group->elements[idx++] = D_ASSERT_TRUE("assign",
+                                           test_assign,
+                                           "can assign stage hook function");
+    group->elements[idx++] = D_ASSERT_TRUE("call",
+                                           test_call,
+                                           "can call with NULL parameter");
+    group->elements[idx++] = D_ASSERT_TRUE("result",
+                                           test_result,
+                                           "returns D_SUCCESS correctly");
 
     return group;
 }
@@ -260,8 +239,7 @@ d_tests_sa_tc_fn_stage_null
     test_check_null  = (null_fn == NULL);
 
     // build result tree
-    group = d_test_standalone_object_new_interior(
-                "fn_stage NULL", 2);
+    group = d_test_object_new_interior("fn_stage NULL", 2);
 
     if (!group)
     {
@@ -269,16 +247,12 @@ d_tests_sa_tc_fn_stage_null
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("assign_null",
-                       test_assign_null,
-                       "can be assigned NULL"),
-        idx++);
-    d_test_standalone_object_add_child(group,
-        D_ASSERT_TRUE("check_null",
-                       test_check_null,
-                       "NULL check works correctly"),
-        idx++);
+    group->elements[idx++] = D_ASSERT_TRUE("assign_null",
+                                           test_assign_null,
+                                           "can be assigned NULL");
+    group->elements[idx++] = D_ASSERT_TRUE("check_null",
+                                           test_check_null,
+                                           "NULL check works correctly");
 
     return group;
 }
@@ -306,8 +280,7 @@ d_tests_sa_tc_fn_all
     struct d_test_object* group;
     size_t                idx;
 
-    group = d_test_standalone_object_new_interior(
-                "Function Pointer Types", 4);
+    group = d_test_object_new_interior("Function Pointer Types", 4);
 
     if (!group)
     {
@@ -315,14 +288,10 @@ d_tests_sa_tc_fn_all
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_fn_test_basic(), idx++);
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_fn_test_null(), idx++);
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_fn_stage_basic(), idx++);
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_fn_stage_null(), idx++);
+    group->elements[idx++] = d_tests_sa_tc_fn_test_basic();
+    group->elements[idx++] = d_tests_sa_tc_fn_test_null();
+    group->elements[idx++] = d_tests_sa_tc_fn_stage_basic();
+    group->elements[idx++] = d_tests_sa_tc_fn_stage_null();
 
     return group;
 }

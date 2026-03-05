@@ -1,4 +1,4 @@
-#include ".\test_cvar_tests_sa.h"
+#include "./test_cvar_tests_sa.h"
 
 
 /******************************************************************************
@@ -62,10 +62,10 @@ d_tests_sa_cvar_row_struct_flag
     result = true;
 
     // test 1: flag member is accessible
-    row.flag = D_TEST_CONFIG_ENABLED;
+    row.flag = D_TEST_OPTIONS_ENABLED;
 
     result = d_assert_standalone(
-        row.flag == D_TEST_CONFIG_ENABLED,
+        row.flag == D_TEST_OPTIONS_ENABLED,
         "row_struct_flag_accessible",
         "flag member should store DTestConfigKey value",
         _counter) && result;
