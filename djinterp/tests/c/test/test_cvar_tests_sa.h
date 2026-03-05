@@ -14,15 +14,16 @@
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.03
 ******************************************************************************/
 
-#ifndef DJINTERP_TESTS_TEST_CVAR_SA_
-#define DJINTERP_TESTS_TEST_CVAR_SA_ 1
+#ifndef DJINTERP_TESTS_TEST_CVAR_STANDALONE_
+#define DJINTERP_TESTS_TEST_CVAR_STANDALONE_ 1
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "..\..\inc\test\test_standalone.h"
-#include "..\..\inc\test\test_cvar.h"
-#include "..\..\inc\string_fn.h"
+#include "../../../inc/c/djinterp.h"
+#include "../../../inc/c/test/test_standalone.h"
+#include "../../../inc/c/test/test_cvar.h"
+#include "../../../inc/c/string_fn.h"
 
 
 /******************************************************************************
@@ -272,4 +273,4 @@ bool d_tests_sa_cvar_default_all(struct d_test_counter* _counter);
 bool d_tests_sa_cvar_run_all(struct d_test_counter* _counter);
 
 
-#endif  // DJINTERP_TESTS_TEST_CVAR_SA_
+#endif  // DJINTERP_TESTS_TEST_CVAR_STANDALONE_

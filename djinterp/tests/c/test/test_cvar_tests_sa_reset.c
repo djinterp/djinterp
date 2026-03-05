@@ -1,4 +1,4 @@
-#include ".\test_cvar_tests_sa.h"
+#include "./test_cvar_tests_sa.h"
 
 
 /******************************************************************************
@@ -36,7 +36,7 @@ d_tests_sa_cvar_reset_single
         row->value.b = false;
     }
 
-    d_test_registry_reset(D_TEST_CONFIG_ENABLED);
+    d_test_registry_reset(D_TEST_OPTIONS_ENABLED);
 
     result = d_assert_standalone(
         D_TEST_REGISTRY_VALUE_BOOL("config-enabled") == true,
@@ -52,7 +52,7 @@ d_tests_sa_cvar_reset_single
         row->value.z = 9999;
     }
 
-    d_test_registry_reset(D_TEST_CONFIG_TIMEOUT_MS);
+    d_test_registry_reset(D_TEST_OPTIONS_TIMEOUT_MS);
 
     result = d_assert_standalone(
         D_TEST_REGISTRY_VALUE_SIZE_T("timeout") == D_TEST_DEFAULT_TIMEOUT,

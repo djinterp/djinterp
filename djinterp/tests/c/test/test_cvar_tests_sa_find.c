@@ -1,4 +1,4 @@
-#include ".\test_cvar_tests_sa.h"
+#include "./test_cvar_tests_sa.h"
 
 
 /******************************************************************************
@@ -88,9 +88,9 @@ d_tests_sa_cvar_find_key_matches
 
     // test 2: returned row flag matches expected enum
     result = d_assert_standalone(
-        row != NULL && row->flag == D_TEST_CONFIG_SKIP,
+        row != NULL && row->flag == D_TEST_OPTIONS_SKIP,
         "find_flag_matches_skip",
-        "Returned row flag should be D_TEST_CONFIG_SKIP",
+        "Returned row flag should be D_TEST_OPTIONS_SKIP",
         _counter) && result;
 
     // test 3: metadata row key matches
@@ -184,7 +184,7 @@ d_tests_sa_cvar_find_invalid_key
 d_tests_sa_cvar_find_by_flag_valid
   Tests d_test_registry_find_by_flag with valid flags.
   Tests the following:
-  - Config flag (D_TEST_CONFIG_ENABLED) returns non-NULL row
+  - Config flag (D_TEST_OPTIONS_ENABLED) returns non-NULL row
   - Metadata flag (D_TEST_METADATA_AUTHORS) returns non-NULL row
   - Returned row flag matches the queried flag
 */
@@ -202,19 +202,19 @@ d_tests_sa_cvar_find_by_flag_valid
     d_test_registry_init();
 
     // test 1: config flag returns non-NULL
-    row = d_test_registry_find_by_flag(D_TEST_CONFIG_ENABLED);
+    row = d_test_registry_find_by_flag(D_TEST_OPTIONS_ENABLED);
 
     result = d_assert_standalone(
         row != NULL,
         "find_by_flag_config_enabled",
-        "find_by_flag(D_TEST_CONFIG_ENABLED) should return non-NULL",
+        "find_by_flag(D_TEST_OPTIONS_ENABLED) should return non-NULL",
         _counter) && result;
 
     // test 2: returned row flag matches queried flag
     result = d_assert_standalone(
-        row != NULL && row->flag == D_TEST_CONFIG_ENABLED,
+        row != NULL && row->flag == D_TEST_OPTIONS_ENABLED,
         "find_by_flag_config_enabled_matches",
-        "Returned row flag should match D_TEST_CONFIG_ENABLED",
+        "Returned row flag should match D_TEST_OPTIONS_ENABLED",
         _counter) && result;
 
     // test 3: metadata flag returns non-NULL

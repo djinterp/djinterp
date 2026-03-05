@@ -1,4 +1,4 @@
-#include ".\test_cvar_tests_sa.h"
+#include "./test_cvar_tests_sa.h"
 
 
 /******************************************************************************
@@ -234,11 +234,11 @@ d_tests_sa_cvar_macro_metadata_fields
         "D_TEST_REGISTRY_HELP('config-enabled') should be non-NULL",
         _counter) && result;
 
-    // test 2: FLAG returns D_TEST_CONFIG_ENABLED
+    // test 2: FLAG returns D_TEST_OPTIONS_ENABLED
     result = d_assert_standalone(
-        D_TEST_REGISTRY_FLAG("config-enabled") == D_TEST_CONFIG_ENABLED,
+        D_TEST_REGISTRY_FLAG("config-enabled") == D_TEST_OPTIONS_ENABLED,
         "macro_flag_config_enabled",
-        "D_TEST_REGISTRY_FLAG('config-enabled') should be D_TEST_CONFIG_ENABLED",
+        "D_TEST_REGISTRY_FLAG('config-enabled') should be D_TEST_OPTIONS_ENABLED",
         _counter) && result;
 
     // test 3: TYPE returns D_TYPE_INFO_BOOL for config-enabled

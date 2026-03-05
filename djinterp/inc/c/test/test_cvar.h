@@ -23,8 +23,48 @@
 #include "../djinterp.h"
 #include "../container/registry/registry.h"
 #include "../type_info.h"
-#include "./test_config.h"
 
+
+// DTestConfigKey
+//   enum: keys for the configuration settings map
+enum DTestConfigKey
+{
+    D_TEST_OPTIONS_ENABLED,          // bool*       - whether custom config is enabled
+    D_TEST_OPTIONS_INDENT_MAX_LEVEL, // uint16_t    - maximum level of indentation
+    D_TEST_OPTIONS_INDENT_STR,       // const char* - indentation string for output
+    D_TEST_OPTIONS_MAX_FAILURES,     // size_t      - maximum failures before stopping
+    D_TEST_OPTIONS_MESSAGE_FLAGS,    // uint32_t    - packed message/settings flags
+    D_TEST_OPTIONS_NAME,             // const char* - test name
+    D_TEST_OPTIONS_PRIORITY,         // int32_t     - test priority level
+    D_TEST_OPTIONS_SKIP,             // bool*       - whether test is skipped
+    D_TEST_OPTIONS_TIMEOUT_MS        // size_t      - test timeout in milliseconds
+};
+
+// DTestMetadataFlag
+//   enum: common enum types for test tree metadata
+//   NOTE: starts at 0x100 to avoid collision with DTestConfigKey values
+//   in flag-based linear scans (d_test_registry_get/set/reset).
+enum DTestMetadataFlag
+{
+    D_TEST_METADATA_UNKNOWN = 0x100,
+    D_TEST_METADATA_AUTHORS,            // char*  - author(s)' name(s)
+    D_TEST_METADATA_CATEGORY,           // char*  - test category
+    D_TEST_METADATA_CUSTOM_DATA,        // void*  - arbitrary custom data
+    D_TEST_METADATA_DATE_CREATED,       // char*  - creation date
+    D_TEST_METADATA_DATE_MODIFIED,      // char*  - modification date
+    D_TEST_METADATA_DESCRIPTION,        // char*  - node description
+    D_TEST_METADATA_DEPENDENCIES,       // char** - array of dependencies
+    D_TEST_METADATA_FRAMEWORK_NAME,     // char*  - name of framework
+    D_TEST_METADATA_MODULE_NAME,        // char*  - name of module
+    D_TEST_METADATA_SUBMODULE_NAME,     // char*  - name of submodule
+    D_TEST_METADATA_NAME,               // char*  - name of test
+    D_TEST_METADATA_NOTES,              // char** - note(s)
+    D_TEST_METADATA_SKIP_REASON,        // char*  - reason for skipping
+    D_TEST_METADATA_TAGS,               // char** - array of tags
+    D_TEST_METADATA_TIMESTAMP_FORMAT,   // char*  - timestamp
+    D_TEST_METADATA_VERSION,            // void*  - version
+    D_TEST_METADATA_VERSION_STRING      // char*  - version string
+};
 
 /******************************************************************************
  * REGISTRY ROW FLAGS
@@ -112,6 +152,15 @@ union d_test_value d_test_registry_get_default(uint32_t _flag);
 union d_test_value d_test_registry_get_default_by_key(const char* _key);
 
 /******************************************************************************
+ * DEFAULT VALUES
+ *****************************************************************************/
+
+#define D_TEST_DEFAULT_INDENT       "  "
+#define D_TEST_DEFAULT_MAX_INDENT   ( (uint16_t)10 )
+#define D_TEST_DEFAULT_MAX_FAILURES ( (size_t)0 )
+#define D_TEST_DEFAULT_TIMEOUT      ( (size_t)1000 )
+
+/******************************************************************************
  * TYPED ACCESS MACROS
  *****************************************************************************/
 
@@ -183,7 +232,6 @@ union d_test_value d_test_registry_get_default_by_key(const char* _key);
     (D_TEST_REGISTRY_GET(key)                                               \
         ? D_TEST_REGISTRY_GET(key)->value_type                              \
         : 0)
-
 
 /******************************************************************************
  * PREDICATE FUNCTIONS FOR FILTERED ITERATION

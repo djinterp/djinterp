@@ -1,4 +1,4 @@
-#include ".\test_cvar_tests_sa.h"
+#include "./test_cvar_tests_sa.h"
 
 
 /******************************************************************************
@@ -79,38 +79,38 @@ d_tests_sa_cvar_set_then_get
 
     // test 1: set max-failures to 42 and read back
     val.z  = 42;
-    set_ok = d_test_registry_set(D_TEST_CONFIG_MAX_FAILURES, val);
+    set_ok = d_test_registry_set(D_TEST_OPTIONS_MAX_FAILURES, val);
 
     result = d_assert_standalone(
         set_ok == true,
         "set_max_failures_ok",
-        "set(D_TEST_CONFIG_MAX_FAILURES, 42) should return true",
+        "set(D_TEST_OPTIONS_MAX_FAILURES, 42) should return true",
         _counter) && result;
 
-    val = d_test_registry_get(D_TEST_CONFIG_MAX_FAILURES);
+    val = d_test_registry_get(D_TEST_OPTIONS_MAX_FAILURES);
 
     result = d_assert_standalone(
         val.z == 42,
         "get_max_failures_42",
-        "get(D_TEST_CONFIG_MAX_FAILURES) should return 42 after set",
+        "get(D_TEST_OPTIONS_MAX_FAILURES) should return 42 after set",
         _counter) && result;
 
     // test 2: set message-flags and read back
     val.u32 = 0xABCD1234;
-    set_ok  = d_test_registry_set(D_TEST_CONFIG_MESSAGE_FLAGS, val);
+    set_ok  = d_test_registry_set(D_TEST_OPTIONS_MESSAGE_FLAGS, val);
 
     result = d_assert_standalone(
         set_ok == true,
         "set_message_flags_ok",
-        "set(D_TEST_CONFIG_MESSAGE_FLAGS) should return true",
+        "set(D_TEST_OPTIONS_MESSAGE_FLAGS) should return true",
         _counter) && result;
 
-    val = d_test_registry_get(D_TEST_CONFIG_MESSAGE_FLAGS);
+    val = d_test_registry_get(D_TEST_OPTIONS_MESSAGE_FLAGS);
 
     result = d_assert_standalone(
         val.u32 == 0xABCD1234,
         "get_message_flags_readback",
-        "get(D_TEST_CONFIG_MESSAGE_FLAGS) should return 0xABCD1234",
+        "get(D_TEST_OPTIONS_MESSAGE_FLAGS) should return 0xABCD1234",
         _counter) && result;
 
     // cleanup
@@ -219,9 +219,9 @@ d_tests_sa_cvar_set_get_bool
 
     // test 1: set enabled to false
     val.b = false;
-    d_test_registry_set(D_TEST_CONFIG_ENABLED, val);
+    d_test_registry_set(D_TEST_OPTIONS_ENABLED, val);
 
-    val = d_test_registry_get(D_TEST_CONFIG_ENABLED);
+    val = d_test_registry_get(D_TEST_OPTIONS_ENABLED);
 
     result = d_assert_standalone(
         val.b == false,
@@ -231,9 +231,9 @@ d_tests_sa_cvar_set_get_bool
 
     // test 2: set enabled back to true
     val.b = true;
-    d_test_registry_set(D_TEST_CONFIG_ENABLED, val);
+    d_test_registry_set(D_TEST_OPTIONS_ENABLED, val);
 
-    val = d_test_registry_get(D_TEST_CONFIG_ENABLED);
+    val = d_test_registry_get(D_TEST_OPTIONS_ENABLED);
 
     result = d_assert_standalone(
         val.b == true,

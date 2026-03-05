@@ -11,7 +11,6 @@ d_tests_sa_test_common_run_all
   - Test function wrappers (d_test_fn)
   - Lifecycle stages (DTestStage)
   - Type discriminators (DTestTypeFlag)
-  - Counter spec encoding (spec macros, popcount, init/free)
 
 Parameter(s):
   _counter: test counter to update with results
@@ -35,7 +34,6 @@ d_tests_sa_test_common_run_all
     result = d_tests_sa_test_common_fn_wrapper_all(_counter) && result;
     result = d_tests_sa_test_common_lifecycle_all(_counter) && result;
     result = d_tests_sa_test_common_discriminator_all(_counter) && result;
-    result = d_tests_sa_test_common_counter_spec_all(_counter) && result;
 
     return result;
 }
@@ -64,8 +62,7 @@ d_tests_sa_test_common_run_all_tree
     struct d_test_object* group;
     size_t                idx;
 
-    group = d_test_standalone_object_new_interior(
-                "test_common (tree)", 3);
+    group = d_test_object_new_interior("test_common (tree)", 3);
 
     if (!group)
     {
@@ -73,12 +70,9 @@ d_tests_sa_test_common_run_all_tree
     }
 
     idx = 0;
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_symbols_all(), idx++);
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_fn_all(), idx++);
-    d_test_standalone_object_add_child(group,
-        d_tests_sa_tc_test_fn_all(), idx++);
+    group->elements[idx++] = d_tests_sa_tc_symbols_all();
+    group->elements[idx++] = d_tests_sa_tc_fn_all();
+    group->elements[idx++] = d_tests_sa_tc_test_fn_all();
 
     return group;
 }
