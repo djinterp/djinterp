@@ -11,17 +11,12 @@
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
 ******************************************************************************/
 
-#ifndef DJINTERP_TESTING_SA_TEST_SESSION_
-#define DJINTERP_TESTING_SA_TEST_SESSION_ 1
+#ifndef DJINTERP_TESTING_TEST_SESSION_STANDALONE_
+#define DJINTERP_TESTING_TEST_SESSION_STANDALONE_ 1
 
 #include <stdlib.h>
 #include "../../../inc/c/djinterp.h"
-#include "../../../inc/c/dmemory.h"
-#include "../../../inc/c/string_fn.h"
 #include "../../../inc/c/test/test_session.h"
-#include "../../../inc/c/test/test_module.h"
-#include "../../../inc/c/test/test.h"
-#include "../../../inc/c/test/test_common.h"
 #include "../../../inc/c/test/test_standalone.h"
 
 
@@ -123,4 +118,4 @@ bool d_tests_sa_test_session_exit_code(struct d_test_counter* _test_info);
 bool d_tests_sa_test_session_all(struct d_test_counter* _test_info);
 
 
-#endif  // DJINTERP_TESTING_SA_TEST_SESSION_
+#endif  // DJINTERP_TESTING_TEST_SESSION_STANDALONE_
