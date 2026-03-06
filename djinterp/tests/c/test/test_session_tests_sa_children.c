@@ -7,7 +7,6 @@
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.16
 ******************************************************************************/
-
 #include "./test_session_tests_sa.h"
 
 
@@ -72,7 +71,8 @@ d_tests_sa_test_session_add_child
     session = d_test_session_new();
     child   = create_module_child();
 
-    if ( (!session) || (!child) )
+    if ( (!session) || 
+         (!child) )
     {
         printf("  %s allocation failed\n", D_TEST_SYMBOL_FAIL);
         _test_info->tests_total++;

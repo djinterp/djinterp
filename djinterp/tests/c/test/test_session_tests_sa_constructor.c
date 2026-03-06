@@ -172,7 +172,7 @@ d_tests_sa_test_session_new_with_config
     size_t initial_tests_passed;
     bool   all_passed;
     struct d_test_session* session;
-    struct d_test_config*  cfg;
+    struct d_test_options* options;
 
     printf("  --- Testing d_test_session_new_with_config ---\n");
 
@@ -180,11 +180,11 @@ d_tests_sa_test_session_new_with_config
     all_passed           = true;
 
     // create a config and pass it
-    cfg = d_test_config_new(D_TEST_MODE_VERBOSE);
+    options = d_test_options_new(D_TEST_MODE_VERBOSE);
 
-    if (cfg)
+    if (options)
     {
-        session = d_test_session_new_with_config(cfg);
+        session = d_test_session_new_with_config(options);
 
         if (!d_assert_standalone(session != NULL,
                                  "new_with_config returned non-NULL",
@@ -197,7 +197,7 @@ d_tests_sa_test_session_new_with_config
         if (session)
         {
             // session takes ownership of config
-            if (!d_assert_standalone(session->config == cfg,
+            if (!d_assert_standalone(session->config == options,
                                      "session config is the provided config",
                                      "session config should be the "
                                      "provided config",
@@ -221,7 +221,7 @@ d_tests_sa_test_session_new_with_config
         else
         {
             // config not consumed, free it
-            d_test_config_free(cfg);
+            d_test_options_free(options);
         }
     }
 
@@ -406,7 +406,7 @@ d_tests_sa_test_session_new_with_modules_and_config
     size_t initial_tests_passed;
     bool   all_passed;
     struct d_test_session* session;
-    struct d_test_config*  cfg;
+    struct d_test_options*  cfg;
     struct d_test_module*  mod;
     struct d_test_type*    type_mod;
     struct d_test_type*    modules[1];
@@ -416,7 +416,7 @@ d_tests_sa_test_session_new_with_modules_and_config
     initial_tests_passed = _test_info->tests_passed;
     all_passed           = true;
 
-    cfg = d_test_config_new(D_TEST_MODE_SILENT);
+    cfg = d_test_options_new(D_TEST_MODE_SILENT);
     mod = d_test_module_new(NULL, 0);
 
     if ( (!cfg) || (!mod) )
@@ -432,7 +432,7 @@ d_tests_sa_test_session_new_with_modules_and_config
     if (!type_mod)
     {
         d_test_module_free(mod);
-        d_test_config_free(cfg);
+        d_test_options_free(cfg);
         printf("  %s type wrapper allocation failed\n", D_TEST_SYMBOL_FAIL);
         _test_info->tests_total++;
 
@@ -476,7 +476,7 @@ d_tests_sa_test_session_new_with_modules_and_config
     else
     {
         d_test_type_free(type_mod);
-        d_test_config_free(cfg);
+        d_test_options_free(cfg);
     }
 
     if (all_passed)
@@ -513,8 +513,8 @@ d_tests_sa_test_session_validate_args
     size_t initial_tests_passed;
     bool   all_passed;
     struct d_test_arg     args[1];
-    struct d_test_config* cfg;
-    struct d_test_config* null_cfg;
+    struct d_test_options* cfg;
+    struct d_test_options* null_cfg;
 
     printf("  --- Testing d_test_session_validate_args ---\n");
 
