@@ -348,7 +348,7 @@ d_test_session_new
         return NULL;
     }
 
-    session->config = d_test_config_new(D_TEST_MODE_NORMAL);
+    session->config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     if (!session->config)
     {
@@ -391,7 +391,7 @@ d_test_session_new_with_config
     {
         if (session->config)
         {
-            d_test_config_free(session->config);
+            d_test_options_free(session->config);
         }
 
         session->config = _config;
@@ -453,7 +453,7 @@ d_test_session_new_with_modules_and_config
     {
         if (session->config)
         {
-            d_test_config_free(session->config);
+            d_test_options_free(session->config);
         }
 
         session->config = _config;
@@ -549,7 +549,7 @@ d_test_session_validate_args
         return NULL;
     }
 
-    config = d_test_config_new(D_TEST_MODE_NORMAL);
+    config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     if (!config)
     {
@@ -562,7 +562,7 @@ d_test_session_validate_args
 
         if (!config->settings)
         {
-            d_test_config_free(config);
+            d_test_options_free(config);
 
             return NULL;
         }
@@ -615,7 +615,7 @@ d_test_session_free
 
     if (_session->config)
     {
-        d_test_config_free(_session->config);
+        d_test_options_free(_session->config);
     }
 
     free(_session);
@@ -628,7 +628,7 @@ d_test_session_free
  * CONFIGURATION FUNCTIONS
  *****************************************************************************/
 
-bool
+D_INLINE bool
 d_test_session_set_option
 (
     struct d_test_session*  _session,
@@ -636,34 +636,28 @@ d_test_session_set_option
     const void*             _value
 )
 {
-    if ( (!_session) || 
-         (!_session->config) || 
-         (!_session->config->settings) )
-    {
-        return false;
-    }
-
-    return d_min_enum_map_put(_session->config->settings, 
+    return ( (_session)         && 
+             (_session->config) && 
+             (_session->config->settings) )
+        ?  d_min_enum_map_put(_session->config->settings, 
                               (int)_option, 
-                              (void*)_value);
+                              (void*)_value)
+        : false;
 }
 
-
-void*
+D_INLINE void*
 d_test_session_get_option
 (
     const struct d_test_session* _session,
     enum DTestSessionOption      _option
 )
 {
-    if ( (!_session) || 
-         (!_session->config) || 
-         (!_session->config->settings) )
-    {
-        return NULL;
-    }
-
-    return d_min_enum_map_get(_session->config->settings, (int)_option);
+    return ( (_session)         && 
+             (_session->config) && 
+             (_session->config->settings) )
+        ? d_min_enum_map_get(_session->config->settings, 
+                             (int)_option)
+        : NULL;
 }
 
 
@@ -710,7 +704,8 @@ d_test_session_set_output_file
     const char*            _filename
 )
 {
-    if ( (!_session) || (!_filename) )
+    if ( (!_session) || 
+         (!_filename) )
     {
         return false;
     }
@@ -957,11 +952,11 @@ d_test_session_run
 
             if (child_passed)
             {
-                D_COUNTER_INC_MODULE_PASS(&_session->stats);
+                D_STAT_COUNTER_INC_MODULE_PASS(&_session->stats);
             }
             else
             {
-                D_COUNTER_INC_MODULE_FAIL(&_session->stats);
+                D_STAT_COUNTER_INC_MODULE_FAIL(&_session->stats);
                 _session->failure_count++;
                 all_passed = false;
             }

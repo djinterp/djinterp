@@ -35,9 +35,8 @@
 #include "../dtime.h"
 #include "../container/map/min_enum_map.h"
 #include "../container/vector/ptr_vector.h"
-#include "./test_common.h"
-#include "./test_cvar.h"
 #include "./test_module.h"
+#include "./test_stats.h"
 
 
 /******************************************************************************
@@ -224,7 +223,7 @@ struct d_test_session_output
 struct d_test_session
 {
     // test management - children are modules (d_test_type with type MODULE)
-    struct d_ptr_vector*        children;       // registered modules
+    struct d_ptr_vector*         children;       // registered modules
 
     // configuration
     struct d_test_options*       config;         // session configuration
@@ -233,17 +232,17 @@ struct d_test_session
     struct d_test_session_output output;        // output management
     
     // statistics
-    struct d_test_statistics    stats;          // aggregated statistics
-    
-    // state
-    enum DTestSessionStatus     status;         // current status
-    size_t                      current_index;  // current test index
-    size_t                      failure_count;  // failures so far
-    size_t                      repeat_current; // current repeat iteration
-    
-    // timing
-    double                      start_time_ms;  // session start time
-    double                      end_time_ms;    // session end time
+    struct d_test_statistics     stats;          // aggregated statistics
+                                 
+    // state                     
+    enum DTestSessionStatus      status;         // current status
+    size_t                       current_index;  // current test index
+    size_t                       failure_count;  // failures so far
+    size_t                       repeat_current; // current repeat iteration
+                                 
+    // timing                    
+    double                       start_time_ms;  // session start time
+    double                       end_time_ms;    // session end time
 };
 
 
