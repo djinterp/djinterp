@@ -113,6 +113,16 @@ struct d_test_arg_list
     struct d_test_arg* args;
 };
 
+// d_test_counter
+//   struct: tracks passed and total counts for tests and assertions.
+struct d_test_counter
+{
+    size_t assertions_total;
+    size_t assertions_passed;
+    size_t tests_total;
+    size_t tests_passed;
+};
+
 // d_test_fn
 //   struct: wrapper for a test function with optional arguments.
 struct d_test_fn
@@ -139,12 +149,12 @@ enum DTestStage
 // test tree node.
 enum DTestTypeFlag
 {
-    D_TEST_TYPE_UNKNOWN    = 0,
-    D_TEST_TYPE_ASSERT     = 1,
-    D_TEST_TYPE_TEST_FN    = 2,
-    D_TEST_TYPE_TEST       = 3,
-    D_TEST_TYPE_TEST_BLOCK = 4,
-    D_TEST_TYPE_MODULE     = 5
+    D_TEST_TYPE_UNKNOWN     = 0,
+    D_TEST_TYPE_ASSERT      = 1,
+    D_TEST_TYPE_TEST_FN     = 2,
+    D_TEST_TYPE_TEST        = 3,
+    D_TEST_TYPE_TEST_BLOCK  = 4,
+    D_TEST_TYPE_MODULE      = 5
 };
 
 

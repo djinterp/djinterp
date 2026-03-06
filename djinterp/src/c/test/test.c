@@ -719,7 +719,7 @@ bool
 d_test_add_assertion
 (
     struct d_test*      _test,
-    struct d_assertion* _assertion
+    struct d_assert* _assertion
 )
 {
     struct d_test_type* test_type;
