@@ -102,21 +102,6 @@
 
 
 /******************************************************************************
- * TEST COUNTER
- *****************************************************************************/
-
-// d_test_counter
-//   struct: tracks passed and failed tests and assertions.
-struct d_test_counter
-{
-    size_t assertions_total;
-    size_t assertions_passed;
-    size_t tests_total;
-    size_t tests_passed;
-};
-
-
-/******************************************************************************
  * TEST OBJECT
  *****************************************************************************/
 

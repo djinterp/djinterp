@@ -6,7 +6,7 @@
 * macro which supports optional configuration arguments and variadic test items.
 *
 * A test can contain only:
-*   - d_assertion (assertions)
+*   - d_assert (assertions)
 *   - d_test_fn (test functions)
 *
 * Configuration is resolved at runtime by combining the test's own config with
@@ -302,7 +302,7 @@ struct d_test_options* d_test_fn_validate_args(struct d_test_arg* _args, size_t 
 
 // child management
 bool                  d_test_add_child(struct d_test* _test, struct d_test_type* _child);
-bool                  d_test_add_assertion(struct d_test* _test, struct d_assertion* _assertion);
+bool                  d_test_add_assertion(struct d_test* _test, struct d_assert* _assertion);
 bool                  d_test_add_function(struct d_test* _test, fn_test _fn);
 size_t                d_test_child_count(const struct d_test* _test);
 struct d_test_type*   d_test_get_child_at(const struct d_test* _test, size_t _index);

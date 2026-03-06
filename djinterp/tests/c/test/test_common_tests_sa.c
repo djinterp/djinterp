@@ -38,7 +38,6 @@ d_tests_sa_test_common_run_all
     return result;
 }
 
-
 /*
 d_tests_sa_test_common_run_all_tree
   Module-level aggregation function that runs all tree-based

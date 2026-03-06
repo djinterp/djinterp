@@ -19,7 +19,7 @@
     &(struct d_test_type)                                \
     {                                                    \
         .type   = D_TEST_TYPE_MODULE,                    \
-        .config = d_test_config_new_args(args, count),   \
+        .config = d_test_options_new_args(args, count),   \
         .module = &(struct d_test_module)                \
          {                                               \
             .children = D_PTR_VECTOR_PTR(__VA_ARGS__),   \
