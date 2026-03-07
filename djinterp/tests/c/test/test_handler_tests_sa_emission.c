@@ -144,7 +144,7 @@ bool d_tests_sa_handler_event_lifecycle(struct d_test_counter* _test_info)
             d_test_handler_register_listener(h, D_TEST_EVENT_END, callback_end, true);
             d_test_handler_register_listener(h, D_TEST_EVENT_TEAR_DOWN, callback_teardown, true);
 
-            struct d_test* test = d_test_new(handler_test_passing, NULL);
+            struct d_test* test = helper_make_passing_test();
             if (test) {
                 d_test_handler_run_test(h, test, NULL);
                 if (!d_assert_standalone(
@@ -167,7 +167,7 @@ bool d_tests_sa_handler_event_lifecycle(struct d_test_counter* _test_info)
         if (h) {
             d_test_handler_register_listener(h, D_TEST_EVENT_SUCCESS, callback_success, true);
             d_test_handler_register_listener(h, D_TEST_EVENT_FAILURE, callback_failure, true);
-            struct d_test* test = d_test_new(handler_test_failing, NULL);
+            struct d_test* test = helper_make_failing_test();
             if (test) {
                 d_test_handler_run_test(h, test, NULL);
                 if (!d_assert_standalone(
@@ -190,7 +190,7 @@ bool d_tests_sa_handler_event_lifecycle(struct d_test_counter* _test_info)
             d_test_handler_register_listener(h, D_TEST_EVENT_START, callback_start, true);
             d_test_handler_register_listener(h, D_TEST_EVENT_END, callback_end, true);
             for (i = 0; i < 3; i++) {
-                struct d_test* t = d_test_new(handler_test_passing, NULL);
+                struct d_test* t = helper_make_passing_test();
                 if (t) { d_test_handler_run_test(h, t, NULL); d_test_free(t); }
             }
             if (!d_assert_standalone(
