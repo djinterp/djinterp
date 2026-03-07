@@ -463,7 +463,7 @@ d_tests_sa_handler_create_module_from_decl
         metadata[0].key   = "name";
         metadata[0].value = "Module With Block";
 
-        block = d_test_block_new("child_block", NULL);
+        block = d_test_block_new(NULL, 0);
 
         if (block)
         {

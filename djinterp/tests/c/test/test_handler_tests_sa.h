@@ -28,12 +28,50 @@
 #include "../../../inc/c/test/test_standalone.h"
 
 
-// I.    helper test functions
-bool handler_test_passing(struct d_test* _test);
-bool handler_test_failing(struct d_test* _test);
-bool handler_test_with_assertion(struct d_test* _test);
+//=============================================================================
+// HELPER TEST FUNCTIONS (fn_test-compatible: bool(void))
+//=============================================================================
 
-// II.   global event callback trackers
+bool handler_test_passing(void);
+bool handler_test_failing(void);
+bool handler_test_with_assertion(void);
+
+
+//=============================================================================
+// HELPER FACTORY FUNCTIONS
+//   Wrap test functions into proper d_test objects using the current API:
+//   d_test_fn_new -> d_test_type_new -> d_test_new
+//=============================================================================
+
+// helper_make_passing_test
+//   creates a d_test containing a single passing test_fn child.
+struct d_test* helper_make_passing_test(void);
+
+// helper_make_failing_test
+//   creates a d_test containing a single failing test_fn child.
+struct d_test* helper_make_failing_test(void);
+
+// helper_add_passing_test_to_block
+//   creates a passing test, wraps it in d_test_type, adds to block.
+// returns true on success.
+bool helper_add_passing_test_to_block(struct d_test_block* _block);
+
+// helper_add_failing_test_to_block
+//   creates a failing test, wraps it in d_test_type, adds to block.
+// returns true on success.
+bool helper_add_failing_test_to_block(struct d_test_block* _block);
+
+// helper_add_block_child_to_block
+//   wraps a child block in d_test_type and adds to parent block.
+// returns true on success. parent takes ownership of child.
+bool helper_add_block_child_to_block(struct d_test_block* _parent,
+                                     struct d_test_block* _child);
+
+
+//=============================================================================
+// GLOBAL EVENT CALLBACK TRACKERS
+//=============================================================================
+
 extern int g_event_setup_count;
 extern int g_event_start_count;
 extern int g_event_success_count;
@@ -43,7 +81,11 @@ extern int g_event_teardown_count;
 
 void reset_event_counters(void);
 
-// III.  event callback functions
+
+//=============================================================================
+// EVENT CALLBACK FUNCTIONS
+//=============================================================================
+
 void callback_setup(size_t _size, void** _elements);
 void callback_start(size_t _size, void** _elements);
 void callback_success(size_t _size, void** _elements);
@@ -51,28 +93,39 @@ void callback_failure(size_t _size, void** _elements);
 void callback_end(size_t _size, void** _elements);
 void callback_teardown(size_t _size, void** _elements);
 
-// IV.   creation and destruction tests
+
+//=============================================================================
+// SECTION 1: CREATION AND DESTRUCTION TESTS
+//=============================================================================
 bool d_tests_sa_handler_new(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_new_with_events(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_new_full(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_free(struct d_test_counter* _test_info);
 
-// V.    flag management tests
+//=============================================================================
+// SECTION 2: FLAG MANAGEMENT TESTS
+//=============================================================================
 bool d_tests_sa_handler_set_flag(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_clear_flag(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_has_flag(struct d_test_counter* _test_info);
 
-// VI.   event listener registration tests
+//=============================================================================
+// SECTION 3: EVENT LISTENER REGISTRATION TESTS
+//=============================================================================
 bool d_tests_sa_handler_register_listener(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_unregister_listener(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_listener_enable_disable(
          struct d_test_counter* _test_info);
 
-// VII.  event emission tests
+//=============================================================================
+// SECTION 4: EVENT EMISSION TESTS
+//=============================================================================
 bool d_tests_sa_handler_emit_event(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_event_lifecycle(struct d_test_counter* _test_info);
 
-// VIII. test execution tests
+//=============================================================================
+// SECTION 5: TEST EXECUTION TESTS
+//=============================================================================
 bool d_tests_sa_handler_run_test(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_run_block(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_run_test_type(struct d_test_counter* _test_info);
@@ -82,29 +135,39 @@ bool d_tests_sa_handler_run_module(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_run_tree_and_session(
          struct d_test_counter* _test_info);
 
-// IX.   assertion tracking tests
+//=============================================================================
+// SECTION 6: ASSERTION TRACKING TESTS
+//=============================================================================
 bool d_tests_sa_handler_record_assertion(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_assertion_statistics(
          struct d_test_counter* _test_info);
 
-// X.    stack operations tests
+//=============================================================================
+// SECTION 7: STACK OPERATIONS TESTS
+//=============================================================================
 bool d_tests_sa_handler_result_stack(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_context_stack(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_stack_no_alloc(struct d_test_counter* _test_info);
 
-// XI.   result query tests
+//=============================================================================
+// SECTION 8: RESULT QUERY TESTS
+//=============================================================================
 bool d_tests_sa_handler_get_results(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_reset_results(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_print_results(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_get_pass_rate(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_get_assertion_rate(struct d_test_counter* _test_info);
 
-// XII.  context helper tests
+//=============================================================================
+// SECTION 9: CONTEXT HELPER TESTS
+//=============================================================================
 bool d_tests_sa_handler_context_new(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_context_init(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_context_free(struct d_test_counter* _test_info);
 
-// XIII. DSL helper tests
+//=============================================================================
+// SECTION 10: DSL HELPER TESTS
+//=============================================================================
 bool d_tests_sa_handler_create_module_metadata(
          struct d_test_counter* _test_info);
 bool d_tests_sa_handler_set_metadata_str(struct d_test_counter* _test_info);
@@ -113,26 +176,36 @@ bool d_tests_sa_handler_create_block_from_nodes(
 bool d_tests_sa_handler_create_module_from_decl(
          struct d_test_counter* _test_info);
 
-// XIV.  statistics and depth tracking tests
+//=============================================================================
+// SECTION 11: STATISTICS AND DEPTH TRACKING TESTS
+//=============================================================================
 bool d_tests_sa_handler_depth_tracking(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_max_depth(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_block_counting(struct d_test_counter* _test_info);
 
-// XV.   abort on failure tests
+//=============================================================================
+// SECTION 12: ABORT ON FAILURE TESTS
+//=============================================================================
 bool d_tests_sa_handler_abort_on_failure(struct d_test_counter* _test_info);
 
-// XVI.  edge cases and error handling tests
+//=============================================================================
+// SECTION 13: EDGE CASES AND ERROR HANDLING TESTS
+//=============================================================================
 bool d_tests_sa_handler_null_parameters(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_empty_blocks(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_no_events(struct d_test_counter* _test_info);
 
-// XVII. integration tests
+//=============================================================================
+// SECTION 14: INTEGRATION TESTS
+//=============================================================================
 bool d_tests_sa_handler_complex_execution(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_event_integration(struct d_test_counter* _test_info);
 bool d_tests_sa_handler_statistics_accuracy(
          struct d_test_counter* _test_info);
 
-// XVIII. comprehensive test suite
+//=============================================================================
+// COMPREHENSIVE TEST SUITE
+//=============================================================================
 bool d_tests_sa_test_handler_all(struct d_test_counter* _test_info);
 
 
