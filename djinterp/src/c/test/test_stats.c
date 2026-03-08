@@ -99,7 +99,6 @@ d_test_stat_counter_total
     return _counter->run + _counter->skipped;
 }
 
-
 /******************************************************************************
  * INTERNAL HELPERS
  *****************************************************************************/
@@ -135,7 +134,6 @@ d_internal_get_time_ms
     return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
 #endif
 }
-
 
 /******************************************************************************
  * STATISTICS UTILITY FUNCTIONS
@@ -347,7 +345,6 @@ d_test_statistics_all_passed
     return d_test_statistics_total_failed(_stats) == 0;
 }
 
-
 /******************************************************************************
  * TIMING FUNCTIONS
  *****************************************************************************/
@@ -403,7 +400,6 @@ d_test_statistics_stop_timer
     return;
 }
 
-
 /******************************************************************************
  * RATE CALCULATION FUNCTIONS
  *****************************************************************************/
@@ -431,7 +427,6 @@ d_test_stat_counter_pass_rate
 
     return (double)_counter->passed / (double)_counter->run * 100.0;
 }
-
 
 /*
 d_test_stat_counter_assert_rate

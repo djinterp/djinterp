@@ -57,7 +57,6 @@ d_internal_test_process_args
     return true;
 }
 
-
 /*
 d_internal_test_add_children
   Adds child test types to the test.
@@ -110,7 +109,6 @@ d_internal_test_add_children
     return true;
 }
 
-
 /*
 d_internal_test_resolve_config
   Resolves effective configuration by merging test's own config with run config.
@@ -144,7 +142,6 @@ d_internal_test_resolve_config
 
     return NULL;
 }
-
 
 /******************************************************************************
  * VALIDATE_ARGS FUNCTIONS
@@ -219,7 +216,6 @@ d_test_validate_args
 
     return config;
 }
-
 
 /*
 d_test_fn_validate_args
@@ -307,7 +303,6 @@ d_test_fn_validate_args
     return config;
 }
 
-
 /******************************************************************************
  * CONSTRUCTOR FUNCTIONS
  *****************************************************************************/
@@ -375,7 +370,6 @@ d_test_new
 
     return new_test;
 }
-
 
 /*
 d_test_new_args
@@ -465,7 +459,6 @@ d_test_new_args
     return test;
 }
 
-
 /******************************************************************************
  * DESTRUCTOR FUNCTIONS
  *****************************************************************************/
@@ -499,7 +492,6 @@ d_test_fn_free
 
     return;
 }
-
 
 /*
 d_test_free
@@ -542,7 +534,6 @@ d_test_free
     return;
 }
 
-
 /******************************************************************************
  * TEST FUNCTION WRAPPER
  *****************************************************************************/
@@ -577,7 +568,6 @@ d_test_fn_new
 
     return test_fn;
 }
-
 
 /******************************************************************************
  * TEST TYPE FUNCTIONS
@@ -641,7 +631,6 @@ d_test_type_new
     return type;
 }
 
-
 /*
 d_test_type_free
   Frees a test type wrapper. Does NOT free the wrapped item.
@@ -664,7 +653,6 @@ d_test_type_free
 
     return;
 }
-
 
 /******************************************************************************
  * CHILD MANAGEMENT FUNCTIONS
@@ -704,7 +692,6 @@ d_test_add_child
     return d_ptr_vector_push_back(_test->children, _child);
 }
 
-
 /*
 d_test_add_assertion
   Adds an assertion to the test.
@@ -739,7 +726,6 @@ d_test_add_assertion
 
     return d_test_add_child(_test, test_type);
 }
-
 
 /*
 d_test_add_function
@@ -786,7 +772,6 @@ d_test_add_function
     return d_test_add_child(_test, test_type);
 }
 
-
 /*
 d_test_child_count
   Returns the number of children in the test.
@@ -810,7 +795,6 @@ d_test_child_count
 
     return d_ptr_vector_size(_test->children);
 }
-
 
 /*
 d_test_get_child_at
@@ -837,7 +821,6 @@ d_test_get_child_at
 
     return (struct d_test_type*)d_ptr_vector_at(_test->children, (d_index)_index);
 }
-
 
 /******************************************************************************
  * STAGE HOOK FUNCTIONS
@@ -881,7 +864,6 @@ d_test_set_stage_hook
     return d_min_enum_map_put(_test->stage_hooks, (int)_stage, (void*)_hook);
 }
 
-
 /*
 d_test_get_stage_hook
   Gets the lifecycle hook for the specified stage.
@@ -907,7 +889,6 @@ d_test_get_stage_hook
 
     return (fn_stage)d_min_enum_map_get(_test->stage_hooks, (int)_stage);
 }
-
 
 /******************************************************************************
  * EXECUTION FUNCTIONS
@@ -1038,7 +1019,6 @@ d_test_run
     return all_passed;
 }
 
-
 /******************************************************************************
  * UTILITY FUNCTIONS
  *****************************************************************************/
@@ -1080,7 +1060,6 @@ d_test_print
 
     return;
 }
-
 
 /*
 d_test_type_flag_to_string

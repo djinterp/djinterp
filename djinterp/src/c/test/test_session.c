@@ -28,7 +28,6 @@ d_internal_session_get_time_ms
     return (double)clock() / (double)CLOCKS_PER_SEC * 1000.0;
 }
 
-
 /******************************************************************************
  * INTERNAL HELPERS - OUTPUT
  *****************************************************************************/
@@ -61,7 +60,6 @@ d_internal_session_init_output
     return;
 }
 
-
 /*
 d_internal_session_close_output
   Closes the output stream if we own it.
@@ -90,7 +88,6 @@ d_internal_session_close_output
 
     return;
 }
-
 
 /*
 d_internal_session_open_file
@@ -186,7 +183,6 @@ d_internal_session_open_file
     return true;
 }
 
-
 /******************************************************************************
  * INTERNAL HELPERS - COLOR
  *****************************************************************************/
@@ -276,7 +272,6 @@ d_internal_session_color_bold
     return "";
 }
 
-
 /******************************************************************************
  * INTERNAL HELPERS - CHILDREN
  *****************************************************************************/
@@ -318,7 +313,6 @@ d_internal_session_add_children
 
     return true;
 }
-
 
 /******************************************************************************
  * CONSTRUCTOR/DESTRUCTOR FUNCTIONS
@@ -623,7 +617,6 @@ d_test_session_free
     return;
 }
 
-
 /******************************************************************************
  * CONFIGURATION FUNCTIONS
  *****************************************************************************/
@@ -752,7 +745,6 @@ d_test_session_enable_color
     return true;
 }
 
-
 /******************************************************************************
  * CHILD MANAGEMENT FUNCTIONS
  *****************************************************************************/
@@ -854,7 +846,6 @@ d_test_session_clear_children
 
     return true;
 }
-
 
 /******************************************************************************
  * EXECUTION FUNCTIONS
@@ -1156,7 +1147,6 @@ d_test_session_reset
 
     return true;
 }
-
 
 /******************************************************************************
  * OUTPUT FUNCTIONS
@@ -1530,7 +1520,6 @@ d_test_session_flush
     return;
 }
 
-
 /******************************************************************************
  * STATISTICS FUNCTIONS
  *****************************************************************************/
@@ -1644,7 +1633,6 @@ d_test_session_duration_ms
     return d_internal_session_get_time_ms() - _session->start_time_ms;
 }
 
-
 /******************************************************************************
  * STATUS FUNCTIONS
  *****************************************************************************/
@@ -1726,7 +1714,6 @@ d_test_session_is_complete
     return (_session->status == D_TEST_SESSION_STATUS_COMPLETED) ||
            (_session->status == D_TEST_SESSION_STATUS_ABORTED);
 }
-
 
 /******************************************************************************
  * UTILITY FUNCTIONS

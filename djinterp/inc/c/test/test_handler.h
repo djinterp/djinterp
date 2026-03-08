@@ -33,6 +33,9 @@
 #include "../test/assert.h"
 #include "../test/test.h"
 #include "../test/test_block.h"
+#include "../test/test_module.h"
+#include "../test/test_session.h"
+#include "../container/stack/min_stack.h"
 
 
 // d_test_result
@@ -119,23 +122,22 @@ struct d_test_context
     struct d_test_handler*  handler;
 
     // current execution location
-    struct d_test*          current_test;
-    struct d_test_block*    current_block;
-    struct d_test_module*   current_module;
-    struct d_test_tree*     current_tree;
-    struct d_test_session*  current_session;
+    struct d_test*         current_test;
+    struct d_test_block*   current_block;
+    struct d_test_module*  current_module;
+    struct d_test_tree*    current_tree;
+    struct d_test_session* current_session;
 
     // execution state
-    enum DTestEvent         event_type;
-    size_t                  depth;
-    struct d_assert*        last_assertion;
+    enum DTestEvent        event_type;
+    size_t                 depth;
+    struct d_assert*       last_assertion;
 
     // result at this context level
-    bool                    result;
-    double                  start_time_ms;
-    double                  end_time_ms;
+    bool                   result;
+    double                 start_time_ms;
+    double                 end_time_ms;
 };
-
 
 // d_test_kv
 //   type: key-value pair used by the DSL for metadata.
@@ -144,7 +146,6 @@ struct d_test_kv
     const char* key;
     const char* value;
 };
-
 
 // I.    creation and destruction
 struct d_test_handler* d_test_handler_new(struct d_test_options* _default_config);
@@ -240,11 +241,11 @@ void                   d_test_context_free(struct d_test_context* _context);
 // D_ASSERTION
 //   macro: creates an assertion from a condition and messages.
 #define D_ASSERTION(condition, pass_msg, fail_msg) \
-    d_assert((condition), (pass_msg), (fail_msg))
+    d_assert_new((condition), (pass_msg), (fail_msg))
 
-// D_ASSERTION_EQ
-//   macro: creates an equality assertion.
-#define D_ASSERTION_EQ(a, b, pass_msg, fail_msg) \
+// D_HANDLER_ASSERTION_EQ
+//   macro: creates an equality assertion (handler DSL variant).
+#define D_HANDLER_ASSERTION_EQ(a, b, pass_msg, fail_msg) \
     d_assert_eq((a), (b), NULL, (pass_msg), (fail_msg))
 
 // D_TEST_FN_WRAP

@@ -51,7 +51,6 @@ d_internal_test_block_add_children
     return true;
 }
 
-
 /******************************************************************************
  * VALIDATE_ARGS FUNCTION
  *****************************************************************************/
@@ -130,7 +129,6 @@ d_test_block_validate_args
     return options;
 }
 
-
 /******************************************************************************
  * CONSTRUCTOR FUNCTIONS
  *****************************************************************************/
@@ -194,7 +192,6 @@ d_test_block_new
     return block;
 }
 
-
 /*
 d_test_block_new_args
   Creates a new test block with configuration arguments and children.
@@ -224,7 +221,6 @@ d_test_block_new_args
 
     return d_test_block_new(_children, _child_count);
 }
-
 
 /******************************************************************************
  * DESTRUCTOR FUNCTION
@@ -278,7 +274,6 @@ d_test_block_free
     return;
 }
 
-
 /******************************************************************************
  * CHILD MANAGEMENT FUNCTIONS
  *****************************************************************************/
@@ -309,7 +304,6 @@ d_test_block_add_child
 
     return d_ptr_vector_push_back(_block->children, _child);
 }
-
 
 /*
 d_test_block_add_test
@@ -347,7 +341,6 @@ d_test_block_add_test
     return d_test_block_add_child(_block, test_type);
 }
 
-
 /*
 d_test_block_add_block
   Adds a child block to this block.
@@ -384,7 +377,6 @@ d_test_block_add_block
     return d_test_block_add_child(_parent, test_type);
 }
 
-
 /*
 d_test_block_child_count
   Returns the number of children in the block.
@@ -408,7 +400,6 @@ d_test_block_child_count
 
     return d_ptr_vector_size(_block->children);
 }
-
 
 /*
 d_test_block_get_child_at
@@ -436,7 +427,6 @@ d_test_block_get_child_at
     return (struct d_test_type*)d_ptr_vector_at(_block->children,
                                                 (d_index)_index);
 }
-
 
 /******************************************************************************
  * EXECUTION FUNCTIONS
@@ -568,7 +558,6 @@ d_test_block_run
     return all_passed;
 }
 
-
 /******************************************************************************
  * UTILITY FUNCTIONS
  *****************************************************************************/
@@ -613,7 +602,6 @@ d_test_block_print
     return;
 }
 
-
 /*
 d_test_block_count_tests
   Counts the number of individual tests in the block (non-recursive).
@@ -656,7 +644,6 @@ d_test_block_count_tests
 
     return test_count;
 }
-
 
 /*
 d_test_block_count_blocks
