@@ -83,7 +83,7 @@ d_tests_sa_handler_get_results
             {
                 struct d_test* t;
 
-                t = d_test_new(handler_test_passing, NULL);
+                t = helper_make_passing_test();
 
                 if (t)
                 {
@@ -96,7 +96,7 @@ d_tests_sa_handler_get_results
             {
                 struct d_test* t;
 
-                t = d_test_new(handler_test_failing, NULL);
+                t = helper_make_failing_test();
 
                 if (t)
                 {
@@ -179,7 +179,7 @@ d_tests_sa_handler_reset_results
         {
             struct d_test* t;
 
-            t = d_test_new(handler_test_passing, NULL);
+            t = helper_make_passing_test();
 
             if (t)
             {
@@ -223,7 +223,7 @@ d_tests_sa_handler_reset_results
         {
             struct d_test* t1;
 
-            t1 = d_test_new(handler_test_passing, NULL);
+            t1 = helper_make_passing_test();
 
             if (t1)
             {
@@ -236,7 +236,7 @@ d_tests_sa_handler_reset_results
             {
                 struct d_test* t2;
 
-                t2 = d_test_new(handler_test_passing, NULL);
+                t2 = helper_make_passing_test();
 
                 if (t2)
                 {
@@ -415,7 +415,7 @@ d_tests_sa_handler_get_pass_rate
             {
                 struct d_test* t;
 
-                t = d_test_new(handler_test_passing, NULL);
+                t = helper_make_passing_test();
 
                 if (t)
                 {
@@ -440,7 +440,7 @@ d_tests_sa_handler_get_pass_rate
             {
                 struct d_test* t;
 
-                t = d_test_new(handler_test_passing, NULL);
+                t = helper_make_passing_test();
 
                 if (t)
                 {
@@ -453,7 +453,7 @@ d_tests_sa_handler_get_pass_rate
             {
                 struct d_test* t;
 
-                t = d_test_new(handler_test_failing, NULL);
+                t = helper_make_failing_test();
 
                 if (t)
                 {

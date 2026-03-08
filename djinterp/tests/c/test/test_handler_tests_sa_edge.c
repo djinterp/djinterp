@@ -1,212 +1,54 @@
+/******************************************************************************
+* djinterp [test]                                  test_handler_tests_sa_edge.c
+*   Unit tests for edge cases and error handling.
+* author(s): Samuel 'teer' Neal-Blim                           date: 2025.10.05
+******************************************************************************/
 #include "./test_handler_tests_sa.h"
 
-
-/*
-d_tests_sa_handler_null_parameters
-  Tests NULL parameter handling across all handler API functions.
-  Tests the following:
-  - new(NULL) succeeds
-  - free(NULL) is safe
-  - run_test/block/test_type/module/tree/session(NULL) return false
-  - record_assertion(NULL) is safe
-  - get_results(NULL) returns zeroed struct
-  - reset_results(NULL) is safe
-  - print_results(NULL) is safe
-  - pass_rate(NULL) returns 0.0
-  - assertion_rate(NULL) returns 0.0
-  - register/unregister/has_flag(NULL) return false
-  - set_flag/clear_flag/emit_event(NULL) are safe
-*/
-bool
-d_tests_sa_handler_null_parameters
-(
-    struct d_test_counter* _test_info
-)
+bool d_tests_sa_handler_null_parameters(struct d_test_counter* _test_info)
 {
-    size_t                 initial_tests_passed;
-    bool                   all_assertions_passed;
-    bool                   result;
-    struct d_test_handler* handler;
-    struct d_test_result   res;
+    size_t ip; bool ok;
+    printf("  --- Testing NULL parameters ---\n"); ip=_test_info->tests_passed; ok=true;
 
-    printf("  --- Testing NULL parameters ---\n");
-    initial_tests_passed  = _test_info->tests_passed;
-    all_assertions_passed = true;
+    // Comprehensive NULL parameter coverage
+    if(!d_assert_standalone(d_test_handler_new(NULL)!=NULL,"new(NULL)","new(NULL) succeeds",_test_info))ok=false;
+    else{struct d_test_handler*h=d_test_handler_new(NULL);d_test_handler_free(h);}
 
-    // new(NULL) succeeds
-    result = (d_test_handler_new(NULL) != NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == true,
-        "new(NULL)",
-        "new(NULL) succeeds",
-        _test_info);
-
-    if (result)
-    {
-        handler = d_test_handler_new(NULL);
-        d_test_handler_free(handler);
-    }
-
-    // free(NULL) is safe
     d_test_handler_free(NULL);
+    if(!d_assert_standalone(true,"free(NULL)","free(NULL) safe",_test_info))ok=false;
 
-    all_assertions_passed &= d_assert_standalone(
-        true,
-        "free(NULL)",
-        "free(NULL) safe",
-        _test_info);
+    if(!d_assert_standalone(d_test_handler_run_test(NULL,NULL,NULL)==false,"run_test(NULL,NULL)","returns false",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_run_block(NULL,NULL,NULL)==false,"run_block(NULL,NULL)","returns false",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_run_test_type(NULL,NULL,NULL)==false,"run_test_type(NULL,NULL)","returns false",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_run_module(NULL,NULL,NULL)==false,"run_module(NULL,NULL)","returns false",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_run_tree(NULL,NULL,NULL)==false,"run_tree(NULL,NULL)","returns false",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_run_session(NULL,NULL)==false,"run_session(NULL,NULL)","returns false",_test_info))ok=false;
 
-    // run functions return false on NULL
-    result = d_test_handler_run_test(NULL, NULL, NULL);
+    d_test_handler_record_assertion(NULL,NULL);
+    if(!d_assert_standalone(true,"record_assertion(NULL,NULL)","safe",_test_info))ok=false;
 
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "run_test(NULL,NULL)",
-        "returns false",
-        _test_info);
+    {struct d_test_result r=d_test_handler_get_results(NULL);
+     if(!d_assert_standalone(r.tests_run==0,"get_results(NULL)","returns zeroed",_test_info))ok=false;}
 
-    result = d_test_handler_run_block(NULL, NULL, NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "run_block(NULL,NULL)",
-        "returns false",
-        _test_info);
-
-    result = d_test_handler_run_test_type(NULL, NULL, NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "run_test_type(NULL,NULL)",
-        "returns false",
-        _test_info);
-
-    result = d_test_handler_run_module(NULL, NULL, NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "run_module(NULL,NULL)",
-        "returns false",
-        _test_info);
-
-    result = d_test_handler_run_tree(NULL, NULL, NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "run_tree(NULL,NULL)",
-        "returns false",
-        _test_info);
-
-    result = d_test_handler_run_session(NULL, NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "run_session(NULL,NULL)",
-        "returns false",
-        _test_info);
-
-    // record_assertion(NULL) is safe
-    d_test_handler_record_assertion(NULL, NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        true,
-        "record_assertion(NULL,NULL)",
-        "safe",
-        _test_info);
-
-    // get_results(NULL) returns zeroed struct
-    res = d_test_handler_get_results(NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        res.tests_run == 0,
-        "get_results(NULL)",
-        "returns zeroed",
-        _test_info);
-
-    // reset_results(NULL) is safe
     d_test_handler_reset_results(NULL);
+    if(!d_assert_standalone(true,"reset_results(NULL)","safe",_test_info))ok=false;
 
-    all_assertions_passed &= d_assert_standalone(
-        true,
-        "reset_results(NULL)",
-        "safe",
-        _test_info);
+    d_test_handler_print_results(NULL,"test");
+    if(!d_assert_standalone(true,"print_results(NULL)","safe",_test_info))ok=false;
 
-    // print_results(NULL) is safe
-    d_test_handler_print_results(NULL, "test");
+    if(!d_assert_standalone(d_test_handler_get_pass_rate(NULL)==0.0,"pass_rate(NULL)","0.0",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_get_assertion_rate(NULL)==0.0,"assert_rate(NULL)","0.0",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_register_listener(NULL,0,callback_start,true)==false,"register(NULL)","false",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_unregister_listener(NULL,0)==false,"unregister(NULL)","false",_test_info))ok=false;
+    if(!d_assert_standalone(d_test_handler_has_flag(NULL,0)==false,"has_flag(NULL)","false",_test_info))ok=false;
 
-    all_assertions_passed &= d_assert_standalone(
-        true,
-        "print_results(NULL)",
-        "safe",
-        _test_info);
+    d_test_handler_set_flag(NULL,0);d_test_handler_clear_flag(NULL,0);
+    d_test_handler_emit_event(NULL,0,NULL);
+    if(!d_assert_standalone(true,"set/clear/emit(NULL)","all safe",_test_info))ok=false;
 
-    // rate functions return 0.0 on NULL
-    all_assertions_passed &= d_assert_standalone(
-        d_test_handler_get_pass_rate(NULL) == 0.0,
-        "pass_rate(NULL)",
-        "0.0",
-        _test_info);
-
-    all_assertions_passed &= d_assert_standalone(
-        d_test_handler_get_assertion_rate(NULL) == 0.0,
-        "assert_rate(NULL)",
-        "0.0",
-        _test_info);
-
-    // register/unregister/has_flag return false on NULL
-    result = d_test_handler_register_listener(NULL,
-                 0,
-                 callback_start,
-                 true);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "register(NULL)",
-        "false",
-        _test_info);
-
-    result = d_test_handler_unregister_listener(NULL, 0);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "unregister(NULL)",
-        "false",
-        _test_info);
-
-    result = d_test_handler_has_flag(NULL, 0);
-
-    all_assertions_passed &= d_assert_standalone(
-        result == false,
-        "has_flag(NULL)",
-        "false",
-        _test_info);
-
-    // set_flag/clear_flag/emit_event on NULL are safe
-    d_test_handler_set_flag(NULL, 0);
-    d_test_handler_clear_flag(NULL, 0);
-    d_test_handler_emit_event(NULL, 0, NULL);
-
-    all_assertions_passed &= d_assert_standalone(
-        true,
-        "set/clear/emit(NULL)",
-        "all safe",
-        _test_info);
-
-    if (all_assertions_passed)
-    {
-        _test_info->tests_passed++;
-        printf("%s[PASS] null_parameters\n", D_INDENT);
-    }
-    else
-    {
-        printf("%s[FAIL] null_parameters\n", D_INDENT);
-    }
-
-    _test_info->tests_total++;
-
-    return (_test_info->tests_passed > initial_tests_passed);
+    if(ok){_test_info->tests_passed++;printf("%s[PASS] null_parameters\n",D_INDENT);}
+    else printf("%s[FAIL] null_parameters\n",D_INDENT);
+    _test_info->tests_total++; return(_test_info->tests_passed>ip);
 }
 
 /*
@@ -222,40 +64,43 @@ d_tests_sa_handler_empty_blocks
     struct d_test_counter* _test_info
 )
 {
-    size_t                 initial_tests_passed;
-    bool                   all_assertions_passed;
-    bool                   result;
-    struct d_test_handler* handler;
-    struct d_test_block*   block;
+    size_t                 ip;
+    bool                   ok;
+    struct d_test_handler* h;
+    struct d_test_block*   b;
     struct d_test_block*   outer;
     struct d_test_block*   inner;
     struct d_test_result   res;
+    bool                   r;
 
     printf("  --- Testing empty blocks ---\n");
-    initial_tests_passed  = _test_info->tests_passed;
-    all_assertions_passed = true;
+    ip = _test_info->tests_passed;
+    ok = true;
 
-    handler = d_test_handler_new(NULL);
+    h = d_test_handler_new(NULL);
 
-    if (handler)
+    if (h)
     {
         // single empty block
-        block = d_test_block_new(NULL, 0);
+        b = d_test_block_new(NULL, 0);
 
-        if (block)
+        if (b)
         {
-            result = d_test_handler_run_block(handler, block, NULL);
-            res    = d_test_handler_get_results(handler);
+            r   = d_test_handler_run_block(h, b, NULL);
+            res = d_test_handler_get_results(h);
 
-            all_assertions_passed &= d_assert_standalone(
-                ( (result == true)      &&
-                  (res.blocks_run == 1) &&
-                  (res.tests_run == 0) ),
-                "empty block",
-                "Empty block: succeeds, blocks=1, tests=0",
-                _test_info);
+            if (!d_assert_standalone(
+                    ( (r == true)           &&
+                      (res.blocks_run == 1) &&
+                      (res.tests_run == 0) ),
+                    "empty block",
+                    "Empty block: succeeds, blocks=1, tests=0",
+                    _test_info))
+            {
+                ok = false;
+            }
 
-            d_test_block_free(block);
+            d_test_block_free(b);
         }
 
         // nested empty blocks: use add_block to parent the inner
@@ -268,25 +113,28 @@ d_tests_sa_handler_empty_blocks
             // wraps inner in d_test_type and adds via ptr_vector
             helper_add_block_child_to_block(outer, inner);
 
-            d_test_handler_reset_results(handler);
-            d_test_handler_run_block(handler, outer, NULL);
-            res = d_test_handler_get_results(handler);
+            d_test_handler_reset_results(h);
+            d_test_handler_run_block(h, outer, NULL);
+            res = d_test_handler_get_results(h);
 
-            all_assertions_passed &= d_assert_standalone(
-                ( (res.blocks_run == 2) &&
-                  (res.max_depth == 2) ),
-                "nested empty blocks",
-                "Nested empty: blocks=2, depth=2",
-                _test_info);
+            if (!d_assert_standalone(
+                    ( (res.blocks_run == 2) &&
+                      (res.max_depth == 2) ),
+                    "nested empty blocks",
+                    "Nested empty: blocks=2, depth=2",
+                    _test_info))
+            {
+                ok = false;
+            }
 
             // outer owns inner through the d_test_type wrapper
             d_test_block_free(outer);
         }
 
-        d_test_handler_free(handler);
+        d_test_handler_free(h);
     }
 
-    if (all_assertions_passed)
+    if (ok)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] empty_blocks\n", D_INDENT);
@@ -298,101 +146,30 @@ d_tests_sa_handler_empty_blocks
 
     _test_info->tests_total++;
 
-    return (_test_info->tests_passed > initial_tests_passed);
+    return (_test_info->tests_passed > ip);
 }
 
-/*
-d_tests_sa_handler_no_events
-  Tests handler behavior when created without an event system.
-  Tests the following:
-  - event_handler field is NULL
-  - tests still run without event system
-  - register_listener fails without event system
-  - emit_event is safe without event system
-*/
-bool
-d_tests_sa_handler_no_events
-(
-    struct d_test_counter* _test_info
-)
+bool d_tests_sa_handler_no_events(struct d_test_counter* _test_info)
 {
-    size_t                 initial_tests_passed;
-    bool                   all_assertions_passed;
-    bool                   result;
-    struct d_test_handler* handler;
-    struct d_test*         test;
-    struct d_test_context  ctx;
+    size_t ip; bool ok;
+    printf("  --- Testing handler with no events ---\n"); ip=_test_info->tests_passed; ok=true;
 
-    printf("  --- Testing handler with no events ---\n");
-    initial_tests_passed  = _test_info->tests_passed;
-    all_assertions_passed = true;
+    {struct d_test_handler*h=d_test_handler_new(NULL);
+     if(h){
+       if(!d_assert_standalone(h->event_handler==NULL,"no event_handler","event_handler is NULL",_test_info))ok=false;
+       // Tests still work
+       struct d_test*t=helper_make_passing_test();
+       if(t){if(!d_assert_standalone(d_test_handler_run_test(h,t,NULL)==true,"test without events","Test runs without event system",_test_info))ok=false;d_test_free(t);}
+       // Register fails
+       if(!d_assert_standalone(d_test_handler_register_listener(h,D_TEST_EVENT_START,callback_start,true)==false,
+           "register fails","Register fails without events",_test_info))ok=false;
+       // Emit safe
+       {struct d_test_context ctx; d_test_context_init(&ctx,h);
+        d_test_handler_emit_event(h,D_TEST_EVENT_START,&ctx);
+        if(!d_assert_standalone(true,"emit safe","Emit safe without events",_test_info))ok=false;}
+       d_test_handler_free(h);}}
 
-    handler = d_test_handler_new(NULL);
-
-    if (handler)
-    {
-        // event_handler should be NULL
-        all_assertions_passed &= d_assert_standalone(
-            handler->event_handler == NULL,
-            "no event_handler",
-            "event_handler is NULL",
-            _test_info);
-
-        // tests still work without events
-        test = d_test_new(handler_test_passing, NULL);
-
-        if (test)
-        {
-            result = d_test_handler_run_test(handler, test, NULL);
-
-            all_assertions_passed &= d_assert_standalone(
-                result == true,
-                "test without events",
-                "Test runs without event system",
-                _test_info);
-
-            d_test_free(test);
-        }
-
-        // register fails without event system
-        result = d_test_handler_register_listener(
-                     handler,
-                     D_TEST_EVENT_START,
-                     callback_start,
-                     true);
-
-        all_assertions_passed &= d_assert_standalone(
-            result == false,
-            "register fails",
-            "Register fails without events",
-            _test_info);
-
-        // emit is safe without event system
-        d_test_context_init(&ctx, handler);
-        d_test_handler_emit_event(handler,
-                                  D_TEST_EVENT_START,
-                                  &ctx);
-
-        all_assertions_passed &= d_assert_standalone(
-            true,
-            "emit safe",
-            "Emit safe without events",
-            _test_info);
-
-        d_test_handler_free(handler);
-    }
-
-    if (all_assertions_passed)
-    {
-        _test_info->tests_passed++;
-        printf("%s[PASS] no_events\n", D_INDENT);
-    }
-    else
-    {
-        printf("%s[FAIL] no_events\n", D_INDENT);
-    }
-
-    _test_info->tests_total++;
-
-    return (_test_info->tests_passed > initial_tests_passed);
+    if(ok){_test_info->tests_passed++;printf("%s[PASS] no_events\n",D_INDENT);}
+    else printf("%s[FAIL] no_events\n",D_INDENT);
+    _test_info->tests_total++; return(_test_info->tests_passed>ip);
 }

@@ -270,7 +270,7 @@ d_tests_sa_handler_event_lifecycle
                                          callback_teardown,
                                          true);
 
-        test = d_test_new(handler_test_passing, NULL);
+        test = helper_make_passing_test();
 
         if (test)
         {
@@ -310,7 +310,7 @@ d_tests_sa_handler_event_lifecycle
                                          callback_failure,
                                          true);
 
-        test = d_test_new(handler_test_failing, NULL);
+        test = helper_make_failing_test();
 
         if (test)
         {
@@ -348,7 +348,7 @@ d_tests_sa_handler_event_lifecycle
 
         for (i = 0; i < 3; i++)
         {
-            test = d_test_new(handler_test_passing, NULL);
+            test = helper_make_passing_test();
 
             if (test)
             {
