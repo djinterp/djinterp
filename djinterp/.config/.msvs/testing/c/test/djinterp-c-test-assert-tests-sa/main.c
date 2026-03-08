@@ -1,5 +1,16 @@
-#include "..\..\..\..\..\inc\test\test_standalone.h"
-#include "..\..\..\..\..\tests\test\assert_tests_sa.h"
+/******************************************************************************
+* djinterp [test]                                                       main.c
+*
+*   Test runner for test assert module standalone tests.
+*   Tests the d_assert types and associated operations, including constructors,
+* comparison, search, and destructors.
+*
+*
+* path:      /.config/.msvs/testing/c/djinterp-c-test-assert-tests-sa/main.c
+* author(s): Samuel 'teer' Neal-Blim
+******************************************************************************/
+#include "../../../../../../inc/c/test/test_standalone.h"
+#include "../../../../../../tests/c/test/assert_tests_sa.h"
 
 
 /******************************************************************************
@@ -73,19 +84,19 @@ main
 
     // initialize the test runner
     d_test_sa_runner_init(&runner,
-                          "djinterp assert Module",
-                          "Comprehensive Testing of d_assert Type and "
-                          "Operations");
+        "djinterp assert Module",
+        "Comprehensive Testing of d_assert Type and "
+        "Operations");
 
     // register the assert module
     d_test_sa_runner_add_module(&runner,
-                                "assert",
-                                "d_assert type creation, comparison, and "
-                                "memory management",
-                                d_tests_sa_assert_all,
-                                sizeof(g_assert_notes) /
-                                    sizeof(g_assert_notes[0]),
-                                g_assert_notes);
+        "assert",
+        "d_assert type creation, comparison, and "
+        "memory management",
+        d_tests_sa_assert_all,
+        sizeof(g_assert_notes) /
+        sizeof(g_assert_notes[0]),
+        g_assert_notes);
 
     // execute all tests and return result
     return d_test_sa_runner_execute(&runner);

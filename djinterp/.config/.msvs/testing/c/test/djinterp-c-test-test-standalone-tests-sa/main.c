@@ -8,7 +8,7 @@
 * function, template substitution, runner functions, and utility functions.
 *
 *
-* path:      \.config\.msvs\testing\test\djinterp-c-test-standalone-tests-sa\main.c
+* path:      /.config/.msvs/testing/test/djinterp-c-test-standalone-tests-sa/main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
 #include "../../../../../../inc/c/test/test_standalone.h"
