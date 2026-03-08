@@ -7,11 +7,11 @@
 *
 *
 * path:      /.config/.msvs/testing/c/container/registry/
-*                djinterp-c-registry-tests-sa/main.c
+*                djinterp-c-test-test-config-tests-sa/main.c
 * author(s): Samuel 'teer' Neal-Blim
 ******************************************************************************/
 #include "../../../../../../inc/c/test/test_standalone.h"
-#include "../../../../../../tests/c/test/test_config_tests_sa.h"
+#include "../../../../../../tests/c/test/test_options_tests_sa.h"
 
 
 /******************************************************************************
@@ -49,7 +49,7 @@ static const struct d_test_sa_note_item g_config_guidelines_items[] =
 {
     { "[BEST]", "Always free d_test_config objects when no longer needed" },
     { "[BEST]", "Use typed setters to ensure schema type compatibility" },
-    { "[BEST]", "Prefer d_test_config_key_from_string for user input" },
+    { "[BEST]", "Prefer d_test_options_key_from_string for user input" },
     { "[BEST]", "Use presets for standard mode configurations" }
 };
 
