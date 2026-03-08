@@ -1,33 +1,34 @@
 #include "../../../inc/c/test/test_module.h"
 
 // no args
-#define D_TEST_MODULE(...)                               \
-    &(struct d_test_type)                                \
-    {                                                    \
-        .type   = D_TEST_TYPE_MODULE,                    \
-        .config = NULL,                                  \
-        .module = &(struct d_test_module)                \
-         {                                               \
-            .children = D_PTR_VECTOR_PTR(__VA_ARGS__),   \
-            .result   = D_TEST_MODULE_RESULTS_DEFAULT,   \
-            .status   = D_TEST_MODULE_STATUS_PENDING     \
-         }                                               \
+#define D_TEST_MODULE(...)                                                  \
+    &(struct d_test_type)                                                   \
+    {                                                                       \
+        .type   = D_TEST_TYPE_MODULE,                                       \
+        .config = NULL,                                                     \
+        .module = &(struct d_test_module)                                   \
+         {                                                                  \
+            .children = D_PTR_VECTOR_PTR(__VA_ARGS__),                      \
+            .result   = D_TEST_MODULE_RESULTS_DEFAULT,                      \
+            .status   = D_TEST_MODULE_STATUS_PENDING                        \
+         }                                                                  \
     }
 
 // args
-#define D_TEST_MODULE(args, count, ...)                  \
-    &(struct d_test_type)                                \
-    {                                                    \
-        .type   = D_TEST_TYPE_MODULE,                    \
-        .config = d_test_options_new_args(args, count),   \
-        .module = &(struct d_test_module)                \
-         {                                               \
-            .children = D_PTR_VECTOR_PTR(__VA_ARGS__),   \
-            .result   = D_TEST_MODULE_RESULTS_DEFAULT,   \
-            .status   = D_TEST_MODULE_STATUS_PENDING     \
-         }                                               \
+#define D_TEST_MODULE_ARGS(_args,                                           \
+                           _count,                                          \
+                           ...)                                             \
+    &(struct d_test_type)                                                   \
+    {                                                                       \
+        .type   = D_TEST_TYPE_MODULE,                                       \
+        .config = d_test_options_new_args(_args, _count),                   \
+        .module = &(struct d_test_module)                                   \
+         {                                                                  \
+            .children = D_PTR_VECTOR_PTR(__VA_ARGS__),                      \
+            .result   = D_TEST_MODULE_RESULTS_DEFAULT,                      \
+            .status   = D_TEST_MODULE_STATUS_PENDING                        \
+         }                                                                  \
     }
-
 
 /******************************************************************************
  * INTERNAL HELPERS
@@ -61,7 +62,6 @@ d_internal_test_module_init_result
 
     return;
 }
-
 
 /*
 d_internal_test_module_add_children
@@ -105,7 +105,6 @@ d_internal_test_module_add_children
 
     return true;
 }
-
 
 /******************************************************************************
  * VALIDATE_ARGS FUNCTION
@@ -282,7 +281,6 @@ d_test_module_new_args
     return new_module;
 }
 
-
 /******************************************************************************
  * CHILD MANAGEMENT FUNCTIONS
  *****************************************************************************/
@@ -294,14 +292,16 @@ d_test_module_add_child
     const struct d_test_tree_node* _child
 )
 {
-    if ( (!_module) || (!_module->children) || (!_child) )
+    if ( (!_module)           ||
+         (!_module->children) || 
+         (!_child) )
     {
         return false;
     }
 
-    return d_ptr_vector_push_back(_module->children, (void*)_child);
+    return d_ptr_vector_push_back(_module->children,
+                                  (void*)_child);
 }
-
 
 size_t
 d_test_module_child_count
@@ -309,7 +309,8 @@ d_test_module_child_count
     const struct d_test_module* _module
 )
 {
-    if ( (!_module) || (!_module->children) )
+    if ( (!_module) || 
+         (!_module->children) )
     {
         return 0;
     }
@@ -333,7 +334,6 @@ d_test_module_get_child_at
     return (struct d_test_type*)d_ptr_vector_at(_module->children, 
                                                  (d_index)_index);
 }
-
 
 /******************************************************************************
  * CONFIGURATION FUNCTIONS
@@ -369,7 +369,6 @@ d_test_module_get_effective_settings
     return _module->config;
 }
 
-
 /*
 d_test_module_get_name
   Gets the module name from config.
@@ -390,7 +389,6 @@ d_test_module_get_name
     return (const char*)d_min_enum_map_get(_module->config->settings,
                                            D_TEST_METADATA_NAME);
 }
-
 
 /******************************************************************************
  * STAGE HOOK FUNCTIONS
@@ -427,7 +425,6 @@ d_test_module_get_stage_hook
         : d_min_enum_map_get(_module->config->stage_hooks, 
                              _stage);
 }
-
 
 /******************************************************************************
  * EXECUTION FUNCTIONS
@@ -527,7 +524,6 @@ d_test_module_run
     return all_passed;
 }
 
-
 /*
 d_test_module_run_child
   Runs a specific child by index.
@@ -561,7 +557,6 @@ d_test_module_run_child
 
     return d_test_block_run(child->D_KEYWORD_TEST_BLOCK, effective);
 }
-
 
 /******************************************************************************
  * RESULT FUNCTIONS
@@ -616,7 +611,6 @@ d_test_module_get_pass_rate
     return ( (double)_module->result->tests_passed /
              ( (double)_module->result->tests_total * 100.0) );
 }
-
 
 /******************************************************************************
  * OUTPUT FUNCTIONS
@@ -718,7 +712,6 @@ d_test_module_status_to_string
             return "INVALID";
     }
 }
-
 
 void
 d_test_module_free

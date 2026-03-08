@@ -144,13 +144,13 @@ void                d_test_type_free(struct d_test_type* _type);
 //   macro: wraps a generic boolean assertion into a test type.
 #define D_TEST_ASSERT(condition, msg_pass, msg_fail)                         \
     D_TEST_TYPE_FROM_ASSERT(                                                 \
-        d_assert((condition), (msg_pass), (msg_fail)))
+        d_assert_new((condition), (msg_pass), (msg_fail)))
 
 // D_TEST_ASSERT_TRUE
 //   macro: asserts a condition is true.
 #define D_TEST_ASSERT_TRUE(condition, msg_pass, msg_fail)                    \
     D_TEST_TYPE_FROM_ASSERT(                                                 \
-        d_assert((condition), (msg_pass), (msg_fail)))
+        d_assert_new((condition), (msg_pass), (msg_fail)))
 
 // D_TEST_ASSERT_FALSE
 //   macro: asserts a condition is false.
@@ -219,7 +219,7 @@ void                d_test_type_free(struct d_test_type* _type);
 //   macro: asserts condition is true with auto-generated messages.
 #define D_ASSERTION_TRUE(condition)                                          \
     D_TEST_TYPE_FROM_ASSERT(                                                 \
-        d_assert((condition),                                                \
+        d_assert_new((condition),                                                \
                  D_INTERNAL_ASSERT_MSG_PASS(condition),                      \
                  D_INTERNAL_ASSERT_MSG_FAIL(condition)))
 

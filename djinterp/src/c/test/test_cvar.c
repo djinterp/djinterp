@@ -35,7 +35,6 @@
 #define D_INTERNAL_TEST_REGISTRY_ROW_INT32(k, flg, f16, vt, v, h) \
     { (k), (flg), (f16), (vt), { .i32 = (v) }, (h) }
 
-
 /******************************************************************************
  * STATIC REGISTRY TABLE
  *****************************************************************************/
@@ -345,7 +344,6 @@ d_internal_test_registry_find_by_flag_ex
     return NULL;
 }
 
-
 /******************************************************************************
  * PUBLIC API
  *****************************************************************************/
@@ -500,7 +498,6 @@ d_test_registry_reset_all
     return;
 }
 
-
 /*
 d_test_registry_is_valid_arg
   Checks if an argument key is valid for a given context.
@@ -538,7 +535,6 @@ d_test_registry_is_valid_arg
     // check if the required command flag bit is set
     return (row->command_flags & _required_command_flag) != 0;
 }
-
 
 /******************************************************************************
  * PREDICATE FUNCTIONS FOR FILTERED ITERATION

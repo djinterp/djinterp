@@ -20,28 +20,28 @@
 
 // D_INTERNAL_TEST_ASSERT_BOOLEAN_FN_BODY
 //   macro (internal) 
-#define D_INTERNAL_TEST_ASSERT_FN_BODY(fn_body)                              \
-	struct d_assert* new_assertion = malloc(sizeof(struct d_assert));        \
-                                                                             \
-    if (!new_assertion)                                                      \
-    {                                                                        \
-        return NULL;                                                         \
-    }                                                                        \
-                                                                             \
-    fn_body                                                                  \
-                                                                             \
+#define D_INTERNAL_TEST_ASSERT_FN_BODY(fn_body)                             \
+	struct d_assert* new_assertion = malloc(sizeof(struct d_assert));       \
+                                                                            \
+    if (!new_assertion)                                                     \
+    {                                                                       \
+        return NULL;                                                        \
+    }                                                                       \
+                                                                            \
+    fn_body                                                                 \
+                                                                            \
     return new_assertion;
 
 // D_INTERNAL_TEST_ASSERT_BOOLEAN_FN_BODY
 //   macro (internal) 
-#define D_INTERNAL_TEST_ASSERT_FN_BOOL_COMPARE(oper)                         \
-	D_INTERNAL_TEST_ASSERT_FN_BODY(                                          \
-        new_assertion->result = (_comparator)                                \
-                                ? (_comparator(_a, _b) oper 0)               \
-                                : _a oper _b;                                \
-        new_assertion->message = new_assertion->result                       \
-                                 ? _message_true                             \
-                                 : _message_false;                           \
+#define D_INTERNAL_TEST_ASSERT_FN_BOOL_COMPARE(oper)                        \
+	D_INTERNAL_TEST_ASSERT_FN_BODY(                                         \
+        new_assertion->result = (_comparator)                               \
+                                ? (_comparator(_a, _b) oper 0)              \
+                                : _a oper _b;                               \
+        new_assertion->message = new_assertion->result                      \
+                                 ? _message_true                            \
+                                 : _message_false;                          \
     )
 
 
@@ -64,13 +64,12 @@ struct d_assert
  * FUNCTION DECLARATIONS
  *****************************************************************************/
 
-int d_assert_default_compare(const void* _expected,
-                             const void* _actual);
+int              d_assert_default_compare(const void* _expected,
+                                          const void* _actual);
 
 struct d_assert* d_assert_new(bool        _expression,
                               const char* _message_true,
                               const char* _message_false);
-
 struct d_assert* d_assert_true(bool        _expression,
                                const char* _message_true,
                                const char* _message_false);
@@ -137,7 +136,7 @@ struct d_assert* d_assert_arrays_eq(const void*   _arr1,
                                     const char*   _message_pass,
                                     const char*   _message_fail);
 
-void d_assert_free(struct d_assert* _assertion);
+void             d_assert_free(struct d_assert* _assertion);
 
 
 #endif	// DJINTERP_TEST_ASSERT_

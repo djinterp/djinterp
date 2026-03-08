@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
 * djinterp [test]                                             test_standalone.h
 *
 *   Standalone test framework with simple tree structure for tests and 
