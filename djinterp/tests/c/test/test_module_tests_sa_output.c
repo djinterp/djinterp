@@ -94,7 +94,6 @@ d_tests_sa_test_module_print
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_print_null
   Tests printing with NULL arguments.
@@ -162,7 +161,6 @@ d_tests_sa_test_module_print_null
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_print_result
@@ -245,7 +243,6 @@ d_tests_sa_test_module_print_result
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_status_to_string
@@ -364,7 +361,6 @@ d_tests_sa_test_module_status_to_string
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_status_to_string_all

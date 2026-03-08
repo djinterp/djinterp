@@ -90,7 +90,6 @@ d_tests_sa_standalone_object_struct
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_object_new_leaf
   Tests the d_test_object_new_leaf function.
@@ -193,7 +192,6 @@ d_tests_sa_standalone_object_new_leaf
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_object_new_interior
@@ -300,7 +298,6 @@ d_tests_sa_standalone_object_new_interior
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_object_add_child
   Tests the d_test_object_add_child function.
@@ -396,7 +393,6 @@ d_tests_sa_standalone_object_add_child
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_object_free
   Tests the d_test_object_free function.
@@ -466,7 +462,6 @@ d_tests_sa_standalone_object_free
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_object_all

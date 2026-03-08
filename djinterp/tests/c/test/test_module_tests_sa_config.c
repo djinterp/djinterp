@@ -81,7 +81,6 @@ d_tests_sa_test_module_get_effective_settings
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_get_effective_settings_null_parent
   Tests get_effective_settings when parent settings are NULL.
@@ -153,7 +152,6 @@ d_tests_sa_test_module_get_effective_settings_null_parent
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_get_name
@@ -229,7 +227,6 @@ d_tests_sa_test_module_get_name
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_get_name_null

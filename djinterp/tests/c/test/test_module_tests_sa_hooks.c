@@ -119,7 +119,6 @@ d_tests_sa_test_module_set_stage_hook
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_get_stage_hook
   Tests retrieving hooks from a default module (none are set).
@@ -192,7 +191,6 @@ d_tests_sa_test_module_get_stage_hook
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_get_stage_hook_unset
@@ -272,7 +270,6 @@ d_tests_sa_test_module_get_stage_hook_unset
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_set_stage_hook_null
   Tests set_stage_hook with NULL arguments.
@@ -347,7 +344,6 @@ d_tests_sa_test_module_set_stage_hook_null
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_stage_hooks_all_stages

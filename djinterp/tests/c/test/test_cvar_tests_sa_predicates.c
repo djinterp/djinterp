@@ -60,7 +60,6 @@ d_tests_sa_cvar_predicate_config_true
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_predicate_config_false
   Tests that metadata entries do NOT have the IS_CONFIG command flag.
@@ -103,7 +102,6 @@ d_tests_sa_cvar_predicate_config_false
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_predicate_metadata_true
@@ -148,7 +146,6 @@ d_tests_sa_cvar_predicate_metadata_true
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_predicate_metadata_false
   Tests that config entries do NOT have the IS_METADATA command flag.
@@ -191,7 +188,6 @@ d_tests_sa_cvar_predicate_metadata_false
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_predicate_required_false
@@ -246,7 +242,6 @@ d_tests_sa_cvar_predicate_required_false
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_predicate_all

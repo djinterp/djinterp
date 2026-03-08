@@ -160,7 +160,6 @@ d_tests_sa_test_module_get_result
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_get_result_null
   Tests get_result with NULL module and pre-run module.
@@ -247,7 +246,6 @@ d_tests_sa_test_module_get_result_null
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_reset_result
@@ -371,7 +369,6 @@ d_tests_sa_test_module_reset_result
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_get_pass_rate
   Tests computing the pass rate after running a module.
@@ -479,7 +476,6 @@ d_tests_sa_test_module_get_pass_rate
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_get_pass_rate_empty

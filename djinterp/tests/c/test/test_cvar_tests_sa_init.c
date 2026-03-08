@@ -33,7 +33,6 @@ d_tests_sa_cvar_init_safe
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_init_idempotent
   Tests that calling d_test_registry_init multiple times is safe.
@@ -76,7 +75,6 @@ d_tests_sa_cvar_init_idempotent
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_registry_non_null
   Tests that d_test_registry_registry returns non-NULL.
@@ -106,7 +104,6 @@ d_tests_sa_cvar_registry_non_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_registry_row_count
@@ -138,7 +135,6 @@ d_tests_sa_cvar_registry_row_count
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_registry_static_flag
   Tests that the registry has the STATIC_ROWS flag set.
@@ -169,7 +165,6 @@ d_tests_sa_cvar_registry_static_flag
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_init_all

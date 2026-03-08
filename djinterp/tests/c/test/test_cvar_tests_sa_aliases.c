@@ -47,7 +47,6 @@ d_tests_sa_cvar_alias_enabled
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_alias_indent
   Tests the "indent" alias for "indent-string".
@@ -87,7 +86,6 @@ d_tests_sa_cvar_alias_indent
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_alias_max_indent
@@ -148,7 +146,6 @@ d_tests_sa_cvar_alias_max_indent
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_alias_timeout
   Tests the "timeout-ms" alias for "timeout".
@@ -188,7 +185,6 @@ d_tests_sa_cvar_alias_timeout
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_alias_name_shortcuts
@@ -243,7 +239,6 @@ d_tests_sa_cvar_alias_name_shortcuts
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_alias_all

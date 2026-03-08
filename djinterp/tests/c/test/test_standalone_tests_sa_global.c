@@ -151,7 +151,6 @@ d_tests_sa_standalone_global_state
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_global_all
   Aggregation function that runs all global state tests.

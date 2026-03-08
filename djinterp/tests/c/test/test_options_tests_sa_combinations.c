@@ -91,7 +91,6 @@ d_tests_sa_config_msg_count_combinations
     return result;
 }
 
-
 /*
 d_tests_sa_config_msg_print_combinations
   Tests the print-related combination macros.
@@ -160,7 +159,6 @@ d_tests_sa_config_msg_print_combinations
     return result;
 }
 
-
 /*
 d_tests_sa_config_msg_all
   Tests the D_TEST_MSG_ALL combination.
@@ -202,7 +200,6 @@ d_tests_sa_config_msg_all
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_msg_category_combinations
@@ -296,7 +293,6 @@ d_tests_sa_config_msg_category_combinations
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_combination_all

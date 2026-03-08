@@ -38,7 +38,6 @@ d_tests_sa_test_validate_args_null
     return result;
 }
 
-
 /*
 d_tests_sa_test_validate_args_zero
   Tests d_test_validate_args with valid args array but zero count.
@@ -70,7 +69,6 @@ d_tests_sa_test_validate_args_zero
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_fn_validate_args_null
@@ -109,7 +107,6 @@ d_tests_sa_test_fn_validate_args_null
     return result;
 }
 
-
 /*
 d_tests_sa_test_fn_validate_args_zero
   Tests d_test_fn_validate_args with valid args but zero count.
@@ -141,7 +138,6 @@ d_tests_sa_test_fn_validate_args_zero
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_validate_args_all

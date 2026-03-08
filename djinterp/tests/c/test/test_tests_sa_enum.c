@@ -48,7 +48,6 @@ d_tests_sa_test_type_flag_enum_unique
     return result;
 }
 
-
 /*
 d_tests_sa_test_type_flag_enum_sequential
   Tests that DTestTypeFlag enum values are sequential starting from 0.
@@ -102,7 +101,6 @@ d_tests_sa_test_type_flag_enum_sequential
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_enum_all

@@ -27,7 +27,6 @@ d_internal_exec_test_fn_pass
     return true;
 }
 
-
 /*
 d_internal_exec_test_fn_fail
   Test function that always fails.
@@ -45,7 +44,6 @@ d_internal_exec_test_fn_fail
 
     return false;
 }
-
 
 /*
 d_internal_exec_reset_globals
@@ -66,7 +64,6 @@ d_internal_exec_reset_globals
 
     return;
 }
-
 
 /******************************************************************************
  * EXECUTION TESTS
@@ -110,7 +107,6 @@ d_tests_sa_test_block_run_empty
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_run_null
   Tests d_test_block_run with NULL block.
@@ -138,7 +134,6 @@ d_tests_sa_test_block_run_null
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_with_passing_assertions
@@ -210,7 +205,6 @@ d_tests_sa_test_block_run_with_passing_assertions
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_with_failing_assertion
@@ -285,7 +279,6 @@ d_tests_sa_test_block_run_with_failing_assertion
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_run_with_test_fn
   Tests d_test_block_run with a test function child.
@@ -355,7 +348,6 @@ d_tests_sa_test_block_run_with_test_fn
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_with_nested_block
@@ -432,7 +424,6 @@ d_tests_sa_test_block_run_with_nested_block
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_mixed_children
@@ -530,7 +521,6 @@ d_tests_sa_test_block_run_mixed_children
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_execution_all

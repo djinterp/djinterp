@@ -123,7 +123,6 @@ d_tests_sa_test_common_type_flag_enum
     return result;
 }
 
-
 /*
 d_tests_sa_test_common_type_flag_values
   Tests the specific values assigned to DTestTypeFlag enumeration.
@@ -237,7 +236,6 @@ d_tests_sa_test_common_type_flag_values
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_type_flag_uniqueness
@@ -457,7 +455,6 @@ d_tests_sa_test_common_type_flag_uniqueness
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_discriminator_all

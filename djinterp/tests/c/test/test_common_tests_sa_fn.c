@@ -46,7 +46,6 @@ test_helper_stage_hook
     return D_SUCCESS;
 }
 
-
 /******************************************************************************
  * fn_test TYPE TESTS
  *****************************************************************************/
@@ -111,7 +110,6 @@ d_tests_sa_tc_fn_test_basic
     return group;
 }
 
-
 /*
 d_tests_sa_tc_fn_test_null
   Tests fn_test function pointer NULL handling.
@@ -155,7 +153,6 @@ d_tests_sa_tc_fn_test_null
 
     return group;
 }
-
 
 /******************************************************************************
  * fn_stage TYPE TESTS
@@ -212,7 +209,6 @@ d_tests_sa_tc_fn_stage_basic
     return group;
 }
 
-
 /*
 d_tests_sa_tc_fn_stage_null
   Tests fn_stage function pointer NULL handling.
@@ -256,7 +252,6 @@ d_tests_sa_tc_fn_stage_null
 
     return group;
 }
-
 
 /******************************************************************************
  * FUNCTION POINTER MODULE AGGREGATOR

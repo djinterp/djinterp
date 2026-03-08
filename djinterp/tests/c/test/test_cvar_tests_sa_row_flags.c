@@ -39,7 +39,6 @@ d_tests_sa_cvar_row_flag_is_required
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_row_flag_is_config
   Tests the D_TEST_REGISTRY_FLAG_IS_CONFIG enum value.
@@ -73,7 +72,6 @@ d_tests_sa_cvar_row_flag_is_config
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_row_flag_is_metadata
@@ -110,7 +108,6 @@ d_tests_sa_cvar_row_flag_is_metadata
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_row_flag_unique_bits
@@ -176,7 +173,6 @@ d_tests_sa_cvar_row_flag_unique_bits
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_row_flag_no_overlap
   Tests that no two DTestRegistryRowFlag values share any bits.
@@ -233,7 +229,6 @@ d_tests_sa_cvar_row_flag_no_overlap
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_row_flag_all

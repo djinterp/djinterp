@@ -95,7 +95,6 @@ d_tests_sa_test_session_get_status
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_status_to_string
   Tests string conversion for key status values.
@@ -183,7 +182,6 @@ d_tests_sa_test_session_status_to_string
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_status_to_string_all
@@ -284,7 +282,6 @@ d_tests_sa_test_session_status_to_string_all
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_is_running
   Tests is_running on various states.
@@ -346,7 +343,6 @@ d_tests_sa_test_session_is_running
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_is_complete
@@ -483,7 +479,6 @@ d_tests_sa_test_session_print
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_exit_code

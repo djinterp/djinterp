@@ -95,7 +95,6 @@ d_tests_sa_config_key_from_string_valid
     return result;
 }
 
-
 /*
 d_tests_sa_config_key_from_string_null
   Tests d_test_options_key_from_string with NULL input.
@@ -122,7 +121,6 @@ d_tests_sa_config_key_from_string_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_key_from_string_invalid
@@ -181,7 +179,6 @@ d_tests_sa_config_key_from_string_invalid
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_key_from_string_alias
@@ -245,7 +242,6 @@ d_tests_sa_config_key_from_string_alias
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_key_lookup_all

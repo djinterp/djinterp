@@ -84,7 +84,6 @@ d_tests_sa_standalone_module_results_struct
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_suite_results_struct
   Tests the d_test_sa_suite_results structure.
@@ -163,7 +162,6 @@ d_tests_sa_standalone_suite_results_struct
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_results_all

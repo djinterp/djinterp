@@ -12,7 +12,6 @@ d_internal_destroy_dummy_fn(void)
     return true;
 }
 
-
 /*
 d_tests_sa_test_fn_free_null
   Tests d_test_fn_free with NULL argument.
@@ -39,7 +38,6 @@ d_tests_sa_test_fn_free_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_fn_free_valid
@@ -80,7 +78,6 @@ d_tests_sa_test_fn_free_valid
     return result;
 }
 
-
 /*
 d_tests_sa_test_free_null
   Tests d_test_free with NULL argument.
@@ -107,7 +104,6 @@ d_tests_sa_test_free_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_free_valid
@@ -147,7 +143,6 @@ d_tests_sa_test_free_valid
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_free_with_children
@@ -203,7 +198,6 @@ d_tests_sa_test_free_with_children
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_destruction_all

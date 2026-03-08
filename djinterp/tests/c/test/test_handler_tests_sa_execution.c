@@ -10,13 +10,13 @@
 
 /*
 d_tests_sa_handler_run_test
-  Tests d_test_handler_run_test with various scenarios.
+  Tests d_test_handler_run_test behavior.
   Tests the following:
-  - NULL parameters return false
-  - NULL test on valid handler returns false
+  - NULL handler and test returns false
+  - NULL test with valid handler returns false
   - passing test updates stats correctly
   - failing test updates stats correctly
-  - accumulation across multiple tests
+  - accumulation across multiple tests (3 pass + 2 fail)
 */
 bool
 d_tests_sa_handler_run_test
@@ -25,7 +25,7 @@ d_tests_sa_handler_run_test
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test*         t;
     struct d_test_result   res;
@@ -33,37 +33,31 @@ d_tests_sa_handler_run_test
     int                    i;
 
     printf("  --- Testing d_test_handler_run_test ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // NULL params
-    if (!d_assert_standalone(
-            d_test_handler_run_test(NULL, NULL, NULL) == false,
-            "run_test NULL params",
-            "NULL handler+test returns false",
-            _test_info))
-    {
-        ok = false;
-    }
+    // test 1: NULL handler and test returns false
+    result = d_assert_standalone(
+        d_test_handler_run_test(NULL, NULL, NULL) == false,
+        "run_test_null_params",
+        "NULL handler+test should return false",
+        _test_info) && result;
 
-    // NULL test on valid handler
+    // test 2: NULL test with valid handler returns false
     h = d_test_handler_new(NULL);
 
     if (h)
     {
-        if (!d_assert_standalone(
-                d_test_handler_run_test(h, NULL, NULL) == false,
-                "run_test NULL test",
-                "NULL test returns false",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            d_test_handler_run_test(h, NULL, NULL) == false,
+            "run_test_null_test",
+            "NULL test with valid handler should return false",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    // passing test updates stats
+    // test 3: passing test updates stats correctly
     h = d_test_handler_new(NULL);
 
     if (h)
@@ -75,17 +69,14 @@ d_tests_sa_handler_run_test
             r   = d_test_handler_run_test(h, t, NULL);
             res = d_test_handler_get_results(h);
 
-            if (!d_assert_standalone(
-                    ( (r == true)            &&
-                      (res.tests_run == 1)   &&
-                      (res.tests_passed == 1) &&
-                      (res.tests_failed == 0) ),
-                    "passing test stats",
-                    "run=1,passed=1,failed=0",
-                    _test_info))
-            {
-                ok = false;
-            }
+            result = d_assert_standalone(
+                ( (r == true)             &&
+                  (res.tests_run == 1)    &&
+                  (res.tests_passed == 1) &&
+                  (res.tests_failed == 0) ),
+                "passing_test_stats",
+                "passing test should give run=1, passed=1, failed=0",
+                _test_info) && result;
 
             d_test_free(t);
         }
@@ -93,7 +84,7 @@ d_tests_sa_handler_run_test
         d_test_handler_free(h);
     }
 
-    // failing test updates stats
+    // test 4: failing test updates stats correctly
     h = d_test_handler_new(NULL);
 
     if (h)
@@ -105,17 +96,14 @@ d_tests_sa_handler_run_test
             r   = d_test_handler_run_test(h, t, NULL);
             res = d_test_handler_get_results(h);
 
-            if (!d_assert_standalone(
-                    ( (r == false)           &&
-                      (res.tests_run == 1)   &&
-                      (res.tests_passed == 0) &&
-                      (res.tests_failed == 1) ),
-                    "failing test stats",
-                    "run=1,passed=0,failed=1",
-                    _test_info))
-            {
-                ok = false;
-            }
+            result = d_assert_standalone(
+                ( (r == false)            &&
+                  (res.tests_run == 1)    &&
+                  (res.tests_passed == 0) &&
+                  (res.tests_failed == 1) ),
+                "failing_test_stats",
+                "failing test should give run=1, passed=0, failed=1",
+                _test_info) && result;
 
             d_test_free(t);
         }
@@ -123,7 +111,7 @@ d_tests_sa_handler_run_test
         d_test_handler_free(h);
     }
 
-    // accumulation: 3 pass + 2 fail
+    // test 5: accumulation across 5 tests (3 pass + 2 fail)
     h = d_test_handler_new(NULL);
 
     if (h)
@@ -152,21 +140,18 @@ d_tests_sa_handler_run_test
 
         res = d_test_handler_get_results(h);
 
-        if (!d_assert_standalone(
-                ( (res.tests_run == 5)    &&
-                  (res.tests_passed == 3) &&
-                  (res.tests_failed == 2) ),
-                "accumulation 3+2",
-                "5 tests: 3 passed, 2 failed",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            ( (res.tests_run == 5)    &&
+              (res.tests_passed == 3) &&
+              (res.tests_failed == 2) ),
+            "accumulation_three_plus_two",
+            "5 tests should give 3 passed and 2 failed",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] run_test\n", D_INDENT);
@@ -181,16 +166,15 @@ d_tests_sa_handler_run_test
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_run_block
-  Tests d_test_handler_run_block with various scenarios.
+  Tests d_test_handler_run_block behavior.
   Tests the following:
-  - NULL returns false
-  - empty block succeeds with blocks_run=1
-  - block with 3 passing tests
-  - block with mixed pass/fail
-  - depth tracking within a block
+  - NULL parameters return false
+  - empty block succeeds and increments blocks_run
+  - block with 3 passing tests reports correct stats
+  - block with mixed results reports overall failure
+  - depth tracking updates max_depth and resets current_depth
 */
 bool
 d_tests_sa_handler_run_block
@@ -199,7 +183,7 @@ d_tests_sa_handler_run_block
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test_block*   b;
     struct d_test_result   res;
@@ -207,38 +191,33 @@ d_tests_sa_handler_run_block
     int                    i;
 
     printf("  --- Testing d_test_handler_run_block ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // NULL returns false
-    if (!d_assert_standalone(
-            d_test_handler_run_block(NULL, NULL, NULL) == false,
-            "run_block NULL",
-            "NULL returns false",
-            _test_info))
-    {
-        ok = false;
-    }
+    // test 1: NULL parameters return false
+    result = d_assert_standalone(
+        d_test_handler_run_block(NULL, NULL, NULL) == false,
+        "run_block_null_params",
+        "NULL parameters should return false",
+        _test_info) && result;
 
-    // empty block succeeds
+    // test 2: empty block succeeds and increments blocks_run
     h = d_test_handler_new(NULL);
     b = d_test_block_new(NULL, 0);
 
-    if (h && b)
+    if ( (h) &&
+         (b) )
     {
         r   = d_test_handler_run_block(h, b, NULL);
         res = d_test_handler_get_results(h);
 
-        if (!d_assert_standalone(
-                ( (r == true)          &&
-                  (res.blocks_run == 1) &&
-                  (res.tests_run == 0) ),
-                "empty block",
-                "succeeds, blocks=1, tests=0",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            ( (r == true)           &&
+              (res.blocks_run == 1) &&
+              (res.tests_run == 0) ),
+            "empty_block_succeeds",
+            "empty block should succeed with blocks_run=1, tests_run=0",
+            _test_info) && result;
 
         d_test_block_free(b);
     }
@@ -248,11 +227,12 @@ d_tests_sa_handler_run_block
         d_test_handler_free(h);
     }
 
-    // block with 3 passing tests
+    // test 3: block with 3 passing tests
     h = d_test_handler_new(NULL);
     b = d_test_block_new(NULL, 0);
 
-    if (h && b)
+    if ( (h) &&
+         (b) )
     {
         for (i = 0; i < 3; i++)
         {
@@ -262,17 +242,14 @@ d_tests_sa_handler_run_block
         r   = d_test_handler_run_block(h, b, NULL);
         res = d_test_handler_get_results(h);
 
-        if (!d_assert_standalone(
-                ( (r == true)             &&
-                  (res.tests_run == 3)    &&
-                  (res.tests_passed == 3) &&
-                  (res.blocks_run == 1) ),
-                "block 3 pass",
-                "Block: 3 tests all pass",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            ( (r == true)             &&
+              (res.tests_run == 3)    &&
+              (res.tests_passed == 3) &&
+              (res.blocks_run == 1) ),
+            "block_three_passing",
+            "block with 3 passing tests should all pass",
+            _test_info) && result;
 
         d_test_block_free(b);
     }
@@ -282,11 +259,12 @@ d_tests_sa_handler_run_block
         d_test_handler_free(h);
     }
 
-    // block with mixed pass/fail
+    // test 4: block with mixed results
     h = d_test_handler_new(NULL);
     b = d_test_block_new(NULL, 0);
 
-    if (h && b)
+    if ( (h) &&
+         (b) )
     {
         helper_add_passing_test_to_block(b);
         helper_add_failing_test_to_block(b);
@@ -294,17 +272,14 @@ d_tests_sa_handler_run_block
         r   = d_test_handler_run_block(h, b, NULL);
         res = d_test_handler_get_results(h);
 
-        if (!d_assert_standalone(
-                ( (r == false)            &&
-                  (res.tests_run == 2)    &&
-                  (res.tests_passed == 1) &&
-                  (res.tests_failed == 1) ),
-                "mixed block",
-                "overall=false",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            ( (r == false)            &&
+              (res.tests_run == 2)    &&
+              (res.tests_passed == 1) &&
+              (res.tests_failed == 1) ),
+            "mixed_block_overall_false",
+            "block with mixed results should return false",
+            _test_info) && result;
 
         d_test_block_free(b);
     }
@@ -314,25 +289,23 @@ d_tests_sa_handler_run_block
         d_test_handler_free(h);
     }
 
-    // depth tracking
+    // test 5: depth tracking
     h = d_test_handler_new(NULL);
     b = d_test_block_new(NULL, 0);
 
-    if (h && b)
+    if ( (h) &&
+         (b) )
     {
         helper_add_passing_test_to_block(b);
         d_test_handler_run_block(h, b, NULL);
         res = d_test_handler_get_results(h);
 
-        if (!d_assert_standalone(
-                ( (res.max_depth >= 1)       &&
-                  (h->current_depth == 0) ),
-                "block depth",
-                "max_depth>=1, resets to 0",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            ( (res.max_depth >= 1)    &&
+              (h->current_depth == 0) ),
+            "block_depth_tracking",
+            "max_depth should be >=1 and current_depth should reset to 0",
+            _test_info) && result;
 
         d_test_block_free(b);
     }
@@ -342,7 +315,7 @@ d_tests_sa_handler_run_block
         d_test_handler_free(h);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] run_block\n", D_INDENT);
@@ -357,13 +330,12 @@ d_tests_sa_handler_run_block
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_run_test_type
-  Tests d_test_handler_run_test_type dispatch.
+  Tests d_test_handler_run_test_type dispatch behavior.
   Tests the following:
-  - NULL returns false
-  - wrapping a passing test dispatches correctly
+  - NULL parameters return false
+  - test type wrapping a passing test dispatches correctly
   - unknown type returns false
 */
 bool
@@ -373,7 +345,7 @@ d_tests_sa_handler_run_test_type
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test*         t;
     struct d_test_type*    ty;
@@ -381,20 +353,17 @@ d_tests_sa_handler_run_test_type
     bool                   r;
 
     printf("  --- Testing d_test_handler_run_test_type ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // NULL returns false
-    if (!d_assert_standalone(
-            d_test_handler_run_test_type(NULL, NULL, NULL) == false,
-            "run_test_type NULL",
-            "NULL returns false",
-            _test_info))
-    {
-        ok = false;
-    }
+    // test 1: NULL parameters return false
+    result = d_assert_standalone(
+        d_test_handler_run_test_type(NULL, NULL, NULL) == false,
+        "run_test_type_null",
+        "NULL parameters should return false",
+        _test_info) && result;
 
-    // wrapping a passing test
+    // test 2: test type wrapping a passing test
     h = d_test_handler_new(NULL);
 
     if (h)
@@ -406,14 +375,11 @@ d_tests_sa_handler_run_test_type
         {
             r = d_test_handler_run_test_type(h, ty, NULL);
 
-            if (!d_assert_standalone(
-                    r == true,
-                    "test_type wrapping test",
-                    "Dispatches correctly",
-                    _test_info))
-            {
-                ok = false;
-            }
+            result = d_assert_standalone(
+                r == true,
+                "test_type_dispatches_test",
+                "run_test_type should dispatch to run_test correctly",
+                _test_info) && result;
 
             d_test_type_free(ty);
         }
@@ -421,7 +387,7 @@ d_tests_sa_handler_run_test_type
         d_test_handler_free(h);
     }
 
-    // unknown type
+    // test 3: unknown type returns false
     h = d_test_handler_new(NULL);
 
     if (h)
@@ -429,19 +395,16 @@ d_tests_sa_handler_run_test_type
         d_memset(&dummy, 0, sizeof(dummy));
         dummy.type = D_TEST_TYPE_UNKNOWN;
 
-        if (!d_assert_standalone(
-                d_test_handler_run_test_type(h, &dummy, NULL) == false,
-                "unknown type",
-                "D_TEST_TYPE_UNKNOWN returns false",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            d_test_handler_run_test_type(h, &dummy, NULL) == false,
+            "unknown_type_returns_false",
+            "D_TEST_TYPE_UNKNOWN should return false",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] run_test_type\n", D_INDENT);
@@ -456,13 +419,12 @@ d_tests_sa_handler_run_test_type
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_nested_execution
-  Tests nested block execution at multiple depths.
+  Tests nested block execution and depth tracking.
   Tests the following:
-  - two-level nesting: outer -> inner -> test
-  - three-level nesting: l1 -> l2 -> l3 -> test
+  - two-level nesting: depth=2, blocks=2, tests=1, current_depth=0
+  - three-level nesting: depth=3, blocks=3
 */
 bool
 d_tests_sa_handler_nested_execution
@@ -471,7 +433,7 @@ d_tests_sa_handler_nested_execution
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test_block*   outer;
     struct d_test_block*   inner;
@@ -481,38 +443,34 @@ d_tests_sa_handler_nested_execution
     struct d_test_result   res;
 
     printf("  --- Testing nested execution ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // two-level: outer -> inner -> test
-    h     = d_test_handler_new(NULL);
-    outer = NULL;
-    inner = NULL;
+    // test 1: two-level nesting (outer -> inner -> test)
+    h = d_test_handler_new(NULL);
 
     if (h)
     {
         outer = d_test_block_new(NULL, 0);
         inner = d_test_block_new(NULL, 0);
 
-        if (outer && inner)
+        if ( (outer) &&
+             (inner) )
         {
             helper_add_passing_test_to_block(inner);
             helper_add_block_child_to_block(outer, inner);
             d_test_handler_run_block(h, outer, NULL);
             res = d_test_handler_get_results(h);
 
-            if (!d_assert_standalone(
-                    ( (res.max_depth == 2)       &&
-                      (res.blocks_run == 2)      &&
-                      (res.tests_run == 1)       &&
-                      (h->current_depth == 0) ),
-                    "two-level nesting",
-                    "depth=2, blocks=2, tests=1, "
-                    "current_depth=0",
-                    _test_info))
-            {
-                ok = false;
-            }
+            result = d_assert_standalone(
+                ( (res.max_depth == 2)    &&
+                  (res.blocks_run == 2)   &&
+                  (res.tests_run == 1)    &&
+                  (h->current_depth == 0) ),
+                "two_level_nesting",
+                "should give depth=2, blocks=2, tests=1, "
+                "current_depth=0",
+                _test_info) && result;
 
             d_test_block_free(outer);
         }
@@ -520,11 +478,8 @@ d_tests_sa_handler_nested_execution
         d_test_handler_free(h);
     }
 
-    // three-level
-    h  = d_test_handler_new(NULL);
-    l1 = NULL;
-    l2 = NULL;
-    l3 = NULL;
+    // test 2: three-level nesting (l1 -> l2 -> l3 -> test)
+    h = d_test_handler_new(NULL);
 
     if (h)
     {
@@ -532,7 +487,9 @@ d_tests_sa_handler_nested_execution
         l2 = d_test_block_new(NULL, 0);
         l3 = d_test_block_new(NULL, 0);
 
-        if (l1 && l2 && l3)
+        if ( (l1) &&
+             (l2) &&
+             (l3) )
         {
             helper_add_passing_test_to_block(l3);
             helper_add_block_child_to_block(l2, l3);
@@ -540,15 +497,12 @@ d_tests_sa_handler_nested_execution
             d_test_handler_run_block(h, l1, NULL);
             res = d_test_handler_get_results(h);
 
-            if (!d_assert_standalone(
-                    ( (res.max_depth == 3)  &&
-                      (res.blocks_run == 3) ),
-                    "three-level nesting",
-                    "depth=3, blocks=3",
-                    _test_info))
-            {
-                ok = false;
-            }
+            result = d_assert_standalone(
+                ( (res.max_depth == 3)  &&
+                  (res.blocks_run == 3) ),
+                "three_level_nesting",
+                "should give depth=3, blocks=3",
+                _test_info) && result;
 
             d_test_block_free(l1);
         }
@@ -556,7 +510,7 @@ d_tests_sa_handler_nested_execution
         d_test_handler_free(h);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] nested_execution\n", D_INDENT);
@@ -571,12 +525,11 @@ d_tests_sa_handler_nested_execution
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_config_override
-  Tests that NULL config uses handler defaults.
+  Tests runtime config override behavior.
   Tests the following:
-  - NULL config runs test successfully with defaults
+  - NULL runtime config falls back to handler default
 */
 bool
 d_tests_sa_handler_config_override
@@ -585,15 +538,15 @@ d_tests_sa_handler_config_override
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test*         t;
 
     printf("  --- Testing config override ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // NULL config uses default
+    // test 1: NULL runtime config uses handler default
     h = d_test_handler_new(NULL);
 
     if (h)
@@ -602,14 +555,11 @@ d_tests_sa_handler_config_override
 
         if (t)
         {
-            if (!d_assert_standalone(
-                    d_test_handler_run_test(h, t, NULL) == true,
-                    "NULL config",
-                    "NULL config uses default",
-                    _test_info))
-            {
-                ok = false;
-            }
+            result = d_assert_standalone(
+                d_test_handler_run_test(h, t, NULL) == true,
+                "null_config_uses_default",
+                "NULL config should fall back to handler default",
+                _test_info) && result;
 
             d_test_free(t);
         }
@@ -617,7 +567,7 @@ d_tests_sa_handler_config_override
         d_test_handler_free(h);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] config_override\n", D_INDENT);
@@ -632,13 +582,13 @@ d_tests_sa_handler_config_override
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_run_module
-  Tests d_test_handler_run_module with NULL parameters.
+  Tests d_test_handler_run_module behavior.
   Tests the following:
   - NULL handler and module returns false
-  - valid handler with NULL module returns false
+  - NULL module with valid handler returns false
+  - valid module with block increments modules_run
 */
 bool
 d_tests_sa_handler_run_module
@@ -647,41 +597,64 @@ d_tests_sa_handler_run_module
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
+    struct d_test_module*  m;
+    struct d_test_block*   b;
+    struct d_test_result   res;
 
     printf("  --- Testing d_test_handler_run_module ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // NULL handler returns false
-    if (!d_assert_standalone(
-            d_test_handler_run_module(NULL, NULL, NULL) == false,
-            "run_module NULL",
-            "NULL returns false",
-            _test_info))
-    {
-        ok = false;
-    }
+    // test 1: NULL handler and module returns false
+    result = d_assert_standalone(
+        d_test_handler_run_module(NULL, NULL, NULL) == false,
+        "run_module_null_params",
+        "NULL handler and module should return false",
+        _test_info) && result;
 
-    // valid handler, NULL module
+    // test 2: NULL module with valid handler returns false
     h = d_test_handler_new(NULL);
 
     if (h)
     {
-        if (!d_assert_standalone(
-                d_test_handler_run_module(h, NULL, NULL) == false,
-                "run_module NULL module",
-                "NULL module returns false",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            d_test_handler_run_module(h, NULL, NULL) == false,
+            "run_module_null_module",
+            "NULL module with valid handler should return false",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    if (ok)
+    // test 3: valid module with block increments modules_run
+    h = d_test_handler_new(NULL);
+    m = d_test_module_new("test_mod", NULL);
+
+    if ( (h) &&
+         (m) )
+    {
+        b = d_test_block_new(NULL, 0);
+
+        if (b)
+        {
+            d_test_module_add_child(m, b);
+            d_test_handler_run_module(h, m, NULL);
+            res = d_test_handler_get_results(h);
+
+            result = d_assert_standalone(
+                res.modules_run >= 1,
+                "module_execution_counted",
+                "modules_run should be incremented",
+                _test_info) && result;
+        }
+
+        d_test_module_free(m);
+        d_test_handler_free(h);
+    }
+
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] run_module\n", D_INDENT);
@@ -696,14 +669,15 @@ d_tests_sa_handler_run_module
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_run_tree_and_session
-  Tests run_tree and run_session with NULL parameters.
+  Tests d_test_handler_run_tree and d_test_handler_run_session with NULL
+parameters.
   Tests the following:
-  - run_tree with all NULL returns false
-  - run_session with all NULL returns false
-  - valid handler with NULL tree/session returns false
+  - NULL parameters for run_tree return false
+  - NULL parameters for run_session return false
+  - valid handler with NULL tree returns false
+  - valid handler with NULL session returns false
 */
 bool
 d_tests_sa_handler_run_tree_and_session
@@ -712,60 +686,56 @@ d_tests_sa_handler_run_tree_and_session
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
 
     printf("  --- Testing run_tree and run_session ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // run_tree NULL
-    if (!d_assert_standalone(
-            d_test_handler_run_tree(NULL, NULL, NULL) == false,
-            "run_tree NULL",
-            "NULL returns false",
-            _test_info))
-    {
-        ok = false;
-    }
+    // test 1: NULL parameters for run_tree
+    result = d_assert_standalone(
+        d_test_handler_run_tree(NULL, NULL, NULL) == false,
+        "run_tree_null_params",
+        "NULL parameters for run_tree should return false",
+        _test_info) && result;
 
-    // run_session NULL
-    if (!d_assert_standalone(
-            d_test_handler_run_session(NULL, NULL) == false,
-            "run_session NULL",
-            "NULL returns false",
-            _test_info))
-    {
-        ok = false;
-    }
+    // test 2: NULL parameters for run_session
+    result = d_assert_standalone(
+        d_test_handler_run_session(NULL, NULL) == false,
+        "run_session_null_params",
+        "NULL parameters for run_session should return false",
+        _test_info) && result;
 
-    // valid handler, NULL tree/session
+    // test 3: valid handler with NULL tree
     h = d_test_handler_new(NULL);
 
     if (h)
     {
-        if (!d_assert_standalone(
-                d_test_handler_run_tree(h, NULL, NULL) == false,
-                "run_tree NULL tree",
-                "NULL tree returns false",
-                _test_info))
-        {
-            ok = false;
-        }
-
-        if (!d_assert_standalone(
-                d_test_handler_run_session(h, NULL) == false,
-                "run_session NULL session",
-                "NULL session returns false",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            d_test_handler_run_tree(h, NULL, NULL) == false,
+            "run_tree_null_tree",
+            "valid handler with NULL tree should return false",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    if (ok)
+    // test 4: valid handler with NULL session
+    h = d_test_handler_new(NULL);
+
+    if (h)
+    {
+        result = d_assert_standalone(
+            d_test_handler_run_session(h, NULL) == false,
+            "run_session_null_session",
+            "valid handler with NULL session should return false",
+            _test_info) && result;
+
+        d_test_handler_free(h);
+    }
+
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] run_tree_and_session\n", D_INDENT);

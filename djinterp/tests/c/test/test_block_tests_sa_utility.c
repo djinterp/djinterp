@@ -44,7 +44,6 @@ d_tests_sa_test_block_print_valid
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_print_null
   Tests d_test_block_print with NULL block.
@@ -73,7 +72,6 @@ d_tests_sa_test_block_print_null
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_print_null_prefix
@@ -114,7 +112,6 @@ d_tests_sa_test_block_print_null_prefix
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_count_tests_empty
   Tests d_test_block_count_tests on an empty block.
@@ -152,7 +149,6 @@ d_tests_sa_test_block_count_tests_empty
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_count_tests_mixed
@@ -238,7 +234,6 @@ d_tests_sa_test_block_count_tests_mixed
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_count_tests_null
   Tests d_test_block_count_tests with NULL block.
@@ -263,7 +258,6 @@ d_tests_sa_test_block_count_tests_null
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_count_blocks_empty
@@ -302,7 +296,6 @@ d_tests_sa_test_block_count_blocks_empty
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_count_blocks_mixed
@@ -375,7 +368,6 @@ d_tests_sa_test_block_count_blocks_mixed
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_count_blocks_null
   Tests d_test_block_count_blocks with NULL block.
@@ -400,7 +392,6 @@ d_tests_sa_test_block_count_blocks_null
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_utility_all

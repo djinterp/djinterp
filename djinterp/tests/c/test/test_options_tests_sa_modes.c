@@ -44,7 +44,6 @@ d_tests_sa_config_mode_silent
     return result;
 }
 
-
 /*
 d_tests_sa_config_mode_minimal
   Tests the D_TEST_MODE_MINIMAL definition.
@@ -103,7 +102,6 @@ d_tests_sa_config_mode_minimal
     return result;
 }
 
-
 /*
 d_tests_sa_config_mode_normal
   Tests the D_TEST_MODE_NORMAL definition.
@@ -155,7 +153,6 @@ d_tests_sa_config_mode_normal
     return result;
 }
 
-
 /*
 d_tests_sa_config_mode_verbose
   Tests the D_TEST_MODE_VERBOSE definition.
@@ -190,7 +187,6 @@ d_tests_sa_config_mode_verbose
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_presets
@@ -237,7 +233,6 @@ d_tests_sa_config_presets
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_settings_stack_push_all
@@ -303,7 +298,6 @@ d_tests_sa_config_settings_stack_push_all
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_mode_all

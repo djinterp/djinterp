@@ -46,7 +46,6 @@ d_tests_sa_cvar_value_union_ptr
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_value_union_size_t
   Tests the size_t member of the d_test_value union.
@@ -85,7 +84,6 @@ d_tests_sa_cvar_value_union_size_t
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_value_union_uint32
@@ -126,7 +124,6 @@ d_tests_sa_cvar_value_union_uint32
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_value_union_uint16
   Tests the uint16_t member of the d_test_value union.
@@ -165,7 +162,6 @@ d_tests_sa_cvar_value_union_uint16
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_value_union_int32
@@ -216,7 +212,6 @@ d_tests_sa_cvar_value_union_int32
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_value_union_bool
   Tests the bool member of the d_test_value union.
@@ -255,7 +250,6 @@ d_tests_sa_cvar_value_union_bool
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_value_union_all

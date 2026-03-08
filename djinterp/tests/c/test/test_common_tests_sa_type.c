@@ -22,7 +22,6 @@ helper_test_fn_always_pass
     return D_TEST_PASS;
 }
 
-
 /*
 helper_test_fn_always_fail
   Helper test function that always returns D_TEST_FAIL.
@@ -39,7 +38,6 @@ helper_test_fn_always_fail
 {
     return D_TEST_FAIL;
 }
-
 
 /*
 helper_stage_fn_success
@@ -63,7 +61,6 @@ helper_stage_fn_success
     return true;
 }
 
-
 /*
 helper_stage_fn_failure
   Helper stage function that always returns failure.
@@ -85,7 +82,6 @@ helper_stage_fn_failure
 
     return false;
 }
-
 
 /******************************************************************************
  * II. TYPE DEFINITION TESTS
@@ -200,7 +196,6 @@ d_tests_sa_test_common_test_id_type
     return result;
 }
 
-
 /*
 d_tests_sa_test_common_fn_test_type
   Tests the fn_test function pointer typedef.
@@ -295,7 +290,6 @@ d_tests_sa_test_common_fn_test_type
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_fn_stage_type
@@ -399,7 +393,6 @@ d_tests_sa_test_common_fn_stage_type
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_type_all

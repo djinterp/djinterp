@@ -80,7 +80,6 @@ d_tests_sa_test_stage_enum_values
     return result;
 }
 
-
 /*
 d_tests_sa_test_stage_enum_coverage
   Tests that DTestStage enum covers all expected lifecycle stages.
@@ -159,7 +158,6 @@ d_tests_sa_test_stage_enum_coverage
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_stage_enum_all

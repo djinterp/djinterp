@@ -39,7 +39,6 @@ d_tests_sa_config_settings_shift
     return result;
 }
 
-
 /*
 d_tests_sa_config_settings_to_flags
   Tests the D_TEST_SETTINGS_TO_FLAGS macro.
@@ -121,7 +120,6 @@ d_tests_sa_config_settings_to_flags
     return result;
 }
 
-
 /*
 d_tests_sa_config_flags_to_settings
   Tests the D_TEST_FLAGS_TO_SETTINGS macro.
@@ -181,7 +179,6 @@ d_tests_sa_config_flags_to_settings
     return result;
 }
 
-
 /*
 d_tests_sa_config_flag_roundtrip
   Tests round-trip conversion: TO_FLAGS -> FLAGS_TO_SETTINGS.
@@ -239,7 +236,6 @@ d_tests_sa_config_flag_roundtrip
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_flag_macro_all

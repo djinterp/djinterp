@@ -21,7 +21,6 @@ helper_test_fn_for_wrapper
     return D_TEST_PASS;
 }
 
-
 /*
 helper_test_fn_return_fail
   Helper test function that returns fail for wrapper tests.
@@ -37,7 +36,6 @@ helper_test_fn_return_fail
 {
     return D_TEST_FAIL;
 }
-
 
 /******************************************************************************
  * IV. TEST FUNCTION WRAPPER TESTS
@@ -274,7 +272,6 @@ d_tests_sa_test_common_test_fn
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_fn_wrapper_all

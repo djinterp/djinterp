@@ -30,7 +30,6 @@ helper_print_object
     return;
 }
 
-
 /*
 helper_print_object_file
   Helper print function for testing fn_print_object_file.
@@ -57,7 +56,6 @@ helper_print_object_file
 
     return;
 }
-
 
 /******************************************************************************
  * VIII. FUNCTION POINTER TYPE TESTS
@@ -139,7 +137,6 @@ d_tests_sa_standalone_fn_print_object
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_fn_print_object_file
   Tests the fn_print_object_file function pointer type.
@@ -215,7 +212,6 @@ d_tests_sa_standalone_fn_print_object_file
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_fn_ptr_all

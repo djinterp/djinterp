@@ -77,7 +77,6 @@ d_tests_sa_standalone_object_constants
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_line_width
   Tests the D_TEST_SA_LINE_WIDTH constant.
@@ -126,7 +125,6 @@ d_tests_sa_standalone_line_width
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_separators
@@ -236,7 +234,6 @@ d_tests_sa_standalone_separators
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_max_modules
   Tests the D_TEST_SA_MAX_MODULES constant.
@@ -293,7 +290,6 @@ d_tests_sa_standalone_max_modules
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_max_failures
@@ -352,7 +348,6 @@ d_tests_sa_standalone_max_failures
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_constant_all

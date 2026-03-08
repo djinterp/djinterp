@@ -19,10 +19,9 @@ d_tests_sa_config_has_flag
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL |
                                D_TEST_MSG_FLAG_COUNT_TESTS_FAIL);
 
@@ -71,7 +70,6 @@ d_tests_sa_config_has_flag
     return result;
 }
 
-
 /*
 d_tests_sa_config_has_any_flag
   Tests the D_TEST_HAS_ANY_FLAG macro.
@@ -85,10 +83,9 @@ d_tests_sa_config_has_any_flag
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MSG_FLAG_COUNT_ASSERTS_FAIL);
 
     if (!config)
@@ -122,7 +119,6 @@ d_tests_sa_config_has_any_flag
     return result;
 }
 
-
 /*
 d_tests_sa_config_get_message_flags
   Tests the D_TEST_GET_MESSAGE_FLAGS macro.
@@ -136,11 +132,10 @@ d_tests_sa_config_get_message_flags
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
-    uint32_t              msg_flags;
+    struct d_test_options* config;
+    uint32_t               msg_flags;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL |
                                D_TEST_SETTINGS_STACK_PUSH_ALL);
 
@@ -173,7 +168,6 @@ d_tests_sa_config_get_message_flags
     return result;
 }
 
-
 /*
 d_tests_sa_config_get_settings_flags
   Tests the D_TEST_GET_SETTINGS_FLAGS macro.
@@ -187,11 +181,10 @@ d_tests_sa_config_get_settings_flags
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
-    uint32_t              settings_flags;
+    struct d_test_options* config;
+    uint32_t               settings_flags;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL |
                                D_TEST_SETTINGS_STACK_PUSH_ALL);
 
@@ -224,7 +217,6 @@ d_tests_sa_config_get_settings_flags
     return result;
 }
 
-
 /*
 d_tests_sa_config_is_silent
   Tests the D_TEST_IS_SILENT macro.
@@ -239,12 +231,10 @@ d_tests_sa_config_is_silent
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* silent;
-    struct d_test_config* normal;
-    struct d_test_config* settings_only;
-
-    result = true;
+    struct d_test_options* silent;
+    struct d_test_options* normal;
+    struct d_test_options* settings_only;
+    bool                   result = true;
 
     silent        = d_test_options_new(D_TEST_MODE_SILENT);
     normal        = d_test_options_new(D_TEST_MODE_NORMAL);
@@ -288,7 +278,6 @@ d_tests_sa_config_is_silent
     return result;
 }
 
-
 /*
 d_tests_sa_config_is_verbose
   Tests the D_TEST_IS_VERBOSE macro.
@@ -302,12 +291,10 @@ d_tests_sa_config_is_verbose
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* verbose;
-    struct d_test_config* normal;
-    struct d_test_config* silent;
-
-    result = true;
+    struct d_test_options* verbose;
+    struct d_test_options* normal;
+    struct d_test_options* silent;
+    bool                   result = true;
 
     verbose = d_test_options_new(D_TEST_MODE_VERBOSE);
     normal  = d_test_options_new(D_TEST_MODE_NORMAL);
@@ -350,7 +337,6 @@ d_tests_sa_config_is_verbose
     return result;
 }
 
-
 /*
 d_tests_sa_config_is_mode
   Tests the D_TEST_IS_MODE macro.
@@ -365,12 +351,11 @@ d_tests_sa_config_is_mode
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL |
-                               D_TEST_SETTINGS_STACK_PUSH_ALL);
+                                D_TEST_SETTINGS_STACK_PUSH_ALL);
 
     if (!config)
     {
@@ -406,7 +391,6 @@ d_tests_sa_config_is_mode
     return result;
 }
 
-
 /*
 d_tests_sa_config_utility_macro_all
   Aggregation function that runs all utility macro tests.
@@ -417,20 +401,18 @@ d_tests_sa_config_utility_macro_all
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     printf("\n  [SECTION] Utility Macros\n");
     printf("  --------------------------\n");
 
-    result = d_tests_sa_config_has_flag(_counter) && result;
-    result = d_tests_sa_config_has_any_flag(_counter) && result;
-    result = d_tests_sa_config_get_message_flags(_counter) && result;
+    result = d_tests_sa_config_has_flag(_counter)           && result;
+    result = d_tests_sa_config_has_any_flag(_counter)       && result;
+    result = d_tests_sa_config_get_message_flags(_counter)  && result;
     result = d_tests_sa_config_get_settings_flags(_counter) && result;
-    result = d_tests_sa_config_is_silent(_counter) && result;
-    result = d_tests_sa_config_is_verbose(_counter) && result;
-    result = d_tests_sa_config_is_mode(_counter) && result;
+    result = d_tests_sa_config_is_silent(_counter)          && result;
+    result = d_tests_sa_config_is_verbose(_counter)         && result;
+    result = d_tests_sa_config_is_mode(_counter)            && result;
 
     return result;
 }

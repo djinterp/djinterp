@@ -44,7 +44,6 @@ d_tests_sa_cvar_macro_get_row
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_macro_value_bool
   Tests D_TEST_REGISTRY_VALUE_BOOL macro.
@@ -81,7 +80,6 @@ d_tests_sa_cvar_macro_value_bool
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_macro_value_size_t
@@ -120,7 +118,6 @@ d_tests_sa_cvar_macro_value_size_t
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_macro_value_numeric
@@ -168,7 +165,6 @@ d_tests_sa_cvar_macro_value_numeric
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_macro_value_ptr
   Tests D_TEST_REGISTRY_VALUE_PTR macro.
@@ -205,7 +201,6 @@ d_tests_sa_cvar_macro_value_ptr
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_macro_metadata_fields
@@ -250,7 +245,6 @@ d_tests_sa_cvar_macro_metadata_fields
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_macro_invalid_key
@@ -311,7 +305,6 @@ d_tests_sa_cvar_macro_invalid_key
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_typed_macro_all

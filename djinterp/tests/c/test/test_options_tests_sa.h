@@ -147,8 +147,6 @@ bool d_tests_sa_config_semantic_count(struct d_test_counter* _counter);
 bool d_tests_sa_config_semantic_print(struct d_test_counter* _counter);
 // settings semantic checks (SHOULD_PUSH_*)
 bool d_tests_sa_config_semantic_push(struct d_test_counter* _counter);
-// legacy aliases (SHOULD_STACK_PUSH_*)
-bool d_tests_sa_config_semantic_legacy_aliases(struct d_test_counter* _counter);
 
 // VII. aggregation function
 bool d_tests_sa_config_semantic_all(struct d_test_counter* _counter);

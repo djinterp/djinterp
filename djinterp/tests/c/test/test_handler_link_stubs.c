@@ -69,7 +69,6 @@ d_assert
     return assertion;
 }
 
-
 /******************************************************************************
  * STUB: d_event_new_args  (real impl: \src\event\event.c)
  *   Remove this section once event.c is added to the project.
@@ -111,7 +110,6 @@ d_event_new_args
 
     return event;
 }
-
 
 /******************************************************************************
  * STUB: d_test_tree_run  (real impl: \src\test\test_tree.c)

@@ -52,7 +52,6 @@ d_tests_sa_cvar_valid_arg_config
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_valid_arg_metadata
   Tests d_test_registry_is_valid_arg for metadata keys with IS_METADATA flag.
@@ -90,7 +89,6 @@ d_tests_sa_cvar_valid_arg_metadata
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_valid_arg_wrong_flag
@@ -139,7 +137,6 @@ d_tests_sa_cvar_valid_arg_wrong_flag
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_valid_arg_null_key
   Tests d_test_registry_is_valid_arg with NULL key.
@@ -168,7 +165,6 @@ d_tests_sa_cvar_valid_arg_null_key
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_valid_arg_invalid_key
@@ -207,7 +203,6 @@ d_tests_sa_cvar_valid_arg_invalid_key
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_valid_arg_all

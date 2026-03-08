@@ -18,7 +18,6 @@ helper_runner_module_tree
     return d_test_object_new_leaf("runner_test", "runner message", true);
 }
 
-
 /*
 helper_runner_module_counter
   Helper function that updates a counter for runner testing.
@@ -37,7 +36,6 @@ helper_runner_module_counter
 
     return true;
 }
-
 
 /******************************************************************************
  * XI. RUNNER FUNCTION TESTS
@@ -183,7 +181,6 @@ d_tests_sa_standalone_runner_init
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_runner_set_options
   Tests the d_test_sa_runner_set_options function.
@@ -285,7 +282,6 @@ d_tests_sa_standalone_runner_set_options
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_runner_add_module
   Tests the d_test_sa_runner_add_module function.
@@ -385,7 +381,6 @@ d_tests_sa_standalone_runner_add_module
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_runner_add_module_counter
   Tests the d_test_sa_runner_add_module_counter function.
@@ -461,7 +456,6 @@ d_tests_sa_standalone_runner_add_module_counter
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_runner_set_wait
   Tests the d_test_sa_runner_set_wait_for_input function.
@@ -514,7 +508,6 @@ d_tests_sa_standalone_runner_set_wait
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_runner_set_notes
@@ -569,7 +562,6 @@ d_tests_sa_standalone_runner_set_notes
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_runner_cleanup
   Tests the d_test_sa_runner_cleanup function.
@@ -617,7 +609,6 @@ d_tests_sa_standalone_runner_cleanup
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_runner_fn_all

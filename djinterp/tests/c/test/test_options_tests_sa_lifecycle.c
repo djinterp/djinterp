@@ -22,11 +22,9 @@ d_tests_sa_config_new
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
-    struct d_test_config* config_zero;
-
-    result = true;
+    struct d_test_options* config;
+    struct d_test_options* config_zero;
+    bool                   result = true;
 
     // test 1: basic creation
     config = d_test_options_new(D_TEST_MODE_NORMAL);
@@ -102,7 +100,6 @@ d_tests_sa_config_new
     return result;
 }
 
-
 /*
 d_tests_sa_config_new_preset
   Tests the d_test_options_new_preset function.
@@ -116,18 +113,25 @@ d_tests_sa_config_new_preset
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* silent;
-    struct d_test_config* verbose;
+    struct d_test_options* silent;
+    struct d_test_options* verbose;
+    bool                   result = true;
 
-    result  = true;
     silent  = d_test_options_new_preset(D_TEST_OPTIONS_PRESET_SILENT);
     verbose = d_test_options_new_preset(D_TEST_OPTIONS_PRESET_VERBOSE);
 
-    if ( (!silent) || (!verbose) )
+    if ( (!silent) ||
+         (!verbose) )
     {
-        if (silent)  { d_test_options_free(silent); }
-        if (verbose) { d_test_options_free(verbose); }
+        if (silent)
+        { 
+            d_test_options_free(silent); 
+        }
+
+        if (verbose)
+        {
+            d_test_options_free(verbose);
+        }
 
         return d_assert_standalone(false,
                                    "new_preset_alloc",
@@ -155,7 +159,6 @@ d_tests_sa_config_new_preset
     return result;
 }
 
-
 /*
 d_tests_sa_config_new_copy
   Tests the d_test_options_new_copy function.
@@ -171,11 +174,10 @@ d_tests_sa_config_new_copy
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* original;
-    struct d_test_config* copy;
+    struct d_test_options* original;
+    struct d_test_options* copy;
+    bool                   result = true;
 
-    result   = true;
     original = d_test_options_new(D_TEST_MODE_VERBOSE);
 
     if (!original)
@@ -235,7 +237,6 @@ d_tests_sa_config_new_copy
     return result;
 }
 
-
 /*
 d_tests_sa_config_new_copy_null
   Tests d_test_options_new_copy with NULL input.
@@ -248,10 +249,9 @@ d_tests_sa_config_new_copy_null
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* copy;
+    struct d_test_options* copy;
+    bool                   result = true;
 
-    result = true;
     copy   = d_test_options_new_copy(NULL);
 
     result = d_assert_standalone(
@@ -262,7 +262,6 @@ d_tests_sa_config_new_copy_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_free
@@ -278,10 +277,8 @@ d_tests_sa_config_free
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
-
-    result = true;
+    struct d_test_options* config;
+    bool                   result = true;
 
     // test 1: NULL is handled safely
     d_test_options_free(NULL);
@@ -309,7 +306,6 @@ d_tests_sa_config_free
     return result;
 }
 
-
 /*
 d_tests_sa_config_lifecycle_all
   Aggregation function that runs all constructor/destructor tests.
@@ -320,18 +316,16 @@ d_tests_sa_config_lifecycle_all
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool                   result = true;
 
     printf("\n  [SECTION] Constructor/Destructor\n");
     printf("  ----------------------------------\n");
 
-    result = d_tests_sa_config_new(_counter) && result;
-    result = d_tests_sa_config_new_preset(_counter) && result;
-    result = d_tests_sa_config_new_copy(_counter) && result;
+    result = d_tests_sa_config_new(_counter)           && result;
+    result = d_tests_sa_config_new_preset(_counter)    && result;
+    result = d_tests_sa_config_new_copy(_counter)      && result;
     result = d_tests_sa_config_new_copy_null(_counter) && result;
-    result = d_tests_sa_config_free(_counter) && result;
+    result = d_tests_sa_config_free(_counter)          && result;
 
     return result;
 }

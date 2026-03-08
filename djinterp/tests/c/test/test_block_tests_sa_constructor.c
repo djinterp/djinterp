@@ -45,7 +45,6 @@ d_tests_sa_test_block_new_no_children
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_new_with_children
   Tests d_test_block_new with a valid child array.
@@ -134,7 +133,6 @@ d_tests_sa_test_block_new_with_children
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_new_null_children_zero_count
   Tests d_test_block_new with NULL children array and 0 count.
@@ -172,7 +170,6 @@ d_tests_sa_test_block_new_null_children_zero_count
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_new_null_children_nonzero_count
   Tests d_test_block_new with NULL children array and nonzero count.
@@ -202,7 +199,6 @@ d_tests_sa_test_block_new_null_children_nonzero_count
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_new_with_null_child_entry
@@ -267,7 +263,6 @@ d_tests_sa_test_block_new_with_null_child_entry
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_new_args_basic
   Tests d_test_block_new_args with valid arguments and no children.
@@ -312,7 +307,6 @@ d_tests_sa_test_block_new_args_basic
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_new_args_no_args
   Tests d_test_block_new_args with NULL args and zero count.
@@ -343,7 +337,6 @@ d_tests_sa_test_block_new_args_no_args
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_new_args_null_args_nonzero
@@ -376,7 +369,6 @@ d_tests_sa_test_block_new_args_null_args_nonzero
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_new_args_with_children
@@ -441,7 +433,6 @@ d_tests_sa_test_block_new_args_with_children
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_validate_args_null
   Tests d_test_block_validate_args with NULL args.
@@ -469,7 +460,6 @@ d_tests_sa_test_block_validate_args_null
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_validate_args_zero_count
@@ -502,7 +492,6 @@ d_tests_sa_test_block_validate_args_zero_count
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_validate_args_null_key_entry
@@ -543,7 +532,6 @@ d_tests_sa_test_block_validate_args_null_key_entry
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_free_null
   Tests d_test_block_free with NULL input.
@@ -571,7 +559,6 @@ d_tests_sa_test_block_free_null
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_free_valid
@@ -633,7 +620,6 @@ d_tests_sa_test_block_free_valid
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_constructor_all

@@ -63,7 +63,6 @@ d_tests_sa_cvar_default_by_flag
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_default_by_key
   Tests that reset_all restores known defaults accessible by key string.
@@ -108,7 +107,6 @@ d_tests_sa_cvar_default_by_key
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_default_after_set
@@ -162,7 +160,6 @@ d_tests_sa_cvar_default_after_set
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_default_known_values
@@ -225,7 +222,6 @@ d_tests_sa_cvar_default_known_values
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_default_all

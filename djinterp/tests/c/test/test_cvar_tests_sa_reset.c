@@ -63,7 +63,6 @@ d_tests_sa_cvar_reset_single
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_reset_invalid_flag
   Tests d_test_registry_reset with an invalid flag.
@@ -102,7 +101,6 @@ d_tests_sa_cvar_reset_invalid_flag
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_reset_all_values
@@ -172,7 +170,6 @@ d_tests_sa_cvar_reset_all_values
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_reset_all_idempotent
   Tests that calling d_test_registry_reset_all multiple times is safe.
@@ -211,7 +208,6 @@ d_tests_sa_cvar_reset_all_idempotent
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_reset_all_fn

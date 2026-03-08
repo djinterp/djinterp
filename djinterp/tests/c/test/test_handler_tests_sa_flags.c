@@ -1,28 +1,15 @@
-/******************************************************************************
-* djinterp [test]                                  test_handler_tests_sa_flags.c
-*
-*   Unit tests for test_handler flag management:
-*     d_test_handler_set_flag, d_test_handler_clear_flag,
-*     d_test_handler_has_flag
-*
-*
-* author(s): Samuel 'teer' Neal-Blim                           date: 2025.10.05
-******************************************************************************/
-
 #include "./test_handler_tests_sa.h"
 
 
 /*
 d_tests_sa_handler_set_flag
   Tests d_test_handler_set_flag for all flag types.
-
-  Tests:
-  - Setting flag on NULL handler (should not crash)
-  - Setting D_TEST_HANDLER_FLAG_EMIT_EVENTS
-  - Setting D_TEST_HANDLER_FLAG_ABORT_ON_FAIL updates abort_on_failure
-  - Setting D_TEST_HANDLER_FLAG_TRACK_STACK
-  - Setting multiple flags preserves all
-  - Setting an already-set flag is idempotent
+  Tests the following:
+  - setting flag on NULL handler does not crash
+  - setting D_TEST_HANDLER_FLAG_EMIT_EVENTS
+  - setting ABORT_ON_FAIL updates abort_on_failure field
+  - setting multiple flags preserves all
+  - setting an already-set flag is idempotent
 */
 bool
 d_tests_sa_handler_set_flag
@@ -30,150 +17,127 @@ d_tests_sa_handler_set_flag
     struct d_test_counter* _test_info
 )
 {
-    size_t initial_tests_passed;
-    bool   all_assertions_passed;
+    size_t                 initial_tests_passed;
+    bool                   all_assertions_passed;
+    bool                   result;
+    struct d_test_handler* handler;
 
     printf("  --- Testing d_test_handler_set_flag ---\n");
     initial_tests_passed  = _test_info->tests_passed;
     all_assertions_passed = true;
 
-    // Test 1: Setting flag on NULL handler does not crash
+    // setting flag on NULL handler does not crash
     d_test_handler_set_flag(NULL, D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-    if (!d_assert_standalone(true,
+    all_assertions_passed &= d_assert_standalone(
+        true,
         "set_flag on NULL handler",
         "Setting flag on NULL handler does not crash",
-        _test_info))
+        _test_info);
+
+    // setting D_TEST_HANDLER_FLAG_EMIT_EVENTS
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
     {
-        all_assertions_passed = false;
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+
+        all_assertions_passed &= d_assert_standalone(
+            result == true,
+            "set EMIT_EVENTS flag",
+            "EMIT_EVENTS flag set and readable",
+            _test_info);
+
+        d_test_handler_free(handler);
     }
 
-    // Test 2: Setting D_TEST_HANDLER_FLAG_EMIT_EVENTS
+    // setting ABORT_ON_FAIL updates abort_on_failure field
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
+        all_assertions_passed &= d_assert_standalone(
+            handler->abort_on_failure == false,
+            "abort_on_failure initially false",
+            "Handler starts with abort_on_failure == false",
+            _test_info);
 
-        handler = d_test_handler_new(NULL);
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
 
-        if (handler)
-        {
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+        all_assertions_passed &= d_assert_standalone(
+            handler->abort_on_failure == true,
+            "set ABORT_ON_FAIL updates field",
+            "Setting ABORT_ON_FAIL sets abort_on_failure to true",
+            _test_info);
 
-            if (!d_assert_standalone(
-                d_test_handler_has_flag(handler,
-                                       D_TEST_HANDLER_FLAG_EMIT_EVENTS),
-                "set EMIT_EVENTS flag",
-                "EMIT_EVENTS flag set and readable",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
 
-            d_test_handler_free(handler);
-        }
+        all_assertions_passed &= d_assert_standalone(
+            result == true,
+            "ABORT_ON_FAIL flag readable",
+            "ABORT_ON_FAIL flag set and readable via has_flag",
+            _test_info);
+
+        d_test_handler_free(handler);
     }
 
-    // Test 3: Setting ABORT_ON_FAIL updates abort_on_failure field
+    // setting multiple flags preserves all
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_TRACK_STACK);
 
-        handler = d_test_handler_new(NULL);
+        result = d_test_handler_has_flag(
+                     handler,
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS)
+              && d_test_handler_has_flag(
+                     handler,
+                     D_TEST_HANDLER_FLAG_ABORT_ON_FAIL)
+              && d_test_handler_has_flag(
+                     handler,
+                     D_TEST_HANDLER_FLAG_TRACK_STACK);
 
-        if (handler)
-        {
-            if (!d_assert_standalone(
-                handler->abort_on_failure == false,
-                "abort_on_failure initially false",
-                "Handler starts with abort_on_failure == false",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
+        all_assertions_passed &= d_assert_standalone(
+            result == true,
+            "multiple flags preserved",
+            "All three flags set and readable",
+            _test_info);
 
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
-
-            if (!d_assert_standalone(
-                handler->abort_on_failure == true,
-                "set ABORT_ON_FAIL updates field",
-                "Setting ABORT_ON_FAIL sets abort_on_failure to true",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            if (!d_assert_standalone(
-                d_test_handler_has_flag(handler,
-                                       D_TEST_HANDLER_FLAG_ABORT_ON_FAIL),
-                "ABORT_ON_FAIL flag readable",
-                "ABORT_ON_FAIL flag set and readable via has_flag",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
+        d_test_handler_free(handler);
     }
 
-    // Test 4: Setting multiple flags preserves all
+    // setting already-set flag is idempotent
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        handler = d_test_handler_new(NULL);
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        if (handler)
-        {
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_EMIT_EVENTS);
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_TRACK_STACK);
+        all_assertions_passed &= d_assert_standalone(
+            result == true,
+            "idempotent set_flag",
+            "Double-setting same flag is idempotent",
+            _test_info);
 
-            if (!d_assert_standalone(
-                (d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_EMIT_EVENTS)  &&
-                 d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_ABORT_ON_FAIL) &&
-                 d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_TRACK_STACK)),
-                "multiple flags preserved",
-                "All three flags set and readable",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
-    }
-
-    // Test 5: Setting already-set flag is idempotent
-    {
-        struct d_test_handler* handler;
-
-        handler = d_test_handler_new(NULL);
-
-        if (handler)
-        {
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_EMIT_EVENTS);
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_EMIT_EVENTS);
-
-            if (!d_assert_standalone(
-                d_test_handler_has_flag(handler,
-                                       D_TEST_HANDLER_FLAG_EMIT_EVENTS),
-                "idempotent set_flag",
-                "Double-setting same flag is idempotent",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
+        d_test_handler_free(handler);
     }
 
     if (all_assertions_passed)
@@ -185,22 +149,21 @@ d_tests_sa_handler_set_flag
     {
         printf("%s[FAIL] d_test_handler_set_flag\n", D_INDENT);
     }
+
     _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_handler_clear_flag
   Tests d_test_handler_clear_flag for all flag types.
-
-  Tests:
-  - Clearing flag on NULL handler (should not crash)
-  - Clearing EMIT_EVENTS flag
-  - Clearing ABORT_ON_FAIL updates abort_on_failure to false
-  - Clearing one flag does not affect others
-  - Clearing unset flag is a no-op
+  Tests the following:
+  - clearing flag on NULL handler does not crash
+  - clearing EMIT_EVENTS flag
+  - clearing ABORT_ON_FAIL updates abort_on_failure to false
+  - clearing one flag preserves others
+  - clearing unset flag is a no-op
 */
 bool
 d_tests_sa_handler_clear_flag
@@ -208,138 +171,123 @@ d_tests_sa_handler_clear_flag
     struct d_test_counter* _test_info
 )
 {
-    size_t initial_tests_passed;
-    bool   all_assertions_passed;
+    size_t                 initial_tests_passed;
+    bool                   all_assertions_passed;
+    bool                   result;
+    struct d_test_handler* handler;
+    uint32_t               combined;
 
     printf("  --- Testing d_test_handler_clear_flag ---\n");
     initial_tests_passed  = _test_info->tests_passed;
     all_assertions_passed = true;
 
-    // Test 1: Clear flag on NULL handler
+    // clearing flag on NULL handler does not crash
     d_test_handler_clear_flag(NULL, D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-    if (!d_assert_standalone(true,
+    all_assertions_passed &= d_assert_standalone(
+        true,
         "clear_flag on NULL handler",
         "Clearing flag on NULL handler does not crash",
-        _test_info))
-    {
-        all_assertions_passed = false;
-    }
+        _test_info);
 
-    // Test 2: Clear EMIT_EVENTS flag
-    {
-        struct d_test_handler* handler;
-
-        handler = d_test_handler_new_full(NULL, 0, 0,
-                      D_TEST_HANDLER_FLAG_EMIT_EVENTS);
-
-        if (handler)
-        {
-            d_test_handler_clear_flag(handler,
+    // clearing EMIT_EVENTS flag
+    handler = d_test_handler_new_full(NULL,
+                                      0,
+                                      0,
                                       D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-            if (!d_assert_standalone(
-                !d_test_handler_has_flag(handler,
-                                        D_TEST_HANDLER_FLAG_EMIT_EVENTS),
-                "clear EMIT_EVENTS flag",
-                "EMIT_EVENTS flag cleared successfully",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
+    if (handler)
+    {
+        d_test_handler_clear_flag(handler,
+                                  D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-            d_test_handler_free(handler);
-        }
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+
+        all_assertions_passed &= d_assert_standalone(
+            result == false,
+            "clear EMIT_EVENTS flag",
+            "EMIT_EVENTS flag cleared successfully",
+            _test_info);
+
+        d_test_handler_free(handler);
     }
 
-    // Test 3: Clear ABORT_ON_FAIL updates abort_on_failure
+    // clearing ABORT_ON_FAIL updates abort_on_failure
+    handler = d_test_handler_new_full(
+                  NULL,
+                  0,
+                  0,
+                  D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
+        all_assertions_passed &= d_assert_standalone(
+            handler->abort_on_failure == true,
+            "abort_on_failure initially true via flag",
+            "Handler starts with abort_on_failure true from flag",
+            _test_info);
 
-        handler = d_test_handler_new_full(NULL, 0, 0,
-                      D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
+        d_test_handler_clear_flag(handler,
+                                  D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
 
-        if (handler)
-        {
-            if (!d_assert_standalone(
-                handler->abort_on_failure == true,
-                "abort_on_failure initially true via flag",
-                "Handler starts with abort_on_failure true from flag",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
+        all_assertions_passed &= d_assert_standalone(
+            handler->abort_on_failure == false,
+            "clear ABORT_ON_FAIL updates field",
+            "Clearing ABORT_ON_FAIL sets abort_on_failure false",
+            _test_info);
 
-            d_test_handler_clear_flag(handler,
-                                      D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
-
-            if (!d_assert_standalone(
-                handler->abort_on_failure == false,
-                "clear ABORT_ON_FAIL updates field",
-                "Clearing ABORT_ON_FAIL sets abort_on_failure false",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
+        d_test_handler_free(handler);
     }
 
-    // Test 4: Clearing one flag preserves others
+    // clearing one flag preserves others
+    combined = D_TEST_HANDLER_FLAG_EMIT_EVENTS
+             | D_TEST_HANDLER_FLAG_TRACK_STACK;
+
+    handler = d_test_handler_new_full(NULL,
+                                      10,
+                                      16,
+                                      combined);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
-        uint32_t               combined;
+        d_test_handler_clear_flag(handler,
+                                  D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        combined = D_TEST_HANDLER_FLAG_EMIT_EVENTS
-                 | D_TEST_HANDLER_FLAG_TRACK_STACK;
+        result = (!d_test_handler_has_flag(
+                       handler,
+                       D_TEST_HANDLER_FLAG_EMIT_EVENTS))
+              && (d_test_handler_has_flag(
+                       handler,
+                       D_TEST_HANDLER_FLAG_TRACK_STACK));
 
-        handler = d_test_handler_new_full(NULL, 10, 16, combined);
+        all_assertions_passed &= d_assert_standalone(
+            result == true,
+            "clear one preserves others",
+            "Clearing one flag does not affect other flags",
+            _test_info);
 
-        if (handler)
-        {
-            d_test_handler_clear_flag(handler,
-                                      D_TEST_HANDLER_FLAG_EMIT_EVENTS);
-
-            if (!d_assert_standalone(
-                (!d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_EMIT_EVENTS) &&
-                 d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_TRACK_STACK)),
-                "clear one preserves others",
-                "Clearing one flag does not affect other flags",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
+        d_test_handler_free(handler);
     }
 
-    // Test 5: Clearing unset flag is no-op
+    // clearing unset flag is no-op
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
+        d_test_handler_clear_flag(handler,
+                                  D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        handler = d_test_handler_new(NULL);
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        if (handler)
-        {
-            d_test_handler_clear_flag(handler,
-                                      D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+        all_assertions_passed &= d_assert_standalone(
+            result == false,
+            "clear unset flag is no-op",
+            "Clearing an unset flag does not break anything",
+            _test_info);
 
-            if (!d_assert_standalone(
-                !d_test_handler_has_flag(handler,
-                                        D_TEST_HANDLER_FLAG_EMIT_EVENTS),
-                "clear unset flag is no-op",
-                "Clearing an unset flag does not break anything",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
+        d_test_handler_free(handler);
     }
 
     if (all_assertions_passed)
@@ -351,22 +299,20 @@ d_tests_sa_handler_clear_flag
     {
         printf("%s[FAIL] d_test_handler_clear_flag\n", D_INDENT);
     }
+
     _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_handler_has_flag
   Tests d_test_handler_has_flag with various flag combinations.
-
-  Tests:
+  Tests the following:
   - has_flag on NULL handler returns false
-  - has_flag on handler with D_TEST_HANDLER_FLAG_NONE
-  - has_flag detects individual flags
-  - has_flag with composite flag mask
-  - has_flag after set/clear cycle
+  - fresh handler does not have EMIT_EVENTS or ABORT_ON_FAIL
+  - has_flag detects flag after set and absence after clear
+  - has_flag with FLAG_NONE always returns true (identity)
 */
 bool
 d_tests_sa_handler_has_flag
@@ -374,120 +320,99 @@ d_tests_sa_handler_has_flag
     struct d_test_counter* _test_info
 )
 {
-    size_t initial_tests_passed;
-    bool   all_assertions_passed;
+    size_t                 initial_tests_passed;
+    bool                   all_assertions_passed;
+    bool                   result;
+    struct d_test_handler* handler;
 
     printf("  --- Testing d_test_handler_has_flag ---\n");
     initial_tests_passed  = _test_info->tests_passed;
     all_assertions_passed = true;
 
-    // Test 1: has_flag on NULL handler returns false
-    {
-        bool result;
+    // has_flag on NULL handler returns false
+    result = d_test_handler_has_flag(NULL,
+                 D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        result = d_test_handler_has_flag(NULL,
+    all_assertions_passed &= d_assert_standalone(
+        result == false,
+        "has_flag on NULL handler",
+        "has_flag returns false for NULL handler",
+        _test_info);
+
+    // fresh handler has no flags
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
+    {
+        result = d_test_handler_has_flag(handler,
                      D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        if (!d_assert_standalone(result == false,
-            "has_flag on NULL handler",
-            "has_flag returns false for NULL handler",
-            _test_info))
-        {
-            all_assertions_passed = false;
-        }
+        all_assertions_passed &= d_assert_standalone(
+            result == false,
+            "no EMIT_EVENTS on fresh handler",
+            "Fresh handler does not have EMIT_EVENTS",
+            _test_info);
+
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_ABORT_ON_FAIL);
+
+        all_assertions_passed &= d_assert_standalone(
+            result == false,
+            "no ABORT_ON_FAIL on fresh handler",
+            "Fresh handler does not have ABORT_ON_FAIL",
+            _test_info);
+
+        d_test_handler_free(handler);
     }
 
-    // Test 2: has_flag on handler with FLAG_NONE
+    // has_flag after set/clear cycle
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
+        d_test_handler_set_flag(handler,
+                                D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        handler = d_test_handler_new(NULL);
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-        if (handler)
-        {
-            if (!d_assert_standalone(
-                !d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_EMIT_EVENTS),
-                "no EMIT_EVENTS on fresh handler",
-                "Fresh handler does not have EMIT_EVENTS",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
+        all_assertions_passed &= d_assert_standalone(
+            result == true,
+            "has_flag after set",
+            "has_flag detects flag after set",
+            _test_info);
 
-            if (!d_assert_standalone(
-                !d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_ABORT_ON_FAIL),
-                "no ABORT_ON_FAIL on fresh handler",
-                "Fresh handler does not have ABORT_ON_FAIL",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
+        d_test_handler_clear_flag(handler,
+                                  D_TEST_HANDLER_FLAG_EMIT_EVENTS);
 
-            d_test_handler_free(handler);
-        }
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_EMIT_EVENTS);
+
+        all_assertions_passed &= d_assert_standalone(
+            result == false,
+            "has_flag after clear",
+            "has_flag returns false after clear",
+            _test_info);
+
+        d_test_handler_free(handler);
     }
 
-    // Test 3: has_flag after set/clear cycle
+    // has_flag with FLAG_NONE always returns true (identity)
+    handler = d_test_handler_new(NULL);
+
+    if (handler)
     {
-        struct d_test_handler* handler;
+        // FLAG_NONE (0) is always a subset via bitwise AND
+        result = d_test_handler_has_flag(handler,
+                     D_TEST_HANDLER_FLAG_NONE);
 
-        handler = d_test_handler_new(NULL);
+        all_assertions_passed &= d_assert_standalone(
+            result == true,
+            "has_flag with FLAG_NONE",
+            "has_flag with FLAG_NONE returns true",
+            _test_info);
 
-        if (handler)
-        {
-            d_test_handler_set_flag(handler,
-                                    D_TEST_HANDLER_FLAG_EMIT_EVENTS);
-
-            if (!d_assert_standalone(
-                d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_EMIT_EVENTS),
-                "has_flag after set",
-                "has_flag detects flag after set",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_clear_flag(handler,
-                                      D_TEST_HANDLER_FLAG_EMIT_EVENTS);
-
-            if (!d_assert_standalone(
-                !d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_EMIT_EVENTS),
-                "has_flag after clear",
-                "has_flag returns false after clear",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
-    }
-
-    // Test 4: has_flag with FLAG_NONE always returns true (identity)
-    {
-        struct d_test_handler* handler;
-
-        handler = d_test_handler_new(NULL);
-
-        if (handler)
-        {
-            // FLAG_NONE (0) is always a subset via bitwise AND
-            if (!d_assert_standalone(
-                d_test_handler_has_flag(handler,
-                    D_TEST_HANDLER_FLAG_NONE),
-                "has_flag with FLAG_NONE",
-                "has_flag with FLAG_NONE returns true",
-                _test_info))
-            {
-                all_assertions_passed = false;
-            }
-
-            d_test_handler_free(handler);
-        }
+        d_test_handler_free(handler);
     }
 
     if (all_assertions_passed)
@@ -499,6 +424,7 @@ d_tests_sa_handler_has_flag
     {
         printf("%s[FAIL] d_test_handler_has_flag\n", D_INDENT);
     }
+
     _test_info->tests_total++;
 
     return (_test_info->tests_passed > initial_tests_passed);
