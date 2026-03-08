@@ -47,9 +47,10 @@ bool helper_add_passing_test_to_block(struct d_test_block* _block);
 bool helper_add_failing_test_to_block(struct d_test_block* _block);
 
 // helper_add_block_child_to_block
-//   function: creates an empty child block and adds it as a child of
-// the given parent block. returns true if successful.
-bool helper_add_block_child_to_block(struct d_test_block* _parent);
+//   function: adds a pre-created child block as a child of the given
+// parent block. returns true if the block was successfully added.
+bool helper_add_block_child_to_block(struct d_test_block* _parent,
+                                     struct d_test_block* _child);
 
 
 #endif  // DJINTERP_TEST_HANDLER_TEST_HELPERS_

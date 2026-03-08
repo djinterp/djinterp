@@ -54,7 +54,6 @@ d_tests_sa_cvar_get_default_value
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_set_then_get
   Tests that d_test_registry_set changes the value and get reads it back.
@@ -119,7 +118,6 @@ d_tests_sa_cvar_set_then_get
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_set_invalid_flag
   Tests that d_test_registry_set with an invalid flag returns false.
@@ -163,7 +161,6 @@ d_tests_sa_cvar_set_invalid_flag
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_get_invalid_flag
   Tests that d_test_registry_get with an invalid flag returns a zeroed value.
@@ -194,7 +191,6 @@ d_tests_sa_cvar_get_invalid_flag
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_set_get_bool
@@ -246,7 +242,6 @@ d_tests_sa_cvar_set_get_bool
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_get_set_all

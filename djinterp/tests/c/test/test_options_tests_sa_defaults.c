@@ -46,7 +46,6 @@ d_tests_sa_config_default_indent
     return result;
 }
 
-
 /*
 d_tests_sa_config_default_max_indent
   Tests the D_TEST_DEFAULT_MAX_INDENT constant.
@@ -83,7 +82,6 @@ d_tests_sa_config_default_max_indent
     return result;
 }
 
-
 /*
 d_tests_sa_config_default_max_failures
   Tests the D_TEST_DEFAULT_MAX_FAILURES constant.
@@ -111,7 +109,6 @@ d_tests_sa_config_default_max_failures
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_default_timeout
@@ -147,7 +144,6 @@ d_tests_sa_config_default_timeout
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_default_all

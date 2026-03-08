@@ -7,12 +7,13 @@
 
 /*
 d_tests_sa_handler_complex_execution
-  Tests large-scale execution with 10 blocks x 10 tests.
+  Tests complex execution with many blocks and tests.
   Tests the following:
-  - 100 tests all execute
-  - 10 blocks all counted
-  - every 5th test fails (20 failures)
-  - remaining 80 tests pass
+  - 10 blocks x 10 tests with every 5th failing
+  - all 100 tests execute
+  - all 10 blocks counted
+  - 20 tests fail (every 5th)
+  - 80 tests pass
 */
 bool
 d_tests_sa_handler_complex_execution
@@ -21,7 +22,7 @@ d_tests_sa_handler_complex_execution
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test_block*   blk;
     struct d_test_result   r;
@@ -29,8 +30,8 @@ d_tests_sa_handler_complex_execution
     int                    t2;
 
     printf("  --- Testing complex execution ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
     // 10 blocks x 10 tests (every 5th fails)
     h = d_test_handler_new(NULL);
@@ -45,6 +46,7 @@ d_tests_sa_handler_complex_execution
             {
                 for (t2 = 0; t2 < 10; t2++)
                 {
+                    // every 5th test (index 0, 5, 10, ...) fails
                     if ((b * 10 + t2) % 5 != 0)
                     {
                         helper_add_passing_test_to_block(blk);
@@ -62,46 +64,38 @@ d_tests_sa_handler_complex_execution
 
         r = d_test_handler_get_results(h);
 
-        if (!d_assert_standalone(
-                r.tests_run == 100,
-                "100 tests run",
-                "All 100 executed",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 1: all 100 tests executed
+        result = d_assert_standalone(
+            r.tests_run == 100,
+            "hundred_tests_run",
+            "all 100 tests should execute",
+            _test_info) && result;
 
-        if (!d_assert_standalone(
-                r.blocks_run == 10,
-                "10 blocks run",
-                "All 10 counted",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 2: all 10 blocks counted
+        result = d_assert_standalone(
+            r.blocks_run == 10,
+            "ten_blocks_run",
+            "all 10 blocks should be counted",
+            _test_info) && result;
 
-        if (!d_assert_standalone(
-                r.tests_failed == 20,
-                "20 failures",
-                "Every 5th failed",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 3: 20 tests failed
+        result = d_assert_standalone(
+            r.tests_failed == 20,
+            "twenty_failures",
+            "every 5th test should fail (20 total)",
+            _test_info) && result;
 
-        if (!d_assert_standalone(
-                r.tests_passed == 80,
-                "80 passes",
-                "80 passed",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 4: 80 tests passed
+        result = d_assert_standalone(
+            r.tests_passed == 80,
+            "eighty_passes",
+            "80 tests should pass",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] complex_execution\n", D_INDENT);
@@ -116,14 +110,13 @@ d_tests_sa_handler_complex_execution
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_event_integration
-  Tests event integration with mixed pass/fail and reset.
+  Tests event firing with mixed pass/fail execution.
   Tests the following:
-  - SUCCESS events match pass count
-  - FAILURE events match fail count
-  - events continue firing after result reset
+  - SUCCESS events match pass count in a block
+  - FAILURE events match fail count in a block
+  - events continue to fire after handler reset
 */
 bool
 d_tests_sa_handler_event_integration
@@ -132,19 +125,18 @@ d_tests_sa_handler_event_integration
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test_block*   b;
-    struct d_test*         t1;
-    struct d_test*         t2;
+    struct d_test*         t;
     int                    before;
     int                    i;
 
     printf("  --- Testing event integration ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
-    // events with mixed pass/fail
+    // events fire correctly with mixed pass/fail in block
     reset_event_counters();
     h = d_test_handler_new_with_events(NULL, 20);
 
@@ -163,11 +155,13 @@ d_tests_sa_handler_event_integration
 
         if (b)
         {
+            // add 3 passing tests via helper
             for (i = 0; i < 3; i++)
             {
                 helper_add_passing_test_to_block(b);
             }
 
+            // add 2 failing tests via helper
             for (i = 0; i < 2; i++)
             {
                 helper_add_failing_test_to_block(b);
@@ -175,23 +169,19 @@ d_tests_sa_handler_event_integration
 
             d_test_handler_run_block(h, b, NULL);
 
-            if (!d_assert_standalone(
-                    g_event_success_count == 3,
-                    "3 SUCCESS events",
-                    "Matches passes",
-                    _test_info))
-            {
-                ok = false;
-            }
+            // test 1: SUCCESS events match passes
+            result = d_assert_standalone(
+                g_event_success_count == 3,
+                "three_success_events",
+                "SUCCESS event count should match 3 passes",
+                _test_info) && result;
 
-            if (!d_assert_standalone(
-                    g_event_failure_count == 2,
-                    "2 FAILURE events",
-                    "Matches fails",
-                    _test_info))
-            {
-                ok = false;
-            }
+            // test 2: FAILURE events match fails
+            result = d_assert_standalone(
+                g_event_failure_count == 2,
+                "two_failure_events",
+                "FAILURE event count should match 2 fails",
+                _test_info) && result;
 
             d_test_block_free(b);
         }
@@ -211,39 +201,37 @@ d_tests_sa_handler_event_integration
                                          true);
 
         // run first test
-        t1 = helper_make_passing_test();
+        t = helper_make_passing_test();
 
-        if (t1)
+        if (t)
         {
-            d_test_handler_run_test(h, t1, NULL);
-            d_test_free(t1);
+            d_test_handler_run_test(h, t, NULL);
+            d_test_free(t);
         }
 
         // reset results, then run another test
         before = g_event_start_count;
         d_test_handler_reset_results(h);
 
-        t2 = helper_make_passing_test();
+        t = helper_make_passing_test();
 
-        if (t2)
+        if (t)
         {
-            d_test_handler_run_test(h, t2, NULL);
-            d_test_free(t2);
+            d_test_handler_run_test(h, t, NULL);
+            d_test_free(t);
         }
 
-        if (!d_assert_standalone(
-                g_event_start_count > before,
-                "events after reset",
-                "Continue firing",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 3: events continue firing after reset
+        result = d_assert_standalone(
+            g_event_start_count > before,
+            "events_fire_after_reset",
+            "events should continue firing after reset",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] event_integration\n", D_INDENT);
@@ -258,16 +246,15 @@ d_tests_sa_handler_event_integration
     return (_test_info->tests_passed > ip);
 }
 
-
 /*
 d_tests_sa_handler_statistics_accuracy
   Tests comprehensive statistics accuracy.
   Tests the following:
-  - test counts: 10 run, 7 passed, 3 failed
-  - assertion counts: 20 run, 15 passed, 5 failed
-  - pass rate is 70%
-  - assertion rate is 75%
-  - stats match between handlers with and without events
+  - correct test counts after 7 pass + 3 fail
+  - correct assertion counts after 15 pass + 5 fail
+  - 70% pass rate computed correctly
+  - 75% assertion rate computed correctly
+  - stats consistent between handler with and without events
 */
 bool
 d_tests_sa_handler_statistics_accuracy
@@ -276,7 +263,7 @@ d_tests_sa_handler_statistics_accuracy
 )
 {
     size_t                 ip;
-    bool                   ok;
+    bool                   result;
     struct d_test_handler* h;
     struct d_test_handler* h1;
     struct d_test_handler* h2;
@@ -290,8 +277,8 @@ d_tests_sa_handler_statistics_accuracy
     int                    i;
 
     printf("  --- Testing statistics accuracy ---\n");
-    ip = _test_info->tests_passed;
-    ok = true;
+    ip     = _test_info->tests_passed;
+    result = true;
 
     // comprehensive: tests + assertions + rates
     h = d_test_handler_new(NULL);
@@ -340,65 +327,55 @@ d_tests_sa_handler_statistics_accuracy
 
         r = d_test_handler_get_results(h);
 
-        // verify test counts
-        if (!d_assert_standalone(
-                ( (r.tests_run == 10)    &&
-                  (r.tests_passed == 7)  &&
-                  (r.tests_failed == 3) ),
-                "test counts",
-                "10 run, 7 passed, 3 failed",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 1: test counts correct
+        result = d_assert_standalone(
+            ( (r.tests_run == 10)    &&
+              (r.tests_passed == 7)  &&
+              (r.tests_failed == 3) ),
+            "test_counts_7_3",
+            "should be 10 run, 7 passed, 3 failed",
+            _test_info) && result;
 
-        // verify assertion counts
-        if (!d_assert_standalone(
-                ( (r.assertions_run == 20)    &&
-                  (r.assertions_passed == 15) &&
-                  (r.assertions_failed == 5) ),
-                "assertion counts",
-                "20 run, 15 passed, 5 failed",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 2: assertion counts correct
+        result = d_assert_standalone(
+            ( (r.assertions_run == 20)    &&
+              (r.assertions_passed == 15) &&
+              (r.assertions_failed == 5) ),
+            "assertion_counts_15_5",
+            "should be 20 run, 15 passed, 5 failed",
+            _test_info) && result;
 
-        // verify pass rate
+        // test 3: pass rate is 70%
         pr = d_test_handler_get_pass_rate(h);
 
-        if (!d_assert_standalone(
-                ( (pr >= 69.9) && (pr <= 70.1) ),
-                "pass rate 70%",
-                "70% pass rate",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            ( (pr >= 69.9) && (pr <= 70.1) ),
+            "pass_rate_seventy_percent",
+            "pass rate should be approximately 70%",
+            _test_info) && result;
 
-        // verify assertion rate
+        // test 4: assertion rate is 75%
         ar = d_test_handler_get_assertion_rate(h);
 
-        if (!d_assert_standalone(
-                ( (ar >= 74.9) && (ar <= 75.1) ),
-                "assert rate 75%",
-                "75% assertion rate",
-                _test_info))
-        {
-            ok = false;
-        }
+        result = d_assert_standalone(
+            ( (ar >= 74.9) && (ar <= 75.1) ),
+            "assertion_rate_seventy_five_percent",
+            "assertion rate should be approximately 75%",
+            _test_info) && result;
 
         d_test_handler_free(h);
     }
 
-    // stats match with/without events
+    // stats consistent with and without events
     h1 = d_test_handler_new(NULL);
     h2 = d_test_handler_new_with_events(NULL, 20);
 
-    if (h1 && h2)
+    if ( (h1) &&
+         (h2) )
     {
         for (i = 0; i < 5; i++)
         {
+            // run matching test on each handler
             t = helper_make_passing_test();
 
             if (t)
@@ -419,21 +396,19 @@ d_tests_sa_handler_statistics_accuracy
         r1 = d_test_handler_get_results(h1);
         r2 = d_test_handler_get_results(h2);
 
-        if (!d_assert_standalone(
-                ( (r1.tests_run == r2.tests_run)       &&
-                  (r1.tests_passed == r2.tests_passed) ),
-                "stats match",
-                "Same with/without events",
-                _test_info))
-        {
-            ok = false;
-        }
+        // test 5: stats match with and without events
+        result = d_assert_standalone(
+            ( (r1.tests_run == r2.tests_run)       &&
+              (r1.tests_passed == r2.tests_passed) ),
+            "stats_match_with_without_events",
+            "stats should be identical regardless of events",
+            _test_info) && result;
 
         d_test_handler_free(h1);
         d_test_handler_free(h2);
     }
 
-    if (ok)
+    if (result)
     {
         _test_info->tests_passed++;
         printf("%s[PASS] statistics_accuracy\n", D_INDENT);

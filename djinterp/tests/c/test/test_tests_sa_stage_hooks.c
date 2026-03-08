@@ -23,7 +23,6 @@ d_internal_stage_hook_other(struct d_test* _test)
     return false;
 }
 
-
 /*
 d_tests_sa_test_set_hook_null_test
   Tests d_test_set_stage_hook with NULL test.
@@ -50,7 +49,6 @@ d_tests_sa_test_set_hook_null_test
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_set_hook_valid
@@ -103,7 +101,6 @@ d_tests_sa_test_set_hook_valid
     return result;
 }
 
-
 /*
 d_tests_sa_test_get_hook_null_test
   Tests d_test_get_stage_hook with NULL test.
@@ -130,7 +127,6 @@ d_tests_sa_test_get_hook_null_test
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_get_hook_valid
@@ -198,7 +194,6 @@ d_tests_sa_test_get_hook_valid
     return result;
 }
 
-
 /*
 d_tests_sa_test_get_hook_unset
   Tests d_test_get_stage_hook for a stage that has no hook set.
@@ -239,7 +234,6 @@ d_tests_sa_test_get_hook_unset
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_set_hook_all_stages
@@ -311,7 +305,6 @@ d_tests_sa_test_set_hook_all_stages
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_stage_hooks_all

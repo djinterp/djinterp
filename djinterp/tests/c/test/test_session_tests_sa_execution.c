@@ -85,7 +85,6 @@ d_tests_sa_test_session_run_empty
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_run_null
   Tests running with NULL session.
@@ -146,7 +145,6 @@ d_tests_sa_test_session_run_null
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_run_child_invalid
@@ -211,7 +209,6 @@ d_tests_sa_test_session_run_child_invalid
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_abort
@@ -282,7 +279,6 @@ d_tests_sa_test_session_abort
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_reset
@@ -365,7 +361,6 @@ d_tests_sa_test_session_reset
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_pause_resume

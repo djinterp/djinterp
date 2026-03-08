@@ -50,7 +50,6 @@ helper_strings_equal
     return (*_s1 == *_s2);
 }
 
-
 /******************************************************************************
  * I. MACRO DEFINITION TESTS
  *****************************************************************************/
@@ -228,7 +227,6 @@ d_tests_sa_test_common_keyword_macros
     return result;
 }
 
-
 /*
 d_tests_sa_test_common_pass_fail_macros
   Tests the D_TEST_PASS and D_TEST_FAIL macro definitions.
@@ -330,7 +328,6 @@ d_tests_sa_test_common_pass_fail_macros
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_symbol_macros
@@ -539,7 +536,6 @@ d_tests_sa_test_common_symbol_macros
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_macro_all

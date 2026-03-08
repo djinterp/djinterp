@@ -21,7 +21,6 @@ helper_module_fn_tree
     return d_test_object_new_leaf("helper_test", "helper message", true);
 }
 
-
 /*
 helper_module_fn_counter
   Helper function that updates a counter for testing fn_test_module_counter.
@@ -45,7 +44,6 @@ helper_module_fn_counter
 
     return true;
 }
-
 
 /******************************************************************************
  * VII. MODULE ENTRY AND RUNNER STRUCTURE TESTS
@@ -113,7 +111,6 @@ d_tests_sa_standalone_fn_test_module
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_fn_test_module_counter
   Tests the fn_test_module_counter function pointer type.
@@ -179,7 +176,6 @@ d_tests_sa_standalone_fn_test_module_counter
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_module_entry_struct
@@ -255,7 +251,6 @@ d_tests_sa_standalone_module_entry_struct
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_runner_struct
@@ -386,7 +381,6 @@ d_tests_sa_standalone_runner_struct
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_runner_struct_all

@@ -171,7 +171,6 @@ d_tests_sa_test_module_add_child
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_add_child_null
   Tests add_child with NULL arguments.
@@ -240,7 +239,6 @@ d_tests_sa_test_module_add_child_null
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_child_count
@@ -330,7 +328,6 @@ d_tests_sa_test_module_child_count
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_child_count_empty
   Tests child counting on an empty module and a NULL module.
@@ -396,7 +393,6 @@ d_tests_sa_test_module_child_count_empty
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_get_child_at
@@ -529,7 +525,6 @@ d_tests_sa_test_module_get_child_at
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_get_child_at_invalid

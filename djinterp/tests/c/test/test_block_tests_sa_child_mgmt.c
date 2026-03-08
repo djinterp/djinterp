@@ -78,7 +78,6 @@ d_tests_sa_test_block_add_child_valid
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_add_child_null_block
   Tests d_test_block_add_child with NULL block.
@@ -128,7 +127,6 @@ d_tests_sa_test_block_add_child_null_block
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_add_child_null_child
   Tests d_test_block_add_child with NULL child.
@@ -173,7 +171,6 @@ d_tests_sa_test_block_add_child_null_child
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_add_test_valid
@@ -248,7 +245,6 @@ d_tests_sa_test_block_add_test_valid
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_add_test_null_block
   Tests d_test_block_add_test with NULL block.
@@ -288,7 +284,6 @@ d_tests_sa_test_block_add_test_null_block
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_add_test_null_test
   Tests d_test_block_add_test with NULL test.
@@ -326,7 +321,6 @@ d_tests_sa_test_block_add_test_null_test
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_add_block_valid
@@ -395,7 +389,6 @@ d_tests_sa_test_block_add_block_valid
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_add_block_null_parent
   Tests d_test_block_add_block with NULL parent.
@@ -435,7 +428,6 @@ d_tests_sa_test_block_add_block_null_parent
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_add_block_null_child
   Tests d_test_block_add_block with NULL child.
@@ -473,7 +465,6 @@ d_tests_sa_test_block_add_block_null_child
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_child_count_valid
@@ -538,7 +529,6 @@ d_tests_sa_test_block_child_count_valid
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_child_count_null
   Tests d_test_block_child_count with NULL block.
@@ -563,7 +553,6 @@ d_tests_sa_test_block_child_count_null
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_child_count_empty
@@ -599,7 +588,6 @@ d_tests_sa_test_block_child_count_empty
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_get_child_at_valid
@@ -678,7 +666,6 @@ d_tests_sa_test_block_get_child_at_valid
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_get_child_at_null_block
   Tests d_test_block_get_child_at with NULL block.
@@ -703,7 +690,6 @@ d_tests_sa_test_block_get_child_at_null_block
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_get_child_at_out_of_bounds
@@ -751,7 +737,6 @@ d_tests_sa_test_block_get_child_at_out_of_bounds
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_child_mgmt_all

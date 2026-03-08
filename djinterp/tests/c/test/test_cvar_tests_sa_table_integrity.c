@@ -55,7 +55,6 @@ d_tests_sa_cvar_table_keys_non_null
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_table_help_non_null
   Tests that all registry rows have non-NULL help text.
@@ -94,7 +93,6 @@ d_tests_sa_cvar_table_help_non_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_table_config_flags
@@ -151,7 +149,6 @@ d_tests_sa_cvar_table_config_flags
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_table_metadata_flags
   Tests that metadata rows have the IS_METADATA command flag set.
@@ -206,7 +203,6 @@ d_tests_sa_cvar_table_metadata_flags
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_table_row_counts
@@ -272,7 +268,6 @@ d_tests_sa_cvar_table_row_counts
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_table_integrity_all

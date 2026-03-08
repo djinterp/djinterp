@@ -12,7 +12,6 @@ d_internal_child_mgmt_pass_fn(void)
     return true;
 }
 
-
 /*
 d_tests_sa_test_add_child_null_test
   Tests d_test_add_child with NULL test parameter.
@@ -66,7 +65,6 @@ d_tests_sa_test_add_child_null_test
     return result;
 }
 
-
 /*
 d_tests_sa_test_add_child_null_child
   Tests d_test_add_child with NULL child parameter.
@@ -104,7 +102,6 @@ d_tests_sa_test_add_child_null_child
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_add_child_assert
@@ -173,7 +170,6 @@ d_tests_sa_test_add_child_assert
     return result;
 }
 
-
 /*
 d_tests_sa_test_add_child_invalid_type
   Tests d_test_add_child rejects children with invalid types.
@@ -232,7 +228,6 @@ d_tests_sa_test_add_child_invalid_type
     return result;
 }
 
-
 /*
 d_tests_sa_test_add_function_valid
   Tests d_test_add_function with a valid function pointer.
@@ -279,7 +274,6 @@ d_tests_sa_test_add_function_valid
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_add_function_null
@@ -328,7 +322,6 @@ d_tests_sa_test_add_function_null
     return result;
 }
 
-
 /*
 d_tests_sa_test_child_count_null
   Tests d_test_child_count with NULL test.
@@ -352,7 +345,6 @@ d_tests_sa_test_child_count_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_child_count_after_add
@@ -417,7 +409,6 @@ d_tests_sa_test_child_count_after_add
     return result;
 }
 
-
 /*
 d_tests_sa_test_get_child_at_valid
   Tests d_test_get_child_at with valid indices.
@@ -472,7 +463,6 @@ d_tests_sa_test_get_child_at_valid
     return result;
 }
 
-
 /*
 d_tests_sa_test_get_child_at_null
   Tests d_test_get_child_at with NULL test.
@@ -499,7 +489,6 @@ d_tests_sa_test_get_child_at_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_child_mgmt_all

@@ -106,7 +106,6 @@ d_tests_sa_standalone_get_elapsed_time
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_print_timestamp
   Tests the d_test_sa_print_timestamp function.
@@ -145,7 +144,6 @@ d_tests_sa_standalone_print_timestamp
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_utility_all

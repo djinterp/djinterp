@@ -122,7 +122,6 @@ d_tests_sa_test_module_new
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_new_with_children
   Tests construction of a d_test_module and adding children via add_child.
@@ -265,7 +264,6 @@ d_tests_sa_test_module_new_with_children
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_new_args
   Tests construction using d_test_module_new_args with key-value arguments.
@@ -358,7 +356,6 @@ d_tests_sa_test_module_new_args
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_validate_args
   Tests the d_test_module_validate_args function.
@@ -437,7 +434,6 @@ d_tests_sa_test_module_validate_args
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_free
@@ -519,7 +515,6 @@ d_tests_sa_test_module_free
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_free_null

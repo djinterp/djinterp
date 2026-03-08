@@ -49,7 +49,6 @@ d_tests_sa_test_new_empty
     return result;
 }
 
-
 /*
 d_tests_sa_test_new_valid
   Tests d_test_new returns a properly initialized test.
@@ -106,7 +105,6 @@ d_tests_sa_test_new_valid
     return result;
 }
 
-
 /*
 d_tests_sa_test_new_args
   Tests d_test_new_args with arguments and children.
@@ -149,7 +147,6 @@ d_tests_sa_test_new_args
     return result;
 }
 
-
 /*
 d_tests_sa_test_new_args_null
   Tests d_test_new_args with NULL args parameter.
@@ -188,7 +185,6 @@ d_tests_sa_test_new_args_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_construction_all

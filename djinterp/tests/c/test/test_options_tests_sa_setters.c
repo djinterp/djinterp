@@ -19,10 +19,9 @@ d_tests_sa_config_set_bool
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     if (!config)
@@ -61,7 +60,6 @@ d_tests_sa_config_set_bool
     return result;
 }
 
-
 /*
 d_tests_sa_config_set_size_t
   Tests the d_test_options_set_size_t function.
@@ -77,10 +75,9 @@ d_tests_sa_config_set_size_t
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     if (!config)
@@ -129,7 +126,6 @@ d_tests_sa_config_set_size_t
     return result;
 }
 
-
 /*
 d_tests_sa_config_set_int32
   Tests the d_test_options_set_int32 function.
@@ -144,10 +140,9 @@ d_tests_sa_config_set_int32
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     if (!config)
@@ -194,7 +189,6 @@ d_tests_sa_config_set_int32
     return result;
 }
 
-
 /*
 d_tests_sa_config_set_uint32
   Tests the d_test_options_set_uint32 function.
@@ -208,10 +202,9 @@ d_tests_sa_config_set_uint32
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_SILENT);
 
     if (!config)
@@ -242,7 +235,6 @@ d_tests_sa_config_set_uint32
     return result;
 }
 
-
 /*
 d_tests_sa_config_set_string
   Tests the d_test_options_set_string function.
@@ -257,11 +249,10 @@ d_tests_sa_config_set_string
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
-    const char*           indent;
+    struct d_test_options* config;
+    const char*            indent;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     if (!config)
@@ -304,7 +295,6 @@ d_tests_sa_config_set_string
     return result;
 }
 
-
 /*
 d_tests_sa_config_set_ptr
   Tests the d_test_options_set_ptr function.
@@ -318,11 +308,10 @@ d_tests_sa_config_set_ptr
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
-    int                   dummy;
+    struct d_test_options* config;
+    int                    dummy;
+    bool                   result = true;
 
-    result = true;
     dummy  = 123;
     config = d_test_options_new(D_TEST_MODE_NORMAL);
 
@@ -363,7 +352,6 @@ d_tests_sa_config_set_ptr
     return result;
 }
 
-
 /*
 d_tests_sa_config_set_null_config
   Tests setter functions with NULL config.
@@ -376,9 +364,7 @@ d_tests_sa_config_set_null_config
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     result = d_assert_standalone(
         d_test_options_set_bool(NULL, D_TEST_OPTIONS_SKIP, true) == false,
@@ -419,7 +405,6 @@ d_tests_sa_config_set_null_config
     return result;
 }
 
-
 /*
 d_tests_sa_config_set_type_mismatch
   Tests setter functions with type-mismatched keys.
@@ -434,10 +419,9 @@ d_tests_sa_config_set_type_mismatch
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* config;
+    struct d_test_options* config;
+    bool                   result = true;
 
-    result = true;
     config = d_test_options_new(D_TEST_MODE_NORMAL);
 
     if (!config)
@@ -480,7 +464,6 @@ d_tests_sa_config_set_type_mismatch
     return result;
 }
 
-
 /*
 d_tests_sa_config_setter_all
   Aggregation function that runs all setter function tests.
@@ -491,20 +474,18 @@ d_tests_sa_config_setter_all
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     printf("\n  [SECTION] Setter Functions\n");
     printf("  ----------------------------\n");
 
-    result = d_tests_sa_config_set_bool(_counter) && result;
-    result = d_tests_sa_config_set_size_t(_counter) && result;
-    result = d_tests_sa_config_set_int32(_counter) && result;
-    result = d_tests_sa_config_set_uint32(_counter) && result;
-    result = d_tests_sa_config_set_string(_counter) && result;
-    result = d_tests_sa_config_set_ptr(_counter) && result;
-    result = d_tests_sa_config_set_null_config(_counter) && result;
+    result = d_tests_sa_config_set_bool(_counter)          && result;
+    result = d_tests_sa_config_set_size_t(_counter)        && result;
+    result = d_tests_sa_config_set_int32(_counter)         && result;
+    result = d_tests_sa_config_set_uint32(_counter)        && result;
+    result = d_tests_sa_config_set_string(_counter)        && result;
+    result = d_tests_sa_config_set_ptr(_counter)           && result;
+    result = d_tests_sa_config_set_null_config(_counter)   && result;
     result = d_tests_sa_config_set_type_mismatch(_counter) && result;
 
     return result;

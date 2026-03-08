@@ -32,7 +32,6 @@ test_helper_simple_module
     return group;
 }
 
-
 /*
 test_helper_failing_module
   A test module function that returns a tree with failures.
@@ -60,7 +59,6 @@ test_helper_failing_module
     return group;
 }
 
-
 /*
 test_helper_counter_module
   A counter-based test module function.
@@ -84,7 +82,6 @@ test_helper_counter_module
     return true;
 }
 
-
 /*
 test_helper_counter_module_failing
   A counter-based test module function with failures.
@@ -107,7 +104,6 @@ test_helper_counter_module_failing
 
     return false;
 }
-
 
 /******************************************************************************
  * RUNNER INIT TESTS
@@ -221,7 +217,6 @@ d_tests_sa_tsa_runner_init
     return group;
 }
 
-
 /******************************************************************************
  * RUNNER SET OPTIONS TESTS
  *****************************************************************************/
@@ -299,7 +294,6 @@ d_tests_sa_tsa_runner_set_options
 
     return group;
 }
-
 
 /******************************************************************************
  * RUNNER ADD MODULE TESTS
@@ -417,7 +411,6 @@ d_tests_sa_tsa_runner_add_module
     return group;
 }
 
-
 /******************************************************************************
  * RUNNER ADD MODULE COUNTER TESTS
  *****************************************************************************/
@@ -514,7 +507,6 @@ d_tests_sa_tsa_runner_add_module_counter
     return group;
 }
 
-
 /******************************************************************************
  * RUNNER SETTINGS TESTS
  *****************************************************************************/
@@ -603,7 +595,6 @@ d_tests_sa_tsa_runner_settings
     return group;
 }
 
-
 /******************************************************************************
  * RUNNER CLEANUP TESTS
  *****************************************************************************/
@@ -667,7 +658,6 @@ d_tests_sa_tsa_runner_cleanup
 
     return group;
 }
-
 
 /******************************************************************************
  * RUNNER MODULE AGGREGATOR

@@ -154,7 +154,6 @@ d_tests_sa_test_session_new
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_new_with_config
   Tests construction with a provided config.
@@ -266,7 +265,6 @@ d_tests_sa_test_session_new_with_config
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_new_with_modules
@@ -388,7 +386,6 @@ d_tests_sa_test_session_new_with_modules
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_new_with_modules_and_config
   Tests construction with both config and modules.
@@ -496,7 +493,6 @@ d_tests_sa_test_session_new_with_modules_and_config
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_validate_args
   Tests the validate_args function.
@@ -561,7 +557,6 @@ d_tests_sa_test_session_validate_args
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_free
   Tests freeing a valid session.
@@ -614,7 +609,6 @@ d_tests_sa_test_session_free
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_free_null

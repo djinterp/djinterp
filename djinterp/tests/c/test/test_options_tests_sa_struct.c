@@ -20,10 +20,8 @@ d_tests_sa_config_struct_members
     struct d_test_counter* _counter
 )
 {
-    bool                 result;
-    struct d_test_config config_stack;
-
-    result = true;
+    struct d_test_options config_stack;
+    bool                  result = true;
 
     // test 1: flags member is accessible
     config_stack.flags = 0x12345678u;
@@ -55,7 +53,6 @@ d_tests_sa_config_struct_members
     return result;
 }
 
-
 /*
 d_tests_sa_config_struct_size
   Tests the d_test_config structure size and layout.
@@ -69,11 +66,10 @@ d_tests_sa_config_struct_size
     struct d_test_counter* _counter
 )
 {
-    bool   result;
     size_t config_size;
+    bool   result = true;
 
-    result      = true;
-    config_size = sizeof(struct d_test_config);
+    config_size = sizeof(struct d_test_options);
 
     // test 1: non-zero size
     result = d_assert_standalone(
@@ -93,7 +89,6 @@ d_tests_sa_config_struct_size
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_struct_all

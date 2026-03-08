@@ -20,12 +20,11 @@ d_tests_sa_config_semantic_count
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* verbose;
-    struct d_test_config* silent;
-    struct d_test_config* fail_only;
+    struct d_test_options* verbose;
+    struct d_test_options* silent;
+    struct d_test_options* fail_only;
+    bool                   result = true;
 
-    result    = true;
     verbose   = d_test_options_new(D_TEST_MODE_VERBOSE);
     silent    = d_test_options_new(D_TEST_MODE_SILENT);
     fail_only = d_test_options_new(D_TEST_MSG_COUNT_FAIL_ALL);
@@ -119,7 +118,6 @@ d_tests_sa_config_semantic_count
     return result;
 }
 
-
 /*
 d_tests_sa_config_semantic_print
   Tests the SHOULD_PRINT_* semantic check macros.
@@ -135,11 +133,10 @@ d_tests_sa_config_semantic_print
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* normal;
-    struct d_test_config* verbose;
+    struct d_test_options* normal;
+    struct d_test_options* verbose;
+    bool                   result = true;
 
-    result  = true;
     normal  = d_test_options_new(D_TEST_MODE_NORMAL);
     verbose = d_test_options_new(D_TEST_MODE_VERBOSE);
 
@@ -223,7 +220,6 @@ d_tests_sa_config_semantic_print
     return result;
 }
 
-
 /*
 d_tests_sa_config_semantic_push
   Tests the SHOULD_PUSH_* semantic check macros.
@@ -237,12 +233,10 @@ d_tests_sa_config_semantic_push
     struct d_test_counter* _counter
 )
 {
-    bool                  result;
-    struct d_test_config* push_all;
-    struct d_test_config* no_push;
-    struct d_test_config* push_fail_only;
-
-    result = true;
+    struct d_test_options* push_all;
+    struct d_test_options* no_push;
+    struct d_test_options* push_fail_only;
+    bool                   result = true;
 
     push_all       = d_test_options_new(D_TEST_SETTINGS_STACK_PUSH_ALL);
     no_push        = d_test_options_new(D_TEST_MODE_NORMAL);
@@ -319,70 +313,6 @@ d_tests_sa_config_semantic_push
     return result;
 }
 
-
-/*
-d_tests_sa_config_semantic_legacy_aliases
-  Tests the legacy alias macros for settings semantic checks.
-  Tests the following:
-  - SHOULD_STACK_PUSH_FAIL matches SHOULD_PUSH_FAILURES
-  - SHOULD_STACK_PUSH_PASS matches SHOULD_PUSH_PASSES
-  - SHOULD_STACK_PUSH_WARNING matches SHOULD_PUSH_WARNINGS
-  - SHOULD_STACK_PUSH_INFO matches SHOULD_PUSH_INFO
-*/
-bool
-d_tests_sa_config_semantic_legacy_aliases
-(
-    struct d_test_counter* _counter
-)
-{
-    bool                  result;
-    struct d_test_config* config;
-
-    result = true;
-    config = d_test_options_new(D_TEST_SETTINGS_STACK_PUSH_ALL);
-
-    if (!config)
-    {
-        return d_assert_standalone(false,
-                                   "legacy_alias_alloc",
-                                   "Failed to allocate config",
-                                   _counter);
-    }
-
-    result = d_assert_standalone(
-        D_TEST_SHOULD_STACK_PUSH_FAIL(config) ==
-            D_TEST_SHOULD_PUSH_FAILURES(config),
-        "legacy_push_fail",
-        "Legacy STACK_PUSH_FAIL should match PUSH_FAILURES",
-        _counter) && result;
-
-    result = d_assert_standalone(
-        D_TEST_SHOULD_STACK_PUSH_PASS(config) ==
-            D_TEST_SHOULD_PUSH_PASSES(config),
-        "legacy_push_pass",
-        "Legacy STACK_PUSH_PASS should match PUSH_PASSES",
-        _counter) && result;
-
-    result = d_assert_standalone(
-        D_TEST_SHOULD_STACK_PUSH_WARNING(config) ==
-            D_TEST_SHOULD_PUSH_WARNINGS(config),
-        "legacy_push_warning",
-        "Legacy STACK_PUSH_WARNING should match PUSH_WARNINGS",
-        _counter) && result;
-
-    result = d_assert_standalone(
-        D_TEST_SHOULD_STACK_PUSH_INFO(config) ==
-            D_TEST_SHOULD_PUSH_INFO(config),
-        "legacy_push_info",
-        "Legacy STACK_PUSH_INFO should match PUSH_INFO",
-        _counter) && result;
-
-    d_test_options_free(config);
-
-    return result;
-}
-
-
 /*
 d_tests_sa_config_semantic_all
   Aggregation function that runs all semantic check macro tests.
@@ -393,17 +323,14 @@ d_tests_sa_config_semantic_all
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     printf("\n  [SECTION] Semantic Check Macros\n");
     printf("  --------------------------------\n");
 
     result = d_tests_sa_config_semantic_count(_counter) && result;
     result = d_tests_sa_config_semantic_print(_counter) && result;
-    result = d_tests_sa_config_semantic_push(_counter) && result;
-    result = d_tests_sa_config_semantic_legacy_aliases(_counter) && result;
+    result = d_tests_sa_config_semantic_push(_counter)  && result;
 
     return result;
 }

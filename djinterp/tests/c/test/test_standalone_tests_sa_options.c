@@ -99,7 +99,6 @@ d_tests_sa_standalone_options_struct
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_options_init
   Tests the d_test_sa_options_init function.
@@ -178,7 +177,6 @@ d_tests_sa_standalone_options_init
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_options_parse
@@ -380,7 +378,6 @@ d_tests_sa_standalone_options_parse
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_options_print_usage
   Tests the d_test_sa_options_print_usage function.
@@ -418,7 +415,6 @@ d_tests_sa_standalone_options_print_usage
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_options_all

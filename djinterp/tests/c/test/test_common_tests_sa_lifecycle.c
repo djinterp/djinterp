@@ -120,7 +120,6 @@ d_tests_sa_test_common_test_stage_enum
     return result;
 }
 
-
 /*
 d_tests_sa_test_common_test_stage_values
   Tests the specific values assigned to DTestStage enumeration.
@@ -256,7 +255,6 @@ d_tests_sa_test_common_test_stage_values
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_lifecycle_all

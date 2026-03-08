@@ -118,7 +118,6 @@ d_tests_sa_standalone_assert_fn
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_assert_fn_all
   Aggregation function that runs all assertion function tests.

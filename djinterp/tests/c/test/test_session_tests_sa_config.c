@@ -108,7 +108,6 @@ d_tests_sa_test_session_set_get_option
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_option_null
   Tests option functions with NULL session.
@@ -167,7 +166,6 @@ d_tests_sa_test_session_option_null
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_set_output_format
@@ -272,7 +270,6 @@ d_tests_sa_test_session_set_output_format
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_set_verbosity
   Tests setting verbosity directly.
@@ -347,7 +344,6 @@ d_tests_sa_test_session_set_verbosity
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_enable_color

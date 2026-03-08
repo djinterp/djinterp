@@ -56,7 +56,6 @@ d_tests_sa_cvar_find_valid_key
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_find_key_matches
   Tests that d_test_registry_find returns a row whose key matches.
@@ -105,7 +104,6 @@ d_tests_sa_cvar_find_key_matches
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_find_null_key
   Tests d_test_registry_find with NULL key.
@@ -136,7 +134,6 @@ d_tests_sa_cvar_find_null_key
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_find_invalid_key
@@ -178,7 +175,6 @@ d_tests_sa_cvar_find_invalid_key
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_find_by_flag_valid
@@ -229,7 +225,6 @@ d_tests_sa_cvar_find_by_flag_valid
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_find_by_flag_invalid
   Tests d_test_registry_find_by_flag with invalid flag.
@@ -270,7 +265,6 @@ d_tests_sa_cvar_find_by_flag_invalid
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_find_all

@@ -135,7 +135,6 @@ d_tests_sa_test_common_test_arg
     return result;
 }
 
-
 /*
 d_tests_sa_test_common_test_arg_list
   Tests the d_test_arg_list structure.
@@ -302,7 +301,6 @@ d_tests_sa_test_common_test_arg_list
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_common_arg_all

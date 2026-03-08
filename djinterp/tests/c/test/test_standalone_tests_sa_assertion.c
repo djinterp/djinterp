@@ -93,7 +93,6 @@ d_tests_sa_standalone_assert_true
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_assert_false
   Tests the D_ASSERT_FALSE macro.
@@ -167,7 +166,6 @@ d_tests_sa_standalone_assert_false
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_assert_null
@@ -243,7 +241,6 @@ d_tests_sa_standalone_assert_null
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_assert_not_null
   Tests the D_ASSERT_NOT_NULL macro.
@@ -318,7 +315,6 @@ d_tests_sa_standalone_assert_not_null
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_assert_equal
   Tests the D_ASSERT_EQUAL macro.
@@ -390,7 +386,6 @@ d_tests_sa_standalone_assert_equal
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_assert_str_equal
@@ -494,7 +489,6 @@ d_tests_sa_standalone_assert_str_equal
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_assertion_macro_all

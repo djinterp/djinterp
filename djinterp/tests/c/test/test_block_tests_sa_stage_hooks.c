@@ -33,7 +33,6 @@ d_internal_hook_setup
     return true;
 }
 
-
 /*
 d_internal_hook_setup_fail
   Setup hook that always fails.
@@ -55,7 +54,6 @@ d_internal_hook_setup_fail
 
     return false;
 }
-
 
 /*
 d_internal_hook_teardown
@@ -79,7 +77,6 @@ d_internal_hook_teardown
     return true;
 }
 
-
 /*
 d_internal_hook_replacement
   Replacement hook for testing overwrite behavior.
@@ -100,7 +97,6 @@ d_internal_hook_replacement
     return true;
 }
 
-
 /*
 d_internal_hook_test_fn_pass
   Test function that records it was called and passes.
@@ -118,7 +114,6 @@ d_internal_hook_test_fn_pass
 
     return true;
 }
-
 
 /*
 d_internal_hook_reset_globals
@@ -141,7 +136,6 @@ d_internal_hook_reset_globals
 
     return;
 }
-
 
 /*
 d_internal_hook_make_config_with_hook
@@ -187,7 +181,6 @@ d_internal_hook_make_config_with_hook
 
     return config;
 }
-
 
 /******************************************************************************
  * RUN-CONFIG STAGE HOOK TESTS
@@ -253,7 +246,6 @@ d_tests_sa_test_block_run_config_setup_hook
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_run_config_teardown_hook
   Tests that d_test_block_run invokes the teardown hook from run config.
@@ -305,7 +297,6 @@ d_tests_sa_test_block_run_config_teardown_hook
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_config_setup_and_teardown
@@ -391,7 +382,6 @@ d_tests_sa_test_block_run_config_setup_and_teardown
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_config_setup_fails
@@ -483,7 +473,6 @@ d_tests_sa_test_block_run_config_setup_fails
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_run_config_null_hooks_map
   Tests d_test_block_run with a run config whose stage_hooks is NULL.
@@ -541,7 +530,6 @@ d_tests_sa_test_block_run_config_null_hooks_map
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_config_no_hook_set
@@ -607,7 +595,6 @@ d_tests_sa_test_block_run_config_no_hook_set
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_run_config_overwrite_hook
@@ -677,7 +664,6 @@ d_tests_sa_test_block_run_config_overwrite_hook
     return all_passed;
 }
 
-
 /*
 d_tests_sa_test_block_run_config_null_config
   Tests d_test_block_run with NULL run config.
@@ -716,7 +702,6 @@ d_tests_sa_test_block_run_config_null_config
 
     return all_passed;
 }
-
 
 /*
 d_tests_sa_test_block_stage_hooks_all

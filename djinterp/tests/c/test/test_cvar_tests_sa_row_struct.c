@@ -42,7 +42,6 @@ d_tests_sa_cvar_row_struct_key
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_row_struct_flag
   Tests the flag member of d_test_registry_row.
@@ -81,7 +80,6 @@ d_tests_sa_cvar_row_struct_flag
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_row_struct_command_flags
@@ -123,7 +121,6 @@ d_tests_sa_cvar_row_struct_command_flags
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_row_struct_value_type
   Tests the value_type member of d_test_registry_row.
@@ -163,7 +160,6 @@ d_tests_sa_cvar_row_struct_value_type
     return result;
 }
 
-
 /*
 d_tests_sa_cvar_row_struct_value_help
   Tests the value and help members of d_test_registry_row.
@@ -202,7 +198,6 @@ d_tests_sa_cvar_row_struct_value_help
 
     return result;
 }
-
 
 /*
 d_tests_sa_cvar_row_struct_all

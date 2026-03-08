@@ -92,7 +92,6 @@ d_tests_sa_test_type_flag_to_string
     return result;
 }
 
-
 /*
 d_tests_sa_test_type_flag_unknown
   Tests d_test_type_flag_to_string with out-of-range value.
@@ -139,7 +138,6 @@ d_tests_sa_test_type_flag_unknown
     return result;
 }
 
-
 /*
 d_tests_sa_test_print_null
   Tests d_test_print with NULL test (should not crash).
@@ -168,7 +166,6 @@ d_tests_sa_test_print_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_print_valid
@@ -214,7 +211,6 @@ d_tests_sa_test_print_valid
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_utility_all

@@ -166,7 +166,6 @@ d_tests_sa_test_module_run
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_run_empty
   Tests running a module with no children.
@@ -240,7 +239,6 @@ d_tests_sa_test_module_run_empty
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_run_with_failing_child
@@ -352,7 +350,6 @@ d_tests_sa_test_module_run_with_failing_child
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_run_child
   Tests running a specific child by index.
@@ -450,7 +447,6 @@ d_tests_sa_test_module_run_child
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_module_run_child_invalid_index
   Tests run_child with an out-of-bounds index.
@@ -524,7 +520,6 @@ d_tests_sa_test_module_run_child_invalid_index
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_module_run_null

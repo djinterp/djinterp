@@ -55,7 +55,6 @@ d_internal_failing_test_fn
     return D_TEST_FAIL;
 }
 
-
 /******************************************************************************
  * INTERNAL HELPER
  *****************************************************************************/
@@ -103,7 +102,6 @@ d_internal_make_test_with_fn
     return test;
 }
 
-
 /******************************************************************************
  * TEST FACTORY FUNCTIONS
  *****************************************************************************/
@@ -145,7 +143,6 @@ helper_make_failing_test
 {
     return d_internal_make_test_with_fn(d_internal_failing_test_fn);
 }
-
 
 /******************************************************************************
  * BLOCK POPULATION FUNCTIONS
@@ -219,34 +216,27 @@ helper_add_failing_test_to_block
 
 /*
 helper_add_block_child_to_block
-  Creates an empty child block and adds it as a child of the given parent
-block.
+  Adds a pre-created child block as a child of the given parent block.
 
 Parameter(s):
-  _parent: the parent block to which the new child block will be added.
+  _parent: the parent block to which the child block will be added.
+  _child:  the child block to add.
 Return:
-  true if the child block was successfully created and added; false otherwise.
+  true if the child block was successfully added; false otherwise.
 */
 bool
 helper_add_block_child_to_block
 (
-    struct d_test_block* _parent
+    struct d_test_block* _parent,
+    struct d_test_block* _child
 )
 {
-    struct d_test_block* child;
-
-    if (!_parent)
-    {
-        return false;
-    }
-
-    // create an empty child block
-    child = d_test_block_new(NULL, 0);
-    if (!child)
+    if ( (!_parent) ||
+         (!_child) )
     {
         return false;
     }
 
     // add child block to parent
-    return d_test_block_add_block(_parent, child);
+    return d_test_block_add_block(_parent, _child);
 }

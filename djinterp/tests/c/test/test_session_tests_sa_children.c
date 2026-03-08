@@ -124,7 +124,6 @@ d_tests_sa_test_session_add_child
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_add_child_non_module
   Tests that add_child rejects non-MODULE typed children.
@@ -210,7 +209,6 @@ d_tests_sa_test_session_add_child_non_module
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_add_child_null
   Tests add_child with NULL arguments.
@@ -274,7 +272,6 @@ d_tests_sa_test_session_add_child_null
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_add_children
@@ -348,7 +345,6 @@ d_tests_sa_test_session_add_children
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_child_count
   Tests child_count on various states.
@@ -410,7 +406,6 @@ d_tests_sa_test_session_child_count
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_get_child_at
@@ -487,7 +482,6 @@ d_tests_sa_test_session_get_child_at
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_get_child_at_invalid
   Tests get_child_at with invalid arguments.
@@ -561,7 +555,6 @@ d_tests_sa_test_session_get_child_at_invalid
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_clear_children

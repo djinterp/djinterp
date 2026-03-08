@@ -77,7 +77,6 @@ d_tests_sa_standalone_note_item_struct
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_note_section_struct
   Tests the d_test_sa_note_section structure.
@@ -159,7 +158,6 @@ d_tests_sa_standalone_note_section_struct
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_note_all

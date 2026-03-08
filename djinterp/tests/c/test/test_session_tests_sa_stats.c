@@ -74,7 +74,6 @@ d_tests_sa_test_session_get_stats
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_all_passed
   Tests all_passed on fresh and NULL sessions.
@@ -137,7 +136,6 @@ d_tests_sa_test_session_all_passed
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_total_counters
@@ -231,7 +229,6 @@ d_tests_sa_test_session_total_counters
     return (_test_info->tests_passed > initial_tests_passed);
 }
 
-
 /*
 d_tests_sa_test_session_duration_ms
   Tests duration_ms on a fresh session.
@@ -297,7 +294,6 @@ d_tests_sa_test_session_duration_ms
 
     return (_test_info->tests_passed > initial_tests_passed);
 }
-
 
 /*
 d_tests_sa_test_session_stats_null

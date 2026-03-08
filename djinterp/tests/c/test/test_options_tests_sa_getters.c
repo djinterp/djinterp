@@ -62,7 +62,6 @@ d_tests_sa_config_get_bool
     return result;
 }
 
-
 /*
 d_tests_sa_config_get_size_t
   Tests the d_test_options_get_size_t function.
@@ -130,7 +129,6 @@ d_tests_sa_config_get_size_t
     return result;
 }
 
-
 /*
 d_tests_sa_config_get_int32
   Tests the d_test_options_get_int32 function.
@@ -187,7 +185,6 @@ d_tests_sa_config_get_int32
     return result;
 }
 
-
 /*
 d_tests_sa_config_get_uint32
   Tests the d_test_options_get_uint32 function.
@@ -240,7 +237,6 @@ d_tests_sa_config_get_uint32
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_get_string
@@ -311,7 +307,6 @@ d_tests_sa_config_get_string
     return result;
 }
 
-
 /*
 d_tests_sa_config_get_ptr
   Tests the d_test_options_get_ptr function.
@@ -365,7 +360,6 @@ d_tests_sa_config_get_ptr
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_get_null_config
@@ -424,7 +418,6 @@ d_tests_sa_config_get_null_config
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_getter_all

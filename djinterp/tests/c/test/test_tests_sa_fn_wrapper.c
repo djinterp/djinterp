@@ -12,7 +12,6 @@ d_internal_test_dummy_fn(void)
     return true;
 }
 
-
 /*
 d_tests_sa_test_fn_new_valid
   Tests d_test_fn_new with a valid function pointer.
@@ -52,7 +51,6 @@ d_tests_sa_test_fn_new_valid
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_fn_new_fields
@@ -106,7 +104,6 @@ d_tests_sa_test_fn_new_fields
     return result;
 }
 
-
 /*
 d_tests_sa_test_fn_new_null
   Tests d_test_fn_new with NULL function pointer.
@@ -148,7 +145,6 @@ d_tests_sa_test_fn_new_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_fn_wrapper_all

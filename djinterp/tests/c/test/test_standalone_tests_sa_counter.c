@@ -80,7 +80,6 @@ d_tests_sa_standalone_counter_struct
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_counter_reset
   Tests the d_test_counter_reset function.
@@ -154,7 +153,6 @@ d_tests_sa_standalone_counter_reset
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_counter_add
@@ -261,7 +259,6 @@ d_tests_sa_standalone_counter_add
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_counter_all

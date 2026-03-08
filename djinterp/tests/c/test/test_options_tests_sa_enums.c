@@ -154,7 +154,6 @@ d_tests_sa_config_enum_message_flag
     return result;
 }
 
-
 /*
 d_tests_sa_config_enum_settings_flag
   Tests the DTestSettingsFlag enum values.
@@ -214,7 +213,6 @@ d_tests_sa_config_enum_settings_flag
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_enum_config_key
@@ -282,7 +280,6 @@ d_tests_sa_config_enum_config_key
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_enum_metadata_flag
@@ -400,7 +397,6 @@ d_tests_sa_config_enum_event
 
     return result;
 }
-
 
 /*
 d_tests_sa_config_enum_all

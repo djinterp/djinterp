@@ -76,7 +76,6 @@ d_tests_sa_standalone_failure_entry_struct
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_failure_list_struct
   Tests the d_test_sa_failure_list structure.
@@ -126,7 +125,6 @@ d_tests_sa_standalone_failure_list_struct
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_failure_list_init
@@ -185,7 +183,6 @@ d_tests_sa_standalone_failure_list_init
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_failure_list_add
@@ -301,7 +298,6 @@ d_tests_sa_standalone_failure_list_add
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_failure_list_print_fn
   Tests the d_test_sa_failure_list_print function.
@@ -356,7 +352,6 @@ d_tests_sa_standalone_failure_list_print_fn
     return result;
 }
 
-
 /*
 d_tests_sa_standalone_failure_list_print_file_fn
   Tests the d_test_sa_failure_list_print_file function.
@@ -410,7 +405,6 @@ d_tests_sa_standalone_failure_list_print_file_fn
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_failure_list_free
@@ -473,7 +467,6 @@ d_tests_sa_standalone_failure_list_free
 
     return result;
 }
-
 
 /*
 d_tests_sa_standalone_failure_all

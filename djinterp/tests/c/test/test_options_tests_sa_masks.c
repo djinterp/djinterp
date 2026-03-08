@@ -19,9 +19,7 @@ d_tests_sa_config_mask_message
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // test 1: value is 0x0000FFFF
     result = d_assert_standalone(
@@ -47,7 +45,6 @@ d_tests_sa_config_mask_message
     return result;
 }
 
-
 /*
 d_tests_sa_config_mask_settings
   Tests the D_TEST_MASK_SETTINGS_FLAGS constant.
@@ -62,9 +59,7 @@ d_tests_sa_config_mask_settings
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // test 1: value is 0xFFFF0000
     result = d_assert_standalone(
@@ -83,7 +78,6 @@ d_tests_sa_config_mask_settings
     return result;
 }
 
-
 /*
 d_tests_sa_config_mask_counter
   Tests the D_TEST_MASK_COUNTER_FLAGS constant.
@@ -97,9 +91,7 @@ d_tests_sa_config_mask_counter
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // test 1: value is 0x000000FF
     result = d_assert_standalone(
@@ -119,7 +111,6 @@ d_tests_sa_config_mask_counter
     return result;
 }
 
-
 /*
 d_tests_sa_config_mask_print
   Tests the D_TEST_MASK_PRINT_FLAGS constant.
@@ -134,9 +125,7 @@ d_tests_sa_config_mask_print
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // test 1: value is 0x0000FF00
     result = d_assert_standalone(
@@ -163,7 +152,6 @@ d_tests_sa_config_mask_print
     return result;
 }
 
-
 /*
 d_tests_sa_config_mask_stack
   Tests the D_TEST_MASK_STACK_FLAGS constant.
@@ -178,9 +166,7 @@ d_tests_sa_config_mask_stack
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // test 1: value is 0x000F0000
     result = d_assert_standalone(
@@ -207,7 +193,6 @@ d_tests_sa_config_mask_stack
     return result;
 }
 
-
 /*
 d_tests_sa_config_mask_no_overlap
   Tests that masks are mutually exclusive where expected.
@@ -221,9 +206,7 @@ d_tests_sa_config_mask_no_overlap
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     // test 1: message and settings together cover all 32 bits
     result = d_assert_standalone(
@@ -251,7 +234,6 @@ d_tests_sa_config_mask_no_overlap
     return result;
 }
 
-
 /*
 d_tests_sa_config_mask_all
   Aggregation function that runs all mask definition tests.
@@ -262,18 +244,16 @@ d_tests_sa_config_mask_all
     struct d_test_counter* _counter
 )
 {
-    bool result;
-
-    result = true;
+    bool result = true;
 
     printf("\n  [SECTION] Mask Definitions\n");
     printf("  ----------------------------\n");
 
-    result = d_tests_sa_config_mask_message(_counter) && result;
-    result = d_tests_sa_config_mask_settings(_counter) && result;
-    result = d_tests_sa_config_mask_counter(_counter) && result;
-    result = d_tests_sa_config_mask_print(_counter) && result;
-    result = d_tests_sa_config_mask_stack(_counter) && result;
+    result = d_tests_sa_config_mask_message(_counter)    && result;
+    result = d_tests_sa_config_mask_settings(_counter)   && result;
+    result = d_tests_sa_config_mask_counter(_counter)    && result;
+    result = d_tests_sa_config_mask_print(_counter)      && result;
+    result = d_tests_sa_config_mask_stack(_counter)      && result;
     result = d_tests_sa_config_mask_no_overlap(_counter) && result;
 
     return result;

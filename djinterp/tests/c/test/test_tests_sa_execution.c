@@ -53,7 +53,6 @@ d_internal_exec_teardown(struct d_test* _test)
     return true;
 }
 
-
 /*
 d_tests_sa_test_run_null
   Tests d_test_run with NULL test.
@@ -77,7 +76,6 @@ d_tests_sa_test_run_null
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_run_empty
@@ -116,7 +114,6 @@ d_tests_sa_test_run_empty
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_run_pass_fn
@@ -158,7 +155,6 @@ d_tests_sa_test_run_pass_fn
     return result;
 }
 
-
 /*
 d_tests_sa_test_run_fail_fn
   Tests d_test_run with a single failing test function.
@@ -198,7 +194,6 @@ d_tests_sa_test_run_fail_fn
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_run_mixed
@@ -249,7 +244,6 @@ d_tests_sa_test_run_mixed
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_run_setup_hook
@@ -305,7 +299,6 @@ d_tests_sa_test_run_setup_hook
     return result;
 }
 
-
 /*
 d_tests_sa_test_run_teardown_hook
   Tests d_test_run invokes the teardown hook after running children.
@@ -359,7 +352,6 @@ d_tests_sa_test_run_teardown_hook
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_run_setup_fail
@@ -424,7 +416,6 @@ d_tests_sa_test_run_setup_fail
 
     return result;
 }
-
 
 /*
 d_tests_sa_test_execution_all
