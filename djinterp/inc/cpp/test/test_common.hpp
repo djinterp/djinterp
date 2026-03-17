@@ -2,10 +2,11 @@
 * djinterp [test]                                           test_common.hpp
 *
 * Common types and declarations for the C++ test framework.
-*   Provides the shared foundation for all test modules: a type-safe
-* node identifier (test_id), lifecycle stage enumeration, outcome
-* status enumeration, callable type aliases, and configurable
-* pass/fail display symbols.
+*   Provides the shared foundation for all test modules: a node
+* identifier type (test_id), a rank type for tree ordering
+* (test_rank), a user-extensible status type (test_status),
+* lifecycle stage enumeration, callable type aliases, and
+* configurable pass/fail display symbols.
 *
 *   This header is deliberately abstract. It has no knowledge of
 * specific node kinds (modules, blocks, assertions, etc.); node
@@ -14,24 +15,25 @@
 * test_tree.hpp and higher-level modules that build on top of it.
 *
 * COMPONENTS:
-*   djinterp::test_id              - opaque node identifier
-*   djinterp::test_id_generator    - monotonic id source
-*   djinterp::DTestStage           - lifecycle stage for execution hooks
-*   djinterp::DTestStatus          - outcome status (passed/failed/skipped)
-*   djinterp::fn_test              - test callable type alias
-*   djinterp::fn_stage             - lifecycle hook callable type alias
-*   djinterp::test_symbols         - pass/fail and status display symbols
+*   djinterp::test::test_id            - node identifier (uint64_t)
+*   djinterp::test::test_id_generator  - monotonic id source
+*   djinterp::test::test_rank          - tree ordering rank (int32_t)
+*   djinterp::test::test_status        - outcome code (int16_t)
+*   djinterp::test::DTestStage         - lifecycle stage for hooks
+*   djinterp::test::fn_test            - test callable type alias
+*   djinterp::test::fn_stage           - lifecycle hook type alias
+*   djinterp::test::test_symbols       - pass/fail display symbols
 *
-* REPLACES:
-*   C header test_common.h. The node type discriminator (DTestTypeFlag),
-*   d_test_arg / d_test_arg_list structs, d_test_counter, and d_test_fn
-*   are removed. Node types and tree rank are handled by test_tree.hpp;
-*   counters by test_stats.hpp; configuration by test_options.hpp.
+* USER-EXTENSIBLE STATUS:
+*   test_status is an int16_t so users can define their own outcome
+*   codes via a custom enum backed by int16_t. The framework provides
+*   default constants (D_TEST_STATUS_UNKNOWN, _PASSED, _FAILED,
+*   _SKIPPED); user values should start at D_TEST_STATUS_USER_START.
 *
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
 *
-* 
+*
 * path:      /inc/cpp/test/test_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.12
@@ -46,27 +48,58 @@
 #include "../djinterp.hpp"
 
 
-//#ifndef __cplusplus
-//    #error "test_common.hpp can only be used in C++ compilation mode"
-//#endif
-//
-//#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-//    #error "test_common.hpp requires C++11 or higher"
-//#endif
-
-
 NS_DJINTERP
 NS_TEST
+
 
 // =========================================================================
 // I.   FORWARD DECLARATIONS
 // =========================================================================
-struct test_node;
+
+struct test_node_base;
 
 
 // =========================================================================
-// II.  CONSTANTS
+// II.  CORE TYPE ALIASES
 // =========================================================================
+
+// test_id
+//   type: identifier for test nodes. Nodes are distinguished
+// solely by their test_id; this header imposes no type taxonomy
+// on nodes. Equality, ordering, and hashing are inherited from
+// the underlying integer type.
+using test_id = std::uint64_t;
+
+// test_rank
+//   type: rank value for tree ordering. The tree enforces the
+// invariant child.rank <= parent.rank on insertion. Higher
+// values represent broader groupings; the user defines the
+// numeric taxonomy.
+using test_rank = std::int32_t;
+
+// test_status
+//   type: outcome status for a completed test or node. Defined
+// as int16_t so users can specify their own status codes via a
+// custom enum; the framework provides default constants below.
+//
+// User-defined status values should begin at
+// D_TEST_STATUS_USER_START to avoid collisions with future
+// framework-reserved values.
+//
+// Usage:
+//   enum MyStatus : djinterp::test::test_status
+//   {
+//       MY_TIMEOUT = D_TEST_STATUS_USER_START,
+//       MY_CRASHED,
+//       MY_SKIPPED_PLATFORM
+//   };
+using test_status = std::int16_t;
+
+
+// =========================================================================
+// III. CONSTANTS
+// =========================================================================
+
 // D_TEST_PASS
 //   constant: indicates a test, assertion, or evaluation passed.
 static constexpr bool D_TEST_PASS = true;
@@ -79,14 +112,30 @@ static constexpr bool D_TEST_FAIL = false;
 //   constant: number of values in DTestStage.
 static constexpr std::size_t D_TEST_STAGE_COUNT = 6;
 
-// D_TEST_STATUS_COUNT
-//   constant: number of values in DTestStatus.
-static constexpr std::size_t D_TEST_STATUS_COUNT = 4;
+// ---- identifier constants ----
+
+// D_TEST_ID_INVALID
+//   constant: sentinel value representing a null or unassigned
+// test_id. A value of 0 is never assigned by test_id_generator.
+static constexpr test_id D_TEST_ID_INVALID = 0;
+
+// ---- framework-reserved status constants ----
+
+static constexpr test_status D_TEST_STATUS_UNKNOWN = 0;
+static constexpr test_status D_TEST_STATUS_PASSED  = 1;
+static constexpr test_status D_TEST_STATUS_FAILED  = 2;
+static constexpr test_status D_TEST_STATUS_SKIPPED = 3;
+
+// D_TEST_STATUS_USER_START
+//   constant: first value available for user-defined status
+// codes. All values below this are reserved for the framework.
+static constexpr test_status D_TEST_STATUS_USER_START = 0x100;
+
 
 // =========================================================================
-// III. ENUMERATIONS
+// IV.  ENUMERATIONS
 // =========================================================================
- 
+
 // DTestStage
 //   enum: lifecycle stages for test execution hooks.
 // Each stage corresponds to a point in the test lifecycle where
@@ -100,25 +149,51 @@ enum DTestStage : std::int32_t
     D_TEST_STAGE_BEFORE     = 4,
     D_TEST_STAGE_AFTER      = 5
 };
- 
- 
+
+
 // =========================================================================
-// IV.  IDENTIFIER TYPE
+// V.   STATUS UTILITIES
 // =========================================================================
- 
-// test_id
-//   type: identifier for test nodes. Nodes are distinguished
-// solely by their test_id; this header imposes no type taxonomy
-// on nodes. Equality, ordering, and hashing are inherited from
-// the underlying integer type.
-using test_id = std::uint64_t;
- 
-// D_TEST_ID_INVALID
-//   constant: sentinel value representing a null or unassigned
-// test_id. A value of 0 is never assigned by test_id_generator.
-static constexpr test_id D_TEST_ID_INVALID = 0;
- 
-// is_valid
+
+// status_from_bool
+//   convenience: converts a boolean result to
+// D_TEST_STATUS_PASSED or D_TEST_STATUS_FAILED.
+inline test_status
+status_from_bool
+(
+    bool _passed
+)
+{
+    return _passed
+           ? D_TEST_STATUS_PASSED
+           : D_TEST_STATUS_FAILED;
+}
+
+// is_passing
+//   returns true if the given status represents a passing
+// outcome (currently only D_TEST_STATUS_PASSED).
+inline bool
+is_passing
+(
+    test_status _status
+)
+{
+    return (_status == D_TEST_STATUS_PASSED);
+}
+
+// is_failing
+//   returns true if the given status represents a definitive
+// failure (currently only D_TEST_STATUS_FAILED).
+inline bool
+is_failing
+(
+    test_status _status
+)
+{
+    return (_status == D_TEST_STATUS_FAILED);
+}
+
+// is_valid (test_id)
 //   returns true if the test_id has been assigned (is not the
 // invalid sentinel).
 inline bool
@@ -129,12 +204,12 @@ is_valid
 {
     return (_id != D_TEST_ID_INVALID);
 }
- 
- 
+
+
 // =========================================================================
-// V.   IDENTIFIER GENERATOR
+// VI.  IDENTIFIER GENERATOR
 // =========================================================================
- 
+
 // test_id_generator
 //   class: monotonically increasing id source. Each call to
 // next() returns a unique test_id. Values start at 1; the
@@ -144,15 +219,16 @@ class test_id_generator
 public:
     test_id_generator()
         : m_next(1)
-    {};
- 
+    {
+    };
+
     // next
     //   returns the next unique test_id.
     test_id next()
     {
         return m_next++;
     };
- 
+
     // peek
     //   returns the value that the next call to next() will
     // produce, without advancing the counter.
@@ -160,88 +236,157 @@ public:
     {
         return m_next;
     };
- 
+
     // count
     //   returns the number of ids generated so far.
     std::uint64_t count() const
     {
         return (m_next - 1);
     };
- 
+
     // reset
     //   resets the generator to its initial state.
     void reset()
     {
         m_next = 1;
     };
- 
+
 private:
     std::uint64_t m_next;
 };
- 
- 
+
+
 // =========================================================================
-// VI.  CALLABLE TYPE ALIASES
+// VII. CALLABLE TYPE ALIASES
 // =========================================================================
- 
+
 // fn_test
 //   type: callable for a boolean test that returns D_TEST_PASS
 // or D_TEST_FAIL. Used by leaf nodes in the test tree.
 using fn_test = std::function<bool()>;
- 
+
 // fn_stage
 //   type: callable for a test lifecycle stage hook. Receives
-// a mutable reference to the test node being executed and
+// a mutable reference to the base node being executed and
 // returns success (true) or failure (false).
-using fn_stage = std::function<bool(test_node&)>;
- 
- 
+using fn_stage = std::function<bool(test_node_base&)>;
+
+
 // =========================================================================
-// VII. SYMBOLS
+// VIII. SYMBOLS
 // =========================================================================
- 
+
 // test_symbols
 //   struct: display symbols for test results and status
 // indicators. Uses emoji when D_EMOJIS is enabled at compile
-// time, falling back to ASCII bracket tags otherwise. Access
-// as static members: test_symbols::pass, test_symbols::info,
-// etc.
-//
-//   Node-type-specific symbols are deliberately omitted; they
-// are the concern of the tree or printer modules which have
-// knowledge of the node taxonomy.
+// time, falling back to ASCII bracket tags otherwise.
 struct test_symbols
 {
 #if ( defined(D_EMOJIS) &&  \
       (D_EMOJIS == D_ENABLED) )
- 
+
     // ---- result symbols ----
     static constexpr const char* pass    = "\xE2\x9C\x94";
     static constexpr const char* fail    = "\xE2\x9D\x8C";
     static constexpr const char* success = "\xF0\x9F\x8E\x89";
     static constexpr const char* skipped = "\xE2\x9E\x96";
- 
+
     // ---- status symbols ----
     static constexpr const char* info    = "\xF0\x9F\x93\x8B";
     static constexpr const char* warning = "\xE2\x9A\xA0";
     static constexpr const char* unknown = "\xE2\x9D\x93";
- 
+
 #else
- 
+
     // ---- result symbols ----
     static constexpr const char* pass    = "[PASS]";
     static constexpr const char* fail    = "[FAIL]";
     static constexpr const char* success = "[SUCCESS]";
     static constexpr const char* skipped = "[SKIP]";
- 
+
     // ---- status symbols ----
     static constexpr const char* info    = "[INFO]";
     static constexpr const char* warning = "[WARNING]";
     static constexpr const char* unknown = "[UNKNOWN]";
- 
+
 #endif  // D_EMOJIS
 };
- 
+
+
+// =========================================================================
+// IX.  UTILITY FUNCTIONS
+// =========================================================================
+
+// result_symbol
+//   returns the display symbol for the given test_status.
+inline const char*
+result_symbol
+(
+    test_status _status
+)
+{
+    switch (_status)
+    {
+        case D_TEST_STATUS_PASSED:
+        {
+            return test_symbols::pass;
+        }
+
+        case D_TEST_STATUS_FAILED:
+        {
+            return test_symbols::fail;
+        }
+
+        case D_TEST_STATUS_SKIPPED:
+        {
+            return test_symbols::skipped;
+        }
+
+        default:
+        {
+            return test_symbols::unknown;
+        }
+    }
+}
+
+// status_to_string
+//   returns a human-readable string for the framework-reserved
+// status values. User-defined statuses return "user".
+inline const char*
+status_to_string
+(
+    test_status _status
+)
+{
+    switch (_status)
+    {
+        case D_TEST_STATUS_UNKNOWN:
+        {
+            return "unknown";
+        }
+
+        case D_TEST_STATUS_PASSED:
+        {
+            return "passed";
+        }
+
+        case D_TEST_STATUS_FAILED:
+        {
+            return "failed";
+        }
+
+        case D_TEST_STATUS_SKIPPED:
+        {
+            return "skipped";
+        }
+
+        default:
+        {
+            return "user";
+        }
+    }
+}
+
 // stage_to_string
 //   returns a human-readable string for the given lifecycle
 // stage.
@@ -257,32 +402,32 @@ stage_to_string
         {
             return "setup";
         }
- 
+
         case D_TEST_STAGE_TEAR_DOWN:
         {
             return "tear_down";
         }
- 
+
         case D_TEST_STAGE_ON_SUCCESS:
         {
             return "on_success";
         }
- 
+
         case D_TEST_STAGE_ON_FAILURE:
         {
             return "on_failure";
         }
- 
+
         case D_TEST_STAGE_BEFORE:
         {
             return "before";
         }
- 
+
         case D_TEST_STAGE_AFTER:
         {
             return "after";
         }
- 
+
         default:
         {
             return "unknown";

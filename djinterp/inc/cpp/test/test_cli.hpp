@@ -62,8 +62,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "test_options.hpp"
+#include "./test_options.hpp"
 
 
 NS_DJINTERP
