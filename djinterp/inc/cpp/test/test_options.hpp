@@ -51,7 +51,6 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
-
 #include "test_common.hpp"
 
 
