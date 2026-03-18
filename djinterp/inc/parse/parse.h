@@ -186,38 +186,38 @@ using detected_or_t = typename detected_or<_Default, _Op, _Args...>::type;
 
 // has_value_type_impl
 //   type trait (internal): detects T::value_type.
-template<typename _T>
-using has_value_type_impl = typename _T::value_type;
+template<typename _Type>
+using has_value_type_impl = typename _Type::value_type;
 
 // has_iterator_impl
 //   type trait (internal): detects T::iterator.
-template<typename _T>
-using has_iterator_impl = typename _T::iterator;
+template<typename _Type>
+using has_iterator_impl = typename _Type::iterator;
 
 // has_size_type_impl
 //   type trait (internal): detects T::size_type.
-template<typename _T>
-using has_size_type_impl = typename _T::size_type;
+template<typename _Type>
+using has_size_type_impl = typename _Type::size_type;
 
 // has_difference_type_impl
 //   type trait (internal): detects T::difference_type.
-template<typename _T>
-using has_difference_type_impl = typename _T::difference_type;
+template<typename _Type>
+using has_difference_type_impl = typename _Type::difference_type;
 
 // has_reference_impl
 //   type trait (internal): detects T::reference.
-template<typename _T>
-using has_reference_impl = typename _T::reference;
+template<typename _Type>
+using has_reference_impl = typename _Type::reference;
 
 // has_const_reference_impl
 //   type trait (internal): detects T::const_reference.
-template<typename _T>
-using has_const_reference_impl = typename _T::const_reference;
+template<typename _Type>
+using has_const_reference_impl = typename _Type::const_reference;
 
 // has_pointer_impl
 //   type trait (internal): detects T::pointer.
-template<typename _T>
-using has_pointer_impl = typename _T::pointer;
+template<typename _Type>
+using has_pointer_impl = typename _Type::pointer;
 
 NS_END  // internal
 
@@ -1414,12 +1414,12 @@ make_iterator_source
 
 // d_memory_source
 //   class: optimized input source for contiguous memory regions.
-template<typename _T = char>
+template<typename _Type = char>
 class d_memory_source
 {
 public:
-    using value_type      = _T;
-    using pointer         = const _T*;
+    using value_type      = _Type;
+    using pointer         = const _Type*;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
 
@@ -1663,15 +1663,15 @@ public:
 
 // make_memory_source
 //   factory: creates a memory source from pointer and size.
-template<typename _T>
-d_memory_source<_T>
+template<typename _Type>
+d_memory_source<_Type>
 make_memory_source
 (
-    const _T*   _data,
+    const _Type*   _data,
     std::size_t _size
 )
 {
-    return d_memory_source<_T>(_data, _size);
+    return d_memory_source<_Type>(_data, _size);
 }
 
 // make_memory_source (C-string overload)
@@ -1874,27 +1874,27 @@ struct d_null_sink
 // -----------------------------------------------------------------------------
 
 // is_parser
-//   type trait: detects if _T is a valid parser for _Source.
-template<typename _T,
+//   type trait: detects if _Type is a valid parser for _Source.
+template<typename _Type,
          typename _Source,
          typename = void>
 struct is_parser : std::false_type
 {};
 
-template<typename _T,
+template<typename _Type,
          typename _Source>
-struct is_parser<_T,
+struct is_parser<_Type,
                  _Source,
-                 internal::void_t<typename _T::result_type,
-                                  decltype(std::declval<_T&>().parse(
+                 internal::void_t<typename _Type::result_type,
+                                  decltype(std::declval<_Type&>().parse(
                                                std::declval<_Source&>()))>>
     : std::true_type
 {};
 
 #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-    template<typename _T,
+    template<typename _Type,
              typename _Source>
-    constexpr bool is_parser_v = is_parser<_T, _Source>::value;
+    constexpr bool is_parser_v = is_parser<_Type, _Source>::value;
 #endif
 
 // parser_result_t
