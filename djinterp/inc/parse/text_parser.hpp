@@ -44,15 +44,14 @@ struct text_match
     text_match()
         : start  (0)
         , length (0)
-    {
-    }
+    {}
+
 
     text_match(std::size_t _start,
                std::size_t _length)
         : start  (_start)
         , length (_length)
-    {
-    }
+    {}
 };
 
 
@@ -71,15 +70,13 @@ struct text_position
     text_position()
         : line   (1)
         , column (1)
-    {
-    }
+    {}
 
     text_position(std::size_t _line,
                   std::size_t _column)
         : line   (_line)
         , column (_column)
-    {
-    }
+    {}
 };
 
 
@@ -104,16 +101,16 @@ public:
     text_parse_state()
         : base_type()
         , position ()
-    {
-    }
+    {}
+
 
     text_parse_state(const char* _data,
                      std::size_t _length,
                      std::size_t _offset = 0)
         : base_type(_data, _length, _offset)
         , position ()
-    {
-    }
+    {}
+
 
     // advance_tracking
     //   advances the cursor by _count characters, updating the
@@ -275,12 +272,12 @@ private:
 
 protected:
     text_parser_base()
-    {
-    }
+    {}
+
 
     ~text_parser_base()
-    {
-    }
+    {}
+
 
 public:
     using input_type = char;
@@ -381,8 +378,8 @@ public:
                   std::size_t _length)
         : m_literal (_literal)
         , m_length  (_length)
-    {
-    }
+    {}
+
 
     parse_result<text_match> do_parse(text_parse_state& _state)
     {
