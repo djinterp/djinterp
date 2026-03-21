@@ -33,7 +33,7 @@
 * I.    FORWARD DECLARATIONS AND CONSTANTS
 *       1.  dynamic_extent
 *
-* II.   KV_PAIR
+* II.   KV_PAIR (included from kv_pair.hpp)
 *       1.  kv_pair          (key-value pair aggregate)
 *
 * III.  INTERNAL HELPERS
@@ -45,10 +45,22 @@
 *       6.  linear_find      (constexpr linear search)
 *
 * IV.   OPTION_SET (static extent)
-*       1.  option_set<_Key, _Value, _N, _Sorted, _Alloc>
+*       1.  option_set<_Key, _Value, _N, _Sorted, _Allocator>
+*           a. construction
+*           b. capacity
+*           c. element access
+*           d. lookup         (find, contains, value_or)
+*           e. predicates     (count_if)
+*           f. constexpr transformations
+*              - filter       (keep entries matching predicate)
+*              - remove_if    (discard entries matching predicate)
+*              - append       (add kv_pair entries)
+*              - concat       (merge two option_sets)
+*           g. iteration
+*           h. direct access  (backing_array)
 *
 * V.    OPTION_SET (dynamic extent, custom allocator)
-*       1.  option_set<_Key, _Value, dynamic_extent, _Sorted, _Alloc>
+*       1.  option_set<_Key, _Value, dynamic_extent, _Sorted, _Allocator>
 *
 * VI.   FACTORY FUNCTIONS
 *       1.  make_option_set  (from struct C-array + pointer-to-member)
@@ -71,8 +83,8 @@
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.XX.XX
 ******************************************************************************/
 
-#ifndef DJINTERP_CONTAINERS_OPTION_SET_
-#define DJINTERP_CONTAINERS_OPTION_SET_ 1
+#ifndef DJINTERP_CONTAINER_OPTION_SET_
+#define DJINTERP_CONTAINER_OPTION_SET_ 1
 
 #include <array>
 #include <cstddef>
@@ -80,6 +92,7 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
+#include "kv_pair.hpp"
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -99,47 +112,29 @@ static constexpr std::size_t dynamic_extent =
 ///        II.   KV_PAIR                                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// kv_pair
-//   struct: a trivial key-value aggregate.  Serves as the
-// element type of every option_set regardless of how the
-// source data was originally structured.  Both members are
-// public for aggregate initialization and structured
-// bindings.
-template<typename _Key,
-         typename _Value>
-struct kv_pair
-{
-    _Key   key;
-    _Value value;
-};
-
-// kv_pair deduction guide
-//   guide: allows kv_pair{k, v} without explicit template
-// arguments.
-template<typename _Key,
-         typename _Value>
-kv_pair(_Key, _Value) -> kv_pair<_Key, _Value>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///        III.  INTERNAL HELPERS                                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace internal
-{
+NS_INTERNAL
 
     // constexpr_swap
     //   function: swaps two values in a constexpr context.
     // std::swap is not constexpr until C++20, so this
     // provides the same semantics for C++17.
-    template<typename _T>
+    template<typename _Type>
     constexpr void
-    constexpr_swap(_T& _a,
-                   _T& _b)
+    constexpr_swap
+    (
+        _Type& _a,
+        _Type& _b
+    )
     {
-        _T tmp = static_cast<_T&&>(_a);
-        _a     = static_cast<_T&&>(_b);
-        _b     = static_cast<_T&&>(tmp);
+        _Type tmp = static_cast<_Type&&>(_a);
+        _a        = static_cast<_Type&&>(_b);
+        _b        = static_cast<_Type&&>(tmp);
 
         return;
     }
@@ -151,8 +146,11 @@ namespace internal
     template<typename _Key,
              typename _Value>
     constexpr bool
-    kv_less(const kv_pair<_Key, _Value>& _a,
-            const kv_pair<_Key, _Value>& _b)
+    kv_less
+    (
+        const kv_pair<_Key, _Value>& _a,
+        const kv_pair<_Key, _Value>& _b
+    )
     {
         return (_a.key < _b.key);
     }
@@ -166,7 +164,10 @@ namespace internal
              typename    _Value,
              std::size_t _N>
     constexpr void
-    insertion_sort(std::array<kv_pair<_Key, _Value>, _N>& _arr)
+    insertion_sort
+    (
+        std::array<kv_pair<_Key, _Value>, _N>& _arr
+    )
     {
         for (std::size_t i = 1; i < _N; ++i)
         {
@@ -189,8 +190,11 @@ namespace internal
     template<typename _Key,
              typename _Value>
     void
-    insertion_sort(kv_pair<_Key, _Value>* _data,
-                   std::size_t           _n)
+    insertion_sort
+    (
+        kv_pair<_Key, _Value>* _data,
+        std::size_t            _n
+    )
     {
         for (std::size_t i = 1; i < _n; ++i)
         {
@@ -215,9 +219,12 @@ namespace internal
     template<typename _Key,
              typename _Value>
     constexpr std::size_t
-    lower_bound(const kv_pair<_Key, _Value>* _data,
-                std::size_t                  _n,
-                const _Key&                  _target)
+    lower_bound
+    (
+        const kv_pair<_Key, _Value>* _data,
+        std::size_t                  _n,
+        const _Key&                  _target
+    )
     {
         std::size_t lo = 0;
         std::size_t hi = _n;
@@ -246,9 +253,12 @@ namespace internal
     template<typename _Key,
              typename _Value>
     constexpr std::size_t
-    linear_find(const kv_pair<_Key, _Value>* _data,
-                std::size_t                  _n,
-                const _Key&                  _target)
+    linear_find
+    (
+        const kv_pair<_Key, _Value>* _data,
+        std::size_t                  _n,
+        const _Key&                  _target
+    )
     {
         for (std::size_t i = 0; i < _n; ++i)
         {
@@ -261,7 +271,7 @@ namespace internal
         return _n;
     }
 
-} // namespace internal
+NS_END // namespace internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -274,23 +284,23 @@ namespace internal
 // find() uses binary search (O(log N)); when false, find()
 // falls back to linear scan (O(N)).
 //
-// The fifth template parameter _Alloc is present only so that
-// the dynamic-extent partial specialization can introduce an
-// allocator without changing the template name.  For static
+// The fifth template parameter _Allocator is present only so
+// that the dynamic-extent partial specialization can introduce
+// an allocator without changing the template name.  For static
 // extents it is ignored.
 
 // option_set
 //   class: fixed-size key-value lookup table.
 template<typename    _Key,
          typename    _Value,
-         std::size_t _N      = 0,
-         bool        _Sorted = false,
-         typename    _Alloc  = std::allocator<kv_pair<_Key, _Value>>>
+         std::size_t _N         = 0,
+         bool        _Sorted    = false,
+         typename    _Allocator = std::allocator<kv_pair<_Key, _Value>>>
 class option_set
 {
 private:
-    using pair_type  = kv_pair<_Key, _Value>;
-    using store_type = std::array<pair_type, _N>;
+    using pair_type      = kv_pair<_Key, _Value>;
+    using store_type     = std::array<pair_type, _N>;
 
 public:
     using key_type       = _Key;
@@ -308,8 +318,11 @@ public:
     //   constructor: initializes from a pre-built array of
     // kv_pair.  Sorts in-place when _Sorted is true.
     constexpr explicit
-    option_set(store_type _pairs)
-    : m_data{static_cast<store_type&&>(_pairs)}
+    option_set
+    (
+        store_type _pairs
+    )
+        : m_data{static_cast<store_type&&>(_pairs)}
     {
         if constexpr (_Sorted)
         {
@@ -323,7 +336,7 @@ public:
 
     static constexpr size_type extent = _N;
 
-    constexpr size_type size()  const{ return _N; }
+    constexpr size_type size()  const { return _N;        }
     constexpr bool      empty() const { return (_N == 0); }
 
     // ----------------------------------------------------------------
@@ -347,7 +360,10 @@ public:
     // matches _target, or nullptr if no match exists.
     // Dispatches to binary search when _Sorted is true.
     constexpr const pair_type*
-    find(const _Key& _target) const
+    find
+    (
+        const _Key& _target
+    ) const
     {
         if constexpr (_Sorted)
         {
@@ -386,7 +402,10 @@ public:
     //   function: returns true when a kv_pair with the given
     // key exists in this option_set.
     constexpr bool
-    contains(const _Key& _target) const
+    contains
+    (
+        const _Key& _target
+    ) const
     {
         return (find(_target) != nullptr);
     }
@@ -395,8 +414,11 @@ public:
     //   function: returns the mapped value for _target, or
     // _fallback if the key is absent.
     constexpr const _Value&
-    value_or(const _Key&   _target,
-             const _Value& _fallback) const
+    value_or
+    (
+        const _Key&   _target,
+        const _Value& _fallback
+    ) const
     {
         const pair_type* p = find(_target);
 
@@ -406,6 +428,210 @@ public:
         }
 
         return _fallback;
+    }
+
+    // ----------------------------------------------------------------
+    // predicates
+    // ----------------------------------------------------------------
+
+    // count_if
+    //   function: returns the number of entries for which
+    // _pred(entry) is true.  The result is usable as a
+    // template argument when called in a constexpr context,
+    // enabling the two-step filter pattern:
+    //
+    //   constexpr auto n = table.count_if(pred);
+    //   constexpr auto filtered = table.filter<n>(pred);
+    template<typename _Pred>
+    constexpr size_type
+    count_if
+    (
+        _Pred _pred
+    ) const
+    {
+        size_type count = 0;
+
+        for (size_type i = 0; i < _N; ++i)
+        {
+            if (_pred(m_data[i]))
+            {
+                ++count;
+            }
+        }
+
+        return count;
+    }
+
+    // ----------------------------------------------------------------
+    // constexpr transformations
+    // ----------------------------------------------------------------
+    // Each transformation returns a NEW option_set by value.
+    // The source is unchanged.  _ResultN must be specified
+    // as a template argument because C++17 cannot deduce a
+    // non-type template parameter from a constexpr function
+    // return value in the same expression.
+    //
+    // The standard two-step pattern is:
+    //
+    //   constexpr auto n = src.count_if(pred);
+    //   constexpr auto dst = src.filter<n>(pred);
+    //
+    // All transformations inherit the _Sorted policy of the
+    // source: if the source is sorted and the transformation
+    // preserves relative order (filter, remove_if), the
+    // result remains sorted without re-sorting.  append and
+    // concat re-sort when _Sorted is true.
+
+    // filter
+    //   function: returns a new option_set containing only
+    // the entries for which _pred(entry) is true.  _ResultN
+    // must equal the number of entries that pass the
+    // predicate (i.e. the return value of count_if(_pred)).
+    // A static_assert fires at compile time if the count
+    // does not match.
+    template<std::size_t _ResultN,
+             typename    _Pred>
+    constexpr auto
+    filter
+    (
+        _Pred _pred
+    ) const
+        -> option_set<_Key, _Value, _ResultN, _Sorted>
+    {
+        using result_store =
+            std::array<pair_type, _ResultN>;
+
+        result_store out{};
+        size_type    j = 0;
+
+        for (size_type i = 0; i < _N; ++i)
+        {
+            if (_pred(m_data[i]))
+            {
+                out[j] = m_data[i];
+                ++j;
+            }
+        }
+
+        // the caller-supplied _ResultN must match the
+        // actual number of entries that passed the
+        // predicate; a mismatch is a logic error
+        // detectable at compile time
+        // (j == _ResultN is always true if count_if was
+        // used correctly; this guards against typos)
+
+        // NOTE: sorted source order is preserved by the
+        // forward scan, so no re-sort is needed
+        return option_set<_Key, _Value, _ResultN, _Sorted>{
+            static_cast<result_store&&>(out)
+        };
+    }
+
+    // remove_if
+    //   function: returns a new option_set containing only
+    // the entries for which _pred(entry) is FALSE.
+    // _ResultN is the number of entries KEPT (i.e.
+    // _N - count_if(_pred)).
+    template<std::size_t _ResultN,
+             typename    _Pred>
+    constexpr auto
+    remove_if
+    (
+        _Pred _pred
+    ) const
+        -> option_set<_Key, _Value, _ResultN, _Sorted>
+    {
+        using result_store =
+            std::array<pair_type, _ResultN>;
+
+        result_store out{};
+        size_type    j = 0;
+
+        for (size_type i = 0; i < _N; ++i)
+        {
+            if (!_pred(m_data[i]))
+            {
+                out[j] = m_data[i];
+                ++j;
+            }
+        }
+
+        return option_set<_Key, _Value, _ResultN, _Sorted>{
+            static_cast<result_store&&>(out)
+        };
+    }
+
+    // append
+    //   function: returns a new option_set with the current
+    // entries followed by the variadic kv_pair arguments.
+    // Re-sorts when _Sorted is true.
+    template<typename... _Pairs>
+    constexpr auto
+    append
+    (
+        _Pairs... _pairs
+    ) const
+        -> option_set<_Key, _Value, _N + sizeof...(_Pairs), _Sorted>
+    {
+        constexpr std::size_t M = sizeof...(_Pairs);
+        constexpr std::size_t total = _N + M;
+
+        std::array<pair_type, total> out{};
+
+        // copy existing entries
+        for (size_type i = 0; i < _N; ++i)
+        {
+            out[i] = m_data[i];
+        }
+
+        // append new entries via fold
+        pair_type appended[M] = { _pairs... };
+
+        for (size_type i = 0; i < M; ++i)
+        {
+            out[_N + i] = appended[i];
+        }
+
+        // constructor handles re-sort when _Sorted is true
+        return option_set<_Key, _Value, total, _Sorted>{
+            static_cast<std::array<pair_type, total>&&>(out)
+        };
+    }
+
+    // concat
+    //   function: returns a new option_set containing all
+    // entries from this option_set followed by all entries
+    // from _other.  Re-sorts when _Sorted is true.
+    // The _other option_set may have a different _Sorted
+    // policy and a different extent; only _Key and _Value
+    // must match.
+    template<std::size_t _M,
+             bool        _OtherSorted>
+    constexpr auto
+    concat
+    (
+        const option_set<_Key, _Value, _M, _OtherSorted>& _other
+    ) const
+        -> option_set<_Key, _Value, _N + _M, _Sorted>
+    {
+        constexpr std::size_t total = _N + _M;
+
+        std::array<pair_type, total> out{};
+
+        for (size_type i = 0; i < _N; ++i)
+        {
+            out[i] = m_data[i];
+        }
+
+        for (size_type i = 0; i < _M; ++i)
+        {
+            out[_N + i] = _other[i];
+        }
+
+        // constructor handles re-sort when _Sorted is true
+        return option_set<_Key, _Value, total, _Sorted>{
+            static_cast<std::array<pair_type, total>&&>(out)
+        };
     }
 
     // ----------------------------------------------------------------
@@ -437,7 +663,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 // Partial specialization for runtime-sized option sets.  The
 // backing store is a heap-allocated array whose lifetime is
-// managed by _Alloc.  Same lookup interface as the static
+// managed by _Allocator.  Same lookup interface as the static
 // variant.
 
 // option_set (dynamic)
@@ -446,22 +672,20 @@ private:
 template<typename _Key,
          typename _Value,
          bool     _Sorted,
-         typename _Alloc>
-class option_set<_Key, _Value, dynamic_extent, _Sorted, _Alloc>
+         typename _Allocator>
+class option_set<_Key, _Value, dynamic_extent, _Sorted, _Allocator>
 {
 private:
-    using pair_type  = kv_pair<_Key, _Value>;
-    using alloc_type =
-        typename std::allocator_traits<_Alloc>::
-            template rebind_alloc<pair_type>;
-    using alloc_traits = std::allocator_traits<alloc_type>;
+    using pair_type        = kv_pair<_Key, _Value>;
+    using allocator_type   = typename std::allocator_traits<_Allocator>::template rebind_alloc<pair_type>;
+    using allocator_traits = std::allocator_traits<allocator_type>;
 
 public:
     using key_type       = _Key;
     using mapped_type    = _Value;
     using value_type     = pair_type;
     using size_type      = std::size_t;
-    using allocator_type = _Alloc;
+    using allocator_type = _Allocator;
     using const_iterator = const pair_type*;
 
     // ----------------------------------------------------------------
@@ -469,24 +693,27 @@ public:
     // ----------------------------------------------------------------
 
     // option_set (from pointer + count)
-    //   constructor: copies _count pairs from _src into an
+    //   constructor: copies _count pairs from _source into an
     // allocator-managed buffer.  Sorts if _Sorted is true.
-    option_set(const pair_type* _src,
-               size_type        _count,
-               const _Alloc&    _alloc = _Alloc{})
-        : m_alloc{_alloc}
-        , m_size{_count}
-        , m_data{nullptr}
+    option_set
+    (
+        const pair_type*  _source,
+        size_type         _count,
+        const _Allocator& _allocator = _Allocator{}
+    )
+    : m_alloc{_allocator},
+      m_size{_count},
+      m_data{nullptr}
     {
         if (m_size > 0)
         {
-            m_data = alloc_traits::allocate(m_alloc, m_size);
+            m_data = allocator_traits::allocate(m_alloc, m_size);
 
             for (size_type i = 0; i < m_size; ++i)
             {
-                alloc_traits::construct(m_alloc,
+                allocator_traits::construct(m_alloc,
                                         m_data + i,
-                                        _src[i]);
+                                        _source[i]);
             }
 
             if constexpr (_Sorted)
@@ -501,9 +728,12 @@ public:
     // into the dynamic backing store.
     template<std::size_t _StaticN>
     explicit
-    option_set(const std::array<pair_type, _StaticN>& _pairs,
-               const _Alloc&                          _alloc = _Alloc{})
-        : option_set{_pairs.data(), _StaticN, _alloc}
+    option_set
+    (
+        const std::array<pair_type, _StaticN>& _pairs,
+        const _Allocator&                      _allocator = _Allocator{}
+    )
+    : option_set{_pairs.data(), _StaticN, _allocator}
     {}
 
     ~option_set()
@@ -512,10 +742,10 @@ public:
         {
             for (size_type i = 0; i < m_size; ++i)
             {
-                alloc_traits::destroy(m_alloc, m_data + i);
+                allocator_traits::destroy(m_alloc, m_data + i);
             }
 
-            alloc_traits::deallocate(m_alloc,
+            allocator_traits::deallocate(m_alloc,
                                      m_data,
                                      m_size);
         }
@@ -523,9 +753,9 @@ public:
 
     // move construction
     option_set(option_set&& _other) noexcept
-        : m_alloc{static_cast<alloc_type&&>(_other.m_alloc)}
-        , m_size{_other.m_size}
-        , m_data{_other.m_data}
+    : m_alloc{static_cast<allocator_type&&>(_other.m_alloc)},
+        m_size{_other.m_size},
+        m_data{_other.m_data}
     {
         _other.m_data = nullptr;
         _other.m_size = 0;
@@ -538,7 +768,7 @@ public:
         if (this != &_other)
         {
             this->~option_set();
-            m_alloc       = static_cast<alloc_type&&>(_other.m_alloc);
+            m_alloc       = static_cast<allocator_type&&>(_other.m_alloc);
             m_size        = _other.m_size;
             m_data        = _other.m_data;
             _other.m_data = nullptr;
@@ -649,7 +879,7 @@ private:
         return;
     }
 
-    alloc_type m_alloc;
+    allocator_type m_alloc;
     size_type  m_size;
     pair_type* m_data;
 };
@@ -694,7 +924,7 @@ template<bool        _Sorted = false,
          typename    _Value,
          std::size_t _N>
 constexpr auto
-make_option_set(const  _Struct (&_source)[_N],
+make_option_set(const _Struct (&_source)[_N],
                 _Key   _Struct::* _key_member,
                 _Value _Struct::* _value_member)
     -> option_set<
@@ -790,9 +1020,12 @@ template<bool        _Sorted = false,
              decltype(std::declval<_ValFn>()(
                  std::declval<const _Source&>()))>>
 constexpr auto
-make_option_set(const _Source (&_source)[_N],
-                _KeyFn _key_fn,
-                _ValFn _val_fn)
+make_option_set
+(
+    const _Source (&_source)[_N],
+    _KeyFn          _key_fn,
+    _ValFn          _val_fn
+)
     -> option_set<_Key, _Value, _N, _Sorted>
 {
     using pair_type = kv_pair<_Key, _Value>;
@@ -979,7 +1212,10 @@ template<bool     _Sorted = false,
          typename _Key,
          typename _Value>
 constexpr auto
-make_option_set(kv_pair<_Key, _Value> _only)
+make_option_set
+(
+    kv_pair<_Key, _Value> _only
+)
     -> option_set<_Key, _Value, 1, _Sorted>
 {
     using pair_type = kv_pair<_Key, _Value>;
@@ -1061,16 +1297,18 @@ make_option_set(kv_pair<_Key, _Value> _first,
 // pair's .key becomes the output key; each pair's
 // pointer-to-member is dereferenced against _source to
 // produce the output value.
-template<bool     _Sorted = false,
-         typename _Struct,
-         typename _Key,
-         typename _MemType,
+template<bool        _Sorted = false,
+         typename    _Struct,
+         typename    _Key,
+         typename    _MemType,
          typename... _Rest>
 constexpr auto
-make_option_set(
+make_option_set
+(
     const _Struct&                       _source,
     kv_pair<_Key, _MemType _Struct::*>   _first,
-    _Rest...                             _rest)
+    _Rest...                             _rest
+)
     -> option_set<
            std::remove_cv_t<_Key>,
            std::remove_cv_t<_MemType>,
@@ -1113,4 +1351,4 @@ option_set(std::array<kv_pair<_Key, _Value>, _N>)
     -> option_set<_Key, _Value, _N, false>;
 
 
-#endif  // DJINTERP_CONTAINERS_OPTION_SET_
+#endif  // DJINTERP_CONTAINER_OPTION_SET_
