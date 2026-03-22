@@ -26,6 +26,7 @@
 #ifndef DJINTERP_UTILITY_SORT_INSERTION_
 #define DJINTERP_UTILITY_SORT_INSERTION_ 1
 
+#include "../../djinterp.hpp"
 #include "./sort.hpp"
 
 NS_SORT
