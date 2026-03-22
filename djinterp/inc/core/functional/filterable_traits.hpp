@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [functional]                                      filter_traits.hpp
+* djinterp [functional]                                  filterable_traits.hpp
 *
 * SFINAE-based traits for filterable container requirements.
 *   Provides type traits that detect whether a container type supports
@@ -10,6 +10,9 @@
 *
 * No tag dispatching or concepts are used; all detection is performed via
 * the void_t / detector SFINAE idiom.
+*
+*   Supersedes filterable.hpp and filter_traits.hpp which contained
+* identical definitions under different include guards.
 *
 * TABLE OF CONTENTS
 * =================
@@ -46,14 +49,18 @@
 *       3.  has_filter_method_v
 *       4.  filterable_value_t
 *
+* VII.  SFINAE-GATED FILTER FUNCTION
+*       1.  filter              (generic)
+*       2.  filter              (native dispatch)
 *
-* path:      /inc/functional/filter_traits.hpp
+*
+* path:      /inc/functional/filterable_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.02.12
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_FILTER_TRAITS_
-#define DJINTERP_FUNCTIONAL_FILTER_TRAITS_ 1
+#ifndef DJINTERP_FUNCTIONAL_FILTERABLE_TRAITS_
+#define DJINTERP_FUNCTIONAL_FILTERABLE_TRAITS_ 1
 
 #include <cstddef>
 #include <type_traits>
@@ -427,4 +434,4 @@ filter
 );
 
 
-#endif  // DJINTERP_FUNCTIONAL_FILTER_TRAITS_
+#endif  // DJINTERP_FUNCTIONAL_FILTERABLE_TRAITS_

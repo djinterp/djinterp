@@ -13,9 +13,12 @@
 * accept any callable (lambdas, function objects, function pointers, etc.)
 * with compile-time SFINAE validation.
 *
+*   Filter operations are type-erased via std::function rather than
+* virtual dispatch, keeping the module free of inheritance hierarchies.
+*
 * USAGE:
 *   // fluent builder
-*   auto result = d_filter<int>::build()
+*   auto result = filter_builder<int>::build()
 *       .skip_first(5)
 *       .where([](int x) { return x > 0; })
 *       .take_first(10)
@@ -24,9 +27,20 @@
 *
 *   // combinator
 *   auto combined = filter_union(
-*       d_filter<int>::build().where(is_positive).build_chain(),
-*       d_filter<int>::build().where(is_even).build_chain());
+*       filter_builder<int>::build().where(is_positive).build_chain(),
+*       filter_builder<int>::build().where(is_even).build_chain());
 *   auto result = combined.apply(my_data);
+*
+* TABLE OF CONTENTS
+* =================
+* I.    FILTER OPERATION TYPE
+* II.   FILTER OPERATION FACTORIES
+* III.  FILTER RESULT
+* IV.   FILTER CHAIN
+* V.    FILTER COMBINATORS
+* VI.   FILTER ITERATOR
+* VII.  FLUENT FILTER BUILDER
+*
 *
 * path:      \inc\functional\filter.hpp
 * link(s):   TBA
@@ -39,14 +53,12 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
-#include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "./djinterp.h"
-#include "./env.h"
-#include "./cpp_features.h"
+#include "../djinterp.hpp"
+#include "../../c/env.h"
 #include "./functional.hpp"
 #include "./functional_traits.hpp"
 
@@ -56,103 +68,35 @@ NS_FUNCTIONAL
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             I.    FILTER RESULT                                         ///
+///             I.    FILTER OPERATION TYPE                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_filter_result_status
-//   enum: status of a filter operation.
-enum class d_filter_result_status
-{
-    success    =  0,
-    empty      =  1,
-    error      = -1,
-    invalid    = -2,
-    no_memory  = -3
-};
-
-// d_filter_result
-//   class: result of applying a filter operation.
+// filter_op_fn
+//   type: a filter operation is a function that accepts an input
+// vector and returns the indices of elements that pass.
 template<typename _Type>
-class d_filter_result
-{
-private:
-    std::vector<_Type>        m_elements;
-    std::vector<std::size_t>  m_indices;
-    d_filter_result_status    m_status;
-    std::string               m_error_message;
-
-public:
-    // success constructor
-    d_filter_result(std::vector<_Type>&&       _elements,
-                    std::vector<std::size_t>&& _indices)
-        : m_elements(std::move(_elements))
-        , m_indices(std::move(_indices))
-        , m_status(m_elements.empty()
-                   ? d_filter_result_status::empty
-                   : d_filter_result_status::success)
-    {}
-
-    // error constructor
-    explicit d_filter_result(d_filter_result_status _status,
-                             std::string            _msg = "")
-        : m_status(_status)
-        , m_error_message(std::move(_msg))
-    {}
-
-    D_FUNCTIONAL_NODISCARD bool ok()    const { return m_status == d_filter_result_status::success; }
-    D_FUNCTIONAL_NODISCARD bool empty() const { return m_elements.empty(); }
-
-    D_FUNCTIONAL_NODISCARD d_filter_result_status    status()        const { return m_status; }
-    D_FUNCTIONAL_NODISCARD const std::string&        error_message() const { return m_error_message; }
-    D_FUNCTIONAL_NODISCARD std::size_t               count()         const { return m_elements.size(); }
-    D_FUNCTIONAL_NODISCARD const std::vector<_Type>& elements()      const { return m_elements; }
-    D_FUNCTIONAL_NODISCARD std::vector<_Type>        take_elements()       { return std::move(m_elements); }
-
-    D_FUNCTIONAL_NODISCARD
-    const std::vector<std::size_t>& indices() const { return m_indices; }
-
-    typename std::vector<_Type>::const_iterator begin() const
-    { return m_elements.begin(); }
-
-    typename std::vector<_Type>::const_iterator end() const
-    { return m_elements.end(); }
-};
+using filter_op_fn = std::function<
+    std::vector<std::size_t>(const std::vector<_Type>&)>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             II.   FILTER OPERATION (TYPE-ERASED)                        ///
+///             II.   FILTER OPERATION FACTORIES                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
 
-    // filter_operation_base
-    //   helper: abstract base for type-erased filter operations.
+    // make_take_first_op
+    //   helper: keeps the first _n elements.
     template<typename _Type>
-    class filter_operation_base
+    filter_op_fn<_Type>
+    make_take_first_op(std::size_t _n)
     {
-    public:
-        virtual ~filter_operation_base() = default;
-
-        virtual std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const = 0;
-
-        virtual std::unique_ptr<filter_operation_base> clone() const = 0;
-    };
-
-    // take_first_op
-    template<typename _Type>
-    class take_first_op : public filter_operation_base<_Type>
-    {
-        std::size_t m_n;
-    public:
-        explicit take_first_op(std::size_t _n) : m_n(_n) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_n](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
-            std::size_t limit = (m_n < _input.size())
-                              ? m_n : _input.size();
+            std::size_t limit = (_n < _input.size())
+                              ? _n : _input.size();
 
             for (std::size_t i = 0; i < limit; ++i)
             {
@@ -160,29 +104,21 @@ NS_INTERNAL
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new take_first_op(m_n));
-        }
-    };
-
-    // take_last_op
+    // make_take_last_op
+    //   helper: keeps the last _n elements.
     template<typename _Type>
-    class take_last_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_take_last_op(std::size_t _n)
     {
-        std::size_t m_n;
-    public:
-        explicit take_last_op(std::size_t _n) : m_n(_n) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_n](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
-            std::size_t start = (m_n >= _input.size())
-                              ? 0 : _input.size() - m_n;
+            std::size_t start = (_n >= _input.size())
+                              ? 0 : _input.size() - _n;
 
             for (std::size_t i = start; i < _input.size(); ++i)
             {
@@ -190,29 +126,21 @@ NS_INTERNAL
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new take_last_op(m_n));
-        }
-    };
-
-    // skip_first_op
+    // make_skip_first_op
+    //   helper: removes the first _n elements.
     template<typename _Type>
-    class skip_first_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_skip_first_op(std::size_t _n)
     {
-        std::size_t m_n;
-    public:
-        explicit skip_first_op(std::size_t _n) : m_n(_n) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_n](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
-            std::size_t start = (m_n < _input.size())
-                              ? m_n : _input.size();
+            std::size_t start = (_n < _input.size())
+                              ? _n : _input.size();
 
             for (std::size_t i = start; i < _input.size(); ++i)
             {
@@ -220,29 +148,21 @@ NS_INTERNAL
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new skip_first_op(m_n));
-        }
-    };
-
-    // skip_last_op
+    // make_skip_last_op
+    //   helper: removes the last _n elements.
     template<typename _Type>
-    class skip_last_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_skip_last_op(std::size_t _n)
     {
-        std::size_t m_n;
-    public:
-        explicit skip_last_op(std::size_t _n) : m_n(_n) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_n](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
-            std::size_t limit = (m_n >= _input.size())
-                              ? 0 : _input.size() - m_n;
+            std::size_t limit = (_n >= _input.size())
+                              ? 0 : _input.size() - _n;
 
             for (std::size_t i = 0; i < limit; ++i)
             {
@@ -250,192 +170,144 @@ NS_INTERNAL
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new skip_last_op(m_n));
-        }
-    };
-
-    // take_nth_op
+    // make_take_nth_op
+    //   helper: keeps every _n-th element.
     template<typename _Type>
-    class take_nth_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_take_nth_op(std::size_t _n)
     {
-        std::size_t m_n;
-    public:
-        explicit take_nth_op(std::size_t _n) : m_n(_n) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_n](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
 
-            if (m_n == 0) { return result; }
+            if (_n == 0)
+            {
+                return result;
+            }
 
-            for (std::size_t i = 0; i < _input.size(); i += m_n)
+            for (std::size_t i = 0; i < _input.size(); i += _n)
             {
                 result.push_back(i);
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new take_nth_op(m_n));
-        }
-    };
-
-    // range_op
+    // make_range_op
+    //   helper: keeps elements in [start, end).
     template<typename _Type>
-    class range_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_range_op(std::size_t _start, std::size_t _end)
     {
-        std::size_t m_start;
-        std::size_t m_end;
-    public:
-        range_op(std::size_t _start, std::size_t _end)
-            : m_start(_start), m_end(_end) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_start, _end](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
-            std::size_t limit = (m_end < _input.size())
-                              ? m_end : _input.size();
+            std::size_t limit = (_end < _input.size())
+                              ? _end : _input.size();
 
-            for (std::size_t i = m_start; i < limit; ++i)
+            for (std::size_t i = _start; i < limit; ++i)
             {
                 result.push_back(i);
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new range_op(m_start, m_end));
-        }
-    };
-
-    // slice_op
+    // make_slice_op
+    //   helper: keeps elements in [start, end) with given step.
     template<typename _Type>
-    class slice_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_slice_op(std::size_t _start,
+                  std::size_t _end,
+                  std::size_t _step)
     {
-        std::size_t m_start;
-        std::size_t m_end;
-        std::size_t m_step;
-    public:
-        slice_op(std::size_t _start, std::size_t _end, std::size_t _step)
-            : m_start(_start), m_end(_end), m_step(_step) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_start, _end, _step](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
 
-            if (m_step == 0) { return result; }
+            if (_step == 0)
+            {
+                return result;
+            }
 
-            std::size_t limit = (m_end < _input.size())
-                              ? m_end : _input.size();
+            std::size_t limit = (_end < _input.size())
+                              ? _end : _input.size();
 
-            for (std::size_t i = m_start; i < limit; i += m_step)
+            for (std::size_t i = _start; i < limit; i += _step)
             {
                 result.push_back(i);
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new slice_op(m_start, m_end, m_step));
-        }
-    };
-
-    // where_op
+    // make_where_op
+    //   helper: keeps elements satisfying a predicate.
     template<typename _Type>
-    class where_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_where_op(std::function<bool(const _Type&)> _pred)
     {
-        std::function<bool(const _Type&)> m_pred;
-    public:
-        explicit where_op(std::function<bool(const _Type&)> _pred)
-            : m_pred(std::move(_pred)) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_pred](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
 
             for (std::size_t i = 0; i < _input.size(); ++i)
             {
-                if (m_pred(_input[i]))
+                if (_pred(_input[i]))
                 {
                     result.push_back(i);
                 }
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new where_op(m_pred));
-        }
-    };
-
-    // where_not_op
+    // make_where_not_op
+    //   helper: keeps elements failing a predicate.
     template<typename _Type>
-    class where_not_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_where_not_op(std::function<bool(const _Type&)> _pred)
     {
-        std::function<bool(const _Type&)> m_pred;
-    public:
-        explicit where_not_op(std::function<bool(const _Type&)> _pred)
-            : m_pred(std::move(_pred)) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_pred](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
 
             for (std::size_t i = 0; i < _input.size(); ++i)
             {
-                if (!m_pred(_input[i]))
+                if (!_pred(_input[i]))
                 {
                     result.push_back(i);
                 }
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new where_not_op(m_pred));
-        }
-    };
-
-    // indices_op
+    // make_indices_op
+    //   helper: keeps elements at the given indices.
     template<typename _Type>
-    class indices_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_indices_op(std::vector<std::size_t> _indices)
     {
-        std::vector<std::size_t> m_indices;
-    public:
-        explicit indices_op(std::vector<std::size_t> _indices)
-            : m_indices(std::move(_indices)) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_indices](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
 
-            for (auto idx : m_indices)
+            for (auto idx : _indices)
             {
                 if (idx < _input.size())
                 {
@@ -444,27 +316,18 @@ NS_INTERNAL
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new indices_op(m_indices));
-        }
-    };
-
-    // distinct_op
+    // make_distinct_op
+    //   helper: removes duplicates per an equality function.
     template<typename _Type>
-    class distinct_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_distinct_op(
+        std::function<bool(const _Type&, const _Type&)> _eq)
     {
-        std::function<bool(const _Type&, const _Type&)> m_eq;
-    public:
-        explicit distinct_op(
-            std::function<bool(const _Type&, const _Type&)> _eq)
-            : m_eq(std::move(_eq)) {}
-
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [_eq](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
             std::vector<std::size_t> seen;
@@ -475,7 +338,7 @@ NS_INTERNAL
 
                 for (auto j : seen)
                 {
-                    if (m_eq(_input[i], _input[j]))
+                    if (_eq(_input[i], _input[j]))
                     {
                         is_dup = true;
                         break;
@@ -490,22 +353,17 @@ NS_INTERNAL
             }
 
             return result;
-        }
+        };
+    }
 
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new distinct_op(m_eq));
-        }
-    };
-
-    // reverse_op
+    // make_reverse_op
+    //   helper: reverses element order.
     template<typename _Type>
-    class reverse_op : public filter_operation_base<_Type>
+    filter_op_fn<_Type>
+    make_reverse_op()
     {
-    public:
-        std::vector<std::size_t>
-        get_indices(const std::vector<_Type>& _input) const override
+        return [](const std::vector<_Type>& _input)
+            -> std::vector<std::size_t>
         {
             std::vector<std::size_t> result;
 
@@ -515,53 +373,132 @@ NS_INTERNAL
             }
 
             return result;
-        }
-
-        std::unique_ptr<filter_operation_base<_Type>> clone() const override
-        {
-            return std::unique_ptr<filter_operation_base<_Type>>(
-                new reverse_op());
-        }
-    };
+        };
+    }
 
 NS_END  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             III.  FILTER CHAIN                                          ///
+///             III.  FILTER RESULT                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_filter_chain
-//   class: chain of sequential filter operations.
+// filter_result_status
+//   enum: status of a filter operation.
+enum class filter_result_status
+{
+    success    =  0,
+    empty      =  1,
+    error      = -1,
+    invalid    = -2,
+    no_memory  = -3
+};
+
+// filter_result
+//   class: result of applying a filter operation.
 template<typename _Type>
-class d_filter_chain
+class filter_result
 {
 private:
-    using op_ptr = std::unique_ptr<internal::filter_operation_base<_Type>>;
-
-    std::vector<op_ptr> m_operations;
+    std::vector<_Type>       m_elements;
+    std::vector<std::size_t> m_indices;
+    filter_result_status     m_status;
+    std::string              m_error_message;
 
 public:
-    d_filter_chain() = default;
-
-    // move constructor and assignment
-    d_filter_chain(d_filter_chain&&) = default;
-    d_filter_chain& operator=(d_filter_chain&&) = default;
-
-    // copy via clone
-    d_filter_chain(const d_filter_chain& _other)
+    // success constructor
+    filter_result(std::vector<_Type>&&       _elements,
+                  std::vector<std::size_t>&& _indices)
+        : m_elements(std::move(_elements))
+        , m_indices(std::move(_indices))
+        , m_status(m_elements.empty()
+                   ? filter_result_status::empty
+                   : filter_result_status::success)
     {
-        m_operations.reserve(_other.m_operations.size());
-
-        for (const auto& op : _other.m_operations)
-        {
-            m_operations.push_back(op->clone());
-        }
     }
+
+    // error constructor
+    explicit filter_result(filter_result_status _status,
+                           std::string          _msg = "")
+        : m_status(_status)
+        , m_error_message(std::move(_msg))
+    {
+    }
+
+    D_NODISCARD
+    bool ok() const
+    {
+        return m_status == filter_result_status::success;
+    }
+
+    D_NODISCARD
+    bool empty() const { return m_elements.empty(); }
+
+    D_NODISCARD
+    filter_result_status status() const { return m_status; }
+
+    D_NODISCARD
+    const std::string& error_message() const
+    {
+        return m_error_message;
+    }
+
+    D_NODISCARD
+    std::size_t count() const { return m_elements.size(); }
+
+    D_NODISCARD
+    const std::vector<_Type>& elements() const
+    {
+        return m_elements;
+    }
+
+    D_NODISCARD
+    std::vector<_Type> take_elements()
+    {
+        return std::move(m_elements);
+    }
+
+    D_NODISCARD
+    const std::vector<std::size_t>& indices() const
+    {
+        return m_indices;
+    }
+
+    typename std::vector<_Type>::const_iterator begin() const
+    {
+        return m_elements.begin();
+    }
+
+    typename std::vector<_Type>::const_iterator end() const
+    {
+        return m_elements.end();
+    }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             IV.   FILTER CHAIN                                          ///
+///////////////////////////////////////////////////////////////////////////////
+
+// filter_chain
+//   class: chain of sequential filter operations.
+template<typename _Type>
+class filter_chain
+{
+private:
+    std::vector<filter_op_fn<_Type>> m_operations;
+
+public:
+    filter_chain() = default;
+
+    filter_chain(const filter_chain&)            = default;
+    filter_chain& operator=(const filter_chain&) = default;
+    filter_chain(filter_chain&&)                 = default;
+    filter_chain& operator=(filter_chain&&)      = default;
 
     // add
     //   method: adds an operation to the chain.
-    void add(op_ptr&& _op)
+    void add(filter_op_fn<_Type> _op)
     {
         m_operations.push_back(std::move(_op));
 
@@ -569,9 +506,10 @@ public:
     }
 
     // apply
-    //   method: applies the chain to input data and returns a filter result.
-    D_FUNCTIONAL_NODISCARD
-    d_filter_result<_Type>
+    //   method: applies the chain to input data and returns a
+    // filter result.
+    D_NODISCARD
+    filter_result<_Type>
     apply(const std::vector<_Type>& _input) const
     {
         // start with all indices
@@ -598,7 +536,7 @@ public:
             }
 
             // get indices relative to the sub-vector
-            auto relative_indices = op->get_indices(sub);
+            auto relative_indices = op(sub);
 
             // map back to original indices
             std::vector<std::size_t> new_indices;
@@ -623,33 +561,38 @@ public:
             result_elements.push_back(_input[idx]);
         }
 
-        return d_filter_result<_Type>(std::move(result_elements),
-                                      std::move(current_indices));
+        return filter_result<_Type>(std::move(result_elements),
+                                    std::move(current_indices));
     }
 
     // length
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::size_t length() const { return m_operations.size(); }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool is_empty() const { return m_operations.empty(); }
 
-    void clear() { m_operations.clear(); return; }
+    void clear()
+    {
+        m_operations.clear();
+
+        return;
+    }
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             IV.   FILTER COMBINATORS                                    ///
+///             V.    FILTER COMBINATORS                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // filter_union
-//   function: applies union semantics (OR) over multiple filter chains.
-// An element is included if it passes any of the chains.
+//   function: applies union semantics (OR) over multiple filter
+// chains.  An element is included if it passes any of the chains.
 template<typename _Type>
-D_FUNCTIONAL_NODISCARD
-d_filter_result<_Type>
-filter_union(const std::vector<d_filter_chain<_Type>>& _chains,
-             const std::vector<_Type>&                  _input)
+D_NODISCARD
+filter_result<_Type>
+filter_union(const std::vector<filter_chain<_Type>>& _chains,
+             const std::vector<_Type>&                _input)
 {
     std::vector<bool> included(_input.size(), false);
 
@@ -675,18 +618,19 @@ filter_union(const std::vector<d_filter_chain<_Type>>& _chains,
         }
     }
 
-    return d_filter_result<_Type>(std::move(elements),
-                                  std::move(indices));
+    return filter_result<_Type>(std::move(elements),
+                                std::move(indices));
 }
 
 // filter_intersection
-//   function: applies intersection semantics (AND) over multiple chains.
-// An element is included only if it passes all chains.
+//   function: applies intersection semantics (AND) over multiple
+// chains.  An element is included only if it passes all chains.
 template<typename _Type>
-D_FUNCTIONAL_NODISCARD
-d_filter_result<_Type>
-filter_intersection(const std::vector<d_filter_chain<_Type>>& _chains,
-                    const std::vector<_Type>&                  _input)
+D_NODISCARD
+filter_result<_Type>
+filter_intersection(
+    const std::vector<filter_chain<_Type>>& _chains,
+    const std::vector<_Type>&               _input)
 {
     std::vector<std::size_t> hit_count(_input.size(), 0);
 
@@ -713,19 +657,19 @@ filter_intersection(const std::vector<d_filter_chain<_Type>>& _chains,
         }
     }
 
-    return d_filter_result<_Type>(std::move(elements),
-                                  std::move(indices));
+    return filter_result<_Type>(std::move(elements),
+                                std::move(indices));
 }
 
 // filter_difference
 //   function: applies difference semantics (A - B).
 // An element is included if it passes _include but not _exclude.
 template<typename _Type>
-D_FUNCTIONAL_NODISCARD
-d_filter_result<_Type>
-filter_difference(const d_filter_chain<_Type>& _include,
-                  const d_filter_chain<_Type>& _exclude,
-                  const std::vector<_Type>&    _input)
+D_NODISCARD
+filter_result<_Type>
+filter_difference(const filter_chain<_Type>& _include,
+                  const filter_chain<_Type>& _exclude,
+                  const std::vector<_Type>&  _input)
 {
     auto included = _include.apply(_input);
     auto excluded = _exclude.apply(_input);
@@ -749,19 +693,19 @@ filter_difference(const d_filter_chain<_Type>& _include,
         }
     }
 
-    return d_filter_result<_Type>(std::move(elements),
-                                  std::move(indices));
+    return filter_result<_Type>(std::move(elements),
+                                std::move(indices));
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             V.    FILTER ITERATOR                                       ///
+///             VI.   FILTER ITERATOR                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_filter_iterator
+// filter_iterator
 //   class: lazily iterates over filtered results.
 template<typename _Type>
-class d_filter_iterator
+class filter_iterator
 {
 private:
     const std::vector<_Type>* m_input;
@@ -769,8 +713,8 @@ private:
     std::size_t               m_pos;
 
 public:
-    d_filter_iterator(const std::vector<_Type>& _input,
-                      const d_filter_chain<_Type>&    _chain)
+    filter_iterator(const std::vector<_Type>&  _input,
+                    const filter_chain<_Type>& _chain)
         : m_input(&_input)
         , m_pos(0)
     {
@@ -779,18 +723,23 @@ public:
         m_indices = result.indices();
     }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool has_next() const { return m_pos < m_indices.size(); }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     const _Type& next()
     {
         return (*m_input)[m_indices[m_pos++]];
     }
 
-    void reset() { m_pos = 0; return; }
+    void reset()
+    {
+        m_pos = 0;
 
-    D_FUNCTIONAL_NODISCARD
+        return;
+    }
+
+    D_NODISCARD
     std::size_t remaining() const
     {
         return m_indices.size() - m_pos;
@@ -799,97 +748,91 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             VI.   FLUENT FILTER BUILDER                                 ///
+///             VII.  FLUENT FILTER BUILDER                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_filter
+// filter_builder
 //   class: fluent builder for constructing filter chains.
 template<typename _Type>
-class d_filter
+class filter_builder
 {
 private:
-    d_filter_chain<_Type> m_chain;
+    filter_chain<_Type> m_chain;
 
 public:
-    d_filter() = default;
+    filter_builder() = default;
 
     // build
     //   static: creates a new fluent filter builder.
-    static d_filter build() { return d_filter(); }
+    static filter_builder build() { return filter_builder(); }
 
     // take_first
-    d_filter& take_first(std::size_t _n)
+    filter_builder& take_first(std::size_t _n)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::take_first_op<_Type>(_n)));
+        m_chain.add(internal::make_take_first_op<_Type>(_n));
 
         return *this;
     }
 
     // take_last
-    d_filter& take_last(std::size_t _n)
+    filter_builder& take_last(std::size_t _n)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::take_last_op<_Type>(_n)));
+        m_chain.add(internal::make_take_last_op<_Type>(_n));
 
         return *this;
     }
 
     // take_nth
-    d_filter& take_nth(std::size_t _n)
+    filter_builder& take_nth(std::size_t _n)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::take_nth_op<_Type>(_n)));
+        m_chain.add(internal::make_take_nth_op<_Type>(_n));
 
         return *this;
     }
 
     // skip_first
-    d_filter& skip_first(std::size_t _n)
+    filter_builder& skip_first(std::size_t _n)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::skip_first_op<_Type>(_n)));
+        m_chain.add(internal::make_skip_first_op<_Type>(_n));
 
         return *this;
     }
 
     // skip_last
-    d_filter& skip_last(std::size_t _n)
+    filter_builder& skip_last(std::size_t _n)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::skip_last_op<_Type>(_n)));
+        m_chain.add(internal::make_skip_last_op<_Type>(_n));
 
         return *this;
     }
 
     // head (take first 1)
-    d_filter& head() { return take_first(1); }
+    filter_builder& head() { return take_first(1); }
 
     // tail (take last 1)
-    d_filter& tail() { return take_last(1); }
+    filter_builder& tail() { return take_last(1); }
 
     // init (all except last)
-    d_filter& init() { return skip_last(1); }
+    filter_builder& init() { return skip_last(1); }
 
     // rest (all except first)
-    d_filter& rest() { return skip_first(1); }
+    filter_builder& rest() { return skip_first(1); }
 
     // range [start, end)
-    d_filter& range(std::size_t _start, std::size_t _end)
+    filter_builder& range(std::size_t _start, std::size_t _end)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::range_op<_Type>(_start, _end)));
+        m_chain.add(internal::make_range_op<_Type>(_start, _end));
 
         return *this;
     }
 
     // slice [start:end:step]
-    d_filter& slice(std::size_t _start,
-                    std::size_t _end,
-                    std::size_t _step)
+    filter_builder& slice(std::size_t _start,
+                          std::size_t _end,
+                          std::size_t _step)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::slice_op<_Type>(_start, _end, _step)));
+        m_chain.add(
+            internal::make_slice_op<_Type>(_start, _end, _step));
 
         return *this;
     }
@@ -899,11 +842,11 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    d_filter& where(_Pred _pred)
+    filter_builder& where(_Pred _pred)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::where_op<_Type>(
-                std::function<bool(const _Type&)>(std::move(_pred)))));
+        m_chain.add(internal::make_where_op<_Type>(
+            std::function<bool(const _Type&)>(
+                std::move(_pred))));
 
         return *this;
     }
@@ -913,30 +856,29 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    d_filter& where_not(_Pred _pred)
+    filter_builder& where_not(_Pred _pred)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::where_not_op<_Type>(
-                std::function<bool(const _Type&)>(std::move(_pred)))));
+        m_chain.add(internal::make_where_not_op<_Type>(
+            std::function<bool(const _Type&)>(
+                std::move(_pred))));
 
         return *this;
     }
 
     // at (single index)
-    d_filter& at(std::size_t _index)
+    filter_builder& at(std::size_t _index)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::indices_op<_Type>(
-                std::vector<std::size_t>{_index})));
+        m_chain.add(internal::make_indices_op<_Type>(
+            std::vector<std::size_t>{_index}));
 
         return *this;
     }
 
     // at_indices (multiple indices)
-    d_filter& at_indices(std::vector<std::size_t> _indices)
+    filter_builder& at_indices(std::vector<std::size_t> _indices)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::indices_op<_Type>(std::move(_indices))));
+        m_chain.add(internal::make_indices_op<_Type>(
+            std::move(_indices)));
 
         return *this;
     }
@@ -946,37 +888,36 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Eq, const _Type&, const _Type&>::value
              >::type>
-    d_filter& distinct(_Eq _eq)
+    filter_builder& distinct(_Eq _eq)
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::distinct_op<_Type>(
-                std::function<bool(const _Type&, const _Type&)>(
-                    std::move(_eq)))));
+        m_chain.add(internal::make_distinct_op<_Type>(
+            std::function<bool(const _Type&, const _Type&)>(
+                std::move(_eq))));
 
         return *this;
     }
 
     // distinct (default operator==)
-    d_filter& distinct()
+    filter_builder& distinct()
     {
-        return distinct([](const _Type& _a, const _Type& _b)
-        {
-            return _a == _b;
-        });
+        return distinct(
+            [](const _Type& _a, const _Type& _b)
+            {
+                return _a == _b;
+            });
     }
 
     // reverse
-    d_filter& reverse()
+    filter_builder& reverse()
     {
-        m_chain.add(std::unique_ptr<internal::filter_operation_base<_Type>>(
-            new internal::reverse_op<_Type>()));
+        m_chain.add(internal::make_reverse_op<_Type>());
 
         return *this;
     }
 
     // apply (execute the chain)
-    D_FUNCTIONAL_NODISCARD
-    d_filter_result<_Type>
+    D_NODISCARD
+    filter_result<_Type>
     apply(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input);
@@ -990,60 +931,61 @@ public:
                          std::declval<const _Container&>()))>::type,
                      _Type>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
-    d_filter_result<_Type>
+    D_NODISCARD
+    filter_result<_Type>
     apply(const _Container& _input) const
     {
-        std::vector<_Type> vec(std::begin(_input), std::end(_input));
+        std::vector<_Type> vec(std::begin(_input),
+                               std::end(_input));
 
         return m_chain.apply(vec);
     }
 
     // build_chain (extract the chain for use in combinators)
-    D_FUNCTIONAL_NODISCARD
-    d_filter_chain<_Type> build_chain() const
+    D_NODISCARD
+    filter_chain<_Type> build_chain() const
     {
         return m_chain;
     }
 
     // build_chain (move)
-    D_FUNCTIONAL_NODISCARD
-    d_filter_chain<_Type> build_chain() &&
+    D_NODISCARD
+    filter_chain<_Type> build_chain() &&
     {
         return std::move(m_chain);
     }
 
     // iterator
-    D_FUNCTIONAL_NODISCARD
-    d_filter_iterator<_Type>
+    D_NODISCARD
+    filter_iterator<_Type>
     iterator(const std::vector<_Type>& _input) const
     {
-        return d_filter_iterator<_Type>(_input, m_chain);
+        return filter_iterator<_Type>(_input, m_chain);
     }
 
     // any_match
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool any_match(const std::vector<_Type>& _input) const
     {
         return !m_chain.apply(_input).empty();
     }
 
     // all_match
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool all_match(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input).count() == _input.size();
     }
 
     // none_match
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool none_match(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input).empty();
     }
 
     // count_matches
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::size_t count_matches(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input).count();

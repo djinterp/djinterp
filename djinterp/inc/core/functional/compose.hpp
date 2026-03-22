@@ -59,14 +59,17 @@ NS_INTERNAL
     public:
         template<typename _F1Fwd,
                  typename _F2Fwd>
-        D_FUNCTIONAL_CONSTEXPR
-        composed_transformer_helper(_F1Fwd&& _first, _F2Fwd&& _second)
-            : m_first(std::forward<_F1Fwd>(_first))
-            , m_second(std::forward<_F2Fwd>(_second))
+        D_CONSTEXPR
+        composed_transformer_helper
+        (
+            _F1Fwd&& _first,
+            _F2Fwd&& _second
+        ) : m_first(std::forward<_F1Fwd>(_first))
+          , m_second(std::forward<_F2Fwd>(_second))
         {}
 
         template<typename _Input>
-        D_FUNCTIONAL_CONSTEXPR
+        D_CONSTEXPR
         auto operator()(const _Input& _input) const
             -> decltype(std::declval<const _Second&>()(
                 std::declval<const _First&>()(_input)))
@@ -75,7 +78,7 @@ NS_INTERNAL
         }
 
         template<typename _Input>
-        D_FUNCTIONAL_CONSTEXPR
+        D_CONSTEXPR
         auto operator()(_Input&& _input) const
             -> decltype(std::declval<const _Second&>()(
                 std::declval<const _First&>()(
@@ -85,8 +88,8 @@ NS_INTERNAL
         }
 
         // accessors for introspection
-        D_FUNCTIONAL_CONSTEXPR const _First&  first()  const { return m_first; }
-        D_FUNCTIONAL_CONSTEXPR const _Second& second() const { return m_second; }
+        D_CONSTEXPR const _First&  first()  const { return m_first; }
+        D_CONSTEXPR const _Second& second() const { return m_second; }
     };
 
     // partial_consumer_helper
@@ -103,14 +106,14 @@ NS_INTERNAL
     public:
         template<typename _FnFwd,
                  typename _ArgFwd>
-        D_FUNCTIONAL_CONSTEXPR
+        D_CONSTEXPR
         partial_consumer_helper(_FnFwd&& _fn, _ArgFwd&& _arg)
             : m_fn(std::forward<_FnFwd>(_fn))
             , m_bound(std::forward<_ArgFwd>(_arg))
         {}
 
         template<typename... _Args>
-        D_FUNCTIONAL_CONSTEXPR
+        D_CONSTEXPR
         auto operator()(_Args&&... _args) const
             -> decltype(std::declval<const _Fn&>()(
                 std::forward<_Args>(_args)...,
@@ -131,13 +134,13 @@ NS_INTERNAL
 
     public:
         template<typename _FnFwd>
-        explicit D_FUNCTIONAL_CONSTEXPR
+        explicit D_CONSTEXPR
         tap_helper(_FnFwd&& _fn)
             : m_fn(std::forward<_FnFwd>(_fn))
         {}
 
         template<typename _Type>
-        D_FUNCTIONAL_CONSTEXPR
+        D_CONSTEXPR
         _Type operator()(_Type _value) const
         {
             m_fn(_value);
@@ -205,7 +208,7 @@ NS_END  // internal
 // This is left-to-right composition (pipe order).
 template<typename _First,
          typename _Second>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 internal::composed_transformer_helper<typename std::decay<_First>::type,
                                     typename std::decay<_Second>::type>
 compose_transformer(_First&& _first, _Second&& _second)
@@ -226,7 +229,7 @@ compose_transformer(_First&& _first, _Second&& _second)
 //   function: composes N functions right-to-left.
 // compose_all(f, g, h)(x) = f(g(h(x)))
 template<typename _Fn>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 auto compose_all(_Fn&& _fn)
     -> typename std::decay<_Fn>::type
 {
@@ -236,7 +239,7 @@ auto compose_all(_Fn&& _fn)
 template<typename _Fn1,
          typename _Fn2,
          typename... _Fns>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 auto compose_all(_Fn1&& _fn1, _Fn2&& _fn2, _Fns&&... _rest)
     -> decltype(compose(std::forward<_Fn1>(_fn1),
                         compose_all(std::forward<_Fn2>(_fn2),
@@ -251,7 +254,7 @@ auto compose_all(_Fn1&& _fn1, _Fn2&& _fn2, _Fns&&... _rest)
 //   function: composes N functions left-to-right.
 // pipe_all(f, g, h)(x) = h(g(f(x)))
 template<typename _Fn>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 auto pipe_all(_Fn&& _fn)
     -> typename std::decay<_Fn>::type
 {
@@ -261,7 +264,7 @@ auto pipe_all(_Fn&& _fn)
 template<typename _Fn1,
          typename _Fn2,
          typename... _Fns>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 auto pipe_all(_Fn1&& _fn1, _Fn2&& _fn2, _Fns&&... _rest)
     -> decltype(pipe_all(pipe(std::forward<_Fn1>(_fn1),
                               std::forward<_Fn2>(_fn2)),
@@ -282,7 +285,7 @@ auto pipe_all(_Fn1&& _fn1, _Fn2&& _fn2, _Fns&&... _rest)
 // partial_back(f, z)(x, y) = f(x, y, z)
 template<typename _Fn,
          typename _Arg>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 internal::partial_consumer_helper<typename std::decay<_Fn>::type,
                                 typename std::decay<_Arg>::type>
 partial_back(_Fn&& _fn, _Arg&& _arg)
@@ -307,7 +310,7 @@ partial_back(_Fn&& _fn, _Arg&& _arg)
 // tap(f)(x) calls f(x) then returns x unchanged.
 // Useful for debugging in composition chains.
 template<typename _Fn>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 internal::tap_helper<typename std::decay<_Fn>::type>
 tap(_Fn&& _fn)
 {
@@ -353,13 +356,13 @@ NS_INTERNAL
 
     public:
         template<typename _FnFwd>
-        explicit D_FUNCTIONAL_CONSTEXPR
+        explicit D_CONSTEXPR
         fix_helper(_FnFwd&& _fn)
             : m_fn(std::forward<_FnFwd>(_fn))
         {}
 
         template<typename... _Args>
-        D_FUNCTIONAL_CONSTEXPR
+        D_CONSTEXPR
         auto operator()(_Args&&... _args) const
             -> decltype(std::declval<const _Fn&>()(
                 std::declval<const fix_helper&>(),
@@ -379,7 +382,7 @@ NS_END  // internal
 //   });
 //   factorial(5);  // 120
 template<typename _Fn>
-D_FUNCTIONAL_CONSTEXPR
+D_CONSTEXPR
 internal::fix_helper<typename std::decay<_Fn>::type>
 fix(_Fn&& _fn)
 {
