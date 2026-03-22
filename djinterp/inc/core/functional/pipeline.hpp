@@ -164,7 +164,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline<_ResultType>
     map(_Fn&& _fn) const
     {
@@ -191,7 +191,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline filter(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -218,7 +218,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline filter_not(_Pred&& _pred) const
     {
         return filter([&_pred](const _Type& _e)
@@ -234,7 +234,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Acc&, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     _Acc
     fold(_Acc _init, _Fn&& _fn) const
     {
@@ -274,7 +274,7 @@ public:
 
     // take
     //   method: keeps only the first _n elements.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline take(std::size_t _n) const
     {
         if (m_has_error)
@@ -292,7 +292,7 @@ public:
 
     // take_last
     //   method: keeps only the last _n elements.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline take_last(std::size_t _n) const
     {
         if (m_has_error)
@@ -318,7 +318,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline take_while(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -343,7 +343,7 @@ public:
 
     // skip
     //   method: removes the first _n elements.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline skip(std::size_t _n) const
     {
         if (m_has_error)
@@ -368,7 +368,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline skip_while(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -395,7 +395,7 @@ public:
 
     // slice
     //   method: takes elements in range [start, end) with given step.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline slice(std::size_t _start,
                      std::size_t _end,
                      std::size_t _step = 1) const
@@ -419,7 +419,7 @@ public:
 
     // distinct
     //   method: removes duplicate elements using operator==.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline distinct() const
     {
         if (m_has_error)
@@ -457,7 +457,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Eq, const _Type&, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline distinct(_Eq&& _eq) const
     {
         if (m_has_error)
@@ -491,7 +491,7 @@ public:
 
     // reversed
     //   method: returns a pipeline with elements in reverse order.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline reversed() const
     {
         if (m_has_error)
@@ -510,7 +510,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Compare, const _Type&, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline sorted(_Compare&& _cmp) const
     {
         if (m_has_error)
@@ -528,7 +528,7 @@ public:
 
     // sorted (default ordering)
     //   method: returns a pipeline sorted with operator<.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline sorted() const
     {
         return sorted([](const _Type& _a, const _Type& _b)
@@ -547,7 +547,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline<_ResultType>
     flat_map(_Fn&& _fn) const
     {
@@ -577,7 +577,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::pair<d_pipeline, d_pipeline>
     partition_pipe(_Pred&& _pred) const
     {
@@ -615,7 +615,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_KeyFn, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::map<_KeyType, std::vector<_Type>>
     group_by(_KeyFn&& _key_fn) const
     {
@@ -642,7 +642,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&, const _Other&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     d_pipeline<_ResultType>
     zip_with(const d_pipeline<_Other>& _other, _Fn&& _fn) const
     {
@@ -675,7 +675,7 @@ public:
 
     // to_vector
     //   method: returns the pipeline data as a vector.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::vector<_Type> to_vector() const
     {
         return m_data;
@@ -683,7 +683,7 @@ public:
 
     // to_vector (move)
     //   method: moves the pipeline data out.
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::vector<_Type> to_vector() &&
     {
         return std::move(m_data);
@@ -696,7 +696,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     _Type
     reduce(_Fn&& _fn) const
     {
@@ -717,7 +717,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool any(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
@@ -739,7 +739,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool all(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
@@ -761,7 +761,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool none(_Pred&& _pred) const
     {
         return !any(std::forward<_Pred>(_pred));
@@ -773,7 +773,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::size_t count(_Pred&& _pred) const
     {
         if (m_has_error) { return 0; }
@@ -796,22 +796,22 @@ public:
     ///         iv.   ACCESSORS AND STATUS                                  ///
     ///////////////////////////////////////////////////////////////////////////
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     std::size_t size() const { return m_data.size(); }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool empty() const { return m_data.empty(); }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     bool has_error() const { return m_has_error; }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     int error_code() const { return m_error_code; }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     const std::vector<_Type>& data() const { return m_data; }
 
-    D_FUNCTIONAL_NODISCARD
+    D_NODISCARD
     const _Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
 
     // begin/end for range-for support
@@ -832,7 +832,7 @@ public:
 template<typename _Container,
          typename _ValueType = typename std::decay<
              decltype(*std::begin(std::declval<const _Container&>()))>::type>
-D_FUNCTIONAL_NODISCARD
+D_NODISCARD
 d_pipeline<_ValueType>
 pipeline_from(const _Container& _input)
 {
@@ -842,7 +842,7 @@ pipeline_from(const _Container& _input)
 // pipeline_from (raw array)
 //   function: creates a pipeline from a C-style array.
 template<typename _Type>
-D_FUNCTIONAL_NODISCARD
+D_NODISCARD
 d_pipeline<_Type>
 pipeline_from(const _Type* _data, std::size_t _count)
 {
