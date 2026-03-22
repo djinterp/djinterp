@@ -52,9 +52,9 @@
 
 NS_SORT  // namespace sort
 
-// DSortOrder
+// sort_order
 //   enum: specifies the ordering direction of a sort operation.
-enum DSortOrder
+enum sort_order
 {
     DSortOrderAscending  = 0,
     DSortOrderDescending = 1
@@ -94,18 +94,18 @@ struct greater
 NS_INTERNAL
 
     // order_comparator
-    //   struct: adapts a comparator to honour a runtime DSortOrder by
+    //   struct: adapts a comparator to honour a runtime sort_order by
     // optionally reversing the comparison sense.
     template<typename _Compare>
     struct order_comparator
     {
     private:
         _Compare   m_comp;
-        DSortOrder m_order;
+        sort_order m_order;
 
     public:
         order_comparator(_Compare   _comp,
-                         DSortOrder _order)
+                         sort_order _order)
             : m_comp(_comp)
             , m_order(_order)
         {
