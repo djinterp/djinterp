@@ -1,41 +1,28 @@
 /******************************************************************************
 * djinterp [container]                            container_binary_traits.hpp
 *
-* Container-aware binary serialization traits for the djinterp framework.
-*   Provides compile-time detection of binary serialization capabilities
-* at both the container and element level, enabling tagless dispatch to
-* the most efficient serialization strategy.
+* Binary encoding/decoding traits for the djinterp container framework.
+*   Detects whether a container can be converted to/from binary via
+* the canonical method pair:
 *
-*   Detection is organized into three tiers:
-*     1. Bulk:    contiguous storage + trivially copyable elements
-*                 — raw memcpy of the entire data region.
-*     2. Native:  container exposes .serialize() / .to_binary()
-*                 — delegate to the container's own method.
-*     3. Element: iterable + each element individually
-*                 serializable (trivially copyable, or has
-*                 .serialize() / .to_binary()).
+*   WRITE:  std::vector<char> encode() const
+*   READ:   static C decode(const char* _data, std::size_t _size)
 *
-*   Additionally detects:
-*     - type_info integration:  container exposes a
-*       d_type_info16 / d_type_info64 via a type_info() or
-*       type_descriptor static/member, enabling the binary
-*       module to prepend a framework type header.
-*     - Fixed-size encoding: element size is constexpr-known.
-*     - Endian awareness: container declares endianness.
+*   Detection is organized into three tiers per direction:
+*     1. Native:   container has encode() / decode() directly.
+*     2. Bulk:     contiguous trivially-copyable storage — memcpy.
+*     3. Element:  iterable/output-capable + elements individually
+*                  encodable/decodable.
 *
 *   All detection is purely structural SFINAE.
 *
-* DEPENDENCIES:
-*   container_traits.hpp  - container classification
-*   type_info.h           - d_type_info16/32/64 typedefs
-*
 * TABLE OF CONTENTS
 * =================
-* I.      Element-Level Binary Detection
-* II.     Container-Level Binary Detection
-* III.    Type Info Integration Detection
-* IV.     Contiguous Bulk Detection
-* V.      Binary Strategy Classification
+* I.      Container-Level Detection
+* II.     Element-Level Detection
+* III.    Bulk Detection
+* IV.     Type Info Integration
+* V.      Strategy Classification
 * VI.     Convenience Predicates
 * VII.    Combined Classification
 *
@@ -51,6 +38,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <vector>
 #include "..\djinterp.hpp"
 #include "..\type_traits.hpp"
 #include "..\..\c\type_info.h"
@@ -62,14 +50,37 @@ NS_CONTAINER
 NS_TRAITS
 
 // =============================================================================
-// I.   Element-Level Binary Detection
+// I.   Container-Level Detection
+// =============================================================================
+
+// has_encode_method
+//   type trait: true if container has
+//     std::vector<char> encode() const
+D_TYPE_TRAIT_TRUE(has_encode_method,
+    decltype(std::declval<const _Type&>().encode()))
+
+// has_decode_method
+//   type trait: true if container has static
+//     C decode(const char*, std::size_t)
+D_TYPE_TRAIT_TRUE(has_decode_method,
+    decltype(_Type::decode(
+        std::declval<const char*>(),
+        std::declval<std::size_t>())))
+
+// has_byte_size_method
+//   type trait: true if container has
+//     std::size_t byte_size() const
+D_TYPE_TRAIT_TRUE(has_byte_size_method,
+    decltype(
+        std::declval<const _Type&>().byte_size()))
+
+
+// =============================================================================
+// II.  Element-Level Detection
 // =============================================================================
 
 NS_INTERNAL
 
-    // safe_value_type (may already be visible from
-    // container_traits; redeclared here for self-containment
-    // when included independently)
     template<typename _Type, typename = void>
     struct binary_safe_value_type
     {
@@ -87,111 +98,55 @@ NS_INTERNAL
     using binary_safe_value_type_t =
         typename binary_safe_value_type<_Type>::type;
 
-    // --- element .serialize() detection ---
-
+    // element has encode()
     template<typename _Elem, typename = void>
-    struct elem_has_serialize : std::false_type
+    struct elem_has_encode : std::false_type
     {};
 
     template<typename _Elem>
-    struct elem_has_serialize<_Elem,
+    struct elem_has_encode<_Elem,
         std::void_t<decltype(
-            std::declval<const _Elem&>().serialize(
-                std::declval<char*>(),
+            std::declval<const _Elem&>().encode())>>
+        : std::true_type
+    {};
+
+    // element has static decode(const char*, size_t)
+    template<typename _Elem, typename = void>
+    struct elem_has_decode : std::false_type
+    {};
+
+    template<typename _Elem>
+    struct elem_has_decode<_Elem,
+        std::void_t<decltype(
+            _Elem::decode(
+                std::declval<const char*>(),
                 std::declval<std::size_t>()))>>
-        : std::true_type
-    {};
-
-    // --- element .to_binary() detection ---
-
-    template<typename _Elem, typename = void>
-    struct elem_has_to_binary : std::false_type
-    {};
-
-    template<typename _Elem>
-    struct elem_has_to_binary<_Elem,
-        std::void_t<decltype(
-            std::declval<const _Elem&>().to_binary())>>
-        : std::true_type
-    {};
-
-    // --- element .byte_size() detection ---
-
-    template<typename _Elem, typename = void>
-    struct elem_has_byte_size : std::false_type
-    {};
-
-    template<typename _Elem>
-    struct elem_has_byte_size<_Elem,
-        std::void_t<decltype(
-            std::declval<const _Elem&>().byte_size())>>
         : std::true_type
     {};
 
 NS_END  // internal
 
 // has_trivially_copyable_elements
-//   type trait: true if the container's value_type is
-// trivially copyable (safe for memcpy/binary dump).
 template<typename _Type>
 struct has_trivially_copyable_elements
 {
-    using clean_type = clean_t<_Type>;
-    using elem_type  =
-        internal::binary_safe_value_type_t<clean_type>;
+    using elem_type =
+        internal::binary_safe_value_type_t<
+            clean_t<_Type>>;
 
     static constexpr bool value =
         std::is_trivially_copyable_v<elem_type>;
 };
 
 template<typename _Type>
-inline constexpr bool has_trivially_copyable_elements_v =
-    has_trivially_copyable_elements<_Type>::value;
+inline constexpr bool
+    has_trivially_copyable_elements_v =
+        has_trivially_copyable_elements<_Type>::value;
 
-// has_serializable_elements
-//   type trait: true if the container's value_type has a
-// .serialize(char*, size_t) member function.
+// has_encodable_elements
+//   type trait: trivially copyable or has encode().
 template<typename _Type>
-struct has_serializable_elements
-{
-    using clean_type = clean_t<_Type>;
-    using elem_type  =
-        internal::binary_safe_value_type_t<clean_type>;
-
-    static constexpr bool value =
-        internal::elem_has_serialize<elem_type>::value;
-};
-
-template<typename _Type>
-inline constexpr bool has_serializable_elements_v =
-    has_serializable_elements<_Type>::value;
-
-// has_to_binary_elements
-//   type trait: true if the container's value_type has a
-// .to_binary() member function returning a byte
-// representation.
-template<typename _Type>
-struct has_to_binary_elements
-{
-    using clean_type = clean_t<_Type>;
-    using elem_type  =
-        internal::binary_safe_value_type_t<clean_type>;
-
-    static constexpr bool value =
-        internal::elem_has_to_binary<elem_type>::value;
-};
-
-template<typename _Type>
-inline constexpr bool has_to_binary_elements_v =
-    has_to_binary_elements<_Type>::value;
-
-// has_fixed_element_size
-//   type trait: true if the container's value_type has a
-// compile-time known size suitable for binary layout.
-// Trivially copyable types always qualify; non-trivial
-// types qualify if they expose .byte_size().
-template<typename _Type>
-struct has_fixed_element_size
+struct has_encodable_elements
 {
     using clean_type = clean_t<_Type>;
     using elem_type  =
@@ -199,101 +154,91 @@ struct has_fixed_element_size
 
     static constexpr bool value =
         ( std::is_trivially_copyable_v<elem_type> ||
-          internal::elem_has_byte_size<
+          internal::elem_has_encode<
               elem_type>::value );
 };
 
 template<typename _Type>
-inline constexpr bool has_fixed_element_size_v =
-    has_fixed_element_size<_Type>::value;
+inline constexpr bool has_encodable_elements_v =
+    has_encodable_elements<_Type>::value;
 
-// is_element_binary_capable
-//   type trait: true if the container's value_type can be
-// written to binary via any mechanism (trivially copyable,
-// .serialize(), or .to_binary()).
+// has_decodable_elements
+//   type trait: trivially copyable or has decode().
 template<typename _Type>
-struct is_element_binary_capable
+struct has_decodable_elements
+{
+    using clean_type = clean_t<_Type>;
+    using elem_type  =
+        internal::binary_safe_value_type_t<clean_type>;
+
+    static constexpr bool value =
+        ( std::is_trivially_copyable_v<elem_type> ||
+          internal::elem_has_decode<
+              elem_type>::value );
+};
+
+template<typename _Type>
+inline constexpr bool has_decodable_elements_v =
+    has_decodable_elements<_Type>::value;
+
+
+// =============================================================================
+// III. Bulk Detection
+// =============================================================================
+
+// has_resize_method
+D_TYPE_TRAIT_TRUE(has_resize_method,
+    decltype(std::declval<_Type&>().resize(
+        std::declval<std::size_t>())))
+
+// is_bulk_encodable
+//   type trait: data() + size() + trivially copyable.
+template<typename _Type>
+struct is_bulk_encodable
 {
     using clean_type = clean_t<_Type>;
 
     static constexpr bool value =
-        ( has_trivially_copyable_elements_v<
-              clean_type>                       ||
-          has_serializable_elements_v<clean_type> ||
-          has_to_binary_elements_v<clean_type> );
+        ( has_data_accessor_v<clean_type>            &&
+          has_size_accessor_v<clean_type>            &&
+          has_trivially_copyable_elements_v<
+              clean_type> );
 };
 
 template<typename _Type>
-inline constexpr bool is_element_binary_capable_v =
-    is_element_binary_capable<_Type>::value;
+inline constexpr bool is_bulk_encodable_v =
+    is_bulk_encodable<_Type>::value;
+
+// is_bulk_decodable
+//   type trait: data() + resize() + trivially copyable.
+template<typename _Type>
+struct is_bulk_decodable
+{
+    using clean_type = clean_t<_Type>;
+
+    static constexpr bool value =
+        ( has_data_accessor_v<clean_type>            &&
+          has_resize_method_v<clean_type>            &&
+          has_trivially_copyable_elements_v<
+              clean_type> );
+};
+
+template<typename _Type>
+inline constexpr bool is_bulk_decodable_v =
+    is_bulk_decodable<_Type>::value;
 
 
 // =============================================================================
-// II.  Container-Level Binary Detection
+// IV.  Type Info Integration
 // =============================================================================
-
-// has_serialize_method
-//   type trait: true if container has a
-// .serialize(char*, size_t) member function.
-D_TYPE_TRAIT_TRUE(has_serialize_method,
-    decltype(std::declval<const _Type&>().serialize(
-        std::declval<char*>(),
-        std::declval<std::size_t>())))
-
-// has_to_binary_method
-//   type trait: true if container has a .to_binary() member
-// function returning a byte representation.
-D_TYPE_TRAIT_TRUE(has_to_binary_method,
-    decltype(std::declval<const _Type&>().to_binary()))
-
-// has_from_binary_method
-//   type trait: true if container has a static
-// .from_binary(const char*, size_t) factory method.
-D_TYPE_TRAIT_TRUE(has_from_binary_method,
-    decltype(_Type::from_binary(
-        std::declval<const char*>(),
-        std::declval<std::size_t>())))
-
-// has_deserialize_method
-//   type trait: true if container has a
-// .deserialize(const char*, size_t) member function.
-D_TYPE_TRAIT_TRUE(has_deserialize_method,
-    decltype(std::declval<_Type&>().deserialize(
-        std::declval<const char*>(),
-        std::declval<std::size_t>())))
-
-// has_byte_size_method
-//   type trait: true if container has a .byte_size() member
-// returning the serialized size in bytes.
-D_TYPE_TRAIT_TRUE(has_byte_size_method,
-    decltype(std::declval<const _Type&>().byte_size()))
-
-
-// =============================================================================
-// III. Type Info Integration Detection
-// =============================================================================
-// Containers that participate in the type_info system expose
-// a descriptor via one of:
-//   - static constexpr d_type_info16 type_descriptor
-//   - static constexpr d_type_info64 type_descriptor
-//   - static/member type_info() function
-//   - using type_info_type = d_type_info16 / d_type_info64
 
 D_TYPE_TRAIT_TRUE(has_type_descriptor_field,
     decltype(_Type::type_descriptor))
 
 D_TYPE_TRAIT_TRUE(has_type_info_method,
-    decltype(std::declval<const _Type&>().type_info()))
+    decltype(
+        std::declval<const _Type&>().type_info()))
 
-D_TYPE_TRAIT_TRUE(has_type_info_type,
-    typename _Type::type_info_type)
-
-D_TYPE_TRAIT_TRUE(has_static_type_info,
-    decltype(_Type::type_info()))
-
-// has_type_info_integration
-//   type trait: true if container exposes type_info metadata
-// through any supported mechanism.
 template<typename _Type>
 struct has_type_info_integration
 {
@@ -301,9 +246,7 @@ struct has_type_info_integration
 
     static constexpr bool value =
         ( has_type_descriptor_field_v<clean_type> ||
-          has_type_info_method_v<clean_type>      ||
-          has_type_info_type_v<clean_type>        ||
-          has_static_type_info_v<clean_type> );
+          has_type_info_method_v<clean_type> );
 };
 
 template<typename _Type>
@@ -312,291 +255,190 @@ inline constexpr bool has_type_info_integration_v =
 
 
 // =============================================================================
-// IV.  Contiguous Bulk Detection
+// V.   Strategy Classification
 // =============================================================================
-// The fastest binary path: when a container stores trivially
-// copyable elements in contiguous memory, the entire data
-// region can be written with a single memcpy.
 
-// is_bulk_binary_capable
-//   type trait: true if the container can be serialized as a
-// single contiguous block of bytes.
-// Requirements:
-//   1. Contiguous storage (has data() accessor).
-//   2. Has size() accessor.
-//   3. Elements are trivially copyable.
-template<typename _Type>
-struct is_bulk_binary_capable
+// --- encode strategy ---
+
+enum class DBinaryEncodeStrategy
 {
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_data_accessor_v<clean_type>                &&
-          has_size_accessor_v<clean_type>                &&
-          has_trivially_copyable_elements_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_bulk_binary_capable_v =
-    is_bulk_binary_capable<_Type>::value;
-
-
-// =============================================================================
-// V.   Binary Strategy Classification
-// =============================================================================
-
-// DBinaryStrategy
-//   enum: compile-time binary serialization strategy tags.
-enum class DBinaryStrategy
-{
-    // contiguous + trivially copyable — single memcpy
-    bulk,
-
-    // container has .serialize(char*, size_t) — delegate
-    native_serialize,
-
-    // container has .to_binary() — delegate
-    native_to_binary,
-
-    // iterable + trivially copyable elements — per-element
-    // memcpy
-    element_trivial,
-
-    // iterable + elements have .serialize()
-    element_serialize,
-
-    // iterable + elements have .to_binary()
-    element_to_binary,
-
-    // no binary path available
+    native,       // container has encode()
+    bulk,         // contiguous + trivially copyable
+    element,      // iterable + elements encodable
     unsupported
 };
 
 NS_INTERNAL
 
     template<typename _Type>
-    struct binary_strategy_impl
+    struct encode_strategy_impl
     {
-        using clean_type = clean_t<_Type>;
+        using C = clean_t<_Type>;
 
-        static constexpr DBinaryStrategy value =
+        static constexpr DBinaryEncodeStrategy value =
+            has_encode_method_v<C>
+                ? DBinaryEncodeStrategy::native
 
-            // tier 1: bulk memcpy
-            is_bulk_binary_capable_v<clean_type>
-                ? DBinaryStrategy::bulk
+            : is_bulk_encodable_v<C>
+                ? DBinaryEncodeStrategy::bulk
 
-            // tier 2: native container methods
-            : has_serialize_method_v<clean_type>
-                ? DBinaryStrategy::native_serialize
+            : ( is_iterable_container_v<C> &&
+                has_encodable_elements_v<C> )
+                ? DBinaryEncodeStrategy::element
 
-            : has_to_binary_method_v<clean_type>
-                ? DBinaryStrategy::native_to_binary
-
-            // tier 3: per-element iteration
-            : ( is_iterable_container_v<clean_type> &&
-                has_trivially_copyable_elements_v<
-                    clean_type> )
-                ? DBinaryStrategy::element_trivial
-
-            : ( is_iterable_container_v<clean_type> &&
-                has_serializable_elements_v<
-                    clean_type> )
-                ? DBinaryStrategy::element_serialize
-
-            : ( is_iterable_container_v<clean_type> &&
-                has_to_binary_elements_v<clean_type> )
-                ? DBinaryStrategy::element_to_binary
-
-            : DBinaryStrategy::unsupported;
+            : DBinaryEncodeStrategy::unsupported;
     };
 
 NS_END  // internal
 
-// container_binary_strategy
-//   type trait: determines the most efficient binary
-// serialization strategy for the given container type.
 template<typename _Type>
-struct container_binary_strategy
+struct container_encode_strategy
 {
-    static constexpr DBinaryStrategy value =
-        internal::binary_strategy_impl<_Type>::value;
+    static constexpr DBinaryEncodeStrategy value =
+        internal::encode_strategy_impl<_Type>::value;
 };
 
 template<typename _Type>
-inline constexpr DBinaryStrategy
-    container_binary_strategy_v =
-        container_binary_strategy<_Type>::value;
+inline constexpr DBinaryEncodeStrategy
+    container_encode_strategy_v =
+        container_encode_strategy<_Type>::value;
 
-// --- deserialization strategy ---
+// --- decode strategy ---
 
-// DBinaryDeserializeStrategy
-//   enum: compile-time binary deserialization strategy.
-enum class DBinaryDeserializeStrategy
+enum class DBinaryDecodeStrategy
 {
-    // contiguous + trivially copyable — bulk read
-    bulk,
-
-    // container has static from_binary() factory
-    native_factory,
-
-    // container has .deserialize() member
-    native_deserialize,
-
-    // no deserialization path available
+    native,       // container has static decode()
+    bulk,         // contiguous + resize + trivially copyable
+    element,      // output-capable + elements decodable
     unsupported
 };
 
 NS_INTERNAL
 
     template<typename _Type>
-    struct binary_deserialize_strategy_impl
+    struct decode_strategy_impl
     {
-        using clean_type = clean_t<_Type>;
+        using C = clean_t<_Type>;
 
-        static constexpr DBinaryDeserializeStrategy value =
-            is_bulk_binary_capable_v<clean_type>
-                ? DBinaryDeserializeStrategy::bulk
+        static constexpr DBinaryDecodeStrategy value =
+            has_decode_method_v<C>
+                ? DBinaryDecodeStrategy::native
 
-            : has_from_binary_method_v<clean_type>
-                ? DBinaryDeserializeStrategy::native_factory
+            : is_bulk_decodable_v<C>
+                ? DBinaryDecodeStrategy::bulk
 
-            : has_deserialize_method_v<clean_type>
-                ? DBinaryDeserializeStrategy::
-                      native_deserialize
+            : ( ( has_push_back_v<C> ||
+                  has_insert_v<C> )  &&
+                has_decodable_elements_v<C> )
+                ? DBinaryDecodeStrategy::element
 
-            : DBinaryDeserializeStrategy::unsupported;
+            : DBinaryDecodeStrategy::unsupported;
     };
 
 NS_END  // internal
 
-// container_binary_deserialize_strategy
-//   type trait: determines the best deserialization strategy.
 template<typename _Type>
-struct container_binary_deserialize_strategy
+struct container_decode_strategy
 {
-    static constexpr DBinaryDeserializeStrategy value =
-        internal::binary_deserialize_strategy_impl<
-            _Type>::value;
+    static constexpr DBinaryDecodeStrategy value =
+        internal::decode_strategy_impl<_Type>::value;
 };
 
 template<typename _Type>
-inline constexpr DBinaryDeserializeStrategy
-    container_binary_deserialize_strategy_v =
-        container_binary_deserialize_strategy<
-            _Type>::value;
+inline constexpr DBinaryDecodeStrategy
+    container_decode_strategy_v =
+        container_decode_strategy<_Type>::value;
 
 
 // =============================================================================
 // VI.  Convenience Predicates
 // =============================================================================
 
-// is_binary_serializable_container
-//   type trait: true if any serialization strategy is
-// available.
 template<typename _Type>
-struct is_binary_serializable_container
+struct is_binary_encodable
 {
     static constexpr bool value =
-        ( container_binary_strategy_v<_Type> !=
-          DBinaryStrategy::unsupported );
+        ( container_encode_strategy_v<_Type> !=
+          DBinaryEncodeStrategy::unsupported );
 };
 
 template<typename _Type>
-inline constexpr bool is_binary_serializable_container_v =
-    is_binary_serializable_container<_Type>::value;
+inline constexpr bool is_binary_encodable_v =
+    is_binary_encodable<_Type>::value;
 
-// is_binary_deserializable_container
-//   type trait: true if any deserialization strategy is
-// available.
 template<typename _Type>
-struct is_binary_deserializable_container
+struct is_binary_decodable
 {
     static constexpr bool value =
-        ( container_binary_deserialize_strategy_v<
-              _Type> !=
-          DBinaryDeserializeStrategy::unsupported );
+        ( container_decode_strategy_v<_Type> !=
+          DBinaryDecodeStrategy::unsupported );
 };
 
 template<typename _Type>
-inline constexpr bool
-    is_binary_deserializable_container_v =
-        is_binary_deserializable_container<
-            _Type>::value;
+inline constexpr bool is_binary_decodable_v =
+    is_binary_decodable<_Type>::value;
 
-// is_binary_round_trip_capable
-//   type trait: true if the container supports both
-// serialization and deserialization.
 template<typename _Type>
-struct is_binary_round_trip_capable
+struct is_binary_round_trip
 {
     static constexpr bool value =
-        ( is_binary_serializable_container_v<_Type> &&
-          is_binary_deserializable_container_v<_Type> );
+        ( is_binary_encodable_v<_Type> &&
+          is_binary_decodable_v<_Type> );
 };
 
 template<typename _Type>
-inline constexpr bool is_binary_round_trip_capable_v =
-    is_binary_round_trip_capable<_Type>::value;
+inline constexpr bool is_binary_round_trip_v =
+    is_binary_round_trip<_Type>::value;
 
 
 // =============================================================================
 // VII. Combined Classification
 // =============================================================================
 
-// container_binary_class
-//   struct: complete binary serialization classification.
-// All members are static constexpr.
 template<typename _Type>
 struct container_binary_class
 {
-    // element-level capabilities
-    static constexpr bool elements_trivially_copyable =
-        has_trivially_copyable_elements_v<_Type>;
-    static constexpr bool elements_serializable =
-        has_serializable_elements_v<_Type>;
-    static constexpr bool elements_to_binary =
-        has_to_binary_elements_v<_Type>;
-    static constexpr bool elements_fixed_size =
-        has_fixed_element_size_v<_Type>;
-    static constexpr bool elements_binary_capable =
-        is_element_binary_capable_v<_Type>;
-
-    // container-level capabilities
-    static constexpr bool has_serialize =
-        has_serialize_method_v<_Type>;
-    static constexpr bool has_to_binary =
-        has_to_binary_method_v<_Type>;
-    static constexpr bool has_from_binary =
-        has_from_binary_method_v<_Type>;
-    static constexpr bool has_deserialize =
-        has_deserialize_method_v<_Type>;
+    // container-level
+    static constexpr bool has_encode =
+        has_encode_method_v<_Type>;
+    static constexpr bool has_decode =
+        has_decode_method_v<_Type>;
     static constexpr bool has_byte_size =
         has_byte_size_method_v<_Type>;
-    static constexpr bool is_bulk_capable =
-        is_bulk_binary_capable_v<_Type>;
 
-    // type_info integration
+    // element-level
+    static constexpr bool elems_trivial =
+        has_trivially_copyable_elements_v<_Type>;
+    static constexpr bool elems_encodable =
+        has_encodable_elements_v<_Type>;
+    static constexpr bool elems_decodable =
+        has_decodable_elements_v<_Type>;
+
+    // bulk
+    static constexpr bool bulk_encodable =
+        is_bulk_encodable_v<_Type>;
+    static constexpr bool bulk_decodable =
+        is_bulk_decodable_v<_Type>;
+
+    // type info
     static constexpr bool has_type_info =
         has_type_info_integration_v<_Type>;
-    static constexpr bool has_type_descriptor =
-        has_type_descriptor_field_v<_Type>;
 
     // strategies
-    static constexpr DBinaryStrategy
-        serialize_strategy =
-            container_binary_strategy_v<_Type>;
-    static constexpr DBinaryDeserializeStrategy
-        deserialize_strategy =
-            container_binary_deserialize_strategy_v<
-                _Type>;
+    static constexpr DBinaryEncodeStrategy
+        encode_strategy =
+            container_encode_strategy_v<_Type>;
+    static constexpr DBinaryDecodeStrategy
+        decode_strategy =
+            container_decode_strategy_v<_Type>;
 
     // aggregate
-    static constexpr bool is_serializable =
-        is_binary_serializable_container_v<_Type>;
-    static constexpr bool is_deserializable =
-        is_binary_deserializable_container_v<_Type>;
+    static constexpr bool is_encodable =
+        is_binary_encodable_v<_Type>;
+    static constexpr bool is_decodable =
+        is_binary_decodable_v<_Type>;
     static constexpr bool is_round_trip =
-        is_binary_round_trip_capable_v<_Type>;
+        is_binary_round_trip_v<_Type>;
 };
 
 
