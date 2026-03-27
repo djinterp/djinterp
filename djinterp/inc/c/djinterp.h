@@ -286,6 +286,53 @@ Do something with this, either here or in env.h OR in dconfig.h
     #define D_NOINLINE
 #endif
 
+
+// D_NODISCARD
+//   Indicates that a function's return value should not be silently
+// discarded. The compiler will emit a warning (or error, depending
+// on settings) if the caller ignores the return value.
+//
+//   Resolution order:
+//     1. C++17  / C23  — [[nodiscard]] is standard.
+//     2. __has_cpp_attribute / __has_c_attribute — catches compilers
+//        that support the attribute before the standard mandates it.
+//     3. GCC / Clang — __attribute__((warn_unused_result)) in both
+//        C and C++ modes, all the way back to GCC 3.4 / Clang 3.0.
+//     4. Everything else — empty (no diagnostic, but no breakage).
+//
+//   Pre-definable: users may #define D_NODISCARD before including
+// this header to override the detected value.
+#ifndef D_NO_DISCARD
+    // ---- standard attribute form ----
+    #if defined(__cplusplus)
+        #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+            #define D_NO_DISCARD [[nodiscard]]
+        #elif defined(__has_cpp_attribute)
+            #if __has_cpp_attribute(nodiscard)
+                #define D_NO_DISCARD [[nodiscard]]
+            #endif
+        #endif
+    #else
+        #if D_ENV_LANG_IS_C23_OR_HIGHER
+            #define D_NO_DISCARD [[nodiscard]]
+        #elif defined(__has_c_attribute)
+            #if __has_c_attribute(nodiscard)
+                #define D_NO_DISCARD [[nodiscard]]
+            #endif
+        #endif
+    #endif  // __cplusplus
+
+    // ---- compiler-specific fallback ----
+    #ifndef D_NO_DISCARD
+        #if ( defined(D_ENV_COMPILER_GCC) ||  \
+              defined(D_ENV_COMPILER_CLANG) )
+            #define D_NO_DISCARD __attribute__((warn_unused_result))
+        #else
+            #define D_NO_DISCARD
+        #endif
+    #endif  // D_NO_DISCARD (fallback)
+#endif  // D_NO_DISCARD (outer guard)
+
 // D_STATIC
 //   Stripped when D_TESTING is defined, but only in C++ (where linkage can be
 //   worked around); retained in C to avoid duplicate-symbol errors across TUs.
