@@ -12,7 +12,7 @@
 * the current element type at compile time via chained template types.
 *
 * USAGE:
-*   auto result = d_fn_builder<int>::create()
+*   auto result = fn_builder<int>::create()
 *       .map([](int x) { return x * 2; })
 *       .filter([](int x) { return x > 10; })
 *       .map([](int x) { return std::to_string(x); })
@@ -46,7 +46,7 @@ NS_FUNCTIONAL
 ///             I.    FN_BUILDER CLASS                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_fn_builder
+// fn_builder
 //   class: fluent builder for constructing typed function chains.
 // _InputType is the type of the original input elements. _CurrentType is
 // the type of elements after all accumulated transformations. These may
