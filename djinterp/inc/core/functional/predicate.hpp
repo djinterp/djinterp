@@ -20,7 +20,7 @@
 *       predicate_and(is_small, is_prime));
 *
 * 
-* path:      /inc/core/functional/predicate.hpp
+* path:      /inc/functional/predicate.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
 ******************************************************************************/
@@ -32,7 +32,6 @@
 #include <type_traits>
 #include <utility>
 #include "../djinterp.hpp"
-#include "./functional.hpp"
 #include "./functional_traits.hpp"
 
 
