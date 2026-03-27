@@ -133,6 +133,53 @@
 #define D_CONSTEXPR_INLINE              D_CONSTEXPR D_INLINE
 #define D_STATIC_CONSTEXPR_INLINE       D_STATIC D_CONSTEXPR D_INLINE
 
+// D_NO_UNIQUE_ADDRESS
+//   Indicates that a non-static data member need not have an address
+// distinct from all other non-static data members of its class.
+// Allows the compiler to optimize empty members to occupy no space,
+// which is particularly useful for storing stateless allocators,
+// comparators, and policy objects.
+//
+//   Resolution order:
+//     1. C++20 — [[no_unique_address]] is standard.
+//     2. __has_cpp_attribute(no_unique_address) — catches compilers
+//        that support the attribute before the standard mandates it.
+//     3. MSVC — [[msvc::no_unique_address]] is used in place of the
+//        standard spelling; MSVC accepted the vendor-prefixed form
+//        before recognising the standard attribute.
+//     4. Everything else — empty (member occupies at least one byte,
+//        but no breakage).
+//
+//   Pre-definable: users may #define D_NO_UNIQUE_ADDRESS before
+// including this header to override the detected value.
+#ifndef D_NO_UNIQUE_ADDRESS
+    #if defined(__cplusplus)
+        #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+            #define D_NO_UNIQUE_ADDRESS [[no_unique_address]]
+        #elif defined(__has_cpp_attribute)
+            #if __has_cpp_attribute(no_unique_address)
+                #define D_NO_UNIQUE_ADDRESS [[no_unique_address]]
+            #endif
+        #endif
+
+        // ---- MSVC vendor-prefixed fallback ----
+        #ifndef D_NO_UNIQUE_ADDRESS
+            #if defined(D_ENV_COMPILER_MSVC)
+                #if defined(__has_cpp_attribute)
+                    #if __has_cpp_attribute(msvc::no_unique_address)
+                        #define D_NO_UNIQUE_ADDRESS \
+                            [[msvc::no_unique_address]]
+                    #endif
+                #endif
+            #endif
+        #endif  // D_NO_UNIQUE_ADDRESS (MSVC fallback)
+    #endif  // __cplusplus
+
+    // ---- no-op fallback ----
+    #ifndef D_NO_UNIQUE_ADDRESS
+        #define D_NO_UNIQUE_ADDRESS
+    #endif  // D_NO_UNIQUE_ADDRESS (final fallback)
+#endif  // D_NO_UNIQUE_ADDRESS (outer guard)
 
 NS_DJINTERP
 
