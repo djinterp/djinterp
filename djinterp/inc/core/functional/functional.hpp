@@ -32,31 +32,34 @@
 *   fn_builder.hpp                - fluent function chain builder
 *   filter.hpp                    - collection filtering framework
 *
-* TABLE OF CONTENTS (ALGORITHMS)
-* ==============================
-* I.    INTERNAL HELPERS
-* II.   MAP
-* III.  FILTER
-* IV.   FOLD / REDUCE
-* V.    SCAN (PREFIX FOLD)
-* VI.   FOR-EACH
-* VII.  QUANTIFIERS
-* VIII. SEARCHING AND COUNTING
-* IX.   ORDERING
-* X.    TAKE AND SKIP
-* XI.   FLAT-MAP AND ZIP
-* XII.  GROUP-BY AND PARTITION
-* XIII. DISTINCT AND REVERSE
-* XIV.  SLICE AND RANGE
 *
-*
-* path:      \inc\functional\functional.hpp
+* path:      /inc/functional/functional.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_HPP_
-#define DJINTERP_FUNCTIONAL_HPP_ 1
+/*
+TABLE OF CONTENTS (ALGORITHMS)
+==============================
+I.    INTERNAL HELPERS
+II.   MAP
+III.  FILTER
+IV.   FOLD / REDUCE
+V.    SCAN (PREFIX FOLD)
+VI.   FOR-EACH
+VII.  QUANTIFIERS
+VIII. SEARCHING AND COUNTING
+IX.   ORDERING
+X.    TAKE AND SKIP
+XI.   FLAT-MAP AND ZIP
+XII.  GROUP-BY AND PARTITION
+XIII. DISTINCT AND REVERSE
+XIV.  SLICE AND RANGE
+*/
+
+
+#ifndef DJINTERP_FUNCTIONAL_
+#define DJINTERP_FUNCTIONAL_ 1
 
 #include <algorithm>
 #include <cstddef>
@@ -67,49 +70,19 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "./djinterp.h"
-#include "./env.h"
-#include "./cpp_features.h"
-
-
-///////////////////////////////////////////////////////////////////////////////
-///        SUB-MODULE INCLUDES                                             ///
-///////////////////////////////////////////////////////////////////////////////
-
-// i.    STL backports and core utilities
-#include "./stl_functional.hpp"
-
-// ii.   type aliases, composition, logical combinators
-//       NOTE: renamed from functional.hpp to avoid collision with this
-//       root header.
+#include "../djinterp.hpp"
+// submodule includes
 #include "./functional_core.hpp"
-
-// iii.  SFINAE type traits
 #include "./functional_traits.hpp"
-
-// iv.   predicate combinators
-#include "./predicate_combinators.hpp"
-
-// v.    composition, partial application, memoization
+#include "./predicate.hpp"
 #include "./compose.hpp"
-
-// vi.   typed pipeline
 #include "./pipeline.hpp"
-
-// vii.  fluent function chain builder
 #include "./fn_builder.hpp"
-
-// viii. collection filtering framework
 #include "./filter.hpp"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        HIGHER-ORDER ALGORITHMS                                         ///
-///////////////////////////////////////////////////////////////////////////////
-
 NS_DJINTERP
 NS_FUNCTIONAL
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.    INTERNAL HELPERS                                      ///
@@ -120,48 +93,45 @@ NS_INTERNAL
     // has_begin_end
     //   helper: detects if a type has begin() and end() member
     // functions.
-    template<typename _Container, typename = void>
+    template<typename _Container,
+             typename = void>
     struct has_begin_end : std::false_type
-    {
-    };
+    {};
 
     template<typename _Container>
     struct has_begin_end<_Container,
         void_t<decltype(std::begin(std::declval<_Container&>())),
                decltype(std::end(std::declval<_Container&>()))>>
         : std::true_type
-    {
-    };
+    {};
 
     // has_push_back
     //   helper: detects if a type has push_back().
-    template<typename _Container, typename = void>
+    template<typename _Container,
+             typename = void>
     struct has_push_back : std::false_type
-    {
-    };
+    {};
 
     template<typename _Container>
     struct has_push_back<_Container,
         void_t<decltype(std::declval<_Container&>().push_back(
             std::declval<typename _Container::value_type>()))>>
         : std::true_type
-    {
-    };
+    {};
 
     // has_reserve
     //   helper: detects if a type has reserve().
-    template<typename _Container, typename = void>
+    template<typename _Container,
+             typename = void>
     struct has_reserve : std::false_type
-    {
-    };
+    {};
 
     template<typename _Container>
     struct has_reserve<_Container,
         void_t<decltype(std::declval<_Container&>().reserve(
             std::declval<std::size_t>()))>>
         : std::true_type
-    {
-    };
+    {};
 
     // container_value_type
     //   helper: extracts value_type from a container or iterator
@@ -182,8 +152,7 @@ NS_INTERNAL
     template<typename _Container>
     typename std::enable_if<!has_reserve<_Container>::value>::type
     maybe_reserve(_Container&, std::size_t)
-    {
-    }
+    {}
 
 NS_END  // internal
 
@@ -202,11 +171,13 @@ template<typename _Container,
          typename _ResultType = callable_result_t<_Fn, const _ValueType&>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_callable<_Fn, const _ValueType&>::value
-         >::type>
+             is_callable<_Fn, const _ValueType&>::value>::type>
 D_NODISCARD
 std::vector<_ResultType>
-map(const _Container& _input, _Fn&& _fn)
+map(
+    const _Container& _input,
+    _Fn&& _fn
+)
 {
     std::vector<_ResultType> result;
 
@@ -229,11 +200,14 @@ template<typename _InputIt,
          typename _ValueType  = typename std::iterator_traits<_InputIt>::value_type,
          typename _ResultType = callable_result_t<_Fn, const _ValueType&>,
          typename = typename std::enable_if<
-             is_callable<_Fn, const _ValueType&>::value
-         >::type>
+             is_callable<_Fn, const _ValueType&>::value>::type>
 D_NODISCARD
 std::vector<_ResultType>
-map(_InputIt _first, _InputIt _last, _Fn&& _fn)
+map(
+    _InputIt _first,
+    _InputIt _last,
+    _Fn&&    _fn
+)
 {
     std::vector<_ResultType> result;
 
@@ -258,7 +232,11 @@ template<typename _Type,
          >::type>
 D_NODISCARD
 std::vector<_ResultType>
-map(const _Type* _data, std::size_t _count, _Fn&& _fn)
+map(
+    const _Type* _data,
+    std::size_t _count, 
+    _Fn&&       _fn
+)
 {
     std::vector<_ResultType> result;
 
@@ -282,7 +260,10 @@ template<typename _Container,
              is_callable<_Fn, _ValueType&>::value
          >::type>
 void
-map_in_place(_Container& _input, _Fn&& _fn)
+map_in_place(
+    _Container& _input,
+    _Fn&& _fn
+)
 {
     for (auto& element : _input)
     {
@@ -301,21 +282,23 @@ map_in_place(_Container& _input, _Fn&& _fn)
 //   function: returns a new vector containing only elements for
 // which the predicate returns true.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
-         >::type>
+             is_predicate<_Predicate, const _ValueType&>::value>::type>
 D_NODISCARD
 std::vector<_ValueType>
-filter(const _Container& _input, _Pred&& _pred)
+filter(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     std::vector<_ValueType> result;
 
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             result.push_back(element);
         }
@@ -327,20 +310,24 @@ filter(const _Container& _input, _Pred&& _pred)
 // filter (iterator range -> vector)
 //   function: filters elements in [first, last) by predicate.
 template<typename _InputIt,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = typename std::iterator_traits<_InputIt>::value_type,
          typename = typename std::enable_if<
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-filter(_InputIt _first, _InputIt _last, _Pred&& _pred)
+filter(
+    _InputIt _first,
+    _InputIt _last,
+    _Predicate&& _predicate
+)
 {
     std::vector<_ValueType> result;
 
     for (auto it = _first; it != _last; ++it)
     {
-        if (std::forward<_Pred>(_pred)(*it))
+        if (std::forward<_Predicate>(_predicate)(*it))
         {
             result.push_back(*it);
         }
@@ -352,19 +339,23 @@ filter(_InputIt _first, _InputIt _last, _Pred&& _pred)
 // filter (raw array -> vector)
 //   function: filters elements of a C-style array by predicate.
 template<typename _Type,
-         typename _Pred,
+         typename _Predicate,
          typename = typename std::enable_if<
-             is_predicate<_Pred, const _Type&>::value
+             is_predicate<_Predicate, const _Type&>::value
          >::type>
 D_NODISCARD
 std::vector<_Type>
-filter(const _Type* _data, std::size_t _count, _Pred&& _pred)
+filter(
+    const _Type* _data,
+    std::size_t _count,
+    _Predicate&& _predicate
+)
 {
     std::vector<_Type> result;
 
     for (std::size_t i = 0; i < _count; ++i)
     {
-        if (std::forward<_Pred>(_pred)(_data[i]))
+        if (std::forward<_Predicate>(_predicate)(_data[i]))
         {
             result.push_back(_data[i]);
         }
@@ -377,20 +368,23 @@ filter(const _Type* _data, std::size_t _count, _Pred&& _pred)
 //   function: returns elements for which the predicate returns
 // false.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-filter_not(const _Container& _input, _Pred&& _pred)
+filter_not(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     return filter(_input,
-                  [&_pred](const _ValueType& _e)
+                  [&_predicate](const _ValueType& _e)
                   {
-                      return !_pred(_e);
+                      return !_predicate(_e);
                   });
 }
 
@@ -412,9 +406,11 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 _Acc
-fold_left(const _Container& _input,
-          _Acc              _init,
-          _Fn&&             _fn)
+fold_left(
+    const _Container& _input,
+    _Acc              _init,
+    _Fn&&             _fn
+)
 {
     for (const auto& element : _input)
     {
@@ -436,10 +432,11 @@ template<typename _InputIt,
          >::type>
 D_NODISCARD
 _Acc
-fold_left(_InputIt _first,
-          _InputIt _last,
-          _Acc     _init,
-          _Fn&&    _fn)
+fold_left(
+    _InputIt _first,
+    _InputIt _last,
+    _Acc     _init,
+    _Fn&&    _fn)
 {
     for (auto it = _first; it != _last; ++it)
     {
@@ -464,9 +461,10 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 _Acc
-fold_right(const _Container& _input,
-           _Acc              _init,
-           _Fn&&             _fn)
+fold_right(
+    const _Container& _input,
+    _Acc              _init,
+    _Fn&&             _fn)
 {
     auto it = std::end(_input);
     auto bg = std::begin(_input);
@@ -493,7 +491,10 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 _ValueType
-reduce(const _Container& _input, _Fn&& _fn)
+reduce(
+    const _Container& _input,
+    _Fn&& _fn
+)
 {
     auto it  = std::begin(_input);
     auto end = std::end(_input);
@@ -521,9 +522,11 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 _ValueType
-reduce(const _Container& _input,
-       _ValueType        _init,
-       _Fn&&             _fn)
+reduce(
+    const _Container& _input,
+    _ValueType        _init,
+    _Fn&&             _fn
+)
 {
     return fold_left(_input, std::move(_init), std::forward<_Fn>(_fn));
 }
@@ -547,9 +550,11 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::vector<_Acc>
-scan(const _Container& _input,
-     _Acc              _init,
-     _Fn&&             _fn)
+scan(
+    const _Container& _input,
+    _Acc              _init,
+    _Fn&&             _fn
+)
 {
     std::vector<_Acc> result;
 
@@ -585,7 +590,10 @@ template<typename _Container,
              is_callable<_Fn, _ValueType&>::value
          >::type>
 void
-for_each(_Container& _input, _Fn&& _fn)
+for_each(
+    _Container& _input,
+    _Fn&& _fn
+)
 {
     for (auto& element : _input)
     {
@@ -605,7 +613,10 @@ template<typename _Container,
              is_callable<_Fn, const _ValueType&>::value
          >::type>
 void
-for_each_const(const _Container& _input, _Fn&& _fn)
+for_each_const(
+    const _Container& _input,
+    _Fn&& _fn
+)
 {
     for (const auto& element : _input)
     {
@@ -626,7 +637,10 @@ template<typename _Container,
              is_callable<_Fn, std::size_t, const _ValueType&>::value
          >::type>
 void
-for_each_indexed(const _Container& _input, _Fn&& _fn)
+for_each_indexed(
+    const _Container& _input,
+    _Fn&& _fn
+)
 {
     std::size_t index = 0;
 
@@ -648,19 +662,22 @@ for_each_indexed(const _Container& _input, _Fn&& _fn)
 //   function: returns true if any element satisfies the predicate.
 // Short-circuits on first match.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 bool
-any(const _Container& _input, _Pred&& _pred)
+any(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             return true;
         }
@@ -673,19 +690,22 @@ any(const _Container& _input, _Pred&& _pred)
 //   function: returns true if all elements satisfy the predicate.
 // Short-circuits on first failure.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 bool
-all(const _Container& _input, _Pred&& _pred)
+all(
+    const _Container& _input,
+    _Predicate&& _predicate
+)
 {
     for (const auto& element : _input)
     {
-        if (!std::forward<_Pred>(_pred)(element))
+        if (!std::forward<_Predicate>(_predicate)(element))
         {
             return false;
         }
@@ -698,17 +718,20 @@ all(const _Container& _input, _Pred&& _pred)
 //   function: returns true if no element satisfies the predicate.
 // Short-circuits on first match.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 bool
-none(const _Container& _input, _Pred&& _pred)
+none(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
-    return !any(_input, std::forward<_Pred>(_pred));
+    return !any(_input, std::forward<_Predicate>(_predicate));
 }
 
 
@@ -719,21 +742,24 @@ none(const _Container& _input, _Pred&& _pred)
 // count_if (container)
 //   function: counts elements satisfying the predicate.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::size_t
-count_if(const _Container& _input, _Pred&& _pred)
+count_if(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     std::size_t result = 0;
 
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             ++result;
         }
@@ -746,19 +772,22 @@ count_if(const _Container& _input, _Pred&& _pred)
 //   function: returns a pointer to the first element satisfying
 // the predicate, or nullptr if none found.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 const _ValueType*
-find_if(const _Container& _input, _Pred&& _pred)
+find_if(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             return &element;
         }
@@ -771,20 +800,23 @@ find_if(const _Container& _input, _Pred&& _pred)
 //   function: returns a mutable pointer to the first matching
 // element.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<_Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<_Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value &&
+             is_predicate<_Predicate, const _ValueType&>::value &&
              !std::is_const<_Container>::value
          >::type>
 D_NODISCARD
 _ValueType*
-find_if(_Container& _input, _Pred&& _pred)
+find_if(
+    _Container&  _input,
+    _Predicate&& _predicate
+)
 {
     for (auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             return &element;
         }
@@ -797,21 +829,24 @@ find_if(_Container& _input, _Pred&& _pred)
 //   function: returns a pointer to the last element satisfying
 // the predicate, or nullptr if none found.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 const _ValueType*
-find_last(const _Container& _input, _Pred&& _pred)
+find_last(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     const _ValueType* found = nullptr;
 
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             found = &element;
         }
@@ -824,21 +859,24 @@ find_last(const _Container& _input, _Pred&& _pred)
 //   function: returns the index of the first element satisfying
 // the predicate, or npos (size_t max) if none found.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::size_t
-index_of(const _Container& _input, _Pred&& _pred)
+index_of(
+    const _Container& _input,
+    _Predicate&& _predicate
+)
 {
     std::size_t idx = 0;
 
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             return idx;
         }
@@ -853,22 +891,25 @@ index_of(const _Container& _input, _Pred&& _pred)
 //   function: returns the index of the last element satisfying
 // the predicate, or npos (size_t max) if none found.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::size_t
-last_index_of(const _Container& _input, _Pred&& _pred)
+last_index_of(
+    const _Container& _input,
+    _Predicate&& _predicate
+)
 {
     std::size_t found = static_cast<std::size_t>(-1);
     std::size_t idx   = 0;
 
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             found = idx;
         }
@@ -896,7 +937,10 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 bool
-is_sorted(const _Container& _input, _Compare&& _cmp)
+is_sorted
+(
+    const _Container& _input,
+    _Compare&&        _cmp)
 {
     auto it  = std::begin(_input);
     auto end = std::end(_input);
@@ -932,7 +976,9 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 bool
-is_sorted(const _Container& _input)
+is_sorted(
+    const _Container& _input
+)
 {
     return is_sorted(_input,
                      [](const _ValueType& _a, const _ValueType& _b)
@@ -977,21 +1023,24 @@ take(const _Container& _input, std::size_t _n)
 // take_while (container)
 //   function: takes elements while the predicate is true.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-take_while(const _Container& _input, _Pred&& _pred)
+take_while(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     std::vector<_ValueType> result;
 
     for (const auto& element : _input)
     {
-        if (!std::forward<_Pred>(_pred)(element))
+        if (!std::forward<_Predicate>(_predicate)(element))
         {
             break;
         }
@@ -1011,7 +1060,10 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-skip(const _Container& _input, std::size_t _n)
+skip(
+    const _Container& _input,
+    std::size_t _n
+)
 {
     std::vector<_ValueType> result;
     std::size_t             count = 0;
@@ -1033,22 +1085,25 @@ skip(const _Container& _input, std::size_t _n)
 //   function: skips elements while the predicate is true, then
 // takes the rest.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-skip_while(const _Container& _input, _Pred&& _pred)
+skip_while(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     std::vector<_ValueType> result;
     bool                    skipping = true;
 
     for (const auto& element : _input)
     {
-        if (skipping && std::forward<_Pred>(_pred)(element))
+        if (skipping && std::forward<_Predicate>(_predicate)(element))
         {
             continue;
         }
@@ -1080,7 +1135,10 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::vector<_ResultType>
-flat_map(const _Container& _input, _Fn&& _fn)
+flat_map(
+    const _Container& _input,
+    _Fn&&             _fn
+)
 {
     std::vector<_ResultType> result;
 
@@ -1114,9 +1172,11 @@ template<typename _Container1,
          >::type>
 D_NODISCARD
 std::vector<_ResultType>
-zip_with(const _Container1& _input1,
-         const _Container2& _input2,
-         _Fn&&              _fn)
+zip_with(
+    const _Container1& _input1,
+    const _Container2& _input2,
+    _Fn&&              _fn
+)
 {
     std::vector<_ResultType> result;
 
@@ -1147,8 +1207,10 @@ template<typename _Container1,
          >::type>
 D_NODISCARD
 std::vector<std::pair<_Value1, _Value2>>
-zip(const _Container1& _input1,
-    const _Container2& _input2)
+zip(
+    const _Container1& _input1,
+    const _Container2& _input2
+)
 {
     return zip_with(_input1, _input2,
                     [](const _Value1& _a, const _Value2& _b)
@@ -1175,7 +1237,10 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::map<_KeyType, std::vector<_ValueType>>
-group_by(const _Container& _input, _KeyFn&& _key_fn)
+group_by(
+    const _Container& _input,
+    _KeyFn&&          _key_fn
+)
 {
     std::map<_KeyType, std::vector<_ValueType>> result;
 
@@ -1191,22 +1256,25 @@ group_by(const _Container& _input, _KeyFn&& _key_fn)
 //   function: splits elements into two vectors: those that pass
 // and those that fail the predicate.
 template<typename _Container,
-         typename _Pred,
+         typename _Predicate,
          typename _ValueType = internal::container_value_type<const _Container>,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
-             is_predicate<_Pred, const _ValueType&>::value
+             is_predicate<_Predicate, const _ValueType&>::value
          >::type>
 D_NODISCARD
 std::pair<std::vector<_ValueType>, std::vector<_ValueType>>
-partition(const _Container& _input, _Pred&& _pred)
+partition(
+    const _Container& _input,
+    _Predicate&&      _predicate
+)
 {
     std::vector<_ValueType> pass;
     std::vector<_ValueType> fail;
 
     for (const auto& element : _input)
     {
-        if (std::forward<_Pred>(_pred)(element))
+        if (std::forward<_Predicate>(_predicate)(element))
         {
             pass.push_back(element);
         }
@@ -1235,7 +1303,10 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-distinct(const _Container& _input, _Eq&& _eq)
+distinct(
+    const _Container& _input,
+    _Eq&&             _eq
+)
 {
     std::vector<_ValueType> result;
 
@@ -1270,7 +1341,9 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-distinct(const _Container& _input)
+distinct(
+    const _Container& _input
+)
 {
     return distinct(_input,
                     [](const _ValueType& _a, const _ValueType& _b)
@@ -1312,10 +1385,12 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-slice(const _Container& _input,
-      std::size_t       _start,
-      std::size_t       _end,
-      std::size_t       _step = 1)
+slice(
+    const _Container& _input,
+    std::size_t       _start,
+    std::size_t       _end,
+    std::size_t       _step = 1
+)
 {
     std::vector<_ValueType> result;
     std::size_t             idx = 0;
@@ -1353,9 +1428,11 @@ template<typename _Container,
          >::type>
 D_NODISCARD
 std::vector<_ValueType>
-range(const _Container& _input,
-      std::size_t       _start,
-      std::size_t       _end)
+range(
+    const _Container& _input,
+    std::size_t       _start,
+    std::size_t       _end
+)
 {
     return slice(_input, _start, _end, 1);
 }
@@ -1365,4 +1442,4 @@ NS_END  // functional
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_HPP_
+#endif  // DJINTERP_FUNCTIONAL_
