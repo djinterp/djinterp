@@ -58,17 +58,21 @@ struct chunk_ref
     std::size_t  size;
 
     constexpr const _Type&
-    operator[](std::size_t _i) const noexcept
+    operator[](
+        std::size_t _i
+    ) const noexcept
     {
         return data[_i];
     }
 
-    constexpr const _Type* begin() const noexcept
+    constexpr const _Type* 
+    begin() const noexcept
     {
         return data;
     }
 
-    constexpr const _Type* end() const noexcept
+    constexpr const _Type*
+    end() const noexcept
     {
         return data + size;
     }
@@ -103,25 +107,25 @@ public:
     using difference_type   = std::ptrdiff_t;
     using pointer           = const _Type*;
     using reference         = const _Type&;
-    using iterator_category =
-        std::random_access_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
 
     constexpr circular_iterator() noexcept
-        : m_base(nullptr)
-        , m_capacity(0)
-        , m_head(0)
-        , m_index(0)
+        : m_base(nullptr),
+          m_capacity(0),
+          m_head(0),
+          m_index(0)
     {}
 
     constexpr circular_iterator(
         const _Type* _base,
         std::size_t  _capacity,
         std::size_t  _head,
-        std::size_t  _index) noexcept
-        : m_base(_base)
-        , m_capacity(_capacity)
-        , m_head(_head)
-        , m_index(_index)
+        std::size_t  _index
+    ) noexcept
+        : m_base(_base),
+          m_capacity(_capacity),
+          m_head(_head),
+          m_index(_index)
     {}
 
     // --- dereference ---
@@ -139,12 +143,11 @@ public:
     }
 
     constexpr reference
-    operator[](difference_type _n) const noexcept
+    operator[](
+        difference_type _n
+    ) const noexcept
     {
-        std::size_t idx =
-            (m_head + m_index +
-             static_cast<std::size_t>(_n))
-            % m_capacity;
+        std::size_t idx = (m_head + m_index) + (static_cast<std::size_t>(_n)) % m_capacity;
 
         return m_base[idx];
     }
@@ -155,6 +158,7 @@ public:
     operator++() noexcept
     {
         ++m_index;
+
         return *this;
     }
 
@@ -163,6 +167,7 @@ public:
     {
         auto tmp = *this;
         ++m_index;
+
         return tmp;
     }
 
@@ -170,6 +175,7 @@ public:
     operator--() noexcept
     {
         --m_index;
+
         return *this;
     }
 
@@ -178,102 +184,126 @@ public:
     {
         auto tmp = *this;
         --m_index;
+
         return tmp;
     }
 
     // --- arithmetic ---
 
     constexpr circular_iterator&
-    operator+=(difference_type _n) noexcept
+    operator+=(
+        difference_type _n
+    ) noexcept
     {
         m_index += static_cast<std::size_t>(_n);
         return *this;
     }
 
     constexpr circular_iterator&
-    operator-=(difference_type _n) noexcept
+    operator-=(
+        difference_type _n
+    ) noexcept
     {
         m_index -= static_cast<std::size_t>(_n);
+
         return *this;
     }
 
     friend constexpr circular_iterator
-    operator+(circular_iterator _it,
-              difference_type   _n) noexcept
+    operator+(
+        circular_iterator _iterator,
+        difference_type   _n
+    ) noexcept
     {
-        _it.m_index +=
+        _iterator.m_index +=
             static_cast<std::size_t>(_n);
-        return _it;
+        return _iterator;
     }
 
     friend constexpr circular_iterator
-    operator+(difference_type   _n,
-              circular_iterator _it) noexcept
+    operator+(
+        difference_type   _n,
+        circular_iterator _iterator
+    ) noexcept
     {
-        _it.m_index +=
+        _iterator.m_index +=
             static_cast<std::size_t>(_n);
-        return _it;
+        return _iterator;
     }
 
     friend constexpr circular_iterator
-    operator-(circular_iterator _it,
-              difference_type   _n) noexcept
+    operator-(
+        circular_iterator _iterator,
+        difference_type   _n
+    ) noexcept
     {
-        _it.m_index -=
-            static_cast<std::size_t>(_n);
-        return _it;
+        _iterator.m_index -= static_cast<std::size_t>(_n);
+
+        return _iterator;
     }
 
     friend constexpr difference_type
-    operator-(circular_iterator _a,
-              circular_iterator _b) noexcept
+    operator-(
+        circular_iterator _a,
+        circular_iterator _b
+    ) noexcept
     {
-        return static_cast<difference_type>(
-            _a.m_index) -
-               static_cast<difference_type>(
-                   _b.m_index);
+        return static_cast<difference_type>(_a.m_index) -
+               static_cast<difference_type>(_b.m_index);
     }
 
     // --- comparison ---
 
     friend constexpr bool
-    operator==(circular_iterator _a,
-               circular_iterator _b) noexcept
+    operator==(
+        circular_iterator _a,
+        circular_iterator _b
+    ) noexcept
     {
         return (_a.m_index == _b.m_index);
     }
 
     friend constexpr bool
-    operator!=(circular_iterator _a,
-               circular_iterator _b) noexcept
+    operator!=(
+        circular_iterator _a,
+        circular_iterator _b
+    ) noexcept
     {
         return (_a.m_index != _b.m_index);
     }
 
     friend constexpr bool
-    operator<(circular_iterator _a,
-              circular_iterator _b) noexcept
+    operator<(
+        circular_iterator _a,
+        circular_iterator _b
+    ) noexcept
     {
         return (_a.m_index < _b.m_index);
     }
 
     friend constexpr bool
-    operator<=(circular_iterator _a,
-               circular_iterator _b) noexcept
+    operator<=(
+        circular_iterator _a,
+        circular_iterator _b
+    ) noexcept
     {
         return (_a.m_index <= _b.m_index);
     }
 
     friend constexpr bool
-    operator>(circular_iterator _a,
-              circular_iterator _b) noexcept
+    operator>(
+        circular_iterator _a,
+        circular_iterator _b
+    ) noexcept
     {
         return (_a.m_index > _b.m_index);
     }
 
     friend constexpr bool
-    operator>=(circular_iterator _a,
-               circular_iterator _b) noexcept
+    operator>=(
+        circular_iterator _a,
+        circular_iterator _b
+    ) noexcept
     {
         return (_a.m_index >= _b.m_index);
     }
@@ -313,64 +343,58 @@ private:
 // chunks of _chunk_size elements.  The last chunk may
 // be smaller.
 
-template<typename _Iter>
+template<typename _Iterator>
 class chunk_iterator
 {
 public:
-    using base_value_type =
-        typename std::iterator_traits<
-            _Iter>::value_type;
-    using value_type      =
-        chunk_ref<base_value_type>;
-    using difference_type = std::ptrdiff_t;
-    using reference       = value_type;
-    using pointer         = const value_type*;
-    using iterator_category =
-        std::forward_iterator_tag;
+    using base_value_type   = typename std::iterator_traits<_Iterator>::value_type;
+    using value_type        = chunk_ref<base_value_type>;
+    using difference_type   = std::ptrdiff_t;
+    using reference         = value_type;
+    using pointer           = const value_type*;
+    using iterator_category = std::forward_iterator_tag;
 
     constexpr chunk_iterator() noexcept
-        : m_current()
-        , m_end()
-        , m_chunk_size(0)
+        : m_current(),
+          m_end(),
+          m_chunk_size(0)
     {}
 
     constexpr chunk_iterator(
-        _Iter       _current,
-        _Iter       _end,
-        std::size_t _chunk_size) noexcept
-        : m_current(_current)
-        , m_end(_end)
-        , m_chunk_size(_chunk_size)
+        _Iterator       _current,
+        _Iterator       _end,
+        std::size_t _chunk_size
+    ) noexcept
+        : m_current(_current),
+          m_end(_end),
+          m_chunk_size(_chunk_size)
     {}
 
     constexpr value_type
     operator*() const noexcept
     {
-        std::size_t remaining =
-            static_cast<std::size_t>(
-                m_end - m_current);
+        std::size_t remaining = static_cast<std::size_t>(m_end - m_current);
 
-        std::size_t actual =
-            (remaining < m_chunk_size)
-                ? remaining : m_chunk_size;
+        std::size_t actual = (remaining < m_chunk_size)
+                                 ? remaining 
+                                 : m_chunk_size;
 
-        return { &(*m_current), actual };
+        return 
+        {
+            &(*m_current), actual
+        };
     }
 
     constexpr chunk_iterator&
     operator++() noexcept
     {
-        std::size_t remaining =
-            static_cast<std::size_t>(
-                m_end - m_current);
+        std::size_t remaining = static_cast<std::size_t>(m_end - m_current);
 
-        std::size_t advance =
-            (remaining < m_chunk_size)
-                ? remaining : m_chunk_size;
+        std::size_t advance = (remaining < m_chunk_size)
+                                  ? remaining
+                                  : m_chunk_size;
 
-        m_current += static_cast<
-            typename std::iterator_traits<
-                _Iter>::difference_type>(advance);
+        m_current += static_cast<typename std::iterator_traits<_Iterator>::difference_type>(advance);
 
         return *this;
     }
@@ -380,24 +404,30 @@ public:
     {
         auto tmp = *this;
         ++(*this);
+
         return tmp;
     }
 
     friend constexpr bool
-    operator==(chunk_iterator _a,
-               chunk_iterator _b) noexcept
+    operator==(
+        chunk_iterator _a,
+        chunk_iterator _b
+    ) noexcept
     {
         return (_a.m_current == _b.m_current);
     }
 
     friend constexpr bool
-    operator!=(chunk_iterator _a,
-               chunk_iterator _b) noexcept
+    operator!=(
+        chunk_iterator _a,
+        chunk_iterator _b
+    ) noexcept
     {
         return (_a.m_current != _b.m_current);
     }
 
-    constexpr _Iter base() const noexcept
+    constexpr _Iterator 
+    base() const noexcept
     {
         return m_current;
     }
@@ -409,8 +439,8 @@ public:
     }
 
 private:
-    _Iter       m_current;
-    _Iter       m_end;
+    _Iterator       m_current;
+    _Iterator       m_end;
     std::size_t m_chunk_size;
 };
 
@@ -422,54 +452,53 @@ private:
 // yielding overlapping sub-ranges.  Advances by 1 element
 // per increment.
 
-template<typename _Iter>
+template<typename _Iterator>
 class window_iterator
 {
 public:
-    using base_value_type =
-        typename std::iterator_traits<
-            _Iter>::value_type;
-    using value_type      =
-        window_ref<base_value_type>;
-    using difference_type = std::ptrdiff_t;
-    using reference       = value_type;
-    using pointer         = const value_type*;
-    using iterator_category =
-        std::forward_iterator_tag;
+    using base_value_type   = typename std::iterator_traits<_Iterator>::value_type;
+    using value_type        = window_ref<base_value_type>;
+    using difference_type   = std::ptrdiff_t;
+    using reference         = value_type;
+    using pointer           = const value_type*;
+    using iterator_category = std::forward_iterator_tag;
 
     constexpr window_iterator() noexcept
-        : m_current()
-        , m_end()
-        , m_window_size(0)
+        : m_current(),
+          m_end(),
+          m_window_size(0)
     {}
 
     constexpr window_iterator(
-        _Iter       _current,
-        _Iter       _end,
-        std::size_t _window_size) noexcept
-        : m_current(_current)
-        , m_end(_end)
-        , m_window_size(_window_size)
+        _Iterator   _current,
+        _Iterator   _end,
+        std::size_t _window_size
+    ) noexcept
+        : m_current(_current),
+          m_end(_end),
+          m_window_size(_window_size)
     {}
 
     constexpr value_type
     operator*() const noexcept
     {
-        std::size_t remaining =
-            static_cast<std::size_t>(
-                m_end - m_current);
+        std::size_t remaining = static_cast<std::size_t>(m_end - m_current);
 
-        std::size_t actual =
-            (remaining < m_window_size)
-                ? remaining : m_window_size;
+        std::size_t actual = (remaining < m_window_size)
+                                ? remaining 
+                                : m_window_size;
 
-        return { &(*m_current), actual };
+        return 
+        { 
+            &(*m_current), actual 
+        };
     }
 
     constexpr window_iterator&
     operator++() noexcept
     {
         ++m_current;
+
         return *this;
     }
 
@@ -478,24 +507,29 @@ public:
     {
         auto tmp = *this;
         ++m_current;
+
         return tmp;
     }
 
     friend constexpr bool
-    operator==(window_iterator _a,
-               window_iterator _b) noexcept
+    operator==(
+        window_iterator _a,
+        window_iterator _b
+    ) noexcept
     {
         return (_a.m_current == _b.m_current);
     }
 
     friend constexpr bool
-    operator!=(window_iterator _a,
-               window_iterator _b) noexcept
+    operator!=(
+        window_iterator _a,
+        window_iterator _b
+    ) noexcept
     {
         return (_a.m_current != _b.m_current);
     }
 
-    constexpr _Iter base() const noexcept
+    constexpr _Iterator base() const noexcept
     {
         return m_current;
     }
@@ -507,8 +541,8 @@ public:
     }
 
 private:
-    _Iter       m_current;
-    _Iter       m_end;
+    _Iterator   m_current;
+    _Iterator   m_end;
     std::size_t m_window_size;
 };
 
@@ -524,74 +558,68 @@ make_circular_iterator(
     const _Type* _base,
     std::size_t  _capacity,
     std::size_t  _head,
-    std::size_t  _index) noexcept
+    std::size_t  _index
+) noexcept
 {
-    return circular_iterator<_Type>(
-        _base, _capacity, _head, _index);
+    return circular_iterator<_Type>(_base, _capacity, _head, _index);
 }
 
 // make_chunk_iterator
-template<typename _Iter>
-constexpr chunk_iterator<_Iter>
+template<typename _Iterator>
+constexpr chunk_iterator<_Iterator>
 make_chunk_iterator(
-    _Iter       _begin,
-    _Iter       _end,
-    std::size_t _chunk_size) noexcept
+    _Iterator   _begin,
+    _Iterator   _end,
+    std::size_t _chunk_size
+) noexcept
 {
-    return chunk_iterator<_Iter>(
-        _begin, _end, _chunk_size);
+    return chunk_iterator<_Iterator>(_begin, _end, _chunk_size);
 }
 
 // make_chunk_end
-template<typename _Iter>
-constexpr chunk_iterator<_Iter>
+template<typename _Iterator>
+constexpr chunk_iterator<_Iterator>
 make_chunk_end(
-    _Iter       _end,
-    std::size_t _chunk_size) noexcept
+    _Iterator   _end,
+    std::size_t _chunk_size
+) noexcept
 {
-    return chunk_iterator<_Iter>(
-        _end, _end, _chunk_size);
+    return chunk_iterator<_Iterator>(_end, _end, _chunk_size);
 }
 
 // make_window_iterator
-template<typename _Iter>
-constexpr window_iterator<_Iter>
+template<typename _Iterator>
+constexpr window_iterator<_Iterator>
 make_window_iterator(
-    _Iter       _begin,
-    _Iter       _end,
-    std::size_t _window_size) noexcept
+    _Iterator   _begin,
+    _Iterator   _end,
+    std::size_t _window_size
+) noexcept
 {
-    return window_iterator<_Iter>(
-        _begin, _end, _window_size);
+    return window_iterator<_Iterator>(_begin, _end, _window_size);
 }
 
 // make_window_end
 //   the end iterator is positioned so that the last full
 // window's first element is at (end - window_size + 1).
-template<typename _Iter>
-constexpr window_iterator<_Iter>
+template<typename _Iterator>
+constexpr window_iterator<_Iterator>
 make_window_end(
-    _Iter       _begin,
-    _Iter       _end,
-    std::size_t _window_size) noexcept
+    _Iterator   _begin,
+    _Iterator   _end,
+    std::size_t _window_size
+) noexcept
 {
-    auto dist = static_cast<std::size_t>(
-        _end - _begin);
+    auto dist = static_cast<std::size_t>(_end - _begin);
 
     if (dist < _window_size)
     {
-        return window_iterator<_Iter>(
-            _end, _end, _window_size);
+        return window_iterator<_Iterator>(_end, _end, _window_size);
     }
 
-    auto last_start = _begin +
-        static_cast<
-            typename std::iterator_traits<
-                _Iter>::difference_type>(
-                    dist - _window_size + 1);
+    auto last_start = _begin + static_cast<typename std::iterator_traits<_Iterator>::difference_type>(dist - _window_size + 1);
 
-    return window_iterator<_Iter>(
-        last_start, _end, _window_size);
+    return window_iterator<_Iterator>(last_start, _end, _window_size);
 }
 
 

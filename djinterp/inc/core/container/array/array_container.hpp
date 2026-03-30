@@ -53,7 +53,7 @@
 #include <type_traits>
 #include <utility>
 #include "..\djinterp.hpp"
-#include "sequential_container.hpp"
+#include "../sequential_container.hpp"
 #include "array_iterator.hpp"
 #include "meta\array_container_traits.hpp"
 
@@ -102,12 +102,9 @@ public:
     // derived container exposes capacity().
     template<typename D = _Derived>
     constexpr auto byte_capacity() const noexcept
-        -> typename std::enable_if<
-               traits::has_capacity_method_v<D>,
-               std::size_t>::type
+        -> typename std::enable_if<traits::has_capacity_method_v<D>, std::size_t>::type
     {
-        return self().capacity()
-               * sizeof(value_type);
+        return self().capacity() * sizeof(value_type);
     }
 
     // utilization
@@ -385,20 +382,17 @@ template<typename _Container>
 class chunk_view
 {
 public:
-    using value_type =
-        typename _Container::value_type;
-    using base_iter =
-        decltype(std::cbegin(
-            std::declval<const _Container&>()));
-    using const_iterator =
-        chunk_iterator<base_iter>;
-    using size_type = std::size_t;
+    using value_type     = typename _Container::value_type;
+    using base_iter      = decltype(std::cbegin(std::declval<const _Container&>()));
+    using const_iterator = chunk_iterator<base_iter>;
+    using size_type      = std::size_t;
 
     constexpr chunk_view(
         const _Container& _c,
-        size_type         _chunk_sz) noexcept
-        : m_ref(_c)
-        , m_chunk_sz(_chunk_sz)
+        size_type         _chunk_sz
+    ) noexcept
+        : m_ref(_c),
+          m_chunk_sz(_chunk_sz)
     {}
 
     constexpr const_iterator
@@ -424,7 +418,7 @@ public:
         size_type sz = m_ref.size();
 
         return (m_chunk_sz > 0)
-            ? ((sz + m_chunk_sz - 1) / m_chunk_sz)
+            ? ( (sz + m_chunk_sz - 1) / m_chunk_sz )
             : 0;
     }
 
