@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                           enum_map.hpp
+* djinterp [container]                                            enum_map.hpp
 *
 * Enum-keyed map container.
 *   A map whose key type is constrained to be an enumeration (scoped or
