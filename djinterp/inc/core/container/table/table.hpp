@@ -14,6 +14,20 @@
 *   - TYPED COLUMNS (heterogeneous — forward declared):
 *       typed_table<10, int, double>     // 10 rows, typed columns
 *
+*   CONFIG FEATURES (all tagless — detected via SFINAE):
+*     header_rows/cols:      header regions at top/left
+*     header_depth:          multi-level hierarchical headers
+*     multi_header:          column grouping descriptors (level/col/col_span)
+*     footer_rows/cols:      footer regions at bottom/right
+*     total_rows/cols:       summary/totals rows/columns
+*     total_row_position:    totals placement (before_data or after_data)
+*     total_col_position:    totals column placement
+*     spans:                 cell-level merge descriptors
+*     splits:                cell-level split descriptors
+*     partitions:            logical sub-regions
+*     col_merges/col_splits: structural column merge/split
+*     row_merges/row_splits: structural row merge/split
+*
 *   CONTAINER_TRAITS CLASSIFICATION (auto-detected):
 *     Lifetime:    immutable (fixed structure, mutable cell values)
 *     Bounds:      bounded (constexpr fixed size)
@@ -629,6 +643,35 @@ NS_CONTAINER
             return get_footer_cols<_Config>::value;
         }
 
+        // header_depth
+        //   function: returns the number of hierarchical header levels.
+        static D_CONSTEXPR size_type header_depth() noexcept
+        {
+            return get_header_depth<_Config>::value;
+        }
+
+        // total_row_position
+        //   function: returns the total row placement indicator.
+        static D_CONSTEXPR size_type total_row_position() noexcept
+        {
+            return get_total_row_position<_Config>::value;
+        }
+
+        // total_col_position
+        //   function: returns the total column placement indicator.
+        static D_CONSTEXPR size_type total_col_position() noexcept
+        {
+            return get_total_col_position<_Config>::value;
+        }
+
+        // has_multi_level_header
+        //   function: returns whether the config defines multi-level
+        // headers.
+        static D_CONSTEXPR bool has_multi_level_header() noexcept
+        {
+            return container::has_multi_level_header<_Config>::value;
+        }
+
         // data_row_start
         //   function: returns the first data row index.
         static D_CONSTEXPR size_type data_row_start() noexcept
@@ -662,6 +705,76 @@ NS_CONTAINER
         static D_CONSTEXPR size_type data_cells() noexcept
         {
             return dimensions::data_cells;
+        }
+
+
+        // =================================================================
+        //  partition accessors
+        // =================================================================
+
+        // partition_count
+        //   function: returns the number of partition descriptors.
+        static D_CONSTEXPR size_type partition_count() noexcept
+        {
+            return dimensions::partition_count;
+        }
+
+        // has_partitions
+        //   function: returns whether the config defines any partitions.
+        static D_CONSTEXPR bool has_partitions() noexcept
+        {
+            return (dimensions::partition_count > 0);
+        }
+
+
+        // =================================================================
+        //  structural column/row merge and split accessors
+        // =================================================================
+
+        // col_merge_count
+        //   function: returns the number of structural column merges.
+        static D_CONSTEXPR size_type col_merge_count() noexcept
+        {
+            return dimensions::col_merge_count;
+        }
+
+        // col_split_count
+        //   function: returns the number of structural column splits.
+        static D_CONSTEXPR size_type col_split_count() noexcept
+        {
+            return dimensions::col_split_count;
+        }
+
+        // row_merge_count
+        //   function: returns the number of structural row merges.
+        static D_CONSTEXPR size_type row_merge_count() noexcept
+        {
+            return dimensions::row_merge_count;
+        }
+
+        // row_split_count
+        //   function: returns the number of structural row splits.
+        static D_CONSTEXPR size_type row_split_count() noexcept
+        {
+            return dimensions::row_split_count;
+        }
+
+        // has_structural_merges
+        //   function: returns whether the config defines any structural
+        // column or row merges.
+        static D_CONSTEXPR bool has_structural_merges() noexcept
+        {
+            return ( (dimensions::col_merge_count > 0) ||
+                     (dimensions::row_merge_count > 0) );
+        }
+
+        // has_structural_splits
+        //   function: returns whether the config defines any structural
+        // column or row splits.
+        static D_CONSTEXPR bool has_structural_splits() noexcept
+        {
+            return ( (dimensions::col_split_count > 0) ||
+                     (dimensions::row_split_count > 0) );
         }
 
 
@@ -1127,6 +1240,21 @@ NS_CONTAINER
         // layout
         static constexpr bool has_merged_cells = false;
         static constexpr bool has_split_cells  = false;
+
+        // multi-level header
+        static constexpr bool        has_multi_level    = false;
+        static constexpr std::size_t header_depth_value = 0;
+
+        // partitions
+        static constexpr bool        has_table_partitions = false;
+        static constexpr std::size_t partition_count      = 0;
+
+        // structural column/row merges and splits
+        static constexpr bool        has_structural_features = false;
+        static constexpr std::size_t col_merge_count  = 0;
+        static constexpr std::size_t col_split_count  = 0;
+        static constexpr std::size_t row_merge_count  = 0;
+        static constexpr std::size_t row_split_count  = 0;
     };
 
     // table_class (specialization)
@@ -1162,6 +1290,21 @@ NS_CONTAINER
         // layout (from config classification)
         static constexpr bool has_merged_cells = cc::has_merged_cells;
         static constexpr bool has_split_cells  = cc::has_split_cells;
+
+        // multi-level header
+        static constexpr bool        has_multi_level    = cc::has_multi_level;
+        static constexpr std::size_t header_depth_value = cc::header_depth;
+
+        // partitions
+        static constexpr bool        has_table_partitions = cc::has_table_partitions;
+        static constexpr std::size_t partition_count      = cc::partition_count;
+
+        // structural column/row merges and splits
+        static constexpr bool        has_structural_features = cc::has_structural_features;
+        static constexpr std::size_t col_merge_count  = cc::col_merge_count;
+        static constexpr std::size_t col_split_count  = cc::col_split_count;
+        static constexpr std::size_t row_merge_count  = cc::row_merge_count;
+        static constexpr std::size_t row_split_count  = cc::row_split_count;
 
         // config detail
         static constexpr bool        has_regions    = cc::has_regions;
