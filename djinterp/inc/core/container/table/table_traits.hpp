@@ -161,6 +161,46 @@ NS_CONTAINER
         template<typename _S> using detect_split_sub_rows = decltype(_S::sub_rows);
         template<typename _S> using detect_split_sub_cols = decltype(_S::sub_cols);
 
+
+        // -----------------------------------------------------------------
+        //  multi-header entry member detectors
+        // -----------------------------------------------------------------
+        template<typename _E> using detect_mh_level    = decltype(_E::level);
+        template<typename _E> using detect_mh_col      = decltype(_E::col);
+        template<typename _E> using detect_mh_col_span = decltype(_E::col_span);
+
+        // -----------------------------------------------------------------
+        //  partition member detectors
+        // -----------------------------------------------------------------
+        template<typename _P> using detect_part_row_start = decltype(_P::row_start);
+        template<typename _P> using detect_part_col_start = decltype(_P::col_start);
+        template<typename _P> using detect_part_row_count = decltype(_P::row_count);
+        template<typename _P> using detect_part_col_count = decltype(_P::col_count);
+
+        // -----------------------------------------------------------------
+        //  column merge member detectors
+        // -----------------------------------------------------------------
+        template<typename _M> using detect_col_merge_col   = decltype(_M::col);
+        template<typename _M> using detect_col_merge_count = decltype(_M::count);
+
+        // -----------------------------------------------------------------
+        //  column split member detectors
+        // -----------------------------------------------------------------
+        template<typename _S> using detect_col_split_col      = decltype(_S::col);
+        template<typename _S> using detect_col_split_sub_cols = decltype(_S::sub_cols);
+
+        // -----------------------------------------------------------------
+        //  row merge member detectors
+        // -----------------------------------------------------------------
+        template<typename _M> using detect_row_merge_row   = decltype(_M::row);
+        template<typename _M> using detect_row_merge_count = decltype(_M::count);
+
+        // -----------------------------------------------------------------
+        //  row split member detectors
+        // -----------------------------------------------------------------
+        template<typename _S> using detect_row_split_row      = decltype(_S::row);
+        template<typename _S> using detect_row_split_sub_rows = decltype(_S::sub_rows);
+
     NS_END  // internal
 
 
@@ -204,6 +244,27 @@ NS_CONTAINER
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template <typename _Config>
     constexpr std::size_t get_header_cols_v = get_header_cols<_Config>::value;
+#endif
+
+    // get_header_depth
+    //   trait: extracts header_depth from config. Defaults to header_rows
+    // when not explicitly specified (each header row is its own level).
+    template <typename _Config,
+              bool     _Has = internal::is_detected<internal::detect_header_depth, _Config>::value>
+    struct get_header_depth
+        : std::integral_constant<std::size_t, get_header_rows<_Config>::value>
+    {
+    };
+
+    template <typename _Config>
+    struct get_header_depth<_Config, true>
+        : std::integral_constant<std::size_t, _Config::header_depth>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template <typename _Config>
+    constexpr std::size_t get_header_depth_v = get_header_depth<_Config>::value;
 #endif
 
     // get_footer_rows
@@ -321,6 +382,198 @@ NS_CONTAINER
     using get_splits_t = typename get_splits<_Config>::type;
 
 
+    // -----------------------------------------------------------------
+    //  total positioning
+    // -----------------------------------------------------------------
+
+    // total_row_placement
+    //   enum: identifies placement of total rows relative to the data
+    // region. Values are integer-compatible for tagless config usage.
+    enum class total_row_placement : std::size_t
+    {
+        after_data  = 0,
+        before_data = 1
+    };
+
+    // total_col_placement
+    //   enum: identifies placement of total columns relative to the
+    // data region.
+    enum class total_col_placement : std::size_t
+    {
+        after_data  = 0,
+        before_data = 1
+    };
+
+    // get_total_row_position
+    //   trait: extracts total_row_position from config. Defaults to
+    // after_data (0) when absent, placing totals between data and footer.
+    template <typename _Config,
+              bool     _Has = internal::is_detected<internal::detect_total_row_position, _Config>::value>
+    struct get_total_row_position
+        : std::integral_constant<std::size_t,
+            static_cast<std::size_t>(total_row_placement::after_data)>
+    {
+    };
+
+    template <typename _Config>
+    struct get_total_row_position<_Config, true>
+        : std::integral_constant<std::size_t, _Config::total_row_position>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template <typename _Config>
+    constexpr std::size_t get_total_row_position_v =
+        get_total_row_position<_Config>::value;
+#endif
+
+    // get_total_col_position
+    //   trait: extracts total_col_position from config. Defaults to
+    // after_data (0) when absent.
+    template <typename _Config,
+              bool     _Has = internal::is_detected<internal::detect_total_col_position, _Config>::value>
+    struct get_total_col_position
+        : std::integral_constant<std::size_t,
+            static_cast<std::size_t>(total_col_placement::after_data)>
+    {
+    };
+
+    template <typename _Config>
+    struct get_total_col_position<_Config, true>
+        : std::integral_constant<std::size_t, _Config::total_col_position>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template <typename _Config>
+    constexpr std::size_t get_total_col_position_v =
+        get_total_col_position<_Config>::value;
+#endif
+
+
+    // -----------------------------------------------------------------
+    //  multi-header, partition, and structural merge/split extraction
+    // -----------------------------------------------------------------
+
+    // get_multi_header
+    //   trait: extracts multi_header tuple from config, defaulting to
+    // empty tuple. Each element is a header group descriptor with
+    // level/col/col_span members.
+    template<typename _Config,
+             bool     _Has = internal::is_detected<internal::detect_multi_header, _Config>::value>
+    struct get_multi_header
+    {
+        using type = std::tuple<>;
+    };
+
+    template<typename _Config>
+    struct get_multi_header<_Config, true>
+    {
+        using type = typename _Config::multi_header;
+    };
+
+    template<typename _Config>
+    using get_multi_header_t = typename get_multi_header<_Config>::type;
+
+    // get_partitions
+    //   trait: extracts partitions tuple from config, defaulting to
+    // empty tuple. Each element is a partition descriptor with
+    // row_start/col_start/row_count/col_count members.
+    template<typename _Config,
+             bool     _Has = internal::is_detected<internal::detect_partitions, _Config>::value>
+    struct get_partitions
+    {
+        using type = std::tuple<>;
+    };
+
+    template<typename _Config>
+    struct get_partitions<_Config, true>
+    {
+        using type = typename _Config::partitions;
+    };
+
+    template<typename _Config>
+    using get_partitions_t = typename get_partitions<_Config>::type;
+
+    // get_col_merges
+    //   trait: extracts col_merges tuple from config, defaulting to
+    // empty tuple. Each element has col/count members describing a
+    // structural column merge.
+    template<typename _Config,
+             bool     _Has = internal::is_detected<internal::detect_col_merges, _Config>::value>
+    struct get_col_merges
+    {
+        using type = std::tuple<>;
+    };
+
+    template<typename _Config>
+    struct get_col_merges<_Config, true>
+    {
+        using type = typename _Config::col_merges;
+    };
+
+    template<typename _Config>
+    using get_col_merges_t = typename get_col_merges<_Config>::type;
+
+    // get_col_splits
+    //   trait: extracts col_splits tuple from config, defaulting to
+    // empty tuple. Each element has col/sub_cols members describing a
+    // structural column split.
+    template<typename _Config,
+             bool     _Has = internal::is_detected<internal::detect_col_splits, _Config>::value>
+    struct get_col_splits
+    {
+        using type = std::tuple<>;
+    };
+
+    template<typename _Config>
+    struct get_col_splits<_Config, true>
+    {
+        using type = typename _Config::col_splits;
+    };
+
+    template<typename _Config>
+    using get_col_splits_t = typename get_col_splits<_Config>::type;
+
+    // get_row_merges
+    //   trait: extracts row_merges tuple from config, defaulting to
+    // empty tuple. Each element has row/count members.
+    template<typename _Config,
+             bool     _Has = internal::is_detected<internal::detect_row_merges, _Config>::value>
+    struct get_row_merges
+    {
+        using type = std::tuple<>;
+    };
+
+    template<typename _Config>
+    struct get_row_merges<_Config, true>
+    {
+        using type = typename _Config::row_merges;
+    };
+
+    template<typename _Config>
+    using get_row_merges_t = typename get_row_merges<_Config>::type;
+
+    // get_row_splits
+    //   trait: extracts row_splits tuple from config, defaulting to
+    // empty tuple. Each element has row/sub_rows members.
+    template<typename _Config,
+             bool     _Has = internal::is_detected<internal::detect_row_splits, _Config>::value>
+    struct get_row_splits
+    {
+        using type = std::tuple<>;
+    };
+
+    template<typename _Config>
+    struct get_row_splits<_Config, true>
+    {
+        using type = typename _Config::row_splits;
+    };
+
+    template<typename _Config>
+    using get_row_splits_t = typename get_row_splits<_Config>::type;
+
+
     // =========================================================================
     // IV.  FEATURE DETECTION TRAITS
     // =========================================================================
@@ -403,6 +656,51 @@ NS_CONTAINER
     constexpr bool has_total_cols_v = has_total_cols<_Config>::value;
 #endif
 
+    // has_multi_level_header
+    //   trait: true if config specifies header_depth > 1, or provides a
+    // multi_header type alias, indicating hierarchical header structure.
+    template <typename _Config>
+    struct has_multi_level_header
+        : std::integral_constant<bool,
+            ( (get_header_depth<_Config>::value > 1) ||
+              internal::is_detected<internal::detect_multi_header, _Config>::value )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template <typename _Config>
+    constexpr bool has_multi_level_header_v =
+        has_multi_level_header<_Config>::value;
+#endif
+
+    // has_custom_total_row_position
+    //   trait: true if config specifies a total_row_position member.
+    template <typename _Config>
+    struct has_custom_total_row_position
+        : internal::is_detected<internal::detect_total_row_position, _Config>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template <typename _Config>
+    constexpr bool has_custom_total_row_position_v =
+        has_custom_total_row_position<_Config>::value;
+#endif
+
+    // has_custom_total_col_position
+    //   trait: true if config specifies a total_col_position member.
+    template <typename _Config>
+    struct has_custom_total_col_position
+        : internal::is_detected<internal::detect_total_col_position, _Config>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template <typename _Config>
+    constexpr bool has_custom_total_col_position_v =
+        has_custom_total_col_position<_Config>::value;
+#endif
+
     // has_spans
     //   trait: true if config specifies any merged cell spans.
     template<typename _Config>
@@ -429,6 +727,90 @@ NS_CONTAINER
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
     constexpr bool has_splits_v = has_splits<_Config>::value;
+#endif
+
+    // has_multi_header
+    //   trait: true if config specifies any multi-header group entries.
+    template<typename _Config>
+    struct has_multi_header
+        : std::integral_constant<bool,
+            (std::tuple_size<get_multi_header_t<_Config>>::value > 0)>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Config>
+    constexpr bool has_multi_header_v = has_multi_header<_Config>::value;
+#endif
+
+    // has_partitions
+    //   trait: true if config specifies any partition descriptors.
+    template<typename _Config>
+    struct has_partitions
+        : std::integral_constant<bool,
+            (std::tuple_size<get_partitions_t<_Config>>::value > 0)>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Config>
+    constexpr bool has_partitions_v = has_partitions<_Config>::value;
+#endif
+
+    // has_col_merges
+    //   trait: true if config specifies any structural column merges.
+    template<typename _Config>
+    struct has_col_merges
+        : std::integral_constant<bool,
+            (std::tuple_size<get_col_merges_t<_Config>>::value > 0)>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Config>
+    constexpr bool has_col_merges_v = has_col_merges<_Config>::value;
+#endif
+
+    // has_col_splits
+    //   trait: true if config specifies any structural column splits.
+    template<typename _Config>
+    struct has_col_splits
+        : std::integral_constant<bool,
+            (std::tuple_size<get_col_splits_t<_Config>>::value > 0)>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Config>
+    constexpr bool has_col_splits_v = has_col_splits<_Config>::value;
+#endif
+
+    // has_row_merges
+    //   trait: true if config specifies any structural row merges.
+    template<typename _Config>
+    struct has_row_merges
+        : std::integral_constant<bool,
+            (std::tuple_size<get_row_merges_t<_Config>>::value > 0)>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Config>
+    constexpr bool has_row_merges_v = has_row_merges<_Config>::value;
+#endif
+
+    // has_row_splits
+    //   trait: true if config specifies any structural row splits.
+    template<typename _Config>
+    struct has_row_splits
+        : std::integral_constant<bool,
+            (std::tuple_size<get_row_splits_t<_Config>>::value > 0)>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Config>
+    constexpr bool has_row_splits_v = has_row_splits<_Config>::value;
 #endif
 
     // is_config_type
@@ -997,6 +1379,516 @@ NS_CONTAINER
 
 
     // =========================================================================
+
+
+    // =========================================================================
+    // V.d  MULTI-HEADER TRAITS
+    // =========================================================================
+    //
+    // Multi-level headers model hierarchical column groupings as found in
+    // academic and financial tables. A multi-header entry is a user-defined
+    // struct with level/col/col_span members identifying which header level
+    // (row) a group occupies and how many columns it spans.
+    //
+    //   struct elasticity_group {
+    //       static constexpr std::size_t level    = 1;
+    //       static constexpr std::size_t col      = 2;
+    //       static constexpr std::size_t col_span = 3;
+    //   };
+    //   struct my_config {
+    //       static constexpr std::size_t header_rows  = 3;
+    //       static constexpr std::size_t header_depth = 3;
+    //       using multi_header = std::tuple<elasticity_group>;
+    //   };
+    //
+
+    // is_multi_header_entry
+    //   trait: true if type has level/col/col_span members, identifying
+    // it as a multi-header group descriptor.
+    template<typename _Type>
+    struct is_multi_header_entry
+        : std::integral_constant<bool,
+            ( internal::is_detected<internal::detect_mh_level,    _Type>::value &&
+              internal::is_detected<internal::detect_mh_col,      _Type>::value &&
+              internal::is_detected<internal::detect_mh_col_span, _Type>::value )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_multi_header_entry_v =
+        is_multi_header_entry<_Type>::value;
+#endif
+
+    // get_mh_level
+    //   trait: extracts level from a multi-header entry.
+    template<typename _Entry,
+             bool     _Has = internal::is_detected<internal::detect_mh_level, _Entry>::value>
+    struct get_mh_level : std::integral_constant<std::size_t, 0>
+    {
+    };
+
+    template<typename _Entry>
+    struct get_mh_level<_Entry, true>
+        : std::integral_constant<std::size_t, _Entry::level>
+    {
+    };
+
+    // get_mh_col
+    //   trait: extracts col from a multi-header entry.
+    template<typename _Entry,
+             bool     _Has = internal::is_detected<internal::detect_mh_col, _Entry>::value>
+    struct get_mh_col : std::integral_constant<std::size_t, 0>
+    {
+    };
+
+    template<typename _Entry>
+    struct get_mh_col<_Entry, true>
+        : std::integral_constant<std::size_t, _Entry::col>
+    {
+    };
+
+    // get_mh_col_span
+    //   trait: extracts col_span from a multi-header entry.
+    template<typename _Entry,
+             bool     _Has = internal::is_detected<internal::detect_mh_col_span, _Entry>::value>
+    struct get_mh_col_span : std::integral_constant<std::size_t, 1>
+    {
+    };
+
+    template<typename _Entry>
+    struct get_mh_col_span<_Entry, true>
+        : std::integral_constant<std::size_t, _Entry::col_span>
+    {
+    };
+
+    // mh_entry_contains_col
+    //   trait: true if a column falls within a multi-header entry's span.
+    template<std::size_t _Col,
+             typename    _Entry>
+    struct mh_entry_contains_col
+        : std::integral_constant<bool,
+            ( (_Col >= get_mh_col<_Entry>::value) &&
+              (_Col <  get_mh_col<_Entry>::value + get_mh_col_span<_Entry>::value) )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<std::size_t _Col, typename _Entry>
+    constexpr bool mh_entry_contains_col_v =
+        mh_entry_contains_col<_Col, _Entry>::value;
+#endif
+
+    // mh_entry_matches_level
+    //   trait: true if a multi-header entry is at the specified level.
+    template<std::size_t _Level,
+             typename    _Entry>
+    struct mh_entry_matches_level
+        : std::integral_constant<bool,
+            (_Level == get_mh_level<_Entry>::value)>
+    {
+    };
+
+    NS_INTERNAL
+
+        // find_mh_at_level_col
+        //   trait: finds the multi-header entry at a given level that
+        // contains a specific column.
+        template<std::size_t _Level,
+                 std::size_t _Col,
+                 typename    _Entries>
+        struct find_mh_at_level_col;
+
+        // find_mh_at_level_col (base case)
+        //   trait: empty tuple — no match.
+        template<std::size_t _Level,
+                 std::size_t _Col>
+        struct find_mh_at_level_col<_Level, _Col, std::tuple<>>
+        {
+            using type                  = void;
+            static constexpr bool found = false;
+        };
+
+        // find_mh_at_level_col (recursive case)
+        //   trait: checks head, recurses on tail.
+        template<std::size_t _Level,
+                 std::size_t _Col,
+                 typename    _Head,
+                 typename... _Tail>
+        struct find_mh_at_level_col<_Level, _Col, std::tuple<_Head, _Tail...>>
+        {
+        private:
+            static constexpr bool match =
+                ( mh_entry_matches_level<_Level, _Head>::value &&
+                  mh_entry_contains_col<_Col, _Head>::value );
+            using rest = find_mh_at_level_col<_Level, _Col,
+                                               std::tuple<_Tail...>>;
+
+        public:
+            using type = typename std::conditional<
+                match, _Head, typename rest::type>::type;
+
+            static constexpr bool found = (match || rest::found);
+        };
+
+    NS_END  // internal
+
+    // header_cell_group
+    //   trait: finds the multi-header group entry covering a given
+    // header level and column. Provides the entry type, whether a
+    // match was found, and the group's col_span.
+    template<std::size_t _Level,
+             std::size_t _Col,
+             typename    _Config>
+    struct header_cell_group
+    {
+    private:
+        using entries = get_multi_header_t<_Config>;
+        using result  = internal::find_mh_at_level_col<_Level, _Col, entries>;
+
+    public:
+        using type = typename result::type;
+
+        static constexpr bool found = result::found;
+
+        static constexpr std::size_t col_span =
+            result::found
+                ? get_mh_col_span<typename result::type>::value
+                : 1;
+    };
+
+
+    // =========================================================================
+    // V.e  PARTITION TRAITS
+    // =========================================================================
+    //
+    // Partitions define logical sub-regions within a table. A partition
+    // descriptor is a user-defined struct with row_start/col_start/
+    // row_count/col_count members.
+    //
+
+    // is_partition_type
+    //   trait: true if type has row_start/col_start/row_count/col_count
+    // members, identifying it as a partition descriptor.
+    template<typename _Type>
+    struct is_partition_type
+        : std::integral_constant<bool,
+            ( internal::is_detected<internal::detect_part_row_start, _Type>::value &&
+              internal::is_detected<internal::detect_part_col_start, _Type>::value &&
+              internal::is_detected<internal::detect_part_row_count, _Type>::value &&
+              internal::is_detected<internal::detect_part_col_count, _Type>::value )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_partition_type_v = is_partition_type<_Type>::value;
+#endif
+
+    // partition_contains
+    //   trait: true if a cell at (_Row, _Col) falls within a partition.
+    template<std::size_t _Row,
+             std::size_t _Col,
+             typename    _Part>
+    struct partition_contains
+        : std::integral_constant<bool,
+            ( (_Row >= _Part::row_start) &&
+              (_Row <  _Part::row_start + _Part::row_count) &&
+              (_Col >= _Part::col_start) &&
+              (_Col <  _Part::col_start + _Part::col_count) )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<std::size_t _Row, std::size_t _Col, typename _Part>
+    constexpr bool partition_contains_v =
+        partition_contains<_Row, _Col, _Part>::value;
+#endif
+
+    NS_INTERNAL
+
+        // find_cell_partition
+        //   trait: finds the partition containing a cell, returning its
+        // zero-based index.
+        template<std::size_t _Row,
+                 std::size_t _Col,
+                 std::size_t _Index,
+                 typename    _Parts>
+        struct find_cell_partition;
+
+        // find_cell_partition (base case)
+        //   trait: empty tuple — no partition found.
+        template<std::size_t _Row,
+                 std::size_t _Col,
+                 std::size_t _Index>
+        struct find_cell_partition<_Row, _Col, _Index, std::tuple<>>
+        {
+            using type                      = void;
+            static constexpr bool found     = false;
+            static constexpr std::size_t index = _Index;
+        };
+
+        // find_cell_partition (recursive case)
+        //   trait: checks head partition, recurses on tail.
+        template<std::size_t _Row,
+                 std::size_t _Col,
+                 std::size_t _Index,
+                 typename    _Head,
+                 typename... _Tail>
+        struct find_cell_partition<_Row, _Col, _Index,
+                                   std::tuple<_Head, _Tail...>>
+        {
+        private:
+            static constexpr bool match =
+                partition_contains<_Row, _Col, _Head>::value;
+            using rest = find_cell_partition<_Row, _Col, _Index + 1,
+                                             std::tuple<_Tail...>>;
+
+        public:
+            using type = typename std::conditional<
+                match, _Head, typename rest::type>::type;
+
+            static constexpr bool found = (match || rest::found);
+
+            static constexpr std::size_t index =
+                match ? _Index : rest::index;
+        };
+
+    NS_END  // internal
+
+    // cell_partition
+    //   trait: determines which partition (if any) contains a cell.
+    template<std::size_t _Row,
+             std::size_t _Col,
+             typename    _Config>
+    struct cell_partition
+    {
+    private:
+        using parts  = get_partitions_t<_Config>;
+        using result = internal::find_cell_partition<_Row, _Col, 0, parts>;
+
+    public:
+        using type = typename result::type;
+
+        static constexpr bool        found = result::found;
+        static constexpr std::size_t index = result::index;
+    };
+
+
+    // =========================================================================
+    // V.f  STRUCTURAL COLUMN/ROW MERGE AND SPLIT TRAITS
+    // =========================================================================
+    //
+    // Structural merges and splits operate on entire columns or rows, as
+    // distinct from cell-level spans and splits. A column merge logically
+    // combines N adjacent physical columns into one presentational column.
+    // A column split logically subdivides one physical column into N
+    // presentational sub-columns. Row merges and splits work analogously.
+    //
+
+    // is_col_merge_type
+    //   trait: true if type has col/count members, identifying it as
+    // a structural column merge descriptor.
+    template<typename _Type>
+    struct is_col_merge_type
+        : std::integral_constant<bool,
+            ( internal::is_detected<internal::detect_col_merge_col,   _Type>::value &&
+              internal::is_detected<internal::detect_col_merge_count, _Type>::value )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_col_merge_type_v = is_col_merge_type<_Type>::value;
+#endif
+
+    // col_merge_contains
+    //   trait: true if a column index falls within a column merge range.
+    template<std::size_t _Col,
+             typename    _Merge>
+    struct col_merge_contains
+        : std::integral_constant<bool,
+            ( (_Col >= _Merge::col) &&
+              (_Col <  _Merge::col + _Merge::count) )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<std::size_t _Col, typename _Merge>
+    constexpr bool col_merge_contains_v =
+        col_merge_contains<_Col, _Merge>::value;
+#endif
+
+    NS_INTERNAL
+
+        // find_col_merge
+        //   trait: finds the column merge descriptor containing a column.
+        template<std::size_t _Col,
+                 typename    _Merges>
+        struct find_col_merge;
+
+        template<std::size_t _Col>
+        struct find_col_merge<_Col, std::tuple<>>
+        {
+            using type                  = void;
+            static constexpr bool found = false;
+        };
+
+        template<std::size_t _Col,
+                 typename    _Head,
+                 typename... _Tail>
+        struct find_col_merge<_Col, std::tuple<_Head, _Tail...>>
+        {
+        private:
+            using rest = find_col_merge<_Col, std::tuple<_Tail...>>;
+
+        public:
+            using type = typename std::conditional<
+                col_merge_contains<_Col, _Head>::value,
+                _Head, typename rest::type>::type;
+
+            static constexpr bool found =
+                ( col_merge_contains<_Col, _Head>::value || rest::found );
+        };
+
+    NS_END  // internal
+
+    // column_merge_info
+    //   trait: provides the merge descriptor for a column, if any.
+    template<std::size_t _Col,
+             typename    _Config>
+    struct column_merge_info
+    {
+    private:
+        using merges = get_col_merges_t<_Config>;
+        using result = internal::find_col_merge<_Col, merges>;
+
+    public:
+        using type = typename result::type;
+
+        static constexpr bool found = result::found;
+
+        static constexpr bool is_anchor =
+            ( result::found &&
+              (_Col == result::type::col) );
+    };
+
+    // is_col_split_type
+    //   trait: true if type has col/sub_cols members.
+    template<typename _Type>
+    struct is_col_split_type
+        : std::integral_constant<bool,
+            ( internal::is_detected<internal::detect_col_split_col,      _Type>::value &&
+              internal::is_detected<internal::detect_col_split_sub_cols, _Type>::value )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_col_split_type_v = is_col_split_type<_Type>::value;
+#endif
+
+    NS_INTERNAL
+
+        // find_col_split
+        //   trait: finds the column split descriptor targeting a column.
+        template<std::size_t _Col,
+                 typename    _Splits>
+        struct find_col_split;
+
+        template<std::size_t _Col>
+        struct find_col_split<_Col, std::tuple<>>
+        {
+            using type                  = void;
+            static constexpr bool found = false;
+        };
+
+        template<std::size_t _Col,
+                 typename    _Head,
+                 typename... _Tail>
+        struct find_col_split<_Col, std::tuple<_Head, _Tail...>>
+        {
+        private:
+            using rest = find_col_split<_Col, std::tuple<_Tail...>>;
+
+        public:
+            using type = typename std::conditional<
+                (_Col == _Head::col),
+                _Head, typename rest::type>::type;
+
+            static constexpr bool found =
+                ( (_Col == _Head::col) || rest::found );
+        };
+
+    NS_END  // internal
+
+    // column_split_info
+    //   trait: provides the split descriptor for a column, if any.
+    template<std::size_t _Col,
+             typename    _Config>
+    struct column_split_info
+    {
+    private:
+        using splits = get_col_splits_t<_Config>;
+        using result = internal::find_col_split<_Col, splits>;
+
+    public:
+        using type = typename result::type;
+
+        static constexpr bool found = result::found;
+
+        static constexpr std::size_t sub_cols =
+            result::found ? result::type::sub_cols : 1;
+    };
+
+    // is_row_merge_type
+    //   trait: true if type has row/count members.
+    template<typename _Type>
+    struct is_row_merge_type
+        : std::integral_constant<bool,
+            ( internal::is_detected<internal::detect_row_merge_row,   _Type>::value &&
+              internal::is_detected<internal::detect_row_merge_count, _Type>::value )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_row_merge_type_v = is_row_merge_type<_Type>::value;
+#endif
+
+    // row_merge_contains
+    //   trait: true if a row index falls within a row merge range.
+    template<std::size_t _Row,
+             typename    _Merge>
+    struct row_merge_contains
+        : std::integral_constant<bool,
+            ( (_Row >= _Merge::row) &&
+              (_Row <  _Merge::row + _Merge::count) )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<std::size_t _Row, typename _Merge>
+    constexpr bool row_merge_contains_v =
+        row_merge_contains<_Row, _Merge>::value;
+#endif
+
+    // is_row_split_type
+    //   trait: true if type has row/sub_rows members.
+    template<typename _Type>
+    struct is_row_split_type
+        : std::integral_constant<bool,
+            ( internal::is_detected<internal::detect_row_split_row,      _Type>::value &&
+              internal::is_detected<internal::detect_row_split_sub_rows, _Type>::value )>
+    {
+    };
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_row_split_type_v = is_row_split_type<_Type>::value;
+#endif
+
+
     // VI.  CELL REGION CLASSIFICATION
     // =========================================================================
 
@@ -1015,7 +1907,9 @@ NS_CONTAINER
         corner_top_left,
         corner_top_right,
         corner_bot_left,
-        corner_bot_right
+        corner_bot_right,
+        total_header_col,
+        total_footer_col
     };
 
     // cell_position
@@ -1291,9 +2185,38 @@ NS_CONTAINER
         static constexpr bool has_total_row    = has_total_rows<_Config>::value;
         static constexpr bool has_total_col    = has_total_cols<_Config>::value;
 
+        // multi-level header
+        static constexpr bool has_multi_level  =
+            has_multi_level_header<_Config>::value;
+        static constexpr std::size_t header_depth =
+            get_header_depth<_Config>::value;
+
+        // total positioning
+        static constexpr bool has_custom_total_pos =
+            ( has_custom_total_row_position<_Config>::value ||
+              has_custom_total_col_position<_Config>::value );
+
         // cell layout features
         static constexpr bool has_merged_cells = has_spans<_Config>::value;
         static constexpr bool has_split_cells  = has_splits<_Config>::value;
+
+        // multi-header groups
+        static constexpr bool has_header_groups =
+            has_multi_header<_Config>::value;
+
+        // partitions
+        static constexpr bool has_table_partitions =
+            has_partitions<_Config>::value;
+
+        // structural column/row merges and splits
+        static constexpr bool has_structural_col_merges =
+            has_col_merges<_Config>::value;
+        static constexpr bool has_structural_col_splits =
+            has_col_splits<_Config>::value;
+        static constexpr bool has_structural_row_merges =
+            has_row_merges<_Config>::value;
+        static constexpr bool has_structural_row_splits =
+            has_row_splits<_Config>::value;
 
         // aggregate
         static constexpr bool has_regions =
@@ -1304,8 +2227,14 @@ NS_CONTAINER
         static constexpr bool has_layout_features =
             ( has_merged_cells || has_split_cells );
 
+        static constexpr bool has_structural_features =
+            ( has_structural_col_merges || has_structural_col_splits ||
+              has_structural_row_merges || has_structural_row_splits );
+
         static constexpr bool is_basic =
-            ( !has_regions && !has_layout_features );
+            ( !has_regions          && !has_layout_features &&
+              !has_header_groups    && !has_table_partitions &&
+              !has_structural_features );
 
         // merge count (number of span descriptors in config)
         static constexpr std::size_t merge_count =
@@ -1314,6 +2243,24 @@ NS_CONTAINER
         // split count (number of split descriptors in config)
         static constexpr std::size_t split_count =
             std::tuple_size<get_splits_t<_Config>>::value;
+
+        // partition count
+        static constexpr std::size_t partition_count =
+            std::tuple_size<get_partitions_t<_Config>>::value;
+
+        // structural merge/split counts
+        static constexpr std::size_t col_merge_count =
+            std::tuple_size<get_col_merges_t<_Config>>::value;
+        static constexpr std::size_t col_split_count =
+            std::tuple_size<get_col_splits_t<_Config>>::value;
+        static constexpr std::size_t row_merge_count =
+            std::tuple_size<get_row_merges_t<_Config>>::value;
+        static constexpr std::size_t row_split_count =
+            std::tuple_size<get_row_splits_t<_Config>>::value;
+
+        // multi-header entry count
+        static constexpr std::size_t multi_header_count =
+            std::tuple_size<get_multi_header_t<_Config>>::value;
     };
 
 
