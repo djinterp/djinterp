@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                              options.hpp
+* djinterp [options]                                               options.hpp
 *
 * Master options module for the djinterp framework.
 *   Provides a unified, SFINAE-dispatched interface for applying options
