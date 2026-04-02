@@ -65,12 +65,12 @@ NS_CONTAINER
 
     template<typename    _Type,
              std::size_t _Rows,
-             std::size_t _Columns,
+             std::size_t _Cols,
              typename    _Config>
     class table;
 
     template<std::size_t _Rows,
-             typename... _ColumnTypes>
+             typename... _ColTypes>
     class typed_table;
 
 
@@ -96,20 +96,20 @@ NS_CONTAINER
 
         // matrix_storage
         //   struct: contiguous flat storage for homogeneous tables.
-        // Stores _Rows * _Columns elements of type _Type in a single
+        // Stores _Rows * _Cols elements of type _Type in a single
         // std::array, enabling pointer-based contiguous iteration and
         // direct data() access.
         template<typename    _Type,
                  std::size_t _Rows,
-                 std::size_t _Columns>
+                 std::size_t _Cols>
         struct matrix_storage
         {
-            static_assert( (_Rows > 0),
-                           "Row count must be greater than zero." );
-            static_assert( (_Columns > 0),
-                           "Column count must be greater than zero." );
+            static_assert((_Rows > 0),
+                          "Row count must be greater than zero.");
+            static_assert((_Cols > 0),
+                          "Column count must be greater than zero.");
 
-            static constexpr std::size_t total_cells = (_Rows * _Columns);
+            static constexpr std::size_t total_cells = _Rows * _Cols;
 
             std::array<_Type, total_cells> cells;
         };
@@ -124,13 +124,13 @@ NS_CONTAINER
         // row-major storage.
         template<std::size_t _Row,
                  std::size_t _Col,
-                 std::size_t _Columns>
+                 std::size_t _Cols>
         struct row_col_to_index
         {
-            static_assert((_Col < _Columns),
+            static_assert((_Col < _Cols),
                           "Column index out of range.");
 
-            static constexpr std::size_t value = (_Row * _Columns) + _Col;
+            static constexpr std::size_t value = (_Row * _Cols) + _Col;
         };
 
     NS_END  // internal
@@ -164,12 +164,12 @@ NS_CONTAINER
     // storage and full container_traits structural compliance.
     template<typename    _Type,
              std::size_t _Rows,
-             std::size_t _Columns,
+             std::size_t _Cols,
              typename    _Config = empty_config>
     class table
     {
     private:
-        using storage_type = internal::matrix_storage<_Type, _Rows, _Columns>;
+        using storage_type = internal::matrix_storage<_Type, _Rows, _Cols>;
 
     public:
         // -----------------------------------------------------------------
@@ -194,20 +194,20 @@ NS_CONTAINER
         // -----------------------------------------------------------------
         //  self type and config
         // -----------------------------------------------------------------
-        using self_type   = table<_Type, _Rows, _Columns, _Config>;
+        using self_type   = table<_Type, _Rows, _Cols, _Config>;
         using config_type = _Config;
 
         // -----------------------------------------------------------------
         //  dimension traits (from table_traits.hpp)
         // -----------------------------------------------------------------
-        using dimensions = table_dimensions<_Rows, _Columns, _Config>;
+        using dimensions = table_dimensions<_Rows, _Cols, _Config>;
 
         // -----------------------------------------------------------------
         //  compile-time dimensional constants
         // -----------------------------------------------------------------
         static constexpr size_type num_rows    = _Rows;
-        static constexpr size_type num_Columns    = _Columns;
-        static constexpr size_type total_cells = _Rows * _Columns;
+        static constexpr size_type num_cols    = _Cols;
+        static constexpr size_type total_cells = _Rows * _Cols;
 
         // -----------------------------------------------------------------
         //  compile-time storage classification constants
@@ -229,8 +229,8 @@ NS_CONTAINER
         //   constructor: initializes cells from a flat initializer list
         // in row-major order.
         D_CONSTEXPR table(
-			std::initializer_list<value_type> _init
-        )
+                std::initializer_list<value_type> _init
+            )
         {
             size_type i = 0;
 
@@ -250,8 +250,8 @@ NS_CONTAINER
         // table(const value_type&)
         //   constructor: fills all cells with a single value.
         D_CONSTEXPR explicit table(
-			const value_type& _fill_value
-        )
+                const value_type& _fill_value
+            )
         {
             for (size_type i = 0; i < total_cells; ++i)
             {
@@ -268,8 +268,7 @@ NS_CONTAINER
         //   function: returns the total number of cells.
         // Detected by: has_size_accessor_v, has_constexpr_size_v,
         //              has_fixed_size_v (size == max_size).
-        static D_CONSTEXPR size_type
-		size() noexcept
+        static D_CONSTEXPR size_type size() noexcept
         {
             return total_cells;
         }
@@ -278,8 +277,7 @@ NS_CONTAINER
         //   function: returns the maximum number of cells.
         // Detected by: has_max_size_accessor_v, has_constexpr_max_size_v,
         //              has_bounded_capacity_v.
-        static D_CONSTEXPR size_type
-		max_size() noexcept
+        static D_CONSTEXPR size_type max_size() noexcept
         {
             return total_cells;
         }
@@ -288,34 +286,30 @@ NS_CONTAINER
         //   function: returns the minimum number of cells.
         // Detected by: has_min_size_accessor_v, has_constexpr_min_size_v,
         //              has_bounded_minimum_v.
-        static D_CONSTEXPR size_type
-		min_size() noexcept
+        static D_CONSTEXPR size_type min_size() noexcept
         {
             return total_cells;
         }
 
         // empty
         //   function: returns whether the table has zero cells.
-        static D_CONSTEXPR bool 
-		empty() noexcept
+        static D_CONSTEXPR bool empty() noexcept
         {
             return (total_cells == 0);
         }
 
         // rows
         //   function: returns the number of rows.
-        static D_CONSTEXPR size_type
-		rows() noexcept
+        static D_CONSTEXPR size_type rows() noexcept
         {
             return _Rows;
         }
 
         // cols
         //   function: returns the number of columns.
-        static D_CONSTEXPR size_type
-		cols() noexcept
+        static D_CONSTEXPR size_type cols() noexcept
         {
-            return _Columns;
+            return _Cols;
         }
 
 
@@ -326,16 +320,14 @@ NS_CONTAINER
         // data
         //   function: returns a pointer to the underlying contiguous storage.
         // Detected by: has_data_accessor_v (contiguous storage / array).
-        D_CONSTEXPR pointer 
-		data() noexcept
+        D_CONSTEXPR pointer data() noexcept
         {
             return m_storage.cells.data();
         }
 
         // data (const)
         //   function: returns a const pointer to the underlying storage.
-        D_CONSTEXPR const_pointer 
-		data() const noexcept
+        D_CONSTEXPR const_pointer data() const noexcept
         {
             return m_storage.cells.data();
         }
@@ -345,7 +337,7 @@ NS_CONTAINER
         // Detected by: random-access detection probes.
         D_CONSTEXPR reference operator[](
                 size_type _index
-        ) noexcept
+            ) noexcept
         {
             return m_storage.cells[_index];
         }
@@ -354,17 +346,16 @@ NS_CONTAINER
         //   function: flat-indexed const element access.
         D_CONSTEXPR const_reference operator[](
                 size_type _index
-        ) const noexcept
+            ) const noexcept
         {
             return m_storage.cells[_index];
         }
 
         // at
         //   function: flat-indexed element access with bounds checking.
-        D_CONSTEXPR reference 
-		at(
-			size_type _index
-		)
+        D_CONSTEXPR reference at(
+                size_type _index
+            )
         {
             // bounds validation
             if (_index >= total_cells)
@@ -378,10 +369,9 @@ NS_CONTAINER
 
         // at (const)
         //   function: flat-indexed const element access with bounds checking.
-        D_CONSTEXPR const_reference
-		at(
-			size_type _index
-		) const
+        D_CONSTEXPR const_reference at(
+                size_type _index
+            ) const
         {
             // bounds validation
             if (_index >= total_cells)
@@ -398,17 +388,17 @@ NS_CONTAINER
         D_CONSTEXPR reference at(
                 size_type _row,
                 size_type _col
-        )
+            )
         {
             // bounds validation
             if ( (_row >= _Rows) ||
-                 (_col >= _Columns) )
+                 (_col >= _Cols) )
             {
                 throw std::out_of_range(
                     "table::at: row or column index out of range.");
             }
 
-            return m_storage.cells[(_row * _Columns) + _col];
+            return m_storage.cells[(_row * _Cols) + _col];
         }
 
         // at (row, col, const)
@@ -417,17 +407,17 @@ NS_CONTAINER
         D_CONSTEXPR const_reference at(
                 size_type _row,
                 size_type _col
-        ) const
+            ) const
         {
             // bounds validation
             if ( (_row >= _Rows) ||
-                 (_col >= _Columns) )
+                 (_col >= _Cols) )
             {
                 throw std::out_of_range(
                     "table::at: row or column index out of range.");
             }
 
-            return m_storage.cells[(_row * _Columns) + _col];
+            return m_storage.cells[(_row * _Cols) + _col];
         }
 
         // cell
@@ -435,9 +425,9 @@ NS_CONTAINER
         D_CONSTEXPR reference cell(
                 size_type _row,
                 size_type _col
-        ) noexcept
+            ) noexcept
         {
-            return m_storage.cells[(_row * _Columns) + _col];
+            return m_storage.cells[(_row * _Cols) + _col];
         }
 
         // cell (const)
@@ -445,9 +435,9 @@ NS_CONTAINER
         D_CONSTEXPR const_reference cell(
                 size_type _row,
                 size_type _col
-        ) const noexcept
+            ) const noexcept
         {
-            return m_storage.cells[(_row * _Columns) + _col];
+            return m_storage.cells[(_row * _Cols) + _col];
         }
 
         // front
@@ -584,7 +574,7 @@ NS_CONTAINER
         //   function: sets all cells to the given value.
         D_CONSTEXPR void fill(
                 const value_type& _value
-        )
+            )
         {
             for (size_type i = 0; i < total_cells; ++i)
             {
@@ -599,7 +589,7 @@ NS_CONTAINER
         // type and dimensions.
         D_CONSTEXPR void swap(
                 self_type& _other
-        ) noexcept(std::is_nothrow_swappable<value_type>::value)
+            ) noexcept(std::is_nothrow_swappable<value_type>::value)
         {
             m_storage.cells.swap(_other.m_storage.cells);
 
@@ -618,11 +608,11 @@ NS_CONTAINER
             return get_header_rows<_Config>::value;
         }
 
-        // header_Columns
+        // header_cols
         //   function: returns the number of header columns from config.
-        static D_CONSTEXPR size_type header_Columns() noexcept
+        static D_CONSTEXPR size_type header_cols() noexcept
         {
-            return get_header_Columns<_Config>::value;
+            return get_header_cols<_Config>::value;
         }
 
         // footer_rows
@@ -632,11 +622,11 @@ NS_CONTAINER
             return get_footer_rows<_Config>::value;
         }
 
-        // footer_Columns
+        // footer_cols
         //   function: returns the number of footer columns from config.
-        static D_CONSTEXPR size_type footer_Columns() noexcept
+        static D_CONSTEXPR size_type footer_cols() noexcept
         {
-            return get_footer_Columns<_Config>::value;
+            return get_footer_cols<_Config>::value;
         }
 
         // data_row_start
@@ -660,11 +650,11 @@ NS_CONTAINER
             return dimensions::data_rows;
         }
 
-        // data_Columns
+        // data_cols
         //   function: returns the number of data columns.
-        static D_CONSTEXPR size_type data_Columns() noexcept
+        static D_CONSTEXPR size_type data_cols() noexcept
         {
-            return dimensions::data_Columns;
+            return dimensions::data_cols;
         }
 
         // data_cells
@@ -676,6 +666,60 @@ NS_CONTAINER
 
 
         // =================================================================
+        //  merge / split config queries
+        // =================================================================
+
+        // -----------------------------------------------------------------
+        //  config classification (from table_traits.hpp)
+        // -----------------------------------------------------------------
+        using config_class = table_config_class<_Config>;
+
+        // has_merged_cells
+        //   function: returns whether the config defines any merged spans.
+        static D_CONSTEXPR bool has_merged_cells() noexcept
+        {
+            return config_class::has_merged_cells;
+        }
+
+        // has_split_cells
+        //   function: returns whether the config defines any split
+        // descriptors.
+        static D_CONSTEXPR bool has_split_cells() noexcept
+        {
+            return config_class::has_split_cells;
+        }
+
+        // has_layout_features
+        //   function: returns whether the config defines any merges or
+        // splits.
+        static D_CONSTEXPR bool has_layout_features() noexcept
+        {
+            return config_class::has_layout_features;
+        }
+
+        // merge_count
+        //   function: returns the number of merged span descriptors.
+        static D_CONSTEXPR size_type merge_count() noexcept
+        {
+            return config_class::merge_count;
+        }
+
+        // split_count
+        //   function: returns the number of split descriptors.
+        static D_CONSTEXPR size_type split_count() noexcept
+        {
+            return config_class::split_count;
+        }
+
+        // is_basic
+        //   function: returns whether the config has no special features.
+        static D_CONSTEXPR bool is_basic() noexcept
+        {
+            return config_class::is_basic;
+        }
+
+
+        // =================================================================
         //  comparison operators
         // =================================================================
 
@@ -683,7 +727,7 @@ NS_CONTAINER
         //   function: element-wise equality comparison.
         D_CONSTEXPR bool operator==(
                 const self_type& _other
-        ) const noexcept
+            ) const noexcept
         {
             return (m_storage.cells == _other.m_storage.cells);
         }
@@ -692,7 +736,7 @@ NS_CONTAINER
         //   function: element-wise inequality comparison.
         D_CONSTEXPR bool operator!=(
                 const self_type& _other
-        ) const noexcept
+            ) const noexcept
         {
             return (m_storage.cells != _other.m_storage.cells);
         }
@@ -701,7 +745,7 @@ NS_CONTAINER
         //   function: lexicographic less-than comparison.
         D_CONSTEXPR bool operator<(
                 const self_type& _other
-        ) const noexcept
+            ) const noexcept
         {
             return (m_storage.cells < _other.m_storage.cells);
         }
@@ -710,7 +754,7 @@ NS_CONTAINER
         //   function: lexicographic less-than-or-equal comparison.
         D_CONSTEXPR bool operator<=(
                 const self_type& _other
-        ) const noexcept
+            ) const noexcept
         {
             return (m_storage.cells <= _other.m_storage.cells);
         }
@@ -719,7 +763,7 @@ NS_CONTAINER
         //   function: lexicographic greater-than comparison.
         D_CONSTEXPR bool operator>(
                 const self_type& _other
-        ) const noexcept
+            ) const noexcept
         {
             return (m_storage.cells > _other.m_storage.cells);
         }
@@ -728,7 +772,7 @@ NS_CONTAINER
         //   function: lexicographic greater-than-or-equal comparison.
         D_CONSTEXPR bool operator>=(
                 const self_type& _other
-        ) const noexcept
+            ) const noexcept
         {
             return (m_storage.cells >= _other.m_storage.cells);
         }
@@ -755,11 +799,11 @@ NS_CONTAINER
         using detect_num_rows = decltype(std::integral_constant<
             std::size_t, _T::num_rows>{});
 
-        // detect_num_Columns
-        //   trait: detection operation for static num_Columns member.
+        // detect_num_cols
+        //   trait: detection operation for static num_cols member.
         template<typename _T>
-        using detect_num_Columns = decltype(std::integral_constant<
-            std::size_t, _T::num_Columns>{});
+        using detect_num_cols = decltype(std::integral_constant<
+            std::size_t, _T::num_cols>{});
 
         // detect_total_cells
         //   trait: detection operation for static total_cells member.
@@ -782,10 +826,10 @@ NS_CONTAINER
         template<typename _T>
         using detect_rows_method = decltype(_T::rows());
 
-        // detect_columns_method
+        // detect_cols_method
         //   trait: detection operation for static cols() method.
         template<typename _T>
-        using detect_columns_method = decltype(_T::cols());
+        using detect_cols_method = decltype(_T::cols());
 
         // detect_cell_method
         //   trait: detection operation for cell(row, col) method.
@@ -797,26 +841,28 @@ NS_CONTAINER
 
     // is_table_type
     //   trait: true if a type exposes the structural interface of a djinterp
-    // table (num_rows, num_Columns, total_cells, config_type, rows(), cols(),
+    // table (num_rows, num_cols, total_cells, config_type, rows(), cols(),
     // cell()).
     template<typename _Type,
              typename = void>
     struct is_table_type : std::false_type
-    {};
+    {
+    };
 
     // is_table_type (specialization)
     //   trait: SFINAE success case — all table structural probes well-formed.
     template<typename _Type>
     struct is_table_type<_Type,
         void_t<internal::detect_num_rows<_Type>,
-               internal::detect_num_columns<_Type>,
+               internal::detect_num_cols<_Type>,
                internal::detect_total_cells<_Type>,
                internal::detect_config_type<_Type>,
                internal::detect_rows_method<_Type>,
-               internal::detect_columns_method<_Type>,
+               internal::detect_cols_method<_Type>,
                internal::detect_cell_method<_Type>>>
         : std::true_type
-    {};
+    {
+    };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_table_type_v
@@ -826,6 +872,7 @@ NS_CONTAINER
 #endif
 
     NS_INTERNAL
+
         // detect_data_method
         //   trait: detection operation for data() method returning a pointer.
         template<typename _T>
@@ -840,7 +887,8 @@ NS_CONTAINER
     template<typename _Type,
              typename = void>
     struct is_homogeneous_table : std::false_type
-    {};
+    {
+    };
 
     // is_homogeneous_table (specialization)
     //   trait: SFINAE success — table type with data() accessor.
@@ -850,7 +898,8 @@ NS_CONTAINER
                internal::detect_num_rows<_Type>,
                internal::detect_cell_method<_Type>>>
         : std::true_type
-    {};
+    {
+    };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_homogeneous_table_v
@@ -865,7 +914,8 @@ NS_CONTAINER
     template<typename _Type,
              typename = void>
     struct has_table_config : std::false_type
-    {};
+    {
+    };
 
     // has_table_config (specialization)
     //   trait: SFINAE success — table type whose config_type is recognized.
@@ -874,7 +924,8 @@ NS_CONTAINER
         void_t<internal::detect_config_type<_Type>,
                internal::detect_num_rows<_Type>>>
         : is_config_type<typename _Type::config_type>
-    {};
+    {
+    };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // has_table_config_v
@@ -925,7 +976,7 @@ NS_CONTAINER
     struct table_dimensions_of<_Type, true>
     {
         static constexpr std::size_t rows  = _Type::num_rows;
-        static constexpr std::size_t cols  = _Type::num_columns;
+        static constexpr std::size_t cols  = _Type::num_cols;
         static constexpr std::size_t cells = _Type::total_cells;
     };
 
@@ -941,7 +992,8 @@ NS_CONTAINER
              typename _TableB,
              typename = void>
     struct tables_same_dimensions : std::false_type
-    {};
+    {
+    };
 
     // tables_same_dimensions (specialization)
     //   trait: SFINAE success — both types are tables with matching dimensions.
@@ -949,13 +1001,14 @@ NS_CONTAINER
              typename _TableB>
     struct tables_same_dimensions<_TableA, _TableB,
         void_t<internal::detect_num_rows<_TableA>,
-               internal::detect_num_columns<_TableA>,
+               internal::detect_num_cols<_TableA>,
                internal::detect_num_rows<_TableB>,
-               internal::detect_num_columns<_TableB>>>
+               internal::detect_num_cols<_TableB>>>
         : std::integral_constant<bool,
             ( (_TableA::num_rows == _TableB::num_rows) &&
-              (_TableA::num_columns == _TableB::num_columns) )>
-    {};
+              (_TableA::num_cols == _TableB::num_cols) )>
+    {
+    };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // tables_same_dimensions_v
@@ -973,7 +1026,8 @@ NS_CONTAINER
              typename _TableB,
              typename = void>
     struct tables_same_type : std::false_type
-    {};
+    {
+    };
 
     // tables_same_type (specialization)
     //   trait: SFINAE success — both types are tables with matching
@@ -989,7 +1043,8 @@ NS_CONTAINER
             ( tables_same_dimensions<_TableA, _TableB>::value &&
               std::is_same<typename _TableA::value_type,
                            typename _TableB::value_type>::value )>
-    {};
+    {
+    };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // tables_same_type_v
@@ -1007,7 +1062,8 @@ NS_CONTAINER
              typename _TableTo,
              typename = void>
     struct tables_element_convertible : std::false_type
-    {};
+    {
+    };
 
     // tables_element_convertible (specialization)
     //   trait: SFINAE success — both types are tables with convertible
@@ -1022,7 +1078,8 @@ NS_CONTAINER
         : std::integral_constant<bool,
             std::is_convertible<typename _TableFrom::value_type,
                                 typename _TableTo::value_type>::value>
-    {};
+    {
+    };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // tables_element_convertible_v
@@ -1035,20 +1092,99 @@ NS_CONTAINER
 
 
     // =========================================================================
-    // VI.  NON-MEMBER FUNCTIONS
+    // VI.  TABLE CLASSIFICATION
+    // =========================================================================
+    //
+    // Aggregates all table-specific structural detections into a single
+    // compile-time classification struct. Analogous to container_class<T>
+    // for the container_traits system, but specific to table properties.
+    //
+
+    // table_class
+    //   struct: compile-time classification of a table type. Aggregates
+    // table identity, structural immutability, homogeneity, config
+    // features, and dimension information. All members are static
+    // constexpr, determined purely by structural SFINAE.
+    template<typename _Type,
+             bool     _IsTable = is_table_type<_Type>::value>
+    struct table_class
+    {
+        // identity
+        static constexpr bool is_table      = false;
+        static constexpr bool is_homogeneous = false;
+        static constexpr bool has_config     = false;
+
+        // structural mutability
+        static constexpr bool structurally_immutable = false;
+        static constexpr bool value_mutable          = false;
+        static constexpr bool shape_modifiers        = false;
+
+        // dimensions
+        static constexpr std::size_t num_rows    = 0;
+        static constexpr std::size_t num_cols    = 0;
+        static constexpr std::size_t total_cells = 0;
+
+        // layout
+        static constexpr bool has_merged_cells = false;
+        static constexpr bool has_split_cells  = false;
+    };
+
+    // table_class (specialization)
+    //   struct: classification for types that satisfy the table structural
+    // interface.
+    template<typename _Type>
+    struct table_class<_Type, true>
+    {
+    private:
+        using config = typename _Type::config_type;
+        using cc     = table_config_class<config>;
+
+    public:
+        // identity
+        static constexpr bool is_table       = true;
+        static constexpr bool is_homogeneous =
+            is_homogeneous_table<_Type>::value;
+        static constexpr bool has_config     = has_table_config<_Type>::value;
+
+        // structural mutability (from table_traits.hpp)
+        static constexpr bool structurally_immutable =
+            is_structurally_immutable<_Type>::value;
+        static constexpr bool value_mutable =
+            is_value_mutable<_Type>::value;
+        static constexpr bool shape_modifiers =
+            has_shape_modifiers<_Type>::value;
+
+        // dimensions
+        static constexpr std::size_t num_rows    = _Type::num_rows;
+        static constexpr std::size_t num_cols    = _Type::num_cols;
+        static constexpr std::size_t total_cells = _Type::total_cells;
+
+        // layout (from config classification)
+        static constexpr bool has_merged_cells = cc::has_merged_cells;
+        static constexpr bool has_split_cells  = cc::has_split_cells;
+
+        // config detail
+        static constexpr bool        has_regions    = cc::has_regions;
+        static constexpr bool        is_basic       = cc::is_basic;
+        static constexpr std::size_t merge_count    = cc::merge_count;
+        static constexpr std::size_t split_count    = cc::split_count;
+    };
+
+
+    // =========================================================================
+    // VII. NON-MEMBER FUNCTIONS
     // =========================================================================
 
     // swap
     //   function: exchanges the contents of two tables.
     template<typename    _Type,
              std::size_t _Rows,
-             std::size_t _Columns,
+             std::size_t _Cols,
              typename    _Config>
-    D_CONSTEXPR void
-	swap(
-		table<_Type, _Rows, _Columns, _Config>& _lhs,
-		table<_Type, _Rows, _Columns, _Config>& _rhs
-	) noexcept(noexcept(_lhs.swap(_rhs)))
+    D_CONSTEXPR void swap(
+            table<_Type, _Rows, _Cols, _Config>& _lhs,
+            table<_Type, _Rows, _Cols, _Config>& _rhs
+        ) noexcept(noexcept(_lhs.swap(_rhs)))
     {
         _lhs.swap(_rhs);
 
