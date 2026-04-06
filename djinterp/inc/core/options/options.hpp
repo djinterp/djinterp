@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                               options.hpp
+* djinterp [options]                                              options.hpp
 *
 * Master options module for the djinterp framework.
 *   Provides a unified, SFINAE-dispatched interface for applying options
@@ -17,7 +17,7 @@
 * USAGE:
 *   // apply options to any configurable type
 *   my_type t;
-*   my_option_set opts = { ... };
+*   option_set<std::string, int> opts = {{"width", 800}};
 *   djinterp::apply_options(t, opts);
 *
 *   // export current options
@@ -36,7 +36,10 @@
 *   djinterp::merge_options(target_set, source_set);
 *
 * SUB-MODULES:
-*   option_set_traits.hpp  — entry, set, and target detection
+*   option_pair.hpp        — the option_pair key-value type
+*   option_pair_traits.hpp — entry-level SFINAE detection
+*   option_set.hpp         — the option_set container
+*   option_set_traits.hpp  — container, homogeneity, and target detection
 *
 * TABLE OF CONTENTS
 * =================
@@ -51,7 +54,7 @@
 *
 * path:      /inc/options/options.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.23
+* author(s): Samuel 'teer' Neal-Blim                      date: 2026.04.06
 ******************************************************************************/
 
 #ifndef DJINTERP_OPTIONS_
@@ -62,7 +65,10 @@
 #include <type_traits>
 #include <vector>
 #include "../djinterp.hpp"
-#include "option_set_traits.hpp"
+#include "./option_pair.hpp"
+#include "./option_pair_traits.hpp"
+#include "./option_set.hpp"
+#include "./option_set_traits.hpp"
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
     #include <optional>
