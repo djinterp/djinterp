@@ -1,0 +1,150 @@
+; Mathematical Expression Grammar with Extended Functions
+
+; Top-level expression
+expression = assignment / conditional
+
+; Assignment (for parametric equations, etc.)
+assignment = identifier "=" expression
+
+; Conditional expressions
+conditional = logical-or
+
+; Logical operations
+logical-or = logical-and *("||" logical-and)
+logical-and = comparison *("&&" comparison)
+
+; Comparison operations
+comparison = additive *(comp-op additive)
+comp-op = "==" / "!=" / "<=" / ">=" / "<" / ">"
+
+; Arithmetic operations (by precedence)
+additive = multiplicative *(("+"/"-") multiplicative)
+multiplicative = exponential *(("*"/"/"/"%") exponential)
+exponential = implicit-mult *("^" implicit-mult)
+
+; Implicit multiplication (e.g., 2x, 3sin(x))
+implicit-mult = unary *(unary)
+
+; Unary operations
+unary = ["+"/"-"/"!"] postfix
+
+; Postfix operations (factorial)
+postfix = primary ["!"]
+
+; Primary expressions
+primary = number
+        / constant
+        / function-call
+        / variable
+        / complex-literal
+        / vector-literal
+        / "(" expression ")"
+        / "|" expression "|"  ; absolute value
+
+; Numbers
+number = decimal / scientific / integer
+decimal = integer "." 1*DIGIT
+scientific = (decimal / integer) ("e"/"E") ["+"/"-"] integer
+integer = 1*DIGIT
+
+; Mathematical constants
+constant = "pi" / "π" / "e" / "i" / "j"  ; i,j for imaginary unit
+         / "inf" / "∞"
+         / "phi" / "φ"  ; golden ratio
+         / "tau" / "τ"  ; 2π
+
+; Variables and identifiers
+variable = identifier [subscript]
+identifier = ALPHA *(ALPHA / DIGIT / "_")
+subscript = "_" (integer / identifier)
+
+; Function calls
+function-call = function-name "(" argument-list ")"
+
+function-name = trig-function
+              / inverse-trig-function
+              / hyperbolic-function
+              / inverse-hyperbolic-function
+              / logarithmic-function
+              / special-function
+              / coordinate-function
+              / user-function
+
+; Trigonometric functions
+trig-function = "sin" / "cos" / "tan" 
+              / "sec" / "csc" / "cot"
+
+; Inverse trigonometric functions
+inverse-trig-function = "asin" / "arcsin"
+                      / "acos" / "arccos"
+                      / "atan" / "arctan" / "atan2"
+                      / "asec" / "arcsec"
+                      / "acsc" / "arccsc"
+                      / "acot" / "arccot"
+
+; Hyperbolic functions
+hyperbolic-function = "sinh" / "cosh" / "tanh"
+                    / "sech" / "csch" / "coth"
+
+; Inverse hyperbolic functions
+inverse-hyperbolic-function = "asinh" / "arcsinh"
+                            / "acosh" / "arccosh"
+                            / "atanh" / "arctanh"
+                            / "asech" / "arcsech"
+                            / "acsch" / "arccsch"
+                            / "acoth" / "arccoth"
+
+; Logarithmic and exponential
+logarithmic-function = "log" / "ln" / "log10" / "log2" / "exp"
+
+; Special mathematical functions
+special-function = "sqrt" / "cbrt"  ; square root, cube root
+                 / "abs"
+                 / "floor" / "ceil" / "round"
+                 / "min" / "max"
+                 / "gcd" / "lcm"
+                 / "factorial"
+                 / "gamma"  ; Gamma function
+                 / "erf" / "erfc"  ; Error functions
+                 / "sign" / "sgn"
+
+; Coordinate conversion functions
+coordinate-function = polar-function
+                    / cylindrical-function
+                    / spherical-function
+                    / complex-function
+
+; Polar coordinates: (r, θ) ↔ (x, y)
+polar-function = "polar" / "rect" / "r" / "theta" / "θ"
+
+; Cylindrical coordinates: (ρ, φ, z)
+cylindrical-function = "cylindrical" / "rho" / "ρ" / "phi" / "φ"
+
+; Spherical coordinates: (r, θ, φ)
+spherical-function = "spherical"
+
+; Complex number functions
+complex-function = "real" / "Re"
+                 / "imag" / "Im"
+                 / "arg" / "angle"
+                 / "conj" / "conjugate"
+                 / "mag" / "modulus"
+
+; User-defined or multivariable functions
+user-function = identifier  ; f, g, h, etc.
+
+; Function arguments
+argument-list = expression *("," expression)
+
+; Complex number literals
+complex-literal = number ("i"/"j")
+                / number ["+"/"-"] number ("i"/"j")
+
+; Vector/Point literals (for parametric/coordinate systems)
+vector-literal = "[" argument-list "]"
+               / "<" argument-list ">"
+               / "(" argument-list ")"  ; when 2+ comma-separated values
+
+; Character definitions
+ALPHA = %x41-5A / %x61-7A  ; A-Z / a-z
+DIGIT = %x30-39            ; 0-9
