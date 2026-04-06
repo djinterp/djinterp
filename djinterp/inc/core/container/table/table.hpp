@@ -43,9 +43,14 @@
 *     The m_storage member is protected, allowing derived classes to access it
 *   while hiding implementation details from users.
 *
-* path:      \inc\container\table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.30
+*   CELL LAYOUT ACCESSORS:
+*     Merge, split, and partition query methods are provided separately in
+*   table_layout.hpp as free-function templates.
+*
+*
+* path:      /inc/djinterp/container/table/table.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                          date: 2024.11.14
 ******************************************************************************/
 
 #ifndef DJINTERP_TABLE_
@@ -705,130 +710,6 @@ NS_CONTAINER
         static D_CONSTEXPR size_type data_cells() noexcept
         {
             return dimensions::data_cells;
-        }
-
-
-        // =================================================================
-        //  partition accessors
-        // =================================================================
-
-        // partition_count
-        //   function: returns the number of partition descriptors.
-        static D_CONSTEXPR size_type partition_count() noexcept
-        {
-            return dimensions::partition_count;
-        }
-
-        // has_partitions
-        //   function: returns whether the config defines any partitions.
-        static D_CONSTEXPR bool has_partitions() noexcept
-        {
-            return (dimensions::partition_count > 0);
-        }
-
-
-        // =================================================================
-        //  structural column/row merge and split accessors
-        // =================================================================
-
-        // col_merge_count
-        //   function: returns the number of structural column merges.
-        static D_CONSTEXPR size_type col_merge_count() noexcept
-        {
-            return dimensions::col_merge_count;
-        }
-
-        // col_split_count
-        //   function: returns the number of structural column splits.
-        static D_CONSTEXPR size_type col_split_count() noexcept
-        {
-            return dimensions::col_split_count;
-        }
-
-        // row_merge_count
-        //   function: returns the number of structural row merges.
-        static D_CONSTEXPR size_type row_merge_count() noexcept
-        {
-            return dimensions::row_merge_count;
-        }
-
-        // row_split_count
-        //   function: returns the number of structural row splits.
-        static D_CONSTEXPR size_type row_split_count() noexcept
-        {
-            return dimensions::row_split_count;
-        }
-
-        // has_structural_merges
-        //   function: returns whether the config defines any structural
-        // column or row merges.
-        static D_CONSTEXPR bool has_structural_merges() noexcept
-        {
-            return ( (dimensions::col_merge_count > 0) ||
-                     (dimensions::row_merge_count > 0) );
-        }
-
-        // has_structural_splits
-        //   function: returns whether the config defines any structural
-        // column or row splits.
-        static D_CONSTEXPR bool has_structural_splits() noexcept
-        {
-            return ( (dimensions::col_split_count > 0) ||
-                     (dimensions::row_split_count > 0) );
-        }
-
-
-        // =================================================================
-        //  merge / split config queries
-        // =================================================================
-
-        // -----------------------------------------------------------------
-        //  config classification (from table_traits.hpp)
-        // -----------------------------------------------------------------
-        using config_class = table_config_class<_Config>;
-
-        // has_merged_cells
-        //   function: returns whether the config defines any merged spans.
-        static D_CONSTEXPR bool has_merged_cells() noexcept
-        {
-            return config_class::has_merged_cells;
-        }
-
-        // has_split_cells
-        //   function: returns whether the config defines any split
-        // descriptors.
-        static D_CONSTEXPR bool has_split_cells() noexcept
-        {
-            return config_class::has_split_cells;
-        }
-
-        // has_layout_features
-        //   function: returns whether the config defines any merges or
-        // splits.
-        static D_CONSTEXPR bool has_layout_features() noexcept
-        {
-            return config_class::has_layout_features;
-        }
-
-        // merge_count
-        //   function: returns the number of merged span descriptors.
-        static D_CONSTEXPR size_type merge_count() noexcept
-        {
-            return config_class::merge_count;
-        }
-
-        // split_count
-        //   function: returns the number of split descriptors.
-        static D_CONSTEXPR size_type split_count() noexcept
-        {
-            return config_class::split_count;
-        }
-
-        // is_basic
-        //   function: returns whether the config has no special features.
-        static D_CONSTEXPR bool is_basic() noexcept
-        {
-            return config_class::is_basic;
         }
 
 
