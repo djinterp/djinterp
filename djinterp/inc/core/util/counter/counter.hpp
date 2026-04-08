@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [util]                                                 counter.hpp
+* djinterp [util]                                                  counter.hpp
 *
 * djinterp counter header:
 *   This header provides a bounded, nestable counter with configurable value
@@ -14,41 +14,25 @@
 *   This header uses env.h for C++ version detection and djinterp.hpp for
 * namespace macros. Requires C++17 or later.
 *
-* path:      \inc\util\counter.hpp
+*
+* path:      /inc/djinterp/util/counter/counter.hpp
 * link(s):   TBA
-* author(s): TBA                                                 date: 2026.04
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
 ******************************************************************************/
 
-#ifndef DJINTERP_UTIL_COUNTER_
-#define DJINTERP_UTIL_COUNTER_ 1
+#ifndef DJINTERP_UTILITY_COUNTER_
+#define DJINTERP_UTILITY_COUNTER_ 1
 
 #include <cstdint>
 #include <limits>
 #include <vector>
-#include ".\djinterp.hpp"
-
-
-// D_KEYWORD_UTIL
-//   keyword: resolves to `util`.
-// Used to specify that a unit of code pertains to the utility
-// namespace.
-#ifndef D_KEYWORD_UTIL
-    #define D_KEYWORD_UTIL              util
-#endif
-
-// NS_UTIL
-//   namespace: the `util` namespace for general-purpose utility
-// types and helpers.
-#ifndef NS_UTIL
-    #define NS_UTIL                     D_NAMESPACE(D_KEYWORD_UTIL)
-#endif
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
 NS_UTIL
 
 
-// =========================================================================
 // counter
 //   class: a bounded, nestable counter with configurable value type.
 //
@@ -58,7 +42,6 @@ NS_UTIL
 // observed (stored by pointer).
 //
 //   Template parameter `_ValueType` must be an arithmetic type.
-// =========================================================================
 template<typename _ValueType = std::int64_t>
 class counter
 {
@@ -94,10 +77,10 @@ public:
     //   constructor: constructs a counter with an initial value and
     // optional min/max bounds.
     constexpr counter(
-            value_type _initial,
-            value_type _min = std::numeric_limits<value_type>::lowest(),
-            value_type _max = std::numeric_limits<value_type>::max()
-        ) noexcept
+		value_type _initial,
+		value_type _min = std::numeric_limits<value_type>::lowest(),
+		value_type _max = std::numeric_limits<value_type>::max()
+	) noexcept
         : m_value(_initial),
           m_initial(_initial),
           m_min(_min),
@@ -115,8 +98,8 @@ public:
     //   increments the counter by `_amount`. returns false and clamps
     // to max if the operation would exceed the upper bound.
     bool increment(
-            value_type _amount = value_type{1}
-        ) noexcept
+		value_type _amount = value_type{1}
+	) noexcept
     {
         if (m_value + _amount > m_max)
         {
@@ -134,8 +117,8 @@ public:
     //   decrements the counter by `_amount`. returns false and clamps
     // to min if the operation would exceed the lower bound.
     bool decrement(
-            value_type _amount = value_type{1}
-        ) noexcept
+		value_type _amount = value_type{1}
+	) noexcept
     {
         if (m_value - _amount < m_min)
         {
@@ -228,10 +211,10 @@ public:
     //   constructs and appends an owned child counter. returns a
     // reference to the newly added child.
     self_type& add_child(
-            value_type _initial = value_type{0},
-            value_type _min     = std::numeric_limits<value_type>::lowest(),
-            value_type _max     = std::numeric_limits<value_type>::max()
-        )
+		value_type _initial = value_type{0},
+		value_type _min     = std::numeric_limits<value_type>::lowest(),
+		value_type _max     = std::numeric_limits<value_type>::max()
+	)
     {
         m_children.emplace_back(_initial,
                                 _min,
@@ -243,8 +226,8 @@ public:
     // child
     //   returns a reference to the owned child at `_index`.
     self_type& child(
-            size_type _index
-        )
+		size_type _index
+	)
     {
         return m_children[_index];
     }
@@ -252,8 +235,8 @@ public:
     // child (const)
     //   returns a const reference to the owned child at `_index`.
     const self_type& child(
-            size_type _index
-        ) const
+		size_type _index
+	) const
     {
         return m_children[_index];
     }
@@ -274,8 +257,8 @@ public:
     // the caller is responsible for ensuring the observed counter
     // outlives this counter.
     void observe(
-            self_type& _target
-        ) noexcept
+		self_type& _target
+	) noexcept
     {
         m_observed.push_back(&_target);
 
@@ -286,8 +269,8 @@ public:
     //   returns a pointer to the observed counter at `_index`,
     // or nullptr if out of range.
     self_type* observed(
-            size_type _index
-        ) const noexcept
+		size_type _index
+	) const noexcept
     {
         if (_index >= m_observed.size())
         {
@@ -317,4 +300,5 @@ private:
 NS_END  // util
 NS_END  // djinterp
 
-#endif  // DJINTERP_UTIL_COUNTER_
+
+#endif  // DJINTERP_UTILITY_COUNTER_
