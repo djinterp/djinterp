@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [threadsafe]                                           atomic.hpp
+* djinterp [threadsafe]                                             atomic.hpp
 *
 * Atomic utilities for the thread-safe framework.
 *   Provides semantic wrappers around std::atomic for common metadata
@@ -19,9 +19,9 @@
 *   C++20:     + atomic_ref support, wait/notify
 *
 *
-* path:      \inc\threadsafe\atomic.hpp
+* path:      /inc/djinterp/sync/atomic.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.23
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_ATOMIC_
