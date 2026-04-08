@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [util]                                                   timer.hpp
+* djinterp [util]                                                    timer.hpp
 *
 * djinterp timer header:
 *   This header provides a nestable timer with configurable clock and duration
@@ -15,27 +15,18 @@
 *   This header uses env.h for C++ version detection and djinterp.hpp for
 * namespace macros. Requires C++17 or later.
 *
-* path:      \inc\util\timer.hpp
+*
+* path:      /inc/djinterp/util/timer/timer.hpp
 * link(s):   TBA
-* author(s): TBA                                                 date: 2026.04
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
 ******************************************************************************/
 
-#ifndef DJINTERP_UTIL_TIMER_
-#define DJINTERP_UTIL_TIMER_ 1
+#ifndef DJINTERP_UTILITY_TIMER_
+#define DJINTERP_UTILITY_TIMER_ 1
 
 #include <chrono>
 #include <vector>
-#include ".\djinterp.hpp"
-
-
-// pull in NS_UTIL if not already defined (see counter.hpp)
-#ifndef D_KEYWORD_UTIL
-    #define D_KEYWORD_UTIL              util
-#endif
-
-#ifndef NS_UTIL
-    #define NS_UTIL                     D_NAMESPACE(D_KEYWORD_UTIL)
-#endif
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -347,4 +338,5 @@ private:
 NS_END  // util
 NS_END  // djinterp
 
-#endif  // DJINTERP_UTIL_TIMER_
+
+#endif  // DJINTERP_UTILITY_TIMER_
