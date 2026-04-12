@@ -44,7 +44,7 @@ NS_TRAITS
     // has_node_type_v
     //   variable template: value of has_node_type<_T>.
     template<typename _T>
-    constexpr bool has_node_type_v = has_node_type<_T>::value;
+    D_CONSTEXPR bool has_node_type_v = has_node_type<_T>::value;
 #endif
 
     // has_depth_type
@@ -63,7 +63,7 @@ NS_TRAITS
     // has_depth_type_v
     //   variable template: value of has_depth_type<_T>.
     template<typename _T>
-    constexpr bool has_depth_type_v = has_depth_type<_T>::value;
+    D_CONSTEXPR bool has_depth_type_v = has_depth_type<_T>::value;
 #endif
 
     // has_key_compare
@@ -82,7 +82,7 @@ NS_TRAITS
     // has_key_compare_v
     //   variable template: value of has_key_compare<_T>.
     template<typename _T>
-    constexpr bool has_key_compare_v = has_key_compare<_T>::value;
+    D_CONSTEXPR bool has_key_compare_v = has_key_compare<_T>::value;
 #endif
 
     NS_INTERNAL
@@ -128,7 +128,7 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool has_root_method_v = has_root_method<_T>::value;
+    D_CONSTEXPR bool has_root_method_v = has_root_method<_T>::value;
 #endif
 
     // has_set_root_method
@@ -146,7 +146,25 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool has_set_root_method_v = has_set_root_method<_T>::value;
+    D_CONSTEXPR bool has_set_root_method_v = has_set_root_method<_T>::value;
+#endif
+
+    // has_has_root_method
+    //   trait: evaluates to true if _T has a `has_root()` method.
+    template<typename _T,
+             typename = void>
+    struct has_has_root_method : std::false_type
+    {};
+
+    template<typename _T>
+    struct has_has_root_method<_T, D_VOID_T<decltype(
+        std::declval<const _T>().has_root()
+    )>> : std::true_type
+    {};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    D_CONSTEXPR bool has_has_root_method_v = has_has_root_method<_T>::value;
 #endif
 
 
@@ -169,7 +187,7 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool has_rotate_left_method_v = has_rotate_left_method<_T>::value;
+    D_CONSTEXPR bool has_rotate_left_method_v = has_rotate_left_method<_T>::value;
 #endif
 
     // has_rotate_right_method
@@ -187,11 +205,11 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool has_rotate_right_method_v = has_rotate_right_method<_T>::value;
+    D_CONSTEXPR bool has_rotate_right_method_v = has_rotate_right_method<_T>::value;
 #endif
 
     // has_rebalance_method
-    //   trait: evaluates to true if _T exposes a `rebalance(...)` or `balance()` method.
+    //   trait: evaluates to true if _T exposes a `rebalance(...)` method.
     template<typename _T,
              typename = void>
     struct has_rebalance_method : std::false_type
@@ -205,11 +223,11 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool has_rebalance_method_v = has_rebalance_method<_T>::value;
+    D_CONSTEXPR bool has_rebalance_method_v = has_rebalance_method<_T>::value;
 #endif
 
     // has_merge_method
-    //   trait: evaluates to true if _T supports merging with another tree of same type.
+    //   trait: evaluates to true if _T supports merging with another tree.
     template<typename _T,
              typename = void>
     struct has_merge_method : std::false_type
@@ -223,7 +241,7 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool has_merge_method_v = has_merge_method<_T>::value;
+    D_CONSTEXPR bool has_merge_method_v = has_merge_method<_T>::value;
 #endif
 
     // has_split_method
@@ -241,7 +259,7 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool has_split_method_v = has_split_method<_T>::value;
+    D_CONSTEXPR bool has_split_method_v = has_split_method<_T>::value;
 #endif
 
 
@@ -261,7 +279,7 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool is_binary_tree_v = is_binary_tree<_T>::value;
+    D_CONSTEXPR bool is_binary_tree_v = is_binary_tree<_T>::value;
 #endif
 
     // is_nary_tree
@@ -275,7 +293,7 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool is_nary_tree_v = is_nary_tree<_T>::value;
+    D_CONSTEXPR bool is_nary_tree_v = is_nary_tree<_T>::value;
 #endif
 
     // is_parented_tree
@@ -289,13 +307,15 @@ NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _T>
-    constexpr bool is_parented_tree_v = is_parented_tree<_T>::value;
+    D_CONSTEXPR bool is_parented_tree_v = is_parented_tree<_T>::value;
 #endif
 
 
     // =========================================================================
     // V.   MASTER CLASSIFICATION STRUCT
     // =========================================================================
+    // Note: Uses ::value syntax for C++11 compatibility. The _v variable
+    // templates are a convenience layer that requires C++14.
 
     // tree_container_class
     //   struct: comprehensive aggregation of a tree container's capabilities.
@@ -306,38 +326,38 @@ NS_TRAITS
         // Core Identity
         // -----------------------------------------------------------------
         static constexpr bool is_tree =
-            ( has_node_type_v<_T> &&
-              has_root_method_v<_T> );
+            ( has_node_type<_T>::value &&
+              has_root_method<_T>::value );
 
         static constexpr bool is_search_tree =
             ( is_tree &&
-              has_key_compare_v<_T> );
+              has_key_compare<_T>::value );
 
         // -----------------------------------------------------------------
         // Structural Topology
         // -----------------------------------------------------------------
-        static constexpr bool is_binary   = is_binary_tree_v<_T>;
-        static constexpr bool is_nary     = is_nary_tree_v<_T>;
-        static constexpr bool is_parented = is_parented_tree_v<_T>;
+        static constexpr bool is_binary   = is_binary_tree<_T>::value;
+        static constexpr bool is_nary     = is_nary_tree<_T>::value;
+        static constexpr bool is_parented = is_parented_tree<_T>::value;
 
         // -----------------------------------------------------------------
         // Operational Capabilities
         // -----------------------------------------------------------------
         static constexpr bool is_rotatable =
-            ( has_rotate_left_method_v<_T> &&
-              has_rotate_right_method_v<_T> );
+            ( has_rotate_left_method<_T>::value &&
+              has_rotate_right_method<_T>::value );
 
         static constexpr bool is_self_balancing =
             ( is_tree &&
-              has_rebalance_method_v<_T> );
+              has_rebalance_method<_T>::value );
 
         static constexpr bool is_mergeable =
             ( is_tree &&
-              has_merge_method_v<_T> );
+              has_merge_method<_T>::value );
 
         static constexpr bool is_splittable =
             ( is_tree &&
-              has_split_method_v<_T> );
+              has_split_method<_T>::value );
     };
 
 
