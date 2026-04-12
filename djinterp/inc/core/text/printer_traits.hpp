@@ -27,13 +27,25 @@
 *     - is_printable           : composite — any type the printer
 *                                can convert to text
 *
+*   Indentation:
+*     - has_indent_string      : .indent_string() accessor
+*     - has_indent_depth       : .indent_depth() accessor
+*     - has_set_indent         : .set_indent(str, depth) mutator
+*     - has_indent_support     : composite — full indent protocol
+*
+*   Template-backed rendering:
+*     - has_node_template      : .node_template() accessor
+*     - has_summary_template   : .summary_template() accessor
+*     - has_template_rendering : composite — template-backed printer
+*
 *   PORTABILITY:
 *   This header uses env.h and cpp_features.h for C++ version detection.
 * All traits are pure SFINAE — no tag types are introduced.
 *
+*
 * path:      /inc/cpp/io/printer_traits.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_PRINTER_TRAITS_
@@ -51,13 +63,6 @@ NS_DJINTERP
 // =============================================================================
 // I.   OUTPUT TARGET DETECTION
 // =============================================================================
-// Traits in this section detect whether a given type can serve as an output
-// destination for the print module.
-
-
-// -----------------------------------------------------------------------------
-// A.  has_write_method
-// -----------------------------------------------------------------------------
 
 // has_write_method
 //   trait: detects types with a .write(const char*, std::streamsize)
@@ -75,30 +80,22 @@ struct has_write_method<_Type, void_t<
 >> : std::true_type
 {};
 
-// has_write_method_v
-//   value: convenience alias for has_write_method<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool has_write_method_v = has_write_method<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// B.  has_stream_insertion
-// -----------------------------------------------------------------------------
-
+// has_stream_insertion
+//   trait: detects types supporting operator<<(const char*).
 NS_INTERNAL
-    // stream_insertion_expr
-    //   trait: helper alias for detecting operator<< with const char*.
+
     template<typename _Type>
     using stream_insertion_expr = decltype(
         std::declval<_Type&>() << std::declval<const char*>());
 
 NS_END  // internal
 
-// has_stream_insertion
-//   trait: detects types supporting operator<<(const char*), typically
-// std::ostream and its derivatives.
 template<typename _Type,
          typename = void>
 struct has_stream_insertion : std::false_type
@@ -110,8 +107,6 @@ struct has_stream_insertion<_Type, void_t<
 >> : std::true_type
 {};
 
-// has_stream_insertion_v
-//   value: convenience alias for has_stream_insertion<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool has_stream_insertion_v =
@@ -119,15 +114,11 @@ struct has_stream_insertion<_Type, void_t<
 #endif
 
 
-// -----------------------------------------------------------------------------
-// C.  is_ostream
-// -----------------------------------------------------------------------------
-
+// is_ostream
+//   trait: evaluates to true_type if _Type derives from
+// std::ostream.
 NS_INTERNAL
 
-    // is_ostream_check
-    //   trait: helper that tests derivation from std::ostream via
-    // SFINAE on pointer convertibility.
     template<typename _Type,
              typename = void>
     struct is_ostream_check : std::false_type
@@ -143,47 +134,34 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// is_ostream
-//   trait: evaluates to true_type if _Type derives from std::ostream.
 template<typename _Type>
 struct is_ostream : internal::is_ostream_check<_Type>
 {};
 
-// is_ostream_v
-//   value: convenience alias for is_ostream<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_ostream_v = is_ostream<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// D.  is_file_pointer
-// -----------------------------------------------------------------------------
-
 // is_file_pointer
-//   trait: evaluates to true_type if _Type is FILE* (C-style I/O).
+//   trait: evaluates to true_type if _Type is FILE*.
 template<typename _Type>
 struct is_file_pointer
     : std::is_same<typename std::remove_cv<_Type>::type, std::FILE*>
 {};
 
-// is_file_pointer_v
-//   value: convenience alias for is_file_pointer<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_file_pointer_v = is_file_pointer<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// E.  is_string_target
-// -----------------------------------------------------------------------------
-
+// is_string_target
+//   trait: evaluates to true_type if _Type is a
+// std::basic_string instantiation.
 NS_INTERNAL
 
-    // is_std_string_check
-    //   trait: helper that matches std::basic_string instantiations.
     template<typename _Type>
     struct is_std_string_check : std::false_type
     {};
@@ -197,10 +175,6 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// is_string_target
-//   trait: evaluates to true_type if _Type is a std::basic_string
-// instantiation (e.g. std::string). Strips cv-qualifiers and
-// references before testing.
 template<typename _Type>
 struct is_string_target
     : internal::is_std_string_check<
@@ -209,33 +183,23 @@ struct is_string_target
         >::type>
 {};
 
-// is_string_target_v
-//   value: convenience alias for is_string_target<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_string_target_v = is_string_target<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// F.  is_output_target
-// -----------------------------------------------------------------------------
-
 // is_output_target
-//   trait: composite detection — evaluates to true_type if _Type is
-// any supported output destination (ostream, FILE*, std::string, or
-// any type with a .write() method).
+//   trait: composite — any supported output destination.
 template<typename _Type>
 struct is_output_target
     : std::integral_constant<bool,
-        ( is_ostream<_Type>::value        ||
-          is_file_pointer<_Type>::value   ||
-          is_string_target<_Type>::value  ||
+        ( is_ostream<_Type>::value       ||
+          is_file_pointer<_Type>::value  ||
+          is_string_target<_Type>::value ||
           has_write_method<_Type>::value )>
 {};
 
-// is_output_target_v
-//   value: convenience alias for is_output_target<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_output_target_v = is_output_target<_Type>::value;
@@ -245,17 +209,9 @@ struct is_output_target
 // =============================================================================
 // II.  PRINTABLE TYPE DETECTION
 // =============================================================================
-// Traits in this section detect whether a given type can be converted to
-// text for printing.
-
-
-// -----------------------------------------------------------------------------
-// A.  has_to_string
-// -----------------------------------------------------------------------------
 
 // has_to_string
-//   trait: detects types with a .to_string() member function returning
-// something convertible to const char* or std::string.
+//   trait: detects types with a .to_string() member function.
 template<typename _Type,
          typename = void>
 struct has_to_string : std::false_type
@@ -267,21 +223,14 @@ struct has_to_string<_Type, void_t<
 >> : std::true_type
 {};
 
-// has_to_string_v
-//   value: convenience alias for has_to_string<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool has_to_string_v = has_to_string<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// B.  has_c_str
-// -----------------------------------------------------------------------------
-
 // has_c_str
-//   trait: detects types with a .c_str() member function (string-like
-// types such as std::string, std::string_view).
+//   trait: detects types with a .c_str() member function.
 template<typename _Type,
          typename = void>
 struct has_c_str : std::false_type
@@ -293,22 +242,14 @@ struct has_c_str<_Type, void_t<
 >> : std::true_type
 {};
 
-// has_c_str_v
-//   value: convenience alias for has_c_str<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool has_c_str_v = has_c_str<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// C.  has_data_and_size
-// -----------------------------------------------------------------------------
-
 // has_data_and_size
-//   trait: detects types with both .data() and .size() members,
-// enabling contiguous buffer access (e.g. std::string, std::vector<char>,
-// std::string_view, std::span<char>).
+//   trait: detects types with both .data() and .size() members.
 template<typename _Type,
          typename = void>
 struct has_data_and_size : std::false_type
@@ -321,8 +262,6 @@ struct has_data_and_size<_Type, void_t<
 >> : std::true_type
 {};
 
-// has_data_and_size_v
-//   value: convenience alias for has_data_and_size<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool has_data_and_size_v =
@@ -330,33 +269,9 @@ struct has_data_and_size<_Type, void_t<
 #endif
 
 
-// -----------------------------------------------------------------------------
-// D.  is_c_string
-// -----------------------------------------------------------------------------
-
-NS_INTERNAL
-
-    // remove_cv_ref
-    //   trait: helper to strip cv-qualifiers and references for older
-    // C++ standards. Equivalent to std::remove_cvref_t in C++20.
-    template<typename _Type>
-    struct remove_cv_ref
-    {
-        using type = typename std::remove_cv<
-            typename std::remove_reference<_Type>::type
-        >::type;
-    };
-
-    // remove_cv_ref_t
-    //   type: convenience alias for remove_cv_ref<_Type>::type.
-    template<typename _Type>
-    using remove_cv_ref_t = typename remove_cv_ref<_Type>::type;
-
-NS_END  // internal
-
 // is_c_string
-//   trait: evaluates to true_type if _Type decays to const char*
-// or char* (including char arrays).
+//   trait: evaluates to true_type if _Type decays to
+// const char* or char*.
 template<typename _Type>
 struct is_c_string
     : std::integral_constant<bool,
@@ -366,46 +281,30 @@ struct is_c_string
                        char*>::value )>
 {};
 
-// is_c_string_v
-//   value: convenience alias for is_c_string<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_c_string_v = is_c_string<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// E.  is_string_like
-// -----------------------------------------------------------------------------
-
 // is_string_like
-//   trait: composite detection — evaluates to true_type if _Type is a
-// C string, has .c_str(), or has .data() + .size(). Covers
-// std::string, std::string_view, const char*, char[], and similar.
+//   trait: composite — C string, .c_str(), or .data()+.size().
 template<typename _Type>
 struct is_string_like
     : std::integral_constant<bool,
-        ( is_c_string<_Type>::value       ||
-          has_c_str<_Type>::value          ||
+        ( is_c_string<_Type>::value      ||
+          has_c_str<_Type>::value         ||
           has_data_and_size<_Type>::value )>
 {};
 
-// is_string_like_v
-//   value: convenience alias for is_string_like<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_string_like_v = is_string_like<_Type>::value;
 #endif
 
 
-// -----------------------------------------------------------------------------
-// F.  is_arithmetic_printable
-// -----------------------------------------------------------------------------
-
 // is_arithmetic_printable
-//   trait: evaluates to true_type if _Type is an arithmetic type
-// (integral or floating-point) that can be printed via snprintf or
-// std::to_string.
+//   trait: any arithmetic type printable via snprintf.
 template<typename _Type>
 struct is_arithmetic_printable
     : std::is_arithmetic<typename std::remove_cv<
@@ -413,8 +312,6 @@ struct is_arithmetic_printable
       >::type>
 {};
 
-// is_arithmetic_printable_v
-//   value: convenience alias for is_arithmetic_printable<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_arithmetic_printable_v =
@@ -422,15 +319,9 @@ struct is_arithmetic_printable
 #endif
 
 
-// -----------------------------------------------------------------------------
-// G.  has_stream_insertion_for
-// -----------------------------------------------------------------------------
-
 // has_stream_insertion_for
-//   trait: detects whether _Type supports operator<< into an
-// std::ostream. Distinct from has_stream_insertion which tests if a
-// type itself IS a stream target — this tests if a type can be SENT
-// to a stream.
+//   trait: detects whether _Type supports operator<< into
+// an std::ostream.
 template<typename _Type,
          typename = void>
 struct has_stream_insertion_for : std::false_type
@@ -442,8 +333,6 @@ struct has_stream_insertion_for<_Type, void_t<
 >> : std::true_type
 {};
 
-// has_stream_insertion_for_v
-//   value: convenience alias for has_stream_insertion_for<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool has_stream_insertion_for_v =
@@ -451,26 +340,18 @@ struct has_stream_insertion_for<_Type, void_t<
 #endif
 
 
-// -----------------------------------------------------------------------------
-// H.  is_printable
-// -----------------------------------------------------------------------------
-
 // is_printable
-//   trait: composite detection — evaluates to true_type if _Type can
-// be printed by the print module via any supported mechanism:
-// string-like, arithmetic, has .to_string(), or supports operator<<
-// into an ostream.
+//   trait: composite — any type the print module can render
+// to text.
 template<typename _Type>
 struct is_printable
     : std::integral_constant<bool,
-        ( is_string_like<_Type>::value           ||
-          is_arithmetic_printable<_Type>::value   ||
-          has_to_string<_Type>::value             ||
+        ( is_string_like<_Type>::value         ||
+          is_arithmetic_printable<_Type>::value ||
+          has_to_string<_Type>::value           ||
           has_stream_insertion_for<_Type>::value )>
 {};
 
-// is_printable_v
-//   value: convenience alias for is_printable<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_printable_v = is_printable<_Type>::value;
@@ -480,14 +361,6 @@ struct is_printable
 // =============================================================================
 // III. BUFFER TARGET TRAITS
 // =============================================================================
-// Traits for raw char buffer output (char* + size_t pairs). These are
-// not struct-based SFINAE but rather support traits used by the
-// buffer_writer in print.hpp.
-
-
-// -----------------------------------------------------------------------------
-// A.  is_char_pointer
-// -----------------------------------------------------------------------------
 
 // is_char_pointer
 //   trait: evaluates to true_type if _Type is char* or char[].
@@ -501,12 +374,175 @@ struct is_char_pointer
                        char*>::value )>
 {};
 
-// is_char_pointer_v
-//   value: convenience alias for is_char_pointer<_Type>::value.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
     constexpr bool is_char_pointer_v = is_char_pointer<_Type>::value;
 #endif
+
+
+// =============================================================================
+// IV.  INDENTATION PROTOCOL DETECTION
+// =============================================================================
+
+// has_indent_string
+//   trait: detects types exposing indent_string().
+template<typename _Type,
+         typename = void>
+struct has_indent_string : std::false_type
+{};
+
+template<typename _Type>
+struct has_indent_string<_Type, void_t<
+    decltype(std::declval<const _Type&>().indent_string())
+>> : std::true_type
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool has_indent_string_v =
+        has_indent_string<_Type>::value;
+#endif
+
+
+// has_indent_depth
+//   trait: detects types exposing indent_depth().
+template<typename _Type,
+         typename = void>
+struct has_indent_depth : std::false_type
+{};
+
+template<typename _Type>
+struct has_indent_depth<_Type, void_t<
+    decltype(std::declval<const _Type&>().indent_depth())
+>> : std::true_type
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool has_indent_depth_v =
+        has_indent_depth<_Type>::value;
+#endif
+
+
+// has_set_indent
+//   trait: detects types exposing set_indent(string, depth).
+template<typename _Type,
+         typename = void>
+struct has_set_indent : std::false_type
+{};
+
+template<typename _Type>
+struct has_set_indent<_Type, void_t<
+    decltype(std::declval<_Type&>().set_indent(
+        std::declval<const std::string&>(),
+        std::declval<std::size_t>()))
+>> : std::true_type
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool has_set_indent_v = has_set_indent<_Type>::value;
+#endif
+
+
+// has_indent_support
+//   trait: composite — full indentation protocol.
+template<typename _Type>
+struct has_indent_support
+    : std::integral_constant<bool,
+        ( has_indent_string<_Type>::value &&
+          has_set_indent<_Type>::value )>
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool has_indent_support_v =
+        has_indent_support<_Type>::value;
+#endif
+
+
+// =============================================================================
+// V.   TEMPLATE-BACKED RENDERING DETECTION
+// =============================================================================
+
+// has_node_template
+//   trait: detects types exposing node_template().
+template<typename _Type,
+         typename = void>
+struct has_node_template : std::false_type
+{};
+
+template<typename _Type>
+struct has_node_template<_Type, void_t<
+    decltype(std::declval<const _Type&>().node_template())
+>> : std::true_type
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool has_node_template_v =
+        has_node_template<_Type>::value;
+#endif
+
+
+// has_summary_template
+//   trait: detects types exposing summary_template().
+template<typename _Type,
+         typename = void>
+struct has_summary_template : std::false_type
+{};
+
+template<typename _Type>
+struct has_summary_template<_Type, void_t<
+    decltype(std::declval<const _Type&>().summary_template())
+>> : std::true_type
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool has_summary_template_v =
+        has_summary_template<_Type>::value;
+#endif
+
+
+// has_template_rendering
+//   trait: composite — printer backed by text_template
+// objects for node and summary rendering.
+template<typename _Type>
+struct has_template_rendering
+    : std::integral_constant<bool,
+        ( has_node_template<_Type>::value &&
+          has_summary_template<_Type>::value )>
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool has_template_rendering_v =
+        has_template_rendering<_Type>::value;
+#endif
+
+
+// =============================================================================
+// VI.  COMBINED PRINTER CLASSIFICATION
+// =============================================================================
+
+// printer_class
+//   struct: comprehensive classification of a printer type.
+template<typename _Type>
+struct printer_class
+{
+    // output target
+    static constexpr bool is_target     =
+        is_output_target<_Type>::value;
+
+    // indentation
+    static constexpr bool has_indent    =
+        has_indent_support<_Type>::value;
+
+    // template-backed rendering
+    static constexpr bool has_templates =
+        has_template_rendering<_Type>::value;
+};
 
 
 NS_END  // djinterp
