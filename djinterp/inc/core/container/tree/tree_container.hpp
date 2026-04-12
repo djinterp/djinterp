@@ -2,21 +2,31 @@
 * djinterp [container]                                     tree_container.hpp
 *
 * Generalized Tree Container:
-* Foundational module for all node-based tree containers. Implements
-* core hierarchical state and trait-driven topology detection while
-* remaining completely abstract over the underlying node linkage strategy.
+*   Inherits from node_container and adds tree-specific semantics:
+* root() / has_root() as aliases for entry_point() / has_entry(),
+* plus set_root() / adopt_root() / release_root() for tree-domain
+* naming.
+*
+*   All ownership, size tracking, allocator management, and Rule of
+* Five behavior are handled by node_container.  tree_container is
+* a thin semantic layer that says "the entry point is a root node."
+*
+*   Topology detection (binary, n-ary, parented) is deferred to
+* tree_container_traits.hpp, which inspects the node_type.
+*
 *
 * path:      /inc/container/tree_container.hpp
 * link(s):   TBA
-* author(s): djinterp AI Agent                                date: 2026.03.31
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_CONTAINER_
 #define DJINTERP_CONTAINER_TREE_CONTAINER_ 1
 
 #include <memory>
+#include <type_traits>
 #include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
+#include "node/node_container.hpp"
 #include "node/node_traits.hpp"
 
 
@@ -24,146 +34,165 @@ NS_DJINTERP
 NS_CONTAINER
 
     // tree_container
-    //   class: foundational generalized node-based tree container managing hierarchical state.
+    //   class: tree-specific node container.  Inherits all
+    // ownership, size, and allocator management from
+    // node_container.  Adds root() / has_root() as the
+    // tree-domain entry point interface.
+    template<typename _ValueType,
+             typename _NodeType,
+             typename _Allocator       = std::allocator<_NodeType>,
+             typename _LockPolicy      = void,
+             typename _OwnershipPolicy = non_owning_policy>
+    class tree_container
+        : public node_container<_ValueType,
+                                _NodeType,
+                                _Allocator,
+                                _LockPolicy,
+                                _OwnershipPolicy>
+    {
+    private:
+        using base = node_container<_ValueType,
+                                    _NodeType,
+                                    _Allocator,
+                                    _LockPolicy,
+                                    _OwnershipPolicy>;
+
+    public:
+        // Re-export base type aliases
+        using typename base::value_type;
+        using typename base::node_type;
+        using typename base::allocator_type;
+        using typename base::lock_policy;
+        using typename base::ownership_policy;
+        using typename base::size_type;
+        using typename base::difference_type;
+        using typename base::depth_type;
+        using typename base::reference;
+        using typename base::const_reference;
+        using typename base::pointer;
+        using typename base::const_pointer;
+        using typename base::entry_storage;
+
+        // -----------------------------------------------------------------
+        // constructors — forward to base
+        // -----------------------------------------------------------------
+
+        using base::base;
+
+        // -----------------------------------------------------------------
+        // tree-specific entry point interface
+        // -----------------------------------------------------------------
+
+        // root
+        //   returns a mutable pointer to the root node.
+        D_CONSTEXPR node_type*
+        root() noexcept
+        {
+            return base::entry_point();
+        }
+
+        // root (const)
+        D_CONSTEXPR const node_type*
+        root() const noexcept
+        {
+            return base::entry_point();
+        }
+
+        // has_root
+        //   returns true if the tree has a root node.
+        D_CONSTEXPR bool
+        has_root() const noexcept
+        {
+            return base::has_entry();
+        }
+
+        // set_root (raw pointer)
+        //   sets the root node.  Ownership depends on policy.
+        D_CONSTEXPR void
+        set_root(
+            node_type* _node
+        ) noexcept(!_OwnershipPolicy::owns)
+        {
+            base::set_entry(_node);
+
+            return;
+        }
+
+        // adopt_root (unique_ptr)
+        //   takes exclusive ownership of a root node.
+        //   Only available with unique_owning_policy.
+        template<typename _Dummy = _OwnershipPolicy,
+                 std::enable_if_t<
+                     std::is_same<_Dummy,
+                                  unique_owning_policy>::value,
+                     int> = 0>
+        void
+        adopt_root(
+            std::unique_ptr<node_type> _node
+        )
+        {
+            base::adopt_entry(std::move(_node));
+
+            return;
+        }
+
+        // share_root (shared_ptr)
+        //   shares ownership of a root node.
+        //   Only available with shared_owning_policy.
+        template<typename _Dummy = _OwnershipPolicy,
+                 std::enable_if_t<
+                     std::is_same<_Dummy,
+                                  shared_owning_policy>::value,
+                     int> = 0>
+        void
+        share_root(
+            std::shared_ptr<node_type> _node
+        )
+        {
+            base::share_entry(std::move(_node));
+
+            return;
+        }
+
+        // release_root
+        //   releases ownership of the root and returns it.
+        node_type*
+        release_root()
+        {
+            return base::release_entry();
+        }
+    };
+
+
+    // =========================================================================
+    //  CONVENIENCE ALIASES
+    // =========================================================================
+
+    // owning_tree_container
+    //   alias: tree_container with unique_owning_policy.
     template<typename _ValueType,
              typename _NodeType,
              typename _Allocator  = std::allocator<_NodeType>,
              typename _LockPolicy = void>
-    class tree_container
-    {
-    private:
-        using allocator_traits = std::allocator_traits<_Allocator>;
+    using owning_tree_container =
+        tree_container<_ValueType,
+                       _NodeType,
+                       _Allocator,
+                       _LockPolicy,
+                       unique_owning_policy>;
 
-    public:
-        // Core and Structural Trait Aliases
-        using value_type      = _ValueType;
-        using node_type       = _NodeType;
-        using allocator_type  = _Allocator;
-        using lock_policy     = _LockPolicy;
-        using size_type       = std::size_t;
-        using difference_type = std::ptrdiff_t;
-        using depth_type      = std::size_t;
-        using reference       = value_type&;
-        using const_reference = const value_type&;
-        using pointer         = typename allocator_traits::pointer;
-        using const_pointer   = typename allocator_traits::const_pointer;
-
-        // -----------------------------------------------------------------
-        // constructors
-        // -----------------------------------------------------------------
-
-        D_CONSTEXPR tree_container() noexcept
-                : m_root(nullptr),
-                  m_size(0),
-                  m_allocator()
-            {}
-
-        D_CONSTEXPR explicit tree_container(
-                const allocator_type& _alloc
-            ) noexcept
-                : m_root(nullptr),
-                  m_size(0),
-                  m_allocator(_alloc)
-            {}
-
-
-        // -----------------------------------------------------------------
-        // capacity
-        // -----------------------------------------------------------------
-
-        D_CONSTEXPR bool
-        empty() const noexcept
-        {
-            return (m_size == 0);
-        }
-
-        D_CONSTEXPR size_type
-        size() const noexcept
-        {
-            return m_size;
-        }
-
-        D_CONSTEXPR size_type
-        max_size() const noexcept
-        {
-            return allocator_traits::max_size(m_allocator);
-        }
-
-
-        // -----------------------------------------------------------------
-        // tree navigation / structural SFINAE hooks
-        // -----------------------------------------------------------------
-
-        D_CONSTEXPR node_type*
-        root() noexcept
-        {
-            return m_root;
-        }
-
-        D_CONSTEXPR const node_type*
-        root() const noexcept
-        {
-            return m_root;
-        }
-
-
-        // -----------------------------------------------------------------
-        // modifiers
-        // -----------------------------------------------------------------
-
-        D_CONSTEXPR void
-        set_root(node_type* _node) noexcept
-        {
-            m_root = _node;
-
-            return;
-        }
-
-        D_CONSTEXPR void
-        set_size(size_type _new_size) noexcept
-        {
-            m_size = _new_size;
-
-            return;
-        }
-
-        D_CONSTEXPR void
-        clear() noexcept
-        {
-            // Note: Foundational class only clears state. Deep recursive
-            // destruction must be handled by concrete derived structures.
-            m_root = nullptr;
-            m_size = 0;
-
-            return;
-        }
-
-        D_CONSTEXPR void
-        swap(tree_container& _other) noexcept
-        {
-            djinterp::constexpr_swap(m_root, _other.m_root);
-            djinterp::constexpr_swap(m_size, _other.m_size);
-            djinterp::constexpr_swap(m_allocator, _other.m_allocator);
-
-            return;
-        }
-
-
-        // -----------------------------------------------------------------
-        // allocators
-        // -----------------------------------------------------------------
-
-        D_CONSTEXPR allocator_type
-        get_allocator() const noexcept
-        {
-            return m_allocator;
-        }
-
-    private:
-        node_type* m_root;
-        size_type      m_size;
-        allocator_type m_allocator;
-    };
+    // shared_tree_container
+    //   alias: tree_container with shared_owning_policy.
+    template<typename _ValueType,
+             typename _NodeType,
+             typename _Allocator  = std::allocator<_NodeType>,
+             typename _LockPolicy = void>
+    using shared_tree_container =
+        tree_container<_ValueType,
+                       _NodeType,
+                       _Allocator,
+                       _LockPolicy,
+                       shared_owning_policy>;
 
 
 NS_END  // container
