@@ -18,6 +18,14 @@
 * is templated on the node type and constructs instances via default
 * constructor + field assignment.
 *
+*   The pool container is templated so that any djinterp container
+* (or standard container) satisfying the pool protocol can be used
+* in place of std::vector.  The pool protocol requires:
+*   - push_back(element)
+*   - back() -> reference
+*   - size() -> integral
+*   - clear()
+*
 * COMPONENTS:
 *   djinterp::test::test_node    - base tree node
 *   djinterp::test::test_tree    - owning tree container (template)
@@ -45,6 +53,135 @@
 
 NS_DJINTERP
 NS_TEST
+
+
+// =========================================================================
+// 0.   POOL PROTOCOL DETECTION
+// =========================================================================
+//   Minimal SFINAE checks for the pool container protocol.
+// These are intentionally self-contained — they do not depend
+// on the container_traits.hpp header so that the test framework
+// can remain standalone while still accepting djinterp
+// containers.
+
+NS_INTERNAL
+
+    // pool_has_push_back
+    //   trait: true if _Pool supports push_back(element).
+    template<typename _Pool,
+             typename = void>
+    struct pool_has_push_back : std::false_type
+    {};
+
+    template<typename _Pool>
+    struct pool_has_push_back<_Pool,
+        djinterp::void_t<decltype(
+            std::declval<_Pool&>().push_back(
+                std::declval<typename _Pool::value_type>()))>>
+        : std::true_type
+    {};
+
+    // pool_has_back
+    //   trait: true if _Pool supports back().
+    template<typename _Pool,
+             typename = void>
+    struct pool_has_back : std::false_type
+    {};
+
+    template<typename _Pool>
+    struct pool_has_back<_Pool,
+        djinterp::void_t<decltype(
+            std::declval<_Pool&>().back())>>
+        : std::true_type
+    {};
+
+    // pool_has_size
+    //   trait: true if _Pool supports size().
+    template<typename _Pool,
+             typename = void>
+    struct pool_has_size : std::false_type
+    {};
+
+    template<typename _Pool>
+    struct pool_has_size<_Pool,
+        djinterp::void_t<decltype(
+            std::declval<const _Pool&>().size())>>
+        : std::true_type
+    {};
+
+    // pool_has_clear
+    //   trait: true if _Pool supports clear().
+    template<typename _Pool,
+             typename = void>
+    struct pool_has_clear : std::false_type
+    {};
+
+    template<typename _Pool>
+    struct pool_has_clear<_Pool,
+        djinterp::void_t<decltype(
+            std::declval<_Pool&>().clear())>>
+        : std::true_type
+    {};
+
+    // output_has_push_back
+    //   trait: true if _Output supports push_back(element).
+    template<typename _Output,
+             typename = void>
+    struct output_has_push_back : std::false_type
+    {};
+
+    template<typename _Output>
+    struct output_has_push_back<_Output,
+        djinterp::void_t<decltype(
+            std::declval<_Output&>().push_back(
+                std::declval<typename _Output::value_type>()))>>
+        : std::true_type
+    {};
+
+    // output_has_reserve
+    //   trait: true if _Output supports reserve(n).
+    template<typename _Output,
+             typename = void>
+    struct output_has_reserve : std::false_type
+    {};
+
+    template<typename _Output>
+    struct output_has_reserve<_Output,
+        djinterp::void_t<decltype(
+            std::declval<_Output&>().reserve(
+                std::declval<std::size_t>()))>>
+        : std::true_type
+    {};
+
+    // conditional_reserve
+    //   helper: calls reserve if supported, no-op otherwise.
+    template<typename _Output>
+    inline void
+    conditional_reserve
+    (
+        _Output&    _out,
+        std::size_t _n,
+        std::true_type
+    )
+    {
+        _out.reserve(_n);
+
+        return;
+    }
+
+    template<typename _Output>
+    inline void
+    conditional_reserve
+    (
+        _Output&,
+        std::size_t,
+        std::false_type
+    )
+    {
+        return;
+    }
+
+NS_END  // internal
 
 
 // =========================================================================
@@ -469,6 +606,35 @@ struct test_node
     // collect
     //   appends pointers to all nodes matching the predicate
     // into _out. Depth-first pre-order.
+    //   _Output must support push_back(const test_node*).
+    template<typename _Predicate,
+             typename _Output>
+    void collect(_Predicate&& _pred,
+        _Output&    _out,
+        std::size_t _depth = 0) const
+    {
+        static_assert(
+            internal::output_has_push_back<_Output>::value,
+            "collect output container must support "
+            "push_back(value_type).");
+
+        if (_pred(*this, _depth))
+        {
+            _out.push_back(this);
+        }
+
+        const test_node* child = first_child;
+
+        while (child)
+        {
+            child->collect(_pred, _out, _depth + 1);
+            child = child->next_sibling;
+        }
+    };
+
+    // collect (std::vector overload for backward compat)
+    //   preserves the original signature accepting
+    // std::vector<const test_node*>&.
     template<typename _Predicate>
     void collect(_Predicate&& _pred,
         std::vector<const test_node*>& _out,
@@ -496,20 +662,42 @@ struct test_node
 
 // test_tree
 //   class: owning container for a rank-ordered n-ary tree.
-// Templated on the node type, which must inherit from (or be)
-// test_node. Owns all nodes in a flat pool (vector<unique_ptr>)
-// with the tree structure maintained via parent/child/sibling
-// pointers.
+// Templated on the node type and the pool container type.
+// Owns all nodes in a flat pool with the tree structure
+// maintained via parent/child/sibling pointers.
 //
 // Template parameters:
 //   _Node: the node type (default: test_node). Must have all
 //     the fields of test_node (either by being test_node or
 //     inheriting from it) and be default-constructible.
-template<typename _Node = test_node>
+//   _Pool: the container type for the node pool (default:
+//     std::vector<std::unique_ptr<_Node>>). Must satisfy the
+//     pool protocol: push_back, back, size, clear. Any
+//     djinterp container with these capabilities may be used.
+template<typename _Node = test_node,
+         typename _Pool = std::vector<std::unique_ptr<_Node>>>
 class test_tree
 {
+    static_assert(
+        internal::pool_has_push_back<_Pool>::value,
+        "_Pool container must support "
+        "push_back(value_type).");
+
+    static_assert(
+        internal::pool_has_back<_Pool>::value,
+        "_Pool container must support back().");
+
+    static_assert(
+        internal::pool_has_size<_Pool>::value,
+        "_Pool container must support size().");
+
+    static_assert(
+        internal::pool_has_clear<_Pool>::value,
+        "_Pool container must support clear().");
+
 public:
     using node_type = _Node;
+    using pool_type = _Pool;
 
     test_tree()
         : m_root(nullptr)
@@ -741,6 +929,9 @@ public:
         }
     };
 
+    // collect (default output: std::vector)
+    //   collects pointers to nodes matching the predicate
+    // into a std::vector.
     template<typename _Predicate>
     std::vector<const _Node*> collect(
         _Predicate&& _pred) const
@@ -767,6 +958,50 @@ public:
         return out;
     };
 
+    // collect_into
+    //   collects pointers to nodes matching the predicate
+    // into a user-supplied output container. _Output must
+    // support push_back(const _Node*). Any djinterp
+    // container with push_back capability may be used.
+    template<typename _Predicate,
+             typename _Output>
+    void collect_into(
+        _Predicate&& _pred,
+        _Output&     _out) const
+    {
+        static_assert(
+            internal::output_has_push_back<_Output>::value,
+            "collect_into output container must support "
+            "push_back(value_type).");
+
+        if (!m_root)
+        {
+            return;
+        }
+
+        // collect base pointers first
+        std::vector<const test_node*> base_out;
+        m_root->collect(
+            std::forward<_Predicate>(_pred),
+            base_out);
+
+        // conditionally reserve if output supports it
+        internal::conditional_reserve(
+            _out,
+            base_out.size(),
+            typename internal::output_has_reserve<
+                _Output>());
+
+        // cast and push to output container
+        for (const test_node* p : base_out)
+        {
+            _out.push_back(
+                static_cast<const _Node*>(p));
+        }
+
+        return;
+    };
+
     // ---- id generator access ----
 
     test_id_generator& id_generator()
@@ -777,6 +1012,17 @@ public:
     const test_id_generator& id_generator() const
     {
         return m_id_gen;
+    };
+
+    // ---- pool access ----
+
+    // pool
+    //   returns a const reference to the underlying pool
+    // container for inspection or integration with
+    // container-aware algorithms.
+    const _Pool& pool() const
+    {
+        return m_pool;
     };
 
     // ---- clear ----
@@ -825,9 +1071,9 @@ private:
         return m_pool.back().get();
     };
 
-    _Node* m_root;
-    std::vector<std::unique_ptr<_Node>> m_pool;
-    test_id_generator                   m_id_gen;
+    _Node*            m_root;
+    _Pool             m_pool;
+    test_id_generator m_id_gen;
 };
 
 
