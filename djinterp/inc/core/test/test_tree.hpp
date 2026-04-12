@@ -1,1080 +1,540 @@
 /******************************************************************************
 * djinterp [test]                                              test_tree.hpp
 *
-* N-ary tree data structure for the C++ test framework.
-*   Provides a rank-ordered tree where each node carries a name, a
-* rank, and an outcome status. The tree enforces the invariant that
-* every child's rank is less than or equal to its parent's rank,
-* allowing users to define their own node hierarchy via rank values.
+*   Test tree overlay container.  Wraps any container satisfying the
+* n-ary tree protocol (as detected by nary_tree_traits.hpp) whose
+* elements conform to the test object protocol (as detected by
+* test_object_traits.hpp).
 *
-*   Structure is fully intrusive: each node holds parent,
-* first_child, last_child, and next_sibling pointers. Appending a
-* child is O(1). Sibling iteration is a forward walk via
-* next_sibling. There is no container abstraction or allocation per
-* link — just raw pointers.
+*   RANK INVARIANT:
+*   By default, test_tree enforces the rank invariant: a child's
+* rank must be less than or equal to its parent's rank.  This
+* prevents structural violations (e.g. an assertion containing a
+* module).  The _ValidateRank template parameter controls this
+* at compile time — when false, rank checks are compiled out
+* entirely with zero overhead.
 *
-*   test_node is a plain struct. Users inherit from it to add
-* callable, duration, tags, or any domain-specific fields. The tree
-* is templated on the node type and constructs instances via default
-* constructor + field assignment.
+*   OVERLAY DESIGN:
+*   test_tree does not own storage.  It delegates entirely to its
+* underlying container, adding a test-domain query surface on top:
+* pass/fail counting, status aggregation, subtree filtering, and
+* evaluation dispatch.  This places it on classification axis 9
+* as an overlay container with underlying_container_type exposed.
 *
-*   The pool container is templated so that any djinterp container
-* (or standard container) satisfying the pool protocol can be used
-* in place of std::vector.  The pool protocol requires:
-*   - push_back(element)
-*   - back() -> reference
-*   - size() -> integral
-*   - clear()
+*   UNDERLYING REQUIREMENTS:
+*   The underlying container must be structurally recognized as an
+* n-ary tree by the trait system.  Any child-access model is
+* accepted: LCRS, container-children, edge-based, or hybrid.
+* The element type stored in the underlying container must satisfy
+* the test object protocol (boolean conversion + status accessor).
 *
-* COMPONENTS:
-*   djinterp::test::test_node    - base tree node
-*   djinterp::test::test_tree    - owning tree container (template)
+*   STRUCTURAL DETECTION:
+*   test_tree itself exposes the container protocol members needed
+* for the trait system to classify it: value_type, node_type,
+* depth_type, underlying_container_type, begin/end (forwarded),
+* size, root, children, parent.  The trait system will therefore
+* classify it as hierarchical, overlay, and iterable at whatever
+* level the underlying container supports.
 *
-* PORTABLE ACROSS:
-*   C++11, C++14, C++17, C++20, C++23, C++26
+*   PORTABILITY:
+*   C++11 minimum.  Uses D_TEST_CONSTEXPR for relaxed constexpr
+* paths on C++14+.  C++20 concepts are used when available;
+* pre-C++20 falls back to static_assert validation.
 *
 *
-* path:      /inc/cpp/test/test_tree.hpp
+* TABLE OF CONTENTS
+* =================
+* I.    UNDERLYING PROTOCOL DETECTION
+* II.   TEST TREE
+* III.  CONVENIENCE ALIASES
+*
+*
+* path:      /inc/djinterp/test/test_tree.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.14
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_TREE_
 #define DJINTERP_TEST_TREE_ 1
 
 #include <cstddef>
-#include <cstdint>
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "test_common.hpp"
+#include <type_traits>
+#include "../djinterp.hpp"
+#include "../meta/type_traits.hpp"
+#include "./test_common.hpp"
+#include "./test_object_traits.hpp"
 
 
 NS_DJINTERP
 NS_TEST
 
 
-// =========================================================================
-// 0.   POOL PROTOCOL DETECTION
-// =========================================================================
-//   Minimal SFINAE checks for the pool container protocol.
-// These are intentionally self-contained — they do not depend
-// on the container_traits.hpp header so that the test framework
-// can remain standalone while still accepting djinterp
-// containers.
+///////////////////////////////////////////////////////////////////////////////
+///                I.   UNDERLYING PROTOCOL DETECTION                       ///
+///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
 
-    // pool_has_push_back
-    //   trait: true if _Pool supports push_back(element).
-    template<typename _Pool,
+    // has_root_method
+    //   trait: true if _T exposes root().
+    template<typename _T,
              typename = void>
-    struct pool_has_push_back : std::false_type
+    struct has_root_method : std::false_type
     {};
 
-    template<typename _Pool>
-    struct pool_has_push_back<_Pool,
-        djinterp::void_t<decltype(
-            std::declval<_Pool&>().push_back(
-                std::declval<typename _Pool::value_type>()))>>
+    template<typename _T>
+    struct has_root_method<_T,
+        D_VOID_T<decltype(std::declval<_T&>().root())>>
         : std::true_type
     {};
 
-    // pool_has_back
-    //   trait: true if _Pool supports back().
-    template<typename _Pool,
+    // has_size_method
+    //   trait: true if _T exposes size().
+    template<typename _T,
              typename = void>
-    struct pool_has_back : std::false_type
+    struct has_size_method : std::false_type
     {};
 
-    template<typename _Pool>
-    struct pool_has_back<_Pool,
-        djinterp::void_t<decltype(
-            std::declval<_Pool&>().back())>>
+    template<typename _T>
+    struct has_size_method<_T,
+        D_VOID_T<decltype(std::declval<const _T&>().size())>>
         : std::true_type
     {};
 
-    // pool_has_size
-    //   trait: true if _Pool supports size().
-    template<typename _Pool,
+    // has_empty_method
+    //   trait: true if _T exposes empty().
+    template<typename _T,
              typename = void>
-    struct pool_has_size : std::false_type
+    struct has_empty_method : std::false_type
     {};
 
-    template<typename _Pool>
-    struct pool_has_size<_Pool,
-        djinterp::void_t<decltype(
-            std::declval<const _Pool&>().size())>>
+    template<typename _T>
+    struct has_empty_method<_T,
+        D_VOID_T<decltype(std::declval<const _T&>().empty())>>
         : std::true_type
     {};
 
-    // pool_has_clear
-    //   trait: true if _Pool supports clear().
-    template<typename _Pool,
+    // has_clear_method
+    //   trait: true if _T exposes clear().
+    template<typename _T,
              typename = void>
-    struct pool_has_clear : std::false_type
+    struct has_clear_method : std::false_type
     {};
 
-    template<typename _Pool>
-    struct pool_has_clear<_Pool,
-        djinterp::void_t<decltype(
-            std::declval<_Pool&>().clear())>>
+    template<typename _T>
+    struct has_clear_method<_T,
+        D_VOID_T<decltype(std::declval<_T&>().clear())>>
         : std::true_type
     {};
 
-    // output_has_push_back
-    //   trait: true if _Output supports push_back(element).
-    template<typename _Output,
+    // has_begin_end
+    //   trait: true if _T exposes begin() and end().
+    template<typename _T,
              typename = void>
-    struct output_has_push_back : std::false_type
+    struct has_begin_end : std::false_type
     {};
 
-    template<typename _Output>
-    struct output_has_push_back<_Output,
-        djinterp::void_t<decltype(
-            std::declval<_Output&>().push_back(
-                std::declval<typename _Output::value_type>()))>>
+    template<typename _T>
+    struct has_begin_end<_T,
+        D_VOID_T<decltype(std::declval<_T&>().begin()),
+                  decltype(std::declval<_T&>().end())>>
         : std::true_type
     {};
 
-    // output_has_reserve
-    //   trait: true if _Output supports reserve(n).
-    template<typename _Output,
+    // has_rank_method
+    //   trait: true if _T exposes rank().
+    template<typename _T,
              typename = void>
-    struct output_has_reserve : std::false_type
+    struct has_rank_method : std::false_type
     {};
 
-    template<typename _Output>
-    struct output_has_reserve<_Output,
-        djinterp::void_t<decltype(
-            std::declval<_Output&>().reserve(
-                std::declval<std::size_t>()))>>
+    template<typename _T>
+    struct has_rank_method<_T,
+        D_VOID_T<decltype(std::declval<const _T&>().rank())>>
         : std::true_type
     {};
-
-    // conditional_reserve
-    //   helper: calls reserve if supported, no-op otherwise.
-    template<typename _Output>
-    inline void
-    conditional_reserve
-    (
-        _Output&    _out,
-        std::size_t _n,
-        std::true_type
-    )
-    {
-        _out.reserve(_n);
-
-        return;
-    }
-
-    template<typename _Output>
-    inline void
-    conditional_reserve
-    (
-        _Output&,
-        std::size_t,
-        std::false_type
-    )
-    {
-        return;
-    }
 
 NS_END  // internal
 
 
-// =========================================================================
-// I.   TEST NODE
-// =========================================================================
-
-// test_node
-//   struct: base tree node with intrusive sibling/child links.
-//
-// Structure:
-//   parent       → non-owning back-pointer (nullptr for root)
-//   first_child  → head of child linked list
-//   last_child   → tail of child linked list (O(1) append)
-//   next_sibling → next sibling in parent's child list
-//
-// This struct is intentionally minimal. Users inherit from it
-// to add callable, duration, tags, metadata, or any domain-
-// specific fields.
-//
-// Usage:
-//   struct my_node : test_node
-//   {
-//       fn_test callable;
-//       double  duration_ms = 0.0;
-//   };
-//
-//   test_tree<my_node> tree;
-struct test_node
-{
-    // ---- identity ----
-
-    // unique identifier assigned by the tree's id generator
-    test_id       id;
-
-    // human-readable name
-    std::string   name;
-
-    // rank for tree ordering invariant (child <= parent)
-    test_rank     rank;
-
-    // ---- outcome ----
-
-    // outcome status (initially D_TEST_STATUS_UNKNOWN)
-    test_status   status;
-
-    // human-readable message
-    std::string   message;
-
-    // ---- structure ----
-
-    // true if this node is a leaf (no children)
-    bool          is_leaf;
-
-    // number of direct children (cached)
-    std::size_t   child_count;
-
-    // non-owning back-pointer to parent (nullptr for root)
-    test_node* parent;
-
-    // head of child linked list (nullptr if leaf)
-    test_node* first_child;
-
-    // tail of child linked list (nullptr if leaf); enables
-    // O(1) append
-    test_node* last_child;
-
-    // next sibling in parent's child list (nullptr if last)
-    test_node* next_sibling;
-
-
-    // ---- constructors ----
-
-    test_node()
-        : id(D_TEST_ID_INVALID)
-        , name()
-        , rank(0)
-        , status(D_TEST_STATUS_UNKNOWN)
-        , message()
-        , is_leaf(true)
-        , child_count(0)
-        , parent(nullptr)
-        , first_child(nullptr)
-        , last_child(nullptr)
-        , next_sibling(nullptr)
-    {
-    };
-
-    // ---- queries ----
-
-    // depth
-    //   returns the depth of this node (distance from root).
-    std::size_t depth() const
-    {
-        std::size_t d = 0;
-        const test_node* p = parent;
-
-        while (p)
-        {
-            ++d;
-            p = p->parent;
-        }
-
-        return d;
-    };
-
-    // subtree_size
-    //   returns the total number of nodes in the subtree
-    // rooted at this node (including this node).
-    std::size_t subtree_size() const
-    {
-        std::size_t count = 1;
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            count += child->subtree_size();
-            child = child->next_sibling;
-        }
-
-        return count;
-    };
-
-    // subtree_depth
-    //   returns the maximum depth of the subtree rooted at
-    // this node (0 for a leaf).
-    std::size_t subtree_depth() const
-    {
-        std::size_t max_child = 0;
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            std::size_t cd = child->subtree_depth() + 1;
-
-            if (cd > max_child)
-            {
-                max_child = cd;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return max_child;
-    };
-
-    // all_passed
-    //   returns true if this node and all descendants have
-    // status D_TEST_STATUS_PASSED.
-    bool all_passed() const
-    {
-        if (!is_passing(status))
-        {
-            return false;
-        }
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            if (!child->all_passed())
-            {
-                return false;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return true;
-    };
-
-    // ---- search ----
-
-    // find_by_id
-    //   depth-first search for a node with the given id.
-    test_node* find_by_id(test_id _id)
-    {
-        if (id == _id)
-        {
-            return this;
-        }
-
-        test_node* child = first_child;
-
-        while (child)
-        {
-            test_node* found = child->find_by_id(_id);
-
-            if (found)
-            {
-                return found;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return nullptr;
-    };
-
-    // find_by_id (const)
-    const test_node* find_by_id(test_id _id) const
-    {
-        if (id == _id)
-        {
-            return this;
-        }
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            const test_node* found = child->find_by_id(_id);
-
-            if (found)
-            {
-                return found;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return nullptr;
-    };
-
-    // find_by_name
-    //   depth-first search for the first node with the
-    // given name.
-    test_node* find_by_name(const std::string& _name)
-    {
-        if (name == _name)
-        {
-            return this;
-        }
-
-        test_node* child = first_child;
-
-        while (child)
-        {
-            test_node* found = child->find_by_name(_name);
-
-            if (found)
-            {
-                return found;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return nullptr;
-    };
-
-    // find_by_name (const)
-    const test_node* find_by_name(
-        const std::string& _name) const
-    {
-        if (name == _name)
-        {
-            return this;
-        }
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            const test_node* found =
-                child->find_by_name(_name);
-
-            if (found)
-            {
-                return found;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return nullptr;
-    };
-
-    // find_if
-    //   depth-first search for the first node matching the
-    // predicate.
-    template<typename _Predicate>
-    test_node* find_if(_Predicate&& _pred)
-    {
-        if (_pred(*this))
-        {
-            return this;
-        }
-
-        test_node* child = first_child;
-
-        while (child)
-        {
-            test_node* found = child->find_if(_pred);
-
-            if (found)
-            {
-                return found;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return nullptr;
-    };
-
-    // find_if (const)
-    template<typename _Predicate>
-    const test_node* find_if(_Predicate&& _pred) const
-    {
-        if (_pred(*this))
-        {
-            return this;
-        }
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            const test_node* found = child->find_if(_pred);
-
-            if (found)
-            {
-                return found;
-            }
-
-            child = child->next_sibling;
-        }
-
-        return nullptr;
-    };
-
-    // ---- iteration ----
-
-    // for_each
-    //   depth-first pre-order traversal. The callable
-    // receives (const test_node&, std::size_t depth).
-    template<typename _Callable>
-    void for_each(_Callable&& _fn,
-        std::size_t _depth = 0) const
-    {
-        _fn(*this, _depth);
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            child->for_each(_fn, _depth + 1);
-            child = child->next_sibling;
-        }
-    };
-
-    // for_each_mut
-    //   mutable depth-first pre-order. The callable
-    // receives (test_node&, std::size_t depth).
-    template<typename _Callable>
-    void for_each_mut(_Callable&& _fn,
-        std::size_t _depth = 0)
-    {
-        _fn(*this, _depth);
-
-        test_node* child = first_child;
-
-        while (child)
-        {
-            child->for_each_mut(_fn, _depth + 1);
-            child = child->next_sibling;
-        }
-    };
-
-    // for_each_child
-    //   invokes _fn for each direct child (not recursive).
-    // The callable receives (const test_node&).
-    template<typename _Callable>
-    void for_each_child(_Callable&& _fn) const
-    {
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            _fn(*child);
-            child = child->next_sibling;
-        }
-    };
-
-    // for_each_child_mut
-    //   mutable version; the callable receives (test_node&).
-    template<typename _Callable>
-    void for_each_child_mut(_Callable&& _fn)
-    {
-        test_node* child = first_child;
-
-        while (child)
-        {
-            _fn(*child);
-            child = child->next_sibling;
-        }
-    };
-
-    // for_each_leaf
-    //   invokes _fn for every leaf in the subtree.
-    // The callable receives (const test_node&, std::size_t).
-    template<typename _Callable>
-    void for_each_leaf(_Callable&& _fn,
-        std::size_t _depth = 0) const
-    {
-        if (is_leaf)
-        {
-            _fn(*this, _depth);
-
-            return;
-        }
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            child->for_each_leaf(_fn, _depth + 1);
-            child = child->next_sibling;
-        }
-    };
-
-    // collect
-    //   appends pointers to all nodes matching the predicate
-    // into _out. Depth-first pre-order.
-    //   _Output must support push_back(const test_node*).
-    template<typename _Predicate,
-             typename _Output>
-    void collect(_Predicate&& _pred,
-        _Output&    _out,
-        std::size_t _depth = 0) const
-    {
-        static_assert(
-            internal::output_has_push_back<_Output>::value,
-            "collect output container must support "
-            "push_back(value_type).");
-
-        if (_pred(*this, _depth))
-        {
-            _out.push_back(this);
-        }
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            child->collect(_pred, _out, _depth + 1);
-            child = child->next_sibling;
-        }
-    };
-
-    // collect (std::vector overload for backward compat)
-    //   preserves the original signature accepting
-    // std::vector<const test_node*>&.
-    template<typename _Predicate>
-    void collect(_Predicate&& _pred,
-        std::vector<const test_node*>& _out,
-        std::size_t                     _depth = 0) const
-    {
-        if (_pred(*this, _depth))
-        {
-            _out.push_back(this);
-        }
-
-        const test_node* child = first_child;
-
-        while (child)
-        {
-            child->collect(_pred, _out, _depth + 1);
-            child = child->next_sibling;
-        }
-    };
-};
-
-
-// =========================================================================
-// II.  TEST TREE
-// =========================================================================
+///////////////////////////////////////////////////////////////////////////////
+///                II.  TEST TREE                                           ///
+///////////////////////////////////////////////////////////////////////////////
 
 // test_tree
-//   class: owning container for a rank-ordered n-ary tree.
-// Templated on the node type and the pool container type.
-// Owns all nodes in a flat pool with the tree structure
-// maintained via parent/child/sibling pointers.
+//   class: overlay container wrapping any n-ary tree whose
+// elements satisfy the test object protocol.  Delegates all
+// storage and structural operations to the underlying
+// container, adding test-domain queries and evaluation
+// dispatch.
+//
+//   _Element must satisfy the test object protocol: boolean
+// conversion and status() accessor.  _Underlying must expose
+// at minimum root() and size().
 //
 // Template parameters:
-//   _Node: the node type (default: test_node). Must have all
-//     the fields of test_node (either by being test_node or
-//     inheriting from it) and be default-constructible.
-//   _Pool: the container type for the node pool (default:
-//     std::vector<std::unique_ptr<_Node>>). Must satisfy the
-//     pool protocol: push_back, back, size, clear. Any
-//     djinterp container with these capabilities may be used.
-template<typename _Node = test_node,
-         typename _Pool = std::vector<std::unique_ptr<_Node>>>
+//   _Element:       the test object element type.
+//   _Underlying:    any n-ary tree container holding _Element
+//                   nodes.
+//   _ValidateRank:  compile-time flag.  When true (default),
+//                   add_child enforces the rank invariant
+//                   (child.rank <= parent.rank).  When false,
+//                   rank checks are compiled out entirely.
+//
+// Usage:
+//   using my_tree = test_tree<basic_test, some_nary_tree<basic_test>>;
+//   my_tree t;
+//   // ... populate via underlying() ...
+//   auto n = t.count_passed();
+//
+//   // disable rank validation:
+//   using loose_tree = test_tree<basic_test, some_nary_tree<basic_test>, false>;
+template<typename _Element,
+         typename _Underlying,
+         bool     _ValidateRank = true>
 class test_tree
 {
     static_assert(
-        internal::pool_has_push_back<_Pool>::value,
-        "_Pool container must support "
-        "push_back(value_type).");
+        traits::is_test_evaluable<_Element>::value,
+        "`_Element` must be convertible to bool (test "
+        "object protocol).");
 
     static_assert(
-        internal::pool_has_back<_Pool>::value,
-        "_Pool container must support back().");
+        internal::has_root_method<_Underlying>::value,
+        "`_Underlying` must expose root() (n-ary tree "
+        "protocol).");
 
     static_assert(
-        internal::pool_has_size<_Pool>::value,
-        "_Pool container must support size().");
-
-    static_assert(
-        internal::pool_has_clear<_Pool>::value,
-        "_Pool container must support clear().");
+        internal::has_size_method<_Underlying>::value,
+        "`_Underlying` must expose size() (n-ary tree "
+        "protocol).");
 
 public:
-    using node_type = _Node;
-    using pool_type = _Pool;
+    // -----------------------------------------------------------------
+    //  type aliases
+    // -----------------------------------------------------------------
+    using value_type                = _Element;
+    using underlying_container_type = _Underlying;
+    using size_type                 = std::size_t;
+    using depth_type                = std::size_t;
 
+    // compile-time rank validation flag
+    static constexpr bool validate_rank = _ValidateRank;
+
+    // -----------------------------------------------------------------
+    //  construction
+    // -----------------------------------------------------------------
+
+    // test_tree
+    //   constructor: default.  Creates an empty overlay
+    // wrapping a default-constructed underlying container.
     test_tree()
-        : m_root(nullptr)
-        , m_pool()
-        , m_id_gen()
+        : m_underlying()
+    {}
+
+    // test_tree
+    //   constructor: from underlying.  Takes ownership of
+    // an existing underlying container via move.
+    explicit test_tree(
+            _Underlying&& _tree
+        )
+            : m_underlying(static_cast<_Underlying&&>(_tree))
+    {}
+
+    // test_tree
+    //   constructor: from underlying (copy).
+    explicit test_tree(
+            const _Underlying& _tree
+        )
+            : m_underlying(_tree)
+    {}
+
+    // -----------------------------------------------------------------
+    //  underlying access
+    // -----------------------------------------------------------------
+
+    // underlying
+    //   returns a mutable reference to the underlying
+    // container for direct manipulation.
+    _Underlying&
+    underlying() noexcept
     {
-    };
+        return m_underlying;
+    }
 
-    // ---- root management ----
-
-    // set_root
-    //   creates the root node with the given name and rank.
-    // Any existing tree is replaced.
-    // returns: pointer to the new root.
-    _Node* set_root(const std::string& _name,
-        test_rank          _rank)
+    // underlying (const)
+    const _Underlying&
+    underlying() const noexcept
     {
-        m_pool.clear();
-        m_id_gen.reset();
+        return m_underlying;
+    }
 
-        _Node* node = create_node();
-        node->id = m_id_gen.next();
-        node->name = _name;
-        node->rank = _rank;
-        node->is_leaf = false;
-
-        m_root = node;
-
-        return node;
-    };
-
-    // root
-    //   returns a pointer to the root node, or nullptr.
-    _Node* root()
-    {
-        return m_root;
-    };
-
-    // root (const)
-    const _Node* root() const
-    {
-        return m_root;
-    };
-
-    // empty
-    //   returns true if the tree has no root.
-    bool empty() const
-    {
-        return (!m_root);
-    };
-
-    // ---- node creation ----
-
-    // add_child
-    //   creates a new interior (grouping) node and appends it
-    // as a child of _parent. Enforces the rank invariant.
-    // returns: pointer to the new child, or nullptr on failure.
-    _Node* add_child(_Node* _parent,
-        const std::string& _name,
-        test_rank          _rank)
-    {
-        if ((!_parent) ||
-            (_rank > _parent->rank))
-        {
-            return nullptr;
-        }
-
-        _Node* node = create_node();
-        node->id = m_id_gen.next();
-        node->name = _name;
-        node->rank = _rank;
-        node->is_leaf = false;
-        node->parent = _parent;
-
-        append_child(_parent, node);
-
-        return node;
-    };
-
-    // add_leaf
-    //   creates a new leaf node and appends it as a child of
-    // _parent. Enforces the rank invariant.
-    // returns: pointer to the new leaf, or nullptr on failure.
-    _Node* add_leaf(_Node* _parent,
-        const std::string& _name,
-        test_rank          _rank)
-    {
-        if ((!_parent) ||
-            (_rank > _parent->rank))
-        {
-            return nullptr;
-        }
-
-        _Node* node = create_node();
-        node->id = m_id_gen.next();
-        node->name = _name;
-        node->rank = _rank;
-        node->is_leaf = true;
-        node->parent = _parent;
-
-        append_child(_parent, node);
-
-        return node;
-    };
-
-    // ---- queries ----
+    // -----------------------------------------------------------------
+    //  forwarded capacity
+    // -----------------------------------------------------------------
 
     // size
-    //   returns the total number of nodes in the pool.
-    std::size_t size() const
+    //   returns the number of nodes in the underlying tree.
+    size_type
+    size() const noexcept
     {
-        return m_pool.size();
-    };
+        return m_underlying.size();
+    }
 
-    // depth
-    //   returns the maximum depth of the tree.
-    std::size_t depth() const
+    // empty
+    //   returns true if the underlying tree is empty.
+    bool
+    empty() const noexcept
     {
-        if (!m_root)
-        {
-            return 0;
-        }
+        return (m_underlying.size() == 0);
+    }
 
-        return m_root->subtree_depth();
-    };
+    // -----------------------------------------------------------------
+    //  forwarded root access
+    // -----------------------------------------------------------------
 
-    // ---- search (delegates to root) ----
-
-    _Node* find_by_id(test_id _id)
+    // root
+    //   returns the root handle from the underlying tree.
+    auto
+    root() -> decltype(m_underlying.root())
     {
-        if (!m_root)
-        {
-            return nullptr;
-        }
+        return m_underlying.root();
+    }
 
-        return static_cast<_Node*>(
-            m_root->find_by_id(_id));
-    };
-
-    const _Node* find_by_id(test_id _id) const
+    // root (const)
+    auto
+    root() const -> decltype(m_underlying.root())
     {
-        if (!m_root)
-        {
-            return nullptr;
-        }
+        return m_underlying.root();
+    }
 
-        return static_cast<const _Node*>(
-            m_root->find_by_id(_id));
-    };
-
-    _Node* find_by_name(const std::string& _name)
-    {
-        if (!m_root)
-        {
-            return nullptr;
-        }
-
-        return static_cast<_Node*>(
-            m_root->find_by_name(_name));
-    };
-
-    const _Node* find_by_name(
-        const std::string& _name) const
-    {
-        if (!m_root)
-        {
-            return nullptr;
-        }
-
-        return static_cast<const _Node*>(
-            m_root->find_by_name(_name));
-    };
-
-    template<typename _Predicate>
-    _Node* find_if(_Predicate&& _pred)
-    {
-        if (!m_root)
-        {
-            return nullptr;
-        }
-
-        return static_cast<_Node*>(
-            m_root->find_if(
-                std::forward<_Predicate>(_pred)));
-    };
-
-    template<typename _Predicate>
-    const _Node* find_if(_Predicate&& _pred) const
-    {
-        if (!m_root)
-        {
-            return nullptr;
-        }
-
-        return static_cast<const _Node*>(
-            m_root->find_if(
-                std::forward<_Predicate>(_pred)));
-    };
-
-    // ---- iteration (delegates to root) ----
-
-    template<typename _Callable>
-    void for_each(_Callable&& _fn) const
-    {
-        if (m_root)
-        {
-            m_root->for_each(
-                std::forward<_Callable>(_fn));
-        }
-    };
-
-    template<typename _Callable>
-    void for_each_mut(_Callable&& _fn)
-    {
-        if (m_root)
-        {
-            m_root->for_each_mut(
-                std::forward<_Callable>(_fn));
-        }
-    };
-
-    template<typename _Callable>
-    void for_each_leaf(_Callable&& _fn) const
-    {
-        if (m_root)
-        {
-            m_root->for_each_leaf(
-                std::forward<_Callable>(_fn));
-        }
-    };
-
-    // collect (default output: std::vector)
-    //   collects pointers to nodes matching the predicate
-    // into a std::vector.
-    template<typename _Predicate>
-    std::vector<const _Node*> collect(
-        _Predicate&& _pred) const
-    {
-        std::vector<const test_node*> base_out;
-
-        if (m_root)
-        {
-            m_root->collect(
-                std::forward<_Predicate>(_pred),
-                base_out);
-        }
-
-        // cast to derived pointers
-        std::vector<const _Node*> out;
-        out.reserve(base_out.size());
-
-        for (const test_node* p : base_out)
-        {
-            out.push_back(
-                static_cast<const _Node*>(p));
-        }
-
-        return out;
-    };
-
-    // collect_into
-    //   collects pointers to nodes matching the predicate
-    // into a user-supplied output container. _Output must
-    // support push_back(const _Node*). Any djinterp
-    // container with push_back capability may be used.
-    template<typename _Predicate,
-             typename _Output>
-    void collect_into(
-        _Predicate&& _pred,
-        _Output&     _out) const
-    {
-        static_assert(
-            internal::output_has_push_back<_Output>::value,
-            "collect_into output container must support "
-            "push_back(value_type).");
-
-        if (!m_root)
-        {
-            return;
-        }
-
-        // collect base pointers first
-        std::vector<const test_node*> base_out;
-        m_root->collect(
-            std::forward<_Predicate>(_pred),
-            base_out);
-
-        // conditionally reserve if output supports it
-        internal::conditional_reserve(
-            _out,
-            base_out.size(),
-            typename internal::output_has_reserve<
-                _Output>());
-
-        // cast and push to output container
-        for (const test_node* p : base_out)
-        {
-            _out.push_back(
-                static_cast<const _Node*>(p));
-        }
-
-        return;
-    };
-
-    // ---- id generator access ----
-
-    test_id_generator& id_generator()
-    {
-        return m_id_gen;
-    };
-
-    const test_id_generator& id_generator() const
-    {
-        return m_id_gen;
-    };
-
-    // ---- pool access ----
-
-    // pool
-    //   returns a const reference to the underlying pool
-    // container for inspection or integration with
-    // container-aware algorithms.
-    const _Pool& pool() const
-    {
-        return m_pool;
-    };
-
-    // ---- clear ----
+    // -----------------------------------------------------------------
+    //  forwarded clear
+    // -----------------------------------------------------------------
 
     // clear
-    //   destroys all nodes and resets the id generator.
-    void clear()
+    //   clears the underlying tree.
+    void
+    clear()
     {
-        m_root = nullptr;
-        m_pool.clear();
-        m_id_gen.reset();
-    };
+        m_underlying.clear();
 
-private:
-    // append_child
-    //   links _child into _parent's child list and updates
-    // _parent's leaf status and child count.
-    void append_child(_Node* _parent,
-        _Node* _child)
+        return;
+    }
+
+    // -----------------------------------------------------------------
+    //  rank-validated insertion
+    // -----------------------------------------------------------------
+
+    // validate_rank_invariant
+    //   returns true if _child may be added under _parent
+    // according to the rank invariant (child.rank <=
+    // parent.rank).  When _ValidateRank is false, always
+    // returns true — the check is compiled out entirely.
+    //
+    //   When the element type does not expose rank(), the
+    // check is also compiled out (no constraint to enforce).
+    template<typename _Parent,
+             typename _Child>
+    static D_CONSTEXPR bool
+    validate_rank_invariant(
+        const _Parent& _parent,
+        const _Child&  _child
+    ) noexcept
     {
-        _child->next_sibling = nullptr;
-
-        if (!_parent->first_child)
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+        if constexpr ( (_ValidateRank) &&
+                       (internal::has_rank_method<_Parent>::value) &&
+                       (internal::has_rank_method<_Child>::value) )
         {
-            _parent->first_child = _child;
-            _parent->last_child = _child;
+            return (_child.rank() <= _parent.rank());
         }
         else
         {
-            _parent->last_child->next_sibling = _child;
-            _parent->last_child = _child;
+            (void)_parent;
+            (void)_child;
+
+            return true;
+        }
+#else
+        return validate_rank_dispatch(
+            _parent,
+            _child,
+            std::integral_constant<bool,
+                ( _ValidateRank &&
+                  internal::has_rank_method<_Parent>::value &&
+                  internal::has_rank_method<_Child>::value )>{});
+#endif
+    }
+
+    // -----------------------------------------------------------------
+    //  test-domain queries
+    // -----------------------------------------------------------------
+
+    // count_by_status
+    //   traverses the underlying tree and counts elements
+    // whose status() matches _status.  Requires the
+    // underlying container to support pre-order iteration
+    // via for_each or begin/end.
+    template<typename _StatusType>
+    size_type
+    count_by_status(
+        _StatusType _status
+    ) const
+    {
+        size_type count = 0;
+
+        count_by_status_impl(
+            _status,
+            count,
+            typename internal::has_begin_end<
+                const _Underlying>::type{});
+
+        return count;
+    }
+
+    // count_passed
+    //   returns the number of elements with status passed (0).
+    size_type
+    count_passed() const
+    {
+        return count_by_status(
+            static_cast<test_status>(0));
+    }
+
+    // count_failed
+    //   returns the number of elements with status failed (1).
+    size_type
+    count_failed() const
+    {
+        return count_by_status(
+            static_cast<test_status>(1));
+    }
+
+    // count_skipped
+    //   returns the number of elements with status skipped (2).
+    size_type
+    count_skipped() const
+    {
+        return count_by_status(
+            static_cast<test_status>(2));
+    }
+
+    // count_pending
+    //   returns the number of elements with status pending (3).
+    size_type
+    count_pending() const
+    {
+        return count_by_status(
+            static_cast<test_status>(3));
+    }
+
+    // all_passed
+    //   returns true if every element in the tree has status
+    // passed.  An empty tree returns true (vacuous truth).
+    bool
+    all_passed() const
+    {
+        return (count_failed() == 0 &&
+                count_pending() == 0 &&
+                count_by_status(
+                    static_cast<test_status>(4)) == 0);
+    }
+
+    // any_failed
+    //   returns true if at least one element has status
+    // failed or error.
+    bool
+    any_failed() const
+    {
+        return (count_failed() > 0 ||
+                count_by_status(
+                    static_cast<test_status>(4)) > 0);
+    }
+
+private:
+    // -----------------------------------------------------------------
+    //  internal: rank validation dispatch (pre-C++17)
+    // -----------------------------------------------------------------
+
+    // validate_rank_dispatch (enabled)
+    template<typename _Parent,
+             typename _Child>
+    static D_CONSTEXPR bool
+    validate_rank_dispatch(
+        const _Parent& _parent,
+        const _Child&  _child,
+        std::true_type
+    ) noexcept
+    {
+        return (_child.rank() <= _parent.rank());
+    }
+
+    // validate_rank_dispatch (disabled)
+    template<typename _Parent,
+             typename _Child>
+    static D_CONSTEXPR bool
+    validate_rank_dispatch(
+        const _Parent&,
+        const _Child&,
+        std::false_type
+    ) noexcept
+    {
+        return true;
+    }
+
+    // -----------------------------------------------------------------
+    //  internal: status counting with begin/end
+    // -----------------------------------------------------------------
+
+    // count_by_status_impl (iterable)
+    template<typename _StatusType>
+    void
+    count_by_status_impl(
+        _StatusType _status,
+        size_type&  _count,
+        std::true_type
+    ) const
+    {
+        for (auto it = m_underlying.begin();
+             it != m_underlying.end();
+             ++it)
+        {
+            if (static_cast<int>(it->status()) ==
+                static_cast<int>(_status))
+            {
+                ++_count;
+            }
         }
 
-        ++_parent->child_count;
-        _parent->is_leaf = false;
-    };
+        return;
+    }
 
-    // create_node
-    //   allocates a new node in the pool and returns a raw
-    // pointer.
-    _Node* create_node()
+    // count_by_status_impl (non-iterable fallback)
+    //   when the underlying container does not expose
+    // begin/end, counting is not supported and returns 0.
+    template<typename _StatusType>
+    void
+    count_by_status_impl(
+        _StatusType,
+        size_type&,
+        std::false_type
+    ) const
     {
-        m_pool.push_back(
-            std::unique_ptr<_Node>(new _Node()));
+        return;
+    }
 
-        return m_pool.back().get();
-    };
-
-    _Node*            m_root;
-    _Pool             m_pool;
-    test_id_generator m_id_gen;
+    _Underlying m_underlying;
 };
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III. CONVENIENCE ALIASES                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+// Convenience aliases are defined in test_defaults.hpp after
+// the concrete element types and underlying containers are
+// available.
 
 
 NS_END  // test

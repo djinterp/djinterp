@@ -1,51 +1,85 @@
 /******************************************************************************
 * djinterp [test]                                          test_printer.hpp
 *
-* Format-string-based printer for the test tree.
-*   Walks a test_tree depth-first and renders each node through
-* user-configurable format strings with `{key}` specifier
-* substitution. Output is directed to a pluggable sink function,
-* allowing writes to console (stdout), string buffer, file, or
-* any custom destination.
+*   Template-backed printer for the test framework.  Walks a test tree
+* depth-first and renders each node through configurable text_template
+* instances.  Output is directed to a pluggable sink function.
 *
-* BUILT-IN SPECIFIERS:
-*   {name}         node name
-*   {id}           node test_id (decimal)
-*   {rank}         node rank (decimal)
-*   {status}       status string ("passed", "failed", etc.)
-*   {symbol}       status symbol ([PASS], [FAIL], emoji, etc.)
-*   {depth}        node depth in tree (0-based)
-*   {indent}       repeated indent string for current depth
-*   {duration}     elapsed time in ms (e.g. "12.34")
-*   {message}      node message text
-*   {children}     number of direct children
-*   {subtree}      total nodes in subtree
+*   DESIGN PRINCIPLE:
+*   Tree depth equates to indentation depth.  A node at depth 3 in the
+* test tree is rendered with 3 repetitions of the indent unit string.
+* This is the default behavior and requires no configuration.
 *
-* USAGE:
-*   test_printer printer;
-*   printer.set_node_format(
-*       "{indent}{symbol} {name} ({duration}ms)\n");
-*   printer.set_summary_format(
-*       "\n{symbol} {passed}/{total} passed\n");
-*   printer.print_tree(tree);
+*   FOR-EACH:
+*   The printer walks any iterable container of test-protocol elements.
+* For each element, it binds per-node specifiers to the node template,
+* renders, and emits to the sink.  The walk accumulates counters for
+* the summary.  Users supply extraction functions for name, message,
+* depth, status, and optionally is_leaf / child_count.
 *
-*   // or with custom sink:
-*   std::string buf;
-*   printer.set_sink([&](const char* s, std::size_t n)
-*       { buf.append(s, n); });
-*   printer.print_tree(tree);
+*   SYMBOLS:
+*   The {symbol} specifier (e.g. "[PASS]", "[FAIL]") is resolved by a
+* configurable symbol function: std::function<string(test_status)>.
+* The default produces bracketed uppercase labels.  Users may replace
+* it with emoji, colored ANSI, XML tags, or any other mapping.
+* Similarly, {status} is resolved by a configurable status string
+* function (default: lowercase word).
 *
-* COMPONENTS:
-*   djinterp::test::print_sink        - output callback type
-*   djinterp::test::test_printer      - configurable tree printer
+*   NUMBERING:
+*   The {number} specifier is controlled by a numbering mode:
+*     none       - always empty string
+*     global     - monotonically increasing across all nodes
+*     per_depth  - resets to 1 each time depth changes
+*     leaves_only- numbers only leaf nodes; interior nodes get ""
 *
-* PORTABLE ACROSS:
-*   C++11, C++14, C++17, C++20, C++23, C++26
+*   TEMPLATE SECTIONS:
+*   The printer owns six text_template instances, each with its own
+* format string.  All use "{" / "}" markers by default.
+*
+*     header          - rendered once before the walk
+*     section_header  - rendered at the start of each depth-0 group
+*     node            - rendered per-node during the walk
+*     section_footer  - rendered at the end of each depth-0 group
+*     summary         - rendered once after the walk
+*     footer          - rendered once at the very end
+*
+*   BUILT-IN NODE SPECIFIERS:
+*     {name}       - element name / description
+*     {status}     - status string ("passed", "failed", ...)
+*     {symbol}     - status symbol ("[PASS]", "[FAIL]", ...)
+*     {depth}      - depth in tree (0-based decimal)
+*     {indent}     - repeated indent unit for current depth
+*     {number}     - sequential number per numbering mode
+*     {message}    - element message text
+*     {is_leaf}    - "true" or "false"
+*     {children}   - direct child count (decimal)
+*
+*   BUILT-IN SUMMARY SPECIFIERS:
+*     {total}      - total node count
+*     {passed}     - passed count
+*     {failed}     - failed count
+*     {skipped}    - skipped count
+*     {pending}    - pending count
+*     {errors}     - error count
+*     {symbol}     - overall pass/fail symbol
+*     {pass_rate}  - percentage string (e.g. "100.00%")
+*
+*   PORTABILITY:
+*   C++11 minimum.
 *
 *
-* path:      /inc/cpp/test/test_printer.hpp
+* TABLE OF CONTENTS
+* =================
+* I.    NUMBERING MODE
+* II.   INDENT STATE
+* III.  PRINT CONTEXT
+* IV.   DEFAULT FORMATS
+* V.    TEST PRINTER
+*
+*
+* path:      /inc/djinterp/test/test_printer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.14
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_PRINTER_
@@ -54,635 +88,987 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <string>
-
-#include "test_tree.hpp"
-#include "test_options.hpp"
+#include <vector>
+#include "../djinterp.hpp"
+#include "../text/text_template.hpp"
+#include "./test_common.hpp"
 
 
 NS_DJINTERP
 NS_TEST
 
 
-// =========================================================================
-// I.   TYPES
-// =========================================================================
+///////////////////////////////////////////////////////////////////////////////
+///                I.   NUMBERING MODE                                       ///
+///////////////////////////////////////////////////////////////////////////////
 
-// print_sink
-//   type: callback that receives formatted output. The first
-// parameter is a pointer to the text, the second is the byte
-// count. Default sink writes to stdout.
-using print_sink = std::function<void(const char*, std::size_t)>;
+// numbering_mode
+//   enum: controls how the {number} specifier is resolved.
+enum class numbering_mode
+{
+    none        = 0,
+    global      = 1,
+    per_depth   = 2,
+    leaves_only = 3
+};
 
 
-// =========================================================================
-// II.  PRINT CONTEXT (internal)
-// =========================================================================
+///////////////////////////////////////////////////////////////////////////////
+///                II.  INDENT STATE                                         ///
+///////////////////////////////////////////////////////////////////////////////
 
-NS_INTERNAL
+// indent_state
+//   struct: tracks indentation configuration and current depth.
+// Produces the indent string on demand by repeating the unit
+// string for each depth level up to the configured maximum.
+struct indent_state
+{
+    indent_state()
+        : m_unit("  "),
+          m_max(16),
+          m_depth(0),
+          m_transform(nullptr)
+    {}
 
-    // print_context
-    //   struct: aggregated counters accumulated during a tree
-    // walk for use in summary format strings.
-    struct print_context
+    indent_state(
+            const std::string& _unit,
+            std::size_t        _max
+        )
+            : m_unit(_unit),
+              m_max(_max),
+              m_depth(0),
+              m_transform(nullptr)
+    {}
+
+    const std::string&
+    indent_string() const noexcept
     {
-        std::size_t total;
-        std::size_t passed;
-        std::size_t failed;
-        std::size_t skipped;
-        std::size_t unknown;
-        double      total_duration_ms;
-
-        print_context()
-            : total(0),
-              passed(0),
-              failed(0),
-              skipped(0),
-              unknown(0),
-              total_duration_ms(0.0)
-        {
-        };
-    };
-
-    // to_string_int
-    //   converts an integer to a decimal string.
-    D_INLINE std::string
-    to_string_int
-    (
-        std::int64_t _value
-    )
-    {
-        char buf[32];
-
-        std::snprintf(buf, 
-                      sizeof(buf),
-                      "%lld",
-                      (long long)_value);
-
-        return std::string(buf);
+        return m_unit;
     }
 
-    // to_string_uint
-    //   converts an unsigned integer to a decimal string.
-    D_INLINE std::string
-    to_string_uint
-    (
-        std::uint64_t _value
+    void
+    set_indent(
+        const std::string& _unit,
+        std::size_t        _max
     )
     {
-        char buf[32];
-        std::snprintf(buf, 
-                      sizeof(buf),
-                      "%llu",
-                      (unsigned long long)_value);
+        m_unit = _unit;
+        m_max  = _max;
 
-        return std::string(buf);
+        return;
     }
 
-    // to_string_double
-    //   converts a double to a string with 2 decimal places.
-    D_INLINE std::string
-    to_string_double
-    (
-        double _value
+    void
+    set_unit(
+        const std::string& _unit
     )
     {
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "%.2f", _value);
+        m_unit = _unit;
 
-        return std::string(buf);
+        return;
     }
 
-    // format_expand
-    //   performs {key} specifier substitution on _format. For
-    // each `{key}` found, invokes _resolver(key) which returns
-    // the replacement string. Unknown keys are left as-is.
-    template<typename _Resolver>
-    D_INLINE std::string
-    format_expand
-    (
-        const std::string& _format,
-        _Resolver&&        _resolver
+    void
+    set_max(
+        std::size_t _max
+    ) noexcept
+    {
+        m_max = _max;
+
+        return;
+    }
+
+    std::size_t
+    max() const noexcept
+    {
+        return m_max;
+    }
+
+    std::size_t
+    depth() const noexcept
+    {
+        return m_depth;
+    }
+
+    std::size_t
+    indent_depth() const noexcept
+    {
+        return m_depth;
+    }
+
+    void
+    set_depth(
+        std::size_t _depth
+    ) noexcept
+    {
+        m_depth = _depth;
+
+        return;
+    }
+
+    void
+    set_transform(
+        std::function<std::string(const std::string&)> _fn
     )
     {
-        std::string out;
-        out.reserve(_format.size());
+        m_transform = static_cast<
+            std::function<std::string(const std::string&)>&&>(
+                _fn);
 
-        std::size_t i = 0;
-
-        while (i < _format.size())
-        {
-            // look for '{'
-            if (_format[i] == '{')
-            {
-                std::size_t close = _format.find('}', i + 1);
-
-                if (close != std::string::npos)
-                {
-                    std::string key =
-                        _format.substr(i + 1, close - i - 1);
-
-                    std::string value = _resolver(key);
-
-                    // if resolver returned empty and key is
-                    // not a known key, preserve the original
-                    // token
-                    out += value;
-                    i = close + 1;
-
-                    continue;
-                }
-            }
-
-            out += _format[i];
-            ++i;
-        }
-
-        return out;
+        return;
     }
 
-    // build_indent
-    //   repeats _str for _depth levels, clamped to _max_depth.
-    D_INLINE std::string
-    build_indent
-    (
-        const std::string& _str,
-        std::size_t        _depth,
-        std::size_t        _max_depth
-    )
+    std::string
+    build() const
     {
         std::size_t levels =
-            (_depth < _max_depth) ? _depth : _max_depth;
+            (m_depth < m_max) ? m_depth : m_max;
 
-        std::string out;
-        out.reserve(_str.size() * levels);
+        std::string result;
+        result.reserve(m_unit.size() * levels);
 
         for (std::size_t i = 0; i < levels; ++i)
         {
-            out += _str;
+            result += m_unit;
         }
 
-        return out;
+        if (m_transform)
+        {
+            return m_transform(result);
+        }
+
+        return result;
     }
 
-NS_END  // internal
+    std::string
+    operator()() const
+    {
+        return build();
+    }
+
+private:
+    std::string m_unit;
+    std::size_t m_max;
+    std::size_t m_depth;
+    std::function<std::string(const std::string&)> m_transform;
+};
 
 
-// =========================================================================
-// III. DEFAULT FORMAT STRINGS
-// =========================================================================
+///////////////////////////////////////////////////////////////////////////////
+///                III. PRINT CONTEXT                                         ///
+///////////////////////////////////////////////////////////////////////////////
 
-// D_TEST_FORMAT_NODE_DEFAULT
-//   default format for each node line.
-static const char* D_TEST_FORMAT_NODE_DEFAULT =
+// print_context
+//   struct: counters accumulated during a tree walk.
+struct print_context
+{
+    std::size_t total;
+    std::size_t passed;
+    std::size_t failed;
+    std::size_t skipped;
+    std::size_t pending;
+    std::size_t errors;
+    std::size_t leaf_number;
+    std::size_t global_number;
+    std::size_t last_depth;
+    std::vector<std::size_t> depth_counters;
+
+    print_context()
+        : total(0), passed(0), failed(0),
+          skipped(0), pending(0), errors(0),
+          leaf_number(0), global_number(0),
+          last_depth(0), depth_counters()
+    {}
+
+    void
+    accumulate(
+        test_status _status
+    )
+    {
+        ++total;
+
+        switch (static_cast<int>(_status))
+        {
+            case 0: { ++passed;  break; }
+            case 1: { ++failed;  break; }
+            case 2: { ++skipped; break; }
+            case 3: { ++pending; break; }
+            default: { ++errors; break; }
+        }
+
+        return;
+    }
+
+    std::string
+    next_number(
+        test::numbering_mode _mode,
+        std::size_t          _depth,
+        bool                 _is_leaf
+    )
+    {
+        switch (_mode)
+        {
+            case test::numbering_mode::global:
+            {
+                ++global_number;
+
+                return size_to_string(global_number);
+            }
+
+            case test::numbering_mode::per_depth:
+            {
+                while (depth_counters.size() <= _depth)
+                {
+                    depth_counters.push_back(0);
+                }
+
+                if (_depth != last_depth)
+                {
+                    for (std::size_t d = _depth;
+                         d < depth_counters.size();
+                         ++d)
+                    {
+                        depth_counters[d] = 0;
+                    }
+                }
+
+                last_depth = _depth;
+                ++depth_counters[_depth];
+
+                return size_to_string(depth_counters[_depth]);
+            }
+
+            case test::numbering_mode::leaves_only:
+            {
+                if (!_is_leaf)
+                {
+                    return "";
+                }
+
+                ++leaf_number;
+
+                return size_to_string(leaf_number);
+            }
+
+            default:
+            {
+                return "";
+            }
+        }
+    }
+
+    std::string
+    pass_rate() const
+    {
+        if (total == 0)
+        {
+            return "0.00%";
+        }
+
+        char buf[16];
+
+        std::snprintf(buf, sizeof(buf), "%.2f%%",
+                      (static_cast<double>(passed) /
+                       static_cast<double>(total)) * 100.0);
+
+        return std::string(buf);
+    }
+
+    static std::string
+    size_to_string(
+        std::size_t _v
+    )
+    {
+        char buf[32];
+
+        std::snprintf(buf, sizeof(buf), "%zu", _v);
+
+        return std::string(buf);
+    }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                IV.  DEFAULT FORMATS                                       ///
+///////////////////////////////////////////////////////////////////////////////
+
+static const char* const D_TEST_FMT_NODE_DEFAULT =
     "{indent}{symbol} {name}\n";
 
-// D_TEST_FORMAT_NODE_VERBOSE
-//   verbose format including duration and id.
-static const char* D_TEST_FORMAT_NODE_VERBOSE =
-    "{indent}{symbol} {name} (id:{id} rank:{rank}"
-    " {duration}ms)\n";
+static const char* const D_TEST_FMT_NODE_VERBOSE =
+    "{indent}{number}. {symbol} {name} [{status}]\n";
 
-// D_TEST_FORMAT_NODE_MINIMAL
-//   minimal format: failures only (used with rank filter).
-static const char* D_TEST_FORMAT_NODE_MINIMAL =
-    "{indent}{symbol} {name}\n";
+static const char* const D_TEST_FMT_NODE_NUMBERED =
+    "{indent}{number}. {symbol} {name}\n";
 
-// D_TEST_FORMAT_SUMMARY_DEFAULT
-//   default summary format.
-static const char* D_TEST_FORMAT_SUMMARY_DEFAULT =
-    "\n{passed}/{total} passed, {failed} failed"
-    ", {skipped} skipped ({total_duration}ms)\n";
+static const char* const D_TEST_FMT_NODE_MINIMAL =
+    "{symbol} {name}\n";
+
+static const char* const D_TEST_FMT_NODE_MESSAGE =
+    "{indent}{symbol} {name} - {message}\n";
+
+static const char* const D_TEST_FMT_SUMMARY_DEFAULT =
+    "\n{symbol} {passed}/{total} passed"
+    ", {failed} failed"
+    ", {skipped} skipped"
+    " ({pass_rate})\n";
+
+static const char* const D_TEST_FMT_SUMMARY_FULL =
+    "\n  ASSERTION SUMMARY:\n"
+    "    Total Assertions:     {total}\n"
+    "    Assertions Passed:    {passed}\n"
+    "    Assertions Failed:    {failed}\n"
+    "    Assertion Pass Rate:  {pass_rate}\n";
+
+static const char* const D_TEST_FMT_HEADER_BANNER =
+    "========================================"
+    "========================================\n"
+    "  TESTING: {suite_name}\n"
+    "========================================"
+    "========================================\n"
+    "  Description: {suite_description}\n"
+    "========================================"
+    "========================================\n\n";
+
+static const char* const D_TEST_FMT_SECTION_HEADER_DASHED =
+    "\n----------------------------------------"
+    "----------------------------------------\n"
+    "  MODULE: {section_name}\n"
+    "  {section_description}\n"
+    "----------------------------------------"
+    "----------------------------------------\n\n";
+
+static const char* const D_TEST_FMT_SECTION_FOOTER_RESULTS =
+    "\n----------------------------------------"
+    "----------------------------------------\n"
+    "  MODULE RESULTS: {section_name}\n"
+    "----------------------------------------"
+    "----------------------------------------\n"
+    "  Assertions: {passed}/{total} passed"
+    " ({pass_rate})\n"
+    "  Status:     {symbol} {section_name}"
+    " MODULE {status_word}\n"
+    "----------------------------------------"
+    "----------------------------------------\n";
 
 
-// =========================================================================
-// IV.  TEST PRINTER
-// =========================================================================
+///////////////////////////////////////////////////////////////////////////////
+///                V.   TEST PRINTER                                          ///
+///////////////////////////////////////////////////////////////////////////////
+
+using print_sink = std::function<void(const char*, std::size_t)>;
 
 // test_printer
-//   class: configurable tree printer. Walks a test_tree
-// depth-first, renders each node through a format string
-// with `{key}` specifier substitution, and writes the
-// result to a pluggable output sink.
+//   class: template-backed tree printer with configurable
+// indentation, numbering, symbols, and six template sections.
 class test_printer
 {
 public:
+    using symbol_fn_type  = std::function<std::string(test_status)>;
+    using status_fn_type  = std::function<std::string(test_status)>;
+    using filter_fn_type  = std::function<bool(test_status, std::size_t)>;
+    using binder_fn_type  = std::function<void(text::text_template&, std::size_t)>;
+
+    // -----------------------------------------------------------------
+    //  construction
+    // -----------------------------------------------------------------
+
     test_printer()
-        : m_node_format(D_TEST_FORMAT_NODE_DEFAULT)
-        , m_summary_format(D_TEST_FORMAT_SUMMARY_DEFAULT)
-        , m_indent_str("  ")
-        , m_indent_max(10)
-        , m_min_rank(-1)
-        , m_print_passing(true)
-        , m_print_skipped(true)
-        , m_print_summary(true)
-        , m_sink()
+        : m_node_tmpl("{", "}"),
+          m_summary_tmpl("{", "}"),
+          m_header_tmpl("{", "}"),
+          m_footer_tmpl("{", "}"),
+          m_sec_hdr_tmpl("{", "}"),
+          m_sec_ftr_tmpl("{", "}"),
+          m_node_fmt(D_TEST_FMT_NODE_DEFAULT),
+          m_summary_fmt(D_TEST_FMT_SUMMARY_DEFAULT),
+          m_header_fmt(""),
+          m_footer_fmt(""),
+          m_sec_hdr_fmt(""),
+          m_sec_ftr_fmt(""),
+          m_indent(),
+          m_numbering(numbering_mode::none),
+          m_print_passing(true),
+          m_print_skipped(true),
+          m_print_pending(true),
+          m_symbol_fn(default_symbol),
+          m_status_fn(default_status_string),
+          m_filter(nullptr),
+          m_node_binder(nullptr),
+          m_context(),
+          m_sink()
     {
-        // default sink: stdout
-        m_sink = [](const char* _data, std::size_t _len)
+        m_sink = [](const char* d, std::size_t n)
         {
-            std::fwrite(_data, 1, _len, stdout);
+            std::fwrite(d, 1, n, stdout);
         };
-    };
+    }
 
-    // ---- format configuration ----
 
-    // set_node_format
-    //   sets the format string used for each node.
-    void set_node_format(const std::string& _fmt)
+    // =================================================================
+    //  format setters
+    // =================================================================
+
+    void set_node_format(const std::string& _f)           { m_node_fmt = _f; return; }
+    void set_summary_format(const std::string& _f)        { m_summary_fmt = _f; return; }
+    void set_header_format(const std::string& _f)         { m_header_fmt = _f; return; }
+    void set_footer_format(const std::string& _f)         { m_footer_fmt = _f; return; }
+    void set_section_header_format(const std::string& _f) { m_sec_hdr_fmt = _f; return; }
+    void set_section_footer_format(const std::string& _f) { m_sec_ftr_fmt = _f; return; }
+
+    const std::string& node_format()           const noexcept { return m_node_fmt; }
+    const std::string& summary_format()        const noexcept { return m_summary_fmt; }
+    const std::string& header_format()         const noexcept { return m_header_fmt; }
+    const std::string& footer_format()         const noexcept { return m_footer_fmt; }
+    const std::string& section_header_format() const noexcept { return m_sec_hdr_fmt; }
+    const std::string& section_footer_format() const noexcept { return m_sec_ftr_fmt; }
+
+
+    // =================================================================
+    //  template access
+    // =================================================================
+
+    text::text_template&       node_template()                 noexcept { return m_node_tmpl; }
+    const text::text_template& node_template()           const noexcept { return m_node_tmpl; }
+    text::text_template&       summary_template()              noexcept { return m_summary_tmpl; }
+    const text::text_template& summary_template()        const noexcept { return m_summary_tmpl; }
+    text::text_template&       header_template()               noexcept { return m_header_tmpl; }
+    const text::text_template& header_template()         const noexcept { return m_header_tmpl; }
+    text::text_template&       footer_template()               noexcept { return m_footer_tmpl; }
+    const text::text_template& footer_template()         const noexcept { return m_footer_tmpl; }
+    text::text_template&       section_header_template()       noexcept { return m_sec_hdr_tmpl; }
+    const text::text_template& section_header_template() const noexcept { return m_sec_hdr_tmpl; }
+    text::text_template&       section_footer_template()       noexcept { return m_sec_ftr_tmpl; }
+    const text::text_template& section_footer_template() const noexcept { return m_sec_ftr_tmpl; }
+
+
+    // =================================================================
+    //  indent
+    // =================================================================
+
+    indent_state&       indent()       noexcept { return m_indent; }
+    const indent_state& indent() const noexcept { return m_indent; }
+    const std::string&  indent_string() const noexcept { return m_indent.indent_string(); }
+    std::size_t         indent_depth()  const noexcept { return m_indent.indent_depth(); }
+
+    void
+    set_indent(
+        const std::string& _unit,
+        std::size_t        _max = 16
+    )
     {
-        m_node_format = _fmt;
-    };
+        m_indent.set_indent(_unit, _max);
 
-    // set_summary_format
-    //   sets the format string used for the summary line.
-    void set_summary_format(const std::string& _fmt)
+        return;
+    }
+
+
+    // =================================================================
+    //  numbering
+    // =================================================================
+
+    int
+    numbering_mode() const noexcept
     {
-        m_summary_format = _fmt;
-    };
+        return static_cast<int>(m_numbering);
+    }
 
-    // set_indent
-    //   sets the indentation string and max depth.
-    void set_indent(const std::string& _str,
-                    std::size_t        _max_depth = 10)
+    void
+    set_numbering_mode(
+        int _mode
+    ) noexcept
     {
-        m_indent_str = _str;
-        m_indent_max = _max_depth;
-    };
+        m_numbering = static_cast<test::numbering_mode>(_mode);
 
-    // ---- filter configuration ----
+        return;
+    }
 
-    // set_min_rank
-    //   sets the minimum rank for a node to be printed.
-    // Nodes with rank < min_rank are skipped. Set to -1
-    // (default) to print all nodes.
-    void set_min_rank(std::int32_t _rank)
+    void
+    set_numbering(
+        test::numbering_mode _mode
+    ) noexcept
     {
-        m_min_rank = _rank;
-    };
+        m_numbering = _mode;
 
-    // set_print_passing
-    //   controls whether passing nodes are printed.
-    void set_print_passing(bool _print)
+        return;
+    }
+
+
+    // =================================================================
+    //  symbol / status functions
+    // =================================================================
+
+    const symbol_fn_type& symbol_function()        const noexcept { return m_symbol_fn; }
+    const status_fn_type& status_string_function() const noexcept { return m_status_fn; }
+
+    void
+    set_symbol_function(
+        symbol_fn_type _fn
+    )
     {
-        m_print_passing = _print;
-    };
+        m_symbol_fn = static_cast<symbol_fn_type&&>(_fn);
 
-    // set_print_skipped
-    //   controls whether skipped nodes are printed.
-    void set_print_skipped(bool _print)
+        return;
+    }
+
+    void
+    set_status_string_function(
+        status_fn_type _fn
+    )
     {
-        m_print_skipped = _print;
-    };
+        m_status_fn = static_cast<status_fn_type&&>(_fn);
 
-    // set_print_summary
-    //   controls whether the summary line is printed.
-    void set_print_summary(bool _print)
+        return;
+    }
+
+
+    // =================================================================
+    //  filters
+    // =================================================================
+
+    void set_print_passing(bool _p) noexcept { m_print_passing = _p; return; }
+    void set_print_skipped(bool _p) noexcept { m_print_skipped = _p; return; }
+    void set_print_pending(bool _p) noexcept { m_print_pending = _p; return; }
+
+    void
+    set_node_filter(
+        filter_fn_type _f
+    )
     {
-        m_print_summary = _print;
-    };
+        m_filter = static_cast<filter_fn_type&&>(_f);
 
-    // ---- output sink ----
+        return;
+    }
 
-    // set_sink
-    //   sets the output callback. The default writes to
-    // stdout.
-    void set_sink(print_sink _sink)
+    void
+    set_node_binder(
+        binder_fn_type _b
+    )
     {
-        m_sink = std::move(_sink);
-    };
+        m_node_binder = static_cast<binder_fn_type&&>(_b);
 
-    // set_sink_stdout
-    //   resets the sink to stdout.
-    void set_sink_stdout()
+        return;
+    }
+
+
+    // =================================================================
+    //  sink
+    // =================================================================
+
+    void set_sink(print_sink _s)            { m_sink = static_cast<print_sink&&>(_s); return; }
+    void set_sink_stdout()                  { m_sink = [](const char* d, std::size_t n) { std::fwrite(d, 1, n, stdout); }; return; }
+    void set_sink_string(std::string& _o)   { m_sink = [&_o](const char* d, std::size_t n) { _o.append(d, n); }; return; }
+    void set_sink_file(std::FILE* _f)       { m_sink = [_f](const char* d, std::size_t n) { std::fwrite(d, 1, n, _f); }; return; }
+
+
+    // =================================================================
+    //  context
+    // =================================================================
+
+    const print_context& context() const noexcept { return m_context; }
+    void reset_context() { m_context = print_context(); return; }
+
+
+    // =================================================================
+    //  rendering: header / footer
+    // =================================================================
+
+    void
+    print_header() const
     {
-        m_sink = [](const char* _data, std::size_t _len)
+        if (!m_header_fmt.empty())
         {
-            std::fwrite(_data, 1, _len, stdout);
-        };
-    };
-
-    // set_sink_string
-    //   sets the sink to append to the given string.
-    void set_sink_string(std::string& _out)
-    {
-        m_sink = [&_out](const char* _data,
-                         std::size_t _len)
-        {
-            _out.append(_data, _len);
-        };
-    };
-
-    // set_sink_file
-    //   sets the sink to write to the given FILE*.
-    void set_sink_file(FILE* _file)
-    {
-        m_sink = [_file](const char* _data,
-                         std::size_t _len)
-        {
-            std::fwrite(_data, 1, _len, _file);
-        };
-    };
-
-    // ---- configure from test_options ----
-
-    // configure
-    //   reads output-related options from a test_options
-    // instance and applies them to this printer.
-    void configure(const test_options& _opts)
-    {
-        std::int64_t verbosity =
-            _opts.get_int(D_TEST_OPT_VERBOSITY, 2);
-
-        // select format based on verbosity
-        if (verbosity <= 0)
-        {
-            m_node_format    = "";
-            m_print_summary  = false;
-            m_print_passing  = false;
-            m_print_skipped  = false;
+            emit(m_header_tmpl.render(m_header_fmt));
         }
-        else if (verbosity == 1)
-        {
-            m_node_format    = D_TEST_FORMAT_NODE_MINIMAL;
-            m_print_passing  = false;
-            m_print_skipped  = false;
-        }
-        else if (verbosity >= 3)
-        {
-            m_node_format = D_TEST_FORMAT_NODE_VERBOSE;
-        }
 
-        // indent
-        const std::string& indent_str =
-            _opts.get_string(D_TEST_OPT_INDENT_STR);
+        return;
+    }
 
-        if (!indent_str.empty())
-        {
-            m_indent_str = indent_str;
-        }
-
-        m_indent_max = static_cast<std::size_t>(
-            _opts.get_uint(D_TEST_OPT_INDENT_MAX_LEVEL, 10));
-
-        // reporting flags
-        m_print_passing =
-            _opts.get_bool(D_TEST_OPT_REPORT_PASSED, true);
-        m_print_skipped =
-            _opts.get_bool(D_TEST_OPT_REPORT_SKIPPED, true);
-        m_print_summary =
-            _opts.get_bool(D_TEST_OPT_REPORT_SUMMARY, true);
-    };
-
-    // ---- printing ----
-
-    // print_node
-    //   renders a single node through the node format string
-    // and writes it to the sink.
-    void print_node(const test_node& _node,
-                    std::size_t      _depth) const
+    void
+    print_footer() const
     {
-        // apply filters
-        if ( (m_min_rank >= 0) &&
-             (_node.rank < m_min_rank) )
+        if (!m_footer_fmt.empty())
+        {
+            emit(m_footer_tmpl.render(m_footer_fmt));
+        }
+
+        return;
+    }
+
+    void
+    print_section_header() const
+    {
+        if (!m_sec_hdr_fmt.empty())
+        {
+            emit(m_sec_hdr_tmpl.render(m_sec_hdr_fmt));
+        }
+
+        return;
+    }
+
+    void
+    print_section_footer() const
+    {
+        if (!m_sec_ftr_fmt.empty())
+        {
+            bind_context_to(m_sec_ftr_tmpl, m_context);
+            emit(m_sec_ftr_tmpl.render(m_sec_ftr_fmt));
+        }
+
+        return;
+    }
+
+
+    // =================================================================
+    //  rendering: single node
+    // =================================================================
+
+    void
+    print_node(
+        test_status        _status,
+        const std::string& _name,
+        const std::string& _message,
+        std::size_t        _depth,
+        std::size_t        _number
+    ) const
+    {
+        render_node(
+            _status, _name, _message,
+            _depth, true, 0,
+            print_context::size_to_string(_number));
+
+        return;
+    }
+
+
+    // =================================================================
+    //  rendering: for-each walk
+    // =================================================================
+
+    // walk
+    //   iterates an iterable container, rendering each element
+    // through the node template with depth-driven indentation.
+    //
+    // Extraction functions:
+    //   _name_fn(elem)   -> string
+    //   _msg_fn(elem)    -> string
+    //   _depth_fn(elem)  -> size_t
+    //   _status_fn(elem) -> test_status
+    //   _leaf_fn(elem)   -> bool
+    template<typename _Container,
+             typename _NameFn,
+             typename _MsgFn,
+             typename _DepthFn,
+             typename _StatusFn,
+             typename _LeafFn>
+    void
+    walk(
+        const _Container& _elements,
+        _NameFn&&         _name_fn,
+        _MsgFn&&          _msg_fn,
+        _DepthFn&&        _depth_fn,
+        _StatusFn&&       _status_fn,
+        _LeafFn&&         _leaf_fn,
+        bool              _with_header  = false,
+        bool              _with_summary = true,
+        bool              _with_footer  = false
+    )
+    {
+        reset_context();
+
+        if (_with_header)
+        {
+            print_header();
+        }
+
+        for (const auto& elem : _elements)
+        {
+            test_status s     = _status_fn(elem);
+            std::string name  = _name_fn(elem);
+            std::string msg   = _msg_fn(elem);
+            std::size_t depth = _depth_fn(elem);
+            bool        leaf  = _leaf_fn(elem);
+
+            m_context.accumulate(s);
+
+            std::string num = m_context.next_number(
+                m_numbering, depth, leaf);
+
+            if (!should_print(s, depth))
+            {
+                continue;
+            }
+
+            render_node(s, name, msg, depth, leaf, 0, num);
+        }
+
+        if (_with_summary)
+        {
+            print_summary();
+        }
+
+        if (_with_footer)
+        {
+            print_footer();
+        }
+
+        return;
+    }
+
+    // walk (simplified - flat, all leaves)
+    template<typename _Container,
+             typename _NameFn,
+             typename _MsgFn,
+             typename _StatusFn>
+    void
+    walk(
+        const _Container& _elements,
+        _NameFn&&         _name_fn,
+        _MsgFn&&          _msg_fn,
+        _StatusFn&&       _status_fn
+    )
+    {
+        walk(
+            _elements,
+            static_cast<_NameFn&&>(_name_fn),
+            static_cast<_MsgFn&&>(_msg_fn),
+            [](const auto&) -> std::size_t { return 0; },
+            static_cast<_StatusFn&&>(_status_fn),
+            [](const auto&) -> bool { return true; });
+
+        return;
+    }
+
+
+    // =================================================================
+    //  rendering: summary
+    // =================================================================
+
+    void
+    print_summary() const
+    {
+        if (m_summary_fmt.empty())
         {
             return;
         }
 
+        bind_context_to(m_summary_tmpl, m_context);
+
+        emit(m_summary_tmpl.render(m_summary_fmt));
+
+        return;
+    }
+
+
+private:
+    // =================================================================
+    //  internal: defaults
+    // =================================================================
+
+    static std::string
+    default_symbol(
+        test_status _s
+    )
+    {
+        switch (static_cast<int>(_s))
+        {
+            case 0: { return "[PASS]"; }
+            case 1: { return "[FAIL]"; }
+            case 2: { return "[SKIP]"; }
+            case 3: { return "[....]"; }
+            case 4: { return "[ERR!]"; }
+            default: { return "[????]"; }
+        }
+    }
+
+    static std::string
+    default_status_string(
+        test_status _s
+    )
+    {
+        switch (static_cast<int>(_s))
+        {
+            case 0: { return "passed"; }
+            case 1: { return "failed"; }
+            case 2: { return "skipped"; }
+            case 3: { return "pending"; }
+            case 4: { return "error"; }
+            default: { return "unknown"; }
+        }
+    }
+
+
+    // =================================================================
+    //  internal: filter
+    // =================================================================
+
+    bool
+    should_print(
+        test_status _status,
+        std::size_t _depth
+    ) const
+    {
         if ( (!m_print_passing) &&
-             (is_passing(_node.status)) )
+             (_status == test_status::passed) )
         {
-            return;
+            return false;
         }
 
         if ( (!m_print_skipped) &&
-             (_node.status == D_TEST_STATUS_SKIPPED) )
+             (_status == test_status::skipped) )
         {
-            return;
+            return false;
         }
 
-        if (m_node_format.empty())
+        if ( (!m_print_pending) &&
+             (_status == test_status::pending) )
         {
-            return;
+            return false;
         }
 
-        // build indent
-        std::string indent = internal::build_indent(
-            m_indent_str, _depth, m_indent_max);
+        if ( (m_filter) &&
+             (!m_filter(_status, _depth)) )
+        {
+            return false;
+        }
 
-        // resolve specifiers
-        const test_node& node = _node;
-        std::size_t depth     = _depth;
+        return true;
+    }
 
-        std::string line = internal::format_expand(
-            m_node_format,
-            [&](const std::string& _key) -> std::string
-            {
-                if (_key == "name")
-                {
-                    return node.name;
-                }
 
-                if (_key == "id")
-                {
-                    return internal::to_string_uint(node.id);
-                }
+    // =================================================================
+    //  internal: node render
+    // =================================================================
 
-                if (_key == "rank")
-                {
-                    return internal::to_string_int(node.rank);
-                }
-
-                if (_key == "status")
-                {
-                    return status_to_string(node.status);
-                }
-
-                if (_key == "symbol")
-                {
-                    return result_symbol(node.status);
-                }
-
-                if (_key == "depth")
-                {
-                    return internal::to_string_uint(depth);
-                }
-
-                if (_key == "indent")
-                {
-                    return indent;
-                }
-
-                if (_key == "duration")
-                {
-                    return internal::to_string_double(
-                        node.duration_ms);
-                }
-
-                if (_key == "message")
-                {
-                    return node.message;
-                }
-
-                if (_key == "children")
-                {
-                    return internal::to_string_uint(
-                        node.child_count());
-                }
-
-                if (_key == "subtree")
-                {
-                    return internal::to_string_uint(
-                        node.subtree_size());
-                }
-
-                // unknown key: preserve token
-                return "{" + _key + "}";
-            });
-
-        write(line);
-    };
-
-    // print_tree
-    //   walks the tree depth-first, printing each node, then
-    // optionally prints a summary line.
-    void print_tree(const test_tree& _tree) const
+    void
+    render_node(
+        test_status        _status,
+        const std::string& _name,
+        const std::string& _message,
+        std::size_t        _depth,
+        bool               _is_leaf,
+        std::size_t        _child_count,
+        const std::string& _num_str
+    ) const
     {
-        if (_tree.empty())
+        if (m_node_fmt.empty())
         {
             return;
         }
 
-        // accumulate stats
-        internal::print_context ctx;
+        m_indent.set_depth(_depth);
+        std::string indent_str = m_indent.build();
 
-        _tree.for_each(
-            [&](const test_node& _node,
-                std::size_t      _depth)
-            {
-                // print the node
-                print_node(_node, _depth);
+        m_node_tmpl.clear_bindings();
 
-                // accumulate
-                ++ctx.total;
-                ctx.total_duration_ms += _node.duration_ms;
+        m_node_tmpl.bind("name",     _name);
+        m_node_tmpl.bind("status",   m_status_fn(_status));
+        m_node_tmpl.bind("symbol",   m_symbol_fn(_status));
+        m_node_tmpl.bind("depth",    print_context::size_to_string(_depth));
+        m_node_tmpl.bind("indent",   indent_str);
+        m_node_tmpl.bind("number",   _num_str);
+        m_node_tmpl.bind("message",  _message);
+        m_node_tmpl.bind("is_leaf",  _is_leaf ? "true" : "false");
+        m_node_tmpl.bind("children", print_context::size_to_string(_child_count));
 
-                if (is_passing(_node.status))
-                {
-                    ++ctx.passed;
-                }
-                else if (is_failing(_node.status))
-                {
-                    ++ctx.failed;
-                }
-                else if (_node.status == D_TEST_STATUS_SKIPPED)
-                {
-                    ++ctx.skipped;
-                }
-                else
-                {
-                    ++ctx.unknown;
-                }
-            });
-
-        // print summary
-        if (m_print_summary)
+        if (m_node_binder)
         {
-            print_summary(ctx);
+            m_node_binder(m_node_tmpl, _depth);
         }
-    };
 
-    // print_summary
-    //   renders the summary format string with accumulated
-    // counters and writes it to the sink.
-    void print_summary(
-        const internal::print_context& _ctx) const
+        emit(m_node_tmpl.render(m_node_fmt));
+
+        return;
+    }
+
+
+    // =================================================================
+    //  internal: bind context
+    // =================================================================
+
+    static void
+    bind_context_to(
+        text::text_template& _tmpl,
+        const print_context& _ctx
+    )
     {
-        if (m_summary_format.empty())
-        {
-            return;
-        }
+        _tmpl.bind("total",       print_context::size_to_string(_ctx.total));
+        _tmpl.bind("passed",      print_context::size_to_string(_ctx.passed));
+        _tmpl.bind("failed",      print_context::size_to_string(_ctx.failed));
+        _tmpl.bind("skipped",     print_context::size_to_string(_ctx.skipped));
+        _tmpl.bind("pending",     print_context::size_to_string(_ctx.pending));
+        _tmpl.bind("errors",      print_context::size_to_string(_ctx.errors));
+        _tmpl.bind("pass_rate",   _ctx.pass_rate());
 
-        // determine overall symbol
-        const char* overall_symbol =
-            (_ctx.failed > 0)
-                ? test_symbols::fail
-                : test_symbols::success;
+        std::string sym =
+            (_ctx.failed > 0 || _ctx.errors > 0)
+                ? default_symbol(test_status::failed)
+                : default_symbol(test_status::passed);
 
-        const internal::print_context& ctx = _ctx;
+        _tmpl.bind("symbol",      sym);
 
-        std::string line = internal::format_expand(
-            m_summary_format,
-            [&](const std::string& _key) -> std::string
-            {
-                if (_key == "total")
-                {
-                    return internal::to_string_uint(ctx.total);
-                }
+        _tmpl.bind("status_word",
+            (_ctx.failed > 0 || _ctx.errors > 0)
+                ? "FAILED" : "PASSED");
 
-                if (_key == "passed")
-                {
-                    return internal::to_string_uint(
-                        ctx.passed);
-                }
+        return;
+    }
 
-                if (_key == "failed")
-                {
-                    return internal::to_string_uint(
-                        ctx.failed);
-                }
 
-                if (_key == "skipped")
-                {
-                    return internal::to_string_uint(
-                        ctx.skipped);
-                }
+    // =================================================================
+    //  internal: emit
+    // =================================================================
 
-                if (_key == "unknown")
-                {
-                    return internal::to_string_uint(
-                        ctx.unknown);
-                }
-
-                if (_key == "total_duration")
-                {
-                    return internal::to_string_double(
-                        ctx.total_duration_ms);
-                }
-
-                if (_key == "symbol")
-                {
-                    return overall_symbol;
-                }
-
-                return "{" + _key + "}";
-            });
-
-        write(line);
-    };
-
-private:
-    // write
-    //   sends text to the sink.
-    void write(const std::string& _text) const
+    void
+    emit(
+        const std::string& _text
+    ) const
     {
         if ( (m_sink) &&
              (!_text.empty()) )
         {
             m_sink(_text.data(), _text.size());
         }
-    };
 
-    std::string   m_node_format;
-    std::string   m_summary_format;
-    std::string   m_indent_str;
-    std::size_t   m_indent_max;
-    std::int32_t  m_min_rank;
-    bool          m_print_passing;
-    bool          m_print_skipped;
-    bool          m_print_summary;
-    print_sink    m_sink;
+        return;
+    }
+
+
+    // =================================================================
+    //  storage
+    // =================================================================
+
+    mutable text::text_template m_node_tmpl;
+    mutable text::text_template m_summary_tmpl;
+    mutable text::text_template m_header_tmpl;
+    mutable text::text_template m_footer_tmpl;
+    mutable text::text_template m_sec_hdr_tmpl;
+    mutable text::text_template m_sec_ftr_tmpl;
+
+    std::string m_node_fmt;
+    std::string m_summary_fmt;
+    std::string m_header_fmt;
+    std::string m_footer_fmt;
+    std::string m_sec_hdr_fmt;
+    std::string m_sec_ftr_fmt;
+
+    mutable indent_state     m_indent;
+    test::numbering_mode     m_numbering;
+
+    bool m_print_passing;
+    bool m_print_skipped;
+    bool m_print_pending;
+
+    symbol_fn_type m_symbol_fn;
+    status_fn_type m_status_fn;
+    filter_fn_type m_filter;
+    binder_fn_type m_node_binder;
+
+    mutable print_context m_context;
+    print_sink            m_sink;
 };
 
 
