@@ -37,8 +37,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
 // =============================================================================
 // I.   Payload Concepts
@@ -276,8 +274,6 @@ concept cross_referenceable_arenas =
         clean_t<_ArenaB>>::value;
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 
