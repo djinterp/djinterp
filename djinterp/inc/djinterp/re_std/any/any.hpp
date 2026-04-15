@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [compat]                                                    any.hpp
+* djinterp [restd]                                                     any.hpp
 *
 *   Constexpr-friendly type-erased value container. A portable alternative
 * to std::any with compile-time evaluation support for small trivial types.
 *
 *   TWO STORAGE PATHS:
 *
-*   1. SBO (small buffer optimization) — constexpr-capable (C++14+).
+*   1. SBO (small buffer optimization) - constexpr-capable (C++14+).
 *      A union of fundamental categories stores any type whose value can
 *      be losslessly represented as one of:
 *        - bool
@@ -19,7 +19,7 @@
 *      Construction, copy, and typed retrieval via get<T>() are constexpr
 *      for these types on C++14 and later.
 *
-*   2. Heap — runtime only.
+*   2. Heap - runtime only.
 *      Types that do not fit the SBO (class types, containers, large
 *      aggregates) are stored in a heap-allocated control block with
 *      type-erased copy/move/destroy via function pointer ops table.
@@ -40,10 +40,10 @@
 *     prefer std::any for non-constexpr paths.
 *
 *   Uses:
-*     env.h              — language version detection
-*     env_cpp98.h        — header availability (new, utility)
-*     env_cpp_features.h — fine-grained feature detection
-*     djinterp.hpp       — D_CONSTEXPR, D_STATIC, D_INLINE, namespaces
+*     env.h              - language version detection
+*     env_cpp98.h        - header availability (new, utility)
+*     env_cpp_features.h - fine-grained feature detection
+*     djinterp.hpp       - D_CONSTEXPR, D_STATIC, D_INLINE, namespaces
 *
 *
 * TABLE OF CONTENTS
@@ -56,13 +56,13 @@
 * VI.   FREE FUNCTIONS (any_cast, swap)
 *
 *
-* path:      /inc/djinterp/compat/std/any.hpp
+* path:      /inc/djinterp/restd/any/any.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.06
 ******************************************************************************/
 
-#ifndef DJINTERP_COMPATABILITY_STD_ANY_
-#define DJINTERP_COMPATABILITY_STD_ANY_ 1
+#ifndef DJINTERP_RESTD_ANY_
+#define DJINTERP_RESTD_ANY_ 1
 
 #include <cstddef>
 #include <type_traits>
@@ -71,24 +71,23 @@
 
 // env detection headers (included transitively via djinterp.hpp,
 // listed here for documentation)
-//   env.h              — D_ENV_LANG_IS_CPP11_OR_HIGHER et al.
-//   env_cpp98.h        — D_ENV_CPP98_HAS_NEW, D_ENV_CPP98_HAS_UTILITY
-//   env_cpp_features.h — D_ENV_CPP_FEATURE_LANG_*, D_ENV_CPP_FEATURE_STL_*
+//   env.h              - D_ENV_LANG_IS_CPP11_OR_HIGHER et al.
+//   env_cpp98.h        - D_ENV_CPP98_HAS_NEW, D_ENV_CPP98_HAS_UTILITY
+//   env_cpp_features.h - D_ENV_CPP_FEATURE_LANG_*, D_ENV_CPP_FEATURE_STL_*
 
 // guard: entire module requires C++11
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+	#if D_ENV_CPP98_HAS_NEW
+		#include <new>
+	#endif
 
-#if D_ENV_CPP98_HAS_NEW
-    #include <new>
-#endif
+	#if D_ENV_CPP98_HAS_UTILITY
+		#include <utility>
+	#endif
 
-#if D_ENV_CPP98_HAS_UTILITY
-    #include <utility>
-
-#endif
 
 NS_DJINTERP
-NS_COMPAT
+NS_RESTD
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   TYPE IDENTITY                                       ///
@@ -103,12 +102,12 @@ NS_COMPAT
 using any_type_id = void(*)();
 
 NS_INTERNAL
-
     // any_type_tag_fn
     //   function: empty function template whose address is
     // unique per _Type instantiation. Never called.
     template<typename _Type>
-    void any_type_tag_fn()
+    void
+	any_type_tag_fn()
     {
         return;
     }
@@ -120,16 +119,14 @@ NS_END  // internal
 template<typename _Type>
 struct any_type_id_of
 {
-    D_STATIC D_CONSTEXPR any_type_id value =
-        &internal::any_type_tag_fn<_Type>;
+    D_STATIC_CONSTEXPR any_type_id value = &internal::any_type_tag_fn<_Type>;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // any_type_id_of_v
     //   variable template: value of any_type_id_of<_Type>.
     template<typename _Type>
-    D_CONSTEXPR any_type_id any_type_id_of_v =
-        any_type_id_of<_Type>::value;
+    D_CONSTEXPR any_type_id any_type_id_of_v = any_type_id_of<_Type>::value;
 #endif
 
 
@@ -162,29 +159,26 @@ NS_INTERNAL
              typename = void>
     struct any_category_of
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
-            DAnyCategory::cat_heap;
+        D_STATIC_CONSTEXPR DAnyCategory value = DAnyCategory::cat_heap;
     };
 
     // bool
     template<>
     struct any_category_of<bool>
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
-            DAnyCategory::cat_bool;
+        D_STATIC_CONSTEXPR DAnyCategory value = DAnyCategory::cat_bool;
     };
 
     // signed integrals (not bool)
     template<typename _Type>
     struct any_category_of<_Type,
         typename std::enable_if<
-            ( std::is_integral<_Type>::value &&
-              std::is_signed<_Type>::value   &&
+            ( std::is_integral<_Type>::value  &&
+              std::is_signed<_Type>::value    &&
               !std::is_same<_Type, bool>::value )
         >::type>
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
-            DAnyCategory::cat_signed;
+        D_STATIC_CONSTEXPR DAnyCategory value = DAnyCategory::cat_signed;
     };
 
     // unsigned integrals (not bool)
@@ -196,29 +190,27 @@ NS_INTERNAL
               !std::is_same<_Type, bool>::value )
         >::type>
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
-            DAnyCategory::cat_unsigned;
+        D_STATIC_CONSTEXPR DAnyCategory value = DAnyCategory::cat_unsigned;
     };
 
     // floating point
     template<typename _Type>
-    struct any_category_of<_Type,
-        typename std::enable_if<
-            std::is_floating_point<_Type>::value
-        >::type>
+    struct any_category_of<
+        _Type,
+        typename std::enable_if<std::is_floating_point<_Type>::value
+    >::type>
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
-            DAnyCategory::cat_floating;
+        D_STATIC_CONSTEXPR DAnyCategory value = DAnyCategory::cat_floating;
     };
 
     // enum types (stored via underlying integral)
     template<typename _Type>
-    struct any_category_of<_Type,
-        typename std::enable_if<
-            std::is_enum<_Type>::value
-        >::type>
+    struct any_category_of<
+        _Type,
+        typename std::enable_if<std::is_enum<_Type>::value
+    >::type>
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
+        D_STATIC_CONSTEXPR DAnyCategory value =
             ( std::is_signed<
                   typename std::underlying_type<_Type>::type
               >::value
@@ -234,19 +226,18 @@ NS_INTERNAL
               !std::is_const<_Type>::value )
         >::type>
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
+        D_STATIC_CONSTEXPR DAnyCategory value =
             DAnyCategory::cat_pointer;
     };
 
     // const pointer (not function pointer)
     template<typename _Type>
-    struct any_category_of<const _Type*,
-        typename std::enable_if<
-            !std::is_function<_Type>::value
-        >::type>
+    struct any_category_of<
+		const _Type*,
+        typename std::enable_if<!std::is_function<_Type>::value>::type
+	>
     {
-        D_STATIC D_CONSTEXPR DAnyCategory value =
-            DAnyCategory::cat_cpointer;
+        D_STATIC_CONSTEXPR DAnyCategory value = DAnyCategory::cat_cpointer;
     };
 
     // is_sbo_type
@@ -254,9 +245,8 @@ NS_INTERNAL
     template<typename _Type>
     struct is_sbo_type
     {
-        D_STATIC D_CONSTEXPR bool value =
-            ( any_category_of<_Type>::value !=
-              DAnyCategory::cat_heap );
+        D_STATIC_CONSTEXPR bool value = ( any_category_of<_Type>::value !=
+                                          DAnyCategory::cat_heap );
     };
 
 NS_END  // internal
@@ -267,7 +257,6 @@ NS_END  // internal
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
-
     // any_sbo
     //   union: small buffer storage with per-member constexpr
     // constructors. Each constructor initializes exactly one
@@ -283,52 +272,58 @@ NS_INTERNAL
 
         // default: zero-initialized unsigned
         D_CONSTEXPR any_sbo() noexcept
-                : v_unsigned(0)
-            {}
+			: v_unsigned(0)
+		{}
 
         // per-category constructors (the DAnyCategory tag
         // parameter disambiguates overloads)
-        D_CONSTEXPR explicit any_sbo(
-                bool         _v,
-                DAnyCategory
-            ) noexcept
-                : v_bool(_v)
-            {}
+        D_CONSTEXPR explicit 
+        any_sbo(
+            bool         _v,
+            DAnyCategory
+        ) noexcept
+            : v_bool(_v)
+        {}
 
-        D_CONSTEXPR explicit any_sbo(
-                long long    _v,
-                DAnyCategory
-            ) noexcept
-                : v_signed(_v)
-            {}
+        D_CONSTEXPR explicit 
+        any_sbo(
+            long long    _v,
+            DAnyCategory
+        ) noexcept
+            : v_signed(_v)
+        {}
 
-        D_CONSTEXPR explicit any_sbo(
-                unsigned long long _v,
-                DAnyCategory
-            ) noexcept
-                : v_unsigned(_v)
-            {}
+        D_CONSTEXPR explicit
+        any_sbo(
+            unsigned long long _v,
+            DAnyCategory
+        ) noexcept
+            : v_unsigned(_v)
+        {}
 
-        D_CONSTEXPR explicit any_sbo(
-                double       _v,
-                DAnyCategory
-            ) noexcept
-                : v_floating(_v)
-            {}
+        D_CONSTEXPR explicit 
+        any_sbo(
+            double       _v,
+            DAnyCategory
+        ) noexcept
+            : v_floating(_v)
+        {}
 
-        D_CONSTEXPR explicit any_sbo(
-                void*        _v,
-                DAnyCategory
-            ) noexcept
-                : v_pointer(_v)
-            {}
+        D_CONSTEXPR explicit 
+        any_sbo(
+            void*        _v,
+            DAnyCategory
+        ) noexcept
+            : v_pointer(_v)
+        {}
 
-        D_CONSTEXPR explicit any_sbo(
-                const void*  _v,
-                DAnyCategory
-            ) noexcept
-                : v_cpointer(_v)
-            {}
+        D_CONSTEXPR explicit 
+        any_sbo(
+            const void*  _v,
+            DAnyCategory
+        ) noexcept
+            : v_cpointer(_v)
+        {}
     };
 
 NS_END  // internal
@@ -353,9 +348,10 @@ NS_INTERNAL
     // heap_destroy
     //   function: typed destroy operation for heap storage.
     template<typename _Type>
-    D_STATIC void heap_destroy(
-            void* _p
-        )
+    D_STATIC void 
+    heap_destroy(
+        void* _p
+    )
     {
         delete static_cast<_Type*>(_p);
 
@@ -365,12 +361,12 @@ NS_INTERNAL
     // heap_clone
     //   function: typed clone operation for heap storage.
     template<typename _Type>
-    D_STATIC void* heap_clone(
-            const void* _p
-        )
+    D_STATIC void* 
+    heap_clone(
+        const void* _p
+    )
     {
-        return new _Type(
-            *static_cast<const _Type*>(_p));
+        return new _Type(*static_cast<const _Type*>(_p));
     }
 
     // any_heap_ops_for
@@ -378,7 +374,8 @@ NS_INTERNAL
     // Uses a local static for safe lazy initialization
     // (thread-safe in C++11 per [stmt.dcl]/4).
     template<typename _Type>
-    const any_heap_ops* any_heap_ops_for()
+    const any_heap_ops*
+	any_heap_ops_for()
     {
         D_STATIC const any_heap_ops ops =
         {
@@ -410,204 +407,194 @@ public:
     // -----------------------------------------------------------------
 
     D_CONSTEXPR any() noexcept
-            : m_category(DAnyCategory::cat_empty),
-              m_type_id(nullptr),
-              m_sbo()
+        : m_category(DAnyCategory::cat_empty),
+          m_type_id(nullptr),
+          m_sbo()
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: bool
     // -----------------------------------------------------------------
 
     D_CONSTEXPR any(
-            bool _v
-        ) noexcept
-            : m_category(DAnyCategory::cat_bool),
-              m_type_id(any_type_id_of<bool>::value),
-              m_sbo(_v, DAnyCategory::cat_bool)
+        bool _v
+    ) noexcept
+        : m_category(DAnyCategory::cat_bool),
+          m_type_id(any_type_id_of<bool>::value),
+          m_sbo(_v, DAnyCategory::cat_bool)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: signed integrals (not bool)
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_integral<_T>::value &&
-                   std::is_signed<_T>::value   &&
-                   !std::is_same<_T, bool>::value ),
-                 int
-             >::type = 0>
+                 ( std::is_integral<_Type>::value &&
+                   std::is_signed<_Type>::value   &&
+                   !std::is_same<_Type, bool>::value ),
+                 int>::type = 0>
     D_CONSTEXPR any(
-            _T _v
-        ) noexcept
-            : m_category(DAnyCategory::cat_signed),
-              m_type_id(any_type_id_of<_T>::value),
-              m_sbo(static_cast<long long>(_v),
-                    DAnyCategory::cat_signed)
+        _Type _v
+    ) noexcept
+        : m_category(DAnyCategory::cat_signed),
+          m_type_id(any_type_id_of<_Type>::value),
+          m_sbo(static_cast<long long>(_v), DAnyCategory::cat_signed)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: unsigned integrals (not bool)
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_integral<_T>::value  &&
-                   std::is_unsigned<_T>::value  &&
-                   !std::is_same<_T, bool>::value ),
-                 int
-             >::type = 0>
+                 ( std::is_integral<_Type>::value  &&
+                   std::is_unsigned<_Type>::value  &&
+                   !std::is_same<_Type, bool>::value ),
+                 int>::type = 0>
     D_CONSTEXPR any(
-            _T _v
-        ) noexcept
-            : m_category(DAnyCategory::cat_unsigned),
-              m_type_id(any_type_id_of<_T>::value),
-              m_sbo(static_cast<unsigned long long>(_v),
-                    DAnyCategory::cat_unsigned)
+        _Type _v
+    ) noexcept
+        : m_category(DAnyCategory::cat_unsigned),
+          m_type_id(any_type_id_of<_Type>::value),
+          m_sbo(static_cast<unsigned long long>(_v), DAnyCategory::cat_unsigned)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: floating point
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 std::is_floating_point<_T>::value,
+                 std::is_floating_point<_Type>::value,
                  int
              >::type = 0>
     D_CONSTEXPR any(
-            _T _v
-        ) noexcept
-            : m_category(DAnyCategory::cat_floating),
-              m_type_id(any_type_id_of<_T>::value),
-              m_sbo(static_cast<double>(_v),
-                    DAnyCategory::cat_floating)
+        _Type _v
+    ) noexcept
+        : m_category(DAnyCategory::cat_floating),
+          m_type_id(any_type_id_of<_Type>::value),
+          m_sbo(static_cast<double>(_v),
+                DAnyCategory::cat_floating)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: enum
     // -----------------------------------------------------------------
 
-    template<typename _T,
-             typename std::enable_if<
-                 std::is_enum<_T>::value,
-                 int
-             >::type = 0>
+    template<typename _Type,
+             typename std::enable_if<std::is_enum<_Type>::value, int>::type = 0>
     D_CONSTEXPR any(
-            _T _v
-        ) noexcept
-            : m_category(
-                  internal::any_category_of<_T>::value),
-              m_type_id(any_type_id_of<_T>::value),
-              m_sbo(static_cast<unsigned long long>(
-                        static_cast<
-                            typename std::underlying_type<
-                                _T>::type>(_v)),
-                    internal::any_category_of<_T>::value)
+        _Type _v
+    ) noexcept
+        : m_category(internal::any_category_of<_Type>::value),
+                     m_type_id(any_type_id_of<_Type>::value),
+                     m_sbo(static_cast<unsigned long long>(
+                           static_cast<
+                              typename std::underlying_type<
+                                  _Type>::type>(_v)),
+                      internal::any_category_of<_Type>::value)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: non-const pointer (not function)
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_pointer<_T>::value             &&
+                 ( std::is_pointer<_Type>::value &&
                    !std::is_const<
                        typename std::remove_pointer<
-                           _T>::type>::value              &&
+                           _Type>::type>::value  &&
                    !std::is_function<
                        typename std::remove_pointer<
-                           _T>::type>::value ),
-                 int
-             >::type = 0>
+                           _Type>::type>::value ),
+                 int>::type = 0>
     D_CONSTEXPR any(
-            _T _v
-        ) noexcept
-            : m_category(DAnyCategory::cat_pointer),
-              m_type_id(any_type_id_of<_T>::value),
-              m_sbo(static_cast<void*>(_v),
-                    DAnyCategory::cat_pointer)
+        _Type _v
+    ) noexcept
+        : m_category(DAnyCategory::cat_pointer),
+          m_type_id(any_type_id_of<_Type>::value),
+          m_sbo(static_cast<void*>(_v),
+                DAnyCategory::cat_pointer)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: const pointer (not function)
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_pointer<_T>::value             &&
+                 ( std::is_pointer<_Type>::value &&
                    std::is_const<
                        typename std::remove_pointer<
-                           _T>::type>::value              &&
+                           _Type>::type>::value  &&
                    !std::is_function<
                        typename std::remove_pointer<
-                           _T>::type>::value ),
-                 int
-             >::type = 0>
+                           _Type>::type>::value ),
+                 int>::type = 0>
     D_CONSTEXPR any(
-            _T _v
-        ) noexcept
-            : m_category(DAnyCategory::cat_cpointer),
-              m_type_id(any_type_id_of<_T>::value),
-              m_sbo(static_cast<const void*>(_v),
-                    DAnyCategory::cat_cpointer)
+        _Type _v
+    ) noexcept
+        : m_category(DAnyCategory::cat_cpointer),
+          m_type_id(any_type_id_of<_Type>::value),
+          m_sbo(static_cast<const void*>(_v), DAnyCategory::cat_cpointer)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(nullptr)
+        , m_heap(nullptr),
+          m_heap_ops(nullptr)
 #endif
-        {}
+    {}
 
     // -----------------------------------------------------------------
     //  construction: heap (everything else)
     // -----------------------------------------------------------------
 
 #if D_ENV_CPP98_HAS_NEW
-
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( !std::is_integral<_T>::value       &&
-                   !std::is_floating_point<_T>::value  &&
-                   !std::is_enum<_T>::value            &&
-                   !std::is_pointer<_T>::value ),
+                 ( !std::is_integral<_Type>::value        &&
+                   !std::is_floating_point<_Type>::value  &&
+                   !std::is_enum<_Type>::value            &&
+                   !std::is_pointer<_Type>::value ),
                  int
              >::type = 0>
-    any(const _T& _v)
-            : m_category(DAnyCategory::cat_heap),
-              m_type_id(any_type_id_of<_T>::value),
-              m_sbo(),
-              m_heap(new _T(_v)),
-              m_heap_ops(internal::any_heap_ops_for<_T>())
-        {}
+    any(
+        const _Type& _v
+    )
+        : m_category(DAnyCategory::cat_heap),
+          m_type_id(any_type_id_of<_Type>::value),
+          m_sbo(),
+          m_heap(new _Type(_v)),
+          m_heap_ops(internal::any_heap_ops_for<_Type>())
+    {}
 
 #endif  // D_ENV_CPP98_HAS_NEW
 
@@ -615,18 +602,20 @@ public:
     //  copy constructor
     // -----------------------------------------------------------------
 
-    any(const any& _other)
-            : m_category(_other.m_category),
-              m_type_id(_other.m_type_id),
-              m_sbo(_other.m_sbo)
+    any(
+        const any& _other
+    )
+        : m_category(_other.m_category),
+          m_type_id(_other.m_type_id),
+          m_sbo(_other.m_sbo)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(nullptr),
-              m_heap_ops(_other.m_heap_ops)
+        , m_heap(nullptr),
+          m_heap_ops(_other.m_heap_ops)
 #endif
     {
 #if D_ENV_CPP98_HAS_NEW
         if ( (_other.m_category == DAnyCategory::cat_heap) &&
-             (_other.m_heap != nullptr)                     &&
+             (_other.m_heap != nullptr)                    &&
              (_other.m_heap_ops != nullptr) )
         {
             m_heap = m_heap_ops->clone(_other.m_heap);
@@ -639,14 +628,15 @@ public:
     // -----------------------------------------------------------------
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-
-    any(any&& _other) noexcept
-            : m_category(_other.m_category),
-              m_type_id(_other.m_type_id),
-              m_sbo(_other.m_sbo)
+    any(
+        any&& _other
+    ) noexcept
+        : m_category(_other.m_category),
+          m_type_id(_other.m_type_id),
+          m_sbo(_other.m_sbo)
 #if D_ENV_CPP98_HAS_NEW
-            , m_heap(_other.m_heap),
-              m_heap_ops(_other.m_heap_ops)
+        , m_heap(_other.m_heap),
+          m_heap_ops(_other.m_heap_ops)
 #endif
     {
         _other.m_category = DAnyCategory::cat_empty;
@@ -677,7 +667,7 @@ public:
             m_heap_ops = _other.m_heap_ops;
 
             if ( (_other.m_category == DAnyCategory::cat_heap) &&
-                 (_other.m_heap != nullptr)                     &&
+                 (_other.m_heap != nullptr)                    &&
                  (_other.m_heap_ops != nullptr) )
             {
                 m_heap = m_heap_ops->clone(_other.m_heap);
@@ -700,13 +690,13 @@ public:
         {
             reset();
 
-            m_category = _other.m_category;
-            m_type_id  = _other.m_type_id;
-            m_sbo      = _other.m_sbo;
-
-#if D_ENV_CPP98_HAS_NEW
-            m_heap     = _other.m_heap;
-            m_heap_ops = _other.m_heap_ops;
+            m_category        = _other.m_category;
+            m_type_id         = _other.m_type_id;
+            m_sbo             = _other.m_sbo;
+                              
+#if D_ENV_CPP98_HAS_NEW       
+            m_heap            = _other.m_heap;
+            m_heap_ops        = _other.m_heap_ops;
             _other.m_heap     = nullptr;
             _other.m_heap_ops = nullptr;
 #endif
@@ -734,7 +724,8 @@ public:
     // -----------------------------------------------------------------
 
     // has_value
-    D_CONSTEXPR bool has_value() const noexcept
+    D_CONSTEXPR bool
+    has_value() const noexcept
     {
         return (m_category != DAnyCategory::cat_empty);
     }
@@ -746,148 +737,158 @@ public:
     }
 
     // category
-    D_CONSTEXPR DAnyCategory category() const noexcept
+    D_CONSTEXPR DAnyCategory
+    category() const noexcept
     {
         return m_category;
     }
 
     // type
-    D_CONSTEXPR any_type_id type() const noexcept
+    D_CONSTEXPR any_type_id
+    type() const noexcept
     {
         return m_type_id;
     }
 
     // holds
-    //   returns true if the stored value was originally of
-    // type _T.
-    template<typename _T>
-    D_CONSTEXPR bool holds() const noexcept
+    //   returns true if the stored value was originally of type `_Type`.
+    template<typename _Type>
+    D_CONSTEXPR bool
+    holds() const noexcept
     {
-        return (m_type_id == any_type_id_of<_T>::value);
+        return (m_type_id == any_type_id_of<_Type>::value);
     }
 
     // is_sbo
-    D_CONSTEXPR bool is_sbo() const noexcept
+    D_CONSTEXPR bool
+    is_sbo() const noexcept
     {
         return ( (m_category != DAnyCategory::cat_empty) &&
                  (m_category != DAnyCategory::cat_heap) );
     }
 
     // -----------------------------------------------------------------
-    //  typed retrieval: SBO — bool
+    //  typed retrieval: SBO - bool
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 std::is_same<_T, bool>::value,
+                 std::is_same<_Type, bool>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _T get() const noexcept
+    D_CONSTEXPR _Type 
+    get() const noexcept
     {
         return m_sbo.v_bool;
     }
 
     // -----------------------------------------------------------------
-    //  typed retrieval: SBO — signed integral
+    //  typed retrieval: SBO - signed integral
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_integral<_T>::value &&
-                   std::is_signed<_T>::value   &&
-                   !std::is_same<_T, bool>::value ),
+                 ( std::is_integral<_Type>::value &&
+                   std::is_signed<_Type>::value   &&
+                   !std::is_same<_Type, bool>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _T get() const noexcept
+    D_CONSTEXPR _Type
+    get() const noexcept
     {
-        return static_cast<_T>(m_sbo.v_signed);
+        return static_cast<_Type>(m_sbo.v_signed);
     }
 
     // -----------------------------------------------------------------
-    //  typed retrieval: SBO — unsigned integral
+    //  typed retrieval: SBO - unsigned integral
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_integral<_T>::value  &&
-                   std::is_unsigned<_T>::value  &&
-                   !std::is_same<_T, bool>::value ),
+                 ( std::is_integral<_Type>::value  &&
+                   std::is_unsigned<_Type>::value  &&
+                   !std::is_same<_Type, bool>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _T get() const noexcept
+    D_CONSTEXPR _Type
+    get() const noexcept
     {
-        return static_cast<_T>(m_sbo.v_unsigned);
+        return static_cast<_Type>(m_sbo.v_unsigned);
     }
 
     // -----------------------------------------------------------------
-    //  typed retrieval: SBO — floating point
+    //  typed retrieval: SBO - floating point
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 std::is_floating_point<_T>::value,
+                 std::is_floating_point<_Type>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _T get() const noexcept
+    D_CONSTEXPR _Type
+    get() const noexcept
     {
-        return static_cast<_T>(m_sbo.v_floating);
+        return static_cast<_Type>(m_sbo.v_floating);
     }
 
     // -----------------------------------------------------------------
-    //  typed retrieval: SBO — enum
+    //  typed retrieval: SBO - enum
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 std::is_enum<_T>::value,
+                 std::is_enum<_Type>::value,
                  int
              >::type = 0>
-    D_CONSTEXPR _T get() const noexcept
+    D_CONSTEXPR _Type
+    get() const noexcept
     {
-        return static_cast<_T>(
+        return static_cast<_Type>(
             static_cast<
-                typename std::underlying_type<_T>::type>(
+                typename std::underlying_type<_Type>::type>(
                     m_sbo.v_unsigned));
     }
 
     // -----------------------------------------------------------------
-    //  typed retrieval: SBO — non-const pointer
+    //  typed retrieval: SBO - non-const pointer
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_pointer<_T>::value             &&
+                 ( std::is_pointer<_Type>::value &&
                    !std::is_const<
                        typename std::remove_pointer<
-                           _T>::type>::value              &&
+                           _Type>::type>::value  &&
                    !std::is_function<
                        typename std::remove_pointer<
-                           _T>::type>::value ),
+                           _Type>::type>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _T get() const noexcept
+    D_CONSTEXPR _Type
+    get() const noexcept
     {
-        return static_cast<_T>(m_sbo.v_pointer);
+        return static_cast<_Type>(m_sbo.v_pointer);
     }
 
     // -----------------------------------------------------------------
-    //  typed retrieval: SBO — const pointer
+    //  typed retrieval: SBO - const pointer
     // -----------------------------------------------------------------
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( std::is_pointer<_T>::value             &&
+                 ( std::is_pointer<_Type>::value &&
                    std::is_const<
                        typename std::remove_pointer<
-                           _T>::type>::value              &&
+                           _Type>::type>::value &&
                    !std::is_function<
                        typename std::remove_pointer<
-                           _T>::type>::value ),
+                           _Type>::type>::value ),
                  int
              >::type = 0>
-    D_CONSTEXPR _T get() const noexcept
+    D_CONSTEXPR _Type
+    get() const noexcept
     {
-        return static_cast<_T>(m_sbo.v_cpointer);
+        return static_cast<_Type>(m_sbo.v_cpointer);
     }
 
     // -----------------------------------------------------------------
@@ -896,30 +897,30 @@ public:
 
 #if D_ENV_CPP98_HAS_NEW
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( !std::is_integral<_T>::value       &&
-                   !std::is_floating_point<_T>::value  &&
-                   !std::is_enum<_T>::value            &&
-                   !std::is_pointer<_T>::value ),
-                 int
-             >::type = 0>
-    const _T& get() const
+                 ( !std::is_integral<_Type>::value        &&
+                   !std::is_floating_point<_Type>::value  &&
+                   !std::is_enum<_Type>::value            &&
+                   !std::is_pointer<_Type>::value ),
+                 int>::type = 0>
+    const _Type&
+    get() const
     {
-        return *static_cast<const _T*>(m_heap);
+        return *static_cast<const _Type*>(m_heap);
     }
 
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( !std::is_integral<_T>::value       &&
-                   !std::is_floating_point<_T>::value  &&
-                   !std::is_enum<_T>::value            &&
-                   !std::is_pointer<_T>::value ),
-                 int
-             >::type = 0>
-    _T& get()
+                 ( !std::is_integral<_Type>::value        &&
+                   !std::is_floating_point<_Type>::value  &&
+                   !std::is_enum<_Type>::value            &&
+                   !std::is_pointer<_Type>::value ),
+                 int>::type = 0>
+    _Type&
+    get()
     {
-        return *static_cast<_T*>(m_heap);
+        return *static_cast<_Type*>(m_heap);
     }
 
 #endif  // D_ENV_CPP98_HAS_NEW
@@ -930,11 +931,12 @@ public:
 
     // reset
     //   destroys the stored value and sets to empty.
-    void reset() noexcept
+    void
+    reset() noexcept
     {
 #if D_ENV_CPP98_HAS_NEW
         if ( (m_category == DAnyCategory::cat_heap) &&
-             (m_heap != nullptr)                     &&
+             (m_heap != nullptr)                    &&
              (m_heap_ops != nullptr) )
         {
             m_heap_ops->destroy(m_heap);
@@ -950,7 +952,10 @@ public:
     }
 
     // swap
-    void swap(any& _other) noexcept
+    void
+    swap(
+        any& _other
+    ) noexcept
     {
         any tmp(*this);
         *this = _other;
@@ -960,9 +965,9 @@ public:
     }
 
 private:
-    DAnyCategory          m_category;
-    any_type_id           m_type_id;
-    internal::any_sbo     m_sbo;
+    DAnyCategory                   m_category;
+    any_type_id                    m_type_id;
+    internal::any_sbo              m_sbo;
 
 #if D_ENV_CPP98_HAS_NEW
     void*                          m_heap;
@@ -975,45 +980,50 @@ private:
 ///                VI.  FREE FUNCTIONS                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// any_cast (by value — SBO and heap)
+// any_cast (by value - SBO and heap)
 //   returns a copy of the stored value.
-template<typename _T>
-D_CONSTEXPR _T any_cast(const any& _a)
+template<typename _Type>
+D_CONSTEXPR _Type 
+any_cast(
+    const any& _a
+)
 {
-    return _a.template get<_T>();
+    return _a.template get<_Type>();
 }
 
-// any_cast (mutable reference — heap types)
+// any_cast (mutable reference - heap types)
 #if D_ENV_CPP98_HAS_NEW
-    template<typename _T,
+    template<typename _Type,
              typename std::enable_if<
-                 ( !std::is_integral<_T>::value       &&
-                   !std::is_floating_point<_T>::value  &&
-                   !std::is_enum<_T>::value            &&
-                   !std::is_pointer<_T>::value ),
-                 int
-             >::type = 0>
-    _T& any_cast(any& _a)
+                 ( !std::is_integral<_Type>::value        &&
+                   !std::is_floating_point<_Type>::value  &&
+                   !std::is_enum<_Type>::value            &&
+                   !std::is_pointer<_Type>::value ),
+                 int>::type = 0>
+    _Type&
+    any_cast(any& _a)
     {
-        return _a.template get<_T>();
+        return _a.template get<_Type>();
     }
 #endif  // D_ENV_CPP98_HAS_NEW
 
 // swap
-D_INLINE void swap(
-        any& _a,
-        any& _b
-    ) noexcept
+D_INLINE void 
+swap(
+	any& _a,
+	any& _b
+) noexcept
 {
     _a.swap(_b);
 
     return;
 }
 
-NS_COMPAT
-NS_END  // djinterp
 
+NS_END  // restd
+NS_END  // djinterp
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_ANY_
+
+#endif  // DJINTERP_RESTD_ANY_
