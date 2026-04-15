@@ -76,7 +76,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
 // =============================================================================
@@ -1604,7 +1603,6 @@ template<typename _Payload>
 using parented_arena = arena<_Payload, parented_lcrs_link_policy>;
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
