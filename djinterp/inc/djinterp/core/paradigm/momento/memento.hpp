@@ -21,7 +21,7 @@
 *   PORTABILITY:
 *   - C++11  : core memento protocol, snapshot strategies, history stack,
 *              SFINAE capability traits, caretaker, type-erased memento
-*              (via compat::any — RTTI-free, constexpr-capable)
+*              (via restd::any — RTTI-free, constexpr-capable)
 *   - C++14  : generic lambda support in for_each_memento, make_caretaker
 *   - C++17  : std::optional integration, string_view tags, if constexpr
 *              dispatch, structured bindings
@@ -84,7 +84,7 @@ VI.   UNDO / REDO STACK
       --------------------
       i.    undo_redo_stack
 
-VII.  TYPE-ERASED MEMENTO (C++11+, via compat::any)
+VII.  TYPE-ERASED MEMENTO (C++11+, via restd::any)
       ------------------------------------------------
       i.    any_memento
       ii.   any_memento_caretaker
@@ -110,7 +110,7 @@ IX.   CONCEPT-CONSTRAINED INTERFACES (C++20+)
 #include <vector>
 #include "../../djinterp.hpp"
 #include "../../meta/type_traits.hpp"
-#include "../compat/std/any.hpp"
+#include "../../../re_std/any/any.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -169,7 +169,6 @@ IX.   CONCEPT-CONSTRAINED INTERFACES (C++20+)
 
 NS_DJINTERP
 
-
 ///////////////////////////////////////////////////////////////////////////////
 ///             II.   CAPABILITY TRAITS                                     ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -188,7 +187,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_save_state_method<_Type, D_VOID_T<
+    struct has_save_state_method<_Type, void_t<
         decltype(std::declval<const _Type>().save_state())
     >> : std::true_type
     {};
@@ -202,7 +201,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_restore_state_method<_Type, D_VOID_T<
+    struct has_restore_state_method<_Type, void_t<
         decltype(std::declval<_Type>().restore_state(
             std::declval<const _Type>().save_state()))
     >> : std::true_type
@@ -216,7 +215,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_clone_method<_Type, D_VOID_T<
+    struct has_clone_method<_Type, void_t<
         decltype(std::declval<const _Type>().clone())
     >> : std::true_type
     {};
@@ -229,7 +228,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_serialize_method<_Type, D_VOID_T<
+    struct has_serialize_method<_Type, void_t<
         decltype(std::declval<const _Type>().serialize())
     >> : std::true_type
     {};
@@ -243,7 +242,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_deserialize_method<_Type, D_VOID_T<
+    struct has_deserialize_method<_Type, void_t<
         decltype(std::declval<_Type>().deserialize(
             std::declval<const _Type>().serialize()))
     >> : std::true_type
@@ -258,7 +257,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_diff_method<_Type, D_VOID_T<
+    struct has_diff_method<_Type, void_t<
         decltype(std::declval<const _Type>().diff(
             std::declval<const _Type>()))
     >> : std::true_type
@@ -273,7 +272,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_apply_diff_method<_Type, D_VOID_T<
+    struct has_apply_diff_method<_Type, void_t<
         decltype(std::declval<_Type>().apply_diff(
             std::declval<const _Type>().diff(std::declval<const _Type>())))
     >> : std::true_type
@@ -287,7 +286,7 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_equality_operator<_Type, D_VOID_T<
+    struct has_equality_operator<_Type, void_t<
         decltype(std::declval<const _Type>() == std::declval<const _Type>())
     >> : std::true_type
     {};
@@ -473,7 +472,7 @@ struct clone_snapshot
     template<typename _State>
     static void
     restore(
-        _State&                                          _state,
+        _State&                                               _state,
         const decltype(std::declval<const _State>().clone())& _snapshot
     )
     {
@@ -604,7 +603,7 @@ struct delta_snapshot
     template<typename _State>
     static void
     restore_from_baseline(
-        _State&                         _state,
+        _State&                          _state,
         const snapshot_type_for<_State>& _record
     )
     {
@@ -620,7 +619,7 @@ struct delta_snapshot
     template<typename _State>
     static void
     apply_delta(
-        _State&                         _state,
+        _State&                          _state,
         const snapshot_type_for<_State>& _record
     )
     {
@@ -864,11 +863,11 @@ struct memento
     {}
 
     explicit memento(
-        _Snapshot       _s,
+        _Snapshot        _s,
         memento_metadata _m = memento_metadata()
     )
         : state(std::move(_s)),
-            meta(_m)
+          meta(_m)
     {}
 };
 
@@ -1331,22 +1330,32 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///         VII.  TYPE-ERASED MEMENTO (C++11+, via compat::any)            ///
+///         VII.  TYPE-ERASED MEMENTO (C++11+, via restd::any)             ///
 ///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // any_memento
 //   class: type-erased memento that can store any snapshot type via
-// djinterp::compat::any. Useful when a caretaker must manage
-// heterogeneous state objects (e.g., a multi-document editor where
-// each document type has a different snapshot representation).
+// restd::any. Useful when a caretaker must manage heterogeneous
+// state objects (e.g., a multi-document editor where each document
+// type has a different snapshot representation).
 //
-// Uses compat::any rather than std::any, making this available from
+// Uses restd::any rather than std::any, making this available from
 // C++11 with RTTI-free type identity (holds<T>() via function-pointer
 // tags) and constexpr support for SBO-eligible types.
+//
+// The any_type / any_id_type aliases isolate the any namespace; if
+// the any header moves to a different namespace, update these two
+// aliases and everything flows.
 class any_memento
 {
+private:
+    // ---- namespace isolation aliases ----
+    // Change these if the any header lives in a different namespace.
+    using any_type    = restd::any;
+    using any_id_type = restd::any_type_id;
+
 public:
     any_memento() = default;
 
@@ -1369,42 +1378,145 @@ public:
 
     // holds
     //   function: true if the stored snapshot was originally of type
-    // _Snapshot. RTTI-free; uses compat::any's function-pointer
-    // type identity.
+    // _Snapshot. RTTI-free; uses any's function-pointer type identity.
+    //
+    // Note: no .template disambiguator — any_memento is not a class
+    // template, so m_state's type is not dependent.
     template<typename _Snapshot>
     D_CONSTEXPR bool
     holds() const noexcept
     {
-        return m_state.template holds<_Snapshot>();
+        return m_state.holds<_Snapshot>();
     }
 
-    // get (const)
-    //   function: retrieves the stored snapshot, cast to the requested
-    // type. For SBO types this is constexpr; for heap types it returns
-    // a const reference. Behaviour is undefined if holds<_Snapshot>()
-    // is false.
-    template<typename _Snapshot>
-    auto
-    get() const
-        -> decltype(std::declval<const compat::any&>().template get<_Snapshot>())
+    // -----------------------------------------------------------------
+    // get (const, SBO types — bool)
+    // -----------------------------------------------------------------
+
+    template<typename _Snapshot,
+             typename std::enable_if<
+                 std::is_same<_Snapshot, bool>::value,
+                 int
+             >::type = 0>
+    D_CONSTEXPR _Snapshot
+    get() const noexcept
     {
-        return m_state.template get<_Snapshot>();
+        return m_state.get<_Snapshot>();
     }
 
-    // get (mutable, heap types only)
-    //   function: mutable access for heap-stored snapshots.
+    // -----------------------------------------------------------------
+    // get (const, SBO types — signed integral, not bool)
+    // -----------------------------------------------------------------
+
+    template<typename _Snapshot,
+             typename std::enable_if<
+                 ( std::is_integral<_Snapshot>::value &&
+                   std::is_signed<_Snapshot>::value   &&
+                   !std::is_same<_Snapshot, bool>::value ),
+                 int
+             >::type = 0>
+    D_CONSTEXPR _Snapshot
+    get() const noexcept
+    {
+        return m_state.get<_Snapshot>();
+    }
+
+    // -----------------------------------------------------------------
+    // get (const, SBO types — unsigned integral, not bool)
+    // -----------------------------------------------------------------
+
+    template<typename _Snapshot,
+             typename std::enable_if<
+                 ( std::is_integral<_Snapshot>::value  &&
+                   std::is_unsigned<_Snapshot>::value  &&
+                   !std::is_same<_Snapshot, bool>::value ),
+                 int
+             >::type = 0>
+    D_CONSTEXPR _Snapshot
+    get() const noexcept
+    {
+        return m_state.get<_Snapshot>();
+    }
+
+    // -----------------------------------------------------------------
+    // get (const, SBO types — floating point)
+    // -----------------------------------------------------------------
+
+    template<typename _Snapshot,
+             typename std::enable_if<
+                 std::is_floating_point<_Snapshot>::value,
+                 int
+             >::type = 0>
+    D_CONSTEXPR _Snapshot
+    get() const noexcept
+    {
+        return m_state.get<_Snapshot>();
+    }
+
+    // -----------------------------------------------------------------
+    // get (const, SBO types — enum)
+    // -----------------------------------------------------------------
+
+    template<typename _Snapshot,
+             typename std::enable_if<
+                 std::is_enum<_Snapshot>::value,
+                 int
+             >::type = 0>
+    D_CONSTEXPR _Snapshot
+    get() const noexcept
+    {
+        return m_state.get<_Snapshot>();
+    }
+
+    // -----------------------------------------------------------------
+    // get (const, SBO types — pointer)
+    // -----------------------------------------------------------------
+
+    template<typename _Snapshot,
+             typename std::enable_if<
+                 std::is_pointer<_Snapshot>::value,
+                 int
+             >::type = 0>
+    D_CONSTEXPR _Snapshot
+    get() const noexcept
+    {
+        return m_state.get<_Snapshot>();
+    }
+
+    // -----------------------------------------------------------------
+    // get (const, heap types)
+    // -----------------------------------------------------------------
+
     template<typename _Snapshot,
              typename std::enable_if<
                  ( !std::is_integral<_Snapshot>::value       &&
-                   !std::is_floating_point<_Snapshot>::value  &&
-                   !std::is_enum<_Snapshot>::value            &&
+                   !std::is_floating_point<_Snapshot>::value &&
+                   !std::is_enum<_Snapshot>::value           &&
+                   !std::is_pointer<_Snapshot>::value ),
+                 int
+             >::type = 0>
+    const _Snapshot&
+    get() const
+    {
+        return m_state.get<_Snapshot>();
+    }
+
+    // -----------------------------------------------------------------
+    // get (mutable, heap types only)
+    // -----------------------------------------------------------------
+
+    template<typename _Snapshot,
+             typename std::enable_if<
+                 ( !std::is_integral<_Snapshot>::value       &&
+                   !std::is_floating_point<_Snapshot>::value &&
+                   !std::is_enum<_Snapshot>::value           &&
                    !std::is_pointer<_Snapshot>::value ),
                  int
              >::type = 0>
     _Snapshot&
     get()
     {
-        return m_state.template get<_Snapshot>();
+        return m_state.get<_Snapshot>();
     }
 
     // metadata
@@ -1416,9 +1528,9 @@ public:
     }
 
     // type
-    //   function: returns the compat::any_type_id of the stored
-    // snapshot (a function pointer unique per type).
-    D_CONSTEXPR compat::any_type_id
+    //   function: returns the any_type_id of the stored snapshot
+    // (a function pointer unique per type).
+    D_CONSTEXPR any_id_type
     type() const noexcept
     {
         return m_state.type();
@@ -1435,7 +1547,7 @@ public:
     }
 
 private:
-    compat::any      m_state;
+    any_type         m_state;
     memento_metadata m_meta;
 };
 
@@ -1570,7 +1682,7 @@ template<typename _SnapshotPolicy = deep_copy_snapshot,
          typename _Snapshot>
 inline void
 restore_memento(
-    _State&                  _state,
+    _State&                   _state,
     const memento<_Snapshot>& _m
 )
 {
@@ -1663,8 +1775,9 @@ concept history_policy = requires(
 
 // constrained_checkpoint
 //   function: concept-constrained checkpoint creation.
-template<snapshot_strategy<auto> _Policy = deep_copy_snapshot,
-         memento_source          _State>
+template<typename       _Policy = deep_copy_snapshot,
+         memento_source _State>
+requires snapshot_strategy<_Policy, _State>
 inline auto
 constrained_checkpoint(
     const _State& _state
@@ -1679,4 +1792,4 @@ constrained_checkpoint(
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMENTO_
+#endif  // DJINTERP_PARADIGM_MEMENTO_
