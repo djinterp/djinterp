@@ -40,14 +40,12 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "../../djinterp.hpp"
-#include "./arena.hpp"
-#include "./arena_traits.hpp"
+#include "../../../djinterp.hpp"
+#include "../arena.hpp"
+#include "../arena_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
 
 // =============================================================================
@@ -64,7 +62,7 @@ struct has_root_method : std::false_type
 
 template<typename _Type>
 struct has_root_method<_Type,
-    D_VOID_T<decltype(std::declval<const _Type&>().root())>>
+    void_t<decltype(std::declval<const _Type&>().root())>>
     : std::true_type
 {
 };
@@ -85,7 +83,7 @@ struct has_has_root_method : std::false_type
 
 template<typename _Type>
 struct has_has_root_method<_Type,
-    D_VOID_T<decltype(std::declval<const _Type&>().has_root())>>
+    void_t<decltype(std::declval<const _Type&>().has_root())>>
     : std::true_type
 {
 };
@@ -106,7 +104,7 @@ struct has_is_root_method : std::false_type
 
 template<typename _Type>
 struct has_is_root_method<_Type,
-    D_VOID_T<decltype(
+    void_t<decltype(
         std::declval<const _Type&>().is_root(
             std::declval<node_id>()))>>
     : std::true_type
@@ -129,7 +127,7 @@ struct has_set_root_method : std::false_type
 
 template<typename _Type>
 struct has_set_root_method<_Type,
-    D_VOID_T<decltype(
+    void_t<decltype(
         std::declval<_Type&>().set_root(
             std::declval<node_id>()))>>
     : std::true_type
@@ -157,7 +155,7 @@ struct has_create_root_method : std::false_type
 
 template<typename _Type>
 struct has_create_root_method<_Type,
-    D_VOID_T<decltype(
+    void_t<decltype(
         std::declval<_Type&>().create_root(
             std::declval<typename _Type::payload_type>()))>>
     : std::true_type
@@ -180,7 +178,7 @@ struct has_add_child_method : std::false_type
 
 template<typename _Type>
 struct has_add_child_method<_Type,
-    D_VOID_T<decltype(
+    void_t<decltype(
         std::declval<_Type&>().add_child(
             std::declval<node_id>(),
             std::declval<typename _Type::payload_type>()))>>
@@ -204,7 +202,7 @@ struct has_remove_subtree_method : std::false_type
 
 template<typename _Type>
 struct has_remove_subtree_method<_Type,
-    D_VOID_T<decltype(
+    void_t<decltype(
         std::declval<_Type&>().remove_subtree(
             std::declval<node_id>()))>>
     : std::true_type
@@ -286,7 +284,7 @@ NS_INTERNAL
 
     template<typename _Type>
     struct safe_link_policy<_Type,
-        D_VOID_T<typename _Type::link_policy>>
+        void_t<typename _Type::link_policy>>
     {
         using type = typename _Type::link_policy;
     };
@@ -460,8 +458,6 @@ struct arena_tree_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 
