@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                         sequence.hpp
+* djinterp [container]                                            sequence.hpp
 *
 * Ordered linear element sequence:
 *   A sequence is the simplest composite type in the container
@@ -31,25 +31,25 @@
 *   auto s = sequence<int>(1, 2, 3, 4, 5);
 *
 *
-* path:      /inc/cpp/container/sequence.hpp
+* path:      /inc/djinterp/core/paradigm/sequence/sequence.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2025.06.01
+* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.10
 ******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_SEQUENCE_
-#define DJINTERP_CONTAINER_SEQUENCE_ 1
+#ifndef DJINTERP_PARADIGM_SEQUENCE_
+#define DJINTERP_PARADIGM_SEQUENCE_ 1
 
+// std
 #include <cstddef>
 #include <cstdint>
 #include <initializer_list>
 #include <type_traits>
 #include <vector>
-
-#include "../djinterp.hpp"
+// djinterp
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
 // ================================================================
@@ -541,8 +541,7 @@ make_sequence
 }
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_CONTAINER_SEQUENCE_
+#endif  // DJINTERP_PARADIGM_SEQUENCE_
