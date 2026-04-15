@@ -28,8 +28,8 @@
 #define DJINTERP_ARENA_TREE_CONCEPTS_ 1
 
 #include <type_traits>
-#include "arena_concepts.hpp"
-#include "arena_tree_traits.hpp"
+#include "../arena_concepts.hpp"
+#include "./arena_tree_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
     #error "arena_tree_concepts.hpp requires C++20 concepts support."
@@ -37,55 +37,46 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
-// =============================================================================
+// ============================================================================
 // I.   Root Ownership Concepts
-// =============================================================================
+// ============================================================================
 
 // root_query_arena
 //   concept: constrains arenas exposing root().
 template<typename _Type>
-concept root_query_arena =
-    has_root_method<clean_t<_Type>>::value;
+concept root_query_arena = has_root_method<clean_t<_Type>>::value;
 
 // root_presence_query_arena
 //   concept: constrains arenas exposing has_root().
 template<typename _Type>
-concept root_presence_query_arena =
-    has_has_root_method<clean_t<_Type>>::value;
+concept root_presence_query_arena = has_has_root_method<clean_t<_Type>>::value;
 
 // root_testable_arena
 //   concept: constrains arenas exposing is_root(node_id).
 template<typename _Type>
-concept root_testable_arena =
-    has_is_root_method<clean_t<_Type>>::value;
+concept root_testable_arena = has_is_root_method<clean_t<_Type>>::value;
 
 // root_assignable_arena
 //   concept: constrains arenas exposing set_root(node_id).
 template<typename _Type>
-concept root_assignable_arena =
-    has_set_root_method<clean_t<_Type>>::value;
+concept root_assignable_arena = has_set_root_method<clean_t<_Type>>::value;
 
 // arena_tree
 //   concept: constrains types satisfying the arena tree protocol.
 template<typename _Type>
-concept arena_tree =
-    is_arena_tree<clean_t<_Type>>::value;
+concept arena_tree = is_arena_tree<clean_t<_Type>>::value;
 
 // rooted_arena
 //   concept: constrains types recognized as rooted arenas.
 template<typename _Type>
-concept rooted_arena =
-    is_rooted_arena<clean_t<_Type>>::value;
+concept rooted_arena = is_rooted_arena<clean_t<_Type>>::value;
 
 // non_arena_tree
 //   concept: constrains types that do not satisfy the arena tree
 // protocol.
 template<typename _Type>
-concept non_arena_tree =
-    !arena_tree<_Type>;
+concept non_arena_tree = !arena_tree<_Type>;
 
 
 // =============================================================================
@@ -187,8 +178,6 @@ concept classified_arena_tree =
       nary_arena_tree<_Type> );
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 
