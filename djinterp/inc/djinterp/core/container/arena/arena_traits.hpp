@@ -49,9 +49,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
-
 
 // =============================================================================
 // I.   Payload Validation
@@ -503,8 +500,6 @@ struct arena_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 
