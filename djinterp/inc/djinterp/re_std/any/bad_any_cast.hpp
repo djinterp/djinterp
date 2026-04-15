@@ -1,23 +1,24 @@
 /******************************************************************************
-* djinterp [stl]                                            bad_any_cast.hpp
+* djinterp [restd]                                            bad_any_cast.hpp
 *
 * bad_any_cast exception header:
 *   Provides the exception type thrown by any_cast when the requested type
 * does not match the stored type. The base class is selected based on
 * available headers:
-*   - <typeinfo>  available → inherits std::bad_cast (→ std::exception)
-*   - <exception> available → inherits std::exception
-*   - neither               → standalone class (no base, non-virtual what())
+*   - <typeinfo>  available -> inherits _Type::bad_cast (-> _Type::exception)
+*   - <exception> available -> inherits _Type::exception
+*   - neither               -> standalone class (no base, non-virtual what())
 *
-* path:      \inc\cpp\stl\bad_any_cast.hpp
+* 
+* path:      /inc/djinterp/restd/any/bad_any_cast.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.10
 ******************************************************************************/
 
-#ifndef DJINTERP_BAD_ANY_CAST_
-#define DJINTERP_BAD_ANY_CAST_ 1
+#ifndef DJINTERP_RESTD_BAD_ANY_CAST_
+#define DJINTERP_RESTD_BAD_ANY_CAST_ 1
 
-#include ".\djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 
 // =============================================================================
@@ -32,7 +33,7 @@
 
 
 NS_DJINTERP
-NS_STL
+NS_RESTD
 
 
 // =============================================================================
@@ -44,8 +45,8 @@ NS_STL
 // bad_any_cast
 //   exception: thrown by any_cast when the requested type does not
 // match the type of the stored value.
-// inherits: std::bad_cast → std::exception.
-class bad_any_cast : public std::bad_cast
+// inherits: _Type::bad_cast -> _Type::exception.
+class bad_any_cast : public _Type::bad_cast
 {
 public:
     const char*
@@ -60,8 +61,8 @@ public:
 // bad_any_cast
 //   exception: thrown by any_cast when the requested type does not
 // match the type of the stored value.
-// note: <typeinfo> unavailable; inherits std::exception directly.
-class bad_any_cast : public std::exception
+// note: <typeinfo> unavailable; inherits _Type::exception directly.
+class bad_any_cast : public _Type::exception
 {
 public:
     const char*
@@ -91,8 +92,8 @@ public:
 #endif  // D_ENV_CPP98_HAS_TYPEINFO / D_ENV_CPP98_HAS_EXCEPTION
 
 
-NS_END  // stl
+NS_END  // restd
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_BAD_ANY_CAST_
+#endif  // DJINTERP_RESTD_BAD_ANY_CAST_
