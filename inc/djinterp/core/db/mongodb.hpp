@@ -44,16 +44,16 @@
 *
 * path:      \inc\database\mongodb\mongodb.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.06.15
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_MONGODB_
 #define DJINTERP_DATABASE_MONGODB_
 
-#include "..\database_connection.hpp"
+#include "database_connection.hpp"
 #include "mongo_traits.hpp"
 
-#include "..\..\core\env\env_mongodb.h"
+#include "../env/db/env_mongodb.h"
 
 
 NS_DJINTERP
