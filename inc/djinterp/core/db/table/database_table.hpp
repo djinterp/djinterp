@@ -60,14 +60,14 @@
 *
 * path:      \inc\database\database_table.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.06.15
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_TABLE_
 #define DJINTERP_DATABASE_TABLE_ 1
 
-#include "database_common.hpp"
-#include "..\meta\table_traits.hpp"
+#include "../database_common.hpp"
+#include "../../container/table/table_traits.hpp"
 
 #if !D_ENV_LANG_IS_CPP17_OR_HIGHER
     #error "database_table.hpp requires C++17 or later                       \
