@@ -49,20 +49,20 @@
 *
 * path:      \inc\database\mysql\mysql_common.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.06.15
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_MYSQL_COMMON_
 #define DJINTERP_DATABASE_MYSQL_COMMON_
 
-#include "..\database_connection.hpp"
+#include "database_connection.hpp"
 #include "mysql_common_traits.hpp"
 
 // env_mysql_common.h provides D_ENV_MYSQL_COMMON_* compile-time
 // feature macros. It is pulled in transitively through env_db.h
 // -> database_traits.hpp if a MySQL-family client library is
 // detected. Include it explicitly to guarantee availability.
-#include "..\..\core\env\env_mysql_common.h"
+#include "../env/db/env_mysql_common.h"
 
 
 NS_DJINTERP

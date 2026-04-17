@@ -36,13 +36,13 @@
 *
 * path:      \inc\database\mysql\mysql_common_traits.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.06.15
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_MYSQL_COMMON_TRAITS_
 #define DJINTERP_DATABASE_MYSQL_COMMON_TRAITS_
 
-#include "..\database_traits.hpp"
+#include "database_traits.hpp"
 
 
 NS_DJINTERP
