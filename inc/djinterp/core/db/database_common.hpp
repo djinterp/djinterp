@@ -32,7 +32,7 @@
 *
 * path:      \inc\database\database_common.hpp                                           
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.10
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.01.10
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_COMMON_
@@ -54,19 +54,19 @@
             (std::optional, std::variant, std::string_view)."
 #endif
 
+#include <algorithm>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <map>
 #include <memory>
+#include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <vector>
-#include <map>
-#include <optional>
 #include <variant>
-#include <chrono>
-#include <stdexcept>
-#include <functional>
-#include <algorithm>
+#include <vector>
 
 
 // =============================================================================
@@ -286,6 +286,108 @@ struct pool_config
     std::string validation_query;
 
     pool_config();
+};
+
+
+// =============================================================================
+// IV.b VENDOR INFORMATION
+// =============================================================================
+
+// vendor_info
+//   struct: runtime-queryable vendor metadata for a database connection.
+// Provides a uniform way to inspect vendor identity regardless of the
+// concrete CRTP implementation type.
+struct vendor_info
+{
+    database_type   type;
+    std::string     name;
+    std::string     display_name;
+    std::uint16_t   default_port;
+    bool            is_relational;
+    bool            is_embedded;
+    bool            supports_ssl;
+
+    vendor_info()
+        : type(database_type::unknown)
+        , default_port(0)
+        , is_relational(false)
+        , is_embedded(false)
+        , supports_ssl(false)
+    {
+    }
+};
+
+// vendor_traits
+//   trait: primary template for vendor-specific connection configuration.
+// Vendor modules specialize this for each database_type to declare
+// native handle types, default ports, and other vendor-specific
+// metadata. The unspecialized template provides safe defaults for
+// unknown vendors.
+template<database_type _DbType>
+struct vendor_traits
+{
+    // native_handle_type
+    //   type: the vendor's native connection handle type.
+    // defaults to void* for unknown vendors.
+    using native_handle_type = void*;
+
+    // db_type
+    //   value: the database_type enumerator for this vendor.
+    static constexpr database_type db_type = _DbType;
+
+    // default_port
+    //   value: the vendor's default TCP port (0 for unknown/embedded).
+    static constexpr std::uint16_t default_port = 0;
+
+    // name
+    //   value: short identifier string for the vendor.
+    static constexpr const char* name = "unknown";
+
+    // display_name
+    //   value: human-readable display name for the vendor.
+    static constexpr const char* display_name = "Unknown Database";
+
+    // is_relational
+    //   value: true if the vendor is a relational DBMS.
+    static constexpr bool is_relational = false;
+
+    // is_embedded
+    //   value: true if the vendor is an embedded database.
+    static constexpr bool is_embedded = false;
+
+    // supports_ssl
+    //   value: true if the vendor supports SSL/TLS connections.
+    static constexpr bool supports_ssl = false;
+
+    // get_info
+    //   function: returns a populated vendor_info struct.
+    static vendor_info get_info()
+    {
+        vendor_info info;
+
+        info.type          = db_type;
+        info.name          = name;
+        info.display_name  = display_name;
+        info.default_port  = default_port;
+        info.is_relational = is_relational;
+        info.is_embedded   = is_embedded;
+        info.supports_ssl  = supports_ssl;
+
+        return info;
+    }
+
+    // make_default_config
+    //   function: returns a connection_config with vendor-appropriate
+    // defaults.
+    static connection_config make_default_config()
+    {
+        connection_config config;
+
+        config.host = "localhost";
+        config.port = default_port;
+
+        return config;
+    }
 };
 
 
