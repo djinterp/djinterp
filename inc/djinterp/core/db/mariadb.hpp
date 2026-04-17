@@ -51,7 +51,7 @@
 *
 * path:      /inc/database/mysql/mariadb.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.06.15
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_MARIADB_
@@ -61,7 +61,7 @@
 
 // env_mariadb.h provides D_ENV_MARIADB_* compile-time feature macros,
 // and includes env_mysql_common.h transitively.
-#include "..\..\core\env\env_mariadb.h"
+#include "../env/db/env_mariadb.h"
 
 
 NS_DJINTERP

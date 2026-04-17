@@ -34,13 +34,13 @@
 *
 * path:      /inc/djinterp/database/mariadb_traits.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_MARIADB_TRAITS_
 #define DJINTERP_DATABASE_MARIADB_TRAITS_
 
-#include "..\mysql\mysql_common_traits.hpp"
+#include "mysql_common_traits.hpp"
 
 
 NS_DJINTERP
