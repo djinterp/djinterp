@@ -18,7 +18,7 @@
 *
 * path:      /inc/djinterp/test/test_printer_concepts.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.12
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.12
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_PRINTER_CONCEPTS_
@@ -28,15 +28,13 @@
     #error "test_printer_concepts.hpp requires C++ compilation"
 #endif
 
+// djinterp
 #include "../core/djinterp.hpp"
 #include "./test_printer_traits.hpp"
 
 
 NS_DJINTERP
 NS_TEST
-NS_TRAITS
-
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   SYMBOL CUSTOMIZATION CONCEPTS                       ///
@@ -222,10 +220,7 @@ concept full_test_printer =
     rendering_test_printer<_Type> &&
     filtered_test_printer<_Type>;
 
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-
-NS_END  // traits
 NS_END  // test
 NS_END  // djinterp
 

@@ -25,7 +25,7 @@
 *   Requires C++17 or later.
 *
 *
-* path:      /inc/database/table/mariadb_table.hpp
+* path:      /inc/djinterp/core/db/table/mariadb_table.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.20
 ******************************************************************************/

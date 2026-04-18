@@ -13,7 +13,8 @@
 *   - template-instantiation detection
 *   - aggregate shorthand concepts
 *
-* path:      /inc/test/meta/test_object_concepts.hpp
+* 
+* path:      /inc/djinterp/test/test_object_concepts.hpp
 * link(s):   TBA
 * author(s): OpenAI ChatGPT                                   date: 2026.04.11
 ******************************************************************************/
@@ -25,14 +26,14 @@
     #error "test_object_concepts.hpp requires C++ compilation"
 #endif
 
-#include "test_object_traits.hpp"
+// djinterp
+#include "../core/djinterp.hpp"
+#include "./test_object_traits.hpp"
 
 
 NS_DJINTERP
 NS_TEST
 NS_TRAITS
-
-#if defined(__cpp_concepts) && (__cpp_concepts >= 201907L)
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   PROTOCOL CONCEPTS                                   ///
@@ -213,8 +214,6 @@ template<typename _Type>
 concept composite_test_object_type =
     interior_test_object_type<_Type> &&
     evaluable_method_test_type<_Type>;
-
-#endif  // __cpp_concepts >= 201907L
 
 
 NS_END  // traits

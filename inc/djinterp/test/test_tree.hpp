@@ -51,16 +51,18 @@
 *
 * path:      /inc/djinterp/test/test_tree.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_TREE_
 #define DJINTERP_TEST_TREE_ 1
 
+// std
 #include <cstddef>
 #include <type_traits>
-#include "../djinterp.hpp"
-#include "../meta/type_traits.hpp"
+// djinterp
+#include "../core/djinterp.hpp"
+#include "../core/meta/type_traits.hpp"
 #include "./test_common.hpp"
 #include "./test_object_traits.hpp"
 
@@ -76,81 +78,81 @@ NS_TEST
 NS_INTERNAL
 
     // has_root_method
-    //   trait: true if _T exposes root().
-    template<typename _T,
+    //   trait: true if _Type exposes root().
+    template<typename _Type,
              typename = void>
     struct has_root_method : std::false_type
     {};
 
-    template<typename _T>
-    struct has_root_method<_T,
-        D_VOID_T<decltype(std::declval<_T&>().root())>>
+    template<typename _Type>
+    struct has_root_method<_Type,
+        void_t<decltype(std::declval<_Type&>().root())>>
         : std::true_type
     {};
 
     // has_size_method
-    //   trait: true if _T exposes size().
-    template<typename _T,
+    //   trait: true if _Type exposes size().
+    template<typename _Type,
              typename = void>
     struct has_size_method : std::false_type
     {};
 
-    template<typename _T>
-    struct has_size_method<_T,
-        D_VOID_T<decltype(std::declval<const _T&>().size())>>
+    template<typename _Type>
+    struct has_size_method<_Type,
+        void_t<decltype(std::declval<const _Type&>().size())>>
         : std::true_type
     {};
 
     // has_empty_method
-    //   trait: true if _T exposes empty().
-    template<typename _T,
+    //   trait: true if _Type exposes empty().
+    template<typename _Type,
              typename = void>
     struct has_empty_method : std::false_type
     {};
 
-    template<typename _T>
-    struct has_empty_method<_T,
-        D_VOID_T<decltype(std::declval<const _T&>().empty())>>
+    template<typename _Type>
+    struct has_empty_method<_Type,
+        void_t<decltype(std::declval<const _Type&>().empty())>>
         : std::true_type
     {};
 
     // has_clear_method
-    //   trait: true if _T exposes clear().
-    template<typename _T,
+    //   trait: true if _Type exposes clear().
+    template<typename _Type,
              typename = void>
     struct has_clear_method : std::false_type
     {};
 
-    template<typename _T>
-    struct has_clear_method<_T,
-        D_VOID_T<decltype(std::declval<_T&>().clear())>>
+    template<typename _Type>
+    struct has_clear_method<_Type,
+        void_t<decltype(std::declval<_Type&>().clear())>>
         : std::true_type
     {};
 
     // has_begin_end
-    //   trait: true if _T exposes begin() and end().
-    template<typename _T,
+    //   trait: true if _Type exposes begin() and end().
+    template<typename _Type,
              typename = void>
     struct has_begin_end : std::false_type
     {};
 
-    template<typename _T>
-    struct has_begin_end<_T,
-        D_VOID_T<decltype(std::declval<_T&>().begin()),
-                  decltype(std::declval<_T&>().end())>>
+    template<typename _Type>
+    struct has_begin_end<_Type,
+        void_t<decltype(std::declval<_Type&>().begin()),
+                  decltype(std::declval<_Type&>().end())>>
         : std::true_type
     {};
 
     // has_rank_method
-    //   trait: true if _T exposes rank().
-    template<typename _T,
+    //   trait: true if _Type exposes rank().
+    template<typename _Type,
              typename = void>
     struct has_rank_method : std::false_type
     {};
 
-    template<typename _T>
-    struct has_rank_method<_T,
-        D_VOID_T<decltype(std::declval<const _T&>().rank())>>
+    template<typename _Type>
+    struct has_rank_method<_Type,
+        void_t<decltype(std::declval<const _Type&>().rank())>>
         : std::true_type
     {};
 
@@ -257,14 +259,14 @@ public:
     //   returns a mutable reference to the underlying
     // container for direct manipulation.
     _Underlying&
-    underlying() noexcept
+    underlying() D_NOEXCEPT
     {
         return m_underlying;
     }
 
     // underlying (const)
     const _Underlying&
-    underlying() const noexcept
+    underlying() const D_NOEXCEPT
     {
         return m_underlying;
     }
@@ -276,7 +278,7 @@ public:
     // size
     //   returns the number of nodes in the underlying tree.
     size_type
-    size() const noexcept
+    size() const D_NOEXCEPT
     {
         return m_underlying.size();
     }
@@ -284,7 +286,7 @@ public:
     // empty
     //   returns true if the underlying tree is empty.
     bool
-    empty() const noexcept
+    empty() const D_NOEXCEPT
     {
         return (m_underlying.size() == 0);
     }
@@ -340,7 +342,7 @@ public:
     validate_rank_invariant(
         const _Parent& _parent,
         const _Child&  _child
-    ) noexcept
+    ) D_NOEXCEPT
     {
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
         if constexpr ( (_ValidateRank) &&
@@ -465,7 +467,7 @@ private:
         const _Parent& _parent,
         const _Child&  _child,
         std::true_type
-    ) noexcept
+    ) D_NOEXCEPT
     {
         return (_child.rank() <= _parent.rank());
     }
@@ -478,7 +480,7 @@ private:
         const _Parent&,
         const _Child&,
         std::false_type
-    ) noexcept
+    ) D_NOEXCEPT
     {
         return true;
     }

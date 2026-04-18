@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [database]                                  mysql_common_table.hpp
+* djinterp [database]                                   mysql_common_table.hpp
 *
 * djinterp MySQL-family common table module:
 *   Shared database_table subclass for the MySQL-compatible family (Oracle
@@ -23,7 +23,8 @@
 *   PORTABILITY:
 *   Requires C++17 or later. Does not include the MySQL C API header.
 *
-* path:      \inc\database\mysql\mysql_common_table.hpp
+* 
+* path:      /inc/djinterp/core/db/table/mysql_common_table.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.20
 ******************************************************************************/

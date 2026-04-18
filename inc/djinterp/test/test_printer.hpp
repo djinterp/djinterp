@@ -79,7 +79,7 @@
 *
 * path:      /inc/djinterp/test/test_printer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_PRINTER_
@@ -92,8 +92,9 @@
 #include <functional>
 #include <string>
 #include <vector>
-#include "../djinterp.hpp"
-#include "../text/text_template.hpp"
+// djinterp
+#include "../core/djinterp.hpp"
+#include "../core/text/text_template.hpp"
 #include "./test_common.hpp"
 
 
@@ -144,7 +145,7 @@ struct indent_state
     {}
 
     const std::string&
-    indent_string() const noexcept
+    indent_string() const D_NOEXCEPT
     {
         return m_unit;
     }
@@ -174,7 +175,7 @@ struct indent_state
     void
     set_max(
         std::size_t _max
-    ) noexcept
+    ) D_NOEXCEPT
     {
         m_max = _max;
 
@@ -182,19 +183,19 @@ struct indent_state
     }
 
     std::size_t
-    max() const noexcept
+    max() const D_NOEXCEPT
     {
         return m_max;
     }
 
     std::size_t
-    depth() const noexcept
+    depth() const D_NOEXCEPT
     {
         return m_depth;
     }
 
     std::size_t
-    indent_depth() const noexcept
+    indent_depth() const D_NOEXCEPT
     {
         return m_depth;
     }
@@ -202,7 +203,7 @@ struct indent_state
     void
     set_depth(
         std::size_t _depth
-    ) noexcept
+    ) D_NOEXCEPT
     {
         m_depth = _depth;
 
@@ -377,7 +378,7 @@ struct print_context
         return std::string(buf);
     }
 
-    static std::string
+    D_STATIC std::string
     size_to_string(
         std::size_t _v
     )
@@ -395,35 +396,35 @@ struct print_context
 ///                IV.  DEFAULT FORMATS                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-static const char* const D_TEST_FMT_NODE_DEFAULT =
+D_STATIC const char* const D_TEST_FMT_NODE_DEFAULT =
     "{indent}{symbol} {name}\n";
 
-static const char* const D_TEST_FMT_NODE_VERBOSE =
+D_STATIC const char* const D_TEST_FMT_NODE_VERBOSE =
     "{indent}{number}. {symbol} {name} [{status}]\n";
 
-static const char* const D_TEST_FMT_NODE_NUMBERED =
+D_STATIC const char* const D_TEST_FMT_NODE_NUMBERED =
     "{indent}{number}. {symbol} {name}\n";
 
-static const char* const D_TEST_FMT_NODE_MINIMAL =
+D_STATIC const char* const D_TEST_FMT_NODE_MINIMAL =
     "{symbol} {name}\n";
 
-static const char* const D_TEST_FMT_NODE_MESSAGE =
+D_STATIC const char* const D_TEST_FMT_NODE_MESSAGE =
     "{indent}{symbol} {name} - {message}\n";
 
-static const char* const D_TEST_FMT_SUMMARY_DEFAULT =
+D_STATIC const char* const D_TEST_FMT_SUMMARY_DEFAULT =
     "\n{symbol} {passed}/{total} passed"
     ", {failed} failed"
     ", {skipped} skipped"
     " ({pass_rate})\n";
 
-static const char* const D_TEST_FMT_SUMMARY_FULL =
+D_STATIC const char* const D_TEST_FMT_SUMMARY_FULL =
     "\n  ASSERTION SUMMARY:\n"
     "    Total Assertions:     {total}\n"
     "    Assertions Passed:    {passed}\n"
     "    Assertions Failed:    {failed}\n"
     "    Assertion Pass Rate:  {pass_rate}\n";
 
-static const char* const D_TEST_FMT_HEADER_BANNER =
+D_STATIC const char* const D_TEST_FMT_HEADER_BANNER =
     "========================================"
     "========================================\n"
     "  TESTING: {suite_name}\n"
@@ -433,7 +434,7 @@ static const char* const D_TEST_FMT_HEADER_BANNER =
     "========================================"
     "========================================\n\n";
 
-static const char* const D_TEST_FMT_SECTION_HEADER_DASHED =
+D_STATIC const char* const D_TEST_FMT_SECTION_HEADER_DASHED =
     "\n----------------------------------------"
     "----------------------------------------\n"
     "  MODULE: {section_name}\n"
@@ -441,7 +442,7 @@ static const char* const D_TEST_FMT_SECTION_HEADER_DASHED =
     "----------------------------------------"
     "----------------------------------------\n\n";
 
-static const char* const D_TEST_FMT_SECTION_FOOTER_RESULTS =
+D_STATIC const char* const D_TEST_FMT_SECTION_FOOTER_RESULTS =
     "\n----------------------------------------"
     "----------------------------------------\n"
     "  MODULE RESULTS: {section_name}\n"
@@ -519,40 +520,40 @@ public:
     void set_section_header_format(const std::string& _f) { m_sec_hdr_fmt = _f; return; }
     void set_section_footer_format(const std::string& _f) { m_sec_ftr_fmt = _f; return; }
 
-    const std::string& node_format()           const noexcept { return m_node_fmt; }
-    const std::string& summary_format()        const noexcept { return m_summary_fmt; }
-    const std::string& header_format()         const noexcept { return m_header_fmt; }
-    const std::string& footer_format()         const noexcept { return m_footer_fmt; }
-    const std::string& section_header_format() const noexcept { return m_sec_hdr_fmt; }
-    const std::string& section_footer_format() const noexcept { return m_sec_ftr_fmt; }
+    const std::string& node_format()           const D_NOEXCEPT { return m_node_fmt; }
+    const std::string& summary_format()        const D_NOEXCEPT { return m_summary_fmt; }
+    const std::string& header_format()         const D_NOEXCEPT { return m_header_fmt; }
+    const std::string& footer_format()         const D_NOEXCEPT { return m_footer_fmt; }
+    const std::string& section_header_format() const D_NOEXCEPT { return m_sec_hdr_fmt; }
+    const std::string& section_footer_format() const D_NOEXCEPT { return m_sec_ftr_fmt; }
 
 
     // =================================================================
     //  template access
     // =================================================================
 
-    text::text_template&       node_template()                 noexcept { return m_node_tmpl; }
-    const text::text_template& node_template()           const noexcept { return m_node_tmpl; }
-    text::text_template&       summary_template()              noexcept { return m_summary_tmpl; }
-    const text::text_template& summary_template()        const noexcept { return m_summary_tmpl; }
-    text::text_template&       header_template()               noexcept { return m_header_tmpl; }
-    const text::text_template& header_template()         const noexcept { return m_header_tmpl; }
-    text::text_template&       footer_template()               noexcept { return m_footer_tmpl; }
-    const text::text_template& footer_template()         const noexcept { return m_footer_tmpl; }
-    text::text_template&       section_header_template()       noexcept { return m_sec_hdr_tmpl; }
-    const text::text_template& section_header_template() const noexcept { return m_sec_hdr_tmpl; }
-    text::text_template&       section_footer_template()       noexcept { return m_sec_ftr_tmpl; }
-    const text::text_template& section_footer_template() const noexcept { return m_sec_ftr_tmpl; }
+    text::text_template&       node_template()                 D_NOEXCEPT { return m_node_tmpl; }
+    const text::text_template& node_template()           const D_NOEXCEPT { return m_node_tmpl; }
+    text::text_template&       summary_template()              D_NOEXCEPT { return m_summary_tmpl; }
+    const text::text_template& summary_template()        const D_NOEXCEPT { return m_summary_tmpl; }
+    text::text_template&       header_template()               D_NOEXCEPT { return m_header_tmpl; }
+    const text::text_template& header_template()         const D_NOEXCEPT { return m_header_tmpl; }
+    text::text_template&       footer_template()               D_NOEXCEPT { return m_footer_tmpl; }
+    const text::text_template& footer_template()         const D_NOEXCEPT { return m_footer_tmpl; }
+    text::text_template&       section_header_template()       D_NOEXCEPT { return m_sec_hdr_tmpl; }
+    const text::text_template& section_header_template() const D_NOEXCEPT { return m_sec_hdr_tmpl; }
+    text::text_template&       section_footer_template()       D_NOEXCEPT { return m_sec_ftr_tmpl; }
+    const text::text_template& section_footer_template() const D_NOEXCEPT { return m_sec_ftr_tmpl; }
 
 
     // =================================================================
     //  indent
     // =================================================================
 
-    indent_state&       indent()       noexcept { return m_indent; }
-    const indent_state& indent() const noexcept { return m_indent; }
-    const std::string&  indent_string() const noexcept { return m_indent.indent_string(); }
-    std::size_t         indent_depth()  const noexcept { return m_indent.indent_depth(); }
+    indent_state&       indent()       D_NOEXCEPT { return m_indent; }
+    const indent_state& indent() const D_NOEXCEPT { return m_indent; }
+    const std::string&  indent_string() const D_NOEXCEPT { return m_indent.indent_string(); }
+    std::size_t         indent_depth()  const D_NOEXCEPT { return m_indent.indent_depth(); }
 
     void
     set_indent(
@@ -571,7 +572,7 @@ public:
     // =================================================================
 
     int
-    numbering_mode() const noexcept
+    numbering_mode() const D_NOEXCEPT
     {
         return static_cast<int>(m_numbering);
     }
@@ -579,7 +580,7 @@ public:
     void
     set_numbering_mode(
         int _mode
-    ) noexcept
+    ) D_NOEXCEPT
     {
         m_numbering = static_cast<test::numbering_mode>(_mode);
 
@@ -587,9 +588,19 @@ public:
     }
 
     void
+    set_numbering_mode(
+        test::numbering_mode _mode
+    ) D_NOEXCEPT
+    {
+        m_numbering = _mode;
+
+        return;
+    }
+
+    void
     set_numbering(
         test::numbering_mode _mode
-    ) noexcept
+    ) D_NOEXCEPT
     {
         m_numbering = _mode;
 
@@ -601,8 +612,8 @@ public:
     //  symbol / status functions
     // =================================================================
 
-    const symbol_fn_type& symbol_function()        const noexcept { return m_symbol_fn; }
-    const status_fn_type& status_string_function() const noexcept { return m_status_fn; }
+    const symbol_fn_type& symbol_function()        const D_NOEXCEPT { return m_symbol_fn; }
+    const status_fn_type& status_string_function() const D_NOEXCEPT { return m_status_fn; }
 
     void
     set_symbol_function(
@@ -629,9 +640,9 @@ public:
     //  filters
     // =================================================================
 
-    void set_print_passing(bool _p) noexcept { m_print_passing = _p; return; }
-    void set_print_skipped(bool _p) noexcept { m_print_skipped = _p; return; }
-    void set_print_pending(bool _p) noexcept { m_print_pending = _p; return; }
+    void set_print_passing(bool _p) D_NOEXCEPT { m_print_passing = _p; return; }
+    void set_print_skipped(bool _p) D_NOEXCEPT { m_print_skipped = _p; return; }
+    void set_print_pending(bool _p) D_NOEXCEPT { m_print_pending = _p; return; }
 
     void
     set_node_filter(
@@ -668,7 +679,7 @@ public:
     //  context
     // =================================================================
 
-    const print_context& context() const noexcept { return m_context; }
+    const print_context& context() const D_NOEXCEPT { return m_context; }
     void reset_context() { m_context = print_context(); return; }
 
 
@@ -862,13 +873,12 @@ public:
         return;
     }
 
-
 private:
     // =================================================================
     //  internal: defaults
     // =================================================================
 
-    static std::string
+    D_STATIC std::string
     default_symbol(
         test_status _s
     )
@@ -884,7 +894,7 @@ private:
         }
     }
 
-    static std::string
+    D_STATIC std::string
     default_status_string(
         test_status _s
     )
@@ -989,7 +999,7 @@ private:
     //  internal: bind context
     // =================================================================
 
-    static void
+    D_STATIC void
     bind_context_to(
         text::text_template& _tmpl,
         const print_context& _ctx
