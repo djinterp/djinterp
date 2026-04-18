@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [database]                                         mysql_table.hpp
+* djinterp [database]                                          mysql_table.hpp
 *
 * djinterp Oracle MySQL table module:
 *   Oracle-MySQL-specific database_table subclass providing vendor-specific
@@ -10,7 +10,7 @@
 *   - MySQL-specific storage engines (NDB Cluster detection)
 *   - MySQL-specific type mapping overrides (native UUID via CHAR(36),
 *     native JSON binary vs MariaDB's LONGTEXT alias)
-*   - optimizer hint support (SELECT /*+ ... */)
+*   - optimizer hint support (SELECT /+ ... /)
 *
 *   LAYER DIAGRAM:
 *     mysql_table<_Config>
@@ -25,7 +25,8 @@
 *   PORTABILITY:
 *   Requires C++17 or later.
 *
-* path:      \inc\database\mysql\mysql_table.hpp
+*
+* path:      /inc/djinterp/core/db/table/mysql_table.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.20
 ******************************************************************************/

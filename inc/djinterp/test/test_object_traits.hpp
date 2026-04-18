@@ -33,16 +33,18 @@
 *
 * path:      /inc/test/meta/test_object_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.05
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.05
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_OBJECT_TRAITS_
 #define DJINTERP_TEST_OBJECT_TRAITS_ 1
 
+// std
 #include <type_traits>
 #include <utility>
-#include "../djinterp.hpp"
-#include "../type_traits.hpp"
+// djinterp
+#include "../core/djinterp.hpp"
+#include "../core/meta/type_traits.hpp"
 #include "./test_common.hpp"
 #include "./test_options.hpp"
 
@@ -69,7 +71,7 @@ struct has_bool_conversion : std::false_type
 };
 
 template<typename _Type>
-struct has_bool_conversion<_Type, D_VOID_T<
+struct has_bool_conversion<_Type, void_t<
     decltype(static_cast<bool>(std::declval<const _Type&>()))
 >> : std::true_type
 {
@@ -91,7 +93,7 @@ struct has_status_accessor : std::false_type
 };
 
 template<typename _Type>
-struct has_status_accessor<_Type, D_VOID_T<
+struct has_status_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().status())
 >> : std::true_type
 {
@@ -112,7 +114,7 @@ struct has_status_type : std::false_type
 };
 
 template<typename _Type>
-struct has_status_type<_Type, D_VOID_T<
+struct has_status_type<_Type, void_t<
     typename _Type::status_type
 >> : std::true_type
 {
@@ -133,7 +135,7 @@ struct has_option_set_type : std::false_type
 };
 
 template<typename _Type>
-struct has_option_set_type<_Type, D_VOID_T<
+struct has_option_set_type<_Type, void_t<
     typename _Type::option_set_type
 >> : std::true_type
 {
@@ -154,7 +156,7 @@ struct has_name_accessor : std::false_type
 };
 
 template<typename _Type>
-struct has_name_accessor<_Type, D_VOID_T<
+struct has_name_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().name())
 >> : std::is_same<
     decltype(std::declval<const _Type&>().name()),
@@ -178,7 +180,7 @@ struct has_message_accessor : std::false_type
 };
 
 template<typename _Type>
-struct has_message_accessor<_Type, D_VOID_T<
+struct has_message_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().message())
 >> : std::is_same<
     decltype(std::declval<const _Type&>().message()),
@@ -202,7 +204,7 @@ struct has_event_handler_accessor : std::false_type
 };
 
 template<typename _Type>
-struct has_event_handler_accessor<_Type, D_VOID_T<
+struct has_event_handler_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().event_handler())
 >> : std::true_type
 {
@@ -223,7 +225,7 @@ struct has_children_accessor : std::false_type
 };
 
 template<typename _Type>
-struct has_children_accessor<_Type, D_VOID_T<
+struct has_children_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().children())
 >> : std::true_type
 {
@@ -245,7 +247,7 @@ NS_INTERNAL
     };
 
     template<typename _Type>
-    struct has_evaluate_unary_helper<_Type, D_VOID_T<
+    struct has_evaluate_unary_helper<_Type, void_t<
         decltype(std::declval<_Type&>().evaluate(
             std::declval<typename _Type::value_type>()))
     >> : std::true_type
@@ -261,7 +263,7 @@ NS_INTERNAL
     };
 
     template<typename _Type>
-    struct has_evaluate_void_helper<_Type, D_VOID_T<
+    struct has_evaluate_void_helper<_Type, void_t<
         decltype(std::declval<_Type&>().evaluate())
     >> : std::true_type
     {
@@ -297,7 +299,7 @@ struct has_result_accessor : std::false_type
 };
 
 template<typename _Type>
-struct has_result_accessor<_Type, D_VOID_T<
+struct has_result_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().result())
 >> : std::true_type
 {
@@ -406,11 +408,11 @@ NS_INTERNAL
     {
     };
 
-    template<typename    _T,
+    template<typename    _Type,
              typename    _S,
              typename... _Opts>
     struct is_test_object_instantiation<
-        test_object<_T, _S, _Opts...>> : std::true_type
+        test_object<_Type, _S, _Opts...>> : std::true_type
     {
     };
 

@@ -8,6 +8,20 @@
 * entries that the user can declare in a single statement and
 * customize per module.
 *
+*   The backing container for cli_option_table is templated so
+* that any djinterp container (or standard container) satisfying
+* the sequential protocol can be used in place of std::vector.
+* The sequential protocol requires:
+*   - push_back(element)
+*   - operator[](index) or at(index)
+*   - size() -> integral
+*   - empty() -> bool
+*   - begin() / end() (for range-based for)
+*
+*   Parse functions are templated on the test_options map type
+* and the cli_option_table container type, so any backing
+* container parameterization is accepted without modification.
+*
 * USAGE:
 *   // 1. declare a table (one statement)
 *   static const auto my_cli = djinterp::test::cli_option_defs({
@@ -29,7 +43,7 @@
 *
 * CLI SYNTAX:
 *   --key value       long option with separate value
-*   --key=value       long option with inline value
+*   --key=value       long option with D_INLINE value
 *   -k value          short option with separate value
 *   --flag            boolean toggle (sets to true)
 *   --no-flag         boolean negation (sets to false)
@@ -37,7 +51,7 @@
 *
 * COMPONENTS:
 *   djinterp::test::cli_option_def     - single option definition
-*   djinterp::test::cli_option_table   - array of definitions
+*   djinterp::test::cli_option_table   - array of definitions (template)
 *   djinterp::test::DCliParseStatus    - parse result code
 *   djinterp::test::cli_parse_result   - parse result with details
 *   djinterp::test::cli_parse          - parse into new test_options
@@ -49,12 +63,13 @@
 *
 * path:      /inc/cpp/test/test_cli.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.13
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.13
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_CLI_
 #define DJINTERP_TEST_CLI_ 1
 
+// std
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -62,6 +77,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+// djinterp
+#include "../core/djinterp.hpp"
 #include "./test_options.hpp"
 
 
@@ -88,26 +105,142 @@ struct cli_option_def
 
 
 // =========================================================================
+// Ia.  SEQUENTIAL PROTOCOL DETECTION
+// =========================================================================
+
+NS_INTERNAL
+
+    // seq_has_push_back
+    //   trait: true if _Seq supports push_back(element).
+    template<typename _Seq,
+             typename = void>
+    struct seq_has_push_back : std::false_type
+    {};
+
+    template<typename _Seq>
+    struct seq_has_push_back<_Seq,
+        djinterp::void_t<decltype(
+            std::declval<_Seq&>().push_back(
+                std::declval<typename _Seq::value_type>()))>>
+        : std::true_type
+    {};
+
+    // seq_has_size
+    //   trait: true if _Seq supports size().
+    template<typename _Seq,
+             typename = void>
+    struct seq_has_size : std::false_type
+    {};
+
+    template<typename _Seq>
+    struct seq_has_size<_Seq,
+        djinterp::void_t<decltype(
+            std::declval<const _Seq&>().size())>>
+        : std::true_type
+    {};
+
+    // seq_has_empty
+    //   trait: true if _Seq supports empty().
+    template<typename _Seq,
+             typename = void>
+    struct seq_has_empty : std::false_type
+    {};
+
+    template<typename _Seq>
+    struct seq_has_empty<_Seq,
+        djinterp::void_t<decltype(
+            std::declval<const _Seq&>().empty())>>
+        : std::true_type
+    {};
+
+    // seq_has_subscript
+    //   trait: true if _Seq supports operator[](index).
+    template<typename _Seq,
+             typename = void>
+    struct seq_has_subscript : std::false_type
+    {};
+
+    template<typename _Seq>
+    struct seq_has_subscript<_Seq,
+        djinterp::void_t<decltype(
+            std::declval<const _Seq&>()[
+                std::declval<std::size_t>()])>>
+        : std::true_type
+    {};
+
+    // seq_is_iterable
+    //   trait: true if _Seq supports begin()/end().
+    template<typename _Seq,
+             typename = void>
+    struct seq_is_iterable : std::false_type
+    {};
+
+    template<typename _Seq>
+    struct seq_is_iterable<_Seq,
+        djinterp::void_t<
+            decltype(std::declval<const _Seq&>().begin()),
+            decltype(std::declval<const _Seq&>().end())>>
+        : std::true_type
+    {};
+
+NS_END  // internal
+
+
+// =========================================================================
 // II.  OPTION TABLE
 // =========================================================================
 
 // cli_option_table
 //   class: holds an array of cli_option_def entries. Provides
 // lookup by long name, short flag, or option_key.
+//
+// Template parameters:
+//   _Container: the sequential container used for definition
+//     storage (default: std::vector<cli_option_def>). Must
+//     support push_back, size, empty, operator[], and
+//     begin/end iteration. Any djinterp container with these
+//     capabilities may be used.
+template<typename _Container = std::vector<cli_option_def>>
 class cli_option_table
 {
+    static_assert(
+        internal::seq_has_push_back<_Container>::value,
+        "_Container must support "
+        "push_back(value_type).");
+
+    static_assert(
+        internal::seq_has_size<_Container>::value,
+        "_Container must support size().");
+
+    static_assert(
+        internal::seq_has_empty<_Container>::value,
+        "_Container must support empty().");
+
+    static_assert(
+        internal::seq_has_subscript<_Container>::value,
+        "_Container must support "
+        "operator[](index).");
+
 public:
+    using container_type = _Container;
+
     cli_option_table()
     {};
 
     // construct from initializer list
-    cli_option_table(std::initializer_list<cli_option_def> _defs)
+    cli_option_table(
+        std::initializer_list<cli_option_def> _defs)
         : m_defs(_defs)
     {};
 
-    // construct from vector
-    cli_option_table(const std::vector<cli_option_def>& _defs)
+    // construct from container
+    cli_option_table(const _Container& _defs)
         : m_defs(_defs)
+    {};
+
+    // construct from move
+    cli_option_table(_Container&& _defs)
+        : m_defs(std::move(_defs))
     {};
 
     // ---- lookup ----
@@ -122,12 +255,13 @@ public:
             return nullptr;
         }
 
-        for (const auto& def : m_defs)
+        for (std::size_t i = 0; i < m_defs.size(); ++i)
         {
-            if ( (def.long_name) &&
-                 (std::strcmp(def.long_name, _name) == 0) )
+            if ( (m_defs[i].long_name) &&
+                 (std::strcmp(m_defs[i].long_name,
+                              _name) == 0) )
             {
-                return &def;
+                return &m_defs[i];
             }
         }
 
@@ -144,11 +278,11 @@ public:
             return nullptr;
         }
 
-        for (const auto& def : m_defs)
+        for (std::size_t i = 0; i < m_defs.size(); ++i)
         {
-            if (def.short_flag == _flag)
+            if (m_defs[i].short_flag == _flag)
             {
-                return &def;
+                return &m_defs[i];
             }
         }
 
@@ -160,11 +294,11 @@ public:
     // or nullptr if not found.
     const cli_option_def* find_by_key(option_key _key) const
     {
-        for (const auto& def : m_defs)
+        for (std::size_t i = 0; i < m_defs.size(); ++i)
         {
-            if (def.key == _key)
+            if (m_defs[i].key == _key)
             {
-                return &def;
+                return &m_defs[i];
             }
         }
 
@@ -205,8 +339,12 @@ public:
 
     // merge
     //   appends all definitions from another table. Entries
-    // with duplicate long names are skipped.
-    void merge(const cli_option_table& _other)
+    // with duplicate long names are skipped. Templated on
+    // the other table's container type so that tables backed
+    // by different djinterp containers can be merged.
+    template<typename _OtherContainer>
+    void merge(
+        const cli_option_table<_OtherContainer>& _other)
     {
         for (std::size_t i = 0; i < _other.size(); ++i)
         {
@@ -219,21 +357,32 @@ public:
         }
     };
 
+    // ---- backing container access ----
+
+    // defs
+    //   returns a const reference to the underlying
+    // container for inspection or integration with
+    // container-aware algorithms.
+    const _Container& defs() const
+    {
+        return m_defs;
+    };
+
 private:
-    std::vector<cli_option_def> m_defs;
+    _Container m_defs;
 };
 
 // cli_option_defs
 //   convenience: constructs a cli_option_table from a brace-
 // enclosed initializer list. Enables one-statement declaration:
 //   static const auto my_cli = cli_option_defs({ ... });
-inline cli_option_table
+D_INLINE cli_option_table<>
 cli_option_defs
 (
     std::initializer_list<cli_option_def> _defs
 )
 {
-    return cli_option_table(_defs);
+    return cli_option_table<>(_defs);
 }
 
 
@@ -271,7 +420,7 @@ NS_INTERNAL
     //   converts a string to a boolean. Recognizes:
     // true/1/yes/on -> true, false/0/no/off -> false.
     // returns: true if conversion succeeded.
-    inline bool
+    D_INLINE bool
     str_to_bool
     (
         const char* _str,
@@ -312,7 +461,7 @@ NS_INTERNAL
     // str_to_int64
     //   converts a string to int64_t via strtoll.
     // returns: true if conversion succeeded.
-    inline bool
+    D_INLINE bool
     str_to_int64
     (
         const char*   _str,
@@ -342,7 +491,7 @@ NS_INTERNAL
     // str_to_uint64
     //   converts a string to uint64_t via strtoull.
     // returns: true if conversion succeeded.
-    inline bool
+    D_INLINE bool
     str_to_uint64
     (
         const char*    _str,
@@ -372,7 +521,7 @@ NS_INTERNAL
     // str_to_double
     //   converts a string to double via strtod.
     // returns: true if conversion succeeded.
-    inline bool
+    D_INLINE bool
     str_to_double
     (
         const char* _str,
@@ -401,14 +550,15 @@ NS_INTERNAL
 
     // set_value_from_string
     //   converts a string to the appropriate option_value type
-    // and sets it on the given test_options instance.
-    // returns: true if conversion and set both succeeded.
-    inline bool
+    // and sets it on the given test_options instance. Templated
+    // on the options map type.
+    template<typename _Map>
+    D_INLINE bool
     set_value_from_string
     (
-        test_options&      _opts,
+        test_options<_Map>&    _opts,
         const cli_option_def& _def,
-        const char*        _str
+        const char*           _str
     )
     {
         switch (_def.type)
@@ -487,11 +637,13 @@ NS_END  // internal
 
 // cli_format_help
 //   generates a help string from the given option table.
-inline std::string
+// Templated on the table's container type.
+template<typename _Container>
+D_INLINE std::string
 cli_format_help
 (
-    const cli_option_table& _table,
-    const char*             _program_name = nullptr
+    const cli_option_table<_Container>& _table,
+    const char*                         _program_name = nullptr
 )
 {
     std::string out;
@@ -565,13 +717,18 @@ cli_format_help
 // found in the table are reported as errors. Boolean options
 // can be toggled with --flag (true) or --no-flag (false)
 // without a value argument.
-inline cli_parse_result
+//
+// Templated on both the table container type and the options
+// map type so that any djinterp backing container is accepted.
+template<typename _Container,
+         typename _Map>
+D_INLINE cli_parse_result
 cli_parse_into
 (
-    int                     _argc,
-    const char* const*      _argv,
-    const cli_option_table& _table,
-    test_options&           _opts
+    int                                 _argc,
+    const char* const*                  _argv,
+    const cli_option_table<_Container>& _table,
+    test_options<_Map>&                 _opts
 )
 {
     cli_parse_result result;
@@ -820,10 +977,10 @@ cli_parse_into
 // default_cli_option_table
 //   returns the framework default CLI option table covering
 // all standard option keys from test_options.hpp.
-inline const cli_option_table&
+D_INLINE const cli_option_table<>&
 default_cli_option_table()
 {
-    static const cli_option_table table =
+    static const cli_option_table<> table =
     {
         // ---- core execution ----
         { "name",
@@ -956,16 +1113,20 @@ default_cli_option_table()
 // cli_parse
 //   parses argc/argv against the given option table into a
 // new test_options instance. Returns a pair: the populated
-// options and the parse result.
-inline std::pair<test_options, cli_parse_result>
+// options and the parse result. Templated on both the table
+// container type and the options map type.
+template<typename _Container = std::vector<cli_option_def>,
+         typename _Map       = std::unordered_map<
+             option_key, option_entry>>
+D_INLINE std::pair<test_options<_Map>, cli_parse_result>
 cli_parse
 (
-    int                     _argc,
-    const char* const*      _argv,
-    const cli_option_table& _table
+    int                                 _argc,
+    const char* const*                  _argv,
+    const cli_option_table<_Container>& _table
 )
 {
-    test_options opts = test_options_default();
+    test_options<_Map> opts = test_options_default<_Map>();
     cli_parse_result result = cli_parse_into(
         _argc, _argv, _table, opts);
 
@@ -974,15 +1135,18 @@ cli_parse
 
 // cli_parse (default table)
 //   parses argc/argv using the framework default option table.
-inline std::pair<test_options, cli_parse_result>
+template<typename _Map = std::unordered_map<
+             option_key, option_entry>>
+D_INLINE std::pair<test_options<_Map>, cli_parse_result>
 cli_parse
 (
     int                _argc,
     const char* const* _argv
 )
 {
-    return cli_parse(_argc, _argv,
-                     default_cli_option_table());
+    return cli_parse<std::vector<cli_option_def>, _Map>(
+        _argc, _argv,
+        default_cli_option_table());
 }
 
 
