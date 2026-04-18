@@ -73,19 +73,20 @@
 * event_handler's static_assert path.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    PORTABILITY CHECKS
-* II.   BUILT-IN LIFECYCLE EVENTS
-* III.  SESSION RESULTS
-* IV.   TEST HANDLER
-* V.    CONVENIENCE MACROS
-*
-*
 * path:      /inc/djinterp/test/test_handler.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.17
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    PORTABILITY CHECKS
+II.   BUILT-IN LIFECYCLE EVENTS
+III.  SESSION RESULTS
+IV.   TEST HANDLER
+V.    CONVENIENCE MACROS
+*/
 
 #ifndef DJINTERP_TEST_HANDLER_
 #define DJINTERP_TEST_HANDLER_ 1
@@ -163,49 +164,49 @@ namespace events {
     //   event: fired when the walker enters an interior node
     // identified as a module (rank-aware).
     D_EVENT(on_module_start,
-            const test_object*);
+            const basic_test*);
 
     // on_module_end
     //   event: fired when the walker leaves a module node.
     D_EVENT(on_module_end,
-            const test_object*);
+            const basic_test*);
 
     // on_test_start
     //   event: fired when the walker enters a leaf test node,
     // before the node's status is observed.
     D_EVENT(on_test_start,
-            const test_object*);
+            const basic_test*);
 
     // on_test_end
     //   event: fired when the walker leaves a leaf test node,
     // after the corresponding status event has been dispatched.
     D_EVENT(on_test_end,
-            const test_object*);
+            const basic_test*);
 
     // on_test_passed
     //   event: fired for a leaf test whose evaluation returned
     // test_status::passed.
     D_EVENT(on_test_passed,
-            const test_object*);
+            const basic_test*);
 
     // on_test_failed
     //   event: fired for a leaf test whose evaluation returned
     // test_status::failed.
     D_EVENT(on_test_failed,
-            const test_object*);
+            const basic_test*);
 
     // on_test_skipped
     //   event: fired for a leaf test whose evaluation was
     // intentionally bypassed (test_status::skipped).
     D_EVENT(on_test_skipped,
-            const test_object*);
+            const basic_test*);
 
     // on_test_error
     //   event: fired for a leaf test whose evaluation could not
     // complete (test_status::error).  Carries an optional
     // human-readable diagnostic.
     D_EVENT(on_test_error,
-            const test_object*,
+            const basic_test*,
             const char*);
 
     // on_status_change
@@ -213,7 +214,7 @@ namespace events {
     // the prior status.  Useful for transition-driven sinks
     // (e.g. logging only the first failure of a run).
     D_EVENT(on_status_change,
-            const test_object*,
+            const basic_test*,
             test_status,    // _from
             test_status);   // _to
 
@@ -551,16 +552,19 @@ private:
     // single node and updates the counters.  Interior nodes
     // produce module_start / module_end pairs; leaf nodes
     // produce test_start / status-event / test_end triples.
-    template<typename _Object>
+    //
+    // The argument type is fixed at `basic_test` (the framework's
+    // concrete element type) because the lifecycle events carry
+    // `const basic_test*` payloads.  Callers wishing to walk
+    // protocol-satisfying types that are NOT basic_test should
+    // adapt them at the call site or fire events directly via
+    // `events()`.
     void visit_node(
-        const _Object& _node
+        const basic_test& _node
     )
     {
-        const test_object* obj_ptr;
-        bool               is_leaf;
-
-        obj_ptr = static_cast<const test_object*>(&_node);
-        is_leaf = node_is_leaf(_node);
+        const basic_test* obj_ptr = &_node;
+        bool              is_leaf = node_is_leaf(_node);
 
         // dispatch interior-vs-leaf entry event
         if (is_leaf)
@@ -575,8 +579,9 @@ private:
         // dispatch the status-specific event for leaf nodes
         if (is_leaf)
         {
-            dispatch_status_event(obj_ptr, _node.status());
-            increment_for(_node.status());
+            dispatch_status_event(obj_ptr,
+                                  to_test_status(_node.status()));
+            increment_for(to_test_status(_node.status()));
 
             fire_if_listened<events::on_test_end>(obj_ptr);
         }
@@ -588,13 +593,32 @@ private:
         return;
     }
 
+    // to_test_status
+    //   helper: maps the basic_test's numeric status_type
+    // (uint8_t by default) onto the framework-wide test_status
+    // enum used by the counters and status events.
+    static test_status to_test_status(
+        typename basic_test::status_type _raw
+    ) D_NOEXCEPT
+    {
+        switch (_raw)
+        {
+            case basic_test::status_passed:  return test_status::passed;
+            case basic_test::status_failed:  return test_status::failed;
+            case basic_test::status_skipped: return test_status::skipped;
+            case basic_test::status_pending: return test_status::pending;
+            case basic_test::status_error:   return test_status::error;
+            default:                         return test_status::pending;
+        }
+    }
+
     // dispatch_status_event
     //   maps a test_status value to the corresponding
     // status-specific event and fires it (gated by
     // listener presence to keep the no-listener path free).
     void dispatch_status_event(
-        const test_object* _obj,
-        test_status        _status
+        const basic_test* _obj,
+        test_status       _status
     )
     {
         switch (_status)
@@ -685,26 +709,23 @@ private:
     // truthy `is_leaf()`; defaults to true when the protocol
     // member is absent so that flat iterables behave as
     // leaf-only collections.
-    template<typename _Object>
     static bool node_is_leaf(
-        const _Object& _node
+        const basic_test& _node
     )
     {
         return node_is_leaf_impl(_node, 0);
     }
 
-    template<typename _Object>
     static auto node_is_leaf_impl(
-        const _Object& _node,
+        const basic_test& _node,
         int /*_overload*/
     ) -> decltype(_node.is_leaf())
     {
         return _node.is_leaf();
     }
 
-    template<typename _Object>
     static bool node_is_leaf_impl(
-        const _Object& /*_node*/,
+        const basic_test& /*_node*/,
         ...
     )
     {
@@ -724,19 +745,19 @@ private:
 // D_TEST_ON
 //   macro: shorthand for binding a listener.  Mirrors
 // `_handler.on<_Event>(_lambda)` while keeping call sites tight.
-#define D_TEST_ON(_handler, _Event, _lambda)                       \
-    (_handler).template on<_Event>(_lambda)
-
-// D_TEST_FIRE
-//   macro: shorthand for immediate dispatch.  Mirrors
-// `_handler.fire<_Event>(...)`.
-#define D_TEST_FIRE(_handler, _Event, ...)                         \
-    (_handler).template fire<_Event>(__VA_ARGS__)
-
-// D_TEST_QUEUE
-//   macro: shorthand for deferred dispatch.  Mirrors
-// `_handler.queue<_Event>(...)`.
-#define D_TEST_QUEUE(_handler, _Event, ...)                        \
+#define D_TEST_ON(_handler, _Event, _lambda)                                  \
+    (_handler).template on<_Event>(_lambda)                                   
+                                                                              
+// D_TEST_FIRE                                                                
+//   macro: shorthand for immediate dispatch.  Mirrors                        
+// `_handler.fire<_Event>(...)`.                                              
+#define D_TEST_FIRE(_handler, _Event, ...)                                    \
+    (_handler).template fire<_Event>(__VA_ARGS__)                             
+                                                                              
+// D_TEST_QUEUE                                                               
+//   macro: shorthand for deferred dispatch.  Mirrors                         
+// `_handler.queue<_Event>(...)`.                                             
+#define D_TEST_QUEUE(_handler, _Event, ...)                                   \
     (_handler).template queue<_Event>(__VA_ARGS__)
 
 
