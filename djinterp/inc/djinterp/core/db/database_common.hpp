@@ -30,30 +30,16 @@
 * to type_traits.hpp for consistency with the rest of the djinterp
 * tool-chain.
 *
-* path:      \inc\database\database_common.hpp                                           
+* 
+* path:      /inc/djinterp/core/db/database_common.hpp                                           
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.01.10
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_COMMON_
 #define DJINTERP_DATABASE_COMMON_
 
-// database_traits.hpp pulls in type_traits.hpp (which provides the
-// portable detection idiom, conjunction, is_invocable, etc.) as well
-// as djinterp.hpp for namespace macros and env.h for version detection.
-#include "database_traits.hpp"
-
-// ---------------------------------------------------------------------
-// C++17 minimum gate
-// ---------------------------------------------------------------------
-// std::optional, std::variant, and std::string_view are integral to
-// this header's API. A clear compile-time error is preferable to a
-// cascade of cryptic template failures.
-#if !D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #error "database_common.hpp requires C++17 or later                   \
-            (std::optional, std::variant, std::string_view)."
-#endif
-
+// std
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -67,18 +53,14 @@
 #include <string_view>
 #include <variant>
 #include <vector>
+// djinterp
+#include "../djinterp.hpp"
+#include "../env/db/env_db.h"
+#include "./database_traits.hpp"
 
-
-// =============================================================================
-// I.   NAMESPACE AND CONFIGURATION
-// =============================================================================
 
 NS_DJINTERP
-NS_DB
-
-// Note: classes use CRTP (Curiously Recurring Template Pattern) for
-// compile-time polymorphism without virtual function overhead.
-
+NS_DATABASE
 
 // =============================================================================
 // II.  ENUMERATIONS AND TYPE DEFINITIONS
@@ -313,8 +295,7 @@ struct vendor_info
         , is_relational(false)
         , is_embedded(false)
         , supports_ssl(false)
-    {
-    }
+    {};
 };
 
 // vendor_traits
@@ -398,7 +379,7 @@ struct vendor_traits
 // result_set
 //   class template: wrapper for accessing query results using CRTP
 // pattern.
-template<typename _Impl>
+template<typename _helper>
 class result_set
 {
 public:
@@ -435,12 +416,12 @@ public:
         return impl().last();
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable_r<
                      bool,
-                     decltype(&_T::absolute),
-                     _T&,
+                     decltype(&_Type::absolute),
+                     _Type&,
                      std::int64_t>::value>>
     bool absolute(std::int64_t _row)
     {
@@ -595,14 +576,14 @@ public:
     }
 
 private:
-    _Impl& impl()
+    _helper& impl()
     {
-        return static_cast<_Impl&>(*this);
+        return static_cast<_helper&>(*this);
     }
 
-    const _Impl& impl() const
+    const _helper& impl() const
     {
-        return static_cast<const _Impl&>(*this);
+        return static_cast<const _helper&>(*this);
     }
 };
 
@@ -614,7 +595,7 @@ private:
 // statement
 //   class template: wrapper for prepared statements using CRTP
 // pattern.
-template<typename _Impl>
+template<typename _helper>
 class statement
 {
 public:
@@ -672,22 +653,22 @@ public:
     // parameter binding by name (for databases that support it)
     // -----------------------------------------------------------------
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::bind_null),
-                     _T&,
+                     decltype(&_Type::bind_null),
+                     _Type&,
                      const std::string&>::value>>
     void bind_null(const std::string& _name)
     {
         impl().bind_null(_name);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::bind_bool),
-                     _T&,
+                     decltype(&_Type::bind_bool),
+                     _Type&,
                      const std::string&,
                      bool>::value>>
     void bind_bool(const std::string& _name, bool _value)
@@ -695,11 +676,11 @@ public:
         impl().bind_bool(_name, _value);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::bind_int),
-                     _T&,
+                     decltype(&_Type::bind_int),
+                     _Type&,
                      const std::string&,
                      std::int32_t>::value>>
     void bind_int(const std::string& _name, std::int32_t _value)
@@ -707,11 +688,11 @@ public:
         impl().bind_int(_name, _value);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::bind_long),
-                     _T&,
+                     decltype(&_Type::bind_long),
+                     _Type&,
                      const std::string&,
                      std::int64_t>::value>>
     void bind_long(const std::string& _name, std::int64_t _value)
@@ -719,11 +700,11 @@ public:
         impl().bind_long(_name, _value);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::bind_double),
-                     _T&,
+                     decltype(&_Type::bind_double),
+                     _Type&,
                      const std::string&,
                      double>::value>>
     void bind_double(const std::string& _name, double _value)
@@ -731,11 +712,11 @@ public:
         impl().bind_double(_name, _value);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::bind_string),
-                     _T&,
+                     decltype(&_Type::bind_string),
+                     _Type&,
                      const std::string&,
                      const std::string&>::value>>
     void bind_string(const std::string& _name,
@@ -744,11 +725,11 @@ public:
         impl().bind_string(_name, _value);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::bind_binary),
-                     _T&,
+                     decltype(&_Type::bind_binary),
+                     _Type&,
                      const std::string&,
                      const std::vector<std::uint8_t>&>::value>>
     void bind_binary(const std::string&               _name,
@@ -801,14 +782,14 @@ public:
     }
 
 private:
-    _Impl& impl()
+    _helper& impl()
     {
-        return static_cast<_Impl&>(*this);
+        return static_cast<_helper&>(*this);
     }
 
-    const _Impl& impl() const
+    const _helper& impl() const
     {
-        return static_cast<const _Impl&>(*this);
+        return static_cast<const _helper&>(*this);
     }
 };
 
@@ -930,11 +911,11 @@ public:
         m_active = false;
     }
 
-    template<typename _T = _Connection,
+    template<typename _Type = _Connection,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::create_savepoint),
-                     _T&,
+                     decltype(&_Type::create_savepoint),
+                     _Type&,
                      const std::string&>::value>>
     void create_savepoint(const std::string& _name)
     {
@@ -947,11 +928,11 @@ public:
         m_connection->create_savepoint(_name);
     }
 
-    template<typename _T = _Connection,
+    template<typename _Type = _Connection,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::rollback_to_savepoint),
-                     _T&,
+                     decltype(&_Type::rollback_to_savepoint),
+                     _Type&,
                      const std::string&>::value>>
     void rollback_to_savepoint(const std::string& _name)
     {
@@ -964,11 +945,11 @@ public:
         m_connection->rollback_to_savepoint(_name);
     }
 
-    template<typename _T = _Connection,
+    template<typename _Type = _Connection,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::release_savepoint),
-                     _T&,
+                     decltype(&_Type::release_savepoint),
+                     _Type&,
                      const std::string&>::value>>
     void release_savepoint(const std::string& _name)
     {
@@ -1006,7 +987,7 @@ private:
 // connection
 //   class template: base wrapper for database connections using CRTP
 // pattern.
-template<typename _Impl>
+template<typename _helper>
 class connection
 {
 public:
@@ -1014,8 +995,7 @@ public:
         : m_state(connection_state::disconnected)
         , m_in_transaction(false)
         , m_auto_commit(true)
-    {
-    }
+    {};
 
     ~connection() = default;
 
@@ -1092,11 +1072,11 @@ public:
         m_in_transaction = true;
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::begin_transaction),
-                     _T&,
+                     decltype(&_Type::begin_transaction),
+                     _Type&,
                      isolation_level>::value>>
     void begin_transaction(isolation_level _isolation)
     {
@@ -1121,22 +1101,22 @@ public:
         return m_in_transaction;
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable_r<
                      isolation_level,
-                     decltype(&_T::get_isolation_level),
-                     const _T&>::value>>
+                     decltype(&_Type::get_isolation_level),
+                     const _Type&>::value>>
     isolation_level get_isolation_level() const
     {
         return impl().get_isolation_level();
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::set_isolation_level),
-                     _T&,
+                     decltype(&_Type::set_isolation_level),
+                     _Type&,
                      isolation_level>::value>>
     void set_isolation_level(isolation_level _level)
     {
@@ -1147,33 +1127,33 @@ public:
     // savepoints (if supported)
     // -----------------------------------------------------------------
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::create_savepoint),
-                     _T&,
+                     decltype(&_Type::create_savepoint),
+                     _Type&,
                      const std::string&>::value>>
     void create_savepoint(const std::string& _name)
     {
         impl().create_savepoint(_name);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::rollback_to_savepoint),
-                     _T&,
+                     decltype(&_Type::rollback_to_savepoint),
+                     _Type&,
                      const std::string&>::value>>
     void rollback_to_savepoint(const std::string& _name)
     {
         impl().rollback_to_savepoint(_name);
     }
 
-    template<typename _T = _Impl,
+    template<typename _Type = _helper,
              typename    = std::enable_if_t<
                  djinterp::is_invocable<
-                     decltype(&_T::release_savepoint),
-                     _T&,
+                     decltype(&_Type::release_savepoint),
+                     _Type&,
                      const std::string&>::value>>
     void release_savepoint(const std::string& _name)
     {
@@ -1255,14 +1235,14 @@ protected:
     bool              m_auto_commit;
 
 private:
-    _Impl& impl()
+    _helper& impl()
     {
-        return static_cast<_Impl&>(*this);
+        return static_cast<_helper&>(*this);
     }
 
-    const _Impl& impl() const
+    const _helper& impl() const
     {
-        return static_cast<const _Impl&>(*this);
+        return static_cast<const _helper&>(*this);
     }
 };
 
@@ -1271,20 +1251,23 @@ private:
 // IX.  CONNECTION POOL TEMPLATE
 // =============================================================================
 
+// forward declaration - connection_pool is defined below but
+// referenced by pooled_connection's constructor and m_pool member.
+template<typename _Connection>
+class connection_pool;
+
 // pooled_connection
 //   class template: RAII wrapper for pooled connections.
 template<typename _Connection>
 class pooled_connection
 {
 public:
-    template<typename _Pool>
     explicit pooled_connection(
-        _Pool&                             _pool,
-        std::unique_ptr<_Connection>       _conn)
-        : m_pool(&_pool)
-        , m_connection(std::move(_conn))
-    {
-    }
+        connection_pool<_Connection>& _pool,
+        std::unique_ptr<_Connection>  _connection)
+        : m_pool(&_pool),
+          m_connection(std::move(_connection))
+    {}
 
     ~pooled_connection()
     {
@@ -1297,8 +1280,8 @@ public:
 
     // enable moving
     pooled_connection(pooled_connection&& _other) noexcept
-        : m_pool(_other.m_pool)
-        , m_connection(std::move(_other.m_connection))
+        : m_pool(_other.m_pool),
+          m_connection(std::move(_other.m_connection))
     {
         _other.m_pool = nullptr;
     }
@@ -1348,7 +1331,8 @@ public:
         return *m_connection;
     }
 
-    void release()
+    void 
+    release()
     {
         if ( (m_pool) &&
              (m_connection) )
@@ -1360,8 +1344,8 @@ public:
     }
 
 private:
-    void*                               m_pool;
-    std::unique_ptr<_Connection>        m_connection;
+    connection_pool<_Connection>* m_pool;   // was: void*
+    std::unique_ptr<_Connection>  m_connection;
 };
 
 // connection_pool
@@ -1616,6 +1600,58 @@ std::string get_type_name(database_type _type);
 //   function: returns human-readable name for field type.
 std::string get_field_type_name(field_type _type);
 
+
+
+D_INLINE connection_config::connection_config()
+    : host("localhost"),
+      port(0),
+      connect_timeout(std::chrono::seconds(30)),
+      read_timeout(std::chrono::seconds(30)),
+      write_timeout(std::chrono::seconds(30)),
+      auto_reconnect(false),
+      enable_ssl(false),
+      verify_ssl(true),
+      max_packet_size(16 * 1024 * 1024)
+{}
+
+D_INLINE pool_config::pool_config()
+    : min_connections(1),
+      max_connections(10),
+      connection_queue_size(100),
+      connection_timeout(std::chrono::seconds(30)),
+      idle_timeout(std::chrono::minutes(10)),
+      max_lifetime(std::chrono::hours(1)),
+      validate_on_acquire(false),
+      validate_on_return(false)
+{}
+
+D_INLINE exception::exception(
+    const std::string& _message
+)
+    : std::runtime_error(_message),
+      m_message(_message),
+      m_error_code(0)
+{}
+
+D_INLINE exception::exception(
+    const char* _message
+)
+    : std::runtime_error(_message),
+      m_message(_message),
+      m_error_code(0)
+{}
+
+D_INLINE const char*
+exception::what() const noexcept
+{
+    return m_message.c_str();
+}
+
+D_INLINE int 
+exception::error_code() const noexcept
+{
+    return m_error_code;
+}
 
 NS_END  // database
 NS_END  // djinterp

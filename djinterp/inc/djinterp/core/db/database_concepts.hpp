@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [database]                                   database_concepts.hpp
+* djinterp [database]                                    database_concepts.hpp
 *
 *  djinterp database classification concepts
 *   C++20 concepts layered on top of database_traits.hpp.  These concepts
@@ -22,15 +22,18 @@
 * 7.   Tagless Capability Concepts
 * 8.   Extracted Type Concepts
 *
-* path:      /inc/database/database_concepts.hpp
+* 
+* path:      /inc/djinterp/core/db/database_concepts.hpp
 * link(s):   TBA
-* author(s): OpenAI ChatGPT                                 date: 2026.04.01
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.01
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_CONCEPTS_
 #define DJINTERP_DATABASE_CONCEPTS_ 1
 
+// std
 #include <type_traits>
+// djinterp
 #include "database_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
@@ -39,7 +42,7 @@
 
 
 NS_DJINTERP
-NS_DB
+NS_DATABASE
 
 // =============================================================================
 // I.   Connection Concepts

@@ -12,8 +12,8 @@
 *   - default configuration factories per vendor
 *
 *   Vendor modules (e.g. mysql_connection, pg_connection) derive from
-* connection_template<_Impl, database_type::mysql> rather than from
-* connection<_Impl> directly. This automatically wires in the correct
+* connection_template<_helper, database_type::mysql> rather than from
+* connection<_helper> directly. This automatically wires in the correct
 * native handle type, default port, vendor metadata, and other
 * vendor-specific configuration.
 *
@@ -35,22 +35,22 @@
 * declared as void* when the vendor header is not present.
 *
 * 
-* path:      /inc/database/database_connection_template.hpp
+* path:      /inc/djinterp/core/db/database_connection_template.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_CONNECTION_TEMPLATE_
 #define DJINTERP_DATABASE_CONNECTION_TEMPLATE_
 
-#include "database_common.hpp"
-
+// std
 #include <type_traits>
+// djinterp
+#include "./database_common.hpp"
 
 
 NS_DJINTERP
-NS_DB
-
+NS_DATABASE
 
 // =============================================================================
 // I.   VENDOR TRAITS SPECIALIZATIONS
@@ -467,29 +467,29 @@ struct vendor_traits<database_type::mssql>
 
 // connection_template
 //   class template: vendor-parameterized CRTP base for database connections.
-// Extends the generic connection<_Impl> base with vendor-specific defaults,
+// Extends the generic connection<_helper> base with vendor-specific defaults,
 // native handle scaffolding, and vendor metadata. Concrete vendor
 // implementations derive from this template rather than from
-// connection<_Impl> directly.
+// connection<_helper> directly.
 //
 // Template parameters:
-//   _Impl:   the concrete CRTP implementation class
+//   _helper:   the concrete CRTP implementation class
 //   _DbType: the database_type enumerator identifying the vendor
 //
 // Example usage (vendor implementation):
-//   class mysql_connection_impl
-//       : public connection_template<mysql_connection_impl,
+//   class mysql_connection_helper
+//       : public connection_template<mysql_connection_helper,
 //                                    database_type::mysql>
 //   { ... };
-template<typename      _Impl,
+template<typename      _helper,
          database_type _DbType>
-class connection_template : public connection<_Impl>
+class connection_template : public connection<_helper>
 {
 public:
     // vendor type aliases
     using traits_type        = vendor_traits<_DbType>;
     using native_handle_type = typename traits_type::native_handle_type;
-    using base_type          = connection<_Impl>;
+    using base_type          = connection<_helper>;
 
     // db_type
     //   value: the database_type enumerator for this connection.
