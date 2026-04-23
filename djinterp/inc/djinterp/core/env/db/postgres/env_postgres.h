@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [db]                                               env_postgresql.h
+* djinterp [db]                                                 env_postgres.h
 *
 * djinterp PostgreSQL environmental detection header:
 * This header provides comprehensive compile-time detection of PostgreSQL
@@ -45,7 +45,7 @@
 *   D_ENV_PG_HAS_[CAPABILITY]      - capability flag (1/0)
 *
 * 
-* path:      /inc/djinterp/core/env/db/postgresql/env_postgresql.h
+* path:      /inc/djinterp/core/env/db/postgres/env_postgres.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
 ******************************************************************************/
