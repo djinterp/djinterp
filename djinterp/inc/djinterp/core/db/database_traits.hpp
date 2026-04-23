@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [database]                                     database_traits.hpp
+* djinterp [database]                                      database_traits.hpp
 * 
 * djinterp database traits module:
 *   This header provides compile-time type traits and SFINAE utilities for
@@ -21,55 +21,29 @@
 * template (_v) aliases are gated behind
 * D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES.
 *
-* path:      \inc\database\database_traits.hpp                                           
+* 
+* path:      /inc/djinterp/core/db/database_traits.hpp                                           
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.01.10
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_TRAITS_
 #define DJINTERP_DATABASE_TRAITS_
 
-// type_traits.hpp provides the portable detection idiom (is_detected,
-// nonesuch, void_t, conjunction, etc.) and pulls in djinterp.hpp for
-// namespace macros and env.h for version/feature detection.
-#include "../meta/type_traits.hpp"
-
+// std
 #include <string>
 #include <cstddef>
 #include <cstdint>
+// djinterp
+#include "../djinterp.hpp"
+#include "../meta/type_traits.hpp"
 
-
-// =========================================================================
-//  D_KEYWORD_DATABASE  /  NS_DB
-// =========================================================================
-// These should ideally live in djinterp.hpp alongside the other NS_*
-// macros. They are guarded here so that database headers remain
-// self-contained until the core header is updated.
-
-#ifndef D_KEYWORD_DATABASE
-    #define D_KEYWORD_DATABASE      database
-#endif
-
-#ifndef NS_DB
-    #define NS_DB                   D_NAMESPACE(D_KEYWORD_DATABASE)
-#endif
 
 
 NS_DJINTERP
-NS_DB
-
-
-// =============================================================================
-// I.   DETECTION IDIOM IMPORT
-// =============================================================================
-// The detection idiom (nonesuch, is_detected, detected_t, detected_or)
-// is provided by djinterp::type_traits.hpp with C++11+ portability.
-// We import the names into djinterp::database so that existing code
-// using database::is_detected<...> continues to compile.
+NS_DATABASE
 
 using djinterp::is_detected;
-using djinterp::detected_t;
-using djinterp::detected_or;
 
 
 // =============================================================================

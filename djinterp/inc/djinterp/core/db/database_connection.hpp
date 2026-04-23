@@ -21,33 +21,35 @@
 * connect/disconnect/execute logic against a specific C API).
 *
 *   LAYER DIAGRAM:
-*     vendor_impl (e.g. mysql_connection_impl)
-*       -> database_connection<vendor_impl, database_type::mysql>
-*         -> connection_template<vendor_impl, database_type::mysql>
-*           -> connection<vendor_impl>
+*     vendor_helper (e.g. mysql_connection_helper)
+*       -> database_connection<vendor_helper, database_type::mysql>
+*         -> connection_template<vendor_helper, database_type::mysql>
+*           -> connection<vendor_helper>
 *
 *   PORTABILITY:
 *   This header requires C++17 or later. It does not include any
 * vendor-specific headers.
 *
 * 
-* path:      /inc/djinterp/database/database_connection.hpp
+* path:      /inc/djinterp/core/db/database_connection.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_CONNECTION_
 #define DJINTERP_DATABASE_CONNECTION_
 
-
+// std
 #include <atomic>
 #include <utility>
+// djinterp
 #include "../djinterp.hpp"
+#include "./database_common.hpp"
 #include "./database_connection_template.hpp"
 
 
 NS_DJINTERP
-NS_DB
+NS_DATABASE
 
 
 // =============================================================================
@@ -60,27 +62,27 @@ NS_DB
 // implementations derive from this class.
 //
 // Template parameters:
-//   _Impl:   the concrete CRTP implementation class
+//   _helper:   the concrete CRTP implementation class
 //   _DbType: the database_type enumerator identifying the vendor
 //
-// The implementation class (_Impl) must provide the following methods:
-//   void connect_impl()         — establish a connection using m_config
-//   void disconnect_impl()      — tear down the native connection
-//   bool is_connected_impl()    — test if the native connection is alive
-//   bool ping_impl()            — lightweight liveness check
-//   std::string get_server_version_impl()
-//   std::string get_last_error_impl()
-//   int         get_last_error_code_impl()
+// The implementation class (_helper) must provide the following methods:
+//   void connect_helper()         - establish a connection using m_config
+//   void disconnect_helper()      - tear down the native connection
+//   bool is_connected_helper()    - test if the native connection is alive
+//   bool ping_helper()            - lightweight liveness check
+//   std::string get_server_version_helper()
+//   std::string get_last_error_helper()
+//   int         get_last_error_code_helper()
 //
-// The _impl suffix convention avoids name collisions with the CRTP
+// The _helper suffix convention avoids name collisions with the CRTP
 // forwarding methods in the base classes.
-template<typename      _Impl,
+template<typename      _helper,
          database_type _DbType>
 class database_connection
-    : public connection_template<_Impl, _DbType>
+    : public connection_template<_helper, _DbType>
 {
 public:
-    using base_type          = connection_template<_Impl, _DbType>;
+    using base_type          = connection_template<_helper, _DbType>;
     using traits_type        = typename base_type::traits_type;
     using native_handle_type = typename base_type::native_handle_type;
 
@@ -95,7 +97,7 @@ public:
         : base_type(_config),
           m_reconnect_attempts(0),
           m_max_reconnect_attempts(3),
-          m_last_error_code(0),
+          m_last_error_code(0)
     {}
 
     ~database_connection()
@@ -105,7 +107,7 @@ public:
         {
             try
             {
-                self().disconnect_impl();
+                self().disconnect_helper();
             }
             catch (...)
             {
@@ -142,7 +144,7 @@ public:
             {
                 try
                 {
-                    self().disconnect_impl();
+                    self().disconnect_helper();
                 }
                 catch (...)
                 {
@@ -187,7 +189,7 @@ public:
 
         try
         {
-            self().connect_impl();
+            self().connect_helper();
 
             this->m_state        = connection_state::connected;
             m_reconnect_attempts = 0;
@@ -195,7 +197,7 @@ public:
             // cache server version on successful connection
             try
             {
-                m_server_version = self().get_server_version_impl();
+                m_server_version = self().get_server_version_helper();
             }
             catch (...)
             {
@@ -248,7 +250,7 @@ public:
 
         try
         {
-            self().disconnect_impl();
+            self().disconnect_helper();
         }
         catch (const std::exception& _e)
         {
@@ -281,7 +283,7 @@ public:
         {
             try
             {
-                self().disconnect_impl();
+                self().disconnect_helper();
             }
             catch (...)
             {
@@ -296,7 +298,7 @@ public:
 
     // is_connected
     //   function: tests whether the connection is alive by delegating
-    // to the implementation's is_connected_impl method.
+    // to the implementation's is_connected_helper method.
     bool
     is_connected() const noexcept
     {
@@ -307,7 +309,7 @@ public:
 
         try
         {
-            return self().is_connected_impl();
+            return self().is_connected_helper();
         }
         catch (...)
         {
@@ -328,7 +330,7 @@ public:
 
         try
         {
-            return self().ping_impl();
+            return self().ping_helper();
         }
         catch (...)
         {
@@ -354,7 +356,7 @@ public:
 
         try
         {
-            auto result = self().execute_query_impl(_query);
+            auto result = self().execute_query_helper(_query);
 
             this->m_state = connection_state::connected;
 
@@ -390,7 +392,7 @@ public:
 
         try
         {
-            std::int64_t rows = self().execute_update_impl(_query);
+            std::int64_t rows = self().execute_update_helper(_query);
 
             this->m_state = connection_state::connected;
 
@@ -425,7 +427,7 @@ public:
 
         try
         {
-            bool result = self().execute_impl(_query);
+            bool result = self().execute_helper(_query);
 
             this->m_state = connection_state::connected;
 
@@ -457,7 +459,7 @@ public:
 
         if (this->m_state == connection_state::connected)
         {
-            return self().get_server_version_impl();
+            return self().get_server_version_helper();
         }
 
         return "";
@@ -628,14 +630,14 @@ protected:
     std::string m_server_version;
 
 private:
-    _Impl& self()
+    _helper& self()
     {
-        return static_cast<_Impl&>(*this);
+        return static_cast<_helper&>(*this);
     }
 
-    const _Impl& self() const
+    const _helper& self() const
     {
-        return static_cast<const _Impl&>(*this);
+        return static_cast<const _helper&>(*this);
     }
 };
 
