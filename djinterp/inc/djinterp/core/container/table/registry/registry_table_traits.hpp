@@ -22,9 +22,10 @@
 *   - lookup_table_type       → the underlying lookup_table type
 *   - backing_container_type  → backed container detection
 *
-* path:      \inc\container\registry_table_traits.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.XX.XX
+*
+* path:      /inc/djinterp/container/table/registry/registry_table_traits.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.22
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_REGISTRY_TABLE_TRAITS_
@@ -32,8 +33,8 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "..\..\djinterp.h"
-#include ".\lookup_table_traits.hpp"
+#include "../../../djinterp.h"
+#include "../lookup/lookup_table_traits.hpp"
 
 
 NS_DJINTERP

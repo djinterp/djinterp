@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                     registry_table.hpp
+* djinterp [container]                                      registry_table.hpp
 *
 * djinterp registry table header:
 *   A registry_table is a subset of lookup_tables that provides configuration
@@ -50,9 +50,9 @@
 *   bool exists = reg.has(42);
 *   ```
 *
-* path:      \inc\container\registry_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.XX.XX
+* path:      /inc/djinterp/container/table/registry/registry_table.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.01.20
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_REGISTRY_TABLE_
@@ -61,8 +61,8 @@
 #include <cstddef>
 #include <type_traits>
 #include <utility>
-#include "..\..\djinterp.h"
-#include ".\lookup_table.hpp"
+#include "../../../djinterp.h"
+#include "../lookup/lookup_table.hpp"
 
 
 NS_DJINTERP
@@ -83,8 +83,7 @@ NS_CONTAINER
                  typename _Element,
                  typename = void>
         struct is_mutable_extractor : std::false_type
-        {
-        };
+        {};
 
         // is_mutable_extractor (specialization)
         //   trait: SFINAE success — extract returns a non-const lvalue ref.
