@@ -4,17 +4,17 @@
 * djinterp unified table header:
 *   A versatile table class supporting multiple specification forms with full
 * container_traits compliance. All classification is detected structurally via
-* SFINAE — no tags, no registration, no base-class requirements.
+* SFINAE - no tags, no registration, no base-class requirements.
 *
 *   SPECIFICATION FORMS:
 *   - DIMENSIONAL (homogeneous matrix):
 *       table<int, 4, 5>                 // 4 rows, 5 columns of int
 *       table<double, 3, 3, my_config>   // 3x3 with custom config
 *
-*   - TYPED COLUMNS (heterogeneous — forward declared):
+*   - TYPED COLUMNS (heterogeneous - forward declared):
 *       typed_table<10, int, double>     // 10 rows, typed columns
 *
-*   CONFIG FEATURES (all tagless — detected via SFINAE):
+*   CONFIG FEATURES (all tagless - detected via SFINAE):
 *     header_rows/cols:      header regions at top/left
 *     header_depth:          multi-level hierarchical headers
 *     multi_header:          column grouping descriptors (level/col/col_span)
@@ -50,28 +50,22 @@
 *
 * path:      /inc/djinterp/container/table/table.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2024.11.14
+* author(s): Samuel 'teer' Neal-Blim                       created: 2024.11.14
 ******************************************************************************/
 
 #ifndef DJINTERP_TABLE_
 #define DJINTERP_TABLE_ 1
 
+// std
 #include <array>
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
 #include <stdexcept>
 #include <type_traits>
-#include "..\..\djinterp.h"
-#include "..\meta\table_traits.hpp"
-
-
-// D_CFG_TABLE_MAX_DIMENSIONS
-//   macro: configurable maximum number of dimensions for table types.
-// Override by defining before including this header.
-#ifndef D_CFG_TABLE_MAX_DIMENSIONS
-    #define D_CFG_TABLE_MAX_DIMENSIONS 64
-#endif
+// djinterp
+#include "../../djinterp.hpp"
+#include "./table_traits.hpp"
 
 
 NS_DJINTERP
@@ -782,54 +776,54 @@ NS_CONTAINER
     //
     // These traits detect table-specific properties via SFINAE on the
     // structural interface exposed by table and typed_table. No tags or
-    // base-class checks — purely member-presence detection.
+    // base-class checks - purely member-presence detection.
     //
 
     NS_INTERNAL
 
         // detect_num_rows
         //   trait: detection operation for static num_rows member.
-        template<typename _T>
+        template<typename _Type>
         using detect_num_rows = decltype(std::integral_constant<
-            std::size_t, _T::num_rows>{});
+            std::size_t, _Type::num_rows>{});
 
         // detect_num_cols
         //   trait: detection operation for static num_cols member.
-        template<typename _T>
+        template<typename _Type>
         using detect_num_cols = decltype(std::integral_constant<
-            std::size_t, _T::num_cols>{});
+            std::size_t, _Type::num_cols>{});
 
         // detect_total_cells
         //   trait: detection operation for static total_cells member.
-        template<typename _T>
+        template<typename _Type>
         using detect_total_cells = decltype(std::integral_constant<
-            std::size_t, _T::total_cells>{});
+            std::size_t, _Type::total_cells>{});
 
         // detect_config_type
         //   trait: detection operation for config_type alias.
-        template<typename _T>
-        using detect_config_type = typename _T::config_type;
+        template<typename _Type>
+        using detect_config_type = typename _Type::config_type;
 
         // detect_dimensions
         //   trait: detection operation for dimensions alias.
-        template<typename _T>
-        using detect_dimensions = typename _T::dimensions;
+        template<typename _Type>
+        using detect_dimensions = typename _Type::dimensions;
 
         // detect_rows_method
         //   trait: detection operation for static rows() method.
-        template<typename _T>
-        using detect_rows_method = decltype(_T::rows());
+        template<typename _Type>
+        using detect_rows_method = decltype(_Type::rows());
 
         // detect_cols_method
         //   trait: detection operation for static cols() method.
-        template<typename _T>
-        using detect_cols_method = decltype(_T::cols());
+        template<typename _Type>
+        using detect_cols_method = decltype(_Type::cols());
 
         // detect_cell_method
         //   trait: detection operation for cell(row, col) method.
-        template<typename _T>
+        template<typename _Type>
         using detect_cell_method = decltype(
-            std::declval<_T&>().cell(std::size_t{}, std::size_t{}));
+            std::declval<_Type&>().cell(std::size_t{}, std::size_t{}));
 
     NS_END  // internal
 
@@ -844,7 +838,7 @@ NS_CONTAINER
     };
 
     // is_table_type (specialization)
-    //   trait: SFINAE success case — all table structural probes well-formed.
+    //   trait: SFINAE success case - all table structural probes well-formed.
     template<typename _Type>
     struct is_table_type<_Type,
         void_t<internal::detect_num_rows<_Type>,
@@ -869,8 +863,8 @@ NS_CONTAINER
 
         // detect_data_method
         //   trait: detection operation for data() method returning a pointer.
-        template<typename _T>
-        using detect_data_method = decltype(std::declval<_T&>().data());
+        template<typename _Type>
+        using detect_data_method = decltype(std::declval<_Type&>().data());
 
     NS_END  // internal
 
@@ -885,7 +879,7 @@ NS_CONTAINER
     };
 
     // is_homogeneous_table (specialization)
-    //   trait: SFINAE success — table type with data() accessor.
+    //   trait: SFINAE success - table type with data() accessor.
     template<typename _Type>
     struct is_homogeneous_table<_Type,
         void_t<internal::detect_data_method<_Type>,
@@ -912,7 +906,7 @@ NS_CONTAINER
     };
 
     // has_table_config (specialization)
-    //   trait: SFINAE success — table type whose config_type is recognized.
+    //   trait: SFINAE success - table type whose config_type is recognized.
     template<typename _Type>
     struct has_table_config<_Type,
         void_t<internal::detect_config_type<_Type>,
@@ -990,7 +984,7 @@ NS_CONTAINER
     };
 
     // tables_same_dimensions (specialization)
-    //   trait: SFINAE success — both types are tables with matching dimensions.
+    //   trait: SFINAE success - both types are tables with matching dimensions.
     template<typename _TableA,
              typename _TableB>
     struct tables_same_dimensions<_TableA, _TableB,
@@ -1024,7 +1018,7 @@ NS_CONTAINER
     };
 
     // tables_same_type (specialization)
-    //   trait: SFINAE success — both types are tables with matching
+    //   trait: SFINAE success - both types are tables with matching
     // dimensions and value_type.
     template<typename _TableA,
              typename _TableB>
@@ -1060,7 +1054,7 @@ NS_CONTAINER
     };
 
     // tables_element_convertible (specialization)
-    //   trait: SFINAE success — both types are tables with convertible
+    //   trait: SFINAE success - both types are tables with convertible
     // value_types.
     template<typename _TableFrom,
              typename _TableTo>

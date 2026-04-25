@@ -35,14 +35,14 @@
 
 
 // =============================================================================
-// ENV — core environment (env_config.h)
+// ENV - core environment (env_config.h)
 // =============================================================================
 
 // #define D_CFG_ENV_CUSTOM               0  // bitfield; see env_config.h
 
 
 // =============================================================================
-// ENV / DB — databases
+// ENV / DB - databases
 // =============================================================================
 
 // --- env_db.h (top-level DB dispatcher) ---
@@ -106,7 +106,7 @@
 // #define D_CFG_ENV_CASSANDRA_C_PATH     <cassandra.h>
 
 // --- CouchDB / Neo4j / Firebase ---
-//   (HTTP-only — no canonical client header)
+//   (HTTP-only - no canonical client header)
 // #define D_CFG_ENV_USING_COUCHDB        0
 // #define D_CFG_ENV_USING_NEO4J          0
 // #define D_CFG_ENV_USING_FIREBASE       0
