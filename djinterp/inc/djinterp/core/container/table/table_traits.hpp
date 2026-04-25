@@ -3,7 +3,7 @@
 *
 * djinterp table traits header:
 *   Unified table traits module providing config-based and structural SFINAE
-* traits for ALL table-like types in the djinterp framework — both
+* traits for ALL table-like types in the djinterp framework - both
 * fixed-dimension tables (table<T, Rows, Cols>) and dynamic database-backed
 * tables (database_table<Connection>).
 *
@@ -25,7 +25,7 @@
 *     X.    Dimension computation (fixed dimensions)
 *
 *   Sections I–VIII operate on _Config types and arbitrary types probed for
-* structural member presence — nothing in those sections requires compile-time
+* structural member presence - nothing in those sections requires compile-time
 * row/column counts.  Sections IX–X extend with traits that require fixed
 * _Rows and _Cols (cell_position, table_dimensions).
 *
@@ -35,9 +35,9 @@
 *   PORTABILITY:
 *   Compatible with C++11 and later. Uses portable trait access patterns.
 *
-* path:      \inc\meta\table_traits.hpp
+* path:      /inc/djinterp/core/container/table/table_traits.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.06.20
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.20
 ******************************************************************************/
 
 #ifndef DJINTERP_TABLE_TRAITS_
@@ -46,8 +46,8 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
-#include "..\..\djinterp.h"
-#include "..\..\type_traits.hpp"
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
 
 
 NS_DJINTERP
@@ -1208,7 +1208,7 @@ NS_CONTAINER
         struct check_cell_in_splits;
 
         // check_cell_in_splits (base case)
-        //   trait: empty tuple — no splits to check.
+        //   trait: empty tuple - no splits to check.
         template<std::size_t _Row,
                  std::size_t _Col>
         struct check_cell_in_splits<_Row, _Col, std::tuple<>> : std::false_type
@@ -1236,7 +1236,7 @@ NS_CONTAINER
         struct find_cell_split;
 
         // find_cell_split (base case)
-        //   trait: empty tuple — no match.
+        //   trait: empty tuple - no match.
         template<std::size_t _Row,
                  std::size_t _Col>
         struct find_cell_split<_Row, _Col, std::tuple<>>
@@ -1329,7 +1329,7 @@ NS_CONTAINER
     // cell_layout
     //   trait: computes the combined merge/split layout for a specific cell.
     // A cell is exactly one of: normal, merged anchor, merged shadow, or split.
-    // Merges take priority — a cell cannot be both merged and split.
+    // Merges take priority - a cell cannot be both merged and split.
     template<std::size_t _Row,
              std::size_t _Col,
              typename    _Config>
@@ -1458,7 +1458,7 @@ NS_CONTAINER
         struct find_mh_at_level_col;
 
         // find_mh_at_level_col (base case)
-        //   trait: empty tuple — no match.
+        //   trait: empty tuple - no match.
         template<std::size_t _Level,
                  std::size_t _Col>
         struct find_mh_at_level_col<_Level, _Col, std::tuple<>>
@@ -1570,7 +1570,7 @@ NS_CONTAINER
         struct find_cell_partition;
 
         // find_cell_partition (base case)
-        //   trait: empty tuple — no partition found.
+        //   trait: empty tuple - no partition found.
         template<std::size_t _Row,
                  std::size_t _Col,
                  std::size_t _Index>
@@ -1842,8 +1842,7 @@ NS_CONTAINER
     // empty_config
     //   struct: minimal config for basic tables with no features.
     struct empty_config
-    {
-    };
+    {};
 
 
     // =========================================================================
@@ -1864,41 +1863,41 @@ NS_CONTAINER
     NS_INTERNAL
 
         // shape-modifier detection operations (used to detect absence)
-        template<typename _T>
+        template<typename _Type>
         using detect_resize = decltype(
-            std::declval<_T&>().resize(std::size_t{}, std::size_t{}));
+            std::declval<_Type&>().resize(std::size_t{}, std::size_t{}));
 
-        template<typename _T>
-        using detect_add_row = decltype(std::declval<_T&>().add_row());
+        template<typename _Type>
+        using detect_add_row = decltype(std::declval<_Type&>().add_row());
 
-        template<typename _T>
+        template<typename _Type>
         using detect_remove_row = decltype(
-            std::declval<_T&>().remove_row(std::size_t{}));
+            std::declval<_Type&>().remove_row(std::size_t{}));
 
-        template<typename _T>
-        using detect_add_column = decltype(std::declval<_T&>().add_column());
+        template<typename _Type>
+        using detect_add_column = decltype(std::declval<_Type&>().add_column());
 
-        template<typename _T>
+        template<typename _Type>
         using detect_remove_column = decltype(
-            std::declval<_T&>().remove_column(std::size_t{}));
+            std::declval<_Type&>().remove_column(std::size_t{}));
 
         // dimension-constant detection operations (used to detect presence)
-        template<typename _T>
+        template<typename _Type>
         using detect_num_rows_constant = decltype(
-            std::integral_constant<std::size_t, _T::num_rows>{});
+            std::integral_constant<std::size_t, _Type::num_rows>{});
 
-        template<typename _T>
+        template<typename _Type>
         using detect_num_cols_constant = decltype(
-            std::integral_constant<std::size_t, _T::num_cols>{});
+            std::integral_constant<std::size_t, _Type::num_cols>{});
 
         // mutable-element detection operations
-        template<typename _T>
+        template<typename _Type>
         using detect_mutable_subscript = decltype(
-            std::declval<_T&>()[std::size_t{}]);
+            std::declval<_Type&>()[std::size_t{}]);
 
-        template<typename _T>
+        template<typename _Type>
         using detect_mutable_cell = decltype(
-            std::declval<_T&>().cell(std::size_t{}, std::size_t{}));
+            std::declval<_Type&>().cell(std::size_t{}, std::size_t{}));
 
     NS_END  // internal
 
@@ -1912,7 +1911,7 @@ NS_CONTAINER
     };
 
     // has_fixed_dimensions (specialization)
-    //   trait: SFINAE success — both dimension constants are well-formed.
+    //   trait: SFINAE success - both dimension constants are well-formed.
     template<typename _Type>
     struct has_fixed_dimensions<_Type,
         void_t<internal::detect_num_rows_constant<_Type>,

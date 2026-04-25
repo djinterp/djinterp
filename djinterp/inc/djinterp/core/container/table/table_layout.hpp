@@ -4,7 +4,7 @@
 * djinterp table layout module:
 *   Provides cell merge, split, and partition accessor methods for the
 * fixed-dimension table class. These are convenience wrappers around the
-* table_config_class and table_dimensions traits — include this header
+* table_config_class and table_dimensions traits - include this header
 * after table.hpp to extend a table type with layout query accessors.
 *
 *   CONTENTS:
@@ -19,14 +19,14 @@
 *
 * path:      /inc/djinterp/container/table/table_layout.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.06.20
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.20
 ******************************************************************************/
 
 #ifndef DJINTERP_TABLE_LAYOUT_
 #define DJINTERP_TABLE_LAYOUT_ 1
 
 #include "..\..\djinterp.h"
-#include "..\meta\table_traits.hpp"
+#include "table_traits.hpp"
 
 
 NS_DJINTERP
