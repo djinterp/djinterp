@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                       lookup_table.hpp
+* djinterp [container]                                        lookup_table.hpp
 *
 * djinterp lookup table header:
 *   A lookup table is any djinterp table (or container) combined with a
@@ -52,9 +52,9 @@
 *   const entry* p = by_id.find(42);
 *   ```
 *
-* path:      \inc\container\lookup_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.XX.XX
+* path:      /inc/djinterp/container/table/lookup/lookup_table.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.22
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_LOOKUP_TABLE_

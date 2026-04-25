@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                  lookup_table_traits.hpp
+* djinterp [container]                                 lookup_table_traits.hpp
 *
 * djinterp lookup table traits header:
 *   SFINAE-based structural detection for existence tables and lookup tables.
@@ -29,9 +29,10 @@
 *   lookup_table_class<T> aggregates all detections into a single
 *   compile-time struct with ~12 bool members.
 *
-* path:      \inc\container\lookup_table_traits.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.XX.XX
+*
+* path:      /inc/djinterp/container/table/lookup/lookup_table.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.22
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_LOOKUP_TABLE_TRAITS_
