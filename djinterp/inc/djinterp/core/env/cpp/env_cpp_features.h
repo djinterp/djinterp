@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                             cpp_features.hpp
+* djinterp [env]                                          env_cpp_features.hpp
 * 
 * djinterp C++ feature detection header:
 * This header provides comprehensive compile-time detection of C++ language
@@ -27,7 +27,7 @@
 *     - [NAME]_VERS  : C++ version string
 *
 * 
-* path:      \inc\cpp_features.hpp
+* path:      /inc/djinterp/core/env/cpp/env_cpp_features.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.01.15
 ******************************************************************************/
@@ -1427,6 +1427,22 @@
     #define D_ENV_CPP_FEATURE_LANG_CONCEPTS  0
 #endif
 
+// D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS
+//   constant: Concepts TS support flag (1 = enabled, 0 = disabled)
+#if defined(__cpp_concepts) && (__cpp_concepts == 201507L)
+    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS  1
+#else
+    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_TS  0
+#endif
+
+// D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20
+//   constant: C++20 concepts support flag (1 = enabled, 0 = disabled)
+#if defined(__cpp_concepts) && (__cpp_concepts >= 201907L)
+    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20  1
+#else
+    #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_CPP20  0
+#endif
+
 // D_ENV_CPP_FEATURE_LANG_CONCEPTS_NAME
 //   constant: feature macro name
 #define D_ENV_CPP_FEATURE_LANG_CONCEPTS_NAME  "__cpp_concepts"
@@ -1593,91 +1609,91 @@
 #define D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS_VERS  "(C++20)"
 
 
-// D_ENV_CPP_FEATURE_LANG_helper_COROUTINE
+// D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE
 //   constant: feature enabled flag (1 = enabled, 0 = disabled)
-#ifdef __cpp_helper_coroutine
-    #define D_ENV_CPP_FEATURE_LANG_helper_COROUTINE  1
+#ifdef __cpp_IMPL_coroutine
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE  1
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helper_COROUTINE  0
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE  0
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_NAME
+// D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_NAME
 //   constant: feature macro name
-#define D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_NAME  "__cpp_helper_coroutine"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_NAME  "__cpp_IMPL_coroutine"
 
-// D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_DESC
+// D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_DESC
 //   constant: feature description
-#define D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_DESC  "Coroutines (compiler support)"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_DESC  "Coroutines (compiler support)"
 
-// D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_VAL
+// D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL
 //   constant: feature test value
-#ifdef __cpp_helper_coroutine
-    #define D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_VAL  __cpp_helper_coroutine
+#ifdef __cpp_IMPL_coroutine
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL  __cpp_IMPL_coroutine
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_VAL  0L
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VAL  0L
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_VERS
+// D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VERS
 //   constant: C++ standard version
-#define D_ENV_CPP_FEATURE_LANG_helper_COROUTINE_VERS  "(C++20)"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE_VERS  "(C++20)"
 
 
-// D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE
+// D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE
 //   constant: feature enabled flag (1 = enabled, 0 = disabled)
-#ifdef __cpp_helper_destroying_delete
-    #define D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE  1
+#ifdef __cpp_IMPL_destroying_delete
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE  1
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE  0
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE  0
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_NAME
+// D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_NAME
 //   constant: feature macro name
-#define D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_NAME  "__cpp_helper_destroying_delete"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_NAME  "__cpp_IMPL_destroying_delete"
 
-// D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_DESC
+// D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_DESC
 //   constant: feature description
-#define D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_DESC  "Destroying operator delete (compiler support)"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_DESC  "Destroying operator delete (compiler support)"
 
-// D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_VAL
+// D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL
 //   constant: feature test value
-#ifdef __cpp_helper_destroying_delete
-    #define D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_VAL  __cpp_helper_destroying_delete
+#ifdef __cpp_IMPL_destroying_delete
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL  __cpp_IMPL_destroying_delete
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_VAL  0L
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VAL  0L
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_VERS
+// D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VERS
 //   constant: C++ standard version
-#define D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE_VERS  "(C++20)"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE_VERS  "(C++20)"
 
 
-// D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON
+// D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
 //   constant: feature enabled flag (1 = enabled, 0 = disabled)
-#ifdef __cpp_helper_three_way_comparison
-    #define D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON  1
+#ifdef __cpp_IMPL_three_way_comparison
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON  1
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON  0
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON  0
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_NAME
+// D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_NAME
 //   constant: feature macro name
-#define D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_NAME  "__cpp_helper_three_way_comparison"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_NAME  "__cpp_IMPL_three_way_comparison"
 
-// D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_DESC
+// D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_DESC
 //   constant: feature description
-#define D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_DESC  "Three-way comparison (compiler support)"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_DESC  "Three-way comparison (compiler support)"
 
-// D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_VAL
+// D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL
 //   constant: feature test value
-#ifdef __cpp_helper_three_way_comparison
-    #define D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_VAL  __cpp_helper_three_way_comparison
+#ifdef __cpp_IMPL_three_way_comparison
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL  __cpp_IMPL_three_way_comparison
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_VAL  0L
+    #define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VAL  0L
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_VERS
+// D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VERS
 //   constant: C++ standard version
-#define D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON_VERS  "(C++20)"
+#define D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON_VERS  "(C++20)"
 
 
 // D_ENV_CPP_FEATURE_LANG_MODULES
@@ -1829,33 +1845,33 @@
 #define D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL_VERS  "(C++23)"
 
 
-// D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE
+// D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE
 //   constant: feature enabled flag (1 = enabled, 0 = disabled)
-#ifdef __cpp_helpericit_move
-    #define D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE  1
+#ifdef __cpp_implicit_move
+    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE  1
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE  0
+    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE  0
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_NAME
+// D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_NAME
 //   constant: feature macro name
-#define D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_NAME  "__cpp_helpericit_move"
+#define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_NAME  "__cpp_implicit_move"
 
-// D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_DESC
+// D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_DESC
 //   constant: feature description
-#define D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_DESC  "Simpler implicit move"
+#define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_DESC  "Simpler implicit move"
 
-// D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_VAL
+// D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL
 //   constant: feature test value
-#ifdef __cpp_helpericit_move
-    #define D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_VAL  __cpp_helpericit_move
+#ifdef __cpp_implicit_move
+    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL  __cpp_implicit_move
 #else
-    #define D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_VAL  0L
+    #define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VAL  0L
 #endif
 
-// D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_VERS
+// D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VERS
 //   constant: C++ standard version
-#define D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE_VERS  "(C++23)"
+#define D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE_VERS  "(C++23)"
 
 
 // D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT
@@ -4841,9 +4857,9 @@
       D_ENV_CPP_FEATURE_LANG_CONSTEXPR_DYNAMIC_ALLOC                 &&  \
       D_ENV_CPP_FEATURE_LANG_CONSTINIT                               &&  \
       D_ENV_CPP_FEATURE_LANG_DESIGNATED_INITIALIZERS                 &&  \
-      D_ENV_CPP_FEATURE_LANG_helper_COROUTINE                          &&  \
-      D_ENV_CPP_FEATURE_LANG_helper_DESTROYING_DELETE                  &&  \
-      D_ENV_CPP_FEATURE_LANG_helper_THREE_WAY_COMPARISON               &&  \
+      D_ENV_CPP_FEATURE_LANG_IMPL_COROUTINE                          &&  \
+      D_ENV_CPP_FEATURE_LANG_IMPL_DESTROYING_DELETE                  &&  \
+      D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON               &&  \
       D_ENV_CPP_FEATURE_LANG_MODULES                                 &&  \
       D_ENV_CPP_FEATURE_LANG_USING_ENUM )                            
                                                                      
@@ -4886,14 +4902,13 @@
     ( D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP20                           &&  \
       D_ENV_CPP_FEATURE_HAS_ALL_STL_CPP20 )                          
                                                                      
-                                                                     
 // D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23                              
 //   constant: 1 if all C++23 language features available            
 #define D_ENV_CPP_FEATURE_HAS_ALL_LANG_CPP23                             \
     ( D_ENV_CPP_FEATURE_LANG_AUTO_CAST                               &&  \
       D_ENV_CPP_FEATURE_LANG_EXPLICIT_THIS_PARAMETER                 &&  \
       D_ENV_CPP_FEATURE_LANG_IF_CONSTEVAL                            &&  \
-      D_ENV_CPP_FEATURE_LANG_helperICIT_MOVE                           &&  \
+      D_ENV_CPP_FEATURE_LANG_IMPLICIT_MOVE                           &&  \
       D_ENV_CPP_FEATURE_LANG_MULTIDIMENSIONAL_SUBSCRIPT              &&  \
       D_ENV_CPP_FEATURE_LANG_NAMED_CHARACTER_ESCAPES                 &&  \
       D_ENV_CPP_FEATURE_LANG_SIZE_T_SUFFIX                           &&  \
