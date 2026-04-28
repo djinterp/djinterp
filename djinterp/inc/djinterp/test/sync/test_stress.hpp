@@ -12,16 +12,16 @@
 * with each thread choosing its next operation by weighted random
 * draw, and reports the result as a single test_object.
 *   COMPONENTS:
-*     stress_runner     — fixed-iteration stress driver
-*     timed_stress      — time-bounded variant (run for N seconds)
-*     chaos_runner      — randomized op-mix harness
-*     stress_op         — describes a named operation with weight
+*     stress_runner     - fixed-iteration stress driver
+*     timed_stress      - time-bounded variant (run for N seconds)
+*     chaos_runner      - randomized op-mix harness
+*     stress_op         - describes a named operation with weight
 *                         and callable for chaos_runner
-*     stress_report     — per-op counters, total iterations, errors
+*     stress_report     - per-op counters, total iterations, errors
 *   REPRODUCIBILITY:
 *   chaos_runner accepts a 64-bit seed.  Given the same seed and the
 * same op set, two runs produce the same op-selection sequence
-* (subject to scheduling — the threads interleave differently each
+* (subject to scheduling - the threads interleave differently each
 * time, but each thread's local op stream is deterministic).
 *   PORTABILITY:
 *   Requires C++11 or later for <thread> and <random>.  C++98/03
@@ -283,7 +283,7 @@ public:
         operation_fn op      = m_operation;
 
         // per-thread iteration counters (atomic so the
-        // worker can update without false sharing concerns —
+        // worker can update without false sharing concerns -
         // contention is acceptable here since these are
         // outside the tested code path)
         std::vector<std::atomic<size_type>> per_thread(tcount);
@@ -530,9 +530,9 @@ private:
 // selection weight for use with chaos_runner.
 //
 // Fields:
-//   name   — human-readable label, included in the report
-//   weight — relative selection weight (positive)
-//   action — the callable invoked for this op; receives
+//   name   - human-readable label, included in the report
+//   weight - relative selection weight (positive)
+//   action - the callable invoked for this op; receives
 //            (thread_id, iteration_index)
 struct stress_op
 {
@@ -738,7 +738,7 @@ public:
         }
 
         // build cumulative weight table for fast O(log N)
-        // selection — one shared, immutable copy
+        // selection - one shared, immutable copy
         std::vector<unsigned> cumulative;
         cumulative.reserve(ops.size());
         unsigned running = 0;

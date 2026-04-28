@@ -24,17 +24,17 @@
 *     3. LINEARIZATION RECORDING
 *        Threads record (start_time, end_time, op_name, args, result)
 *        for every operation.  Post-hoc, the recording can be
-*        analyzed for serializability — does there exist a sequential
+*        analyzed for serializability - does there exist a sequential
 *        ordering of operations consistent with both the timestamps
 *        and the observed results?
 *
 *   Components in this header:
 *
-*     race_probe        — drives N threads against a non-atomic value
+*     race_probe        - drives N threads against a non-atomic value
 *                         and reports observed final-value variance
-*     atomicity_observer — captures intermediate-state snapshots
-*     linearization_log  — append-only timestamped op log
-*     consistency_check  — sequential-consistency post-hoc verifier
+*     atomicity_observer - captures intermediate-state snapshots
+*     linearization_log  - append-only timestamped op log
+*     consistency_check  - sequential-consistency post-hoc verifier
 *
 *   PORTABILITY:
 *   Requires C++11 or later.
@@ -383,7 +383,7 @@ struct atomicity_observer_report
 //   When the operation under test is supposed to be atomic,
 // the user provides a state predicate that returns true
 // for "valid intermediate-or-final" states.  Any false
-// result indicates a torn read or partial update — i.e.
+// result indicates a torn read or partial update - i.e.
 // non-atomicity.
 //
 // Template parameters:
@@ -555,7 +555,7 @@ struct linearization_event
 
     size_type     thread_id;
     std::string   op_name;
-    std::string   args;     // freeform — caller chooses format
+    std::string   args;     // freeform - caller chooses format
     std::string   result;   // freeform
     time_point    invoked_at;
     time_point    completed_at;
@@ -822,7 +822,7 @@ public:
         std::vector<size_type> by_thread_last_completed;
         std::vector<size_type> thread_ids;
 
-        // simple O(N*T) scan — fine for test diagnostics
+        // simple O(N*T) scan - fine for test diagnostics
         for (size_type i = 0; i < events.size(); ++i)
         {
             const auto& e = events[i];

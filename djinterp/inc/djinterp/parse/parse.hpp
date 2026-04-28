@@ -16,7 +16,7 @@
 *
 * path:      /inc/parse/parse.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.01.11
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.01.11
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_
@@ -40,6 +40,7 @@
 #define NS_PARSE                    D_NAMESPACE(D_KEYWORD_PARSE)
 
 
+NS_DJINTERP
 NS_PARSE
 
 // parseable

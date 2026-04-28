@@ -15,12 +15,12 @@
 *        thread (using thread-local-storage keyed by lock id),
 *        builds an acquisition order graph, and detects cycles
 *        indicative of potential AB-BA deadlocks.  Detection is
-*        offline — call analyze() after the test completes and
+*        offline - call analyze() after the test completes and
 *        the tracker reports any cycles in the global ordering.
 *   Both mechanisms produce a deadlock_report convertible to a
 * basic_test for the DTest tree via to_test_object().
 *   USE WITH CARE:
-*   Watchdog firing does NOT abort the program by default — it
+*   Watchdog firing does NOT abort the program by default - it
 * records the event and signals the SUT to stop cooperatively
 * via an atomic stop flag.  An optional fatal mode can be enabled
 * to call std::abort() when a deadlock is detected, but this is
@@ -241,7 +241,7 @@ public:
 
     // set_timeout
     //   sets the watchdog deadline.  Must be called before
-    // arm() — changes after arming are ignored until the
+    // arm() - changes after arming are ignored until the
     // next arm cycle.
     template<typename _Rep,
              typename _Period>
@@ -596,7 +596,7 @@ public:
     // on_release
     //   records that _thread released _lock.  Removes the
     // lock from the thread's held stack.  No edges are
-    // removed — the order graph is monotonic.
+    // removed - the order graph is monotonic.
     void
     on_release(
         thread_id_type _thread,
