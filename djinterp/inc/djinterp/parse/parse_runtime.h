@@ -17,7 +17,7 @@
 *
 * path:      \inc\parse\runtime\parse_runtime.h
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.12
+* author(s): Samuel 'teer' Neal-Blim                       created: 2025.12.12
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_RUNTIME_

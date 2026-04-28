@@ -3,7 +3,7 @@
 *
 * C++ definition parser (libclang-backed):
 *   This header defines a parser specialized for extracting function and
-* method definitions from .cpp implementation files.  It captures
+* method definitions from .cpp implementation files. It captures
 * everything a documentation/change-tracking tool needs about a
 * definition: the body range, local variables, call expressions, and
 * the relationship back to the declaration.

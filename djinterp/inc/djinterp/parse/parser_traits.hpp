@@ -4,7 +4,7 @@
 * Parser SFINAE detection traits:
 *   This header provides a suite of compile-time structural traits for
 * detecting whether a type conforms to the parser interface defined by
-* the djinterp parsing framework.  Detection is purely structural —
+* the djinterp parsing framework.  Detection is purely structural -
 * no tagging, no base-class checks, no RTTI.
 *
 * Traits provided:
@@ -50,7 +50,6 @@ NS_INTERNAL
              typename = void>
     struct has_input_type_helper : std::false_type
     {};
-;
 
     // has_input_type_helper (success case)
     //   trait: succeeds when _Type::input_type is well-formed.
@@ -59,7 +58,6 @@ NS_INTERNAL
         void_t<typename _Type::input_type>
     > : std::true_type
     {};
-;
 
 NS_END  // internal
 
@@ -90,7 +88,6 @@ NS_INTERNAL
              typename = void>
     struct has_result_type_helper : std::false_type
     {};
-;
 
     // has_result_type_helper (success case)
     //   trait: succeeds when _Type::result_type is well-formed.
@@ -99,7 +96,6 @@ NS_INTERNAL
         void_t<typename _Type::result_type>
     > : std::true_type
     {};
-;
 
 NS_END  // internal
 
@@ -130,9 +126,8 @@ NS_INTERNAL
              typename = void>
     struct has_parse_method_helper : std::false_type
     {};
-;
 
-    // has_parse_method_helper (success case — typed state)
+    // has_parse_method_helper (success case - typed state)
     //   trait: succeeds when _Type has a `parse` callable that
     // accepts parse_state<_Type::input_type>&.
     template<typename _Type>
@@ -147,7 +142,6 @@ NS_INTERNAL
         )>
     > : std::true_type
     {};
-;
 
 NS_END  // internal
 
@@ -178,7 +172,6 @@ NS_INTERNAL
              typename = void>
     struct has_do_parse_method_helper : std::false_type
     {};
-;
 
     // has_do_parse_method_helper (success case)
     //   trait: succeeds when _Type has a `do_parse` callable that
@@ -195,7 +188,6 @@ NS_INTERNAL
         )>
     > : std::true_type
     {};
-;
 
 NS_END  // internal
 
@@ -227,7 +219,6 @@ NS_INTERNAL
              typename = void>
     struct is_parser_helper : std::false_type
     {};
-;
 
     // is_parser_helper (success case)
     //   trait: succeeds when _Type structurally satisfies the
@@ -294,7 +285,6 @@ NS_INTERNAL
              typename = void>
     struct is_text_parser_helper : std::false_type
     {};
-;
 
     // is_text_parser_helper (success case)
     //   trait: succeeds when _Type is a parser whose input_type
@@ -307,7 +297,6 @@ NS_INTERNAL
         >::type
     > : std::true_type
     {};
-;
 
 NS_END  // internal
 
@@ -339,7 +328,6 @@ NS_INTERNAL
              typename           = void>
     struct is_binary_parser_helper : std::false_type
     {};
-;
 
     // is_binary_parser_helper (success case)
     //   trait: succeeds when _Type is a parser whose input_type
@@ -356,7 +344,6 @@ NS_INTERNAL
         >::type
     > : std::true_type
     {};
-;
 
 NS_END  // internal
 
@@ -390,7 +377,6 @@ NS_INTERNAL
              typename               = void>
     struct parsers_compatible_helper : std::false_type
     {};
-;
 
     // parsers_compatible_helper (success case)
     //   trait: succeeds when both types are parsers and share the same
@@ -409,7 +395,6 @@ NS_INTERNAL
         >::type
     > : std::true_type
     {};
-;
 
 NS_END  // internal
 

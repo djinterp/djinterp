@@ -8,10 +8,10 @@
 * kind (text, binary, or otherwise).
 *
 *   The base enforces its contract purely through SFINAE and static
-* assertions — no virtual functions, no tag types. A conforming derived
+* assertions - no virtual functions, no tag types. A conforming derived
 * parser must provide:
-*   - `input_type`    typedef  — the element type of the input stream
-*   - `result_type`   typedef  — the type produced on a successful parse
+*   - `input_type`    typedef  - the element type of the input stream
+*   - `result_type`   typedef  - the type produced on a successful parse
 *   - `do_parse(parse_state<input_type>&) -> parse_result<result_type>`
 *
 *
@@ -27,6 +27,7 @@
 #include <type_traits>
 #include "../core/djinterp.hpp"
 #include "./parse.hpp"
+#include "./parser_traits.hpp"
 
 
 NS_DJINTERP
@@ -36,71 +37,6 @@ NS_PARSE
 // ================================================================
 //  parser_base
 // ================================================================
-
-NS_INTERNAL
-
-    // has_input_type_helper
-    //   trait: SFINAE probe for a nested `input_type` typedef.
-    template<typename _Type,
-             typename = void>
-    struct has_input_type_helper : std::false_type
-    {};
-
-    // has_input_type_helper (success specialization)
-    //   trait: succeeds when _Type::input_type is well-formed.
-    template<typename _Type>
-    struct has_input_type_helper<_Type, void_t<
-        typename _Type::input_type>
-    > : std::true_type
-    {};
-
-    // has_result_type_helper
-    //   trait: SFINAE probe for a nested `result_type` typedef.
-    template<typename _Type,
-             typename = void>
-    struct has_result_type_helper : std::false_type
-    {};
-
-
-    // has_result_type_helper (success specialization)
-    //   trait: succeeds when _Type::result_type is well-formed.
-    template<typename _Type>
-    struct has_result_type_helper<
-        _Type,
-        void_t<typename _Type::result_type>
-    > : std::true_type
-    {};
-
-
-    // has_do_parse_helper
-    //   trait: SFINAE probe for a `do_parse` member function
-    // accepting a parse_state reference and returning a
-    // parse_result.
-    template<typename _Type,
-             typename = void>
-    struct has_do_parse_helper : std::false_type
-    {};
-
-
-    // has_do_parse_helper (success specialization)
-    //   trait: succeeds when _Type::do_parse(parse_state<...>&) is
-    // callable and returns parse_result<result_type>.
-    template<typename _Type>
-    struct has_do_parse_helper<
-        _Type,
-        void_t<decltype(
-            std::declval<_Type>().do_parse(
-                std::declval<
-                    parse_state<typename _Type::input_type>&
-                >()
-            )
-        )>
-    > : std::true_type
-    {};
-
-
-NS_END  // internal
-
 
 // parser_base
 //   class: CRTP base for all parsers.  Provides the public
@@ -156,15 +92,15 @@ public:
         -> parse_result<typename derived_type::result_type>
     {
         static_assert(
-            internal::has_input_type_helper<derived_type>::value,
+            traits::has_input_type<derived_type>::value,
             "Parser must define a public `input_type` typedef.");
 
         static_assert(
-            internal::has_result_type_helper<derived_type>::value,
+            traits::has_result_type<derived_type>::value,
             "Parser must define a public `result_type` typedef.");
 
         static_assert(
-            internal::has_do_parse_helper<derived_type>::value,
+            traits::has_do_parse_method<derived_type>::value,
             "Parser must define a public `do_parse` member function "
             "accepting parse_state<input_type>& and returning "
             "parse_result<result_type>.");
@@ -172,7 +108,7 @@ public:
         return self().do_parse(_state);
     }
 
-    // parse (convenience — raw pointer + length)
+    // parse (convenience - raw pointer + length)
     //   constructs a parse_state and delegates.
     auto parse(const typename derived_type::input_type* _data,
                std::size_t                              _length)
@@ -184,7 +120,7 @@ public:
         return parse(state);
     }
 
-    // parse (convenience — initializer_list)
+    // parse (convenience - initializer_list)
     //   constructs a parse_state from the list's range and
     // delegates.
     auto parse(

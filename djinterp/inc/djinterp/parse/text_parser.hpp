@@ -103,14 +103,12 @@ public:
         , position ()
     {}
 
-
     text_parse_state(const char* _data,
                      std::size_t _length,
                      std::size_t _offset = 0)
         : base_type(_data, _length, _offset)
         , position ()
     {}
-
 
     // advance_tracking
     //   advances the cursor by _count characters, updating the
