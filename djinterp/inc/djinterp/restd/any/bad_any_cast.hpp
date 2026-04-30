@@ -5,14 +5,14 @@
 *   Provides the exception type thrown by any_cast when the requested type
 * does not match the stored type. The base class is selected based on
 * available headers:
-*   - <typeinfo>  available -> inherits _Type::bad_cast (-> _Type::exception)
-*   - <exception> available -> inherits _Type::exception
+*   - <typeinfo>  available -> inherits std::bad_cast (-> std::exception)
+*   - <exception> available -> inherits std::exception
 *   - neither               -> standalone class (no base, non-virtual what())
 *
-* 
+*
 * path:      /inc/djinterp/restd/any/bad_any_cast.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.10
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/
 
 #ifndef DJINTERP_RESTD_BAD_ANY_CAST_
@@ -21,9 +21,9 @@
 #include "../../core/djinterp.hpp"
 
 
-// =============================================================================
+// ===========================================================================
 // 0.   CONDITIONAL INCLUDES
-// =============================================================================
+// ===========================================================================
 
 #if D_ENV_CPP98_HAS_TYPEINFO
     #include <typeinfo>
@@ -32,25 +32,27 @@
 #endif
 
 
-NS_DJINTERP
 NS_RESTD
 
 
-// =============================================================================
+// ===========================================================================
 // I.   BAD_ANY_CAST
-// =============================================================================
+// ===========================================================================
 
 #if D_ENV_CPP98_HAS_TYPEINFO
 
 // bad_any_cast
 //   exception: thrown by any_cast when the requested type does not
 // match the type of the stored value.
-// inherits: _Type::bad_cast -> _Type::exception.
-class bad_any_cast : public _Type::bad_cast
+// inherits: std::bad_cast -> std::exception.
+class bad_any_cast : public std::bad_cast
 {
 public:
     const char*
-    what() const noexcept override
+    what() const D_NOEXCEPT
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        override
+#endif
     {
         return "bad any_cast";
     }
@@ -61,12 +63,15 @@ public:
 // bad_any_cast
 //   exception: thrown by any_cast when the requested type does not
 // match the type of the stored value.
-// note: <typeinfo> unavailable; inherits _Type::exception directly.
-class bad_any_cast : public _Type::exception
+// note: <typeinfo> unavailable; inherits std::exception directly.
+class bad_any_cast : public std::exception
 {
 public:
     const char*
-    what() const noexcept override
+    what() const D_NOEXCEPT
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        override
+#endif
     {
         return "bad any_cast";
     }
@@ -83,7 +88,7 @@ class bad_any_cast
 {
 public:
     const char*
-    what() const noexcept
+    what() const D_NOEXCEPT
     {
         return "bad any_cast";
     }
@@ -93,7 +98,6 @@ public:
 
 
 NS_END  // restd
-NS_END  // djinterp
 
 
 #endif  // DJINTERP_RESTD_BAD_ANY_CAST_
