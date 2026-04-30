@@ -11,7 +11,7 @@
 *   When concepts are unavailable (pre-C++20 or compilers without
 * __cpp_concepts >= 201907L), the entire concept block is elided.
 * The trait surface in list_traits.hpp remains the canonical
-* dispatch mechanism — concepts are a syntactic convenience.
+* dispatch mechanism - concepts are a syntactic convenience.
 *
 *   Concepts for specific list shapes (singly_linked / doubly_linked /
 * xor_linked / skip-list) live in linked_list_concepts.hpp.  This
@@ -87,7 +87,7 @@ template<typename _Type>
 concept has_merge_cmp = has_merge_cmp_method<_Type>::value;
 
 // has_list_remove
-//   concept: matches types exposing remove(value_type) — the
+//   concept: matches types exposing remove(value_type) - the
 // list-style remove that erases ALL matches.
 template<typename _Type>
 concept has_list_remove = has_list_remove_method<_Type>::value;
@@ -137,7 +137,7 @@ concept has_iter_insert = has_iter_insert_method<_Type>::value;
 // list_container_type
 //   concept: matches any container satisfying the list contract.
 // The defining signal is splice (or splice_after for forward-list-
-// shaped lists) — the operation that distinguishes lists from
+// shaped lists) - the operation that distinguishes lists from
 // sequence containers.
 template<typename _Type>
 concept list_container_type = is_list_container<_Type>::value;
