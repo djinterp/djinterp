@@ -1,84 +1,105 @@
 /******************************************************************************
 * djinterp [container]                                    container_traits.hpp
 *
-* Compile-time container classification traits for the djinterp framework.
-*   Provides SFINAE-based detection and classification of container
-* properties including lifetime (constexpr/immutable/mutable), iteration
-* capabilities, bounds (via interval types or legacy min/max accessors),
-* storage (static/dynamic), ordering, sorted invariants, structural depth
-* (flat/hierarchical), element multiplicity, backing container
-* relationships, and reverse iteration support.
-*
+*  djinterp container compile-time classification traits
+*   SFINAE-based detection and classification of container properties, 
+* including: 
+*   - lifetime (constexpr/immutable/mutable), 
+*   - iteration (constexpr_iterator/const_iterator/iterator),
+*   - bounds (via interval types or legacy min/max accessors),
+*   - storage (static/dynamic)
+*   - capabilities
+*   - ordering, sorted invariants, structural depth
+*     (flat/hierarchical), element multiplicity, underlying container
+*     relationships, and reverse iteration support.
 *   All detection is purely structural: no tag types are required.
 * Containers declare properties through their public interface and type
-* aliases.  The maths::interval type is used to express bounded ranges
+* aliases.  The math::interval type is used to express bounded ranges
 * for size, depth, and multiplicity when available.
-*
 *   All traits operate on the `clean_t` (cv-ref stripped) form of the
 * type and produce `static constexpr bool` values.  C++17 `_v` variable
 * templates are provided for every public trait.
 *
 * CONTAINER PROTOCOL (optional members detected):
-*   Size bounds:         using size_interval = interval<...>;
+*   size bounds:         using size_interval = interval<...>;
 *                     or min_size() / max_size() / size() / capacity()
-*   Depth bounds:        using depth_interval = interval<...>;
+*   depth bounds:        using depth_interval = interval<...>;
 *                     or depth_type / max_depth() / min_depth()
-*   Multiplicity:        using multiplicity_interval = interval<...>;
+*   multiplicity:        using multiplicity_interval = interval<...>;
 *                     or multiplicity_min() / multiplicity_max()
-*   Sorted invariant:    key_compare member alias
-*   Hierarchical:        parent() / children() / root() / node_type
-*   Backing:             backing_container_type member alias
-*
-* TABLE OF CONTENTS
-* =================
-* I.      Method Detection
-* II.     Constexpr Detection (internal)
-* III.    Public Constexpr Traits
-* IV.     Array Detection
-* V.      Lifetime Classification
-* VI.     Bounds Classification (interval-aware)
-* VII.    Storage Classification
-* VIII.   Iteration Classification
-* IX.     Ordering Classification
-* X.      Sorted Classification
-* XI.     Reverse Iteration Classification
-* XII.    Uniqueness and Multiplicity Classification
-* XIII.   Structure Classification (flat / hierarchical)
-* XIV.    Backing Container Classification
-* XV.     Interval Extraction
-* XVI.    Combined Classification
+*   sorted invariant:    key_compare member alias
+*   hierarchical:        parent() / children() / root() / node_type
+*   underlying:          underlying_container_type member alias
 *
 * THREAD SAFETY:
 *   Thread-safe container traits are defined separately in
-* threadsafe_container_traits.hpp.
+* `threadsafe_container_traits.hpp`.
 *
-* path:      \inc\container\meta\container_traits.hpp
+* 
+* path:      /inc/djinterp/core/container/traits/container_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2024.03.09
+* author(s): Samuel 'teer' Neal-Blim                       created: 2024.03.09
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.   method detection
+2.   constexpr detection (internal)
+3.   public constexpr traits
+4.   array detection
+5.   lifetime classification
+6.   bounds classification (interval-aware)
+7.   storage classification
+8.   iteration classification
+9.   ordering classification
+10.  sorted classification
+12.  reverse iteration classification
+13.  uniqueness and multiplicity classification
+14.  structure classification (flat / hierarchical)
+15.  underlying container classification
+16.  interval extraction
+17.  combined classification
+*/
 
 #ifndef DJINTERP_CONTAINER_TRAITS_
 #define	DJINTERP_CONTAINER_TRAITS_ 1
 
+// std
 #include <limits>
 #include <memory>
 #include <type_traits>
 #include <utility>
-#include "..\djinterp.hpp"
-#include "..\type_traits.hpp"
-#include "..\maths\interval_traits.hpp"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../../math/interval/interval_traits.hpp"
+#include "../iterator/iterator_traits.hpp"
+#include "./bounded_container_traits.hpp"
+#include "./iterable_container_traits.hpp"
+#include "./mutable_container_traits.hpp"
+#include "./constexpr_container_traits.hpp"
+#include "./runtime_container_traits.hpp"
+#include "./sorted_container_traits.hpp"
+#include "./node_container_traits.hpp"
+#include "./container_overlay_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
-// =============================================================================
+
+// ===========================================================================
 // I.   Method Detection
-// =============================================================================
+// ===========================================================================
 
 // --- size and capacity ---
+// has_data_method
+//   trait: detects a const member `data()`.
+D_TYPE_TRAIT_TRUE(has_data_method,
+    decltype(std::declval<const _Type&>().data()))
 
+// has_size_accessor
+//   trait: detects a const member `size()`.
 D_TYPE_TRAIT_TRUE(has_size_accessor,
     decltype(std::declval<const _Type&>().size()))
 
@@ -95,7 +116,6 @@ D_TYPE_TRAIT_TRUE(has_data_accessor,
     decltype(std::declval<const _Type&>().data()))
 
 // --- type members ---
-
 D_TYPE_TRAIT_TRUE(has_allocator_type,
     typename _Type::allocator_type)
 
@@ -115,7 +135,6 @@ D_TYPE_TRAIT_TRUE(has_hasher_type,
     typename _Type::hasher)
 
 // --- interval protocol detection ---
-
 D_TYPE_TRAIT_TRUE(has_size_interval_type,
     typename _Type::size_interval)
 
@@ -125,15 +144,14 @@ D_TYPE_TRAIT_TRUE(has_depth_interval_type,
 D_TYPE_TRAIT_TRUE(has_multiplicity_interval_type,
     typename _Type::multiplicity_interval)
 
-// --- backing container detection ---
-
-D_TYPE_TRAIT_TRUE(has_backing_container_type,
-    typename _Type::backing_container_type)
+// --- underlying container detection ---
+//   `has_underlying_container_type` is owned by
+// container_overlay_traits.hpp and re-exported through the
+// include chain above.
 
 // --- hierarchical structure detection ---
-
-D_TYPE_TRAIT_TRUE(has_node_type,
-    typename _Type::node_type)
+//   `has_node_type` is owned by node_container_traits.hpp and
+// re-exported through the include chain above.
 
 D_TYPE_TRAIT_TRUE(has_depth_type,
     typename _Type::depth_type)
@@ -168,8 +186,8 @@ D_TYPE_TRAIT_TRUE(has_multiplicity_max_accessor,
 
 // --- mutability detection ---
 
-D_TYPE_TRAIT_TRUE(has_push_back,
-    decltype(std::declval<_Type&>().push_back(
+D_TYPE_TRAIT_TRUE(has_push_,
+    decltype(std::declval<_Type&>().push_(
         std::declval<typename _Type::value_type>())))
 
 D_TYPE_TRAIT_TRUE(has_insert,
@@ -222,23 +240,23 @@ D_TYPE_TRAIT_TRUE(has_key_comp_method,
         std::declval<const _Type&>().key_comp()))
 
 // --- value_type detection ---
-
 D_TYPE_TRAIT_TRUE(has_value_type,
     typename _Type::value_type)
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Constexpr Detection (internal)
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
 
-    template<typename _Type, typename = void>
-    struct has_constexpr_size_impl : std::false_type
+    template<typename _Type,
+             typename = void>
+    struct has_constexpr_size_helper : std::false_type
     {};
 
     template<typename _Type>
-    struct has_constexpr_size_impl<_Type, std::enable_if_t<
+    struct has_constexpr_size_helper<_Type, std::enable_if_t<
         std::is_default_constructible_v<_Type> &&
         has_size_accessor_v<_Type>>>
     {
@@ -261,12 +279,13 @@ NS_INTERNAL
             decltype(test<_Type>(0))::value;
     };
 
-    template<typename _Type, typename = void>
-    struct has_constexpr_max_size_impl : std::false_type
+    template<typename _Type,
+             typename = void>
+    struct has_constexpr_max_size_helper : std::false_type
     {};
 
     template<typename _Type>
-    struct has_constexpr_max_size_impl<_Type, std::enable_if_t<
+    struct has_constexpr_max_size_helper<_Type, std::enable_if_t<
         std::is_default_constructible_v<_Type> &&
         has_max_size_accessor_v<_Type>>>
     {
@@ -290,12 +309,13 @@ NS_INTERNAL
             decltype(test<_Type>(0))::value;
     };
 
-    template<typename _Type, typename = void>
-    struct has_constexpr_min_size_impl : std::false_type
+    template<typename _Type,
+             typename = void>
+    struct has_constexpr_min_size_helper : std::false_type
     {};
 
     template<typename _Type>
-    struct has_constexpr_min_size_impl<_Type, std::enable_if_t<
+    struct has_constexpr_min_size_helper<_Type, std::enable_if_t<
         std::is_default_constructible_v<_Type> &&
         has_min_size_accessor_v<_Type>>>
     {
@@ -321,25 +341,25 @@ NS_INTERNAL
 
     // fixed size: size() == max_size() always
     template<typename _Type,
-             bool = has_constexpr_size_impl<_Type>::value &&
-                    has_constexpr_max_size_impl<_Type>::value>
-    struct has_fixed_size_impl : std::false_type
+             bool = has_constexpr_size_helper<_Type>::value &&
+                    has_constexpr_max_size_helper<_Type>::value>
+    struct has_fixed_size_helper : std::false_type
     {};
 
     template<typename _Type>
-    struct has_fixed_size_impl<_Type, true>
+    struct has_fixed_size_helper<_Type, true>
         : std::bool_constant<
               (_Type{}.size() == _Type{}.max_size())>
     {};
 
     // bounded capacity: max_size() < SIZE_MAX/2
     template<typename _Type,
-             bool = has_constexpr_max_size_impl<_Type>::value>
-    struct has_bounded_capacity_impl : std::false_type
+             bool = has_constexpr_max_size_helper<_Type>::value>
+    struct has_bounded_capacity_helper : std::false_type
     {};
 
     template<typename _Type>
-    struct has_bounded_capacity_impl<_Type, true>
+    struct has_bounded_capacity_helper<_Type, true>
         : std::bool_constant<
               (_Type{}.max_size() <
                (std::numeric_limits<std::size_t>::max()
@@ -348,19 +368,20 @@ NS_INTERNAL
 
     // bounded minimum: has min_size() with nonzero value
     template<typename _Type,
-             bool = has_constexpr_min_size_impl<_Type>::value>
-    struct has_bounded_minimum_impl : std::false_type
+             bool = has_constexpr_min_size_helper<_Type>::value>
+    struct has_bounded_minimum_helper : std::false_type
     {};
 
     template<typename _Type>
-    struct has_bounded_minimum_impl<_Type, true>
+    struct has_bounded_minimum_helper<_Type, true>
         : std::bool_constant<(_Type{}.min_size() > 0)>
     {};
 
     // interval validity checks: verify exposed interval
     // types actually satisfy is_interval from
     // interval_traits.hpp.
-    template<typename _Type, typename = void>
+    template<typename _Type,
+             typename = void>
     struct has_valid_size_interval : std::false_type
     {};
 
@@ -368,12 +389,13 @@ NS_INTERNAL
     struct has_valid_size_interval<_Type,
         std::enable_if_t<
             has_size_interval_type_v<_Type> &&
-            maths::is_interval<
+            math::is_interval<
                 typename _Type::size_interval>::value>>
         : std::true_type
     {};
 
-    template<typename _Type, typename = void>
+    template<typename _Type,
+             typename = void>
     struct has_valid_depth_interval : std::false_type
     {};
 
@@ -381,12 +403,13 @@ NS_INTERNAL
     struct has_valid_depth_interval<_Type,
         std::enable_if_t<
             has_depth_interval_type_v<_Type> &&
-            maths::is_interval<
+            math::is_interval<
                 typename _Type::depth_interval>::value>>
         : std::true_type
     {};
 
-    template<typename _Type, typename = void>
+    template<typename _Type, 
+             typename = void>
     struct has_valid_multiplicity_interval : std::false_type
     {};
 
@@ -394,87 +417,97 @@ NS_INTERNAL
     struct has_valid_multiplicity_interval<_Type,
         std::enable_if_t<
             has_multiplicity_interval_type_v<_Type> &&
-            maths::is_interval<
-                typename _Type::multiplicity_interval
-            >::value>>
-        : std::true_type
+            math::is_interval<typename _Type::multiplicity_interval>::value>
+    > : std::true_type
     {};
 
 NS_END  // internal
 
 
-// =============================================================================
+// ===========================================================================
 // III. Public Constexpr Traits
-// =============================================================================
+// ===========================================================================
 
 // --- size ---
 
 template<typename _Type>
 struct has_constexpr_size
     : std::bool_constant<
-          internal::has_constexpr_size_impl<
+          internal::has_constexpr_size_helper<
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_constexpr_size_v =
     has_constexpr_size<_Type>::value;
 
+#endif
 template<typename _Type>
 struct has_constexpr_max_size
     : std::bool_constant<
-          internal::has_constexpr_max_size_impl<
+          internal::has_constexpr_max_size_helper<
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_constexpr_max_size_v =
     has_constexpr_max_size<_Type>::value;
 
+#endif
 template<typename _Type>
 struct has_constexpr_min_size
     : std::bool_constant<
-          internal::has_constexpr_min_size_impl<
+          internal::has_constexpr_min_size_helper<
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_constexpr_min_size_v =
     has_constexpr_min_size<_Type>::value;
 
+#endif
 template<typename _Type>
 struct has_fixed_size
     : std::bool_constant<
-          internal::has_fixed_size_impl<
+          internal::has_fixed_size_helper<
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_fixed_size_v =
     has_fixed_size<_Type>::value;
 
+#endif
 template<typename _Type>
 struct has_bounded_capacity
     : std::bool_constant<
-          internal::has_bounded_capacity_impl<
+          internal::has_bounded_capacity_helper<
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_bounded_capacity_v =
     has_bounded_capacity<_Type>::value;
 
+#endif
 template<typename _Type>
 struct has_bounded_minimum
     : std::bool_constant<
-          internal::has_bounded_minimum_impl<
+          internal::has_bounded_minimum_helper<
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_bounded_minimum_v =
     has_bounded_minimum<_Type>::value;
 
+#endif
 // --- interval validity ---
 
 template<typename _Type>
@@ -484,10 +517,12 @@ struct has_valid_size_interval
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_valid_size_interval_v =
     has_valid_size_interval<_Type>::value;
 
+#endif
 template<typename _Type>
 struct has_valid_depth_interval
     : std::bool_constant<
@@ -495,10 +530,12 @@ struct has_valid_depth_interval
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_valid_depth_interval_v =
     has_valid_depth_interval<_Type>::value;
 
+#endif
 template<typename _Type>
 struct has_valid_multiplicity_interval
     : std::bool_constant<
@@ -506,14 +543,16 @@ struct has_valid_multiplicity_interval
               clean_t<_Type>>::value>
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_valid_multiplicity_interval_v =
     has_valid_multiplicity_interval<_Type>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // IV.  Array Detection
-// =============================================================================
+// ===========================================================================
 
 template<typename _Type>
 struct is_c_array : std::false_type
@@ -523,10 +562,12 @@ template<typename _Type, std::size_t _N>
 struct is_c_array<_Type[_N]> : std::true_type
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_c_array_v =
     is_c_array<_Type>::value;
 
+#endif
 template<typename _Type>
 struct is_std_array : std::false_type
 {};
@@ -535,14 +576,16 @@ template<typename _Type, std::size_t _N>
 struct is_std_array<std::array<_Type, _N>> : std::true_type
 {};
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_std_array_v =
     is_std_array<_Type>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // V.   Lifetime Classification
-// =============================================================================
+// ===========================================================================
 
 // is_compile_time_container
 //   type trait: true if container exists only at compile time
@@ -560,57 +603,37 @@ struct is_compile_time_container
           !has_allocator_type_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_compile_time_container_v =
     is_compile_time_container<_Type>::value;
 
-// is_immutable_container
-//   type trait: true if container is read-only after
-// initialization (const_<container>).
-// Detection: no mutating methods (push_back, insert, erase,
-// clear).
-template<typename _Type>
-struct is_immutable_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_size_accessor_v<clean_type> &&
-          !has_push_back_v<clean_type>    &&
-          !has_insert_v<clean_type>       &&
-          !has_erase_v<clean_type>        &&
-          !has_clear_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_immutable_container_v =
-    is_immutable_container<_Type>::value;
-
-// is_mutable_container
-//   type trait: true if container supports mutation at runtime
-// (mutable_<container>).
-template<typename _Type>
-struct is_mutable_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_size_accessor_v<clean_type> &&
-          ( has_push_back_v<clean_type>   ||
-            has_insert_v<clean_type>      ||
-            has_erase_v<clean_type>       ||
-            has_clear_v<clean_type> ) );
-};
-
-template<typename _Type>
-inline constexpr bool is_mutable_container_v =
-    is_mutable_container<_Type>::value;
+#endif
+// is_immutable_container, is_mutable_container
+//   These are owned by mutable_container_traits.hpp and
+// re-exported via the include chain at the top of this header.
+// Earlier revisions defined them here as well; the duplicate
+// definitions caused ODR conflicts when both headers were
+// pulled into the same TU.
 
 // is_runtime_container
 //   type trait: true if container exists at runtime (mutable or
 // immutable, but not compile-time only).
+//
+//   Note: a more strongly-typed version of this trait lives in
+// runtime_container_traits.hpp keyed on the constexpr-container
+// signal.  That version is the canonical "is this a non-
+// constexpr container shape?" predicate.  The local version
+// below is intentionally weaker - it answers only "does this
+// type fail the empty-stateless-constexpr test of
+// is_compile_time_container?" - and is kept here as a
+// convenience for callers already operating in this header's
+// vocabulary.  To avoid the ODR conflict the two used to have,
+// the local version is renamed to `is_not_compile_time_container`
+// and `is_runtime_container` resolves through the include chain
+// to the runtime_container_traits.hpp definition.
 template<typename _Type>
-struct is_runtime_container
+struct is_not_compile_time_container
 {
     using clean_type = clean_t<_Type>;
 
@@ -618,17 +641,19 @@ struct is_runtime_container
         !is_compile_time_container_v<clean_type>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
-inline constexpr bool is_runtime_container_v =
-    is_runtime_container<_Type>::value;
+inline constexpr bool is_not_compile_time_container_v =
+    is_not_compile_time_container<_Type>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // VI.  Bounds Classification (interval-aware)
-// =============================================================================
+// ===========================================================================
 // Boundedness is determined in order of priority:
 //   1. Interval protocol: if container exposes a size_interval
-//      type satisfying maths::is_interval, the interval's
+//      type satisfying math::is_interval, the interval's
 //      lower_bound and upper_bound encode the constraints.
 //   2. Legacy accessors: min_size() / max_size() / capacity().
 //   3. Fixed-size arrays: C-arrays and std::array.
@@ -645,10 +670,12 @@ struct is_lower_bounded
           has_bounded_minimum_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_lower_bounded_v =
     is_lower_bounded<_Type>::value;
 
+#endif
 // is_upper_bounded
 //   type trait: true if container has a maximum size
 // (capacity) constraint.
@@ -665,26 +692,12 @@ struct is_upper_bounded
           has_bounded_capacity_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_upper_bounded_v =
     is_upper_bounded<_Type>::value;
 
-// is_bounded
-//   type trait: true if container has both lower and upper
-// bounds.
-template<typename _Type>
-struct is_bounded
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( is_lower_bounded_v<clean_type> &&
-          is_upper_bounded_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_bounded_v =
-    is_bounded<_Type>::value;
+#endif
 
 // is_unbounded
 //   type trait: true if container has no size constraints.
@@ -698,14 +711,47 @@ struct is_unbounded
           !is_upper_bounded_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_unbounded_v =
     is_unbounded<_Type>::value;
 
 
-// =============================================================================
+#endif
+
+// is_bounded
+//   type trait: true if container has any size constraint
+// (lower or upper).  Convenience aggregate used by
+// container_class so callers don't need to OR the two
+// orientations themselves.
+//
+//   Distinct from `is_bounded_container_v` in
+// bounded_container_traits.hpp: that umbrella checks for
+// fixed-extent / max_size / fixed-capacity signals
+// generically; this one composes the interval-aware
+// is_lower_bounded / is_upper_bounded defined immediately
+// above.  Both produce the same answer for canonical STL
+// containers; the local version is preferred where the
+// surrounding code is already using interval-aware bounds.
+template<typename _Type>
+struct is_bounded
+{
+    using clean_type = clean_t<_Type>;
+
+    static constexpr bool value =
+        ( is_lower_bounded_v<clean_type> ||
+          is_upper_bounded_v<clean_type> );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    template<typename _Type>
+    inline constexpr bool is_bounded_v =
+        is_bounded<_Type>::value;
+
+#endif
+// ===========================================================================
 // VII. Storage Classification
-// =============================================================================
+// ===========================================================================
 
 // is_static_storage
 //   type trait: true if container has inline/fixed storage.
@@ -722,10 +768,12 @@ struct is_static_storage
             !has_allocator_type_v<clean_type> ) );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_static_storage_v =
     is_static_storage<_Type>::value;
 
+#endif
 // is_dynamic_storage
 //   type trait: true if container uses heap allocation.
 template<typename _Type>
@@ -740,31 +788,23 @@ struct is_dynamic_storage
             !has_bounded_capacity_v<clean_type> ) );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_dynamic_storage_v =
     is_dynamic_storage<_Type>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // VIII. Iteration Classification
-// =============================================================================
+// ===========================================================================
 
-// is_iterable_container
-//   type trait: true if container supports forward iteration
-// via begin()/end().
-template<typename _Type>
-struct is_iterable_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_begin_accessor_v<clean_type> &&
-          has_end_accessor_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_iterable_container_v =
-    is_iterable_container<_Type>::value;
+// is_iterable_container, is_non_iterable_container
+//   These are owned by iterable_container_traits.hpp and
+// re-exported via the include chain at the top of this header.
+// Earlier revisions defined them here; the duplicate
+// definitions caused ODR conflicts when both headers were
+// pulled into the same TU.
 
 // is_const_iterable_container
 //   type trait: true if container supports const iteration
@@ -779,31 +819,16 @@ struct is_const_iterable_container
           has_cend_accessor_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_const_iterable_container_v =
     is_const_iterable_container<_Type>::value;
 
-// is_non_iterable_container
-//   type trait: true if container has size() but no iteration
-// support (e.g. stack, queue adaptors).
-template<typename _Type>
-struct is_non_iterable_container
-{
-    using clean_type = clean_t<_Type>;
+#endif
 
-    static constexpr bool value =
-        ( has_size_accessor_v<clean_type> &&
-          !is_iterable_container_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_non_iterable_container_v =
-    is_non_iterable_container<_Type>::value;
-
-
-// =============================================================================
+// ===========================================================================
 // IX.  Ordering Classification
-// =============================================================================
+// ===========================================================================
 
 // is_ordered_container
 //   type trait: true if container maintains element ordering.
@@ -823,10 +848,12 @@ struct is_ordered_container
           is_bidirectional_iterable_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_ordered_container_v =
     is_ordered_container<_Type>::value;
 
+#endif
 // is_unordered_container
 //   type trait: true if container does not maintain element
 // ordering.
@@ -841,14 +868,16 @@ struct is_unordered_container
           !is_ordered_container_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_unordered_container_v =
     is_unordered_container<_Type>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // X.   Sorted Classification
-// =============================================================================
+// ===========================================================================
 // A sorted container maintains a sorted invariant over its
 // elements.  Detection is purely structural:
 //   1. Presence of key_compare member alias indicates the
@@ -856,65 +885,35 @@ inline constexpr bool is_unordered_container_v =
 //   2. Hash-based containers (hasher type) are explicitly
 //      excluded even if they also expose key_compare.
 
-// is_sorted_container
-//   type trait: true if container maintains a sorted invariant.
-template<typename _Type>
-struct is_sorted_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_key_compare_v<clean_type> &&
-          !has_hasher_type_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_sorted_container_v =
-    is_sorted_container<_Type>::value;
-
-// is_unsorted_container
-//   type trait: true if container does not maintain a sorted
-// invariant.
-template<typename _Type>
-struct is_unsorted_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_size_accessor_v<clean_type> &&
-          !is_sorted_container_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_unsorted_container_v =
-    is_unsorted_container<_Type>::value;
+// is_sorted_container, is_unsorted_container
+//   These are owned by sorted_container_traits.hpp and
+// re-exported via the include chain at the top of this header.
+// Earlier revisions defined them here as well; the duplicate
+// definitions caused ODR conflicts when both headers were
+// pulled into the same TU.  Note that the canonical
+// definitions in sorted_container_traits.hpp use a slightly
+// broader signal set (key_compare alias, value_compare alias,
+// or opt-in is_sorted_container tag) than this header used to,
+// so callers see the same answer for canonical STL types and
+// strictly more answers for user-defined ones.
 
 
-// =============================================================================
+// ===========================================================================
 // XI.  Reverse Iteration Classification
-// =============================================================================
-
-// has_reverse_iteration
-//   type trait: true if container supports reverse iteration
-// (rbegin/rend).
-template<typename _Type>
-struct has_reverse_iteration
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_rbegin_accessor_v<clean_type> &&
-          has_rend_accessor_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool has_reverse_iteration_v =
-    has_reverse_iteration<_Type>::value;
+// ===========================================================================
+//
+//   The canonical `has_reverse_iteration` / `has_reverse_iteration_v`
+// trait lives in iterator_traits.hpp (which this header includes
+// transitively).  An earlier revision of this header carried a
+// duplicate definition here; it has been removed to eliminate the
+// resulting one-definition-rule conflict.  Use the iterator_traits.hpp
+// version directly — the snapshot in section XVII below references it
+// by its public name, no aliasing or forwarding required.
 
 
-// =============================================================================
+// ===========================================================================
 // XII. Uniqueness and Multiplicity Classification
-// =============================================================================
+// ===========================================================================
 // Multiplicity describes how many copies of an equivalent
 // element a container allows.
 //
@@ -939,10 +938,12 @@ struct enforces_uniqueness
           !has_mapped_type_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool enforces_uniqueness_v =
     enforces_uniqueness<_Type>::value;
 
+#endif
 // allows_duplicates
 //   type trait: true if container allows duplicate elements.
 template<typename _Type>
@@ -952,10 +953,12 @@ struct allows_duplicates
         !enforces_uniqueness_v<clean_t<_Type>>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool allows_duplicates_v =
     allows_duplicates<_Type>::value;
 
+#endif
 // has_bounded_multiplicity
 //   type trait: true if container constrains element
 // multiplicity, either via the interval protocol or legacy
@@ -971,10 +974,12 @@ struct has_bounded_multiplicity
             has_multiplicity_max_accessor_v<clean_type> ) );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_bounded_multiplicity_v =
     has_bounded_multiplicity<_Type>::value;
 
+#endif
 // is_unique_container
 //   type trait: true if container enforces element uniqueness
 // via structural detection.
@@ -987,129 +992,45 @@ struct is_unique_container
         enforces_uniqueness_v<clean_type>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_unique_container_v =
     is_unique_container<_Type>::value;
 
 
-// =============================================================================
-// XIII. Structure Classification (flat / hierarchical)
-// =============================================================================
-// A flat container stores all elements at a single level.
-// A hierarchical container organizes elements into levels.
-//
-// Detection is purely structural (no tags):
-//   1. parent(), children(), or root() member functions
-//      indicate a tree-like traversal API.
-//   2. node_type alias indicates node-based hierarchy.
-//   3. depth_type alias or depth()/max_depth() accessors.
-//   4. depth_interval type alias (interval protocol).
-//   5. Absence of all hierarchy indicators => flat.
+#endif
 
-// is_hierarchical_container
-//   type trait: true if container organizes elements in a
-// hierarchical (multi-level) structure.
-template<typename _Type>
-struct is_hierarchical_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_parent_accessor_v<clean_type>    ||
-          has_children_accessor_v<clean_type>  ||
-          has_root_accessor_v<clean_type>      ||
-          has_node_type_v<clean_type>          ||
-          has_depth_type_v<clean_type>         ||
-          has_depth_accessor_v<clean_type>     ||
-          has_valid_depth_interval_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_hierarchical_container_v =
-    is_hierarchical_container<_Type>::value;
-
-// is_flat_container
-//   type trait: true if container stores elements at a single
-// level.  Inferred as the negation of hierarchical.
-template<typename _Type>
-struct is_flat_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        !is_hierarchical_container_v<clean_type>;
-};
-
-template<typename _Type>
-inline constexpr bool is_flat_container_v =
-    is_flat_container<_Type>::value;
-
-// is_depth_bounded_container
-//   type trait: true if hierarchical depth is constrained.
-// Detection priority:
-//   1. depth_interval satisfying is_interval.
-//   2. Legacy max_depth() accessor.
-template<typename _Type>
-struct is_depth_bounded_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( is_hierarchical_container_v<clean_type> &&
-          ( has_valid_depth_interval_v<clean_type> ||
-            has_max_depth_accessor_v<clean_type> ) );
-};
-
-template<typename _Type>
-inline constexpr bool is_depth_bounded_container_v =
-    is_depth_bounded_container<_Type>::value;
-
-// is_depth_unbounded_container
-//   type trait: true if hierarchical depth is not constrained.
-template<typename _Type>
-struct is_depth_unbounded_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( is_hierarchical_container_v<clean_type> &&
-          !is_depth_bounded_container_v<clean_type> );
-};
-
-template<typename _Type>
-inline constexpr bool is_depth_unbounded_container_v =
-    is_depth_unbounded_container<_Type>::value;
-
-
-// =============================================================================
-// XIV. Backing Container Classification
-// =============================================================================
+// ===========================================================================
+// XIV. Underlying Container Classification
+// ===========================================================================
 // Some containers delegate storage to another container type.
 // Detection is purely structural:
-//   1. backing_container_type alias => backed.
-//   2. Absence of backing_container_type, or C/std::array =>
+//   1. underlying_container_type alias => underlying.
+//   2. Absence of underlying_container_type, or C/std::array =>
 //      fundamental.
 
-// is_backed_container
+// is_underlying_container
 //   type trait: true if container delegates storage to another
 // container type.
 template<typename _Type>
-struct is_backed_container
+struct is_underlying_container
 {
     using clean_type = clean_t<_Type>;
 
     static constexpr bool value =
-        has_backing_container_type_v<clean_type>;
+        has_underlying_container_type_v<clean_type>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
-inline constexpr bool is_backed_container_v =
-    is_backed_container<_Type>::value;
+inline constexpr bool is_underlying_container_v =
+    is_underlying_container<_Type>::value;
 
+#endif
 // is_fundamental_container
 //   type trait: true if container provides its own storage.
 // C-arrays and std::array are always fundamental.
-// Any container without backing_container_type is fundamental.
+// Any container without underlying_container_type is fundamental.
 template<typename _Type>
 struct is_fundamental_container
 {
@@ -1118,93 +1039,97 @@ struct is_fundamental_container
     static constexpr bool value =
         ( is_c_array_v<clean_type>   ||
           is_std_array_v<clean_type> ||
-          !is_backed_container_v<clean_type> );
+          !is_underlying_container_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_fundamental_container_v =
     is_fundamental_container<_Type>::value;
 
-// backing_container_type_of
-//   type trait: extracts the backing container type if
+#endif
+// underlyunderlying_container_type_of
+//   type trait: extracts the underlying container type if
 // present, otherwise yields void.
-
 NS_INTERNAL
-
-    template<typename _Type, typename = void>
-    struct backing_container_type_of_impl
+    template<typename _Type,
+             typename = void>
+    struct underlyunderlying_container_type_of_helper
     {
         using type = void;
     };
 
     template<typename _Type>
-    struct backing_container_type_of_impl<_Type,
-        std::void_t<
-            typename _Type::backing_container_type>>
+    struct underlyunderlying_container_type_of_helper<
+        _Type,
+        std::void_t<typename _Type::underlying_container_type>>
     {
         using type =
-            typename _Type::backing_container_type;
+            typename _Type::underlying_container_type;
     };
 
 NS_END  // internal
 
 template<typename _Type>
-struct backing_container_type_of
+struct underlyunderlying_container_type_of
 {
     using type =
-        typename internal::backing_container_type_of_impl<
+        typename internal::underlyunderlying_container_type_of_helper<
             clean_t<_Type>>::type;
 };
 
 template<typename _Type>
-using backing_container_type_of_t =
-    typename backing_container_type_of<_Type>::type;
+using underlyunderlying_container_type_of_t =
+    typename underlyunderlying_container_type_of<_Type>::type;
 
 
-// =============================================================================
+// ===========================================================================
 // XV.  Interval Extraction
-// =============================================================================
+// ===========================================================================
 // Type aliases that extract the interval types from containers
 // that declare them, yielding void when absent.
 
 NS_INTERNAL
 
-    template<typename _Type, typename = void>
-    struct size_interval_of_impl
+    template<typename _Type, 
+             typename = void>
+    struct size_interval_of_helper
     {
         using type = void;
     };
 
     template<typename _Type>
-    struct size_interval_of_impl<_Type,
+    struct size_interval_of_helper<_Type,
         std::enable_if_t<
             has_valid_size_interval<_Type>::value>>
     {
         using type = typename _Type::size_interval;
     };
 
-    template<typename _Type, typename = void>
-    struct depth_interval_of_impl
+    template<typename _Type,
+             typename = void>
+    struct depth_interval_of_helper
     {
         using type = void;
     };
 
     template<typename _Type>
-    struct depth_interval_of_impl<_Type,
+    struct depth_interval_of_helper<_Type,
         std::enable_if_t<
             has_valid_depth_interval<_Type>::value>>
     {
         using type = typename _Type::depth_interval;
     };
 
-    template<typename _Type, typename = void>
-    struct multiplicity_interval_of_impl
+    template<typename _Type,
+             typename = void>
+    struct multiplicity_interval_of_helper
     {
         using type = void;
     };
 
     template<typename _Type>
-    struct multiplicity_interval_of_impl<_Type,
+    struct multiplicity_interval_of_helper<_Type,
         std::enable_if_t<
             has_valid_multiplicity_interval<
                 _Type>::value>>
@@ -1222,7 +1147,7 @@ template<typename _Type>
 struct size_interval_of
 {
     using type =
-        typename internal::size_interval_of_impl<
+        typename internal::size_interval_of_helper<
             clean_t<_Type>>::type;
 };
 
@@ -1236,9 +1161,7 @@ using size_interval_of_t =
 template<typename _Type>
 struct depth_interval_of
 {
-    using type =
-        typename internal::depth_interval_of_impl<
-            clean_t<_Type>>::type;
+    using type = typename internal::depth_interval_of_helper<clean_t<_Type>>::type;
 };
 
 template<typename _Type>
@@ -1251,9 +1174,9 @@ using depth_interval_of_t =
 template<typename _Type>
 struct multiplicity_interval_of
 {
-    using type =
-        typename internal::multiplicity_interval_of_impl<
-            clean_t<_Type>>::type;
+    using type = typename internal::multiplicity_interval_of_helper<
+            clean_t<_Type>
+    >::type;
 };
 
 template<typename _Type>
@@ -1261,9 +1184,9 @@ using multiplicity_interval_of_t =
     typename multiplicity_interval_of<_Type>::type;
 
 
-// =============================================================================
+// ===========================================================================
 // XVI. Combined Classification
-// =============================================================================
+// ===========================================================================
 
 // container_class
 //   struct: complete classification of a container type.
@@ -1273,87 +1196,41 @@ template<typename _Type>
 struct container_class
 {
     // lifetime classification
-    static constexpr bool is_compile_time =
-        is_compile_time_container_v<_Type>;
-    static constexpr bool is_immutable =
-        is_immutable_container_v<_Type>;
-    static constexpr bool is_mutable =
-        is_mutable_container_v<_Type>;
-    static constexpr bool is_runtime =
-        is_runtime_container_v<_Type>;
-
-    // bounds classification
-    static constexpr bool is_unbounded =
-        is_unbounded_v<_Type>;
-    static constexpr bool is_lower_bounded =
-        is_lower_bounded_v<_Type>;
-    static constexpr bool is_upper_bounded =
-        is_upper_bounded_v<_Type>;
-    static constexpr bool is_bounded =
-        is_bounded_v<_Type>;
-    static constexpr bool has_size_interval =
-        has_valid_size_interval_v<_Type>;
-
-    // storage classification
-    static constexpr bool is_static_storage =
-        is_static_storage_v<_Type>;
-    static constexpr bool is_dynamic_storage =
-        is_dynamic_storage_v<_Type>;
-
-    // iteration classification
-    static constexpr bool is_iterable =
-        is_iterable_container_v<_Type>;
-    static constexpr bool is_const_iterable =
-        is_const_iterable_container_v<_Type>;
-    static constexpr bool is_non_iterable =
-        is_non_iterable_container_v<_Type>;
-    static constexpr bool has_reverse_iterators =
-        has_reverse_iteration_v<_Type>;
-
-    // ordering classification
-    static constexpr bool is_ordered =
-        is_ordered_container_v<_Type>;
-    static constexpr bool is_unordered =
-        is_unordered_container_v<_Type>;
-
-    // sorted classification
-    static constexpr bool is_sorted =
-        is_sorted_container_v<_Type>;
-    static constexpr bool is_unsorted =
-        is_unsorted_container_v<_Type>;
-
+    static constexpr bool is_compile_time       = is_compile_time_container_v<_Type>;
+    static constexpr bool is_immutable          = is_immutable_container_v<_Type>;
+    static constexpr bool is_mutable            = is_mutable_container_v<_Type>;
+    static constexpr bool is_runtime            = is_runtime_container_v<_Type>;
+    // bounds classification                    
+    static constexpr bool is_unbounded          = is_unbounded_v<_Type>;
+    static constexpr bool is_lower_bounded      = is_lower_bounded_v<_Type>;
+    static constexpr bool is_upper_bounded      = is_upper_bounded_v<_Type>;    
+    static constexpr bool is_bounded            = is_bounded_v<_Type>;
+    static constexpr bool has_size_interval     = has_valid_size_interval_v<_Type>;
+    // storage classification                   
+    static constexpr bool is_static_storage     = is_static_storage_v<_Type>;
+    static constexpr bool is_dynamic_storage    = is_dynamic_storage_v<_Type>;
+    // iteration classification                 
+    static constexpr bool is_iterable           = is_iterable_container_v<_Type>;
+    static constexpr bool is_const_iterable     = is_const_iterable_container_v<_Type>;
+    static constexpr bool is_non_iterable       = is_non_iterable_container_v<_Type>;
+    static constexpr bool has_reverse_iteration = has_reverse_iteration_v<_Type>;
+    // ordering classification                  
+    static constexpr bool is_ordered            = is_ordered_container_v<_Type>;
+    static constexpr bool is_unordered          = is_unordered_container_v<_Type>;
+    // sorted classification                    
+    static constexpr bool is_sorted             = is_sorted_container_v<_Type>;
+    static constexpr bool is_unsorted           = is_unsorted_container_v<_Type>;
     // uniqueness and multiplicity
-    static constexpr bool enforces_uniqueness =
-        enforces_uniqueness_v<_Type>;
-    static constexpr bool allows_duplicates =
-        allows_duplicates_v<_Type>;
-    static constexpr bool has_bounded_multiplicity =
-        has_bounded_multiplicity_v<_Type>;
-    static constexpr bool has_multiplicity_interval =
-        has_valid_multiplicity_interval_v<_Type>;
-
-    // structure classification
-    static constexpr bool is_flat =
-        is_flat_container_v<_Type>;
-    static constexpr bool is_hierarchical =
-        is_hierarchical_container_v<_Type>;
-    static constexpr bool is_depth_bounded =
-        is_depth_bounded_container_v<_Type>;
-    static constexpr bool is_depth_unbounded =
-        is_depth_unbounded_container_v<_Type>;
-    static constexpr bool has_depth_interval =
-        has_valid_depth_interval_v<_Type>;
-
-    // backing container classification
-    static constexpr bool is_backed =
-        is_backed_container_v<_Type>;
-    static constexpr bool is_fundamental =
-        is_fundamental_container_v<_Type>;
+    static constexpr bool enforces_uniqueness   = enforces_uniqueness_v<_Type>;
+    static constexpr bool allows_duplicates     = allows_duplicates_v<_Type>;
+    static constexpr bool has_bounded_multiplicity  = has_bounded_multiplicity_v<_Type>;
+    static constexpr bool has_multiplicity_interval = has_valid_multiplicity_interval_v<_Type>;
+    // underlying container classification         
+    static constexpr bool is_underlying         = is_underlying_container_v<_Type>;
+    static constexpr bool is_fundamental        = is_fundamental_container_v<_Type>;
 };
 
 
-NS_END	// traits
-NS_END	// container
 NS_END	// djinterp
 
 

@@ -20,9 +20,8 @@
 *   Detection here is unparameterized (single _Type): it checks
 * whether a container exposes a method by name, regardless of the
 * option_set or key/value types involved.  For parameterized
-* detection (e.g. "can _T accept THIS specific option_set?"), see
+* detection (e.g. "can _Type accept THIS specific option_set?"), see
 * the target-level traits in option_set_traits.hpp sections XII-XVI.
-*
 *   All detection is purely structural SFINAE.  The option_set_traits
 * from djinterp:: are reused for entry-level and container-level
 * option_set detection.
@@ -31,40 +30,40 @@
 *   container_traits.hpp     - container classification
 *   option_set_traits.hpp    - option entry / option_set detection
 *
-* TABLE OF CONTENTS
-* =================
-* 1.   option storage detection
-* 2.   configurable detection
-* 3.   option-producing detection
-* 4.   CLI protocol detection
-* 5.   options template construction detection
-* 6.   strategy classification
-* 7.   convenience predicates
-* 8.   combined classification
 *
-*
-* path:      /inc/container/meta/container_option_traits.hpp
+* path:      /inc/djinterp/core/container/traits/container_option_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.23
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.23
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.   option storage detection
+2.   configurable detection
+3.   option - producing detection
+4.   CLI protocol detection
+5.   options template construction detection
+6.   strategy classification
+7.   convenience predicates
+8.   combined classification
+*/
 
 #ifndef DJINTERP_CONTAINER_OPTION_TRAITS_
 #define DJINTERP_CONTAINER_OPTION_TRAITS_ 1
 
+// std
 #include <cstddef>
 #include <string>
 #include <type_traits>
-#include "../djinterp.hpp"
-#include "../type_traits.hpp"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
 #include "container_traits.hpp"
 #include "../../options/option_set_traits.hpp"
 
 
-
-
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
 
 // has_parse_option_method
@@ -96,8 +95,7 @@ D_TYPE_TRAIT_TRUE(has_parse_config_method,
 //   type trait: true if container can generate a help/usage
 // string from its options.
 D_TYPE_TRAIT_TRUE(has_help_string_method,
-    decltype(
-        std::declval<const _Type&>().help_string()))
+    decltype(std::declval<const _Type&>().help_string()))
 
 // has_apply_options_method
 //   type trait: true if container has an
@@ -135,8 +133,7 @@ D_TYPE_TRAIT_TRUE(has_to_options_method,
 //   type trait: true if container has a .get_options() method
 // returning the current configuration as options.
 D_TYPE_TRAIT_TRUE(has_get_options_method,
-    decltype(
-        std::declval<const _Type&>().get_options()))
+    decltype(std::declval<const _Type&>().get_options()))
 
 ///////////////////////////////////////////////////////////////////////////////
 // 1.   option storage detection
@@ -382,14 +379,14 @@ inline constexpr bool has_from_options_factory_v = has_from_options_factory<_Typ
 //   enum: compile-time configuration strategy tags.
 enum class option_configure_strategy
 {
-    // container has .apply_options(option_set) — delegate
+    // container has .apply_options(option_set) - delegate
     native_apply,
-    // container has .configure() — delegate
+    // container has .configure() - delegate
     native_configure,
-    // container has .set_option(key, value) — iterate
+    // container has .set_option(key, value) - iterate
     // option_set and apply each entry individually
     per_option,
-    // container is itself an option_set — merge
+    // container is itself an option_set - merge
     option_set_merge,
     // no configuration path available
     unsupported
@@ -433,13 +430,13 @@ inline constexpr option_configure_strategy container_option_configure_strategy_v
 //   enum: compile-time CLI parse strategy tags.
 enum class option_parse_strategy
 {
-    // container has .parse_args(argc, argv) — bulk
+    // container has .parse_args(argc, argv) - bulk
     native_args,
-    // container has .parse_option(string) — one at a time
+    // container has .parse_option(string) - one at a time
     native_single,
-    // container has .parse_config(string) — config block
+    // container has .parse_config(string) - config block
     native_config,
-    // container is an option_set with string keys —
+    // container is an option_set with string keys -
     // generic key=value parsing
     generic_kv,
     // no parse path available
@@ -567,8 +564,6 @@ struct container_option_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 

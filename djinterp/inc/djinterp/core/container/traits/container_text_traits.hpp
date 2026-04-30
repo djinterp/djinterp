@@ -14,76 +14,77 @@
 * serialization to text formats).
 *
 *   stream_to() writes as many bytes as fit into the provided buffer
-* and returns the number of bytes written — an incremental / chunked
+* and returns the number of bytes written - an incremental / chunked
 * interface suitable for fixed-size output buffers, network writes,
 * or C interop via fn_write.
 *
 *   Additionally detects element-level text capabilities and
 * standard library streamability (operator<<).
 *
-* TABLE OF CONTENTS
-* =================
-* I.      Container-Level Detection
-* II.     Element-Level Detection
-* III.    Standard Library Stream Detection
-* IV.     Strategy Classification
-* V.      Convenience Predicates
-* VI.     Combined Classification
 *
 *
-* path:      \inc\container\meta\container_text_traits.hpp
+* path:      /inc/djinterp/core/container/traits/container_text_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.23
 ******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+I.      container-level detection
+II.     element-level detection
+III.    standard library stream detection
+IV.     strategy classification
+V.      convenience predicates
+VI.     combined classification
+*/
+
 #ifndef DJINTERP_CONTAINER_TEXT_TRAITS_
 #define DJINTERP_CONTAINER_TEXT_TRAITS_ 1
 
+// std
 #include <cstddef>
 #include <iosfwd>
 #include <string>
 #include <type_traits>
-#include "..\djinterp.hpp"
-#include "..\type_traits.hpp"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
 #include "container_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
-// =============================================================================
+// ===========================================================================
 // I.   Container-Level Detection
-// =============================================================================
+// ===========================================================================
 
 // has_to_text_method
 //   type trait: true if container has
 //     std::string to_text() const
 D_TYPE_TRAIT_TRUE(has_to_text_method,
-    decltype(std::declval<const _Type&>().to_text()))
+                  decltype(std::declval<const _Type&>().to_text()))
 
 // has_stream_to_method
 //   type trait: true if container has
 //     std::size_t stream_to(char*, std::size_t) const
 D_TYPE_TRAIT_TRUE(has_stream_to_method,
-    decltype(std::declval<const _Type&>().stream_to(
-        std::declval<char*>(),
-        std::declval<std::size_t>())))
+                  decltype(std::declval<const _Type&>().stream_to(
+                      std::declval<char*>(),
+                      std::declval<std::size_t>())))
 
 // has_to_string_method
 //   type trait: true if container has a .to_string()
 // method (common alternative to to_text).
 D_TYPE_TRAIT_TRUE(has_to_string_method,
-    decltype(
-        std::declval<const _Type&>().to_string()))
+                  decltype(std::declval<const _Type&>().to_string()))
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Element-Level Detection
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
-
     template<typename _Type, typename = void>
     struct text_safe_value_type
     {
@@ -161,9 +162,7 @@ NS_END  // internal
 template<typename _Type>
 struct has_text_convertible_elements
 {
-    using elem_type =
-        internal::text_safe_value_type_t<
-            clean_t<_Type>>;
+    using elem_type = internal::text_safe_value_type_t<clean_t<_Type>>;
 
     static constexpr bool value =
         ( internal::elem_has_to_text<
@@ -200,9 +199,9 @@ inline constexpr bool has_streamable_elements_v =
     has_streamable_elements<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // III. Standard Library Stream Detection
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
 
@@ -271,24 +270,24 @@ inline constexpr bool
             _Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Strategy Classification
-// =============================================================================
+// ===========================================================================
 
 // --- text strategy ---
 
-enum class DTextStrategy
+enum class container_text_strategy
 {
-    // container has to_text() — delegate
+    // container has to_text() - delegate
     native,
 
-    // container has to_string() — delegate
+    // container has to_string() - delegate
     native_to_string,
 
-    // container is ostream-insertable — use sstream
+    // container is ostream-insertable - use sstream
     ostream,
 
-    // iterable + elements text-convertible — join
+    // iterable + elements text-convertible - join
     element,
 
     // no text path
@@ -302,21 +301,21 @@ NS_INTERNAL
     {
         using C = clean_t<_Type>;
 
-        static constexpr DTextStrategy value =
+        static constexpr text_output_strategy value =
             has_to_text_method_v<C>
-                ? DTextStrategy::native
+                ? container_text_strategy::native
 
             : has_to_string_method_v<C>
-                ? DTextStrategy::native_to_string
+                ? container_text_strategy::native_to_string
 
             : is_ostream_insertable_v<C>
-                ? DTextStrategy::ostream
+                ? container_text_strategy::ostream
 
             : ( is_iterable_container_v<C> &&
                 has_text_convertible_elements_v<C> )
-                ? DTextStrategy::element
+                ? container_text_strategy::element
 
-            : DTextStrategy::unsupported;
+            : container_text_strategy::unsupported;
     };
 
 NS_END  // internal
@@ -324,27 +323,27 @@ NS_END  // internal
 template<typename _Type>
 struct container_text_strategy
 {
-    static constexpr DTextStrategy value =
+    static constexpr container_text_strategy value =
         internal::text_strategy_impl<_Type>::value;
 };
 
 template<typename _Type>
-inline constexpr DTextStrategy
+inline constexpr container_text_strategy
     container_text_strategy_v =
         container_text_strategy<_Type>::value;
 
 // --- stream strategy ---
 
-enum class DStreamStrategy
+enum class stream_strategy
 {
-    // container has stream_to(buf, cap) — delegate
+    // container has stream_to(buf, cap) - delegate
     native,
 
-    // iterable + elements have stream_to() —
+    // iterable + elements have stream_to() -
     // per-element write
     element,
 
-    // container has to_text() — convert then copy
+    // container has to_text() - convert then copy
     via_text,
 
     // no stream path
@@ -358,18 +357,18 @@ NS_INTERNAL
     {
         using C = clean_t<_Type>;
 
-        static constexpr DStreamStrategy value =
+        static constexpr stream_strategy value =
             has_stream_to_method_v<C>
-                ? DStreamStrategy::native
+                ? stream_strategy::native
 
             : ( is_iterable_container_v<C> &&
                 has_streamable_elements_v<C> )
-                ? DStreamStrategy::element
+                ? stream_strategy::element
 
             : has_to_text_method_v<C>
-                ? DStreamStrategy::via_text
+                ? stream_strategy::via_text
 
-            : DStreamStrategy::unsupported;
+            : stream_strategy::unsupported;
     };
 
 NS_END  // internal
@@ -377,26 +376,26 @@ NS_END  // internal
 template<typename _Type>
 struct container_stream_strategy
 {
-    static constexpr DStreamStrategy value =
+    static constexpr stream_strategy value =
         internal::stream_strategy_impl<_Type>::value;
 };
 
 template<typename _Type>
-inline constexpr DStreamStrategy
+inline constexpr stream_strategy
     container_stream_strategy_v =
         container_stream_strategy<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Convenience Predicates
-// =============================================================================
+// ===========================================================================
 
 template<typename _Type>
 struct is_text_convertible
 {
     static constexpr bool value =
         ( container_text_strategy_v<_Type> !=
-          DTextStrategy::unsupported );
+          container_text_strategy::unsupported );
 };
 
 template<typename _Type>
@@ -408,7 +407,7 @@ struct is_streamable
 {
     static constexpr bool value =
         ( container_stream_strategy_v<_Type> !=
-          DStreamStrategy::unsupported );
+          stream_strategy::unsupported );
 };
 
 template<typename _Type>
@@ -416,9 +415,9 @@ inline constexpr bool is_streamable_v =
     is_streamable<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  Combined Classification
-// =============================================================================
+// ===========================================================================
 
 template<typename _Type>
 struct container_text_class
@@ -442,10 +441,10 @@ struct container_text_class
         has_ostream_insertable_elements_v<_Type>;
 
     // strategies
-    static constexpr DTextStrategy
+    static constexpr container_text_strategy
         text_strategy =
             container_text_strategy_v<_Type>;
-    static constexpr DStreamStrategy
+    static constexpr stream_strategy
         stream_strategy =
             container_stream_strategy_v<_Type>;
 
@@ -457,8 +456,6 @@ struct container_text_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 
