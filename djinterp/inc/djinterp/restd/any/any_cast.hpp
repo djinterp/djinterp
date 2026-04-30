@@ -2,7 +2,7 @@
 * djinterp [restd]                                                any_cast.hpp
 *
 * any_cast header:
-*   Provides type-safe access to the value stored in a djinterp::stl::any.
+*   Provides type-safe access to the value stored in a restd::any.
 * Five overloads mirror the C++17 std::any_cast interface:
 *   - any_cast<T>(any*)        -> T*         (nullptr on mismatch)
 *   - any_cast<T>(const any*)  -> const T*   (nullptr on mismatch)
@@ -11,14 +11,18 @@
 *   - any_cast<T>(any&&)       -> T          (move, checked)
 *
 *   PORTABILITY:
-*   Reference overloads throw bad_any_cast when D_ENV_CPP98_HAS_TYPEINFO
-* or D_ENV_CPP98_HAS_EXCEPTION is available. When exceptions are disabled,
-* unchecked versions are provided instead (undefined behaviour on mismatch).
+*   - C++98/03: pointer overloads always available. Reference overloads
+*     throw bad_any_cast when D_ENV_CPP98_HAS_TYPEINFO or
+*     D_ENV_CPP98_HAS_EXCEPTION is available; otherwise unchecked
+*     (undefined behaviour on mismatch).
+*   - C++11+: rvalue reference overload (any&&) additionally available.
+*   - Pointer overloads only support heap-stored types (require
+*     D_ENV_CPP98_HAS_NEW).
 *
 *
 * path:      /inc/djinterp/restd/any/any_cast.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.10
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/
 
 #ifndef DJINTERP_RESTD_ANY_CAST_
@@ -30,31 +34,35 @@
 #include "./bad_any_cast.hpp"
 
 
-NS_DJINTERP
 NS_RESTD
 
 
 // ===========================================================================
 // I.   POINTER OVERLOADS (unchecked - always available)
 // ===========================================================================
-// These return nullptr when the stored type does not match _Type. No exception
-// is thrown; the caller must check the return value.
+// These return D_NULLPTR when the stored type does not match _Type.
+// No exception is thrown; the caller must check the return value.
+// note: only valid for heap-stored types (SBO types cannot
+// return a pointer to their stored representation because the
+// union member is a wider type).
+
+#if D_ENV_CPP98_HAS_NEW
 
 // any_cast (mutable pointer)
-//   function: returns a pointer to the stored value if it matches _Type,
-// or nullptr otherwise.
+//   function: returns a pointer to the stored value if it matches
+// _Type, or D_NULLPTR otherwise.
 template<typename _Type>
 _Type*
 any_cast(
     any* _a
 )
-noexcept
+D_NOEXCEPT
 {
     // reject null or type mismatch
     if ( (!_a) ||
          (!_a->template holds<_Type>()) )
     {
-        return nullptr;
+        return D_NULLPTR;
     }
 
     return &(_a->template get_ref<_Type>());
@@ -62,30 +70,32 @@ noexcept
 
 // any_cast (const pointer)
 //   function: returns a const pointer to the stored value if it
-// matches _Type, or nullptr otherwise.
+// matches _Type, or D_NULLPTR otherwise.
 template<typename _Type>
 const _Type*
 any_cast(
     const any* _a
 )
-noexcept
+D_NOEXCEPT
 {
     // reject null or type mismatch
     if ( (!_a) ||
          (!_a->template holds<_Type>()) )
     {
-        return nullptr;
+        return D_NULLPTR;
     }
 
     return &(_a->template get_ref<_Type>());
 }
+
+#endif  // D_ENV_CPP98_HAS_NEW
 
 
 // ===========================================================================
 // II.  REFERENCE OVERLOADS (checked or unchecked)
 // ===========================================================================
 
-#if ( D_ENV_CPP98_HAS_TypeYPEINFO ||                                          \ 
+#if ( D_ENV_CPP98_HAS_TYPEINFO ||                                             \
       D_ENV_CPP98_HAS_EXCEPTION )
 
 // any_cast (const lvalue reference - checked)
@@ -109,6 +119,8 @@ any_cast(
 // any_cast (mutable lvalue reference - checked)
 //   function: returns a mutable reference to the stored value.
 // throws: bad_any_cast if the stored type does not match _Type.
+// note: only valid for heap-stored types.
+#if D_ENV_CPP98_HAS_NEW
 template<typename _Type>
 _Type&
 any_cast(
@@ -123,10 +135,12 @@ any_cast(
 
     return _a.template get_ref<_Type>();
 }
+#endif  // D_ENV_CPP98_HAS_NEW
 
 // any_cast (rvalue reference - checked)
 //   function: moves the stored value out of the any.
 // throws: bad_any_cast if the stored type does not match _Type.
+#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES && D_ENV_CPP98_HAS_NEW
 template<typename _Type>
 _Type
 any_cast(
@@ -141,6 +155,7 @@ any_cast(
 
     return static_cast<_Type&&>(_a.template get_ref<_Type>());
 }
+#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES && D_ENV_CPP98_HAS_NEW
 
 #else  // no exceptions available
 
@@ -149,7 +164,7 @@ any_cast(
 // checking.
 // note: undefined behaviour if the stored type does not match _Type.
 template<typename _Type>
-D_CONSTEXPR _Type
+_Type
 any_cast(
     const any& _a
 )
@@ -161,6 +176,7 @@ any_cast(
 //   function: returns a mutable reference to the stored value
 // without type checking.
 // note: undefined behaviour if the stored type does not match _Type.
+#if D_ENV_CPP98_HAS_NEW
 template<typename _Type>
 _Type&
 any_cast(
@@ -169,11 +185,13 @@ any_cast(
 {
     return _a.template get_ref<_Type>();
 }
+#endif  // D_ENV_CPP98_HAS_NEW
 
 // any_cast (rvalue reference - unchecked)
 //   function: moves the stored value out of the any without type
 // checking.
 // note: undefined behaviour if the stored type does not match _Type.
+#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES && D_ENV_CPP98_HAS_NEW
 template<typename _Type>
 _Type
 any_cast(
@@ -182,12 +200,12 @@ any_cast(
 {
     return static_cast<_Type&&>(_a.template get_ref<_Type>());
 }
+#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES && D_ENV_CPP98_HAS_NEW
 
 #endif  // exception availability
 
 
 NS_END  // restd
-NS_END  // djinterp
 
 
 #endif  // DJINTERP_RESTD_ANY_CAST_

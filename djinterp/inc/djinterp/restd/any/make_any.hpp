@@ -2,32 +2,39 @@
 * djinterp [restd]                                                make_any.hpp
 *
 * make_any factory header:
-*   Provides factory functions for constructing djinterp::stl::any objects
-* with emplaced values. Mirrors the C++17 _Type::make_any interface:
+*   Provides factory functions for constructing restd::any objects
+* with emplaced values. Mirrors the C++17 std::make_any interface:
 *   - make_any<T>(args...)                   - forwards to T constructor
 *   - make_any<T>(initializer_list, args...) - initializer_list overload
 *
-* 
+*   PORTABILITY:
+*   Requires variadic templates (C++11+). Not available on C++98/03;
+* use direct construction via the any value constructors instead.
+*
+*
 * path:      /inc/djinterp/restd/any/make_any.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.10
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/
 
 #ifndef DJINTERP_RESTD_MAKE_ANY_
 #define DJINTERP_RESTD_MAKE_ANY_ 1
 
-#include <initializer_list>
 #include "../../core/djinterp.hpp"
 #include "./any.hpp"
 
+// gate: requires variadic templates
+#if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
-NS_DJINTERP
+#include <initializer_list>
+
+
 NS_RESTD
 
 
-// =============================================================================
+// ===========================================================================
 // I.   MAKE_ANY
-// =============================================================================
+// ===========================================================================
 
 // make_any (forwarding)
 //   function: constructs an any containing a value of type _Type,
@@ -54,8 +61,8 @@ template<typename    _Type,
          typename... _Args>
 any
 make_any(
-    _Type::initializer_list<_U> _il,
-    _Args&&...                  _args
+    std::initializer_list<_U> _il,
+    _Args&&...                _args
 )
 {
     any result;
@@ -66,7 +73,9 @@ make_any(
 
 
 NS_END  // restd
-NS_END  // djinterp
+
+
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 
 #endif  // DJINTERP_RESTD_MAKE_ANY_
