@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                            container_binary_traits.hpp
+* djinterp [container]                             container_binary_traits.hpp
 *
 * djinterp container binary encoding/decoding traits
 *   Detects whether a container can be converted to/from binary via
@@ -9,43 +9,46 @@
 *
 *   Detection is organized into three tiers per direction:
 *     1. Native:   container has encode() / decode() directly.
-*     2. Bulk:     contiguous trivially-copyable storage — memcpy.
+*     2. Bulk:     contiguous trivially-copyable storage - memcpy.
 *     3. Element:  iterable/output-capable + elements individually
 *                  encodable/decodable.
 *   All detection is purely structural SFINAE.
 *
 *
-* path:      /inc/container/meta/container_binary_traits.hpp
+* path:      /inc/djinterp/core/container/traits/container_binary_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.23
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.23
 ******************************************************************************/
 
-// TABLE OF CONTENTS
-// ================ =
-// 1.  container - level detection
-// 2.  element - level detection
-// 3.  bulk detection
-// 4.  type info integration
-// 5.  strategy classification
-// 6.  convenience predicates
-// 7.  combined classification
+/*
+TABLE OF CONTENTS
+================ =
+1.  container - level detection
+2.  element - level detection
+3.  bulk detection
+4.  type info integration
+5.  strategy classification
+6.  convenience predicates
+7.  combined classification
+*/
 
 #ifndef DJINTERP_CONTAINER_BINARY_TRAITS_
 #define DJINTERP_CONTAINER_BINARY_TRAITS_ 1
 
+// std
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
 #include <vector>
-#include "../djinterp.hpp"
-#include "../type_traits.hpp"
-#include "../../c/type_info.h"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../../meta/type_info.h"
 #include "./container_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // 1.   container-level detection
@@ -296,7 +299,7 @@ NS_INTERNAL
                 ? binary_decoding_strategy::native
                 : is_bulk_decodable_v<clean_type>
                     ? binary_decoding_strategy::bulk
-                    : ( ( has_push_back_v<clean_type> ||
+                    : ( ( has_push__v<clean_type> ||
                           has_insert_v<clean_type> )  &&
                           has_decodable_elements_v<clean_type> )
                         ? binary_decoding_strategy::element
@@ -379,8 +382,6 @@ struct container_binary_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 

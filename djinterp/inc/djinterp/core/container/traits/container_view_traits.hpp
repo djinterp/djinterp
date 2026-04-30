@@ -3,7 +3,7 @@
 *
 * Tier 0 (view) conversion traits for the djinterp container framework.
 *   Detects whether container type _From can be reinterpreted as
-* container type _To at zero cost — no data copy, no allocation, no
+* container type _To at zero cost - no data copy, no allocation, no
 * runtime work.  These are purely compile-time downgrades where the
 * source has more capability or a stricter invariant than the target.
 *
@@ -11,69 +11,72 @@
 *
 *     Axis          Free direction          Blocked direction
 *     ------------- ----------------------- --------------------
-*     Lifetime      mutable → immutable     immutable → mutable
-*     Iteration     stronger → weaker       weaker → stronger
-*     Const-iter    iterator → const_iter   const_iter → iterator
-*     Ordering      sorted → unsorted       unsorted → sorted
-*     Bounds        bounded → unbounded     unbounded → bounded
-*     Multiplicity  unique → multi          multi → unique
-*     Thread safety ts → non-ts (opt-in)    non-ts → ts
+*     Lifetime      mutable --> immutable     immutable --> mutable
+*     Iteration     stronger --> weaker       weaker --> stronger
+*     Const-iter    iterator --> const_iter   const_iter --> iterator
+*     Ordering      sorted --> unsorted       unsorted --> sorted
+*     Bounds        bounded --> unbounded     unbounded --> bounded
+*     Multiplicity  unique --> multi          multi --> unique
+*     Thread safety ts --> non-ts (opt-in)    non-ts --> ts
 *
 *   A view conversion between two container types is possible when
 * every axis is either already equal or has a free downgrade path.
 * If any axis requires work (tier >= 1), the conversion is not a
-* view — it belongs to a higher tier.
+* view - it belongs to a higher tier.
 *
 *   This module does NOT produce views or adapters.  It only
 * classifies whether a view is structurally possible.  The actual
 * view types belong in the container implementation modules.
 *
 * DEPENDENCIES:
-*   container_traits.hpp          — container classification
-*   container_compare_traits.hpp  — element compatibility
-*   iterator_traits.hpp           — iterator level detection
-*   threadsafe_container_traits.hpp — thread safety level
-*
-* TABLE OF CONTENTS
-* =================
-* I.      Per-Axis View Detection (single type queries)
-* II.     Per-Axis Pair View Detection (From → To)
-* III.    Combined View Convertibility
-* IV.     View Classification
+*   container_traits.hpp          - container classification
+*   container_compare_traits.hpp  - element compatibility
+*   iterator_traits.hpp           - iterator level detection
+*   threadsafe_container_traits.hpp - thread safety level
 *
 *
-* path:      \inc\container\meta\container_view_traits.hpp
+* path:      /inc/djinterp/core/container/traits/container_view_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
 ******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+I.      per-axis view detection (single type queries)
+II.     per-axis pair view detection (From --> To)
+III.    combined view convertibility
+IV.     view classification
+*/
+
 #ifndef DJINTERP_CONTAINER_VIEW_TRAITS_
 #define DJINTERP_CONTAINER_VIEW_TRAITS_ 1
 
+// std
 #include <type_traits>
-#include "..\djinterp.hpp"
-#include "..\type_traits.hpp"
-#include "container_traits.hpp"
-#include "container_compare_traits.hpp"
-#include "iterator_traits.hpp"
-#include "threadsafe_container_traits.hpp"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../iterator/iterator_traits.hpp"
+#include "./container_traits.hpp"
+#include "./container_compare_traits.hpp"
+#include "./threadsafe_container_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
-// =============================================================================
+
+// ===========================================================================
 // I.   Per-Axis View Detection (single type queries)
-// =============================================================================
+// ===========================================================================
 // Helpers that classify a single container's position on
 // each axis.  Used by the pair detectors in Section II.
 
 // --- lifetime axis ---
 
-// DLifetime
+// lifetime
 //   enum: container lifetime classification.
-enum class DLifetime
+enum class lifetime
 {
     constexpr_storage,    // constexpr data
     immutable,            // const / non-modifiable
@@ -87,14 +90,14 @@ NS_INTERNAL
     {
         using C = clean_t<_Type>;
 
-        static constexpr DLifetime value =
+        static constexpr lifetime value =
             is_constexpr_container_v<C>
-                ? DLifetime::constexpr_storage
+                ? lifetime::constexpr_storage
 
             : is_immutable_container_v<C>
-                ? DLifetime::immutable
+                ? lifetime::immutable
 
-            : DLifetime::mutable_storage;
+            : lifetime::mutable_storage;
     };
 
 NS_END  // internal
@@ -102,19 +105,21 @@ NS_END  // internal
 template<typename _Type>
 struct lifetime_of
 {
-    static constexpr DLifetime value =
+    static constexpr lifetime value =
         internal::lifetime_of_impl<_Type>::value;
 };
 
-template<typename _Type>
-inline constexpr DLifetime lifetime_of_v =
-    lifetime_of<_Type>::value;
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    template<typename _Type>
+    inline constexpr lifetime lifetime_of_v =
+        lifetime_of<_Type>::value;
+#endif
 
 // --- ordering axis ---
 
 // is_sorted_view_source
 //   type trait: true if container's sorted invariant can
-// be safely ignored (sorted → unsorted is free).
+// be safely ignored (sorted --> unsorted is free).
 template<typename _Type>
 struct is_sorted_view_source
 {
@@ -124,15 +129,17 @@ struct is_sorted_view_source
         is_sorted_container_v<clean_type>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_sorted_view_source_v =
     is_sorted_view_source<_Type>::value;
 
+#endif
 // --- multiplicity axis ---
 
 // is_unique_view_source
 //   type trait: true if container's uniqueness invariant
-// can be safely ignored (unique → multi is free).
+// can be safely ignored (unique --> multi is free).
 template<typename _Type>
 struct is_unique_view_source
 {
@@ -142,14 +149,16 @@ struct is_unique_view_source
         is_unique_container_v<clean_type>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_unique_view_source_v =
     is_unique_view_source<_Type>::value;
 
 
-// =============================================================================
-// II.  Per-Axis Pair View Detection (From → To)
-// =============================================================================
+#endif
+// ===========================================================================
+// II.  Per-Axis Pair View Detection (From --> To)
+// ===========================================================================
 // For each axis, determines whether _From can be viewed as
 // _To at zero cost.  Returns true when the axis is either
 // equal or has a free downgrade path.
@@ -159,7 +168,7 @@ inline constexpr bool is_unique_view_source_v =
 // is_element_view_compatible
 //   type trait: true if _From's value_type is the same as
 // _To's, or _From's is a const-qualified version of _To's.
-// No implicit conversions — must be the exact type or its
+// No implicit conversions - must be the exact type or its
 // const variant.
 template<typename _From,
          typename _To>
@@ -169,6 +178,7 @@ struct is_element_view_compatible
         elements_same_type_v<_From, _To>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -176,37 +186,36 @@ inline constexpr bool
         is_element_view_compatible<
             _From, _To>::value;
 
+#endif
 // --- lifetime axis ---
 
 // is_lifetime_view_compatible
 //   type trait: true if _From's lifetime can be viewed as
 // _To's lifetime at zero cost.
-//   constexpr → anything:  free
-//   mutable   → immutable: free (const& view)
-//   immutable → mutable:   NOT free (requires copy)
+//   constexpr --> anything:  free
+//   mutable   --> immutable: free (const& view)
+//   immutable --> mutable:   NOT free (requires copy)
 //   same level:            free
 template<typename _From,
          typename _To>
 struct is_lifetime_view_compatible
 {
-    static constexpr DLifetime from_life =
+    static constexpr lifetime from_life =
         lifetime_of_v<_From>;
-    static constexpr DLifetime to_life =
+    static constexpr lifetime to_life =
         lifetime_of_v<_To>;
 
-    // constexpr is the "highest" — can view as
+    // constexpr is the "highest" - can view as
     // anything below
     // mutable > immutable in capability
     static constexpr bool value =
-        ( from_life == to_life )             ||
-        ( from_life ==
-          DLifetime::constexpr_storage )     ||
-        ( from_life ==
-              DLifetime::mutable_storage &&
-          to_life ==
-              DLifetime::immutable );
+        ( from_life == to_life )                       ||
+        ( from_life == lifetime::constexpr_storage )   ||
+        (    from_life == lifetime::mutable_storage
+          && to_life   == lifetime::immutable          );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -214,19 +223,20 @@ inline constexpr bool
         is_lifetime_view_compatible<
             _From, _To>::value;
 
+#endif
 // --- iteration axis ---
 
 // is_iteration_view_compatible
 //   type trait: true if _From provides at least as strong
 // an iterator category as _To requires.
-// Stronger → weaker is free (just use less capability).
+// Stronger --> weaker is free (just use less capability).
 template<typename _From,
          typename _To>
 struct is_iteration_view_compatible
 {
-    static constexpr DIteratorLevel from_level =
+    static constexpr iterator_level from_level =
         container_iterator_level_v<_From>;
-    static constexpr DIteratorLevel to_level =
+    static constexpr iterator_level to_level =
         container_iterator_level_v<_To>;
 
     // from_level >= to_level means _From is at least
@@ -236,6 +246,7 @@ struct is_iteration_view_compatible
           static_cast<int>(to_level) );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -243,14 +254,15 @@ inline constexpr bool
         is_iteration_view_compatible<
             _From, _To>::value;
 
+#endif
 // --- ordering axis ---
 
 // is_ordering_view_compatible
-//   type trait: true if _From → _To requires no sorting.
-//   sorted → sorted:      free (same invariant)
-//   sorted → unsorted:    free (ignore invariant)
-//   unsorted → unsorted:  free (no invariant)
-//   unsorted → sorted:    NOT free (requires sort)
+//   type trait: true if _From --> _To requires no sorting.
+//   sorted --> sorted:      free (same invariant)
+//   sorted --> unsorted:    free (ignore invariant)
+//   unsorted --> unsorted:  free (no invariant)
+//   unsorted --> sorted:    NOT free (requires sort)
 template<typename _From,
          typename _To>
 struct is_ordering_view_compatible
@@ -272,6 +284,7 @@ struct is_ordering_view_compatible
         ( !to_sorted );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -279,16 +292,17 @@ inline constexpr bool
         is_ordering_view_compatible<
             _From, _To>::value;
 
+#endif
 // --- bounds axis ---
 
 // is_bounds_view_compatible
-//   type trait: true if _From → _To requires no bound
+//   type trait: true if _From --> _To requires no bound
 // checking.
-//   bounded → unbounded:  free (valid subset)
-//   bounded → bounded:    free if from-bounds ⊆ to-bounds
+//   bounded --> unbounded:  free (valid subset)
+//   bounded --> bounded:    free if from-bounds ⊆ to-bounds
 //                         (conservative: always free)
-//   unbounded → unbounded: free
-//   unbounded → bounded:  NOT free (requires validation)
+//   unbounded --> unbounded: free
+//   unbounded --> bounded:  NOT free (requires validation)
 template<typename _From,
          typename _To>
 struct is_bounds_view_compatible
@@ -307,6 +321,7 @@ struct is_bounds_view_compatible
         ( from_bounded && !to_bounded );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -314,15 +329,16 @@ inline constexpr bool
         is_bounds_view_compatible<
             _From, _To>::value;
 
+#endif
 // --- multiplicity axis ---
 
 // is_multiplicity_view_compatible
-//   type trait: true if _From → _To requires no
+//   type trait: true if _From --> _To requires no
 // deduplication.
-//   unique → multi:   free (unique is valid multi)
-//   unique → unique:  free
-//   multi → multi:    free
-//   multi → unique:   NOT free (requires dedup)
+//   unique --> multi:   free (unique is valid multi)
+//   unique --> unique:  free
+//   multi --> multi:    free
+//   multi --> unique:   NOT free (requires dedup)
 template<typename _From,
          typename _To>
 struct is_multiplicity_view_compatible
@@ -341,6 +357,7 @@ struct is_multiplicity_view_compatible
         ( !to_unique );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -348,15 +365,16 @@ inline constexpr bool
         is_multiplicity_view_compatible<
             _From, _To>::value;
 
+#endif
 // --- thread safety axis ---
 
 // is_threadsafe_view_compatible
-//   type trait: true if _From → _To requires no lock
+//   type trait: true if _From --> _To requires no lock
 // wrapping.
-//   ts → ts:         free
-//   ts → non-ts:     free (just don't lock — opt-in)
-//   non-ts → non-ts: free
-//   non-ts → ts:     NOT free (requires mutex addition)
+//   ts --> ts:         free
+//   ts --> non-ts:     free (just don't lock - opt-in)
+//   non-ts --> non-ts: free
+//   non-ts --> ts:     NOT free (requires mutex addition)
 template<typename _From,
          typename _To>
 struct is_threadsafe_view_compatible
@@ -364,9 +382,9 @@ struct is_threadsafe_view_compatible
     using F = clean_t<_From>;
     using T = clean_t<_To>;
 
-    static constexpr DThreadSafetyLevel from_ts =
+    static constexpr thread_safety_level from_ts =
         container_thread_safety_level_v<F>;
-    static constexpr DThreadSafetyLevel to_ts =
+    static constexpr thread_safety_level to_ts =
         container_thread_safety_level_v<T>;
 
     // free if levels are equal or if from is at
@@ -376,6 +394,7 @@ struct is_threadsafe_view_compatible
           static_cast<int>(to_ts) );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -383,13 +402,14 @@ inline constexpr bool
         is_threadsafe_view_compatible<
             _From, _To>::value;
 
+#endif
 // --- hierarchy axis ---
 
 // is_hierarchy_view_compatible
-//   type trait: true if _From → _To requires no
+//   type trait: true if _From --> _To requires no
 // structural transformation.
-//   flat → flat:           free
-//   hierarchical → hier:   free
+//   flat --> flat:           free
+//   hierarchical --> hier:   free
 //   flat ↔ hierarchical:   NOT free (structural change)
 template<typename _From,
          typename _To>
@@ -407,6 +427,7 @@ struct is_hierarchy_view_compatible
         ( from_hier == to_hier );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool
@@ -415,9 +436,10 @@ inline constexpr bool
             _From, _To>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // III. Combined View Convertibility
-// =============================================================================
+// ===========================================================================
 
 // is_view_convertible
 //   type trait: true if _From can be viewed as _To at
@@ -447,11 +469,13 @@ struct is_view_convertible
               _From, _To> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _From,
          typename _To>
 inline constexpr bool is_view_convertible_v =
     is_view_convertible<_From, _To>::value;
 
+#endif
 // is_symmetric_view
 //   type trait: true if the view conversion is free in
 // both directions (types are view-equivalent).
@@ -464,19 +488,21 @@ struct is_symmetric_view
           is_view_convertible_v<_B, _A> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool is_symmetric_view_v =
     is_symmetric_view<_A, _B>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // IV.  View Classification
-// =============================================================================
+// ===========================================================================
 
 // view_axis_count
 //   type trait: counts how many axes require no work
-// (are view-compatible) for the From → To pair.
+// (are view-compatible) for the From --> To pair.
 template<typename _From,
          typename _To>
 struct view_axis_count
@@ -526,7 +552,7 @@ inline constexpr std::size_t blocked_axis_count_v =
     blocked_axis_count<_From, _To>::value;
 
 // container_view_class
-//   struct: complete Tier 0 classification for a From → To
+//   struct: complete Tier 0 classification for a From --> To
 // container pair.
 template<typename _From,
          typename _To>
@@ -570,8 +596,6 @@ struct container_view_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 

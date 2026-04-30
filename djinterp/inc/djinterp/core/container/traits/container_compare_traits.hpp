@@ -4,55 +4,57 @@
 * Container comparison traits for the djinterp framework.
 *   Provides compile-time detection of comparison capabilities at three
 * levels:
-*
 *   1. Element comparison:    can the container's value_type be
 *      compared via ==, <, <=>, etc.?
 *   2. Container comparison:  does the container itself support ==,
 *      <, <=> as a whole?
 *   3. Cross-container:       can two different container types be
 *      compared element-wise?  Are their value_types compatible?
-*
-*   Classifies the highest "degree" of comparison available:
+* Classifies the highest "degree" of comparison available:
 *     - none:           no comparison possible
 *     - equality:       == and != only
 *     - partial_order:  < but not guaranteed total
 *     - total_order:    < with strict weak ordering
 *     - three_way:      <=> returning an ordering type (C++20)
-*
 *   This module is the prerequisite for the conversion tier system
-* (container_conversion_traits.hpp) — conversion between container
+* (container_conversion_traits.hpp) - conversion between container
 * types requires knowing whether their elements are comparable.
 *
 * DEPENDENCIES:
-*   container_traits.hpp  — container classification
-*   cpp_named98.hpp       — is_equality_comparable, is_less_than_comparable
-*   cpp_named11.hpp       — is_compare, is_binary_predicate
-*
-* TABLE OF CONTENTS
-* =================
-* I.      Safe Value Type Helper
-* II.     Element Same-Type Comparison Detection
-* III.    Container-Level Comparison Detection
-* IV.     Comparison Degree Classification
-* V.      Cross-Container Element Compatibility
-* VI.     Cross-Container Comparison Detection
-* VII.    Convenience Predicates
-* VIII.   Combined Classification
+*   container_traits.hpp  - container classification
+*   cpp_named98.hpp       - is_equality_comparable, is_less_than_comparable
+*   cpp_named11.hpp       - is_compare, is_binary_predicate
 *
 *
-* path:      \inc\container\meta\container_compare_traits.hpp
+* path:      /inc/djinterp/core/container/traits/
+*                container_compare_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
 ******************************************************************************/
 
+/*
+* TABLE OF CONTENTS
+* =================
+* I.      safe value type helper
+* II.     element same-type comparison detection
+* III.    container-level comparison detection
+* IV.     comparison degree classification
+* V.      cross-container element Compatibility
+* VI.     cross-container comparison detection
+* VII.    convenience predicates
+* VIII.   combined classification
+*/
+
 #ifndef DJINTERP_CONTAINER_COMPARE_TRAITS_
 #define DJINTERP_CONTAINER_COMPARE_TRAITS_ 1
 
+// std
 #include <cstddef>
 #include <type_traits>
-#include "..\djinterp.hpp"
-#include "..\type_traits.hpp"
-#include "container_traits.hpp"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "./container_traits.hpp"
 
 #if D_ENV_CPP_FEATURE_LANG_IMPL_THREE_WAY_COMPARISON
     #include <compare>
@@ -60,12 +62,10 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
-// =============================================================================
+// ===========================================================================
 // I.   Safe Value Type Helper
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
 
@@ -89,9 +89,9 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Element Same-Type Comparison Detection
-// =============================================================================
+// ===========================================================================
 // Detects which comparison operators the container's
 // value_type supports when compared against itself.
 
@@ -212,12 +212,14 @@ struct has_equality_comparable_elements
           internal::elem_has_ne<elem_type>::value );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     has_equality_comparable_elements_v =
         has_equality_comparable_elements<
             _Type>::value;
 
+#endif
 // has_less_than_comparable_elements
 //   type trait: true if value_type supports <.
 template<typename _Type>
@@ -231,12 +233,14 @@ struct has_less_than_comparable_elements
         internal::elem_has_lt<elem_type>::value;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     has_less_than_comparable_elements_v =
         has_less_than_comparable_elements<
             _Type>::value;
 
+#endif
 // has_totally_ordered_elements
 //   type trait: true if value_type supports all four
 // relational operators (< <= > >=) plus equality.
@@ -256,11 +260,13 @@ struct has_totally_ordered_elements
           internal::elem_has_ge<elem_type>::value );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     has_totally_ordered_elements_v =
         has_totally_ordered_elements<_Type>::value;
 
+#endif
 // has_three_way_comparable_elements
 //   type trait: true if value_type supports <=> (C++20).
 template<typename _Type>
@@ -275,6 +281,7 @@ struct has_three_way_comparable_elements
             elem_type>::value;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     has_three_way_comparable_elements_v =
@@ -282,9 +289,10 @@ inline constexpr bool
             _Type>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // III. Container-Level Comparison Detection
-// =============================================================================
+// ===========================================================================
 // Detects whether the container type itself has comparison
 // operators (not just its elements).
 
@@ -363,12 +371,14 @@ struct is_equality_comparable_container
               clean_type>::value );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     is_equality_comparable_container_v =
         is_equality_comparable_container<
             _Type>::value;
 
+#endif
 // is_less_than_comparable_container
 //   type trait: true if container supports <.
 template<typename _Type>
@@ -381,12 +391,14 @@ struct is_less_than_comparable_container
             clean_type>::value;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     is_less_than_comparable_container_v =
         is_less_than_comparable_container<
             _Type>::value;
 
+#endif
 // is_three_way_comparable_container
 //   type trait: true if container supports <=>.
 template<typename _Type>
@@ -399,6 +411,7 @@ struct is_three_way_comparable_container
             clean_type>::value;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     is_three_way_comparable_container_v =
@@ -406,9 +419,10 @@ inline constexpr bool
             _Type>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // IV.  Comparison Degree Classification
-// =============================================================================
+// ===========================================================================
 
 // DComparisonDegree
 //   enum: classifies the highest comparison capability
@@ -516,9 +530,9 @@ inline constexpr DComparisonDegree
         container_comparison_degree<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Cross-Container Element Compatibility
-// =============================================================================
+// ===========================================================================
 // Determines whether two different container types have
 // compatible elements for comparison or conversion.
 
@@ -540,11 +554,13 @@ struct elements_same_type
         std::is_same_v<elem_a, elem_b>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool elements_same_type_v =
     elements_same_type<_A, _B>::value;
 
+#endif
 // elements_convertible
 //   type trait: true if value_type of _A is implicitly
 // convertible to value_type of _B.
@@ -563,11 +579,13 @@ struct elements_convertible
         std::is_convertible_v<elem_a, elem_b>;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool elements_convertible_v =
     elements_convertible<_A, _B>::value;
 
+#endif
 // elements_mutually_convertible
 //   type trait: true if value_types are convertible in
 // both directions.
@@ -580,6 +598,7 @@ struct elements_mutually_convertible
           elements_convertible_v<_B, _A> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool
@@ -588,9 +607,10 @@ inline constexpr bool
             _A, _B>::value;
 
 
-// =============================================================================
+#endif
+// ===========================================================================
 // VI.  Cross-Container Comparison Detection
-// =============================================================================
+// ===========================================================================
 // Detects whether elements of two different container types
 // can be compared with each other (cross-type == and <).
 
@@ -669,6 +689,7 @@ struct elements_cross_equality_comparable
             elem_a, elem_b>::value;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool
@@ -676,6 +697,7 @@ inline constexpr bool
         elements_cross_equality_comparable<
             _A, _B>::value;
 
+#endif
 // elements_cross_less_than_comparable
 //   type trait: true if value_type of _A can be compared
 // with value_type of _B via <.
@@ -695,6 +717,7 @@ struct elements_cross_less_than_comparable
             elem_a, elem_b>::value;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool
@@ -702,6 +725,7 @@ inline constexpr bool
         elements_cross_less_than_comparable<
             _A, _B>::value;
 
+#endif
 // elements_cross_three_way_comparable
 //   type trait: true if value_type of _A can be compared
 // with value_type of _B via <=>.
@@ -721,6 +745,7 @@ struct elements_cross_three_way_comparable
             elem_a, elem_b>::value;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool
@@ -728,6 +753,7 @@ inline constexpr bool
         elements_cross_three_way_comparable<
             _A, _B>::value;
 
+#endif
 // cross_comparison_degree
 //   type trait: the highest comparison degree between two
 // containers' element types.
@@ -771,9 +797,9 @@ inline constexpr DComparisonDegree
         cross_comparison_degree<_A, _B>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // VII. Convenience Predicates
-// =============================================================================
+// ===========================================================================
 
 // has_any_element_comparison
 //   type trait: true if elements support at least ==.
@@ -785,10 +811,12 @@ struct has_any_element_comparison
           DComparisonDegree::none );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool has_any_element_comparison_v =
     has_any_element_comparison<_Type>::value;
 
+#endif
 // has_any_container_comparison
 //   type trait: true if container supports at least ==.
 template<typename _Type>
@@ -799,11 +827,13 @@ struct has_any_container_comparison
           DComparisonDegree::none );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     has_any_container_comparison_v =
         has_any_container_comparison<_Type>::value;
 
+#endif
 // containers_element_comparable
 //   type trait: true if two containers' elements can be
 // compared at any degree.
@@ -816,6 +846,7 @@ struct containers_element_comparable
           DComparisonDegree::none );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _A,
          typename _B>
 inline constexpr bool
@@ -823,6 +854,7 @@ inline constexpr bool
         containers_element_comparable<
             _A, _B>::value;
 
+#endif
 // is_sortable_container
 //   type trait: true if the container is iterable and its
 // elements support < (minimum for std::sort).
@@ -837,18 +869,22 @@ struct is_sortable_container
               clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_sortable_container_v =
     is_sortable_container<_Type>::value;
 
+#endif
 // has_custom_comparator_type
 //   type trait: true if container exposes a key_compare or
 // value_compare alias (associative containers).
 D_TYPE_TRAIT_TRUE(has_key_compare_type,
     typename _Type::key_compare)
 
-D_TYPE_TRAIT_TRUE(has_value_compare_type,
-    typename _Type::value_compare)
+//   `has_value_compare_type` is owned by container_traits.hpp
+// (which this header includes); the duplicate definition that
+// used to live here has been removed to eliminate the resulting
+// ODR conflict.
 
 template<typename _Type>
 struct has_custom_comparator_type
@@ -860,24 +896,25 @@ struct has_custom_comparator_type
           has_value_compare_type_v<clean_type> );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool
     has_custom_comparator_type_v =
         has_custom_comparator_type<_Type>::value;
 
+#endif
 // has_hash_function_type
-//   type trait: true if container exposes a hasher type
-// (unordered associative containers).
-D_TYPE_TRAIT_TRUE(has_hasher_type,
-    typename _Type::hasher)
+//   `has_hasher_type` is owned by container_traits.hpp; the
+// duplicate definition that used to live here has been removed
+// to eliminate the resulting ODR conflict.
 
 D_TYPE_TRAIT_TRUE(has_key_equal_type,
     typename _Type::key_equal)
 
 
-// =============================================================================
+// ===========================================================================
 // VIII. Combined Classification
-// =============================================================================
+// ===========================================================================
 
 // container_compare_class (single-container)
 //   struct: complete comparison classification for one
@@ -959,8 +996,6 @@ struct container_cross_compare_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 
