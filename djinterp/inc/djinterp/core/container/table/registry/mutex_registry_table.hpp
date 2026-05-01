@@ -7,7 +7,8 @@
 * (get / get_or / has / set).  This wrapper exposes both:
 *
 *     ALWAYS AVAILABLE   (any registry_table, with or without a value column)
-*       contains, count, find_copy_or, find_visit, find_visit_mut
+*       contains, count, find_copy_or, find_visit, find_visit_mut,
+*       get<MP> (column projection, C++17+)
 *
 *     SFINAE-GATED       (only when wrapped exposes them - i.e. when a
 *                         value column was supplied)
@@ -291,6 +292,45 @@ NS_CONTAINER
             return static_cast<_Fn&&>(_fn)(
                 this->m_wrapped.find(_key));
         }
+
+
+        // =================================================================
+        //  COLUMN PROJECTION (locked, by value, C++17+)
+        // =================================================================
+        //   get<MP>(key) is a compile-time-named column accessor that
+        // works on ANY registry - lookup-only or cvar-bearing.  Mirrors
+        // the underlying registry's project<MP>(key), but returns BY
+        // VALUE under the read lock so the caller can safely use the
+        // result after the lock releases.
+        //
+        //   Distinguished from the non-template get(key) below: get(key)
+        // reads the registry's DESIGNATED value column; get<MP>(key)
+        // reads any column the user names.  Both names coexist - they
+        // don't conflict at the language level (different parameter
+        // shapes) and the templated form is opt-in (the user must
+        // supply the member pointer).
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+        // get<_Member>
+        //   function: returns a copy of the value of the named column
+        // for the row keyed by _key.  Behavior is undefined if the
+        // key is absent (mirrors project<MP>'s contract).
+        // SFINAE-gated on the wrapped registry exposing project<MP>;
+        // not present otherwise.
+        template<auto _Member>
+        auto
+        get(const key_type& _key) const
+            -> typename std::decay<decltype(
+                std::declval<const _RegistryTable&>()
+                    .template project<_Member>(_key))>::type
+        {
+            read_lock_type guard(this->m_mutex);
+
+            return this->m_wrapped.template project<_Member>(_key);
+        }
+
+#endif  // C++17+
 
 
         // =================================================================

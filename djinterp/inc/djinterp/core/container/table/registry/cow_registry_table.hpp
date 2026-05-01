@@ -6,7 +6,8 @@
 * unified type:
 *
 *     ALWAYS AVAILABLE   (any registry_table)
-*       contains, count, find_copy_or, find_visit, find_visit_mut
+*       contains, count, find_copy_or, find_visit, find_visit_mut,
+*       get<MP> (column projection, C++17+)
 *
 *     SFINAE-GATED       (only when wrapped exposes them)
 *       get, get_or, has, set
@@ -314,6 +315,43 @@ NS_CONTAINER
                     return static_cast<_Fn&&>(_fn)(_r.find(_key));
                 });
         }
+
+
+        // =================================================================
+        //  COLUMN PROJECTION (snapshot-safe, by value, C++17+)
+        // =================================================================
+        //   get<MP>(key) is a compile-time-named column accessor that
+        // works on ANY registry.  Mirrors the underlying registry's
+        // project<MP>(key), but returns BY VALUE so the caller can
+        // safely use the result outside any lock window.
+        //
+        //   Implementation note: takes a snapshot rather than calling
+        // m_state.read() directly.  cow_state::read() releases its
+        // transient lock immediately; calling project<MP> on the
+        // returned ref afterward dances on the edge of the documented
+        // "must not retain references" contract.  The snapshot bumps
+        // the cow_ptr refcount, so the data is guaranteed to live
+        // until snap goes out of scope.
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+        // get<_Member>
+        //   function: returns a copy of the value of the named column
+        // for the row keyed by _key.  Behavior is undefined if the
+        // key is absent (mirrors project<MP>'s contract).
+        template<auto _Member>
+        auto
+        get(const key_type& _key) const
+            -> typename std::decay<decltype(
+                std::declval<const _RegistryTable&>()
+                    .template project<_Member>(_key))>::type
+        {
+            auto snap = m_state.snapshot();
+
+            return snap->template project<_Member>(_key);
+        }
+
+#endif  // C++17+
 
 
         // =================================================================

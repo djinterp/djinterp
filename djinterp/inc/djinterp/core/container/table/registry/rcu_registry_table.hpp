@@ -6,7 +6,8 @@
 * unified type:
 *
 *     ALWAYS AVAILABLE   (any registry_table)
-*       contains, count, find_copy_or, find_visit
+*       contains, count, find_copy_or, find_visit,
+*       get<MP> (column projection, C++17+)
 *
 *     SFINAE-GATED       (only when wrapped exposes them)
 *       get, get_or, has, set
@@ -303,6 +304,42 @@ NS_CONTAINER
                     return static_cast<_Fn&&>(_fn)(_r.find(_key));
                 });
         }
+
+
+        // =================================================================
+        //  COLUMN PROJECTION (lock-free, by value, C++17+)
+        // =================================================================
+        //   get<MP>(key) is a compile-time-named column accessor that
+        // works on ANY registry.  Mirrors the underlying registry's
+        // project<MP>(key), but returns BY VALUE under a transient
+        // RCU read guard so the caller can safely use the result
+        // outside the read-side critical section.
+        //
+        //   Distinguished from the non-template get(key) below: get(key)
+        // reads the registry's DESIGNATED value column; get<MP>(key)
+        // reads any column the user names.
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+        // get<_Member>
+        //   function: returns a copy of the value of the named column
+        // for the row keyed by _key.  Behavior is undefined if the
+        // key is absent (mirrors project<MP>'s contract).
+        template<auto _Member>
+        auto
+        get(const key_type& _key) const
+            -> typename std::decay<decltype(
+                std::declval<const _RegistryTable&>()
+                    .template project<_Member>(_key))>::type
+        {
+            return with_read(
+                [&_key](const _RegistryTable& _r)
+                {
+                    return _r.template project<_Member>(_key);
+                });
+        }
+
+#endif  // C++17+
 
 
         // =================================================================
