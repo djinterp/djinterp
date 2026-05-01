@@ -1,0 +1,109 @@
+/******************************************************************************
+* djinterp [restd]                                                        tuple
+*
+* tuple umbrella header (extension-less, mirrors std's <tuple>):
+*   Aggregates the granular per-symbol headers under
+* /inc/djinterp/restd/tuple/.
+*
+*   GRANULARITY:
+*   Every public symbol lives in its own .hpp file under this directory.
+* This umbrella adds no symbols of its own.
+*
+*   PORTABILITY:
+*   The entire <tuple> surface requires variadic templates and rvalue
+* references (C++11+). On C++98/03, this header expands to nothing.
+*
+*
+* TABLE OF CONTENTS
+* =================
+* I.    HELPER TRAITS
+* II.   TUPLE CLASS
+* III.  ELEMENT ACCESS
+* IV.   FACTORY FUNCTIONS
+* V.    CONCATENATION
+* VI.   APPLY / MAKE_FROM_TUPLE  (C++17 surface)
+* VII.  COMPARISON OPERATORS
+* VIII. SWAP
+* IX.   IGNORE OBJECT
+*
+*
+* path:      /inc/djinterp/restd/tuple/tuple
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_TUPLE_UMBRELLA_
+#define DJINTERP_RESTD_TUPLE_UMBRELLA_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+// =============================================================================
+// I.   HELPER TRAITS
+// =============================================================================
+
+#include "./tuple_size.hpp"
+#include "./tuple_element.hpp"
+
+
+// =============================================================================
+// II.  TUPLE CLASS
+// =============================================================================
+
+#include "./tuple.hpp"
+
+
+// =============================================================================
+// III. ELEMENT ACCESS
+// =============================================================================
+
+#include "./tuple_get.hpp"
+
+
+// =============================================================================
+// IV.  FACTORY FUNCTIONS
+// =============================================================================
+
+#include "./make_tuple.hpp"
+#include "./tie.hpp"
+#include "./forward_as_tuple.hpp"
+
+
+// =============================================================================
+// V.   CONCATENATION
+// =============================================================================
+
+#include "./tuple_cat.hpp"
+
+
+// =============================================================================
+// VI.  APPLY / MAKE_FROM_TUPLE  (C++17 surface, shimmed to C++11+)
+// =============================================================================
+
+#include "./apply.hpp"
+#include "./make_from_tuple.hpp"
+
+
+// =============================================================================
+// VII. COMPARISON OPERATORS
+// =============================================================================
+
+#include "./tuple_compare.hpp"
+
+
+// =============================================================================
+// VIII.SWAP
+// =============================================================================
+
+#include "./tuple_swap.hpp"
+
+
+// =============================================================================
+// IX.  IGNORE OBJECT
+// =============================================================================
+
+#include "./ignore.hpp"
+
+
+#endif  // DJINTERP_RESTD_TUPLE_UMBRELLA_
