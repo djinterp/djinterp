@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [meta]                                           table_concepts.hpp
+* djinterp [container]                                      table_concepts.hpp
 *
 * Table concepts:
 *   C++20 concepts layered over table.hpp and table_traits.hpp. These
@@ -33,7 +33,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -310,15 +309,15 @@ NS_CONTAINER
     // They require table.hpp in addition to table_traits.hpp.
     //
     // STATIC vs DYNAMIC:
-    //   static_table_type   — compile-time fixed dimensions (table<T,Rows,Cols>)
-    //   dynamic_table_type  — runtime dimensions (table<T,table_dynamic,...>
+    //   static_table_type   - compile-time fixed dimensions (table<T,Rows,Cols>)
+    //   dynamic_table_type  - runtime dimensions (table<T,table_dynamic,...>
     //                         or database_table<>)
-    //   any_table_type      — either form (the primary "is this a table?" gate)
+    //   any_table_type      - either form (the primary "is this a table?" gate)
     //
     // Structural mutability (from table_traits.hpp, section VII):
-    //   structurally_immutable_table_type — fixed shape, no modifiers (static)
-    //   shape_modifiable_table_type       — exposes resize/add_row/etc. (dynamic)
-    //   value_mutable_table_type          — immutable shape, mutable cells (static)
+    //   structurally_immutable_table_type - fixed shape, no modifiers (static)
+    //   shape_modifiable_table_type       - exposes resize/add_row/etc. (dynamic)
+    //   value_mutable_table_type          - immutable shape, mutable cells (static)
     //
 
     // any_table_type
@@ -391,7 +390,6 @@ NS_CONTAINER
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
-NS_END  // container
 NS_END  // djinterp
 
 

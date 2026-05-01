@@ -14,6 +14,7 @@
 *   - registry identity and mutability classification
 *   - shorthand concepts over registry_table_class<T>
 *
+* 
 * path:      /inc/djinterp/container/table/registry/registry_table_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.24
