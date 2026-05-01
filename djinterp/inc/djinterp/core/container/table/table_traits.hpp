@@ -1,44 +1,45 @@
 /******************************************************************************
-* djinterp [meta]                                             table_traits.hpp
+* djinterp [container]                                        table_traits.hpp
 *
 * djinterp table traits header:
 *   Unified table traits module providing config-based and structural SFINAE
 * traits for ALL table-like types in the djinterp framework - both
 * fixed-dimension tables (table<T, Rows, Cols>) and dynamic database-backed
-* tables (database_table<Connection>).
-*
-*   CONTENTS:
-*     I.    Detection idiom (container-local)
-*     II.   Member detection operations (config members, span/split/partition)
-*     III.  Value extraction traits (get_header_rows, get_spans, etc.)
-*     IV.   Feature detection traits (has_header_rows, is_config_type, etc.)
-*     V.    Span traits (is_span_type, span_contains, is_merged_cell, etc.)
-*     V.b   Split traits
-*     V.c   Cell layout (combined merge + split classification)
-*     V.d   Multi-header traits
-*     V.e   Partition traits
-*     V.f   Structural column/row merge and split traits
-*     VI.   Empty config
-*     VII.  Structural immutability detection
-*     VIII. Table config classification (table_config_class)
-*     IX.   Cell region classification (fixed dimensions)
-*     X.    Dimension computation (fixed dimensions)
-*
+* tables (database_table<Connection>).*
 *   Sections I–VIII operate on _Config types and arbitrary types probed for
 * structural member presence - nothing in those sections requires compile-time
 * row/column counts.  Sections IX–X extend with traits that require fixed
 * _Rows and _Cols (cell_position, table_dimensions).
-*
 *   Cell-level merge/split/partition ACCESSOR METHODS for the table class are
 * provided separately in table_layout.hpp.
-*
 *   PORTABILITY:
 *   Compatible with C++11 and later. Uses portable trait access patterns.
 *
+* 
 * path:      /inc/djinterp/core/container/table/table_traits.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.20
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    detection idiom (container-local)
+II.   member detection operations (config members, span/split/partition)
+III.  value extraction traits (get_header_rows, get_spans, etc.)
+IV.   feature detection traits (has_header_rows, is_config_type, etc.)
+V.1   span traits (is_span_type, span_contains, is_merged_cell, etc.)
+V.2   split traits
+V.3   cell layout (combined merge + split classification)
+V.4   multi-header traits
+V.5   partition traits
+V.6   structural column/row merge and split traits
+VI.   empty config
+VII.  structural immutability detection
+VIII. table config classification (table_config_class)
+IX.   cell region classification (fixed dimensions)
+X.    dimension computation (fixed dimensions)
+*/
 
 #ifndef DJINTERP_TABLE_TRAITS_
 #define DJINTERP_TABLE_TRAITS_ 1
@@ -51,7 +52,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
     // =========================================================================
@@ -211,14 +211,12 @@ NS_CONTAINER
     template<typename _Config,
              bool     _Has = internal::is_detected<internal::detect_header_rows, _Config>::value>
     struct get_header_rows : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_header_rows<_Config, true>
         : std::integral_constant<std::size_t, _Config::header_rows>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -230,14 +228,12 @@ NS_CONTAINER
     template<typename _Config,
              bool     _Has = internal::is_detected<internal::detect_header_cols, _Config>::value>
     struct get_header_cols : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_header_cols<_Config, true>
         : std::integral_constant<std::size_t, _Config::header_cols>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -251,14 +247,12 @@ NS_CONTAINER
              bool     _Has = internal::is_detected<internal::detect_header_depth, _Config>::value>
     struct get_header_depth
         : std::integral_constant<std::size_t, get_header_rows<_Config>::value>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_header_depth<_Config, true>
         : std::integral_constant<std::size_t, _Config::header_depth>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -270,14 +264,12 @@ NS_CONTAINER
     template<typename _Config,
              bool     _Has = internal::is_detected<internal::detect_footer_rows, _Config>::value>
     struct get_footer_rows : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_footer_rows<_Config, true>
         : std::integral_constant<std::size_t, _Config::footer_rows>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -289,14 +281,12 @@ NS_CONTAINER
     template<typename _Config,
              bool     _Has = internal::is_detected<internal::detect_footer_cols, _Config>::value>
     struct get_footer_cols : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_footer_cols<_Config, true>
         : std::integral_constant<std::size_t, _Config::footer_cols>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -308,14 +298,12 @@ NS_CONTAINER
     template<typename _Config,
              bool     _Has = internal::is_detected<internal::detect_total_rows, _Config>::value>
     struct get_total_rows : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_total_rows<_Config, true>
         : std::integral_constant<std::size_t, _Config::total_rows>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -327,14 +315,12 @@ NS_CONTAINER
     template<typename _Config,
              bool     _Has = internal::is_detected<internal::detect_total_cols, _Config>::value>
     struct get_total_cols : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_total_cols<_Config, true>
         : std::integral_constant<std::size_t, _Config::total_cols>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -410,14 +396,12 @@ NS_CONTAINER
     struct get_total_row_position
         : std::integral_constant<std::size_t,
             static_cast<std::size_t>(total_row_placement::after_data)>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_total_row_position<_Config, true>
         : std::integral_constant<std::size_t, _Config::total_row_position>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -433,14 +417,12 @@ NS_CONTAINER
     struct get_total_col_position
         : std::integral_constant<std::size_t,
             static_cast<std::size_t>(total_col_placement::after_data)>
-    {
-    };
+    {};
 
     template<typename _Config>
     struct get_total_col_position<_Config, true>
         : std::integral_constant<std::size_t, _Config::total_col_position>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -581,8 +563,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_header_rows
         : std::integral_constant<bool, (get_header_rows<_Config>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -594,8 +575,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_header_cols
         : std::integral_constant<bool, (get_header_cols<_Config>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -607,8 +587,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_footer_rows
         : std::integral_constant<bool, (get_footer_rows<_Config>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -620,8 +599,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_footer_cols
         : std::integral_constant<bool, (get_footer_cols<_Config>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -633,8 +611,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_total_rows
         : std::integral_constant<bool, (get_total_rows<_Config>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -646,8 +623,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_total_cols
         : std::integral_constant<bool, (get_total_cols<_Config>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -662,8 +638,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( (get_header_depth<_Config>::value > 1) ||
               internal::is_detected<internal::detect_multi_header, _Config>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -676,8 +651,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_custom_total_row_position
         : internal::is_detected<internal::detect_total_row_position, _Config>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -690,8 +664,7 @@ NS_CONTAINER
     template<typename _Config>
     struct has_custom_total_col_position
         : internal::is_detected<internal::detect_total_col_position, _Config>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -705,8 +678,7 @@ NS_CONTAINER
     struct has_spans
         : std::integral_constant<bool,
             (std::tuple_size<get_spans_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -719,8 +691,7 @@ NS_CONTAINER
     struct has_splits
         : std::integral_constant<bool,
             (std::tuple_size<get_splits_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -733,8 +704,7 @@ NS_CONTAINER
     struct has_multi_header
         : std::integral_constant<bool,
             (std::tuple_size<get_multi_header_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -747,8 +717,7 @@ NS_CONTAINER
     struct has_partitions
         : std::integral_constant<bool,
             (std::tuple_size<get_partitions_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -761,8 +730,7 @@ NS_CONTAINER
     struct has_col_merges
         : std::integral_constant<bool,
             (std::tuple_size<get_col_merges_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -775,8 +743,7 @@ NS_CONTAINER
     struct has_col_splits
         : std::integral_constant<bool,
             (std::tuple_size<get_col_splits_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -789,8 +756,7 @@ NS_CONTAINER
     struct has_row_merges
         : std::integral_constant<bool,
             (std::tuple_size<get_row_merges_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -803,8 +769,7 @@ NS_CONTAINER
     struct has_row_splits
         : std::integral_constant<bool,
             (std::tuple_size<get_row_splits_t<_Config>>::value > 0)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -825,8 +790,7 @@ NS_CONTAINER
               internal::is_detected<internal::detect_spans,        _Type>::value ||
               internal::is_detected<internal::detect_splits,       _Type>::value ||
               internal::is_detected<internal::detect_multi_header, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -847,8 +811,7 @@ NS_CONTAINER
               !has_total_cols<_Config>::value  &&
               !has_spans<_Config>::value        &&
               !has_splits<_Config>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Config>
@@ -869,8 +832,7 @@ NS_CONTAINER
               internal::is_detected<internal::detect_span_col,      _Type>::value &&
               internal::is_detected<internal::detect_span_row_span, _Type>::value &&
               internal::is_detected<internal::detect_span_col_span, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -882,56 +844,48 @@ NS_CONTAINER
     template<typename _Span,
              bool     _Has = internal::is_detected<internal::detect_span_row, _Span>::value>
     struct get_span_row : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Span>
     struct get_span_row<_Span, true>
         : std::integral_constant<std::size_t, _Span::row>
-    {
-    };
+    {};
 
     // get_span_col
     //   trait: extracts col from span type.
     template<typename _Span,
              bool     _Has = internal::is_detected<internal::detect_span_col, _Span>::value>
     struct get_span_col : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Span>
     struct get_span_col<_Span, true>
         : std::integral_constant<std::size_t, _Span::col>
-    {
-    };
+    {};
 
     // get_span_row_span
     //   trait: extracts row_span from span type.
     template<typename _Span,
              bool     _Has = internal::is_detected<internal::detect_span_row_span, _Span>::value>
     struct get_span_row_span : std::integral_constant<std::size_t, 1>
-    {
-    };
+    {};
 
     template<typename _Span>
     struct get_span_row_span<_Span, true>
         : std::integral_constant<std::size_t, _Span::row_span>
-    {
-    };
+    {};
 
     // get_span_col_span
     //   trait: extracts col_span from span type.
     template<typename _Span,
              bool     _Has = internal::is_detected<internal::detect_span_col_span, _Span>::value>
     struct get_span_col_span : std::integral_constant<std::size_t, 1>
-    {
-    };
+    {};
 
     template<typename _Span>
     struct get_span_col_span<_Span, true>
         : std::integral_constant<std::size_t, _Span::col_span>
-    {
-    };
+    {};
 
     // span_contains
     //   trait: checks if a cell position falls within a span.
@@ -944,8 +898,7 @@ NS_CONTAINER
               (_Row <  get_span_row<_Span>::value + get_span_row_span<_Span>::value) &&
               (_Col >= get_span_col<_Span>::value) &&
               (_Col <  get_span_col<_Span>::value + get_span_col_span<_Span>::value) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Row, std::size_t _Col, typename _Span>
@@ -961,8 +914,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( (_Row == get_span_row<_Span>::value) &&
               (_Col == get_span_col<_Span>::value) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Row, std::size_t _Col, typename _Span>
@@ -1039,8 +991,7 @@ NS_CONTAINER
              typename    _Config>
     struct is_merged_cell
         : internal::check_cell_in_spans<_Row, _Col, get_spans_t<_Config>>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Row, std::size_t _Col, typename _Config>
@@ -1084,8 +1035,7 @@ NS_CONTAINER
               internal::is_detected<internal::detect_split_col,      _Type>::value &&
               internal::is_detected<internal::detect_split_sub_rows, _Type>::value &&
               internal::is_detected<internal::detect_split_sub_cols, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1097,56 +1047,48 @@ NS_CONTAINER
     template<typename _Split,
              bool     _Has = internal::is_detected<internal::detect_split_row, _Split>::value>
     struct get_split_row : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Split>
     struct get_split_row<_Split, true>
         : std::integral_constant<std::size_t, _Split::row>
-    {
-    };
+    {};
 
     // get_split_col
     //   trait: extracts col from split type.
     template<typename _Split,
              bool     _Has = internal::is_detected<internal::detect_split_col, _Split>::value>
     struct get_split_col : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Split>
     struct get_split_col<_Split, true>
         : std::integral_constant<std::size_t, _Split::col>
-    {
-    };
+    {};
 
     // get_split_sub_rows
     //   trait: extracts sub_rows from split type, defaulting to 1.
     template<typename _Split,
              bool     _Has = internal::is_detected<internal::detect_split_sub_rows, _Split>::value>
     struct get_split_sub_rows : std::integral_constant<std::size_t, 1>
-    {
-    };
+    {};
 
     template<typename _Split>
     struct get_split_sub_rows<_Split, true>
         : std::integral_constant<std::size_t, _Split::sub_rows>
-    {
-    };
+    {};
 
     // get_split_sub_cols
     //   trait: extracts sub_cols from split type, defaulting to 1.
     template<typename _Split,
              bool     _Has = internal::is_detected<internal::detect_split_sub_cols, _Split>::value>
     struct get_split_sub_cols : std::integral_constant<std::size_t, 1>
-    {
-    };
+    {};
 
     template<typename _Split>
     struct get_split_sub_cols<_Split, true>
         : std::integral_constant<std::size_t, _Split::sub_cols>
-    {
-    };
+    {};
 
     // split_targets
     //   trait: true if the split descriptor targets the cell at (_Row, _Col).
@@ -1157,8 +1099,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( (_Row == get_split_row<_Split>::value) &&
               (_Col == get_split_col<_Split>::value) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Row, std::size_t _Col, typename _Split>
@@ -1173,8 +1114,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( (get_split_sub_rows<_Split>::value > 1) ||
               (get_split_sub_cols<_Split>::value > 1) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Split>
@@ -1188,8 +1128,7 @@ NS_CONTAINER
         : std::integral_constant<std::size_t,
             (get_split_sub_rows<_Split>::value *
              get_split_sub_cols<_Split>::value)>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Split>
@@ -1277,8 +1216,7 @@ NS_CONTAINER
              typename    _Config>
     struct is_split_cell
         : internal::check_cell_in_splits<_Row, _Col, get_splits_t<_Config>>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Row, std::size_t _Col, typename _Config>
@@ -1369,8 +1307,7 @@ NS_CONTAINER
             ( internal::is_detected<internal::detect_mh_level,    _Type>::value &&
               internal::is_detected<internal::detect_mh_col,      _Type>::value &&
               internal::is_detected<internal::detect_mh_col_span, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1383,42 +1320,36 @@ NS_CONTAINER
     template<typename _Entry,
              bool     _Has = internal::is_detected<internal::detect_mh_level, _Entry>::value>
     struct get_mh_level : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Entry>
     struct get_mh_level<_Entry, true>
         : std::integral_constant<std::size_t, _Entry::level>
-    {
-    };
+    {};
 
     // get_mh_col
     //   trait: extracts col from a multi-header entry.
     template<typename _Entry,
              bool     _Has = internal::is_detected<internal::detect_mh_col, _Entry>::value>
     struct get_mh_col : std::integral_constant<std::size_t, 0>
-    {
-    };
+    {};
 
     template<typename _Entry>
     struct get_mh_col<_Entry, true>
         : std::integral_constant<std::size_t, _Entry::col>
-    {
-    };
+    {};
 
     // get_mh_col_span
     //   trait: extracts col_span from a multi-header entry.
     template<typename _Entry,
              bool     _Has = internal::is_detected<internal::detect_mh_col_span, _Entry>::value>
     struct get_mh_col_span : std::integral_constant<std::size_t, 1>
-    {
-    };
+    {};
 
     template<typename _Entry>
     struct get_mh_col_span<_Entry, true>
         : std::integral_constant<std::size_t, _Entry::col_span>
-    {
-    };
+    {};
 
     // mh_entry_contains_col
     //   trait: true if a column falls within a multi-header entry's span.
@@ -1428,8 +1359,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( (_Col >= get_mh_col<_Entry>::value) &&
               (_Col <  get_mh_col<_Entry>::value + get_mh_col_span<_Entry>::value) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Col, typename _Entry>
@@ -1444,8 +1374,7 @@ NS_CONTAINER
     struct mh_entry_matches_level
         : std::integral_constant<bool,
             (_Level == get_mh_level<_Entry>::value)>
-    {
-    };
+    {};
 
     NS_INTERNAL
 
@@ -1530,8 +1459,7 @@ NS_CONTAINER
               internal::is_detected<internal::detect_part_col_start, _Type>::value &&
               internal::is_detected<internal::detect_part_row_count, _Type>::value &&
               internal::is_detected<internal::detect_part_col_count, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1549,8 +1477,7 @@ NS_CONTAINER
               (_Row <  _Part::row_start + _Part::row_count) &&
               (_Col >= _Part::col_start) &&
               (_Col <  _Part::col_start + _Part::col_count) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Row, std::size_t _Col, typename _Part>
@@ -1640,8 +1567,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( internal::is_detected<internal::detect_col_merge_col,   _Type>::value &&
               internal::is_detected<internal::detect_col_merge_count, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1656,8 +1582,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( (_Col >= _Merge::col) &&
               (_Col <  _Merge::col + _Merge::count) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Col, typename _Merge>
@@ -1726,8 +1651,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( internal::is_detected<internal::detect_col_split_col,      _Type>::value &&
               internal::is_detected<internal::detect_col_split_sub_cols, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1794,8 +1718,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( internal::is_detected<internal::detect_row_merge_row,   _Type>::value &&
               internal::is_detected<internal::detect_row_merge_count, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1810,8 +1733,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( (_Row >= _Merge::row) &&
               (_Row <  _Merge::row + _Merge::count) )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<std::size_t _Row, typename _Merge>
@@ -1826,8 +1748,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( internal::is_detected<internal::detect_row_split_row,      _Type>::value &&
               internal::is_detected<internal::detect_row_split_sub_rows, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1907,8 +1828,7 @@ NS_CONTAINER
     template<typename _Type,
              typename = void>
     struct has_fixed_dimensions : std::false_type
-    {
-    };
+    {};
 
     // has_fixed_dimensions (specialization)
     //   trait: SFINAE success - both dimension constants are well-formed.
@@ -1917,8 +1837,7 @@ NS_CONTAINER
         void_t<internal::detect_num_rows_constant<_Type>,
                internal::detect_num_cols_constant<_Type>>>
         : std::true_type
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1937,8 +1856,7 @@ NS_CONTAINER
               internal::is_detected<internal::detect_remove_row,    _Type>::value ||
               internal::is_detected<internal::detect_add_column,    _Type>::value ||
               internal::is_detected<internal::detect_remove_column, _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1954,8 +1872,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( internal::is_detected<internal::detect_mutable_subscript, _Type>::value ||
               internal::is_detected<internal::detect_mutable_cell,      _Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1971,8 +1888,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( has_fixed_dimensions<_Type>::value &&
               !has_shape_modifiers<_Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -1989,8 +1905,7 @@ NS_CONTAINER
         : std::integral_constant<bool,
             ( is_structurally_immutable<_Type>::value &&
               has_mutable_element_access<_Type>::value )>
-    {
-    };
+    {};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
@@ -2232,7 +2147,6 @@ NS_CONTAINER
     };
 
 
-NS_END  // container
 NS_END  // djinterp
 
 

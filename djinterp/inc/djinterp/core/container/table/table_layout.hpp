@@ -6,17 +6,13 @@
 * fixed-dimension table class. These are convenience wrappers around the
 * table_config_class and table_dimensions traits - include this header
 * after table.hpp to extend a table type with layout query accessors.
-*
-*   CONTENTS:
-*     I.   Table layout queries (merge/split/partition accessors)
-*
 *   All queries are free-function templates operating on any type that
 * exposes a config_type alias and a dimensions type alias (i.e. any
 * instantiation of table<T, Rows, Cols, Config>).
-*
 *   PORTABILITY:
 *   Compatible with C++11 and later. Uses portable trait access patterns.
-*
+* 
+* 
 * path:      /inc/djinterp/container/table/table_layout.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.20
@@ -30,7 +26,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
     // =========================================================================
@@ -190,7 +185,6 @@ NS_CONTAINER
     }
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
