@@ -15,7 +15,7 @@
 *
 * path:      /inc/container/tree_container_concepts.hpp
 * link(s):   TBA
-* author(s): OpenAI ChatGPT                                   date: 2026.04.08
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.08
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_CONTAINER_CONCEPTS_
@@ -25,17 +25,16 @@
     #error "tree_container_concepts.hpp requires C++ compilation"
 #endif
 
-#include "tree_container_traits.hpp"
+#include "./tree_container_traits.hpp"
 
 
 NS_DJINTERP
-NS_TRAITS
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// =============================================================================
+// ===========================================================================
 // I.   CORE STRUCTURAL CONCEPTS
-// =============================================================================
+// ===========================================================================
 
 // node_typed_tree_container
 //   concept: the type exposes a nested node_type alias.
@@ -68,9 +67,9 @@ concept root_settable_tree_container =
     has_set_root_method_v<_Type>;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  TREE IDENTITY CONCEPTS
-// =============================================================================
+// ===========================================================================
 
 // tree_container_type
 //   concept: the type satisfies the minimum structural requirements of a
@@ -88,9 +87,9 @@ concept searchable_tree_container =
     key_comparable_tree_container<_Type>;
 
 
-// =============================================================================
+// ===========================================================================
 // III. TOPOLOGY CONCEPTS
-// =============================================================================
+// ===========================================================================
 
 // binary_tree_container
 //   concept: the tree's node_type satisfies the binary-node protocol.
@@ -114,9 +113,9 @@ concept parented_tree_container =
     is_parented_tree_v<_Type>;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  OPERATIONAL CAPABILITY CONCEPTS
-// =============================================================================
+// ===========================================================================
 
 // left_rotatable_tree_container
 //   concept: the tree structurally supports rotate_left(node).
@@ -162,9 +161,9 @@ concept splittable_tree_container =
     has_split_method_v<_Type>;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   AGGREGATE CLASSIFICATION CONCEPTS
-// =============================================================================
+// ===========================================================================
 
 // classified_tree_container
 //   concept: shorthand for any type recognized as a tree by the aggregate
@@ -231,7 +230,8 @@ concept classified_splittable_tree_container =
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-NS_END  // traits
+
 NS_END  // djinterp
+
 
 #endif  // DJINTERP_CONTAINER_TREE_CONTAINER_CONCEPTS_

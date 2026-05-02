@@ -31,7 +31,7 @@
 *
 * path:      /inc/container/tree_visitor.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.08
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.08
 ******************************************************************************/
 
 /*
@@ -120,7 +120,6 @@ X.    CONCEPT-CONSTRAINED VISITATION (C++20+)
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1879,7 +1878,6 @@ constrained_tree_visit_with_depth(
 #endif  // D_TREE_VISITOR_HAS_CONCEPTS
 
 
-NS_END  // container
 NS_END  // djinterp
 
 

@@ -40,7 +40,7 @@
 #include <cstring>
 #include <string>
 
-#include "../djinterp.hpp"
+#include "../../../djinterp.hpp"
 
 
 // ================================================================
