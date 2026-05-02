@@ -6,7 +6,7 @@
 * preserves a thread identity (numeric id, optional name) for use in
 * test reporting.
 *
-*   The class is intentionally thin — it adds three things to a raw
+*   The class is intentionally thin - it adds three things to a raw
 * std::thread:
 *
 *     1. EXCEPTION CAPTURE
@@ -82,11 +82,11 @@ NS_TEST
 // test_thread_state
 //   enum: lifecycle state of a test_thread.
 //
-//   idle      — constructed but not yet started
-//   running   — the worker function is currently executing
-//   completed — the worker function returned normally
-//   failed    — the worker function threw an uncaught exception
-//   detached  — the std::thread was detached (no join possible)
+//   idle      - constructed but not yet started
+//   running   - the worker function is currently executing
+//   completed - the worker function returned normally
+//   failed    - the worker function threw an uncaught exception
+//   detached  - the std::thread was detached (no join possible)
 enum class test_thread_state
 {
     idle      = 0,

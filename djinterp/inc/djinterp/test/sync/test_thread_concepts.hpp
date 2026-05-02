@@ -111,7 +111,7 @@ concept try_lockable_type =
 
 // fully_lockable_type
 //   concept: the type exposes both read_lock() and
-// write_lock() — full reader/writer interface.
+// write_lock() - full reader/writer interface.
 template<typename _Type>
 concept fully_lockable_type =
     has_full_lock_interface<_Type>::value;
@@ -226,7 +226,7 @@ concept classified_thread_test_type =
 
 // fully_described_threadsafe_type
 //   concept: a thread-safe type that exposes both type
-// aliases AND a method-level interface — the richest
+// aliases AND a method-level interface - the richest
 // classification suitable for full-spectrum tests.
 template<typename _Type>
 concept fully_described_threadsafe_type =
@@ -239,7 +239,7 @@ concept fully_described_threadsafe_type =
 
 // race_testable_type
 //   concept: a type that can meaningfully be subjected to
-// race-probing — exposes either a reader/writer interface
+// race-probing - exposes either a reader/writer interface
 // or atomic loads.
 template<typename _Type>
 concept race_testable_type =

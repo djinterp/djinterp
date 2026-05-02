@@ -27,22 +27,22 @@
 *     has_atomic_size_type, has_atomic_version_type
 *
 *   DEFINED HERE (test-suite-specific):
-*     has_thread_safety_level    — nested-alias detection upstream
+*     has_thread_safety_level    - nested-alias detection upstream
 *                                  exposes only a *value* extractor,
 *                                  not a *presence* probe
-*     has_try_lock_method        — convenience for try-lock tests
-*     has_full_lock_interface    — composite (read + write)
-*     has_publish_method         — COW publish() detection
-*     has_cow_interface          — composite (snapshot + publish)
-*     has_atomic_load_method     — no-arg load() (distinct from
+*     has_try_lock_method        - convenience for try-lock tests
+*     has_full_lock_interface    - composite (read + write)
+*     has_publish_method         - COW publish() detection
+*     has_cow_interface          - composite (snapshot + publish)
+*     has_atomic_load_method     - no-arg load() (distinct from
 *                                  upstream has_atomic_load_at)
 *     has_atomic_store_method
 *     has_atomic_compare_exchange_method
-*     has_atomic_interface       — composite (load + store)
+*     has_atomic_interface       - composite (load + store)
 *     is_locked_testable, is_cow_testable, is_rcu_testable,
 *       is_hazard_testable, is_lock_free_testable,
-*       is_threadsafe_testable  — strategy-level composites
-*     thread_test_class          — full structural classification
+*       is_threadsafe_testable  - strategy-level composites
+*     thread_test_class          - full structural classification
 *
 *
 * TABLE OF CONTENTS
@@ -92,15 +92,15 @@ NS_TRAITS
 // the test classification stays in lockstep with the
 // container classification.
 
-using ::djinterp::traits::has_concurrency_strategy_tag;
-using ::djinterp::traits::has_read_lock_method;
-using ::djinterp::traits::has_write_lock_method;
-using ::djinterp::traits::has_snapshot_method;
-using ::djinterp::traits::has_cow_state_type;
-using ::djinterp::traits::has_rcu_protected_type;
-using ::djinterp::traits::has_epoch_type;
-using ::djinterp::traits::has_hazard_domain_type;
-using ::djinterp::traits::has_atomic_load_at;
+using ::djinterp::has_concurrency_strategy_tag;
+using ::djinterp::has_read_lock_method;
+using ::djinterp::has_write_lock_method;
+using ::djinterp::has_snapshot_method;
+using ::djinterp::has_cow_state_type;
+using ::djinterp::has_rcu_protected_type;
+using ::djinterp::has_epoch_type;
+using ::djinterp::has_hazard_domain_type;
+using ::djinterp::has_atomic_load_at;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,7 +169,7 @@ struct has_try_lock_method<_Type, void_t<
 {};
 
 // has_full_lock_interface
-//   trait: composite — both read_lock() and write_lock()
+//   trait: composite - both read_lock() and write_lock()
 // are present.
 template<typename _Type>
 struct has_full_lock_interface
@@ -201,7 +201,7 @@ struct has_publish_method<_Type, void_t<
 {};
 
 // has_cow_interface
-//   trait: composite — snapshot() and publish() both
+//   trait: composite - snapshot() and publish() both
 // present, indicating COW-style lifecycle.
 template<typename _Type>
 struct has_cow_interface
@@ -265,7 +265,7 @@ struct has_atomic_compare_exchange_method<_Type, void_t<
 {};
 
 // has_atomic_interface
-//   trait: composite — load() and store() both present.
+//   trait: composite - load() and store() both present.
 template<typename _Type>
 struct has_atomic_interface
 {
@@ -429,15 +429,15 @@ struct thread_test_class
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
     // re-exported _v variants from djinterp::traits
-    using ::djinterp::traits::has_concurrency_strategy_tag_v;
-    using ::djinterp::traits::has_read_lock_method_v;
-    using ::djinterp::traits::has_write_lock_method_v;
-    using ::djinterp::traits::has_snapshot_method_v;
-    using ::djinterp::traits::has_cow_state_type_v;
-    using ::djinterp::traits::has_rcu_protected_type_v;
-    using ::djinterp::traits::has_epoch_type_v;
-    using ::djinterp::traits::has_hazard_domain_type_v;
-    using ::djinterp::traits::has_atomic_load_at_v;
+    using ::djinterp::has_concurrency_strategy_tag_v;
+    using ::djinterp::has_read_lock_method_v;
+    using ::djinterp::has_write_lock_method_v;
+    using ::djinterp::has_snapshot_method_v;
+    using ::djinterp::has_cow_state_type_v;
+    using ::djinterp::has_rcu_protected_type_v;
+    using ::djinterp::has_epoch_type_v;
+    using ::djinterp::has_hazard_domain_type_v;
+    using ::djinterp::has_atomic_load_at_v;
 
     // re-exported _v variants from djinterp
     using ::djinterp::has_lock_policy_type_v;
