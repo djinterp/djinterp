@@ -4,7 +4,7 @@
 * CLI adapter for the C++ test framework.
 *   Parses command-line arguments (argc/argv) into a test_options
 * instance. The mapping between CLI flag names and option keys is
-* defined by a cli_option_table — a flat array of cli_option_def
+* defined by a cli_option_table - a flat array of cli_option_def
 * entries that the user can declare in a single statement and
 * customize per module.
 *

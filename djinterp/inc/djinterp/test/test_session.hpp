@@ -16,7 +16,7 @@
 *
 *   SESSION STATE:
 *   A session transitions through a linear state machine:
-*     idle → running → paused → running → ... → finished
+*     idle --> running --> paused --> running --> ... --> finished
 *   The state is tracked as a simple enum.  Transitions are
 *   validated; invalid transitions are no-ops.
 *
@@ -57,7 +57,7 @@
 
 #include <cstddef>
 #include <chrono>
-#include "../djinterp.hpp"
+#include "../core/djinterp.hpp"
 #include "./test_common.hpp"
 #include "./test_tree.hpp"
 #include "./test_counter.hpp"

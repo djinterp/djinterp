@@ -13,10 +13,10 @@
 *   EVENT TAGS:
 *   Each test_timer instantiation defines nested event tag types
 * compatible with the djinterp event system (event_traits, event_handler):
-*     on_start   — ()
-*     on_stop    — (rep_type elapsed_count)
-*     on_expire  — ()
-*     on_reset   — (rep_type elapsed_count_before)
+*     on_start   - ()
+*     on_stop    - (rep_type elapsed_count)
+*     on_expire  - ()
+*     on_reset   - (rep_type elapsed_count_before)
 *
 *   NESTING:
 *   Children may be owned (stored by value, lifetime-bound) or observed
@@ -113,7 +113,7 @@ public:
 
     // on_stop
     //   event: fired when the timer is stopped.
-    // args: (elapsed_count) — accumulated duration count at stop.
+    // args: (elapsed_count) - accumulated duration count at stop.
     struct on_stop
     {
         using args_type = std::tuple<rep_type>;
@@ -139,7 +139,7 @@ public:
 
     // on_reset
     //   event: fired after a reset.
-    // args: (elapsed_count_before) — accumulated count before reset.
+    // args: (elapsed_count_before) - accumulated count before reset.
     struct on_reset
     {
         using args_type = std::tuple<rep_type>;

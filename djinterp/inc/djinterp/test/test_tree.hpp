@@ -11,7 +11,7 @@
 * rank must be less than or equal to its parent's rank.  This
 * prevents structural violations (e.g. an assertion containing a
 * module).  The _ValidateRank template parameter controls this
-* at compile time — when false, rank checks are compiled out
+* at compile time - when false, rank checks are compiled out
 * entirely with zero overhead.
 *
 *   OVERLAY DESIGN:
@@ -90,15 +90,15 @@ NS_INTERNAL
         : std::true_type
     {};
 
-    // has_size_method
+    // has_size_accessor
     //   trait: true if _Type exposes size().
     template<typename _Type,
              typename = void>
-    struct has_size_method : std::false_type
+    struct has_size_accessor : std::false_type
     {};
 
     template<typename _Type>
-    struct has_size_method<_Type,
+    struct has_size_accessor<_Type,
         void_t<decltype(std::declval<const _Type&>().size())>>
         : std::true_type
     {};
@@ -197,7 +197,7 @@ template<typename _Element,
 class test_tree
 {
     static_assert(
-        traits::is_test_evaluable<_Element>::value,
+        is_test_evaluable<_Element>::value,
         "`_Element` must be convertible to bool (test "
         "object protocol).");
 
@@ -207,7 +207,7 @@ class test_tree
         "protocol).");
 
     static_assert(
-        internal::has_size_method<_Underlying>::value,
+        internal::has_size_accessor<_Underlying>::value,
         "`_Underlying` must expose size() (n-ary tree "
         "protocol).");
 
@@ -238,9 +238,9 @@ public:
     //   constructor: from underlying.  Takes ownership of
     // an existing underlying container via move.
     explicit test_tree(
-            _Underlying&& _tree
-        )
-            : m_underlying(static_cast<_Underlying&&>(_tree))
+        _Underlying&& _tree
+    )
+        : m_underlying(static_cast<_Underlying&&>(_tree))
     {}
 
     // test_tree
@@ -297,15 +297,26 @@ public:
 
     // root
     //   returns the root handle from the underlying tree.
+    //
+    //   Trailing return types are parsed BEFORE the class body
+    // is complete, so members declared later in the class
+    // (here, `m_underlying` at the bottom of the class) are
+    // not yet visible at this point.  An earlier form of this
+    // declaration used `decltype(m_underlying.root())`, which
+    // produced "use of undeclared identifier 'm_underlying'"
+    // under clang / MSVC.  We side-step the issue entirely by
+    // deducing the return type from the template parameter
+    // `_Underlying`, which IS in scope in the trailing-return
+    // context - the function body is unchanged.
     auto
-    root() -> decltype(m_underlying.root())
+    root() -> decltype(std::declval<_Underlying&>().root())
     {
         return m_underlying.root();
     }
 
     // root (const)
     auto
-    root() const -> decltype(m_underlying.root())
+    root() const -> decltype(std::declval<const _Underlying&>().root())
     {
         return m_underlying.root();
     }
@@ -332,7 +343,7 @@ public:
     //   returns true if _child may be added under _parent
     // according to the rank invariant (child.rank <=
     // parent.rank).  When _ValidateRank is false, always
-    // returns true — the check is compiled out entirely.
+    // returns true - the check is compiled out entirely.
     //
     //   When the element type does not expose rank(), the
     // check is also compiled out (no constraint to enforce).

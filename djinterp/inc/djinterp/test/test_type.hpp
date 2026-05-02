@@ -83,7 +83,7 @@ NS_TEST
 // it is a leaf or interior node, an optional name, and a
 // non-owning pointer to default options.
 //
-// No built-in kind constants are provided — the vocabulary
+// No built-in kind constants are provided - the vocabulary
 // of test classifications is entirely user-defined.
 //
 // Usage:

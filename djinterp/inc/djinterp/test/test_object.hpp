@@ -7,7 +7,7 @@
 * overrides.
 *
 *   TYPE IDENTITY:
-*   Every test_object carries a test_type_id — a signed 32-bit integer
+*   Every test_object carries a test_type_id - a signed 32-bit integer
 * that identifies the kind of test it represents.  The type id is the
 * object's only link to the test_type registry held by the tree.
 *
@@ -18,7 +18,7 @@
 *   When the tree holds a test_type registry, a matching id resolves
 * to its test_kind, which supplies rank, leaf/interior classification,
 * and default options.  The test_object itself does not cache these
-* derived properties — they are resolved at query time through the
+* derived properties - they are resolved at query time through the
 * registry.
 *
 *   OPTIONS:
@@ -91,7 +91,7 @@ NS_TEST
 // and an optional per-instance options pointer.
 //
 // Structural classification (rank, leaf/interior) is NOT
-// stored here — it is resolved through the test_type
+// stored here - it is resolved through the test_type
 // registry at the tree level.  In isolation, the
 // test_type_id itself acts as the rank.
 //
@@ -442,23 +442,22 @@ struct test_object
 ///////////////////////////////////////////////////////////////////////////////
 ///                II.  CONVENIENCE ALIASES                                  ///
 ///////////////////////////////////////////////////////////////////////////////
-
 // basic_test
-//   type: default test object with uint8 status, uint32 id.
+//   type: default test object with uint8 status, uint16 rank,
+// uint32 id.
 using basic_test = test_object<>;
 
 // compact_test
-//   type: test object with minimal storage — uint8 status,
-// uint16 id.
+//   type: test object with minimal storage - uint8 status,
+// uint8 rank, uint16 id.
 using compact_test = test_object<std::uint8_t,
-                                  std::uint16_t>;
+                                 std::uint16_t>;
 
 // wide_test
-//   type: test object with large id space — uint8 status,
-// uint64 id.
+//   type: test object with large id space - uint8 status,
+// uint16 rank, uint64 id.
 using wide_test = test_object<std::uint8_t,
-                               std::uint64_t>;
-
+                              std::uint64_t>;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. FACTORY FUNCTIONS                                    ///

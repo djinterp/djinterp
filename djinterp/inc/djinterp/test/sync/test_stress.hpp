@@ -5,24 +5,29 @@
 * set of operations many times across many threads, with optional
 * iteration limits, time bounds, randomized op-mix selection, and a
 * reproducible RNG seed for re-runnable failures.
+*
 *   STRESS TESTING IS ABOUT VOLUME AND VARIATION.  A bug that
 * manifests once in 10,000 interleavings will not be caught by a
 * single deterministic run.  This harness multiplies a target
 * operation by tens of thousands of executions across many threads,
 * with each thread choosing its next operation by weighted random
 * draw, and reports the result as a single test_object.
+*
 *   COMPONENTS:
-*     stress_runner     - fixed-iteration stress driver
-*     timed_stress      - time-bounded variant (run for N seconds)
-*     chaos_runner      - randomized op-mix harness
-*     stress_op         - describes a named operation with weight
+*
+*     stress_runner     — fixed-iteration stress driver
+*     timed_stress      — time-bounded variant (run for N seconds)
+*     chaos_runner      — randomized op-mix harness
+*     stress_op         — describes a named operation with weight
 *                         and callable for chaos_runner
-*     stress_report     - per-op counters, total iterations, errors
+*     stress_report     — per-op counters, total iterations, errors
+*
 *   REPRODUCIBILITY:
 *   chaos_runner accepts a 64-bit seed.  Given the same seed and the
 * same op set, two runs produce the same op-selection sequence
-* (subject to scheduling - the threads interleave differently each
+* (subject to scheduling — the threads interleave differently each
 * time, but each thread's local op stream is deterministic).
+*
 *   PORTABILITY:
 *   Requires C++11 or later for <thread> and <random>.  C++98/03
 * code falls back to a sequential single-threaded driver: the same
@@ -40,7 +45,7 @@
 * VI.   FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/sync/test_stress.hpp
+* path:      /inc/djinterp/test/test_stress.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -52,6 +57,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
     #include <chrono>
@@ -59,7 +65,8 @@
     #include <random>
     #include <utility>
     #include <vector>
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif
+
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../sync/atomic.hpp"
@@ -75,6 +82,9 @@ NS_TEST
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// --- threadsafe foundation wrappers used by this module ---
+using ::djinterp::threadsafe::atomic_size;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   STRESS REPORT                                       ///
@@ -283,10 +293,10 @@ public:
         operation_fn op      = m_operation;
 
         // per-thread iteration counters (atomic so the
-        // worker can update without false sharing concerns -
+        // worker can update without false sharing concerns —
         // contention is acceptable here since these are
         // outside the tested code path)
-        std::vector<std::atomic<size_type>> per_thread(tcount);
+        std::vector<atomic_size> per_thread(tcount);
 
         for (size_type i = 0; i < tcount; ++i)
         {
@@ -448,7 +458,7 @@ public:
         operation_fn op       = m_operation;
         auto         duration = m_duration;
 
-        std::vector<std::atomic<size_type>> per_thread(tcount);
+        std::vector<atomic_size> per_thread(tcount);
 
         for (size_type i = 0; i < tcount; ++i)
         {
@@ -530,9 +540,9 @@ private:
 // selection weight for use with chaos_runner.
 //
 // Fields:
-//   name   - human-readable label, included in the report
-//   weight - relative selection weight (positive)
-//   action - the callable invoked for this op; receives
+//   name   — human-readable label, included in the report
+//   weight — relative selection weight (positive)
+//   action — the callable invoked for this op; receives
 //            (thread_id, iteration_index)
 struct stress_op
 {
@@ -724,8 +734,8 @@ public:
         // counts (op counts are global since op selection
         // is independent across threads but the totals
         // need to be aggregated)
-        std::vector<std::atomic<size_type>> per_thread(tcount);
-        std::vector<std::atomic<size_type>> per_op(ops.size());
+        std::vector<atomic_size> per_thread(tcount);
+        std::vector<atomic_size> per_op(ops.size());
 
         for (size_type i = 0; i < tcount; ++i)
         {
@@ -738,7 +748,7 @@ public:
         }
 
         // build cumulative weight table for fast O(log N)
-        // selection - one shared, immutable copy
+        // selection — one shared, immutable copy
         std::vector<unsigned> cumulative;
         cumulative.reserve(ops.size());
         unsigned running = 0;
