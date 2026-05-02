@@ -3,7 +3,7 @@
 *
 * Node Container Foundation:
 *   Foundational base class for all containers that manage their elements
-* through node structures — trees, linked lists, graphs, skip lists, and
+* through node structures - trees, linked lists, graphs, skip lists, and
 * any other topology where elements are accessed through self-referential
 * node objects rather than contiguous storage.
 *
@@ -21,26 +21,26 @@
 * head/entry storage, destruction semantics, and Rule of Five behavior.
 * Three policies are provided:
 *
-*     non_owning_policy    — raw pointer entry, no destruction (default)
-*     unique_owning_policy — unique_ptr entry, move-only, RAII destruction
-*     shared_owning_policy — shared_ptr entry, refcounted, copyable
+*     non_owning_policy    - raw pointer entry, no destruction (default)
+*     unique_owning_policy - unique_ptr entry, move-only, RAII destruction
+*     shared_owning_policy - shared_ptr entry, refcounted, copyable
 *
 *   Derived containers add topology:
-*     tree_container  — inherits node_container, adds root()/has_root()
-*     (future) list_container  — adds head()/tail()
-*     (future) graph_container — adds entry set, adjacency
+*     tree_container  - inherits node_container, adds root()/has_root()
+*     (future) list_container  - adds head()/tail()
+*     (future) graph_container - adds entry set, adjacency
 *
 * TEMPLATE PARAMETERS:
-*   _ValueType       — the user-facing element type
-*   _NodeType        — the internal node structure
-*   _Allocator       — allocator for nodes (default: std::allocator<N>)
-*   _LockPolicy      — threading policy (default: void = no locking)
-*   _OwnershipPolicy — entry point ownership (default: non_owning_policy)
+*   _ValueType       - the user-facing element type
+*   _NodeType        - the internal node structure
+*   _Allocator       - allocator for nodes (default: std::allocator<N>)
+*   _LockPolicy      - threading policy (default: void = no locking)
+*   _OwnershipPolicy - entry point ownership (default: non_owning_policy)
 *
 *
 * path:      /inc/container/node/node_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_NODE_CONTAINER_
@@ -50,35 +50,34 @@
 #include <cstdint>
 #include <memory>
 #include <type_traits>
-#include "../../djinterp.hpp"
+#include "../djinterp.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
-// =============================================================================
+// ===========================================================================
 //  1.  OWNERSHIP POLICIES
-// =============================================================================
+// ===========================================================================
 //   Static-interface structs that control how a node_container stores
 // its entry point(s) into the node graph.  The policy interface is
 // uniform so node_container can dispatch through it without branching
 // on policy identity.
 //
 //   POLICY INTERFACE (all static):
-//     root_storage_type<N>   — storage type for the entry point
-//     owns                   — true if the container destroys nodes
-//     copyable               — true if copy construction/assignment is valid
-//     movable                — true if move construction/assignment is valid
-//     make_null<N>()         — returns the null sentinel
-//     is_null(storage)       — tests for null
-//     get(storage)           — extracts mutable N*
-//     get_const(storage)     — extracts const N*
-//     reset(storage)         — destroys (if owning) and nullifies
-//     adopt(storage, N*)     — takes ownership of a raw pointer
-//     release(storage)       — relinquishes ownership, returns N*
-//     move_from(src, dst)    — transfers between storages
-//     clone(src)             — copies (only if copyable)
+//     root_storage_type<N>   - storage type for the entry point
+//     owns                   - true if the container destroys nodes
+//     copyable               - true if copy construction/assignment is valid
+//     movable                - true if move construction/assignment is valid
+//     make_null<N>()         - returns the null sentinel
+//     is_null(storage)       - tests for null
+//     get(storage)           - extracts mutable N*
+//     get_const(storage)     - extracts const N*
+//     reset(storage)         - destroys (if owning) and nullifies
+//     adopt(storage, N*)     - takes ownership of a raw pointer
+//     release(storage)       - relinquishes ownership, returns N*
+//     move_from(src, dst)    - transfers between storages
+//     clone(src)             - copies (only if copyable)
 
 
 // ─── non_owning_policy ──────────────────────────────────────────────────────
@@ -193,7 +192,7 @@ struct non_owning_policy
 
 // unique_owning_policy
 //   struct: entry point held via std::unique_ptr.  The container
-// exclusively owns the node graph.  Move-only — copy is a
+// exclusively owns the node graph.  Move-only - copy is a
 // compile-time error.
 struct unique_owning_policy
 {
@@ -430,9 +429,9 @@ struct shared_owning_policy
 };
 
 
-// =============================================================================
+// ===========================================================================
 //  2.  NODE CONTAINER
-// =============================================================================
+// ===========================================================================
 //   The foundational base for all node-based containers.  Manages a
 // single entry point into the node graph, a size counter, and an
 // allocator.  Derived containers add topology-specific semantics:
@@ -469,8 +468,8 @@ public:
     using depth_type       = std::size_t;
     using reference        = value_type&;
     using const_reference  = const value_type&;
-    using pointer          = typename allocator_traits::pointer;
-    using const_pointer    = typename allocator_traits::const_pointer;
+    using pointer          = typename allocator_pointer;
+    using const_pointer    = typename allocator_const_pointer;
 
     // Root storage type determined by ownership policy
     using entry_storage = typename _OwnershipPolicy::
@@ -492,20 +491,18 @@ public:
         : m_entry(_OwnershipPolicy::template make_null<_NodeType>()),
           m_size(0),
           m_allocator()
-    {
-    }
+    {}
 
     // node_container
     //   constructor: allocator-extended default.
     D_CONSTEXPR explicit node_container(
-            const allocator_type& _alloc
-        ) noexcept(noexcept(entry_storage{}))
-            : m_entry(
-                  _OwnershipPolicy::template make_null<_NodeType>()),
-              m_size(0),
-              m_allocator(_alloc)
-        {
-        }
+        const allocator_type& _alloc
+    ) noexcept(noexcept(entry_storage{}))
+        : m_entry(
+                _OwnershipPolicy::template make_null<_NodeType>()),
+            m_size(0),
+            m_allocator(_alloc)
+    {}
 
     // node_container
     //   constructor: copy.
@@ -516,16 +513,15 @@ public:
                  std::is_void<_Dummy>::value,
                  int> = 0>
     D_CONSTEXPR node_container(
-            const node_container& _other
-        )
-            : m_entry(_OwnershipPolicy::clone(_other.m_entry)),
-              m_size(_other.m_size),
+        const node_container& _other
+    )
+        : m_entry(_OwnershipPolicy::clone(_other.m_entry)),
+            m_size(_other.m_size),
               m_allocator(
-                  allocator_traits::
+                  allocator_
                       select_on_container_copy_construction(
                           _other.m_allocator))
-        {
-        }
+    {}
 
     // node_container
     //   constructor: move.  Transfers entry point and size.
@@ -566,8 +562,8 @@ public:
             m_size  = _other.m_size;
 
             if constexpr (
-                allocator_traits::
-                    propagate_on_container_copy_assignment::value)
+                allocator_
+                propagate_on_container_copy_assignment::value)
             {
                 m_allocator = _other.m_allocator;
             }
@@ -591,8 +587,8 @@ public:
             m_size = _other.m_size;
 
             if constexpr (
-                allocator_traits::
-                    propagate_on_container_move_assignment::value)
+                allocator_
+                propagate_on_container_move_assignment::value)
             {
                 m_allocator = static_cast<allocator_type&&>(
                     _other.m_allocator);
@@ -624,7 +620,7 @@ public:
     D_CONSTEXPR size_type
     max_size() const noexcept
     {
-        return allocator_traits::max_size(m_allocator);
+        return allocator_max_size(m_allocator);
     }
 
 
@@ -658,7 +654,7 @@ public:
 
     // entry_storage_ref
     //   returns a reference to the underlying storage.
-    // Advanced usage — prefer the typed accessors.
+    // Advanced usage - prefer the typed accessors.
     entry_storage&
     entry_storage_ref() noexcept
     {
@@ -793,7 +789,7 @@ public:
         djinterp::constexpr_swap(m_size, _other.m_size);
 
         if constexpr (
-            allocator_traits::propagate_on_container_swap::value)
+            allocator_propagate_on_container_swap::value)
         {
             djinterp::constexpr_swap(m_allocator,
                                       _other.m_allocator);
@@ -844,9 +840,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 //  3.  CONVENIENCE ALIASES
-// =============================================================================
+// ===========================================================================
 
 // owning_node_container
 //   alias: node_container with unique_owning_policy.
@@ -875,7 +871,6 @@ using shared_node_container =
                    shared_owning_policy>;
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
