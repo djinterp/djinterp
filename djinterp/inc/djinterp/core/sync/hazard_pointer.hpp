@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [threadsafe]                                     hazard_pointer.hpp
+* djinterp [sync]                               hazard_pointer.hpp
 *
 * Hazard pointer memory reclamation for lock-free data structures.
 *   Provides the foundational building blocks for safe memory reclamation
@@ -18,11 +18,11 @@
 *   hazard record protects it.
 *
 * TYPES:
-*   hazard_record          — single atomic slot for one protected pointer
-*   hazard_domain          — collection of records + retired node tracking
-*   scoped_hazard          — RAII protect / clear
-*   typed_hazard_ptr<T>    — type-safe scoped hazard with re-read validation
-*   multi_hazard_domain    — domain with N slots per thread for multi-pointer
+*   hazard_record          - single atomic slot for one protected pointer
+*   hazard_domain          - collection of records + retired node tracking
+*   scoped_hazard          - RAII protect / clear
+*   typed_hazard_ptr<T>    - type-safe scoped hazard with re-read validation
+*   multi_hazard_domain    - domain with N slots per thread for multi-pointer
 *                            algorithms (e.g. lock-free lists need 2 hazards)
 *
 * VERSIONING:
@@ -33,7 +33,7 @@
 *
 * path:      /inc/djinterp/sync/hazard_pointer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_HAZARD_POINTER_
@@ -75,9 +75,10 @@
 #include <functional>
 #include <vector>
 
+#include "../meta/strategy_tags.hpp"
+
 
 NS_DJINTERP
-NS_THREADSAFE
 
 // =========================================================================
 // I.   STANDARD LIBRARY DELEGATION (C++23)
@@ -133,6 +134,22 @@ struct hazard_record
 class hazard_domain
 {
 public:
+    // --- type aliases ---
+
+    // hazard_domain_type
+    //   alias: self-marker so that
+    // `has_hazard_domain_type<hazard_domain>`
+    // reports true.  Containers built on hazard_domain
+    // typically forward this alias to identify themselves
+    // as hazard-pointer-strategy.
+    using hazard_domain_type = hazard_domain;
+
+    // concurrency_strategy_tag
+    //   alias: declares this type as hazard-pointer
+    // strategy.  Read by concurrency_strategy_traits.hpp
+    // tag-alias fast path.
+    using concurrency_strategy_tag = hazard_strategy_tag;
+
     // max_threads
     //   the maximum number of concurrent threads.
     // Fixed at construction to avoid allocation on the
@@ -655,6 +672,20 @@ template<std::size_t _SlotsPerThread = 2>
 class multi_hazard_domain
 {
 public:
+    // --- type aliases ---
+
+    // hazard_domain_type
+    //   alias: self-marker so that
+    // `has_hazard_domain_type<multi_hazard_domain<N>>`
+    // reports true.
+    using hazard_domain_type = multi_hazard_domain;
+
+    // concurrency_strategy_tag
+    //   alias: declares this type as hazard-pointer
+    // strategy.  Read by concurrency_strategy_traits.hpp
+    // tag-alias fast path.
+    using concurrency_strategy_tag = hazard_strategy_tag;
+
     static constexpr std::size_t slots_per_thread =
         _SlotsPerThread;
 
@@ -936,7 +967,6 @@ private:
 #endif  // D_HAS_STD_HAZARD_POINTER
 
 
-NS_END  // threadsafe
 NS_END  // djinterp
 
 #endif  // C++11

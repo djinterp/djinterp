@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [threadsafe]                                      lock_policy_c.hpp
+* djinterp [sync]                                lock_policy_c.hpp
 *
 * C-backed lock policies for the thread-safe framework.
 *   Provides lock policies that use platform C APIs (pthreads on POSIX,
@@ -11,10 +11,10 @@
 *     the standard C++ policies
 *
 * POLICY STRUCTS:
-*   c_exclusive    — platform exclusive mutex (pthread_mutex / CRITICAL_SECTION)
-*   c_shared       — platform read-write lock (pthread_rwlock / SRWLOCK)
-*   c_recursive    — platform recursive mutex
-*   c_spinlock     — test-and-set spinlock (atomic_flag)
+*   c_exclusive    - platform exclusive mutex (pthread_mutex / CRITICAL_SECTION)
+*   c_shared       - platform read-write lock (pthread_rwlock / SRWLOCK)
+*   c_recursive    - platform recursive mutex
+*   c_spinlock     - test-and-set spinlock (atomic_flag)
 *
 * VERSIONING:
 *   C++98/03:  c_exclusive, c_recursive (pthreads / Win32)
@@ -24,7 +24,7 @@
 *
 * path:      /inc/djinterp/sync/lock_policy_c.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_LOCK_POLICY_C_
@@ -59,7 +59,6 @@
 
 
 NS_DJINTERP
-NS_THREADSAFE
 
 
 // =========================================================================
@@ -482,7 +481,7 @@ public:
         while (m_flag.test_and_set(
             std::memory_order_acquire))
         {
-            // spin — platform pause hint
+            // spin - platform pause hint
         #if defined(__x86_64__) || defined(_M_X64) || \
             defined(__i386__)   || defined(_M_IX86)
             #if defined(_MSC_VER)
@@ -534,7 +533,6 @@ struct c_spinlock
 #endif  // C++11
 
 
-NS_END  // threadsafe
 NS_END  // djinterp
 
 

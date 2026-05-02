@@ -1,16 +1,16 @@
 /******************************************************************************
-* djinterp [threadsafe]                                             atomic.hpp
+* djinterp [sync]                                                   atomic.hpp
 *
 * Atomic utilities for the thread-safe framework.
 *   Provides semantic wrappers around std::atomic for common metadata
 * patterns (element counts, version stamps).  These types add no
-* overhead beyond the underlying atomic — they exist to clarify intent
+* overhead beyond the underlying atomic - they exist to clarify intent
 * and prevent mixing up unrelated atomic variables.
 *
 * TYPES:
-*   atomic_size       — atomic std::size_t for lock-free element counts
-*   atomic_version    — atomic std::uint64_t for version/generation stamps
-*   atomic_flag_guard — RAII guard for std::atomic_flag (set on construct,
+*   atomic_size       - atomic std::size_t for lock-free element counts
+*   atomic_version    - atomic std::uint64_t for version/generation stamps
+*   atomic_flag_guard - RAII guard for std::atomic_flag (set on construct,
 *                       clear on destruct)
 *
 * VERSIONING:
@@ -19,31 +19,33 @@
 *   C++20:     + atomic_ref support, wait/notify
 *
 *
-* path:      /inc/djinterp/sync/atomic.hpp
+* path:      /inc/djinterp/core/sync/atomic.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_ATOMIC_
 #define DJINTERP_THREADSAFE_ATOMIC_ 1
 
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "atomic.hpp requires env.h to be included first"
-#endif
+//#ifndef DJINTERP_ENVIRONMENT_
+//    #error "atomic.hpp requires env.h to be included first"
+//#endif
 
-#ifndef __cplusplus
-    #error "atomic.hpp can only be used in C++ compilation mode"
-#endif
+//#ifndef __cplusplus
+//    #error "atomic.hpp can only be used in C++ compilation mode"
+//#endif
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+//#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+// djinterp
+#include "../djinterp.hpp"
+#include "./strategy_tags.hpp"
 
 
 NS_DJINTERP
-NS_THREADSAFE
 
 // =========================================================================
 // I.   ATOMIC SIZE
@@ -55,6 +57,21 @@ NS_THREADSAFE
 class atomic_size
 {
 public:
+    // --- type aliases ---
+
+    // value_type
+    //   alias: the underlying value held atomically.
+    // Mirrors std::atomic<T>::value_type so that generic
+    // code (including the test trait surface) can probe
+    // store/CAS overloads via T::value_type.
+    using value_type = std::size_t;
+
+    // concurrency_strategy_tag
+    //   alias: declares this type as lock-free atomic
+    // strategy.  Read by concurrency_strategy_traits.hpp
+    // tag-alias fast path.
+    using concurrency_strategy_tag = atomic_strategy_tag;
+
     atomic_size() noexcept
         : m_value(0)
     {}
@@ -191,6 +208,21 @@ private:
 class atomic_version
 {
 public:
+    // --- type aliases ---
+
+    // value_type
+    //   alias: the underlying value held atomically.
+    // Mirrors std::atomic<T>::value_type so that generic
+    // code (including the test trait surface) can probe
+    // store/CAS overloads via T::value_type.
+    using value_type = std::uint64_t;
+
+    // concurrency_strategy_tag
+    //   alias: declares this type as lock-free atomic
+    // strategy.  Read by concurrency_strategy_traits.hpp
+    // tag-alias fast path.
+    using concurrency_strategy_tag = atomic_strategy_tag;
+
     atomic_version() noexcept
         : m_value(0)
     {}
@@ -480,10 +512,9 @@ private:
 };
 
 
-NS_END  // threadsafe
 NS_END  // djinterp
 
-#endif  // C++11
+//#endif  // C++11
 
 
 #endif  // DJINTERP_THREADSAFE_ATOMIC_

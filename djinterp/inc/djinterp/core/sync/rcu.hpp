@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [threadsafe]                                                rcu.hpp
+* djinterp [sync]                                          rcu.hpp
 *
 * Read-Copy-Update (RCU) and epoch-based reclamation primitives.
 *   Provides building blocks for lock-free containers that use read-side
@@ -15,14 +15,14 @@
 *             epoch have exited.
 *
 * TYPES:
-*   epoch_counter          — global epoch tracker (advance / current)
-*   epoch_guard            — RAII reader critical section marker
-*   epoch_registry         — thread registry for determining safe
+*   epoch_counter          - global epoch tracker (advance / current)
+*   epoch_guard            - RAII reader critical section marker
+*   epoch_registry         - thread registry for determining safe
 *                            reclamation epochs
-*   deferred_reclaimer<T>  — combines epoch_counter, epoch_registry,
+*   deferred_reclaimer<T>  - combines epoch_counter, epoch_registry,
 *                            and retired_list into a single reclamation
 *                            engine
-*   rcu_protected<T,Policy>— complete RCU-protected value: atomic data
+*   rcu_protected<T,Policy>- complete RCU-protected value: atomic data
 *                            pointer + reclamation engine, providing
 *                            read() / update() / snapshot() operations
 *
@@ -34,7 +34,7 @@
 *
 * path:      /inc/djinterp/sync/rcu.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_RCU_
@@ -77,10 +77,10 @@
 #include <new>
 
 #include "atomic.hpp"
+#include "../meta/strategy_tags.hpp"
 
 
 NS_DJINTERP
-NS_THREADSAFE
 
 // =========================================================================
 // I.   STANDARD LIBRARY DELEGATION (C++23)
@@ -191,7 +191,7 @@ private:
 // Tracks per-thread local epoch values.  Each thread
 // that participates in RCU reads registers a slot.
 // The writer scans all slots to determine the minimum
-// active epoch — any retired node from an epoch strictly
+// active epoch - any retired node from an epoch strictly
 // less than this minimum is safe to reclaim.
 //
 // Slot allocation is lock-free (CAS on the active flag).
@@ -538,6 +538,22 @@ template<typename _T>
 class rcu_protected
 {
 public:
+    // --- type aliases ---
+
+    // rcu_protected_type
+    //   alias: self-marker so that
+    // `has_rcu_protected_type<rcu_protected<T>>`
+    // reports true.  Containers built on rcu_protected
+    // typically forward this alias to identify themselves
+    // as RCU-strategy.
+    using rcu_protected_type = rcu_protected;
+
+    // concurrency_strategy_tag
+    //   alias: declares this type as RCU strategy.
+    // Read by concurrency_strategy_traits.hpp tag-alias
+    // fast path.
+    using concurrency_strategy_tag = rcu_strategy_tag;
+
     // --- reader token ---
 
     // rcu_read_guard
@@ -657,7 +673,7 @@ public:
     // modify
     //   reads the current value, applies _fn to a copy,
     // and publishes the modified copy.  NOT atomic with
-    // respect to concurrent writers — use external
+    // respect to concurrent writers - use external
     // synchronization if multiple writers are possible.
     template<typename _Fn>
     void modify(_Fn&& _fn)
@@ -696,7 +712,6 @@ private:
 #endif  // !D_HAS_STD_RCU
 
 
-NS_END  // threadsafe
 NS_END  // djinterp
 
 #endif  // C++11
