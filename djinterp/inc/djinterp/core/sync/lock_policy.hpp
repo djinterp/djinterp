@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [threadsafe]                                        lock_policy.hpp
+* djinterp [sync]                                  lock_policy.hpp
 *
 * Lock policy definitions for the thread-safe framework.
 *   Provides a hierarchy of lock policies that wrap different mutex types,
@@ -9,23 +9,23 @@
 * used in both single-threaded and multi-threaded contexts.
 *
 * THREAD SAFETY LEVEL HIERARCHY:
-*   none            — no synchronization (single-threaded)
-*   atomic_only     — lock-free atomics only (no mutex)
-*   exclusive       — std::mutex (C++11) or platform mutex
-*   timed           — std::timed_mutex (C++11)
-*   shared          — std::shared_mutex (C++17)
-*   shared_timed    — std::shared_timed_mutex (C++14/17)
+*   none            - no synchronization (single-threaded)
+*   atomic_only     - lock-free atomics only (no mutex)
+*   exclusive       - std::mutex (C++11) or platform mutex
+*   timed           - std::timed_mutex (C++11)
+*   shared          - std::shared_mutex (C++17)
+*   shared_timed    - std::shared_timed_mutex (C++14/17)
 *
 * POLICY STRUCTS:
-*   null_lock_policy         — no-op (all lock/unlock inlined away)
-*   exclusive_lock_policy    — std::mutex-backed exclusive locking
-*   timed_lock_policy        — std::timed_mutex-backed timed locking
-*   shared_lock_policy       — std::shared_mutex reader/writer locking
-*   shared_timed_lock_policy — std::shared_timed_mutex
+*   null_lock_policy         - no-op (all lock/unlock inlined away)
+*   exclusive_lock_policy    - std::mutex-backed exclusive locking
+*   timed_lock_policy        - std::timed_mutex-backed timed locking
+*   shared_lock_policy       - std::shared_mutex reader/writer locking
+*   shared_timed_lock_policy - std::shared_timed_mutex
 *
 * SELECTORS:
-*   select_lock_policy<Level> — maps DThreadSafetyLevel to a policy type
-*   default_lock_policy       — alias for the project default
+*   select_lock_policy<Level> - maps thread_safety_leavel to a policy type
+*   default_lock_policy       - alias for the project default
 *
 * VERSIONING:
 *   C++98/03:  null_lock_policy only (no <mutex>)
@@ -36,7 +36,7 @@
 *
 * path:      /inc/djinterp/sync/lock_policy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_LOCK_POLICY_
@@ -65,23 +65,13 @@
 #endif
 
 
-// NS_THREADSAFE
-//   namespace: the `threadsafe` namespace for general-purpose
-// synchronization primitives (lock policies, guards, atomics,
-// COW, hazard pointers, RCU).  Container-agnostic.
-#ifndef NS_THREADSAFE
-    #define NS_THREADSAFE   D_NAMESPACE(threadsafe)
-#endif
-
-
 NS_DJINTERP
-NS_THREADSAFE
 
 // =========================================================================
 // I.   THREAD SAFETY LEVEL ENUM
 // =========================================================================
 
-// DThreadSafetyLevel
+// thread_safety_leavel
 //   enum: ordered hierarchy of thread-safety guarantees.
 // Used by the trait system to classify types and by
 // select_lock_policy to map levels to concrete policy types.
@@ -90,7 +80,7 @@ NS_THREADSAFE
 // superset of the one below it.
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-enum class DThreadSafetyLevel
+enum class thread_safety_leavel
 {
     none         = 0,
     atomic_only  = 1,
@@ -101,12 +91,12 @@ enum class DThreadSafetyLevel
 };
 
 // Alias for backward compatibility and trait queries.
-using thread_safety_level = DThreadSafetyLevel;
+using thread_safety_level = thread_safety_leavel;
 
 #else
 
 // C++98: simulate with struct + constants
-struct DThreadSafetyLevel
+struct thread_safety_leavel
 {
     enum value_type
     {
@@ -119,7 +109,7 @@ struct DThreadSafetyLevel
     };
 };
 
-typedef DThreadSafetyLevel::value_type thread_safety_level;
+typedef thread_safety_leavel::value_type thread_safety_level;
 
 #endif  // C++11
 
@@ -174,8 +164,8 @@ struct null_lock_policy
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::none;
+    static constexpr thread_safety_leavel level =
+        thread_safety_leavel::none;
 #endif
 };
 
@@ -189,7 +179,7 @@ struct null_lock_policy
 // exclusive_lock_policy
 //   struct: wraps std::mutex for exclusive (writer-only)
 // locking.  Both read and write operations acquire the
-// same exclusive lock — no reader concurrency.
+// same exclusive lock - no reader concurrency.
 struct exclusive_lock_policy
 {
     // --- type aliases ---
@@ -202,8 +192,8 @@ struct exclusive_lock_policy
     static constexpr bool is_shared     = false;
     static constexpr bool is_timed      = false;
 
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::exclusive;
+    static constexpr thread_safety_leavel level =
+        thread_safety_leavel::exclusive;
 };
 
 
@@ -227,8 +217,8 @@ struct timed_lock_policy
     static constexpr bool is_shared     = false;
     static constexpr bool is_timed      = true;
 
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::timed;
+    static constexpr thread_safety_leavel level =
+        thread_safety_leavel::timed;
 };
 
 #endif  // C++11
@@ -256,8 +246,8 @@ struct shared_lock_policy
     static constexpr bool is_shared     = true;
     static constexpr bool is_timed      = false;
 
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::shared;
+    static constexpr thread_safety_leavel level =
+        thread_safety_leavel::shared;
 };
 
 #endif  // C++17
@@ -271,7 +261,7 @@ struct shared_lock_policy
 
 // shared_timed_lock_policy
 //   struct: wraps std::shared_timed_mutex for reader/writer
-// locking with timeout support.  The most capable policy —
+// locking with timeout support.  The most capable policy -
 // supports concurrent readers, exclusive writers, and
 // timed lock acquisition.
 struct shared_timed_lock_policy
@@ -286,8 +276,8 @@ struct shared_timed_lock_policy
     static constexpr bool is_shared     = true;
     static constexpr bool is_timed      = true;
 
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::shared_timed;
+    static constexpr thread_safety_leavel level =
+        thread_safety_leavel::shared_timed;
 };
 
 #endif  // C++14
@@ -303,33 +293,33 @@ NS_INTERNAL
 
     // select_lock_policy_impl
     //   trait: primary template (unspecialized).
-    template<DThreadSafetyLevel _Level>
+    template<thread_safety_leavel _Level>
     struct select_lock_policy_impl;
 
     // none
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::none>
+    struct select_lock_policy_impl<thread_safety_leavel::none>
     {
         using type = null_lock_policy;
     };
 
-    // atomic_only — no mutex, use null_lock_policy
+    // atomic_only - no mutex, use null_lock_policy
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::atomic_only>
+    struct select_lock_policy_impl<thread_safety_leavel::atomic_only>
     {
         using type = null_lock_policy;
     };
 
     // exclusive
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::exclusive>
+    struct select_lock_policy_impl<thread_safety_leavel::exclusive>
     {
         using type = exclusive_lock_policy;
     };
 
     // timed
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::timed>
+    struct select_lock_policy_impl<thread_safety_leavel::timed>
     {
         using type = timed_lock_policy;
     };
@@ -338,7 +328,7 @@ NS_INTERNAL
 
     // shared
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::shared>
+    struct select_lock_policy_impl<thread_safety_leavel::shared>
     {
         using type = shared_lock_policy;
     };
@@ -347,7 +337,7 @@ NS_INTERNAL
 
     // shared falls back to exclusive pre-C++17
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::shared>
+    struct select_lock_policy_impl<thread_safety_leavel::shared>
     {
         using type = exclusive_lock_policy;
     };
@@ -358,7 +348,7 @@ NS_INTERNAL
 
     // shared_timed
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::shared_timed>
+    struct select_lock_policy_impl<thread_safety_leavel::shared_timed>
     {
         using type = shared_timed_lock_policy;
     };
@@ -367,7 +357,7 @@ NS_INTERNAL
 
     // shared_timed falls back to timed pre-C++14
     template<>
-    struct select_lock_policy_impl<DThreadSafetyLevel::shared_timed>
+    struct select_lock_policy_impl<thread_safety_leavel::shared_timed>
     {
         using type = timed_lock_policy;
     };
@@ -377,11 +367,11 @@ NS_INTERNAL
 NS_END  // internal
 
 // select_lock_policy
-//   type: maps a DThreadSafetyLevel to the corresponding
+//   type: maps a thread_safety_leavel to the corresponding
 // lock policy struct.  Falls back to the highest available
 // policy when the requested level is not supported by the
 // current C++ standard.
-template<DThreadSafetyLevel _Level>
+template<thread_safety_leavel _Level>
 using select_lock_policy =
     typename internal::select_lock_policy_impl<_Level>::type;
 
@@ -403,7 +393,6 @@ using select_lock_policy =
 #endif
 
 
-NS_END  // threadsafe
 NS_END  // djinterp
 
 

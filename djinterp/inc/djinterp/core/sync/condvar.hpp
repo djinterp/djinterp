@@ -1,15 +1,15 @@
 /******************************************************************************
-* djinterp [threadsafe]                                            condvar.hpp
+* djinterp [sync]                                                  condvar.hpp
 *
 * Portable condition variable, call-once, and concurrency query utilities
 * for the thread-safe module.
 *
 * TYPES:
-*   portable_condvar     — policy-aware condition variable wrapper
-*   portable_once        — call_once wrapper (C++11 std::call_once or
+*   portable_condvar     - policy-aware condition variable wrapper
+*   portable_once        - call_once wrapper (C++11 std::call_once or
 *                          platform fallback)
-*   hardware_concurrency — portable query for available CPU cores
-*   d_thread_yield       — portable thread yield hint
+*   hardware_concurrency - portable query for available CPU cores
+*   d_thread_yield       - portable thread yield hint
 *
 * VERSIONING:
 *   C++98/03:  `d_thread_yield` (platform fallback),
@@ -20,21 +20,24 @@
 *
 * path:      /inc/djinterp/sync/condvar.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_CONDVAR_
 #define DJINTERP_THREADSAFE_CONDVAR_ 1
 
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "condvar.hpp requires env.h to be included first"
-#endif
+//#ifndef DJINTERP_ENVIRONMENT_
+//    #error "condvar.hpp requires env.h to be included first"
+//#endif
+//
+//#ifndef __cplusplus
+//    #error "condvar.hpp can only be used in C++ compilation mode"
+//#endif
 
-#ifndef __cplusplus
-    #error "condvar.hpp can only be used in C++ compilation mode"
-#endif
 
-#include "lock_policy.hpp"
+// djinterp
+#include "../djinterp.hpp"
+#include "./lock_policy.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <condition_variable>
@@ -53,14 +56,15 @@
         #define WIN32_LEAN_AND_MEAN
     #endif
     #include <windows.h>
-#elif defined(_POSIX_VERSION) || defined(__unix__) || defined(__APPLE__)
+#elif defined(_POSIX_VERSION) ||                                              \
+      defined(__unix__)       ||                                              \ 
+      defined(__APPLE__)
     #include <unistd.h>
     #include <sched.h>
 #endif
 
 
 NS_DJINTERP
-NS_THREADSAFE
 
 // =========================================================================
 // I.   THREAD YIELD
@@ -68,7 +72,8 @@ NS_THREADSAFE
 // Portable yield hint.  Used by spinloops and backoff
 // strategies when spinning is no longer productive.
 
-D_INLINE void d_thread_yield()
+D_INLINE void 
+d_thread_yield()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     std::this_thread::yield();
@@ -359,7 +364,6 @@ private:
 #endif  // C++11
 
 
-NS_END  // threadsafe
 NS_END  // djinterp
 
 

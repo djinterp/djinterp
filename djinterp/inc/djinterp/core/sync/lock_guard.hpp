@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [threadsafe]                                         lock_guard.hpp
+* djinterp [sync]                                   lock_guard.hpp
 *
 * Policy-aware RAII lock guards for the thread-safe framework.
 *   These guards are the primary mechanism for acquiring and releasing locks
@@ -8,11 +8,11 @@
 * mutex or lock type directly.
 *
 * GUARD TYPES:
-*   scoped_read_lock<Policy>   — acquires Policy::read_lock_type (shared
+*   scoped_read_lock<Policy>   - acquires Policy::read_lock_type (shared
 *                                when available, exclusive otherwise)
-*   scoped_write_lock<Policy>  — acquires Policy::write_lock_type (always
+*   scoped_write_lock<Policy>  - acquires Policy::write_lock_type (always
 *                                exclusive)
-*   scoped_try_lock<Policy>    — non-blocking; exposes owns_lock() to
+*   scoped_try_lock<Policy>    - non-blocking; exposes owns_lock() to
 *                                test whether acquisition succeeded
 *
 * VERSIONING:
@@ -25,7 +25,7 @@
 *
 * path:      /inc/djinterp/sync/lock_guard.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_LOCK_GUARD_
@@ -47,14 +47,13 @@
 
 
 NS_DJINTERP
-NS_THREADSAFE
 
 // =========================================================================
 // I.   SCOPED READ LOCK
 // =========================================================================
 // Acquires a read lock (shared when available) for the
 // lifetime of the object.  On policies without shared
-// locking, this acquires an exclusive lock — the
+// locking, this acquires an exclusive lock - the
 // user code doesn't need to know the difference.
 
 template<typename _Policy>
@@ -256,7 +255,7 @@ private:
 // V.   UPGRADE LOCK (C++17+)
 // =========================================================================
 // Upgrades a read lock to a write lock.  The read lock is
-// released and a write lock is acquired.  NOT atomic —
+// released and a write lock is acquired.  NOT atomic -
 // there is a window where no lock is held.  Callers must
 // re-validate shared state after upgrading.
 //
@@ -318,7 +317,6 @@ private:
 #endif  // C++17
 
 
-NS_END  // threadsafe
 NS_END  // djinterp
 
 
