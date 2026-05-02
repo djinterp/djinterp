@@ -40,8 +40,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include "../djinterp.hpp"
-#include "../arena/arena.hpp"
+#include "../../../djinterp.hpp"
+#include "../../arena/arena.hpp"
 
 
 // ================================================================

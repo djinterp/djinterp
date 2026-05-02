@@ -44,11 +44,11 @@
 #include <string>
 #include <vector>
 
-#include "../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "../core/path.hpp"
-#include "../container/arena.hpp"
-#include "../container/container_path.hpp"
-#include "../container/tree_path.hpp"
+#include "../../arena/arena.hpp"
+#include "../../container_path.hpp"
+#include "../tree_path.hpp"
 #include "./file_tree.hpp"
 
 

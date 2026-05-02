@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                     tree_container.hpp
+* djinterp [container]                                      tree_container.hpp
 *
 * Generalized Tree Container:
 *   Inherits from node_container and adds tree-specific semantics:
@@ -17,7 +17,7 @@
 *
 * path:      /inc/container/tree_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_TREE_CONTAINER_
@@ -26,12 +26,11 @@
 #include <memory>
 #include <type_traits>
 #include "../../djinterp.hpp"
-#include "node/node_container.hpp"
-#include "node/node_traits.hpp"
+#include "../node_container.hpp"
+#include "../node/node_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
     // tree_container
     //   class: tree-specific node container.  Inherits all
@@ -69,12 +68,12 @@ NS_CONTAINER
         using typename base::depth_type;
         using typename base::reference;
         using typename base::const_reference;
-        using typename base::pointer;
-        using typename base::const_pointer;
         using typename base::entry_storage;
+        using pointer       = typename std::allocator_traits<allocator_type>::pointer;
+        using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
 
         // -----------------------------------------------------------------
-        // constructors — forward to base
+        // constructors - forward to base
         // -----------------------------------------------------------------
 
         using base::base;
@@ -195,7 +194,6 @@ NS_CONTAINER
                        shared_owning_policy>;
 
 
-NS_END  // container
 NS_END  // djinterp
 
 

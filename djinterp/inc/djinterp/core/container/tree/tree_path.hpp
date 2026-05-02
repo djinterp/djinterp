@@ -2,8 +2,8 @@
 * djinterp [container]                                        tree_path.hpp
 *
 * Path operations for arena-backed trees:
-*   This header provides the arena_path_policy — a container_path
-* accessor policy for arena<_Payload> — and convenience wrappers that
+*   This header provides the arena_path_policy - a container_path
+* accessor policy for arena<_Payload> - and convenience wrappers that
 * eliminate the need to specify the policy at every call site.
 *
 *   The policy is parameterized on _Payload and a _ComponentAccessor
@@ -27,20 +27,20 @@
 #ifndef DJINTERP_CONTAINER_TREE_PATH_
 #define DJINTERP_CONTAINER_TREE_PATH_ 1
 
+// std
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
-
-#include "../djinterp.hpp"
-#include "../core/path.hpp"
-#include "./arena.hpp"
-#include "./container_path.hpp"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../util/path/path.hpp"
+#include "../arena/arena.hpp"
+#include "../container_path.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
 // ================================================================
@@ -541,7 +541,6 @@ make_tree_path
 }
 
 
-NS_END  // container
 NS_END  // djinterp
 
 

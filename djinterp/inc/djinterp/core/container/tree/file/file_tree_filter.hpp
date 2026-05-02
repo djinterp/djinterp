@@ -64,12 +64,12 @@
 #include <vector>
 #include <functional>
 
-#include "../djinterp.hpp"
-#include "../container/arena.hpp"
+#include "../../../djinterp.hpp"
+#include "../../arena/arena.hpp"
 #include "./file_tree.hpp"
 #include "./file_attributes.hpp"
 #include "../functional/predicate_combinators.hpp"
-#include "../functional/pipeline.hpp"
+#include "../../../functional/pipeline.hpp"
 
 
 NS_DJINTERP
