@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [test]                                      test_suite_printer.hpp
+* djinterp [test]                                       test_suite_printer.hpp
 *
 *   Suite-level printer for the DTest framework master runner.  Wraps
 * text_template instances with conditional section blocks to produce
@@ -18,36 +18,43 @@
 *   suite_results is a plain aggregate that accumulates module-level
 * outcomes alongside the assertion-level print_context already used
 * by test_printer.  bind_suite_results() populates a text_template
-* from a suite_results — the caller chooses the format string.
+* from a suite_results - the caller chooses the format string.
 * Six default format strings are provided as static constants.
 *
 *   TEMPLATE SPECIFIERS (available after bind_suite_results):
-*     {suite_name}        — name of the suite
-*     {suite_description} — description of the suite
-*     {modules_total}     — number of modules executed
-*     {modules_passed}    — number of modules that passed
-*     {modules_failed}    — number of modules that failed
-*     {module_pass_rate}  — module success percentage string
-*     {total}             — total assertion count
-*     {passed}            — assertions passed
-*     {failed}            — assertions failed
-*     {skipped}           — assertions skipped
-*     {pending}           — assertions pending
-*     {errors}            — assertions with error status
-*     {pass_rate}         — assertion pass percentage
-*     {tests_total}       — unit test count
-*     {tests_passed}      — unit tests passed
-*     {tests_failed}      — unit tests failed
-*     {test_pass_rate}    — unit test pass percentage
-*     {elapsed}           — total execution time (seconds)
-*     {symbol}            — overall [PASS] or [FAIL] symbol
-*     {status_word}       — "PASSED" or "FAILED"
+*     {suite_name}        - name of the suite
+*     {suite_description} - description of the suite
+*     {modules_total}     - number of modules executed
+*     {modules_passed}    - number of modules that passed
+*     {modules_failed}    - number of modules that failed
+*     {module_pass_rate}  - module success percentage string
+*     {total}             - total assertion count
+*     {passed}            - assertions passed
+*     {failed}            - assertions failed
+*     {skipped}           - assertions skipped
+*     {pending}           - assertions pending
+*     {errors}            - assertions with error status
+*     {pass_rate}         - assertion pass percentage
+*     {tests_total}       - unit test count
+*     {tests_passed}      - unit tests passed
+*     {tests_failed}      - unit tests failed
+*     {test_pass_rate}    - unit test pass percentage
+*     {elapsed}           - total execution time (seconds)
+*     {symbol}            - overall [PASS] or [FAIL] symbol
+*     {status_word}       - "PASSED" or "FAILED"
 *
 *   CONDITIONAL SECTIONS:
-*     %#all_passed% ... %/all_passed%   — included when all green
-*     %^all_passed% ... %/all_passed%   — included when anything failed
-*     %#has_failures% ... %/has_failures% — included when failures > 0
-*     %#has_skipped% ... %/has_skipped%  — included when skipped > 0
+*     %#all_passed% ... %/all_passed%     - included when all green
+*     %^all_passed% ... %/all_passed%     - included when anything failed
+*     %#has_failures% ... %/has_failures% - included when failures > 0
+*     %#has_skipped% ... %/has_skipped%   - included when skipped > 0
+*
+*   Section blocks are resolved by this header (see
+* resolve_sections) independently of text_template, so conditional
+* behavior is guaranteed regardless of whether the underlying
+* template engine has its own section support.  Sections may nest;
+* nested visibility AND-folds across the enclosing stack.  Use
+* "%%" in a format string to emit a literal '%'.
 *
 *   INTEGRATION:
 *   Intended to be called by the master runner after all per-module
@@ -80,8 +87,10 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <functional>
 #include <string>
+#include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/text/text_template.hpp"
@@ -378,6 +387,143 @@ D_STATIC const char* const D_TEST_FMT_SUITE_FINAL_STATUS =
 ///                III. SUITE TEMPLATE BINDING                               ///
 ///////////////////////////////////////////////////////////////////////////////
 
+// resolve_sections
+//   helper: substitutes Mustache-style conditional section
+// blocks in _fmt with either their enclosed content or
+// nothing, based on the truth value returned by _lookup for
+// each section name.
+//
+//   SYNTAX:
+//     %#name% ... %/name%  - content emitted when lookup(name)
+//                            returns true (positive block)
+//     %^name% ... %/name%  - content emitted when lookup(name)
+//                            returns false (inverted / else block)
+//     %%                   - emits a literal '%'
+//
+//   NESTING:
+//   Sections nest freely.  A nested section's content is
+// emitted only when every enclosing section is also visible
+// (visibility AND-folds across the stack).
+//
+//   MALFORMED INPUT:
+//   Unclosed sections are handled defensively - the tail is
+// dropped at end-of-string rather than raising.  Unmatched
+// closers are silently ignored.  Unknown sigils (tags that
+// aren't %#...%, %^...%, %/...%, or %%) are emitted verbatim.
+//
+//   WHY THIS EXISTS:
+//   text_template handles {variable} substitution natively.
+// This helper bridges the gap so suite_printer can ship
+// conditional banners ("ALL PASSED" vs "SOME FAILED") from a
+// single format string, with the predicate derived at runtime
+// from the accumulated suite_results.
+//
+//   PORTABILITY:
+//   Pure C++11 - no regular-expressions, no third-party deps.
+template<typename _Lookup>
+D_INLINE std::string
+resolve_sections(
+    const std::string& _fmt,
+    _Lookup            _lookup
+)
+{
+    std::string       out;
+    std::vector<bool> visible;
+
+    visible.push_back(true);
+    out.reserve(_fmt.size());
+
+    std::size_t pos = 0;
+
+    while (pos < _fmt.size())
+    {
+        std::size_t open_pct = _fmt.find('%', pos);
+
+        // no more tags - flush the tail if visible, then stop
+        if (open_pct == std::string::npos)
+        {
+            if (visible.back())
+            {
+                out.append(_fmt, pos, _fmt.size() - pos);
+            }
+            break;
+        }
+
+        // flush any literal text between `pos` and the '%' if
+        // the enclosing scope is visible
+        if (visible.back())
+        {
+            out.append(_fmt, pos, open_pct - pos);
+        }
+
+        std::size_t close_pct = _fmt.find('%', open_pct + 1);
+
+        // unterminated tag - emit the '%' literally and stop
+        if (close_pct == std::string::npos)
+        {
+            if (visible.back())
+            {
+                out.append(_fmt,
+                           open_pct,
+                           _fmt.size() - open_pct);
+            }
+            break;
+        }
+
+        std::size_t tag_len = close_pct - open_pct - 1;
+
+        // "%%" - literal percent sign
+        if (tag_len == 0)
+        {
+            if (visible.back())
+            {
+                out.push_back('%');
+            }
+            pos = close_pct + 1;
+            continue;
+        }
+
+        const char  sigil = _fmt[open_pct + 1];
+        std::string name  = _fmt.substr(open_pct + 2,
+                                        tag_len - 1);
+
+        if ( (sigil == '#') ||
+             (sigil == '^') )
+        {
+            // opening a section - push AND-folded visibility
+            bool truthy  = _lookup(name);
+            bool opening = (sigil == '#') ? truthy : !truthy;
+
+            visible.push_back(visible.back() && opening);
+        }
+        else if (sigil == '/')
+        {
+            // closing a section - pop unless we are already at
+            // the top level (unmatched closer - silently ignore)
+            if (visible.size() > 1)
+            {
+                visible.pop_back();
+            }
+        }
+        else
+        {
+            // unrecognized sigil - emit the tag verbatim if
+            // the enclosing scope is visible
+            if (visible.back())
+            {
+                out.append(_fmt,
+                           open_pct,
+                           close_pct - open_pct + 1);
+            }
+        }
+
+        pos = close_pct + 1;
+    }
+
+    return out;
+}
+
+
 // bind_suite_results
 //   function: populates a text_template with all suite-level
 // specifiers and conditional sections derived from the
@@ -385,7 +531,7 @@ D_STATIC const char* const D_TEST_FMT_SUITE_FINAL_STATUS =
 // is ready to render any of the suite format strings.
 D_INLINE void
 bind_suite_results(
-    text::text_template& _tmpl,
+    text_template& _tmpl,
     const suite_results& _results
 )
 {
@@ -482,7 +628,7 @@ bind_suite_results(
 // specifiers for rendering module header/footer banners.
 D_INLINE void
 bind_module_result(
-    text::text_template& _tmpl,
+    text_template& _tmpl,
     const module_result& _mod
 )
 {
@@ -566,7 +712,7 @@ bind_module_result(
 //   class: convenience wrapper that owns the suite-level
 // text_template instances and renders the master suite
 // banners.  Does NOT own or manage per-module test_printer
-// instances — those remain the caller's responsibility.
+// instances - those remain the caller's responsibility.
 //
 // Usage:
 //   suite_printer sp;
@@ -696,27 +842,27 @@ public:
     //  template access
     // =================================================================
 
-    text::text_template& header_template()         D_NOEXCEPT
+    text_template& header_template()         D_NOEXCEPT
     {
         return m_header_tmpl;
     }
 
-    text::text_template& module_header_template()  D_NOEXCEPT
+    text_template& module_header_template()  D_NOEXCEPT
     {
         return m_mod_hdr_tmpl;
     }
 
-    text::text_template& module_footer_template()  D_NOEXCEPT
+    text_template& module_footer_template()  D_NOEXCEPT
     {
         return m_mod_ftr_tmpl;
     }
 
-    text::text_template& comprehensive_template()  D_NOEXCEPT
+    text_template& comprehensive_template()  D_NOEXCEPT
     {
         return m_comp_tmpl;
     }
 
-    text::text_template& final_status_template()   D_NOEXCEPT
+    text_template& final_status_template()   D_NOEXCEPT
     {
         return m_final_tmpl;
     }
@@ -779,9 +925,14 @@ public:
     // =================================================================
 
     // print_suite_header
-    //   renders the suite header banner.  The caller may bind
-    // additional specifiers (e.g. {date_time}) to the header
-    // template before calling this method.
+    //   renders the suite header banner.  Auto-binds {date_time}
+    // to a human-readable local timestamp (YYYY-MM-DD HH:MM:SS).
+    // Callers who want a different timestamp format can either
+    // (a) supply a header format string that omits {date_time}
+    // and emit the time themselves before calling this method,
+    // or (b) call this method and follow it with a direct
+    // re-bind via header_template().bind("date_time", ...) plus
+    // an explicit re-render - though option (a) is simpler.
     void
     print_suite_header()
     {
@@ -791,6 +942,27 @@ public:
         }
 
         bind_suite_results(m_header_tmpl, m_results);
+
+        // auto-bind {date_time} - the original design made this
+        // the caller's responsibility, which was too easy to
+        // forget; binding a sensible default here makes the
+        // common case "just work" without changing the
+        // public contract.
+        {
+            std::time_t now = std::time(nullptr);
+            std::tm     tm_local;
+
+        #if defined(_WIN32) || defined(_MSC_VER)
+            ::localtime_s(&tm_local, &now);
+        #else
+            tm_local = *std::localtime(&now);
+        #endif
+
+            char tbuf[64];
+            std::strftime(tbuf, sizeof(tbuf),
+                          "%Y-%m-%d %H:%M:%S", &tm_local);
+            m_header_tmpl.bind("date_time", tbuf);
+        }
 
         emit(m_header_tmpl.render(m_header_fmt));
 
@@ -850,9 +1022,12 @@ public:
     // =================================================================
 
     // print_comprehensive
-    //   renders the comprehensive results section.  The
-    // all_passed section predicate is derived from the
-    // accumulated suite_results — never hard-coded.
+    //   renders the comprehensive results section.  Resolves
+    // %#...% / %^...% / %/...% conditional section blocks from
+    // the format string based on the accumulated suite_results,
+    // then binds variable specifiers and renders.  The
+    // all_passed predicate is derived from the actual counters
+    // - never hard-coded.
     void
     print_comprehensive()
     {
@@ -861,10 +1036,31 @@ public:
             return;
         }
 
+        const bool green =
+            m_results.all_passed();
+        const bool has_failures =
+            ( (m_results.assertions.failed > 0) ||
+              (m_results.assertions.errors > 0) );
+        const bool has_skipped =
+            (m_results.assertions.skipped > 0);
+
+        // pre-process conditional blocks - see the comment on
+        // resolve_sections for the sigil syntax
+        std::string resolved = resolve_sections(
+            m_comp_fmt,
+            [green, has_failures, has_skipped]
+            (const std::string& _name) -> bool
+            {
+                if (_name == "all_passed")   { return green; }
+                if (_name == "has_failures") { return has_failures; }
+                if (_name == "has_skipped")  { return has_skipped; }
+                return false;
+            });
+
         m_comp_tmpl.clear_bindings();
         bind_suite_results(m_comp_tmpl, m_results);
 
-        emit(m_comp_tmpl.render(m_comp_fmt));
+        emit(m_comp_tmpl.render(resolved));
 
         return;
     }
@@ -875,7 +1071,8 @@ public:
     // =================================================================
 
     // print_final_status
-    //   renders the closing verdict banner.
+    //   renders the closing verdict banner.  Resolves section
+    // blocks the same way print_comprehensive does.
     void
     print_final_status()
     {
@@ -884,10 +1081,29 @@ public:
             return;
         }
 
+        const bool green =
+            m_results.all_passed();
+        const bool has_failures =
+            ( (m_results.assertions.failed > 0) ||
+              (m_results.assertions.errors > 0) );
+        const bool has_skipped =
+            (m_results.assertions.skipped > 0);
+
+        std::string resolved = resolve_sections(
+            m_final_fmt,
+            [green, has_failures, has_skipped]
+            (const std::string& _name) -> bool
+            {
+                if (_name == "all_passed")   { return green; }
+                if (_name == "has_failures") { return has_failures; }
+                if (_name == "has_skipped")  { return has_skipped; }
+                return false;
+            });
+
         m_final_tmpl.clear_bindings();
         bind_suite_results(m_final_tmpl, m_results);
 
-        emit(m_final_tmpl.render(m_final_fmt));
+        emit(m_final_tmpl.render(resolved));
 
         return;
     }
@@ -947,11 +1163,11 @@ private:
     //  storage
     // =================================================================
 
-    mutable text::text_template m_header_tmpl;
-    mutable text::text_template m_mod_hdr_tmpl;
-    mutable text::text_template m_mod_ftr_tmpl;
-    mutable text::text_template m_comp_tmpl;
-    mutable text::text_template m_final_tmpl;
+    mutable text_template m_header_tmpl;
+    mutable text_template m_mod_hdr_tmpl;
+    mutable text_template m_mod_ftr_tmpl;
+    mutable text_template m_comp_tmpl;
+    mutable text_template m_final_tmpl;
 
     std::string m_header_fmt;
     std::string m_mod_hdr_fmt;

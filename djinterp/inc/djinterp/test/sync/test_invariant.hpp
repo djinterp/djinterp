@@ -1,20 +1,23 @@
 /******************************************************************************
-* djinterp [test]                                           test_invariant.hpp
+* djinterp [test]                                          test_invariant.hpp
 *
 *   Concurrent invariant monitoring for the DTest multithreading
 * harness.  An invariant is a predicate that should hold at every
 * observable instant of the program's execution.  This module
 * spawns a background thread that polls the predicate at a
 * configurable rate and counts violations.
+*
 *   Two complementary models are provided:
+*
 *     1. POLLING INVARIANT
 *        A background thread evaluates a user-supplied predicate
 *        at a fixed cadence.  Each false result is recorded with
 *        timestamp.  Best for invariants that may briefly be false
 *        and re-true themselves.
+*
 *     2. MONOTONIC GUARD
 *        A specialized form for "value never decreases" or "value
-*        never exceeds bound" - extremely common assertions about
+*        never exceeds bound" — extremely common assertions about
 *        atomic counters, sequence numbers, version stamps.  No
 *        background thread; the guard wraps the value's accessor.
 *
@@ -37,7 +40,7 @@
 * VI.   FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/sync/test_invariant.hpp
+* path:      /inc/djinterp/test/test_invariant.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -49,6 +52,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
     #include <chrono>
@@ -61,11 +65,11 @@
 #endif
 
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../../core/sync/atomic.hpp"
-#include "../test_common.hpp"
-#include "../test_object.hpp"
-#include "../test_thread.hpp"
+#include "../core/djinterp.hpp"
+#include "../sync/atomic.hpp"
+#include "./test_common.hpp"
+#include "./test_object.hpp"
+#include "./test_thread.hpp"
 
 
 NS_DJINTERP
@@ -73,6 +77,9 @@ NS_TEST
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// --- threadsafe foundation wrappers used by this module ---
+using ::djinterp::threadsafe::atomic_size;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   INVARIANT REPORT                                    ///
@@ -264,7 +271,7 @@ public:
 
     // set_max_violations_recorded
     //   caps the number of violation records kept in
-    // memory.  The violation count itself is not capped -
+    // memory.  The violation count itself is not capped —
     // only the per-violation detail records.
     void
     set_max_violations_recorded(
@@ -485,7 +492,7 @@ private:
 
 // monotonic_guard
 //   class template: enforces "value never decreases" over
-// time.  No background thread - the guard wraps a value
+// time.  No background thread — the guard wraps a value
 // and exposes update() / observe() that verify monotonicity
 // as the value moves.
 //
@@ -615,8 +622,8 @@ public:
 
 private:
     std::atomic<value_type> m_max_seen;
-    std::atomic<size_type>  m_violations;
-    std::atomic<size_type>  m_observations;
+    atomic_size             m_violations;
+    atomic_size             m_observations;
 };
 
 
@@ -627,7 +634,7 @@ private:
 // bounded_guard
 //   class template: enforces "value stays within
 // [low, high]" over time.  Like monotonic_guard, no
-// background thread is involved - the guard is updated
+// background thread is involved — the guard is updated
 // by callers.
 //
 // Example:
@@ -746,8 +753,8 @@ private:
     std::atomic<value_type> m_value;
     value_type              m_low;
     value_type              m_high;
-    std::atomic<size_type>  m_violations;
-    std::atomic<size_type>  m_observations;
+    atomic_size             m_violations;
+    atomic_size             m_observations;
 };
 
 

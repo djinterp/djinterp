@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [test]                                             test_handler.hpp
+* djinterp [test]                                              test_handler.hpp
 *
 *   DTest framework session root.  Composes a typed `event_handler` (from
 * the C++ event subsystem) with per-session result counters and a tree
@@ -12,32 +12,20 @@
 *   DESIGN:
 *   test_handler owns an `event_handler` and a small set of session
 * counters (passed / failed / skipped / errors / pending / total).  It
-* does NOT own a tree, options set, or printer; trees are passed by
-* reference into `run(...)`, options are looked up externally, and
-* printers attach themselves as event listeners.  This keeps the
-* handler focused on a single responsibility — driving the event flow
-* — and avoids pulling the entire test stack into a single header.
+* does NOT own a tree or options set; trees are passed by reference
+* into `run(...)`, options are looked up externally.  The handler MAY
+* hold a non-owning pointer to a `test_printer` - when set via
+* `set_printer(...)`, the handler installs a bundle of listeners on
+* its own `event_handler` that drive the printer; when cleared, the
+* bundle is unbound.  The printer itself is a listener through and
+* through; this header just provides a one-line wiring API.
 *
 *   BUILT-IN LIFECYCLE EVENTS:
-*   The `djinterp::test::events` sub-namespace declares the events the
-* handler fires automatically as it walks a tree:
-*     on_session_start
-*     on_session_end       (passed_count, failed_count)
-*     on_module_start      (const test_object*)
-*     on_module_end        (const test_object*)
-*     on_test_start        (const test_object*)
-*     on_test_end          (const test_object*)
-*     on_test_passed       (const test_object*)
-*     on_test_failed       (const test_object*)
-*     on_test_skipped      (const test_object*)
-*     on_test_error        (const test_object*, const char* message)
-*     on_status_change     (const test_object*, test_status, test_status)
-*     on_listener_threw    (const char* event_name, const char* what)
-*
-*   The walker checks `events().has_listeners_for<E>()` before
-* constructing each event, so when nothing is bound the cost reduces
-* to a single `unordered_map::find` returning `end()` — no allocation,
-* no payload construction, no virtual call.
+*   The built-in event TAGS are declared in test_event.hpp under the
+* `djinterp::test::events::` sub-namespace.  This file includes that
+* header and references the tags by their qualified names.  The set
+* of fire sites and dispatch behaviour is unchanged from earlier
+* revisions; only the location of the declarations has moved.
 *
 *   CUSTOM EVENTS:
 *   Users declare custom events anywhere with `D_EVENT(name, ...)` or
@@ -46,7 +34,7 @@
 * fires custom events through exactly the same `on<E>()` and `fire<E>()`
 * methods used for built-ins.
 *
-*   USAGE EXAMPLE — printing a custom-event warning:
+*   USAGE EXAMPLE - printing a custom-event warning:
 *     D_EVENT_EMPTY(on_unreachable_path);
 *
 *     test_handler handler;
@@ -58,6 +46,13 @@
 *
 *     // anywhere a test should never reach:
 *     handler.fire<on_unreachable_path>();
+*
+*   PRINTER WIRING:
+*     test_printer printer( ... );
+*     test_handler handler;
+*     handler.set_printer(&printer);   // installs lifecycle bundle
+*     handler.run(my_tree);            // walk + dispatch
+*     handler.clear_printer();         // unbinds (also done in dtor)
 *
 *   CONVENIENCE MACROS:
 *     D_TEST_ON(_handler, _Event, _lambda)        binds a listener
@@ -73,38 +68,53 @@
 * event_handler's static_assert path.
 *
 *
+* TABLE OF CONTENTS
+* =================
+* I.    PORTABILITY CHECKS
+* II.   FORWARD DECLARATIONS
+* III.  SESSION RESULTS
+* IV.   TEST HANDLER
+* V.    CONVENIENCE MACROS
+*
+*
 * path:      /inc/djinterp/test/test_handler.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.17
 ******************************************************************************/
-
-/*
-TABLE OF CONTENTS
-=================
-I.    PORTABILITY CHECKS
-II.   BUILT-IN LIFECYCLE EVENTS
-III.  SESSION RESULTS
-IV.   TEST HANDLER
-V.    CONVENIENCE MACROS
-*/
 
 #ifndef DJINTERP_TEST_HANDLER_
 #define DJINTERP_TEST_HANDLER_ 1
 
 
 // =========================================================================
-// I.   PORTABILITY CHECKS
+// I.   INCLUDES AND PORTABILITY CHECKS
 // =========================================================================
-
-// require the C++ framework header
-#ifndef DJINTERP_CPP_
-    #error "test_handler.hpp requires djinterp.hpp to be included first"
-#endif
 
 #ifndef __cplusplus
     #error "test_handler.hpp can only be used in C++ compilation mode"
 #endif
 
+
+// std
+#include <cstddef>
+#include <cstdio>
+#include <utility>
+#include <vector>
+// djinterp  --  pull the environment header chain FIRST so that the
+// feature-flag macros below are defined before we test them.
+#include "../core/djinterp.hpp"
+#include "../core/event/event.hpp"
+#include "./test_common.hpp"
+#include "./test_event.hpp"
+#include "./test_object.hpp"
+
+
+// feature gates
+//   validated after the framework includes above.  these would
+// previously fire as cascading #errors if the user included
+// test_handler.hpp before djinterp.hpp; they are intentionally
+// placed after the include chain so the contract is "include this
+// header and it wires itself up."
 #if !D_ENV_LANG_IS_CPP11_OR_HIGHER
     #error "test_handler.hpp requires C++11 or higher"
 #endif
@@ -122,117 +132,55 @@ V.    CONVENIENCE MACROS
 #endif
 
 
-// std
-#include <cstddef>
-#include <cstdio>
-#include <utility>
-// djinterp
-#include "../core/djinterp.hpp"
-#include "../event/event.hpp"
-#include "./test_common.hpp"
-#include "./test_object.hpp"
-
-
 NS_DJINTERP
 NS_TEST
 
 
 // =========================================================================
-// II.  BUILT-IN LIFECYCLE EVENTS
+// II.  FORWARD DECLARATIONS
 // =========================================================================
 
-// events
-//   namespace: declarations for the lifecycle events fired
-// automatically by test_handler::run(...).  User-defined events
-// live in the user's own namespace; placing the built-ins here
-// avoids accidental collision.
-namespace events {
-
-    // on_session_start
-    //   event: fired once at the beginning of a run, before any
-    // node is visited.
-    D_EVENT_EMPTY(on_session_start);
-
-    // on_session_end
-    //   event: fired once at the end of a run; carries the
-    // accumulated pass and fail counters.
-    D_EVENT(on_session_end,
-            std::size_t,    // _passed
-            std::size_t);   // _failed
-
-    // on_module_start
-    //   event: fired when the walker enters an interior node
-    // identified as a module (rank-aware).
-    D_EVENT(on_module_start,
-            const basic_test*);
-
-    // on_module_end
-    //   event: fired when the walker leaves a module node.
-    D_EVENT(on_module_end,
-            const basic_test*);
-
-    // on_test_start
-    //   event: fired when the walker enters a leaf test node,
-    // before the node's status is observed.
-    D_EVENT(on_test_start,
-            const basic_test*);
-
-    // on_test_end
-    //   event: fired when the walker leaves a leaf test node,
-    // after the corresponding status event has been dispatched.
-    D_EVENT(on_test_end,
-            const basic_test*);
-
-    // on_test_passed
-    //   event: fired for a leaf test whose evaluation returned
-    // test_status::passed.
-    D_EVENT(on_test_passed,
-            const basic_test*);
-
-    // on_test_failed
-    //   event: fired for a leaf test whose evaluation returned
-    // test_status::failed.
-    D_EVENT(on_test_failed,
-            const basic_test*);
-
-    // on_test_skipped
-    //   event: fired for a leaf test whose evaluation was
-    // intentionally bypassed (test_status::skipped).
-    D_EVENT(on_test_skipped,
-            const basic_test*);
-
-    // on_test_error
-    //   event: fired for a leaf test whose evaluation could not
-    // complete (test_status::error).  Carries an optional
-    // human-readable diagnostic.
-    D_EVENT(on_test_error,
-            const basic_test*,
-            const char*);
-
-    // on_status_change
-    //   event: fired whenever an observed status differs from
-    // the prior status.  Useful for transition-driven sinks
-    // (e.g. logging only the first failure of a run).
-    D_EVENT(on_status_change,
-            const basic_test*,
-            test_status,    // _from
-            test_status);   // _to
-
-    // on_listener_threw
-    //   event: fired when a user listener escapes with an
-    // exception during dispatch.  Carries the event name and
-    // the exception's what() string.  Listeners for this event
-    // MUST NOT throw.
-    D_EVENT(on_listener_threw,
-            const char*,    // _event_name
-            const char*);   // _what
-
-}  // namespace events
+// test_printer
+//   forward declaration: full definition lives in test_printer.hpp.
+// We hold only a non-owning pointer to a test_printer; forward
+// declaring it here avoids pulling the printer's transitive
+// include set into every translation unit that uses test_handler.
+class test_printer;
 
 
 // =========================================================================
 // III. SESSION RESULTS
 // =========================================================================
+
+// session_verdict
+//   enum: three-way outcome classification used by
+// session_result::verdict().  Distinguishes "tests
+// remain unimplemented" (pending) from "tests actually
+// failed" (failed) so that report writers can emit a
+// truthful status line for unfinished suites.
+enum class session_verdict
+{
+    // No leaves were observed.  Suites with zero leaves
+    // are treated as empty rather than passing.
+    empty,
+
+    // Every observed leaf resolved to passed; no
+    // failures, errors, or pending.
+    passed,
+
+    // No failures or errors, but at least one leaf is
+    // pending (assertion not yet implemented).  Distinct
+    // from `failed` because nothing actually broke; the
+    // suite is incomplete, not wrong.
+    pending,
+
+    // At least one leaf failed or errored.  Errors are
+    // bucketed here rather than in a separate state
+    // because for verdict purposes both mean "the suite
+    // does not pass."
+    failed
+};
+
 
 // session_result
 //   struct: snapshot of the per-session counter aggregates
@@ -260,6 +208,14 @@ struct session_result
     // all_passed
     //   returns true if total > 0 and every observed node
     // resolved to test_status::passed.
+    //
+    //   NOTE: the predicate intentionally does NOT treat
+    // pending as a pass.  An unfinished suite reports
+    // false here so that callers using the boolean form
+    // (e.g. for an exit code) cannot accidentally ship
+    // green CI on a half-ported suite.  Callers that
+    // want three-way reasoning (pass / pending / fail)
+    // should use verdict() instead.
     D_CONSTEXPR bool all_passed() const D_NOEXCEPT
     {
         return ( (total > 0)    &&
@@ -274,6 +230,27 @@ struct session_result
         return ( (failed > 0) ||
                  (errors > 0) );
     }
+
+    // verdict
+    //   returns the three-way classification.  See
+    // session_verdict for the semantics of each state.
+    //
+    //   Decision order: failed/errors dominate (a real
+    // failure outranks any number of pending), pending
+    // is reported when nothing actually failed but work
+    // remains, passed is reserved for the case where
+    // every leaf resolved to passed AND at least one
+    // leaf was observed.
+    D_CONSTEXPR session_verdict verdict() const D_NOEXCEPT
+    {
+        return ( (total == 0)
+            ?  session_verdict::empty
+            :  ( ( (failed > 0) || (errors > 0) )
+                 ?  session_verdict::failed
+                 :  ( (pending > 0)
+                      ?  session_verdict::pending
+                      :  session_verdict::passed ) ) );
+    }
 };
 
 
@@ -285,14 +262,32 @@ struct session_result
 //   class: session root for the DTest framework.  Owns one
 // event_handler and the per-session counters; provides a thin
 // typed facade for binding listeners, firing built-in or custom
-// events, and walking a tree of test_object-protocol elements.
+// events, walking a tree of test_object-protocol elements, and
+// - when a printer is attached via set_printer - installing a
+// listener bundle that drives the printer from event dispatches.
 class test_handler
 {
 public:
     test_handler()
         : m_events(),
-          m_result()
+          m_result(),
+          m_printer(nullptr),
+          m_printer_listener_ids()
     {}
+
+    // destructor unbinds any printer bundle still attached.  The
+    // event_handler's own destruction would tear listeners down
+    // anyway, but explicit unbinding keeps the bookkeeping
+    // observable in the destruction order.
+    //
+    //   Virtual because test_handler is designed for subclassing
+    // (default_test_handler in test_defaults.hpp extends the
+    // listener bundle), so polymorphic deletion through a base
+    // pointer must invoke the derived destructor.
+    virtual ~test_handler()
+    {
+        clear_printer();
+    }
 
     // ---- listener registration ----
 
@@ -397,6 +392,67 @@ public:
     bool has_listeners_for() const
     {
         return m_events.has_listeners_for<_Event>();
+    }
+
+    // ---- printer wiring ----
+    //
+    //   The printer is a listener through and through.  set_printer
+    // does the wiring on the user's behalf: it stores a non-owning
+    // pointer to the printer and binds a bundle of listeners on
+    // this handler's event_handler whose bodies forward to the
+    // printer's lifecycle methods.  clear_printer() unbinds the
+    // bundle.  The handler does NOT take ownership of the printer.
+    //
+    //   Subclasses (e.g. default_test_handler in test_defaults.hpp)
+    // may extend the bundle with additional listeners - typically
+    // for value-tagged events with threshold filtering - by
+    // overriding install_printer_listeners() / uninstall_printer_listeners().
+
+    // set_printer
+    //   attaches a printer.  If a printer was previously attached,
+    // its listener bundle is removed before the new bundle is
+    // installed.  Pass nullptr to detach without re-attaching;
+    // equivalent to clear_printer().
+    void set_printer(
+        test_printer* _printer
+    )
+    {
+        clear_printer();
+
+        if (_printer == nullptr)
+        {
+            return;
+        }
+
+        m_printer = _printer;
+        install_printer_listeners();
+
+        return;
+    }
+
+    // clear_printer
+    //   unbinds the printer bundle and forgets the printer
+    // pointer.  Idempotent.
+    void clear_printer() D_NOEXCEPT
+    {
+        if (m_printer == nullptr)
+        {
+            return;
+        }
+
+        uninstall_printer_listeners();
+        m_printer = nullptr;
+
+        return;
+    }
+
+    // printer
+    //   returns the currently attached printer, or nullptr if
+    // none is attached.
+    D_CONSTEXPR test_printer*
+    printer() const D_NOEXCEPT
+    {
+        return m_printer;
     }
 
     // ---- session lifecycle ----
@@ -544,6 +600,46 @@ public:
     const event_handler& events() const D_NOEXCEPT
     {
         return m_events;
+    }
+
+protected:
+    // install_printer_listeners
+    //   binds the listener bundle that drives the printer from
+    // lifecycle events.  Called from set_printer() after
+    // m_printer has been stored.
+    //
+    //   The base class definition is a no-op: this header keeps
+    // test_printer forward-declared (not included) to stay light,
+    // so it cannot synthesize listener bodies that call into the
+    // printer's methods directly.  Subclasses that include
+    // test_printer.hpp - e.g. default_test_handler in
+    // test_defaults.hpp - override this method to install the
+    // lifecycle bundle and any additional value-tagged listeners.
+    //   Each bound listener_id MUST be appended to
+    // m_printer_listener_ids so that uninstall_printer_listeners()
+    // can unbind it on teardown or printer replacement.
+    virtual void install_printer_listeners()
+    {
+        return;
+    }
+
+    // uninstall_printer_listeners
+    //   unbinds every listener_id in m_printer_listener_ids
+    // and clears the vector.  Subclasses that override
+    // install_printer_listeners() do NOT need to override
+    // this method - the base implementation handles all
+    // listener_ids regardless of which subclass added them,
+    // because every binding goes through the same vector.
+    void uninstall_printer_listeners() D_NOEXCEPT
+    {
+        for (listener_id id : m_printer_listener_ids)
+        {
+            m_events.unbind(id);
+        }
+
+        m_printer_listener_ids.clear();
+
+        return;
     }
 
 private:
@@ -705,36 +801,41 @@ private:
     }
 
     // node_is_leaf
-    //   protocol probe: returns true if the node exposes a
-    // truthy `is_leaf()`; defaults to true when the protocol
-    // member is absent so that flat iterables behave as
-    // leaf-only collections.
-    static bool node_is_leaf(
+    //   classification: returns true iff _node is a leaf (an
+    // assertion or a test-function wrapper) per the kind
+    // taxonomy declared in test_defaults.hpp.  Interior kinds
+    // (test, test_block, module) return false.
+    //
+    //   The leaf kinds are the two lowest-rank kinds:
+    //     D_TEST_KIND_ASSERT  = 0  (rank 0, leaf)
+    //     D_TEST_KIND_TEST_FN = 1  (rank 1, leaf)
+    //   Higher rank values are interior nodes (test, block,
+    // module).  This rank-based predicate avoids a registry
+    // lookup at every visit and keeps the walk dependency-free
+    // - test_handler.hpp does not need to include
+    // test_defaults.hpp for the kind enumeration.
+    //
+    //   Custom test_handler subclasses or alternative walkers
+    // that use a richer kind taxonomy may override this method
+    // (it is virtual) to plug in a registry-aware predicate.
+    virtual bool node_is_leaf(
         const basic_test& _node
-    )
+    ) const D_NOEXCEPT
     {
-        return node_is_leaf_impl(_node, 0);
-    }
-
-    static auto node_is_leaf_impl(
-        const basic_test& _node,
-        int /*_overload*/
-    ) -> decltype(_node.is_leaf())
-    {
-        return _node.is_leaf();
-    }
-
-    static bool node_is_leaf_impl(
-        const basic_test& /*_node*/,
-        ...
-    )
-    {
-        return true;
+        return ( _node.type_id() <= test_type_id{1} );
     }
 
 
-    event_handler  m_events;
-    session_result m_result;
+    event_handler             m_events;
+    session_result            m_result;
+
+protected:
+    // m_printer is protected (not private) so subclasses that
+    // extend the listener bundle can read the pointer when
+    // building their listener bodies without going through a
+    // virtual accessor on the hot path.
+    test_printer*             m_printer;
+    std::vector<listener_id>  m_printer_listener_ids;
 };
 
 
@@ -746,17 +847,17 @@ private:
 //   macro: shorthand for binding a listener.  Mirrors
 // `_handler.on<_Event>(_lambda)` while keeping call sites tight.
 #define D_TEST_ON(_handler, _Event, _lambda)                                  \
-    (_handler).template on<_Event>(_lambda)                                   
-                                                                              
-// D_TEST_FIRE                                                                
-//   macro: shorthand for immediate dispatch.  Mirrors                        
-// `_handler.fire<_Event>(...)`.                                              
+    (_handler).template on<_Event>(_lambda)
+
+// D_TEST_FIRE
+//   macro: shorthand for immediate dispatch.  Mirrors
+// `_handler.fire<_Event>(...)`.
 #define D_TEST_FIRE(_handler, _Event, ...)                                    \
-    (_handler).template fire<_Event>(__VA_ARGS__)                             
-                                                                              
-// D_TEST_QUEUE                                                               
-//   macro: shorthand for deferred dispatch.  Mirrors                         
-// `_handler.queue<_Event>(...)`.                                             
+    (_handler).template fire<_Event>(__VA_ARGS__)
+
+// D_TEST_QUEUE
+//   macro: shorthand for deferred dispatch.  Mirrors
+// `_handler.queue<_Event>(...)`.
 #define D_TEST_QUEUE(_handler, _Event, ...)                                   \
     (_handler).template queue<_Event>(__VA_ARGS__)
 

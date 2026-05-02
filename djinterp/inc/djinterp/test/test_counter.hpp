@@ -13,10 +13,10 @@
 *   EVENT TAGS:
 *   Each test_counter instantiation defines nested event tag types
 * compatible with the djinterp event system (event_traits, event_handler):
-*     on_increment  — (value_type old, value_type new)
-*     on_decrement  — (value_type old, value_type new)
-*     on_limit      — (value_type clamped_value)
-*     on_reset      — (value_type old)
+*     on_increment  - (value_type old, value_type new)
+*     on_decrement  - (value_type old, value_type new)
+*     on_limit      - (value_type clamped_value)
+*     on_reset      - (value_type old)
 *
 *   NESTING:
 *   Children may be owned (stored by value, lifetime-bound) or observed
@@ -58,9 +58,9 @@ NS_DJINTERP
 NS_TEST
 
 
-// =============================================================================
+// ===========================================================================
 // I.   test_counter
-// =============================================================================
+// ===========================================================================
 
 // test_counter
 //   class: a bounded, nestable counter for test instrumentation
@@ -89,7 +89,7 @@ class test_counter
 
 private:
     using self_type     = test_counter<_ValueType>;
-    using base_type     = util::counter<_ValueType>;
+    using base_type     = counter<_ValueType>;
     using children_type = std::vector<self_type>;
     using observed_type = std::vector<self_type*>;
 

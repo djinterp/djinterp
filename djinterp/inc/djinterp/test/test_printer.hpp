@@ -378,7 +378,7 @@ struct print_context
         return std::string(buf);
     }
 
-    D_STATIC std::string
+    static std::string
     size_to_string(
         std::size_t _v
     )
@@ -396,35 +396,35 @@ struct print_context
 ///                IV.  DEFAULT FORMATS                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
-D_STATIC const char* const D_TEST_FMT_NODE_DEFAULT =
+static const char* const D_TEST_FMT_NODE_DEFAULT =
     "{indent}{symbol} {name}\n";
 
-D_STATIC const char* const D_TEST_FMT_NODE_VERBOSE =
+static const char* const D_TEST_FMT_NODE_VERBOSE =
     "{indent}{number}. {symbol} {name} [{status}]\n";
 
-D_STATIC const char* const D_TEST_FMT_NODE_NUMBERED =
+static const char* const D_TEST_FMT_NODE_NUMBERED =
     "{indent}{number}. {symbol} {name}\n";
 
-D_STATIC const char* const D_TEST_FMT_NODE_MINIMAL =
+static const char* const D_TEST_FMT_NODE_MINIMAL =
     "{symbol} {name}\n";
 
-D_STATIC const char* const D_TEST_FMT_NODE_MESSAGE =
+static const char* const D_TEST_FMT_NODE_MESSAGE =
     "{indent}{symbol} {name} - {message}\n";
 
-D_STATIC const char* const D_TEST_FMT_SUMMARY_DEFAULT =
+static const char* const D_TEST_FMT_SUMMARY_DEFAULT =
     "\n{symbol} {passed}/{total} passed"
     ", {failed} failed"
     ", {skipped} skipped"
     " ({pass_rate})\n";
 
-D_STATIC const char* const D_TEST_FMT_SUMMARY_FULL =
+static const char* const D_TEST_FMT_SUMMARY_FULL =
     "\n  ASSERTION SUMMARY:\n"
     "    Total Assertions:     {total}\n"
     "    Assertions Passed:    {passed}\n"
     "    Assertions Failed:    {failed}\n"
     "    Assertion Pass Rate:  {pass_rate}\n";
 
-D_STATIC const char* const D_TEST_FMT_HEADER_BANNER =
+static const char* const D_TEST_FMT_HEADER_BANNER =
     "========================================"
     "========================================\n"
     "  TESTING: {suite_name}\n"
@@ -434,7 +434,7 @@ D_STATIC const char* const D_TEST_FMT_HEADER_BANNER =
     "========================================"
     "========================================\n\n";
 
-D_STATIC const char* const D_TEST_FMT_SECTION_HEADER_DASHED =
+static const char* const D_TEST_FMT_SECTION_HEADER_DASHED =
     "\n----------------------------------------"
     "----------------------------------------\n"
     "  MODULE: {section_name}\n"
@@ -442,7 +442,7 @@ D_STATIC const char* const D_TEST_FMT_SECTION_HEADER_DASHED =
     "----------------------------------------"
     "----------------------------------------\n\n";
 
-D_STATIC const char* const D_TEST_FMT_SECTION_FOOTER_RESULTS =
+static const char* const D_TEST_FMT_SECTION_FOOTER_RESULTS =
     "\n----------------------------------------"
     "----------------------------------------\n"
     "  MODULE RESULTS: {section_name}\n"
@@ -471,7 +471,7 @@ public:
     using symbol_fn_type  = std::function<std::string(test_status)>;
     using status_fn_type  = std::function<std::string(test_status)>;
     using filter_fn_type  = std::function<bool(test_status, std::size_t)>;
-    using binder_fn_type  = std::function<void(text::text_template&, std::size_t)>;
+    using binder_fn_type  = std::function<void(text_template&, std::size_t)>;
 
     // -----------------------------------------------------------------
     //  construction
@@ -532,18 +532,18 @@ public:
     //  template access
     // =================================================================
 
-    text::text_template&       node_template()                 D_NOEXCEPT { return m_node_tmpl; }
-    const text::text_template& node_template()           const D_NOEXCEPT { return m_node_tmpl; }
-    text::text_template&       summary_template()              D_NOEXCEPT { return m_summary_tmpl; }
-    const text::text_template& summary_template()        const D_NOEXCEPT { return m_summary_tmpl; }
-    text::text_template&       header_template()               D_NOEXCEPT { return m_header_tmpl; }
-    const text::text_template& header_template()         const D_NOEXCEPT { return m_header_tmpl; }
-    text::text_template&       footer_template()               D_NOEXCEPT { return m_footer_tmpl; }
-    const text::text_template& footer_template()         const D_NOEXCEPT { return m_footer_tmpl; }
-    text::text_template&       section_header_template()       D_NOEXCEPT { return m_sec_hdr_tmpl; }
-    const text::text_template& section_header_template() const D_NOEXCEPT { return m_sec_hdr_tmpl; }
-    text::text_template&       section_footer_template()       D_NOEXCEPT { return m_sec_ftr_tmpl; }
-    const text::text_template& section_footer_template() const D_NOEXCEPT { return m_sec_ftr_tmpl; }
+    text_template&       node_template()                 D_NOEXCEPT { return m_node_tmpl; }
+    const text_template& node_template()           const D_NOEXCEPT { return m_node_tmpl; }
+    text_template&       summary_template()              D_NOEXCEPT { return m_summary_tmpl; }
+    const text_template& summary_template()        const D_NOEXCEPT { return m_summary_tmpl; }
+    text_template&       header_template()               D_NOEXCEPT { return m_header_tmpl; }
+    const text_template& header_template()         const D_NOEXCEPT { return m_header_tmpl; }
+    text_template&       footer_template()               D_NOEXCEPT { return m_footer_tmpl; }
+    const text_template& footer_template()         const D_NOEXCEPT { return m_footer_tmpl; }
+    text_template&       section_header_template()       D_NOEXCEPT { return m_sec_hdr_tmpl; }
+    const text_template& section_header_template() const D_NOEXCEPT { return m_sec_hdr_tmpl; }
+    text_template&       section_footer_template()       D_NOEXCEPT { return m_sec_ftr_tmpl; }
+    const text_template& section_footer_template() const D_NOEXCEPT { return m_sec_ftr_tmpl; }
 
 
     // =================================================================
@@ -878,7 +878,7 @@ private:
     //  internal: defaults
     // =================================================================
 
-    D_STATIC std::string
+    static std::string
     default_symbol(
         test_status _s
     )
@@ -894,7 +894,7 @@ private:
         }
     }
 
-    D_STATIC std::string
+    static std::string
     default_status_string(
         test_status _s
     )
@@ -999,19 +999,19 @@ private:
     //  internal: bind context
     // =================================================================
 
-    D_STATIC void
+    static void
     bind_context_to(
-        text::text_template& _tmpl,
+        text_template& _tmpl,
         const print_context& _ctx
     )
     {
-        _tmpl.bind("total",       print_context::size_to_string(_ctx.total));
-        _tmpl.bind("passed",      print_context::size_to_string(_ctx.passed));
-        _tmpl.bind("failed",      print_context::size_to_string(_ctx.failed));
-        _tmpl.bind("skipped",     print_context::size_to_string(_ctx.skipped));
-        _tmpl.bind("pending",     print_context::size_to_string(_ctx.pending));
-        _tmpl.bind("errors",      print_context::size_to_string(_ctx.errors));
-        _tmpl.bind("pass_rate",   _ctx.pass_rate());
+        _tmpl.bind("total",     print_context::size_to_string(_ctx.total));
+        _tmpl.bind("passed",    print_context::size_to_string(_ctx.passed));
+        _tmpl.bind("failed",    print_context::size_to_string(_ctx.failed));
+        _tmpl.bind("skipped",   print_context::size_to_string(_ctx.skipped));
+        _tmpl.bind("pending",   print_context::size_to_string(_ctx.pending));
+        _tmpl.bind("errors",    print_context::size_to_string(_ctx.errors));
+        _tmpl.bind("pass_rate", _ctx.pass_rate());
 
         std::string sym =
             (_ctx.failed > 0 || _ctx.errors > 0)
@@ -1051,12 +1051,12 @@ private:
     //  storage
     // =================================================================
 
-    mutable text::text_template m_node_tmpl;
-    mutable text::text_template m_summary_tmpl;
-    mutable text::text_template m_header_tmpl;
-    mutable text::text_template m_footer_tmpl;
-    mutable text::text_template m_sec_hdr_tmpl;
-    mutable text::text_template m_sec_ftr_tmpl;
+    mutable text_template m_node_tmpl;
+    mutable text_template m_summary_tmpl;
+    mutable text_template m_header_tmpl;
+    mutable text_template m_footer_tmpl;
+    mutable text_template m_sec_hdr_tmpl;
+    mutable text_template m_sec_ftr_tmpl;
 
     std::string m_node_fmt;
     std::string m_summary_fmt;

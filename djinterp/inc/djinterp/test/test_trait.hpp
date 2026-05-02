@@ -3,9 +3,9 @@
 *
 *   DTest framework compile-time SFINAE and type-trait testing module.
 * Provides a layered toolkit for asserting properties of type traits at
-* compile time — detection of well-formed expressions, quantification
+* compile time - detection of well-formed expressions, quantification
 * over type packs, cv/ref invariance, logical relationships between
-* traits, and trait/alias consistency — together with a runtime adapter
+* traits, and trait/alias consistency - together with a runtime adapter
 * that surfaces compile-time results through the test_object protocol.
 *
 *   DESIGN PHILOSOPHY:
@@ -15,7 +15,7 @@
 * trait test halts the build with a descriptive message rather than
 * deferring failure to a runtime test pass.  The runtime adapter
 * (Section X) exists only to make compile-time outcomes visible inside
-* the framework's standard reporting flow — it does not re-evaluate.
+* the framework's standard reporting flow - it does not re-evaluate.
 *
 *   LAYERS:
 *     I.    portability gates
@@ -43,8 +43,8 @@
 *
 *   USAGE EXAMPLE:
 *     // detect well-formed expressions:
-*     template<typename _T>
-*     using has_size = decltype(std::declval<_T&>().size());
+*     template<typename _Type>
+*     using has_size = decltype(std::declval<_Type&>().size());
 *
 *     D_TEST_TRAIT_DETECTED   (has_size, std::vector<int>);
 *     D_TEST_TRAIT_NOT_DETECTED(has_size, int);
@@ -90,23 +90,11 @@
 
 
 // =========================================================================
-// I.   PORTABILITY GATES
+// I.   INCLUDES AND PORTABILITY GATES
 // =========================================================================
-
-#ifndef DJINTERP_CPP_
-    #error "test_trait.hpp requires djinterp.hpp to be included first"
-#endif
 
 #ifndef __cplusplus
     #error "test_trait.hpp can only be used in C++ compilation mode"
-#endif
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_trait.hpp requires C++11 or higher"
-#endif
-
-#if !D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
-    #error "test_trait.hpp requires variadic templates"
 #endif
 
 
@@ -114,9 +102,26 @@
 #include <cstddef>
 #include <type_traits>
 #include <utility>
-// djinterp
+// djinterp  --  pull the environment header chain FIRST so that the
+// feature-flag macros below are defined before we test them.
 #include "../core/djinterp.hpp"
 #include "./test_common.hpp"
+
+
+// feature gates
+//   validated after the framework includes above so that
+// D_ENV_LANG_IS_CPP11_OR_HIGHER and the feature flags are
+// available.  placing these checks before the includes would
+// cause them to fire as cascading #errors whenever the user
+// includes test_trait.hpp without having first pulled in the
+// djinterp core - which is not the intended contract.
+#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #error "test_trait.hpp requires C++11 or higher"
+#endif
+
+#if !D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+    #error "test_trait.hpp requires variadic templates"
+#endif
 
 
 NS_DJINTERP
@@ -272,7 +277,7 @@ NS_INTERNAL
 
     // pack_count_helper
     //   trait: recursive count of types in the pack for which
-    // _Predicate<_T>::value evaluates true.
+    // _Predicate<_Type>::value evaluates true.
     // primary template (base case).
     template<template<typename...> class _Predicate,
              typename...                 _Types>
@@ -299,7 +304,7 @@ NS_END  // internal
 
 // pack_count_of
 //   trait: yields the number of types in the pack for which
-// _Predicate<_T>::value evaluates true.
+// _Predicate<_Type>::value evaluates true.
 template<template<typename...> class _Predicate,
          typename...                 _Types>
 struct pack_count_of
@@ -309,7 +314,7 @@ struct pack_count_of
 };
 
 // pack_all_of
-//   trait: true if _Predicate<_T>::value is true for every
+//   trait: true if _Predicate<_Type>::value is true for every
 // type in the pack (vacuously true for the empty pack).
 template<template<typename...> class _Predicate,
          typename...                 _Types>
@@ -321,7 +326,7 @@ struct pack_all_of
 };
 
 // pack_any_of
-//   trait: true if _Predicate<_T>::value is true for at
+//   trait: true if _Predicate<_Type>::value is true for at
 // least one type in the pack.
 template<template<typename...> class _Predicate,
          typename...                 _Types>
@@ -332,7 +337,7 @@ struct pack_any_of
 };
 
 // pack_none_of
-//   trait: true if _Predicate<_T>::value is false for every
+//   trait: true if _Predicate<_Type>::value is false for every
 // type in the pack (vacuously true for the empty pack).
 template<template<typename...> class _Predicate,
          typename...                 _Types>
@@ -343,7 +348,7 @@ struct pack_none_of
 };
 
 // pack_exactly_n_of
-//   trait: true if _Predicate<_T>::value is true for exactly
+//   trait: true if _Predicate<_Type>::value is true for exactly
 // _N types in the pack.
 template<std::size_t                 _N,
          template<typename...> class _Predicate,
@@ -393,19 +398,19 @@ struct pack_exactly_n_of
 
 // trait_cv_stable
 //   trait: true if _Predicate yields the same value for
-// _T, const _T, volatile _T, and const volatile _T.
+// _Type, const _Type, volatile _Type, and const volatile _Type.
 template<template<typename...> class _Predicate,
-         typename                    _T>
+         typename                    _Type>
 struct trait_cv_stable
 {
 private:
-    static constexpr bool plain          = _Predicate<_T>::value;
+    static constexpr bool plain          = _Predicate<_Type>::value;
     static constexpr bool with_const     =
-        _Predicate<const _T>::value;
+        _Predicate<const _Type>::value;
     static constexpr bool with_volatile  =
-        _Predicate<volatile _T>::value;
+        _Predicate<volatile _Type>::value;
     static constexpr bool with_cv        =
-        _Predicate<const volatile _T>::value;
+        _Predicate<const volatile _Type>::value;
 
 public:
     static constexpr bool value =
@@ -416,15 +421,15 @@ public:
 
 // trait_ref_stable
 //   trait: true if _Predicate yields the same value for
-// _T, _T&, and _T&&.
+// _Type, _Type&, and _Type&&.
 template<template<typename...> class _Predicate,
-         typename                    _T>
+         typename                    _Type>
 struct trait_ref_stable
 {
 private:
-    static constexpr bool plain   = _Predicate<_T>::value;
-    static constexpr bool lvalue  = _Predicate<_T&>::value;
-    static constexpr bool rvalue  = _Predicate<_T&&>::value;
+    static constexpr bool plain   = _Predicate<_Type>::value;
+    static constexpr bool lvalue  = _Predicate<_Type&>::value;
+    static constexpr bool rvalue  = _Predicate<_Type&&>::value;
 
 public:
     static constexpr bool value =
@@ -434,14 +439,14 @@ public:
 
 // trait_cvref_stable
 //   trait: true if _Predicate yields the same value for
-// every cv- and reference-qualified variant of _T.
+// every cv- and reference-qualified variant of _Type.
 template<template<typename...> class _Predicate,
-         typename                    _T>
+         typename                    _Type>
 struct trait_cvref_stable
 {
     static constexpr bool value =
-        ( trait_cv_stable<_Predicate, _T>::value  &&
-          trait_ref_stable<_Predicate, _T>::value );
+        ( trait_cv_stable<_Predicate, _Type>::value  &&
+          trait_ref_stable<_Predicate, _Type>::value );
 };
 
 
@@ -484,13 +489,13 @@ struct type_equal_cv_stripped
                      typename std::remove_cv<_B>::type>::value;
 };
 
-// type_equal_clean
+// type_equalcleaned
 //   trait: true iff clean_t<_A> equals clean_t<_B>
-// (cv- and reference-stripped — same notion as elsewhere
+// (cv- and reference-stripped - same notion as elsewhere
 // in the framework).
 template<typename _A,
          typename _B>
-struct type_equal_clean
+struct type_equalcleaned
 {
     static constexpr bool value =
         std::is_same<clean_t<_A>, clean_t<_B>>::value;
@@ -506,44 +511,44 @@ struct type_equal_clean
 NS_INTERNAL
 
     // implies_helper
-    //   trait: per-type implication ((!P1 || P2) holds for _T).
+    //   trait: per-type implication ((!P1 || P2) holds for _Type).
     template<template<typename...> class _P1,
              template<typename...> class _P2,
-             typename                    _T>
+             typename                    _Type>
     struct implies_helper
     {
         static constexpr bool value =
-            ( (!_P1<_T>::value) || _P2<_T>::value );
+            ( (!_P1<_Type>::value) || _P2<_Type>::value );
     };
 
     // equivalent_helper
-    //   trait: per-type equivalence (P1 == P2 for _T).
+    //   trait: per-type equivalence (P1 == P2 for _Type).
     template<template<typename...> class _P1,
              template<typename...> class _P2,
-             typename                    _T>
+             typename                    _Type>
     struct equivalent_helper
     {
         static constexpr bool value =
-            ( _P1<_T>::value == _P2<_T>::value );
+            ( _P1<_Type>::value == _P2<_Type>::value );
     };
 
     // disjoint_helper
-    //   trait: per-type disjointness (!(P1 && P2) for _T).
+    //   trait: per-type disjointness (!(P1 && P2) for _Type).
     template<template<typename...> class _P1,
              template<typename...> class _P2,
-             typename                    _T>
+             typename                    _Type>
     struct disjoint_helper
     {
         static constexpr bool value =
-            ( !(_P1<_T>::value && _P2<_T>::value) );
+            ( !(_P1<_Type>::value && _P2<_Type>::value) );
     };
 
 NS_END  // internal
 
 
 // trait_implies_for
-//   trait: true iff _P1<_T> implies _P2<_T> (i.e. whenever
-// _P1<_T>::value is true, _P2<_T>::value is also true) for
+//   trait: true iff _P1<_Type> implies _P2<_Type> (i.e. whenever
+// _P1<_Type>::value is true, _P2<_Type>::value is also true) for
 // every type in the pack.
 template<template<typename...> class _P1,
          template<typename...> class _P2,
@@ -551,8 +556,8 @@ template<template<typename...> class _P1,
 struct trait_implies_for
 {
 private:
-    template<typename _T>
-    using bound = internal::implies_helper<_P1, _P2, _T>;
+    template<typename _Type>
+    using bound = internal::implies_helper<_P1, _P2, _Type>;
 
 public:
     static constexpr bool value =
@@ -560,7 +565,7 @@ public:
 };
 
 // trait_equivalent_for
-//   trait: true iff _P1<_T>::value == _P2<_T>::value for
+//   trait: true iff _P1<_Type>::value == _P2<_Type>::value for
 // every type in the pack.
 template<template<typename...> class _P1,
          template<typename...> class _P2,
@@ -568,8 +573,8 @@ template<template<typename...> class _P1,
 struct trait_equivalent_for
 {
 private:
-    template<typename _T>
-    using bound = internal::equivalent_helper<_P1, _P2, _T>;
+    template<typename _Type>
+    using bound = internal::equivalent_helper<_P1, _P2, _Type>;
 
 public:
     static constexpr bool value =
@@ -577,7 +582,7 @@ public:
 };
 
 // trait_disjoint_for
-//   trait: true iff _P1<_T>::value and _P2<_T>::value are
+//   trait: true iff _P1<_Type>::value and _P2<_Type>::value are
 // never both true for any type in the pack.
 template<template<typename...> class _P1,
          template<typename...> class _P2,
@@ -585,8 +590,8 @@ template<template<typename...> class _P1,
 struct trait_disjoint_for
 {
 private:
-    template<typename _T>
-    using bound = internal::disjoint_helper<_P1, _P2, _T>;
+    template<typename _Type>
+    using bound = internal::disjoint_helper<_P1, _P2, _Type>;
 
 public:
     static constexpr bool value =
@@ -602,16 +607,16 @@ public:
 // drift between an alias and its source trait.
 
 // alias_consistent
-//   trait: true iff _Alias<_T> is the same type as
-// _BaseTrait<_T>::type.
+//   trait: true iff _Alias<_Type> is the same type as
+// _BaseTrait<_Type>::type.
 template<template<typename...> class _BaseTrait,
          template<typename...> class _Alias,
-         typename                    _T>
+         typename                    _Type>
 struct alias_consistent
 {
     static constexpr bool value =
-        std::is_same<typename _BaseTrait<_T>::type,
-                     _Alias<_T>>::value;
+        std::is_same<typename _BaseTrait<_Type>::type,
+                     _Alias<_Type>>::value;
 };
 
 // alias_consistent_for
@@ -623,11 +628,11 @@ template<template<typename...> class _BaseTrait,
 struct alias_consistent_for
 {
 private:
-    template<typename _T>
+    template<typename _Type>
     struct bound
     {
         static constexpr bool value =
-            alias_consistent<_BaseTrait, _Alias, _T>::value;
+            alias_consistent<_BaseTrait, _Alias, _Type>::value;
     };
 
 public:
@@ -763,28 +768,44 @@ struct trait_suite
         #_Trait "<" #__VA_ARGS__ ">::value expected false")
 
 // D_TEST_TYPE_EQ
-//   macro: assert that _A and _B are exactly the same type.
-#define D_TEST_TYPE_EQ(_A, _B)                                      \
+//   macro: assert that the two types supplied are exactly the
+// same type.  Fully variadic - the argument split happens at
+// the C++ template-argument-list level inside `type_equal<...>`,
+// NOT at the C preprocessor level, so template commas pass
+// through correctly:
+//
+//   D_TEST_TYPE_EQ(std::tuple<int, char>, std::tuple<int, char>);
+//
+// Expects exactly two type arguments after expansion; passing a
+// different count produces a clean "too few/many template
+// arguments for 'type_equal'" diagnostic from the compiler.
+#define D_TEST_TYPE_EQ(...)                                         \
     static_assert(                                                  \
-        (::djinterp::test::type_equal< _A , _B >::value),           \
-        "D_TEST_TYPE_EQ failed: "                                   \
-        #_A " and " #_B " are not the same type")
+        (::djinterp::test::type_equal< __VA_ARGS__ >::value),       \
+        "D_TEST_TYPE_EQ failed: " #__VA_ARGS__                      \
+        " -- first and second template arguments are not the "      \
+        "same type")
 
 // D_TEST_TYPE_NEQ
-//   macro: assert that _A and _B are different types.
-#define D_TEST_TYPE_NEQ(_A, _B)                                     \
+//   macro: assert that the two types supplied are different
+// types.  Variadic; see D_TEST_TYPE_EQ for the argument-split
+// rationale.
+#define D_TEST_TYPE_NEQ(...)                                        \
     static_assert(                                                  \
-        (!::djinterp::test::type_equal< _A , _B >::value),          \
-        "D_TEST_TYPE_NEQ failed: "                                  \
-        #_A " and " #_B " are unexpectedly the same type")
+        (!::djinterp::test::type_equal< __VA_ARGS__ >::value),      \
+        "D_TEST_TYPE_NEQ failed: " #__VA_ARGS__                     \
+        " -- first and second template arguments are "              \
+        "unexpectedly the same type")
 
 // D_TEST_TYPE_EQ_DECAYED
-//   macro: assert that decayed forms of _A and _B agree.
-#define D_TEST_TYPE_EQ_DECAYED(_A, _B)                              \
+//   macro: assert that the decayed forms of the two supplied
+// types agree.  Variadic; see D_TEST_TYPE_EQ.
+#define D_TEST_TYPE_EQ_DECAYED(...)                                 \
     static_assert(                                                  \
-        (::djinterp::test::type_equal_decayed< _A , _B >::value),   \
-        "D_TEST_TYPE_EQ_DECAYED failed: "                           \
-        "decayed " #_A " and decayed " #_B " differ")
+        (::djinterp::test::type_equal_decayed<                      \
+             __VA_ARGS__ >::value),                                 \
+        "D_TEST_TYPE_EQ_DECAYED failed: " #__VA_ARGS__              \
+        " -- decayed forms of first and second type differ")
 
 // D_TEST_TRAIT_DETECTED
 //   macro: assert that _Op<__VA_ARGS__> is well-formed.
@@ -850,36 +871,39 @@ struct trait_suite
 
 // D_TEST_TRAIT_CV_STABLE
 //   macro: assert that _Predicate is stable under
-// cv-qualification of _T.
-#define D_TEST_TRAIT_CV_STABLE(_Predicate, _T)                      \
+// cv-qualification of the supplied type.  Trailing variadic
+// so the type argument may itself contain template commas
+// (e.g. `std::tuple<int, char>`).
+#define D_TEST_TRAIT_CV_STABLE(_Predicate, ...)                     \
     static_assert(                                                  \
         (::djinterp::test::trait_cv_stable<                         \
-             _Predicate , _T >::value),                             \
+             _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_CV_STABLE failed: "                           \
         #_Predicate " yields different results across cv "          \
-        "variants of " #_T)
+        "variants of " #__VA_ARGS__)
 
 // D_TEST_TRAIT_REF_STABLE
 //   macro: assert that _Predicate is stable under reference
-// qualification of _T.
-#define D_TEST_TRAIT_REF_STABLE(_Predicate, _T)                     \
+// qualification of the supplied type.  Trailing variadic.
+#define D_TEST_TRAIT_REF_STABLE(_Predicate, ...)                    \
     static_assert(                                                  \
         (::djinterp::test::trait_ref_stable<                        \
-             _Predicate , _T >::value),                             \
+             _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_REF_STABLE failed: "                          \
         #_Predicate " yields different results across "             \
-        "reference variants of " #_T)
+        "reference variants of " #__VA_ARGS__)
 
 // D_TEST_TRAIT_CVREF_STABLE
 //   macro: assert that _Predicate is stable under combined
-// cv and reference qualification of _T.
-#define D_TEST_TRAIT_CVREF_STABLE(_Predicate, _T)                   \
+// cv and reference qualification of the supplied type.
+// Trailing variadic.
+#define D_TEST_TRAIT_CVREF_STABLE(_Predicate, ...)                  \
     static_assert(                                                  \
         (::djinterp::test::trait_cvref_stable<                      \
-             _Predicate , _T >::value),                             \
+             _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_CVREF_STABLE failed: "                        \
         #_Predicate " yields different results across cv/ref "      \
-        "variants of " #_T)
+        "variants of " #__VA_ARGS__)
 
 // D_TEST_TRAIT_IMPLIES
 //   macro: assert that _P1 implies _P2 for every type in the
@@ -913,14 +937,16 @@ struct trait_suite
         #__VA_ARGS__ "}")
 
 // D_TEST_TRAIT_ALIAS_CONSISTENT
-//   macro: assert that _Alias<_T> equals _BaseTrait<_T>::type.
-#define D_TEST_TRAIT_ALIAS_CONSISTENT(_BaseTrait, _Alias, _T)       \
+//   macro: assert that _Alias<T> equals _BaseTrait<T>::type.
+// Trailing variadic so the T slot may itself be a templated
+// type containing commas (e.g. `std::tuple<int, char>`).
+#define D_TEST_TRAIT_ALIAS_CONSISTENT(_BaseTrait, _Alias, ...)      \
     static_assert(                                                  \
         (::djinterp::test::alias_consistent<                        \
-             _BaseTrait , _Alias , _T >::value),                    \
+             _BaseTrait , _Alias , __VA_ARGS__ >::value),           \
         "D_TEST_TRAIT_ALIAS_CONSISTENT failed: "                    \
-        #_Alias "<" #_T "> differs from "                           \
-        #_BaseTrait "<" #_T ">::type")
+        #_Alias "<" #__VA_ARGS__ "> differs from "                  \
+        #_BaseTrait "<" #__VA_ARGS__ ">::type")
 
 // D_TEST_TRAIT_ALIAS_CONSISTENT_FOR
 //   macro: assert alias_consistent for every type in the pack.
@@ -938,7 +964,7 @@ struct trait_suite
 ///////////////////////////////////////////////////////////////////////////////
 // Bridge from a compile-time trait_suite into a runtime test_object
 // that the framework's printer and event handler can walk.  The
-// adapter does NOT re-evaluate any predicates — the suite's
+// adapter does NOT re-evaluate any predicates - the suite's
 // `passed_count` and `total` are already constants.
 
 // trait_suite_object
@@ -1035,7 +1061,7 @@ make_trait_suite_object(
 // as a template parameter, so these are pure macro entry points
 // rather than wrapper traits.  For pack quantification over a
 // concept, wrap the concept in a one-line unary trait struct and use
-// the Section IX pack macros — example below the macros.
+// the Section IX pack macros - example below the macros.
 //
 // When concepts are unavailable, this section is omitted entirely
 // and users fall back to the predicate macros from Section IX
@@ -1059,14 +1085,14 @@ make_trait_suite_object(
         "D_TEST_CONCEPT_FALSE failed: "                             \
         #_Concept "<" #__VA_ARGS__ "> is unexpectedly satisfied")
 
-// USAGE NOTE — concepts cannot be passed as template-template
+// USAGE NOTE - concepts cannot be passed as template-template
 // arguments in C++20, so pack quantification over a concept is done
 // by wrapping the concept in a one-line unary trait struct and
 // using the Section III/IV/VI combinators:
 //
-//     template<typename _T>
+//     template<typename _Type>
 //     struct integral_pred {
-//         static constexpr bool value = std::integral<_T>;
+//         static constexpr bool value = std::integral<_Type>;
 //     };
 //
 //     D_TEST_TRAIT_ALL_OF (integral_pred, int, char, long);

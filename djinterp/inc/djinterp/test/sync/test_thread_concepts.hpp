@@ -4,6 +4,7 @@
 *   C++20 concepts layered over test_thread_traits.hpp.  These concepts
 * provide readable constraints for thread-safe testable types without
 * replacing the existing SFINAE trait surface.
+*
 *   The concepts mirror the public classification axes from
 * test_thread_traits.hpp:
 *     - nested type aliases     (safety level, strategy tag, lock policy)
@@ -14,7 +15,7 @@
 *     - aggregate concepts      (testable, fully-described)
 *
 *
-* path:      /inc/djinterp/test/sync/test_thread_concepts.hpp
+* path:      /inc/djinterp/test/test_thread_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -27,17 +28,16 @@
 #endif
 
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../test_thread_traits.hpp"
+#include "../core/djinterp.hpp"
+#include "./test_thread_traits.hpp"
 
 
-#if !D_ENV_LANG_IS_CPP20_OR_HIGHER
-    #error "Requires C++20 or later."
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_DJINTERP
 NS_TEST
+NS_TRAITS
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ concept try_lockable_type =
 
 // fully_lockable_type
 //   concept: the type exposes both read_lock() and
-// write_lock() - full reader/writer interface.
+// write_lock() — full reader/writer interface.
 template<typename _Type>
 concept fully_lockable_type =
     has_full_lock_interface<_Type>::value;
@@ -226,7 +226,7 @@ concept classified_thread_test_type =
 
 // fully_described_threadsafe_type
 //   concept: a thread-safe type that exposes both type
-// aliases AND a method-level interface - the richest
+// aliases AND a method-level interface — the richest
 // classification suitable for full-spectrum tests.
 template<typename _Type>
 concept fully_described_threadsafe_type =
@@ -239,7 +239,7 @@ concept fully_described_threadsafe_type =
 
 // race_testable_type
 //   concept: a type that can meaningfully be subjected to
-// race-probing - exposes either a reader/writer interface
+// race-probing — exposes either a reader/writer interface
 // or atomic loads.
 template<typename _Type>
 concept race_testable_type =
@@ -248,8 +248,11 @@ concept race_testable_type =
     atomic_loadable_type<_Type>;
 
 
+NS_END  // traits
 NS_END  // test
 NS_END  // djinterp
 
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 #endif  // DJINTERP_TEST_THREAD_CONCEPTS_

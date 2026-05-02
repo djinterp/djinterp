@@ -5,24 +5,30 @@
 * DTest framework that captures exceptions, records timings, and
 * preserves a thread identity (numeric id, optional name) for use in
 * test reporting.
-*   The class is intentionally thin - it adds three things to a raw
+*
+*   The class is intentionally thin — it adds three things to a raw
 * std::thread:
+*
 *     1. EXCEPTION CAPTURE
 *        Any exception thrown by the user-supplied callable is caught
 *        and stored as a std::exception_ptr.  The harness can rethrow
 *        on the main thread (rethrow_if_failed) or query the message
 *        (exception_what).
+*
 *     2. TIMING
 *        The thread records its start and stop time using a
 *        std::chrono::steady_clock, exposing started_at(),
 *        stopped_at(), and elapsed().
+*
 *     3. IDENTITY
 *        Each thread carries a logical id (size_type) assigned by the
 *        runner and an optional human-readable name.
+*
 *   PORTABILITY:
 *   Requires C++11 or later for <thread> and <chrono>.  On C++98/03
 * the class compiles to a single-threaded stub: every operation runs
 * synchronously on the calling thread and start()/join() are no-ops.
+*
 *   This stub mode is intentional: it lets the same test code build
 * against the null_lock_policy / single-threaded path without
 * preprocessor branching at the call site.
@@ -36,7 +42,7 @@
 * IV.   FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/sync/test_thread.hpp
+* path:      /inc/djinterp/test/test_thread.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -49,6 +55,7 @@
 #include <cstdint>
 #include <exception>
 #include <string>
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
     #include <chrono>
@@ -57,10 +64,11 @@
     #include <utility>
     #include <vector>
 #endif
+
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../../coresync/condvar.hpp"
-#include "../test_common.hpp"
+#include "../core/djinterp.hpp"
+#include "../sync/condvar.hpp"
+#include "./test_common.hpp"
 
 
 NS_DJINTERP
@@ -74,11 +82,11 @@ NS_TEST
 // test_thread_state
 //   enum: lifecycle state of a test_thread.
 //
-//   idle      - constructed but not yet started
-//   running   - the worker function is currently executing
-//   completed - the worker function returned normally
-//   failed    - the worker function threw an uncaught exception
-//   detached  - the std::thread was detached (no join possible)
+//   idle      — constructed but not yet started
+//   running   — the worker function is currently executing
+//   completed — the worker function returned normally
+//   failed    — the worker function threw an uncaught exception
+//   detached  — the std::thread was detached (no join possible)
 enum class test_thread_state
 {
     idle      = 0,

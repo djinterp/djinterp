@@ -21,10 +21,10 @@
 * C++14/C++17, enabling a single call-site to work across standards.
 *
 *   CONSTRAINTS DEFINED:
-*     is_test_result_type<_Type>       — convertible to bool
-*     is_test_status_type<_Type>       — scoped enum
-*     is_test_event_handler<_Type>     — callable with const test_event&
-*     is_valid_test_option<_Type>      — recognized option tag type
+*     is_test_result_type<_Type>       - convertible to bool
+*     is_test_status_type<_Type>       - scoped enum
+*     is_test_event_handler<_Type>     - callable with const test_event&
+*     is_valid_test_option<_Type>      - recognized option tag type
 *
 *   C++20 CONCEPTS (when available):
 *     test_result_type<_Type>
@@ -69,15 +69,13 @@ NS_TEST
 template<typename _Type,
          typename = void>
 struct is_test_result_type : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct is_test_result_type<_Type, void_t<
     decltype(static_cast<bool>(std::declval<const _Type&>()))
 >> : std::true_type
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_test_result_type_v
@@ -100,8 +98,7 @@ struct is_test_result_type<_Type, void_t<
 template<typename _StatusType>
 struct is_test_status_type
     : std::is_enum<_StatusType>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_test_status_type_v
@@ -124,16 +121,14 @@ NS_INTERNAL
     template<typename _Handler,
              typename = void>
     struct event_handler_callable_check : std::false_type
-    {
-    };
+    {};
 
     template<typename _Handler>
     struct event_handler_callable_check<_Handler, void_t<
         decltype(std::declval<_Handler&>()(
             std::declval<const test_event&>()))
     >> : std::true_type
-    {
-    };
+    {};
 
 NS_END  // internal
 
@@ -144,8 +139,7 @@ NS_END  // internal
 template<typename _Handler>
 struct is_test_event_handler
     : internal::event_handler_callable_check<_Handler>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_test_event_handler_v
@@ -181,8 +175,7 @@ NS_INTERNAL
     // option tag. Base case (empty pack) is true.
     template<typename... _Options>
     struct all_valid_options : std::true_type
-    {
-    };
+    {};
 
     template<typename _Head,
              typename... _Tail>
@@ -192,8 +185,7 @@ NS_INTERNAL
               all_valid_options<_Tail...>,
               std::false_type
           >::type
-    {
-    };
+    {};
 
 NS_END  // internal
 
@@ -202,8 +194,7 @@ NS_END  // internal
 template<typename _Opt>
 struct is_valid_test_option
     : internal::is_recognized_option<_Opt>
-{
-};
+{};
 
 // are_valid_test_options
 //   trait: true if every type in the pack is a recognized
@@ -211,8 +202,7 @@ struct is_valid_test_option
 template<typename... _Options>
 struct are_valid_test_options
     : internal::all_valid_options<_Options...>
-{
-};
+{};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     // is_valid_test_option_v

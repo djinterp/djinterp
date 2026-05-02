@@ -3,6 +3,7 @@
 *
 *   Deadlock detection and timeout watchdog primitives for the DTest
 * multithreading harness.  Provides two complementary mechanisms:
+*
 *     1. DEADLOCK WATCHDOG
 *        A timer-based fail-fast guard.  Arm the watchdog with a
 *        timeout; if disarm() is not called within the deadline the
@@ -10,21 +11,25 @@
 *        violation and sets a stop flag).  Useful for wrapping any
 *        join, lock, or condition-variable wait that should never
 *        block indefinitely.
+*
 *     2. LOCK ORDER TRACKER
 *        Records the order in which locks are acquired by each
 *        thread (using thread-local-storage keyed by lock id),
 *        builds an acquisition order graph, and detects cycles
 *        indicative of potential AB-BA deadlocks.  Detection is
-*        offline - call analyze() after the test completes and
+*        offline — call analyze() after the test completes and
 *        the tracker reports any cycles in the global ordering.
+*
 *   Both mechanisms produce a deadlock_report convertible to a
 * basic_test for the DTest tree via to_test_object().
+*
 *   USE WITH CARE:
-*   Watchdog firing does NOT abort the program by default - it
+*   Watchdog firing does NOT abort the program by default — it
 * records the event and signals the SUT to stop cooperatively
 * via an atomic stop flag.  An optional fatal mode can be enabled
 * to call std::abort() when a deadlock is detected, but this is
 * not the default because tests should fail gracefully.
+*
 *   PORTABILITY:
 *   Requires C++11 or later.  C++98 builds receive degenerate
 * stubs (single-threaded; watchdog never fires; tracker is a no-op).
@@ -39,7 +44,7 @@
 * V.    FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/sync/test_deadlock.hpp
+* path:      /inc/djinterp/test/test_deadlock.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -51,6 +56,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
     #include <chrono>
@@ -63,10 +69,13 @@
 #else
     #include <vector>
 #endif
+
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../test_common.hpp"
-#include "../test_object.hpp"
+#include "../core/djinterp.hpp"
+#include "../sync/atomic.hpp"
+#include "../sync/condvar.hpp"
+#include "./test_common.hpp"
+#include "./test_object.hpp"
 
 
 NS_DJINTERP
@@ -74,6 +83,10 @@ NS_TEST
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// --- threadsafe foundation wrappers used by this module ---
+using ::djinterp::threadsafe::portable_condvar;
+using ::djinterp::threadsafe::exclusive_lock_policy;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   DEADLOCK REPORT                                     ///
@@ -241,7 +254,7 @@ public:
 
     // set_timeout
     //   sets the watchdog deadline.  Must be called before
-    // arm() - changes after arming are ignored until the
+    // arm() — changes after arming are ignored until the
     // next arm cycle.
     template<typename _Rep,
              typename _Period>
@@ -488,7 +501,8 @@ private:
     std::atomic<bool>       m_disarmed;
     std::atomic<bool>       m_stop_requested;
     std::mutex              m_mutex;
-    std::condition_variable m_cv;
+    portable_condvar<exclusive_lock_policy>
+                            m_cv;
     deadlock_report         m_report;
     std::thread             m_watcher;
 };
@@ -596,7 +610,7 @@ public:
     // on_release
     //   records that _thread released _lock.  Removes the
     // lock from the thread's held stack.  No edges are
-    // removed - the order graph is monotonic.
+    // removed — the order graph is monotonic.
     void
     on_release(
         thread_id_type _thread,

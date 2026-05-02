@@ -16,7 +16,7 @@
 * 
 * path:      /inc/djinterp/test/test_object_concepts.hpp
 * link(s):   TBA
-* author(s): OpenAI ChatGPT                                   date: 2026.04.11
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_OBJECT_CONCEPTS_

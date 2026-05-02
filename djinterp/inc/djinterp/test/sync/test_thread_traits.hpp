@@ -3,32 +3,62 @@
 *
 *   Structural SFINAE detection for types participating in the DTest
 * multithreading harness.  These traits classify types along axes that
-* matter for concurrent testing:
-*     - thread-safety classification     (level / strategy / lock policy)
-*     - lock interface presence          (read_lock / write_lock)
-*     - snapshot/COW interface presence  (snapshot, immutable_snapshot)
-*     - atomic interface presence        (load / store)
-*     - hazard / RCU strategy markers
-*   The probes mirror the approach in concurrency_strategy_traits.hpp
-* but live in the test namespace so the test harness can reason
-* about a type's threadsafety without dragging the container metaprogramming
-* graph into the test umbrella.
-*   All detection is purely structural — expose the right members or
-* aliases and the trait system classifies the type automatically.
+* matter for concurrent testing: lock interface, snapshot/COW interface,
+* atomic interface, and high-level strategy classification.
+*
+*   This header DOES NOT redefine the canonical detection probes that
+* already exist in the project's container metaprogramming graph
+* (concurrency_strategy_traits.hpp and threadsafe_container_traits.hpp).
+* Instead it RE-EXPORTS those probes into the
+* `djinterp::test::traits` namespace and adds the test-suite-specific
+* composites and the few probes that are not present upstream.  This
+* avoids two slightly different detection probes for the same concept
+* drifting out of sync over time.
+*
+*   ALIASED FROM djinterp::traits (concurrency_strategy_traits.hpp):
+*     has_concurrency_strategy_tag
+*     has_read_lock_method, has_write_lock_method
+*     has_snapshot_method, has_cow_state_type
+*     has_rcu_protected_type, has_epoch_type
+*     has_hazard_domain_type, has_atomic_load_at
+*
+*   ALIASED FROM djinterp (threadsafe_container_traits.hpp):
+*     has_lock_policy_type, has_mutex_type_alias (renamed has_mutex_type)
+*     has_atomic_size_type, has_atomic_version_type
+*
+*   DEFINED HERE (test-suite-specific):
+*     has_thread_safety_level    — nested-alias detection upstream
+*                                  exposes only a *value* extractor,
+*                                  not a *presence* probe
+*     has_try_lock_method        — convenience for try-lock tests
+*     has_full_lock_interface    — composite (read + write)
+*     has_publish_method         — COW publish() detection
+*     has_cow_interface          — composite (snapshot + publish)
+*     has_atomic_load_method     — no-arg load() (distinct from
+*                                  upstream has_atomic_load_at)
+*     has_atomic_store_method
+*     has_atomic_compare_exchange_method
+*     has_atomic_interface       — composite (load + store)
+*     is_locked_testable, is_cow_testable, is_rcu_testable,
+*       is_hazard_testable, is_lock_free_testable,
+*       is_threadsafe_testable  — strategy-level composites
+*     thread_test_class          — full structural classification
 *
 *
 * TABLE OF CONTENTS
 * =================
-* I.    NESTED TYPE DETECTION
-* II.   LOCK INTERFACE DETECTION
-* III.  SNAPSHOT / COW DETECTION
-* IV.   ATOMIC INTERFACE DETECTION
-* V.    STRATEGY MARKER DETECTION
-* VI.   COMBINED CLASSIFICATION
-* VII.  VARIABLE TEMPLATES
+* I.    RE-EXPORTED TRAITS FROM djinterp::traits
+* II.   RE-EXPORTED TRAITS FROM djinterp
+* III.  TEST-SPECIFIC NESTED TYPE DETECTION
+* IV.   TEST-SPECIFIC LOCK INTERFACE DETECTION
+* V.    TEST-SPECIFIC SNAPSHOT / COW DETECTION
+* VI.   TEST-SPECIFIC ATOMIC INTERFACE DETECTION
+* VII.  STRATEGY-LEVEL COMPOSITES
+* VIII. COMBINED CLASSIFICATION
+* IX.   VARIABLE TEMPLATES
 *
 *
-* path:      /inc/djinterp/test/sync/test_thread_traits.hpp
+* path:      /inc/djinterp/test/test_thread_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -40,21 +70,72 @@
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../test_common.hpp"
+#include "../core/djinterp.hpp"
+#include "../meta/type_traits.hpp"
+#include "../container/meta/threadsafe_container_traits.hpp"
+#include "../container/meta/concurrency_strategy_traits.hpp"
+#include "./test_common.hpp"
 
 
 NS_DJINTERP
 NS_TEST
+NS_TRAITS
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                I.   NESTED TYPE DETECTION                               ///
+///                I.   RE-EXPORTED TRAITS FROM djinterp::traits            ///
 ///////////////////////////////////////////////////////////////////////////////
+//   These traits are defined canonically in
+// concurrency_strategy_traits.hpp.  Bringing them into
+// the test::traits namespace lets test-side code spell
+// them with a short qualified name while guaranteeing
+// the test classification stays in lockstep with the
+// container classification.
+
+using ::djinterp::traits::has_concurrency_strategy_tag;
+using ::djinterp::traits::has_read_lock_method;
+using ::djinterp::traits::has_write_lock_method;
+using ::djinterp::traits::has_snapshot_method;
+using ::djinterp::traits::has_cow_state_type;
+using ::djinterp::traits::has_rcu_protected_type;
+using ::djinterp::traits::has_epoch_type;
+using ::djinterp::traits::has_hazard_domain_type;
+using ::djinterp::traits::has_atomic_load_at;
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                II.  RE-EXPORTED TRAITS FROM djinterp                    ///
+///////////////////////////////////////////////////////////////////////////////
+//   These traits live at namespace djinterp (no
+// `traits` sub-namespace) in threadsafe_container_traits.hpp.
+// They are re-exported here under their canonical names,
+// with one rename: has_mutex_type_alias is exposed as
+// has_mutex_type for symmetry with the rest of this
+// header's nested-alias detection family.
+
+using ::djinterp::has_lock_policy_type;
+using ::djinterp::has_atomic_size_type;
+using ::djinterp::has_atomic_version_type;
+
+// has_mutex_type
+//   alias: presence-detection for a `mutex_type` nested
+// alias.  Same predicate as upstream
+// `djinterp::has_mutex_type_alias`, exposed here under
+// a shorter name.
+template<typename _Type>
+using has_mutex_type = ::djinterp::has_mutex_type_alias<_Type>;
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III. TEST-SPECIFIC NESTED TYPE DETECTION                 ///
+///////////////////////////////////////////////////////////////////////////////
+//   These probes have no upstream counterpart.
 
 // has_thread_safety_level
-//   trait: true if _Type exposes a thread_safety_level
-// alias or member typedef.
+//   trait: true if _Type exposes a `thread_safety_level`
+// nested alias.  Distinct from upstream
+// `container_thread_safety_level<T>` which is a value
+// extractor, not a presence probe.
 template<typename _Type,
          typename = void>
 struct has_thread_safety_level : std::false_type
@@ -66,117 +147,12 @@ struct has_thread_safety_level<_Type, void_t<
 >> : std::true_type
 {};
 
-// has_concurrency_strategy_tag
-//   trait: true if _Type exposes a concurrency_strategy_tag
-// alias indicating its synchronization strategy.
-template<typename _Type,
-         typename = void>
-struct has_concurrency_strategy_tag : std::false_type
-{};
-
-template<typename _Type>
-struct has_concurrency_strategy_tag<_Type, void_t<
-    typename _Type::concurrency_strategy_tag
->> : std::true_type
-{};
-
-// has_lock_policy_type
-//   trait: true if _Type exposes a lock_policy_type alias.
-template<typename _Type,
-         typename = void>
-struct has_lock_policy_type : std::false_type
-{};
-
-template<typename _Type>
-struct has_lock_policy_type<_Type, void_t<
-    typename _Type::lock_policy_type
->> : std::true_type
-{};
-
-// has_mutex_type
-//   trait: true if _Type exposes a mutex_type alias.
-template<typename _Type,
-         typename = void>
-struct has_mutex_type : std::false_type
-{};
-
-template<typename _Type>
-struct has_mutex_type<_Type, void_t<
-    typename _Type::mutex_type
->> : std::true_type
-{};
-
-// has_cow_state_type
-//   trait: true if _Type exposes a cow_state_type alias.
-template<typename _Type,
-         typename = void>
-struct has_cow_state_type : std::false_type
-{};
-
-template<typename _Type>
-struct has_cow_state_type<_Type, void_t<
-    typename _Type::cow_state_type
->> : std::true_type
-{};
-
-// has_rcu_protected_type
-//   trait: true if _Type exposes an rcu_protected_type alias.
-template<typename _Type,
-         typename = void>
-struct has_rcu_protected_type : std::false_type
-{};
-
-template<typename _Type>
-struct has_rcu_protected_type<_Type, void_t<
-    typename _Type::rcu_protected_type
->> : std::true_type
-{};
-
-// has_hazard_domain_type
-//   trait: true if _Type exposes a hazard_domain_type alias.
-template<typename _Type,
-         typename = void>
-struct has_hazard_domain_type : std::false_type
-{};
-
-template<typename _Type>
-struct has_hazard_domain_type<_Type, void_t<
-    typename _Type::hazard_domain_type
->> : std::true_type
-{};
-
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.  LOCK INTERFACE DETECTION                            ///
+///                IV.  TEST-SPECIFIC LOCK INTERFACE DETECTION              ///
 ///////////////////////////////////////////////////////////////////////////////
-
-// has_read_lock_method
-//   trait: true if _Type exposes read_lock() as a const
-// member returning a guard.
-template<typename _Type,
-         typename = void>
-struct has_read_lock_method : std::false_type
-{};
-
-template<typename _Type>
-struct has_read_lock_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().read_lock())
->> : std::true_type
-{};
-
-// has_write_lock_method
-//   trait: true if _Type exposes write_lock() as a mutable
-// member returning a guard.
-template<typename _Type,
-         typename = void>
-struct has_write_lock_method : std::false_type
-{};
-
-template<typename _Type>
-struct has_write_lock_method<_Type, void_t<
-    decltype(std::declval<_Type&>().write_lock())
->> : std::true_type
-{};
+//   read_lock / write_lock are aliased from upstream;
+// these add try_lock and the composite.
 
 // has_try_lock_method
 //   trait: true if _Type exposes try_lock() returning an
@@ -205,22 +181,10 @@ struct has_full_lock_interface
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III. SNAPSHOT / COW DETECTION                            ///
+///                V.   TEST-SPECIFIC SNAPSHOT / COW DETECTION              ///
 ///////////////////////////////////////////////////////////////////////////////
-
-// has_snapshot_method
-//   trait: true if _Type exposes snapshot() returning an
-// immutable view of the current state.
-template<typename _Type,
-         typename = void>
-struct has_snapshot_method : std::false_type
-{};
-
-template<typename _Type>
-struct has_snapshot_method<_Type, void_t<
-    decltype(std::declval<const _Type&>().snapshot())
->> : std::true_type
-{};
+//   snapshot() is aliased from upstream; this adds
+// publish() and the composite.
 
 // has_publish_method
 //   trait: true if _Type exposes publish(...) for COW-style
@@ -249,8 +213,11 @@ struct has_cow_interface
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.  ATOMIC INTERFACE DETECTION                          ///
+///                VI.  TEST-SPECIFIC ATOMIC INTERFACE DETECTION            ///
 ///////////////////////////////////////////////////////////////////////////////
+//   Upstream provides has_atomic_load_at (load by index);
+// these probe the unindexed atomic interface used by
+// scalar atomic wrappers.
 
 // has_atomic_load_method
 //   trait: true if _Type exposes load() as a const member.
@@ -309,14 +276,15 @@ struct has_atomic_interface
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   STRATEGY MARKER DETECTION                           ///
+///                VII. STRATEGY-LEVEL COMPOSITES                           ///
 ///////////////////////////////////////////////////////////////////////////////
-// Composites that classify a type's primary concurrency strategy.
+//   Test-suite-friendly composites built on the aliased
+// upstream probes plus the test-specific atomic probes.
 
 // is_locked_testable
 //   trait: true if _Type appears to use lock-based
-// synchronization (lock_policy_type alias OR
-// read_lock/write_lock methods).
+// synchronization (lock_policy_type alias OR full
+// read_lock/write_lock interface).
 template<typename _Type>
 struct is_locked_testable
 {
@@ -327,7 +295,7 @@ struct is_locked_testable
 
 // is_cow_testable
 //   trait: true if _Type appears to use copy-on-write
-// (cow_state_type alias OR snapshot()/publish() methods).
+// (cow_state_type alias OR snapshot()/publish() interface).
 template<typename _Type>
 struct is_cow_testable
 {
@@ -368,7 +336,7 @@ struct is_lock_free_testable
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                VI.  COMBINED CLASSIFICATION                             ///
+///                VIII. COMBINED CLASSIFICATION                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_threadsafe_testable
@@ -378,11 +346,11 @@ template<typename _Type>
 struct is_threadsafe_testable
 {
     static D_CONSTEXPR bool value =
-        ( is_locked_testable<_Type>::value     ||
-          is_cow_testable<_Type>::value        ||
-          is_rcu_testable<_Type>::value        ||
-          is_hazard_testable<_Type>::value     ||
-          has_atomic_interface<_Type>::value   ||
+        ( is_locked_testable<_Type>::value          ||
+          is_cow_testable<_Type>::value             ||
+          is_rcu_testable<_Type>::value             ||
+          is_hazard_testable<_Type>::value          ||
+          has_atomic_interface<_Type>::value        ||
           has_concurrency_strategy_tag<_Type>::value ||
           has_thread_safety_level<_Type>::value );
 };
@@ -455,42 +423,65 @@ struct thread_test_class
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                VII. VARIABLE TEMPLATES                                  ///
+///                IX.  VARIABLE TEMPLATES                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
+    // re-exported _v variants from djinterp::traits
+    using ::djinterp::traits::has_concurrency_strategy_tag_v;
+    using ::djinterp::traits::has_read_lock_method_v;
+    using ::djinterp::traits::has_write_lock_method_v;
+    using ::djinterp::traits::has_snapshot_method_v;
+    using ::djinterp::traits::has_cow_state_type_v;
+    using ::djinterp::traits::has_rcu_protected_type_v;
+    using ::djinterp::traits::has_epoch_type_v;
+    using ::djinterp::traits::has_hazard_domain_type_v;
+    using ::djinterp::traits::has_atomic_load_at_v;
+
+    // re-exported _v variants from djinterp
+    using ::djinterp::has_lock_policy_type_v;
+    using ::djinterp::has_atomic_size_type_v;
+    using ::djinterp::has_atomic_version_type_v;
+
+    // has_mutex_type_v: same predicate as upstream
+    // djinterp::has_mutex_type_alias_v.
+    template<typename _Type>
+    D_CONSTEXPR bool has_mutex_type_v =
+        ::djinterp::has_mutex_type_alias_v<_Type>;
+
+    // test-specific
     template<typename _Type>
     D_CONSTEXPR bool has_thread_safety_level_v =
         has_thread_safety_level<_Type>::value;
 
     template<typename _Type>
-    D_CONSTEXPR bool has_concurrency_strategy_tag_v =
-        has_concurrency_strategy_tag<_Type>::value;
-
-    template<typename _Type>
-    D_CONSTEXPR bool has_lock_policy_type_v =
-        has_lock_policy_type<_Type>::value;
-
-    template<typename _Type>
-    D_CONSTEXPR bool has_read_lock_method_v =
-        has_read_lock_method<_Type>::value;
-
-    template<typename _Type>
-    D_CONSTEXPR bool has_write_lock_method_v =
-        has_write_lock_method<_Type>::value;
+    D_CONSTEXPR bool has_try_lock_method_v =
+        has_try_lock_method<_Type>::value;
 
     template<typename _Type>
     D_CONSTEXPR bool has_full_lock_interface_v =
         has_full_lock_interface<_Type>::value;
 
     template<typename _Type>
-    D_CONSTEXPR bool has_snapshot_method_v =
-        has_snapshot_method<_Type>::value;
+    D_CONSTEXPR bool has_publish_method_v =
+        has_publish_method<_Type>::value;
 
     template<typename _Type>
     D_CONSTEXPR bool has_cow_interface_v =
         has_cow_interface<_Type>::value;
+
+    template<typename _Type>
+    D_CONSTEXPR bool has_atomic_load_method_v =
+        has_atomic_load_method<_Type>::value;
+
+    template<typename _Type>
+    D_CONSTEXPR bool has_atomic_store_method_v =
+        has_atomic_store_method<_Type>::value;
+
+    template<typename _Type>
+    D_CONSTEXPR bool has_atomic_compare_exchange_method_v =
+        has_atomic_compare_exchange_method<_Type>::value;
 
     template<typename _Type>
     D_CONSTEXPR bool has_atomic_interface_v =
@@ -523,6 +514,7 @@ struct thread_test_class
 #endif  // variable templates
 
 
+NS_END  // traits
 NS_END  // test
 NS_END  // djinterp
 

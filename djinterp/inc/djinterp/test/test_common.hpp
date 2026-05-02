@@ -10,7 +10,7 @@
 *   - portable constexpr support macros for compile-time evaluation
 *
 *   TEST TYPE IDENTIFICATION:
-*   Every test_object carries a test_type_id — a signed 32-bit integer
+*   Every test_object carries a test_type_id - a signed 32-bit integer
 * that identifies the kind of test it represents.  In isolation (no
 * test_type registry), the id acts as a numeric rank: a child's id
 * must be <= its parent's.  When a test_tree holds a test_type
@@ -138,6 +138,25 @@ struct test_event
           message(_message)
     {}
 };
+
+
+// iii. event handler
+//////////////////////////////////////////
+
+// fn_test_event_handler
+//   typedef: function pointer type for the legacy
+// callback-style event handler slot stored in a
+// dtest_option_set under DTestOption::handler.  Kept as a
+// plain function-pointer typedef (rather than switched to
+// std::function) so the typedef can sit inside test_common.hpp
+// without dragging <functional> into the dependency graph.
+//
+// NEW CODE SHOULD PREFER the event_handler / test_handler
+// path from test_handler.hpp, which offers multi-subscriber
+// dispatch, typed payloads, and propagation control.  This
+// typedef remains for source compatibility with existing
+// option-based wiring (see test_options.hpp).
+typedef void (*fn_test_event_handler)(const test_event& _event);
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  CONSTEXPR SUPPORT MACROS                            ///

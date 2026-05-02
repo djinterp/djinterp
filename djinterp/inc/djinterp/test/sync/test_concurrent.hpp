@@ -3,39 +3,47 @@
 *
 *   The DTest concurrent runner: a workhorse for executing a callable
 * concurrently from N threads under controlled conditions.
+*
 *   The runner orchestrates the four awkward parts of writing a
 * concurrent test by hand:
+*
 *     1. STARTING ALL THREADS AT ONCE
 *        Threads spawned through std::thread don't actually start
-*        running together - there is unavoidable scheduling jitter.
+*        running together — there is unavoidable scheduling jitter.
 *        The runner uses simultaneous_start to hold every worker at
 *        a gate until they have all checked in, then fires the gate.
+*
 *     2. JOINING WITH A TIMEOUT
 *        Real concurrent bugs deadlock.  Joining without a timeout
 *        means the test framework deadlocks alongside the bug.  The
 *        runner enforces a hard timeout and reports surviving
 *        threads as failures.
+*
 *     3. EXCEPTION AGGREGATION
 *        Each worker can throw independently.  The runner aggregates
 *        every captured exception into a per-thread report and
 *        produces a single test_object summarizing the run.
+*
 *     4. PER-THREAD RESULT COLLECTION
 *        Many concurrent tests compute a per-thread value (e.g.
 *        local sum, observed sequence) that the assertion checks
 *        post-hoc.  The runner provides a typed result vector keyed
 *        by thread id.
+*
 *   EXECUTION PATTERNS:
 *   The runner exposes several pre-canned patterns:
-*     run_simultaneous   - every thread runs the same callable
+*
+*     run_simultaneous   — every thread runs the same callable
 *                          starting at the same instant
-*     run_per_thread     - each thread gets its own callable,
+*     run_per_thread     — each thread gets its own callable,
 *                          all start simultaneously
-*     run_reader_writer  - N readers and M writers, started
+*     run_reader_writer  — N readers and M writers, started
 *                          together, with reader/writer roles
 *                          baked into the callable signature
-*     run_pipeline       - phase-coupled execution where all
+*     run_pipeline       — phase-coupled execution where all
 *                          threads progress together through
 *                          phases via an internal barrier
+*
 *   PORTABILITY:
 *   Requires C++11 or later.  On C++98/03 the runner degrades to
 * a sequential executor: every "thread" runs one after another on
@@ -51,7 +59,7 @@
 * IV.   FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/sync/test_concurrent.hpp
+* path:      /inc/djinterp/test/test_concurrent.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -63,6 +71,7 @@
 #include <cstddef>
 #include <exception>
 #include <string>
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
     #include <chrono>
@@ -70,13 +79,14 @@
     #include <utility>
     #include <vector>
 #endif
+
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../../core/sync/condvar.hpp"
-#include "../test_common.hpp"
-#include "../test_object.hpp"
-#include "../test_thread.hpp"
-#include "../test_sync.hpp"
+#include "../core/djinterp.hpp"
+#include "../sync/condvar.hpp"
+#include "./test_common.hpp"
+#include "./test_object.hpp"
+#include "./test_thread.hpp"
+#include "./test_sync.hpp"
 
 
 NS_DJINTERP
@@ -416,7 +426,7 @@ public:
         test_thread_group group;
         simultaneous_start start(total);
 
-        // spawn workers - wrap each user worker with the
+        // spawn workers — wrap each user worker with the
         // simultaneous-start handshake when enabled
         for (size_type i = 0; i < total; ++i)
         {

@@ -4,12 +4,14 @@
 *   Synchronization primitives for the DTest multithreading test
 * harness: portable barriers, latches, gates, and rendezvous points
 * used to coordinate test threads at well-defined moments.
+*
 *   These primitives are deliberately distinct from the production
 * primitives in djinterp::threadsafe.  They are tuned for test
 * coordination — clarity and correctness over absolute performance —
 * and they expose hooks that production primitives intentionally
 * don't (e.g. arrival counts, last-to-arrive flags, timing of every
 * arrival).
+*
 *   PRIMITIVES:
 *     test_latch       — one-shot countdown latch (count_down/wait)
 *     test_barrier     — reusable N-way barrier with optional
@@ -19,11 +21,13 @@
 *                        exchange
 *     simultaneous_start — convenience type built on test_gate
 *                          for "all threads go on my mark" patterns
+*
 *   PORTABILITY:
 *   Requires C++11 or later for the active implementations.  On
 * C++98/03 every primitive degrades to a single-threaded stub: the
 * counters still advance but wait() and arrive() never block (there
 * is, by definition, no other thread to coordinate with).
+*
 *   On C++20, test_latch is implemented in terms of std::latch when
 * available, and test_barrier in terms of std::barrier.  The
 * fallback path uses portable_condvar from condvar.hpp.
@@ -38,7 +42,7 @@
 * V.    SIMULTANEOUS START HELPER
 *
 *
-* path:      /inc/djinterp/test/sync/test_sync.hpp
+* path:      /inc/djinterp/test/test_sync.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -48,6 +52,7 @@
 
 // std
 #include <cstddef>
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
     #include <chrono>
@@ -55,7 +60,8 @@
     #include <functional>
     #include <mutex>
     #include <utility>
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif
+
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     #if D_ENV_CPP_FEATURE_STL_LATCH
         #include <latch>
@@ -63,7 +69,8 @@
     #if D_ENV_CPP_FEATURE_STL_BARRIER
         #include <barrier>
     #endif
-#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+#endif
+
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../sync/atomic.hpp"
@@ -80,6 +87,10 @@ NS_TEST
 ///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+// --- threadsafe foundation wrappers used by this module ---
+using ::djinterp::threadsafe::portable_condvar;
+using ::djinterp::threadsafe::exclusive_lock_policy;
 
 // test_latch
 //   class: one-shot countdown latch.  Threads call
@@ -271,7 +282,8 @@ private:
     size_type                       m_remaining;
     size_type                       m_arrival_count;
     mutable std::mutex              m_mutex;
-    mutable std::condition_variable m_cv;
+    mutable portable_condvar<exclusive_lock_policy>
+                                    m_cv;
 };
 
 
@@ -449,7 +461,8 @@ private:
     size_type                       m_phase;
     completion_fn                   m_completion;
     mutable std::mutex              m_mutex;
-    mutable std::condition_variable m_cv;
+    mutable portable_condvar<exclusive_lock_policy>
+                                    m_cv;
 };
 
 
@@ -593,7 +606,8 @@ private:
     bool                            m_open;
     std::size_t                     m_pass_count;
     mutable std::mutex              m_mutex;
-    mutable std::condition_variable m_cv;
+    mutable portable_condvar<exclusive_lock_policy>
+                                    m_cv;
 };
 
 
@@ -716,8 +730,10 @@ private:
     bool                            m_has_value;
     bool                            m_value_consumed;
     mutable std::mutex              m_mutex;
-    std::condition_variable         m_cv_send;
-    std::condition_variable         m_cv_recv;
+    portable_condvar<exclusive_lock_policy>
+                                    m_cv_send;
+    portable_condvar<exclusive_lock_policy>
+                                    m_cv_recv;
 };
 
 
@@ -914,8 +930,10 @@ private:
     size_type                       m_ready_count;
     bool                            m_signaled;
     mutable std::mutex              m_mutex;
-    std::condition_variable         m_cv_ready;
-    std::condition_variable         m_cv_go;
+    portable_condvar<exclusive_lock_policy>
+                                    m_cv_ready;
+    portable_condvar<exclusive_lock_policy>
+                                    m_cv_go;
 };
 
 

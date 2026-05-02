@@ -7,7 +7,7 @@
 * section templates, depth-aware indentation, filtering, and
 * for-each rendering.
 *
-*   All detection is purely structural — no tag types.  Expose the
+*   All detection is purely structural - no tag types.  Expose the
 * right members and the trait system classifies you automatically.
 *
 *
@@ -124,7 +124,7 @@ struct has_set_numbering_mode<_Type, void_t<
 {};
 
 // has_numbering_support
-//   trait: composite — full numbering protocol.
+//   trait: composite - full numbering protocol.
 template<typename _Type>
 struct has_numbering_support
 {
@@ -191,7 +191,7 @@ struct has_section_footer_template<_Type, void_t<
 {};
 
 // has_full_section_templates
-//   trait: composite — all section templates present.
+//   trait: composite - all section templates present.
 template<typename _Type>
 struct has_full_section_templates
 {

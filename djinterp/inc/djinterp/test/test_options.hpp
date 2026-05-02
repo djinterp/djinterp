@@ -10,7 +10,7 @@
 *   DESIGN:
 *   dtest_option_set is an alias for option_set<DTestOption, djinterp::any>,
 * reusing the keyed-collection infrastructure from option_set.hpp.
-* Heterogeneous value storage is achieved through djinterp::any — each
+* Heterogeneous value storage is achieved through djinterp::any - each
 * DTestOption key maps to a different runtime type (std::size_t, bool,
 * function pointers, etc.) stored uniformly.
 *
@@ -23,7 +23,7 @@
 * evaluation logic resolves each key by walking up the ancestor chain.
 * Override permission is controlled externally by an
 * option_override_policy (see option_override_policy.hpp).  This
-* header does not impose a policy — it only defines the option
+* header does not impose a policy - it only defines the option
 * enumeration, the option set type, and the default values.
 *
 *   PORTABILITY:
@@ -63,8 +63,6 @@
 NS_DJINTERP
 NS_TEST
 
-using djinterp::restd::any;
-
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   OPTION ENUMERATION                                  ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,11 +73,11 @@ using djinterp::restd::any;
 // runtime type stored in a dtest_option_set via
 // djinterp::any.
 //
-//   max_failures  — std::size_t, stop after N failures (0 = no limit)
-//   max_successes — std::size_t, stop after N successes (0 = no limit)
-//   handler       — fn_test_event_handler, event callback (nullptr = none)
-//   verbose       — bool, emit detailed output
-//   metadata      — djinterp::any, user-defined payload
+//   max_failures  - std::size_t, stop after N failures (0 = no limit)
+//   max_successes - std::size_t, stop after N successes (0 = no limit)
+//   handler       - fn_test_event_handler, event callback (nullptr = none)
+//   verbose       - bool, emit detailed output
+//   metadata      - djinterp::any, user-defined payload
 enum class DTestOption
 {
     max_failures  = 0,
@@ -107,7 +105,7 @@ D_STATIC_CONSTEXPR std::size_t D_TEST_OPTION_COUNT = 5;
 //   dtest_option_set opts;
 //   opts.insert(DTestOption::verbose, djinterp::any(true));
 //   bool v = opts.at(DTestOption::verbose).template get<bool>();
-using dtest_option_set = option_set<DTestOption, any>;
+using dtest_option_set = option_set<DTestOption, restd::any>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -187,21 +185,21 @@ dtest_option_set_value(
 //   handler       = nullptr    (no event callback)
 //   verbose       = false
 //   metadata      = any()      (empty)
-D_INLINE dtest_option_set
-make_default_test_options()
+inline dtest_option_set
+default_test_options()
 {
     dtest_option_set opts;
 
-    opts.insert(DTestOption::max_failures, any(std::size_t{0}));
+    opts.insert(DTestOption::max_failures, restd::any(std::size_t{0}));
 
-    opts.insert(DTestOption::max_successes, any(std::size_t{0}));
+    opts.insert(DTestOption::max_successes, restd::any(std::size_t{0}));
 
     opts.insert(DTestOption::handler,
-                static_cast<fn_test_event_handler>(nullptr));
+                restd::any(static_cast<fn_test_event_handler>(nullptr)));
 
-    opts.insert(DTestOption::verbose, any(false));
+    opts.insert(DTestOption::verbose, restd::any(false));
 
-    opts.insert(DTestOption::metadata, any());
+    opts.insert(DTestOption::metadata, restd::any());
 
     return opts;
 }
@@ -211,7 +209,6 @@ make_default_test_options()
 ///                VI.  CONFIGURABILITY DETECTION                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
-NS_TRAITS
 
 NS_INTERNAL
 
@@ -242,8 +239,6 @@ struct is_test_option_configurable<_Type, void_t<
     D_CONSTEXPR bool is_test_option_configurable_v =
         is_test_option_configurable<_Type>::value;
 #endif
-
-NS_END  // traits
 
 
 NS_END  // test

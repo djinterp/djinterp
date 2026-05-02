@@ -4,12 +4,12 @@
 *   DTest framework test object compile-time classification traits.
 * Provides two tiers of detection:
 *
-*   1. STRUCTURAL DETECTION — purely structural SFINAE that classifies
+*   1. STRUCTURAL DETECTION - purely structural SFINAE that classifies
 *      any type exposing the test object protocol. No tag types or base
 *      classes required. Detects: boolean conversion, status accessor,
 *      naming, event handler, children, evaluate method.
 *
-*   2. TEMPLATE DETECTION — identifies types that are instantiations of
+*   2. TEMPLATE DETECTION - identifies types that are instantiations of
 *      the test_object class template and extracts their template
 *      parameters (_Type, _StatusType, option pack). Enables compile-time
 *      queries like "is this a test_object with event support?"
@@ -51,7 +51,6 @@
 
 NS_DJINTERP
 NS_TEST
-NS_TRAITS
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,15 +66,13 @@ NS_TRAITS
 template<typename _Type,
          typename = void>
 struct has_bool_conversion : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_bool_conversion<_Type, void_t<
     decltype(static_cast<bool>(std::declval<const _Type&>()))
 >> : std::true_type
-{
-};
+{};
 
 
 // ================================================================
@@ -84,20 +81,18 @@ struct has_bool_conversion<_Type, void_t<
 
 // has_status_accessor
 //   trait: detects whether a type has a status() const member
-// function. Does not constrain the return type — any enum
+// function. Does not constrain the return type - any enum
 // status type is accepted.
 template<typename _Type,
          typename = void>
 struct has_status_accessor : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_status_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().status())
 >> : std::true_type
-{
-};
+{};
 
 
 // ================================================================
@@ -110,15 +105,13 @@ struct has_status_accessor<_Type, void_t<
 template<typename _Type,
          typename = void>
 struct has_status_type : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_status_type<_Type, void_t<
     typename _Type::status_type
 >> : std::true_type
-{
-};
+{};
 
 
 // ================================================================
@@ -131,15 +124,13 @@ struct has_status_type<_Type, void_t<
 template<typename _Type,
          typename = void>
 struct has_option_set_type : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_option_set_type<_Type, void_t<
     typename _Type::option_set_type
 >> : std::true_type
-{
-};
+{};
 
 
 // ================================================================
@@ -152,8 +143,7 @@ struct has_option_set_type<_Type, void_t<
 template<typename _Type,
          typename = void>
 struct has_name_accessor : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_name_accessor<_Type, void_t<
@@ -162,8 +152,7 @@ struct has_name_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().name()),
     const char*
 >
-{
-};
+{};
 
 
 // ================================================================
@@ -176,8 +165,7 @@ struct has_name_accessor<_Type, void_t<
 template<typename _Type,
          typename = void>
 struct has_message_accessor : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_message_accessor<_Type, void_t<
@@ -186,8 +174,7 @@ struct has_message_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().message()),
     const char*
 >
-{
-};
+{};
 
 
 // ================================================================
@@ -200,15 +187,13 @@ struct has_message_accessor<_Type, void_t<
 template<typename _Type,
          typename = void>
 struct has_event_handler_accessor : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_event_handler_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().event_handler())
 >> : std::true_type
-{
-};
+{};
 
 
 // ================================================================
@@ -221,15 +206,13 @@ struct has_event_handler_accessor<_Type, void_t<
 template<typename _Type,
          typename = void>
 struct has_children_accessor : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_children_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().children())
 >> : std::true_type
-{
-};
+{};
 
 
 // ================================================================
@@ -243,31 +226,27 @@ NS_INTERNAL
     template<typename _Type,
              typename = void>
     struct has_evaluate_unary_helper : std::false_type
-    {
-    };
+    {};
 
     template<typename _Type>
     struct has_evaluate_unary_helper<_Type, void_t<
         decltype(std::declval<_Type&>().evaluate(
             std::declval<typename _Type::value_type>()))
     >> : std::true_type
-    {
-    };
+    {};
 
     // has_evaluate_void_helper
     //   trait: detects evaluate() overload (group-style).
     template<typename _Type,
              typename = void>
     struct has_evaluate_void_helper : std::false_type
-    {
-    };
+    {};
 
     template<typename _Type>
     struct has_evaluate_void_helper<_Type, void_t<
         decltype(std::declval<_Type&>().evaluate())
     >> : std::true_type
-    {
-    };
+    {};
 
 NS_END  // internal
 
@@ -295,15 +274,13 @@ struct has_evaluate_method
 template<typename _Type,
          typename = void>
 struct has_result_accessor : std::false_type
-{
-};
+{};
 
 template<typename _Type>
 struct has_result_accessor<_Type, void_t<
     decltype(std::declval<const _Type&>().result())
 >> : std::true_type
-{
-};
+{};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -311,7 +288,7 @@ struct has_result_accessor<_Type, void_t<
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_test_evaluable
-//   trait: minimum protocol — boolean conversion.
+//   trait: minimum protocol - boolean conversion.
 template<typename _Type>
 struct is_test_evaluable
 {
@@ -320,7 +297,7 @@ struct is_test_evaluable
 };
 
 // is_test_object
-//   trait: full test object protocol — boolean conversion
+//   trait: full test object protocol - boolean conversion
 // plus status accessor.
 template<typename _Type>
 struct is_test_object
@@ -403,18 +380,29 @@ NS_INTERNAL
     // is_test_object_instantiation
     //   trait: detects whether a type is an instantiation of the
     // test_object class template.
+    //
+    //   The specialization must match the template signature of
+    // test_object as currently declared in test_object.hpp:
+    //   template<typename _StatusType = std::uint8_t,
+    //            typename _IdType     = std::uint32_t>
+    //   struct test_object;
+    //
+    //   An earlier revision of this file used a three-parameter
+    // signature (_Type, _StatusType, _Opts...), which is why
+    // compilers now report "too many template arguments" for
+    // any attempt to instantiate is_test_object_instantiation
+    // against a current test_object.  The specialization below
+    // is kept in lockstep with test_object's real parameter
+    // list.
     template<typename _Type>
     struct is_test_object_instantiation : std::false_type
-    {
-    };
+    {};
 
-    template<typename    _Type,
-             typename    _S,
-             typename... _Opts>
+    template<typename _StatusType,
+             typename _IdType>
     struct is_test_object_instantiation<
-        test_object<_Type, _S, _Opts...>> : std::true_type
-    {
-    };
+        test_object<_StatusType, _IdType>> : std::true_type
+    {};
 
 NS_END  // internal
 
@@ -423,8 +411,7 @@ NS_END  // internal
 template<typename _Type>
 struct is_test_object_template
     : internal::is_test_object_instantiation<clean_t<_Type>>
-{
-};
+{};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -519,31 +506,51 @@ struct is_test_object_template
 template<typename _Type>
 struct test_object_class
 {
+private:
+    // class-scope alias
+    //   rescues the file-scope `has_bool_conversion` trait
+    // from being shadowed by the like-named static member
+    // declared below.  Without this, the initializer
+    // `has_bool_conversion<_Type>::value` performs name
+    // lookup that finds the member being declared - a
+    // `static constexpr bool` - and then tries to apply
+    // template arguments to it, producing the diagnostic
+    // "does not name a template but is followed by template
+    // arguments".
+    template<typename _T>
+    using _trait_has_bool_conversion = has_bool_conversion<_T>;
+
+    template<typename _T>
+    using _trait_has_status_type = has_status_type<_T>;
+
+    template<typename _T>
+    using _trait_is_test_object = is_test_object<_T>;
+
+public:
     // protocol detection
-    static constexpr bool has_bool_conversion  = has_bool_conversion<_Type>::value;
-    static constexpr bool has_status           = has_status_accessor<_Type>::value;
-    static constexpr bool has_status_type      = traits::has_status_type<_Type>::value;
-    static constexpr bool has_option_set       = has_option_set_type<_Type>::value;
-    static constexpr bool has_name             = has_name_accessor<_Type>::value;
-    static constexpr bool has_message          = has_message_accessor<_Type>::value;
-    static constexpr bool has_event_handler    = has_event_handler_accessor<_Type>::value;
-    static constexpr bool has_children         = has_children_accessor<_Type>::value;
-    static constexpr bool has_evaluate         = has_evaluate_method<_Type>::value;
-    static constexpr bool has_result           = has_result_accessor<_Type>::value;
+    static constexpr bool has_bool_conversion = _trait_has_bool_conversion<_Type>::value;
+    static constexpr bool has_status          = has_status_accessor<_Type>::value;
+    static constexpr bool has_status_type     = _trait_has_status_type<_Type>::value;
+    static constexpr bool has_option_set      = has_option_set_type<_Type>::value;
+    static constexpr bool has_name            = has_name_accessor<_Type>::value;
+    static constexpr bool has_message         = has_message_accessor<_Type>::value;
+    static constexpr bool has_event_handler   = has_event_handler_accessor<_Type>::value;
+    static constexpr bool has_children        = has_children_accessor<_Type>::value;
+    static constexpr bool has_evaluate        = has_evaluate_method<_Type>::value;
+    static constexpr bool has_result          = has_result_accessor<_Type>::value;
 
     // classification
-    static constexpr bool is_evaluable         = is_test_evaluable<_Type>::value;
-    static constexpr bool is_test_object       = traits::is_test_object<_Type>::value;
-    static constexpr bool is_leaf              = is_leaf_test_object<_Type>::value;
-    static constexpr bool is_interior          = is_interior_test_object<_Type>::value;
-    static constexpr bool is_named             = is_named_test_object<_Type>::value;
-    static constexpr bool is_event_aware       = is_event_aware_test_object<_Type>::value;
-    static constexpr bool is_options_aware     = is_options_aware_test_object<_Type>::value;
-    static constexpr bool is_template          = is_test_object_template<_Type>::value;
+    static constexpr bool is_evaluable        = is_test_evaluable<_Type>::value;
+    static constexpr bool is_test_object      = _trait_is_test_object<_Type>::value;
+    static constexpr bool is_leaf             = is_leaf_test_object<_Type>::value;
+    static constexpr bool is_interior         = is_interior_test_object<_Type>::value;
+    static constexpr bool is_named            = is_named_test_object<_Type>::value;
+    static constexpr bool is_event_aware      = is_event_aware_test_object<_Type>::value;
+    static constexpr bool is_options_aware    = is_options_aware_test_object<_Type>::value;
+    static constexpr bool is_template         = is_test_object_template<_Type>::value;
 };
 
 
-NS_END  // traits
 NS_END  // test
 NS_END  // djinterp
 
