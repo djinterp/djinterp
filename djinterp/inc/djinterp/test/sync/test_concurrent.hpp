@@ -9,7 +9,7 @@
 *
 *     1. STARTING ALL THREADS AT ONCE
 *        Threads spawned through std::thread don't actually start
-*        running together — there is unavoidable scheduling jitter.
+*        running together - there is unavoidable scheduling jitter.
 *        The runner uses simultaneous_start to hold every worker at
 *        a gate until they have all checked in, then fires the gate.
 *
@@ -33,14 +33,14 @@
 *   EXECUTION PATTERNS:
 *   The runner exposes several pre-canned patterns:
 *
-*     run_simultaneous   — every thread runs the same callable
+*     run_simultaneous   - every thread runs the same callable
 *                          starting at the same instant
-*     run_per_thread     — each thread gets its own callable,
+*     run_per_thread     - each thread gets its own callable,
 *                          all start simultaneously
-*     run_reader_writer  — N readers and M writers, started
+*     run_reader_writer  - N readers and M writers, started
 *                          together, with reader/writer roles
 *                          baked into the callable signature
-*     run_pipeline       — phase-coupled execution where all
+*     run_pipeline       - phase-coupled execution where all
 *                          threads progress together through
 *                          phases via an internal barrier
 *
@@ -426,7 +426,7 @@ public:
         test_thread_group group;
         simultaneous_start start(total);
 
-        // spawn workers — wrap each user worker with the
+        // spawn workers - wrap each user worker with the
         // simultaneous-start handshake when enabled
         for (size_type i = 0; i < total; ++i)
         {

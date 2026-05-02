@@ -7,19 +7,19 @@
 *
 *   These primitives are deliberately distinct from the production
 * primitives in djinterp::threadsafe.  They are tuned for test
-* coordination — clarity and correctness over absolute performance —
+* coordination - clarity and correctness over absolute performance -
 * and they expose hooks that production primitives intentionally
 * don't (e.g. arrival counts, last-to-arrive flags, timing of every
 * arrival).
 *
 *   PRIMITIVES:
-*     test_latch       — one-shot countdown latch (count_down/wait)
-*     test_barrier     — reusable N-way barrier with optional
+*     test_latch       - one-shot countdown latch (count_down/wait)
+*     test_barrier     - reusable N-way barrier with optional
 *                        completion callable
-*     test_gate        — manual reset gate (open/close/wait)
-*     test_rendezvous  — two-thread meeting point with payload
+*     test_gate        - manual reset gate (open/close/wait)
+*     test_rendezvous  - two-thread meeting point with payload
 *                        exchange
-*     simultaneous_start — convenience type built on test_gate
+*     simultaneous_start - convenience type built on test_gate
 *                          for "all threads go on my mark" patterns
 *
 *   PORTABILITY:
@@ -98,7 +98,7 @@ using ::djinterp::threadsafe::exclusive_lock_policy;
 // in wait() unblock when the counter reaches zero.
 //
 //   Once the counter reaches zero, the latch stays open
-// permanently — every subsequent wait() returns
+// permanently - every subsequent wait() returns
 // immediately.  This is the classic "starting gun"
 // primitive but in the opposite direction: instead of
 // starting threads, it lets a coordinator thread wait
@@ -621,7 +621,7 @@ private:
 // other calls receive(); both block until the meeting
 // completes.
 //
-//   This is a synchronous channel of capacity zero — useful
+//   This is a synchronous channel of capacity zero - useful
 // for testing handoff semantics, signal propagation, and
 // CSP-style protocols.
 //

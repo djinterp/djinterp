@@ -17,7 +17,7 @@
 *
 *     2. MONOTONIC GUARD
 *        A specialized form for "value never decreases" or "value
-*        never exceeds bound" — extremely common assertions about
+*        never exceeds bound" - extremely common assertions about
 *        atomic counters, sequence numbers, version stamps.  No
 *        background thread; the guard wraps the value's accessor.
 *
@@ -271,7 +271,7 @@ public:
 
     // set_max_violations_recorded
     //   caps the number of violation records kept in
-    // memory.  The violation count itself is not capped —
+    // memory.  The violation count itself is not capped -
     // only the per-violation detail records.
     void
     set_max_violations_recorded(
@@ -492,7 +492,7 @@ private:
 
 // monotonic_guard
 //   class template: enforces "value never decreases" over
-// time.  No background thread — the guard wraps a value
+// time.  No background thread - the guard wraps a value
 // and exposes update() / observe() that verify monotonicity
 // as the value moves.
 //
@@ -634,7 +634,7 @@ private:
 // bounded_guard
 //   class template: enforces "value stays within
 // [low, high]" over time.  Like monotonic_guard, no
-// background thread is involved — the guard is updated
+// background thread is involved - the guard is updated
 // by callers.
 //
 // Example:

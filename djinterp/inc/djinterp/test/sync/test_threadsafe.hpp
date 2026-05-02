@@ -5,37 +5,37 @@
 * testing suite.  Includes every submodule of the multithreaded test
 * harness in a single import:
 *
-*   test_thread.hpp           — exception-capturing thread wrapper
+*   test_thread.hpp           - exception-capturing thread wrapper
 *                               (test_thread, test_thread_group)
 *
-*   test_sync.hpp             — coordination primitives for tests
+*   test_sync.hpp             - coordination primitives for tests
 *                               (test_latch, test_barrier, test_gate,
 *                                test_rendezvous, simultaneous_start)
 *
-*   test_concurrent.hpp       — N-way concurrent execution drivers
+*   test_concurrent.hpp       - N-way concurrent execution drivers
 *                               (concurrent_runner, run_simultaneous,
 *                                run_reader_writer, pipeline_runner)
 *
-*   test_stress.hpp           — high-pressure repeated-operation drivers
+*   test_stress.hpp           - high-pressure repeated-operation drivers
 *                               (stress_runner, timed_stress, chaos_runner,
 *                                stress_op for weighted op-mix)
 *
-*   test_race.hpp             — fine-grained race observation
+*   test_race.hpp             - fine-grained race observation
 *                               (race_probe, atomicity_observer,
 *                                linearization_log, consistency_check)
 *
-*   test_invariant.hpp        — concurrent invariant monitoring
+*   test_invariant.hpp        - concurrent invariant monitoring
 *                               (invariant_monitor, monotonic_guard,
 *                                bounded_guard, invariant_scope)
 *
-*   test_deadlock.hpp         — deadlock & timeout detection
+*   test_deadlock.hpp         - deadlock & timeout detection
 *                               (deadlock_watchdog, lock_order_tracker,
 *                                scoped_deadlock_watchdog)
 *
-*   test_thread_traits.hpp    — SFINAE traits for thread-safe testable
+*   test_thread_traits.hpp    - SFINAE traits for thread-safe testable
 *                               types (lock policy / strategy / lock-free)
 *
-*   test_thread_concepts.hpp  — C++20 concepts layered over the traits
+*   test_thread_concepts.hpp  - C++20 concepts layered over the traits
 *                               (only included on C++20+)
 *
 *   COMPLEMENTS:
@@ -58,7 +58,7 @@
 *   PORTABILITY:
 *   All submodules require C++11 minimum (uses <thread>, <mutex>,
 * <chrono>, <atomic>, <condition_variable>).  C++98 fallbacks are
-* provided where feasible — typically as single-threaded degenerate
+* provided where feasible - typically as single-threaded degenerate
 * stubs that always succeed.
 *
 *
