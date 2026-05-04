@@ -7,7 +7,7 @@
 *   STRUCTURE:
 *   Every category function below builds and returns a self-contained
 * `array_test_tree` (the project's `test::test_tree` overlay backed
-* by `djinterp::nary_tree`).  Tests do NOT take a
+* by `nary_tree`).  Tests do NOT take a
 * test_handler or a test_printer; they do NOT mutate any caller-
 * supplied sink; they simply construct a small tree and return it
 * by value.
@@ -39,7 +39,7 @@ NS_DJINTERP
 NS_TESTING
 
 
-using namespace djinterp::test;
+using namespace test;
 
 
 // =========================================================================
@@ -49,7 +49,7 @@ using namespace djinterp::test;
 namespace {
 
     using node_alias =
-        djinterp::nary_tree<array_test_obj>::node_type;
+        nary_tree<array_test_obj>::node_type;
 
 
     // append_leaf
@@ -143,22 +143,22 @@ namespace {
     //  cube-cell aliases
     // -------------------------------------------------------------------
     template<typename T, std::size_t N>
-    using mi_arr  = djinterp::mutable_iterable_array<T, N>;
+    using mi_arr  = mutable_iterable_array<T, N>;
 
     template<typename T, std::size_t N>
-    using mn_arr  = djinterp::mutable_non_iterable_array<T, N>;
+    using mn_arr  = mutable_non_iterable_array<T, N>;
 
     template<typename T, std::size_t N>
-    using imi_arr = djinterp::immutable_iterable_array<T, N>;
+    using imi_arr = immutable_iterable_array<T, N>;
 
     template<typename T, std::size_t N>
-    using imn_arr = djinterp::immutable_non_iterable_array<T, N>;
+    using imn_arr = immutable_non_iterable_array<T, N>;
 
     template<typename T, std::size_t N>
-    using cxi_arr = djinterp::constexpr_iterable_array<T, N>;
+    using cxi_arr = constexpr_iterable_array<T, N>;
 
     template<typename T, std::size_t N>
-    using cxn_arr = djinterp::constexpr_non_iterable_array<T, N>;
+    using cxn_arr = constexpr_non_iterable_array<T, N>;
 
 
     // -------------------------------------------------------------------
@@ -421,10 +421,10 @@ test_array_axis_storage_kind(
         mi_arr<int, 4>::extent == 4,
         "static_extent: extent == N");
     append_leaf(tree, root,
-        mi_arr<int, 4>::extent != djinterp::dynamic_extent,
+        mi_arr<int, 4>::extent != dynamic_extent,
         "static_extent: extent != dynamic_extent sentinel");
     append_leaf(tree, root,
-        djinterp::dynamic_extent == static_cast<std::size_t>(-1),
+        dynamic_extent == static_cast<std::size_t>(-1),
         "dynamic_extent == size_t(-1)");
     append_leaf(tree, root,
         is_contiguous_array<mi_arr<int, 4>>::value,
@@ -1079,16 +1079,16 @@ test_array_equal_function(
     imi_arr<int, 4> d(1, 2, 3, 4);
 
     append_leaf(tree, root,
-        djinterp::array_equal(a, b),
+        array_equal(a, b),
         "array_equal: identical elements -> true");
     append_leaf(tree, root,
-        !djinterp::array_equal(a, c),
+        !array_equal(a, c),
         "array_equal: differ at last element -> false");
     append_leaf(tree, root,
-        djinterp::array_equal(a, d),
+        array_equal(a, d),
         "array_equal: works across mutable / immutable cells");
     append_leaf(tree, root,
-        djinterp::array_equal(a, a),
+        array_equal(a, a),
         "array_equal: array equals itself");
 
     return tree;
@@ -1105,9 +1105,9 @@ test_array_copy_function(
 
     mi_arr<int, 4> src(7, 8, 9, 10);
     mi_arr<int, 4> dst(0, 0, 0, 0);
-    djinterp::array_copy(src, dst);
+    array_copy(src, dst);
     append_leaf(tree, root,
-        djinterp::array_equal(src, dst),
+        array_equal(src, dst),
         "array_copy: dst == src after copy");
 
     src[0] = 999;
@@ -1117,7 +1117,7 @@ test_array_copy_function(
 
     imi_arr<int, 3> isrc(1, 2, 3);
     mi_arr<int, 3>  mdst(0, 0, 0);
-    djinterp::array_copy(isrc, mdst);
+    array_copy(isrc, mdst);
     append_leaf(tree, root,
         mdst[0] == 1 && mdst[1] == 2 && mdst[2] == 3,
         "array_copy: immutable source -> mutable dest");
@@ -1136,7 +1136,7 @@ test_array_swap_function(
 
     mi_arr<int, 4> a(1, 2, 3, 4);
     mi_arr<int, 4> b(10, 20, 30, 40);
-    djinterp::array_swap(a, b);
+    array_swap(a, b);
 
     append_leaf(tree, root,
         a[0] == 10 && a[3] == 40,
@@ -1147,7 +1147,7 @@ test_array_swap_function(
 
     mi_arr<int, 3> p(100, 200, 300);
     mn_arr<int, 3> q(1, 2, 3);
-    djinterp::array_swap(p, q);
+    array_swap(p, q);
     append_leaf(tree, root,
         p[0] == 1 && q.data()[0] == 100,
         "array_swap: works across iterability variants");
@@ -1285,10 +1285,10 @@ test_array_constexpr_iterator_algorithms(
     constexpr cxi_arr<int, 4> c(1, 2, 9, 4);
 
     append_leaf(tree, root,
-        djinterp::array_equal(a, b),
+        array_equal(a, b),
         "constexpr cells: array_equal agrees on identical content");
     append_leaf(tree, root,
-        !djinterp::array_equal(a, c),
+        !array_equal(a, c),
         "constexpr cells: array_equal differentiates content");
     append_leaf(tree, root,
         a.size() == cxi_arr<int, 4>::extent,
@@ -1388,7 +1388,7 @@ run_array_suite(
 )
 {
     array_test_tree                                    tree(
-        djinterp::nary_tree<array_test_obj>{});
+        nary_tree<array_test_obj>{});
     std::chrono::steady_clock::time_point              start;
     std::chrono::steady_clock::time_point              end;
     std::chrono::duration<double>                      elapsed;

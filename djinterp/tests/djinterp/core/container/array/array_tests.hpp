@@ -1,14 +1,18 @@
 /******************************************************************************
 * djinterp [testing]                                           array_tests.hpp
 *
-*   Declarations for the djinterp `array` container test suite.
+*   Declarations for the djinterp `array` container test suite,
+* including the threadsafe wrappers (threadsafe_array, atomic_array,
+* and cow_array).
 *
 *   This header exposes ONLY function declarations; every test is
-* defined in array_core_tests.cpp (and any additional .cpp files
-* in the same suite).  This split lets the test machinery be
-* compiled once into an object file and linked into multiple test
-* binaries (e.g. fast smoke, full regression, fuzzing harness) at
-* the user's discretion.
+* defined in one of the suite's .cpp files (currently
+* array_core_tests.cpp for the base array container, and
+* threadsafe_array_core_tests.cpp for the concurrent wrappers).
+* The header / multi-cpp split lets the test machinery be compiled
+* once into an object file per translation unit and linked into
+* multiple test binaries (e.g. fast smoke, full regression, fuzzing
+* harness, race-detection) at the user's discretion.
 *
 *   RETURN-VALUE PROTOCOL:
 *   Every test category function is a pure value producer: it
@@ -24,6 +28,9 @@
 *
 *   COVERAGE INDEX
 *   ==============
+*
+*   PART A.  BASE ARRAY CONTAINER  (array_core_tests.cpp)
+*
 *   I.    Compile-time trait conformance
 *           - constexpr / runtime / mutable / iterable axes
 *           - bounded / sorted / flat-vs-hierarchical axes
@@ -48,43 +55,141 @@
 *           - non-iterable cells must fail SFINAE on begin()
 *   V.    Mutation (mutable cells only)
 *           - subscript assignment
-*           - fill()
-*           - swap()
-*           - immutable cells must fail SFINAE on the above
-*   VI.   Free-function bulk algorithms
-*           - array_equal
-*           - array_copy
-*           - array_swap
+*           - fill
+*           - member swap
+*           - immutable cells must fail SFINAE on mutators
+*   VI.   Bulk algorithms
+*           - djinterp::equal / copy / swap free functions
 *   VII.  Constexpr usability
-*           - construct, access, and compare in constant evaluation
+*           - construction, access, comparison in constant contexts
 *           - relaxed-constexpr (C++14+) mutator paths
 *   VIII. Iterator interop with the constexpr_iterator algorithms
 *           - cx_find / cx_count_if / cx_all_of / cx_equal across
 *             iterable cells.
 *
+*   PART B.  THREADSAFE WRAPPERS  (threadsafe_array_core_tests.cpp)
+*
+*   IX.   Trait conformance for the wrappers
+*           - lifetime / iterability axes preserved across wrapping
+*           - strategy classification (locked / atomic / cow)
+*           - mutual disjointness of strategy tags
+*   X.    threadsafe_array construction & assignment
+*           - default, parameter-pack, copy
+*           - move-deletion (mutex non-portably-transferable)
+*   XI.   threadsafe_array lock-free queries
+*           - size_lockfree, version, empty_lockfree
+*   XII.  threadsafe_array single-op locked access
+*           - size, empty, at, set
+*   XIII. threadsafe_array handle-based access
+*           - read_access, write_access, locked_ref RAII
+*   XIV.  threadsafe_array bulk operations
+*           - assign, apply, apply_read, batch_guard
+*   XV.   threadsafe_array optimistic read
+*           - version-validated reads, fall-through on contention
+*   XVI.  threadsafe_array snapshot
+*           - lock-released iteration over copy
+*   XVII. threadsafe_array convenience aliases
+*           - mutex_array, timed_array, shared_array (C++17)
+*   XVIII. threadsafe_array lock policy variation
+*           - null, exclusive, timed, shared (per language version)
+*   XIX.  threadsafe_array concurrent access
+*           - reader/writer races, version monotonicity under load
+*   XX.   atomic_array construction
+*           - default zero-init, fill ctor, deleted copy/move
+*   XXI.  atomic_array element atomic access
+*           - load, store, exchange (with memory orderings)
+*   XXII. atomic_array element atomic updates
+*           - fetch_add / fetch_sub / fetch_and / fetch_or / fetch_xor
+*   XXIII. atomic_array element CAS
+*           - compare_exchange_weak, compare_exchange_strong
+*   XXIV. atomic_array bulk operations
+*           - size, empty, fill, is_lock_free
+*   XXV.  atomic_array iteration
+*           - begin/end/cbegin/cend, data, range-based for
+*   XXVI. atomic_array concurrent access
+*           - per-element races, fetch_add monotonicity under load
+*   XXVII. cow_array construction
+*           - default, from-array, deleted copy/move
+*   XXVIII. cow_array read access
+*           - read, size, empty, at
+*   XXIX. cow_array snapshot
+*           - independence from later mutations, version stamping
+*   XXX.  cow_array write access
+*           - modify, replace, set, version monotonicity
+*   XXXI. cow_array concurrent access
+*           - reader-survives-writer races, snapshot consistency
+*   XXXII. Cross-cutting wrapper edge cases
+*           - zero-extent, single-element, large extents
+*
+*   PART C.  AGGREGATE BUILDERS AND RUNNERS  (per .cpp file)
+*
+*   XXXIII. Aggregate subtree builders
+*           - make_array_test_subtree            (base, in array_core_tests.cpp)
+*           - make_threadsafe_array_subtree      (threadsafe_array module)
+*           - make_atomic_array_subtree          (atomic_array module)
+*           - make_cow_array_subtree             (cow_array module)
+*           - make_threadsafe_array_test_subtree (Part B aggregate)
+*   XXXIV. Master-suite runners
+*           - run_array_suite            (Part A only)
+*           - run_threadsafe_array_suite (Part B aggregate)
+*
+*
 *   PORTABILITY:
 *   C++11 baseline - see env.h and env_cpp_features.h for the
-* feature gates.  Concept-based assertions inside the bodies
-* are gated on D_ENV_LANG_IS_CPP20_OR_HIGHER &&
-* D_ENV_CPP_FEATURE_LANG_CONCEPTS in the .cpp file; at the
-* declaration level all functions have the same signature
-* regardless of language version, so callers don't need to
-* gate their own use.
+* feature gates.  Concept-based assertions inside the bodies are
+* gated on D_ENV_LANG_IS_CPP20_OR_HIGHER &&
+* D_ENV_CPP_FEATURE_LANG_CONCEPTS in the .cpp files; concurrent
+* tests are gated on D_ENV_LANG_IS_CPP11_OR_HIGHER (std::thread);
+* shared_array tests are gated on D_ENV_LANG_IS_CPP17_OR_HIGHER
+* (std::shared_mutex).  At the declaration level all functions
+* have the same signature regardless of language version, so
+* callers don't need to gate their own use; the bodies stub out
+* gracefully where required features are unavailable.
 *
 *
 * TABLE OF CONTENTS
 * =================
-* I.    SUITE TYPE ALIASES
-* II.   CATEGORY: TRAIT CONFORMANCE
-* III.  CATEGORY: CONSTRUCTION
-* IV.   CATEGORY: ELEMENT ACCESS
-* V.    CATEGORY: ITERATION
-* VI.   CATEGORY: MUTATION
-* VII.  CATEGORY: BULK ALGORITHMS
-* VIII. CATEGORY: CONSTEXPR USABILITY
-* IX.   CATEGORY: ITERATOR ALGORITHM INTEROP
-* X.    AGGREGATE SUBTREE BUILDER
-* XI.   MASTER-SUITE RUNNER
+* I.       SUITE TYPE ALIASES
+*
+* PART A:  BASE ARRAY
+* II.      CATEGORY: TRAIT CONFORMANCE
+* III.     CATEGORY: CONSTRUCTION
+* IV.      CATEGORY: ELEMENT ACCESS
+* V.       CATEGORY: ITERATION
+* VI.      CATEGORY: MUTATION
+* VII.     CATEGORY: BULK ALGORITHMS
+* VIII.    CATEGORY: CONSTEXPR USABILITY
+* IX.      CATEGORY: ITERATOR ALGORITHM INTEROP
+*
+* PART B:  THREADSAFE WRAPPERS
+* X.       CATEGORY: WRAPPER TRAIT CONFORMANCE
+* XI.      CATEGORY: THREADSAFE_ARRAY CONSTRUCTION
+* XII.     CATEGORY: THREADSAFE_ARRAY LOCK-FREE QUERIES
+* XIII.    CATEGORY: THREADSAFE_ARRAY SINGLE-OP ACCESS
+* XIV.     CATEGORY: THREADSAFE_ARRAY HANDLE-BASED ACCESS
+* XV.      CATEGORY: THREADSAFE_ARRAY BULK OPERATIONS
+* XVI.     CATEGORY: THREADSAFE_ARRAY OPTIMISTIC READ
+* XVII.    CATEGORY: THREADSAFE_ARRAY SNAPSHOT
+* XVIII.   CATEGORY: THREADSAFE_ARRAY CONVENIENCE ALIASES
+* XIX.     CATEGORY: THREADSAFE_ARRAY POLICY VARIATION
+* XX.      CATEGORY: THREADSAFE_ARRAY CONCURRENT ACCESS
+* XXI.     CATEGORY: ATOMIC_ARRAY CONSTRUCTION
+* XXII.    CATEGORY: ATOMIC_ARRAY ELEMENT ACCESS
+* XXIII.   CATEGORY: ATOMIC_ARRAY ELEMENT UPDATES
+* XXIV.    CATEGORY: ATOMIC_ARRAY ELEMENT CAS
+* XXV.     CATEGORY: ATOMIC_ARRAY BULK OPERATIONS
+* XXVI.    CATEGORY: ATOMIC_ARRAY ITERATION
+* XXVII.   CATEGORY: ATOMIC_ARRAY CONCURRENT ACCESS
+* XXVIII.  CATEGORY: COW_ARRAY CONSTRUCTION
+* XXIX.    CATEGORY: COW_ARRAY READ ACCESS
+* XXX.     CATEGORY: COW_ARRAY SNAPSHOT
+* XXXI.    CATEGORY: COW_ARRAY WRITE ACCESS
+* XXXII.   CATEGORY: COW_ARRAY CONCURRENT ACCESS
+* XXXIII.  CATEGORY: WRAPPER EDGE CASES
+*
+* PART C:  AGGREGATE BUILDERS AND RUNNERS
+* XXXIV.   AGGREGATE SUBTREE BUILDERS
+* XXXV.    MASTER-SUITE RUNNERS
 *
 *
 * path:      /tests/djinterp/core/container/array/array_tests.hpp
@@ -120,18 +225,23 @@
 #include "../../../../../inc/djinterp/test/test_object.hpp"
 #include "../../../../../inc/djinterp/test/test_tree.hpp"
 #include "../../../../../inc/djinterp/core/container/array/array.hpp"
+#include "../../../../../inc/djinterp/core/container/array/threadsafe_array.hpp"
+#include "../../../../../inc/djinterp/core/container/array/atomic_array.hpp"
+#include "../../../../../inc/djinterp/core/container/array/cow_array.hpp"
 
 
 // feature gates
-//   the array_tests suite uses C++11-baseline features in its
+//   the array test suite uses C++11-baseline features in its
 // declarations and a wider set in its definitions.  the
-// per-cpp gates (concepts, variable templates) live next to
-// their use sites; only the absolute minimum is checked here
-// so that consumers of the header get a clean diagnostic at
-// the include site rather than in their own translation
-// unit's expansion.
+// per-cpp gates (concepts, variable templates, std::thread,
+// shared_mutex) live next to their use sites; only the absolute
+// minimum is checked here so that consumers of the header get a
+// clean diagnostic at the include site rather than in their own
+// translation unit's expansion.
 #if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "array_tests.hpp requires C++11 or higher"
+    #error "array_tests.hpp requires C++11 or higher (the threadsafe "
+           "wrappers depend on <atomic>, <mutex>, <thread>, and "
+           "rvalue references)"
 #endif
 
 
@@ -155,10 +265,10 @@ using array_test_obj  = djinterp::test::basic_test;
 // array_test_tree
 //   type: the project's test_tree overlay (from test_tree.hpp)
 // instantiated for array_test_obj, with the framework's
-// default n-ary tree as the backing storage.  Every array-suite
-// category function returns one of these, and the suite-level
-// helper assembles them into a single root tree representing
-// the full module.
+// default n-ary tree as the backing storage.  Every category
+// function returns one of these, and the suite-level helpers
+// assemble them into a single root tree representing each
+// part's module.
 //   The rank-validation flag is left at its default (true);
 // the array suite's hierarchy never violates the rank
 // invariant (assertions inside tests inside blocks inside the
@@ -166,6 +276,14 @@ using array_test_obj  = djinterp::test::basic_test;
 using array_test_tree = djinterp::test::test_tree<
                             array_test_obj,
                             djinterp::nary_tree<array_test_obj>>;
+
+
+// =========================================================================
+// PART A:  BASE ARRAY CONTAINER
+// =========================================================================
+//   The tests in this part exercise djinterp::array<T, N, ...>
+// directly without any concurrency wrapper.  All defined in
+// array_core_tests.cpp.
 
 
 // =========================================================================
@@ -269,48 +387,518 @@ array_test_tree test_array_constexpr_iterator_algorithms(test::test_type_id _kin
 
 
 // =========================================================================
-// X.   AGGREGATE SUBTREE BUILDER
+// PART B:  THREADSAFE WRAPPERS
+// =========================================================================
+//   The tests in this part exercise the three concurrency
+// wrappers around djinterp::array:
+//
+//     threadsafe_array<T, N, L, I, Policy>  - lock-policy-protected
+//                                             whole-array access
+//     atomic_array<T, N, L, I>              - lock-free per-element
+//                                             std::atomic<T> storage
+//     cow_array<T, N, L, I, Policy>         - copy-on-write with
+//                                             snapshot semantics
+//
+// All defined in threadsafe_array_core_tests.cpp.
+
+
+// =========================================================================
+// X.   CATEGORY: WRAPPER TRAIT CONFORMANCE
+// =========================================================================
+//   Verifies that every wrapper preserves the structural axes
+// of the underlying array (contiguity, iterability, static
+// extent, lifetime) and adds the correct concurrency strategy
+// classification.  Failures here indicate a regression in the
+// trait detectors, in the wrappers' specializations, or in the
+// strategy tag exports.
+
+array_test_tree test_threadsafe_array_traits_axis_preservation(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_traits_strategy_locked(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_traits_strategy_atomic(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_traits_strategy_cow(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_traits_strategy_disjointness(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XI.  CATEGORY: THREADSAFE_ARRAY CONSTRUCTION
+// =========================================================================
+//   Default construction, parameter-pack construction, copy
+// construction, plus verification that move-construction and
+// move-assignment are correctly deleted (mutex non-portably-
+// transferable).
+
+array_test_tree test_threadsafe_array_default_construction(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_pack_construction(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_copy_construction(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_copy_assignment(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_move_deletion_sfinae(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XII. CATEGORY: THREADSAFE_ARRAY LOCK-FREE QUERIES
+// =========================================================================
+//   size_lockfree, version, empty_lockfree route through the
+// atomic_state and must not require a lock.  These tests
+// verify their values track mutations correctly even with
+// null_lock_policy (the lock-acquisition cost is zero but the
+// atomic_state still tracks).
+
+array_test_tree test_threadsafe_array_size_lockfree(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_version_query(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_empty_lockfree(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XIII. CATEGORY: THREADSAFE_ARRAY SINGLE-OP ACCESS
+// =========================================================================
+//   Per-call locked accessors: size(), empty(), at(i),
+// set(i,v).  Each acquires its own lock; tests verify that
+// values agree with the underlying array and that mutations
+// are visible across calls.
+
+array_test_tree test_threadsafe_array_size_locked(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_at_returns_value(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_set_visible(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_set_bumps_version(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XIV. CATEGORY: THREADSAFE_ARRAY HANDLE-BASED ACCESS
+// =========================================================================
+//   read_access() and write_access() yield RAII handles that
+// hold a lock for the lifetime of the handle.  Tests verify
+// that handles dereference correctly, the underlying array
+// is reachable through operator-> and operator*, and that the
+// lock is released at scope exit.
+
+array_test_tree test_threadsafe_array_read_access(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_write_access(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_handle_lifetime(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XV.  CATEGORY: THREADSAFE_ARRAY BULK OPERATIONS
+// =========================================================================
+//   assign() replaces contents wholesale; apply() and
+// apply_read() invoke a callable under a write or read lock
+// respectively; batch_guard holds a write lock across multiple
+// statements.  All paths must bump the version on mutation and
+// leave it untouched on read.
+
+array_test_tree test_threadsafe_array_assign(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_apply_write(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_apply_read(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_batch_guard(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XVI. CATEGORY: THREADSAFE_ARRAY OPTIMISTIC READ
+// =========================================================================
+//   optimistic() takes a callable, runs it without a lock,
+// and validates the version stamp.  If the version changed,
+// the read is retried.  Tests verify the protocol correctly
+// completes when uncontested and falls through to a real
+// read lock when contention exhausts the retry budget.
+
+array_test_tree test_threadsafe_array_optimistic_uncontested(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_optimistic_fallback(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XVII. CATEGORY: THREADSAFE_ARRAY SNAPSHOT
+// =========================================================================
+//   snapshot() copies the array under a read lock and returns
+// a snapshot_view that iterates without holding any lock.
+// Tests verify the snapshot's content matches the source at
+// the moment of capture, and that the snapshot is independent
+// of subsequent mutations.
+
+array_test_tree test_threadsafe_array_snapshot_content(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_snapshot_independence(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XVIII. CATEGORY: THREADSAFE_ARRAY CONVENIENCE ALIASES
+// =========================================================================
+//   Verifies the alias templates resolve to the expected
+// concrete instantiations and that each carries the correct
+// lock-policy capability flags.
+
+array_test_tree test_threadsafe_array_alias_mutex(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_alias_timed(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_alias_shared_cpp17(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XIX. CATEGORY: THREADSAFE_ARRAY POLICY VARIATION
+// =========================================================================
+//   Same logical operations across all available lock
+// policies — null, exclusive, timed, shared — verifying that
+// behavior is uniform and that the policy-specific
+// capabilities (supports_shared, supports_timed) are reported
+// correctly through the CRTP base.
+
+array_test_tree test_threadsafe_array_policy_null(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_policy_exclusive(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_policy_timed(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_policy_shared_cpp17(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XX.  CATEGORY: THREADSAFE_ARRAY CONCURRENT ACCESS
+// =========================================================================
+//   Multi-threaded smoke and stress tests: concurrent
+// readers do not corrupt state, concurrent writers
+// serialize correctly, version is monotonically
+// non-decreasing under writer load.
+
+array_test_tree test_threadsafe_array_concurrent_readers(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_concurrent_writers(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_concurrent_mixed(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_concurrent_version_monotonic(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXI. CATEGORY: ATOMIC_ARRAY CONSTRUCTION
+// =========================================================================
+//   Default construction zero-initializes via store(); fill
+// constructor stores the supplied value to every slot;
+// copy/move are deleted because std::atomic<T> is non-
+// copyable.
+
+array_test_tree test_atomic_array_default_construction(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fill_construction(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_copy_move_deletion_sfinae(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXII. CATEGORY: ATOMIC_ARRAY ELEMENT ACCESS
+// =========================================================================
+//   load(i), store(i, v), exchange(i, v) — each accepts an
+// optional memory_order.  Tests verify round-trip values,
+// independence of distinct slots, and that exchange()
+// returns the prior value.
+
+array_test_tree test_atomic_array_load_store(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_exchange(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_memory_orderings(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_slot_independence(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXIII. CATEGORY: ATOMIC_ARRAY ELEMENT UPDATES
+// =========================================================================
+//   fetch_* family: returns the prior value and applies the
+// arithmetic / bitwise update atomically.
+
+array_test_tree test_atomic_array_fetch_add(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_sub(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_and(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_or(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_xor(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXIV. CATEGORY: ATOMIC_ARRAY ELEMENT CAS
+// =========================================================================
+//   compare_exchange_weak / compare_exchange_strong:
+// success returns true and leaves _expected unchanged;
+// failure returns false and updates _expected to the
+// observed value.
+
+array_test_tree test_atomic_array_cas_strong_success(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_cas_strong_failure(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_cas_weak_loop(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXV. CATEGORY: ATOMIC_ARRAY BULK OPERATIONS
+// =========================================================================
+//   size, empty, fill, is_lock_free.  fill is per-element
+// atomic, NOT a coherent whole-array operation — tests
+// verify only that all slots end up at the supplied value.
+
+array_test_tree test_atomic_array_size_empty(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fill(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_is_lock_free(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXVI. CATEGORY: ATOMIC_ARRAY ITERATION
+// =========================================================================
+//   begin/end/cbegin/cend yield std::atomic<T>* — callers
+// operate on each slot through its atomic interface.  data()
+// returns the underlying atomic_value_type pointer.
+
+array_test_tree test_atomic_array_begin_end(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_data_pointer(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_range_based_for(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXVII. CATEGORY: ATOMIC_ARRAY CONCURRENT ACCESS
+// =========================================================================
+//   Multi-threaded fetch_add stress test: every thread
+// increments N times; the final sum must equal threads * N.
+// Verifies the per-element atomicity guarantee under
+// genuine contention.
+
+array_test_tree test_atomic_array_concurrent_fetch_add(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_concurrent_disjoint_slots(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_concurrent_cas_loop(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXVIII. CATEGORY: COW_ARRAY CONSTRUCTION
+// =========================================================================
+//   Default construction yields an empty-state cow_state;
+// from-array construction copies the supplied array into
+// the state; copy/move are deleted (mutex inside).
+
+array_test_tree test_cow_array_default_construction(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_from_array_construction(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_copy_move_deletion_sfinae(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXIX. CATEGORY: COW_ARRAY READ ACCESS
+// =========================================================================
+//   read() returns a reference to the current array; size /
+// empty / at(i) are convenience wrappers.
+
+array_test_tree test_cow_array_read_returns_value(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_size_empty(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_at_returns_copy(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXX. CATEGORY: COW_ARRAY SNAPSHOT
+// =========================================================================
+//   snapshot() returns an immutable_snapshot whose lifetime
+// outlives subsequent writes.  Tests verify content fidelity
+// at capture time, independence from later mutations, and
+// version stamping behavior.
+
+array_test_tree test_cow_array_snapshot_content(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_snapshot_survives_write(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_snapshot_version(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_multiple_snapshots(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXI. CATEGORY: COW_ARRAY WRITE ACCESS
+// =========================================================================
+//   modify(fn) clones the array, applies fn, and atomically
+// publishes the result; replace() swaps in a new array;
+// set(i, v) is the single-element shortcut.  Every write
+// bumps the version monotonically.
+
+array_test_tree test_cow_array_modify(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_replace(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_set_single(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_version_monotonic(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXII. CATEGORY: COW_ARRAY CONCURRENT ACCESS
+// =========================================================================
+//   Concurrent snapshots vs writers: snapshots are
+// self-consistent and writers serialize correctly under
+// the configured lock policy.
+
+array_test_tree test_cow_array_concurrent_snapshots(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_concurrent_writers(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// XXXIII. CATEGORY: WRAPPER EDGE CASES
+// =========================================================================
+//   Cross-cutting cases for all three wrappers: zero-extent,
+// single-element, large extents, and (where supported)
+// non-trivially-copyable element types.
+
+array_test_tree test_threadsafe_edge_zero_extent(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_edge_single_element(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_edge_large_extent(
+    test::test_type_id _kind);
+
+
+// =========================================================================
+// PART C:  AGGREGATE BUILDERS AND RUNNERS
 // =========================================================================
 
-// make_array_test_subtree
-//   helper: invokes every category function in declaration
-// order and assembles the returned subtrees as children of a
-// single module-level root, returning the resulting tree by
-// value.
-//   The returned tree is the array suite's "test module" - a
-// rooted tree whose root carries the module's type_id, whose
+
+// =========================================================================
+// XXXIV. AGGREGATE SUBTREE BUILDERS
+// =========================================================================
+//   Each builder invokes every category function in its part
+// in declaration order and assembles the returned subtrees as
+// children of a single module-level root, returning the
+// resulting tree by value.
+//   The returned tree is the part's "test module" - a rooted
+// tree whose root carries the module's type_id, whose
 // immediate children are category-level subtrees, and whose
 // leaves are the assertion-level outcomes produced inside
 // each category function.
 //
-//   The function neither knows about nor requires a
+//   The functions neither know about nor require a
 // test_handler or test_printer.  The caller hands the
 // returned tree to whichever handler is configured (see
-// section XI for the suite's master runner) and the
-// handler's bound listeners drive the output.
+// section XXXV for the master runners) and the handler's
+// bound listeners drive the output.
+//
+//   Five builders are exposed.  The two top-level builders
+// cover whole parts of the suite:
+//     - make_array_test_subtree            : Part A only
+//     - make_threadsafe_array_test_subtree : Part B only
+//   Three per-container sub-builders let callers drive any
+// single threadsafe-wrapper module in isolation:
+//     - make_threadsafe_array_subtree : threadsafe_array only
+//                                       (also includes the
+//                                       cross-cutting axis
+//                                       preservation, strategy
+//                                       disjointness, and edge
+//                                       case tests)
+//     - make_atomic_array_subtree     : atomic_array only
+//     - make_cow_array_subtree        : cow_array only
+//   make_threadsafe_array_test_subtree is the suite-wide
+// aggregate; it calls the three sub-builders and grafts each
+// under one suite root.
+//   Callers wanting a combined Part A + Part B run can graft
+// both top-level subtrees under their own root (see
+// test_tree::graft) or simply invoke the two runners back-to-
+// back.
 //
 // Parameter(s):
 //   _kind:  the test_type_id stamped on the module root.
 //           Defaults to the framework's MODULE kind constant
 //           (D_TEST_KIND_MODULE) so that simple users don't
 //           need to learn the kind taxonomy on day one.
+
+// make_array_test_subtree
+//   builds the subtree for Part A (base array container).
 array_test_tree
 make_array_test_subtree(
     test::test_type_id _kind = test::D_TEST_KIND_MODULE);
 
+// make_threadsafe_array_subtree
+//   builds the subtree for the threadsafe_array container, plus
+// the cross-cutting trait and edge-case tests.
+array_test_tree
+make_threadsafe_array_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+
+// make_atomic_array_subtree
+//   builds the subtree for the atomic_array container.
+array_test_tree
+make_atomic_array_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+
+// make_cow_array_subtree
+//   builds the subtree for the cow_array container.
+array_test_tree
+make_cow_array_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+
+// make_threadsafe_array_test_subtree
+//   builds the suite-wide aggregate for Part B (all three
+// threadsafe wrappers combined under one suite root).
+array_test_tree
+make_threadsafe_array_test_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+
 
 // =========================================================================
-// XI.  MASTER-SUITE RUNNER
+// XXXV. MASTER-SUITE RUNNERS
 // =========================================================================
-
-// run_array_suite
-//   driver: builds the array suite's subtree via
-// make_array_test_subtree(), passes it to the supplied
-// handler's run() method, and returns the three-way
-// verdict from the handler's session_result.
+//   Drivers: each builds its part's subtree via the matching
+// builder above, passes it to the supplied handler's run()
+// method, and returns the three-way verdict from the
+// handler's session_result.
 //   The handler's listener bundle (lifecycle + any value-
 // tagged listeners) determines what gets emitted to a
-// printer, log, or other sink - the runner does not touch
+// printer, log, or other sink - the runners do not touch
 // any of that.  Any test_handler subclass is acceptable;
 // default_test_handler from test_defaults.hpp installs the
 // framework's standard threshold-filtered printer bundle
@@ -336,13 +924,24 @@ make_array_test_subtree(
 //                 bundle (printer, logger, etc.) must already
 //                 be attached if any output is desired.
 //   _kind:        the test_type_id stamped on the module
-//                 root.  Forwarded to make_array_test_subtree.
+//                 root.  Forwarded to the matching builder.
 //   _out_seconds: optional; receives the wall-clock duration
 //                 of the run if non-null.
 // Return:
 //   The session_verdict for this run.
+
+// run_array_suite
+//   drives Part A (base array container).
 test::session_verdict
 run_array_suite(
+    test::test_handler& _handler,
+    test::test_type_id  _kind        = test::D_TEST_KIND_MODULE,
+    double*             _out_seconds = nullptr);
+
+// run_threadsafe_array_suite
+//   drives Part B (threadsafe wrappers).
+test::session_verdict
+run_threadsafe_array_suite(
     test::test_handler& _handler,
     test::test_type_id  _kind        = test::D_TEST_KIND_MODULE,
     double*             _out_seconds = nullptr);
