@@ -69,7 +69,7 @@
 #include "lock_policy.hpp"
 #include "lock_guard.hpp"
 #include "atomic.hpp"
-#include "./strategy_tags.hpp"
+#include "./concurrency_strategy_tags.hpp"
 
 
 NS_DJINTERP

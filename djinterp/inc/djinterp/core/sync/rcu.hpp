@@ -69,15 +69,16 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 #include <functional>
 #include <new>
-
-#include "atomic.hpp"
-#include "../meta/strategy_tags.hpp"
+// djinterp
+#include "./atomic.hpp"
+#include "./concurrency_strategy_tags.hpp"
 
 
 NS_DJINTERP

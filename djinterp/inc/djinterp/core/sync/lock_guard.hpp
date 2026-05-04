@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [sync]                                   lock_guard.hpp
+* djinterp [sync]                                               lock_guard.hpp
 *
 * Policy-aware RAII lock guards for the thread-safe framework.
 *   These guards are the primary mechanism for acquiring and releasing locks
@@ -14,7 +14,6 @@
 *                                exclusive)
 *   scoped_try_lock<Policy>    - non-blocking; exposes owns_lock() to
 *                                test whether acquisition succeeded
-*
 * VERSIONING:
 *   C++98/03:  all guards work (null_lock_policy only)
 *   C++11:     + exclusive_lock_policy, timed_lock_policy
@@ -23,7 +22,7 @@
 *   C++20:     + concepts-guarded overloads
 *
 *
-* path:      /inc/djinterp/sync/lock_guard.hpp
+* path:      /inc/djinterp/core/sync/lock_guard.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
@@ -31,15 +30,17 @@
 #ifndef DJINTERP_THREADSAFE_LOCK_GUARD_
 #define DJINTERP_THREADSAFE_LOCK_GUARD_ 1
 
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "lock_guard.hpp requires env.h to be included first"
-#endif
+//#ifndef DJINTERP_ENVIRONMENT_
+//    #error "lock_guard.hpp requires env.h to be included first"
+//#endif
 
-#ifndef __cplusplus
-    #error "lock_guard.hpp can only be used in C++ compilation mode"
-#endif
+//#ifndef __cplusplus
+//    #error "lock_guard.hpp can only be used in C++ compilation mode"
+//#endif
 
-#include "lock_policy.hpp"
+// djinterp
+#include "../djinterp.hpp"
+#include "./lock_policy.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <chrono>
@@ -222,9 +223,11 @@ public:
     scoped_timed_lock(const scoped_timed_lock&)            = delete;
     scoped_timed_lock& operator=(const scoped_timed_lock&) = delete;
 
-    scoped_timed_lock(scoped_timed_lock&& _other) noexcept
-        : m_mutex(_other.m_mutex)
-        , m_owned(_other.m_owned)
+    scoped_timed_lock(
+        scoped_timed_lock&& _other
+    ) noexcept
+        : m_mutex(_other.m_mutex),
+          m_owned(_other.m_owned)
     {
         _other.m_owned = false;
     }
@@ -269,19 +272,17 @@ template<typename _Policy>
 class upgrade_lock
 {
 public:
-    using mutex_type =
-        typename _Policy::mutex_type;
-    using read_lock =
-        typename _Policy::read_lock_type;
-    using write_lock =
-        typename _Policy::write_lock_type;
+    using mutex_type = typename _Policy::mutex_type;
+    using read_lock  = typename _Policy::read_lock_type;
+    using write_lock = typename _Policy::write_lock_type;
 
     // construct from an existing read lock.
     // The read lock is released and a write lock is
     // acquired.
     explicit upgrade_lock(
         read_lock&&  _read,
-        mutex_type&  _mutex)
+        mutex_type&  _mutex
+    )
         : m_write_lock(_mutex, std::defer_lock)
     {
         // release the read lock

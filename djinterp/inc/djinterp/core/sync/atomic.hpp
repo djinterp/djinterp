@@ -42,7 +42,7 @@
 #include <cstdint>
 // djinterp
 #include "../djinterp.hpp"
-#include "./strategy_tags.hpp"
+#include "./concurrency_strategy_tags.hpp"
 
 
 NS_DJINTERP

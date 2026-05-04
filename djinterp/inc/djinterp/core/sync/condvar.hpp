@@ -72,7 +72,7 @@ NS_DJINTERP
 // Portable yield hint.  Used by spinloops and backoff
 // strategies when spinning is no longer productive.
 
-D_INLINE void 
+inline void 
 d_thread_yield()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -94,7 +94,7 @@ d_thread_yield()
 // Returns 0 if the value cannot be determined (the
 // standard allows this).
 
-D_INLINE unsigned hardware_concurrency()
+inline unsigned hardware_concurrency()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     return std::thread::hardware_concurrency();
