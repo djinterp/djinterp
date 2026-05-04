@@ -1194,9 +1194,11 @@ NS_DJINTERP
             _Args&&... _args
         )
         {
-            allocator_type a = base::get_allocator();
-            node_type*     n = alloc_traits::allocate(a, 1);
+            allocator_type a;
+            node_type*     n;
 
+            a = base::get_allocator();
+            n = alloc_traits::allocate(a, 1);
             alloc_traits::construct(a,
                                     n,
                                     std::forward<_Args>(_args)...);
