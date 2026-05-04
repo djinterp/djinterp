@@ -1,12 +1,11 @@
 /******************************************************************************
-* djinterp                                              threadsafe_container.hpp
+* djinterp [container]                                threadsafe_container.hpp
 *
 * Foundation module for implementing thread-safe containers.
 *   Provides the runtime building blocks that all threadsafe_<container>
 * implementations compose from.  This sits between the raw locking
 * primitives (threadsafe.hpp) and the concrete container types
 * (threadsafe_array, threadsafe_tree, etc.):
-*
 *     threadsafe.hpp               - lock policies, guards, atomic utils,
 *                                    hazard pointers, RCU, COW
 *     threadsafe_container_traits  - compile-time detection (no runtime)
@@ -18,14 +17,13 @@
 * primitives all live in the threadsafe module proper (hazard_pointer.hpp,
 * rcu.hpp, cow.hpp).  This file does NOT redefine them; concrete
 * containers that need lock-free reclamation pull in those modules
-* directly from djinterp::threadsafe.
+* directly from threadsafe.
 *
 *   The module provides four layers of container-level concurrency:
 *
 *   LAYER 1: CRTP base (threadsafe_container_base)
 *     Holds the mutex, provides RAII-scoped lock acquisition.
 *     Every threadsafe container inherits from this.
-*
 *   LAYER 2: Locked accessors (locked_ref / const_locked_ref)
 *     RAII handles that hold a lock and expose the underlying
 *     container via operator-> / operator*.  The canonical
@@ -33,16 +31,13 @@
 *       auto ref = ts_container.write_access();
 *       ref->push_(42);
 *       // lock released when ref goes out of scope
-*
 *   LAYER 3: Atomic container state (atomic_state)
 *     Bundled atomic size + version counter for lock-free
 *     metadata.  Enables optimistic reads: snapshot the
 *     version, do the read, check the version hasn't changed.
-*
 *   LAYER 4: CAS retry infrastructure (exponential_off, cas_loop)
 *     Exponential backoff and CAS-loop templates for building
 *     lock-free and wait-free container operations.
-*
 *   Additionally: snapshot_view for safe iteration, batch_guard
 *   for multi-operation transactions, and locked_range for
 *   lock-held iteration.
@@ -65,34 +60,34 @@
 *
 * path:      /inc/djinterp/core/container/threadsafe_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       date: 2026.04.26
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.29
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-1.   threadsafe_container_base (CRTP)
-2.   locked accessors (locked_ref, const_locked_ref)
-3.   atomic container state
-4.   optimistic read protocol
-5.   CAS retry infrastructure
-6.   snapshot view
-7.   batch guard
-8.   locked range (safe iterator wrapper)
+I.      threadsafe_container_base (CRTP)
+II.     locked accessors (locked_ref, const_locked_ref)
+III.    atomic container state
+IV.     optimistic read protocol
+V.      CAS retry infrastructure
+VI.     snapshot view
+VII.    batch guard
+VIII.   locked range (safe iterator wrapper)
 */
 
 #ifndef DJINTERP_THREADSAFE_CONTAINER_
 #define DJINTERP_THREADSAFE_CONTAINER_ 1
 
-//std
+// std
 #include <cstddef>
 #include <type_traits>
 // djinterp
 #include "../djinterp.hpp"
 #include "../sync/threadsafe.hpp"
-#include "../meta/concurrency_strategy_tags.hpp"
-#include "./meta/threadsafe_container_traits.hpp"
-#include "./meta/container_traits.hpp"
+#include "../sync/concurrency_strategy_tags.hpp"
+#include "./traits/threadsafe_container_traits.hpp"
+#include "./traits/container_traits.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
@@ -127,12 +122,9 @@ class threadsafe_container_base
 {
 public:
     using lock_policy_type = _Policy;
-    using mutex_type =
-        typename _Policy::mutex_type;
-    using read_guard =
-        typename _Policy::read_lock_type;
-    using write_guard =
-        typename _Policy::write_lock_type;
+    using mutex_type       = typename _Policy::mutex_type;
+    using read_guard       = typename _Policy::read_lock_type;
+    using write_guard      = typename _Policy::write_lock_type;
 
     // concurrency_strategy_tag
     //   alias: declares all types deriving from this base
@@ -149,9 +141,10 @@ protected:
     ~threadsafe_container_base() = default;
 
     // non-copyable: mutex cannot be copied
-    threadsafe_container_base(const threadsafe_container_base&) = delete;
-    threadsafe_container_base& operator=( 
-        const threadsafe_container_base&) = delete;
+    threadsafe_container_base(
+        const threadsafe_container_base&)            = delete;
+    threadsafe_container_base& operator=(
+        const threadsafe_container_base&)            = delete;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // movable: mutex is default-initialized in the
@@ -160,7 +153,7 @@ protected:
         threadsafe_container_base&&)                 = default;
     threadsafe_container_base& operator=(
         threadsafe_container_base&&)                 = default;
-#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+#endif
 
 public:
     // --- lock acquisition ---
@@ -202,7 +195,7 @@ public:
 
     // --- policy queries (constexpr) ---
 
-    static constexpr DThreadSafetyLevel
+    static constexpr thread_safety_level
     safety_level() noexcept
     {
         return _Policy::level;
@@ -435,8 +428,8 @@ struct atomic_state
     atomic_version version;
 
     atomic_state() noexcept
-        : size(0),
-          version(0)
+        : size(0)
+        , version(0)
     {}
 
     // --- size operations ---
@@ -850,6 +843,8 @@ private:
 // can block writers.  For long iterations, prefer
 // snapshot_view instead.
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 // locked_range
 //   class: holds a read lock and exposes begin()/end()
 // from the underlying container.
@@ -859,12 +854,12 @@ class locked_range
 {
 public:
     using const_iterator =
-        decltype(std::begin(std::declval<const _Container&>()));
+        decltype(std::begin(
+            std::declval<const _Container&>()));
 
     locked_range(
         const _Container&             _c,
-        typename _Policy::mutex_type& _mutex
-    )
+        typename _Policy::mutex_type& _mutex)
         : m_ref(_c),
           m_lock(_mutex)
     {}
@@ -889,7 +884,7 @@ public:
     }
 
 private:
-    const _Container&                m_ref;
+    const _Container&                       m_ref;
     typename _Policy::read_lock_type m_lock;
 };
 
