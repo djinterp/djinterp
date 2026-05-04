@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [sync]                               hazard_pointer.hpp
+* djinterp [sync]                                           hazard_pointer.hpp
 *
 * Hazard pointer memory reclamation for lock-free data structures.
 *   Provides the foundational building blocks for safe memory reclamation
@@ -31,7 +31,7 @@
 *   C++23:     thin wrappers around <hazard_pointer> when available
 *
 *
-* path:      /inc/djinterp/sync/hazard_pointer.hpp
+* path:      /inc/djinterp/core/sync/hazard_pointer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
@@ -68,14 +68,15 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
+// std
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <new>
 #include <functional>
 #include <vector>
-
-#include "../meta/strategy_tags.hpp"
+// djinterp
+#include "../sync/concurrency_strategy_tags.hpp"
 
 
 NS_DJINTERP

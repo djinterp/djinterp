@@ -30,15 +30,13 @@
 #ifndef DJINTERP_THREADSAFE_LOCK_POLICY_C_
 #define DJINTERP_THREADSAFE_LOCK_POLICY_C_ 1
 
-#ifndef DJINTERP_ENVIRONMENT_
-    #error "lock_policy_c.hpp requires env.h to be included first"
-#endif
-
 #ifndef __cplusplus
     #error "lock_policy_c.hpp can only be used in C++ compilation mode"
 #endif
 
-#include "lock_policy.hpp"
+// djinterp
+#include "../djinterp.hpp"
+#include "./lock_policy.hpp"
 
 // --- platform includes ---
 #if D_ENV_OS_BLOCK == D_ENV_OS_BLOCK_WINDOWS
@@ -46,7 +44,9 @@
         #define WIN32_LEAN_AND_MEAN
     #endif
     #include <windows.h>
-#elif defined(_POSIX_VERSION) || defined(__unix__) || defined(__APPLE__)
+#elif defined(_POSIX_VERSION) ||                                              \ 
+      defined(__unix__)       ||                                              \
+      defined(__APPLE__)
     #include <pthread.h>
     #define D_HAS_PTHREADS 1
 #else
@@ -354,8 +354,8 @@ struct c_exclusive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::exclusive;
+    static constexpr thread_safety_level level =
+        thread_safety_level::exclusive;
 #endif
 };
 
@@ -372,8 +372,8 @@ struct c_shared
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::shared;
+    static constexpr thread_safety_level level =
+        thread_safety_level::shared;
 #endif
 };
 
@@ -392,8 +392,8 @@ struct c_recursive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::exclusive;
+    static constexpr thread_safety_level level =
+        thread_safety_level::exclusive;
 #endif
 };
 
@@ -412,8 +412,8 @@ struct c_exclusive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::exclusive;
+    static constexpr thread_safety_level level =
+        thread_safety_level::exclusive;
 #endif
 };
 
@@ -430,8 +430,8 @@ struct c_shared
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::shared;
+    static constexpr thread_safety_level level =
+        thread_safety_level::shared;
 #endif
 };
 
@@ -448,8 +448,8 @@ struct c_recursive
     static const bool is_timed      = false;
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::exclusive;
+    static constexpr thread_safety_level level =
+        thread_safety_level::exclusive;
 #endif
 };
 
@@ -472,9 +472,12 @@ struct c_recursive
 class spinlock_mutex
 {
 public:
+    // works for C++11-26
+    // TO DO: make compatible with C++98
     spinlock_mutex() noexcept
-        : m_flag(ATOMIC_FLAG_INIT)
-    {}
+    {
+        m_flag.clear(std::memory_order_relaxed);
+    }
 
     void lock() noexcept
     {
@@ -526,8 +529,8 @@ struct c_spinlock
     static constexpr bool is_shared     = false;
     static constexpr bool is_timed      = false;
 
-    static constexpr DThreadSafetyLevel level =
-        DThreadSafetyLevel::exclusive;
+    static constexpr thread_safety_level level =
+        thread_safety_level::exclusive;
 };
 
 #endif  // C++11

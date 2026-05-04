@@ -1,12 +1,11 @@
 /******************************************************************************
-* djinterp [sync]                                            strategy_tags.hpp
+* djinterp [sync]                                concurrency_concurrency_strategy_tags.hpp
 *
 *   Concurrency-strategy tag types for the trait classification system.
 *   These are the tag aliases consulted by the "fast path" of
 * concurrency_strategy_traits.hpp.  A type that wishes to declare
 * its synchronization strategy exposes
 *     using concurrency_strategy_tag = locked_strategy_tag;
-*
 * and the trait system reads it directly - no structural probing.
 *
 *   This header is intentionally lightweight: it has NO dependencies
@@ -21,20 +20,20 @@
 * concurrency_strategy_traits.hpp.  They have been factored out so
 * that the foundation primitives can self-tag without depending on
 * the trait header.  concurrency_strategy_traits.hpp now includes
-* this file and the tag names remain visible in djinterp::traits
+* this file and the tag names remain visible in traits
 * from the trait header for all existing call sites.
 *
 *
-* path:      /inc/djinterp/core/meta/strategy_tags.hpp
+* path:      /inc/djinterp/core/sync/concurrency_concurrency_strategy_tags.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.02
 ******************************************************************************/
 
-#ifndef DJINTERP_STRATEGY_TAGS_
-#define DJINTERP_STRATEGY_TAGS_ 1
+#ifndef DJINTERP_SYNC_CONCURRENCY_STRATEGY_TAGS_
+#define DJINTERP_SYNC_CONCURRENCY_STRATEGY_TAGS_ 1
 
 #ifndef __cplusplus
-    #error "strategy_tags.hpp requires C++ compilation"
+    #error "concurrency_strategy_tags.hpp requires C++ compilation"
 #endif
 
 // djinterp
@@ -89,4 +88,4 @@ struct hybrid_strategy_tag {};
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_STRATEGY_TAGS_
+#endif  // DJINTERP_SYNC_CONCURRENCY_STRATEGY_TAGS_

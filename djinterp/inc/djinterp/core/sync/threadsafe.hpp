@@ -1,10 +1,9 @@
 /******************************************************************************
-* djinterp [sync]                                   threadsafe.hpp
+* djinterp [sync]                                               threadsafe.hpp
 *
 * Umbrella header for the thread-safe foundation module.
-*   Includes all container-agnostic threadsafe submodules:
-*
-*   lock_policy.hpp     - DThreadSafetyLevel, all policy structs,
+* Includes all container-agnostic threadsafe submodules:
+*   lock_policy.hpp     - thread_safety_level, all policy structs,
 *                         select_lock_policy, default_lock_policy
 *   lock_guard.hpp      - scoped_read_lock, scoped_write_lock,
 *                         scoped_try_lock, scoped_timed_lock,
@@ -25,14 +24,13 @@
 *                         epoch_registry, deferred_reclaimer,
 *                         rcu_protected
 *
-*   All types live in namespace djinterp::threadsafe.
-*
+*   All types live in namespace threadsafe.
 *   Users who need only a subset can include the individual
 * submodule headers directly.  Existing code that includes
 * this umbrella header continues to work unchanged.
 *
 *
-* path:      \inc\threadsafe.hpp
+* path:      /inc/djinterp/core/sync/threadsafe.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.23
 ******************************************************************************/
