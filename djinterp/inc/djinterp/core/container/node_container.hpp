@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                    node_container.hpp
+* djinterp [container]                                      node_container.hpp
 *
 * Node Container Foundation:
 *   Foundational base class for all containers that manage their elements
@@ -468,8 +468,8 @@ public:
     using depth_type       = std::size_t;
     using reference        = value_type&;
     using const_reference  = const value_type&;
-    using pointer          = typename allocator_pointer;
-    using const_pointer    = typename allocator_const_pointer;
+    using pointer          = typename allocator_traits::pointer;
+    using const_pointer    = typename allocator_traits::const_pointer;
 
     // Root storage type determined by ownership policy
     using entry_storage = typename _OwnershipPolicy::
@@ -516,11 +516,10 @@ public:
         const node_container& _other
     )
         : m_entry(_OwnershipPolicy::clone(_other.m_entry)),
-            m_size(_other.m_size),
-              m_allocator(
-                  allocator_
-                      select_on_container_copy_construction(
-                          _other.m_allocator))
+          m_size(_other.m_size),
+          m_allocator(
+              allocator_traits::select_on_container_copy_construction(
+                  _other.m_allocator))
     {}
 
     // node_container
@@ -562,8 +561,7 @@ public:
             m_size  = _other.m_size;
 
             if constexpr (
-                allocator_
-                propagate_on_container_copy_assignment::value)
+                allocator_traits::propagate_on_container_copy_assignment::value)
             {
                 m_allocator = _other.m_allocator;
             }
@@ -587,8 +585,7 @@ public:
             m_size = _other.m_size;
 
             if constexpr (
-                allocator_
-                propagate_on_container_move_assignment::value)
+                allocator_traits::propagate_on_container_move_assignment::value)
             {
                 m_allocator = static_cast<allocator_type&&>(
                     _other.m_allocator);
@@ -620,7 +617,7 @@ public:
     D_CONSTEXPR size_type
     max_size() const noexcept
     {
-        return allocator_max_size(m_allocator);
+        return allocator_traits::max_size(m_allocator);
     }
 
 
@@ -789,7 +786,7 @@ public:
         djinterp::constexpr_swap(m_size, _other.m_size);
 
         if constexpr (
-            allocator_propagate_on_container_swap::value)
+            allocator_traits::propagate_on_container_swap::value)
         {
             djinterp::constexpr_swap(m_allocator,
                                       _other.m_allocator);
