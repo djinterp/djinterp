@@ -77,10 +77,10 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "..\djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "array_container.hpp"
-#include "meta\array_container_traits.hpp"
-#include "meta\container_option_traits.hpp"
+#include "array_container_traits.hpp"
+#include "../meta/container_option_traits.hpp"
 
 
 NS_DJINTERP
@@ -465,7 +465,7 @@ public:
         {
             if (p[i].has_value())
             {
-                result.push_back(i);
+                result.push_(i);
             }
         }
 
@@ -490,7 +490,7 @@ public:
         {
             if (!p[i].has_value())
             {
-                result.push_back(i);
+                result.push_(i);
             }
         }
 
@@ -919,7 +919,7 @@ array_option_keys(const _Container& _src)
 
     for (std::size_t i = 0; i < n; ++i)
     {
-        result.push_back(p[i].key);
+        result.push_(p[i].key);
     }
 
     return result;
@@ -1095,7 +1095,7 @@ array_option_diff(
                 if (!(bp[bi].value ==
                       ap[ai].value))
                 {
-                    result.push_back(ap[ai]);
+                    result.push_(ap[ai]);
                 }
 
                 found_match = true;
@@ -1105,7 +1105,7 @@ array_option_diff(
 
         if (!found_match)
         {
-            result.push_back(ap[ai]);
+            result.push_(ap[ai]);
         }
     }
 
@@ -1140,7 +1140,7 @@ array_configured_options(const _Container& _src)
     {
         if (p[i].has_value())
         {
-            result.push_back(p[i]);
+            result.push_(p[i]);
         }
     }
 

@@ -71,12 +71,12 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "..\djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "array_container.hpp"
 #include "array_options.hpp"
-#include "meta\array_container_traits.hpp"
-#include "meta\container_cli_traits.hpp"
-#include "meta\container_option_traits.hpp"
+#include "array_container_traits.hpp"
+#include "../meta/container_cli_traits.hpp"
+#include "../meta/container_option_traits.hpp"
 
 
 NS_DJINTERP
@@ -157,7 +157,7 @@ public:
 
         for (std::size_t i = 0; i < n; ++i)
         {
-            result.push_back({ i, p[i].key });
+            result.push_({ i, p[i].key });
         }
 
         return result;
@@ -198,7 +198,7 @@ public:
             line += " — ";
             line += p[i].description;
 
-            result.push_back(std::move(line));
+            result.push_(std::move(line));
         }
 
         return result;
@@ -230,7 +230,7 @@ public:
             line += "] ";
             line += p[i].key;
 
-            result.push_back(std::move(line));
+            result.push_(std::move(line));
         }
 
         return result;
@@ -345,7 +345,7 @@ public:
             entry += "=";
             entry += p[i].to_string();
 
-            result.push_back(std::move(entry));
+            result.push_(std::move(entry));
         }
 
         return result;
@@ -1048,7 +1048,7 @@ array_cli_export_strings(
             entry += "=";
             entry += p[i].to_string();
 
-            result.push_back(std::move(entry));
+            result.push_(std::move(entry));
         }
     }
 
@@ -1096,7 +1096,7 @@ array_cli_validate_args(
 
         if (!found)
         {
-            unrecognized.push_back(key);
+            unrecognized.push_(key);
         }
     }
 

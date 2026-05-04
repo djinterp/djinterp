@@ -1,166 +1,202 @@
 /******************************************************************************
-* djinterp [container]                                  threadsafe_array.hpp
+* djinterp                                                  threadsafe_array.hpp
 *
-* Thread-safe array container.
-*   Synchronized facade over any contiguous backing container.  All
-* public operations acquire the appropriate lock internally; the
-* caller never touches a mutex directly (though handle-based access
-* is available for multi-operation batches).
+* Lock-policy-protected concurrent array.
+*   Composes the canonical `array<T, N, L, I>` with a chosen lock policy.
+* All structural axes (capacity model, contiguity, element traits,
+* lifetime, iterability, ordering) are inherited verbatim from the
+* wrapped array; this module adds only axis 8 (thread safety) on top.
 *
 * TEMPLATE PARAMETERS:
-*   _Container  — the backing contiguous container
-*                 (std::vector<T>, std::array<T,N>, etc.)
-*   _Policy     — lock policy (default_lock_policy)
+*   _Type            — element type
+*   _N            — extent (use dynamic_extent for dynamic-size)
+*   _Lifetime     — array_lifetime::{mutable_lifetime, immutable_lifetime,
+*                                    constexpr_lifetime}
+*   _Iterability  — array_iterability::{iterable, non_iterable}
+*   _Policy       — lock policy from lock_policy.hpp
+*                   (default: null_lock_policy — zero overhead)
 *
 * THREE ACCESS TIERS:
-*   Lock-free     — size(), empty(), version() via atomic_state.
-*                   Zero synchronization cost.
+*   Lock-free     — size(), version() through atomic_state.
+*                   No synchronization cost.
 *
-*   Single-op     — at(), push_back(), sort(), filter_in_place(),
-*                   etc.  Each acquires and releases its own lock.
-*                   Convenient but incurs one lock round-trip per
-*                   call.
+*   Single-op     — at(i), set(i,v), assign(...).  Each acquires
+*                   and releases its own lock per call.
 *
-*   Handle-based  — read_access() / write_access() return RAII
-*                   handles (const_locked_ref / locked_ref) that
-*                   hold a lock for the lifetime of the handle.
-*                   For batching multiple operations under one
-*                   lock.  Also: snapshot() for safe iteration,
-*                   batch() for counted batch writes.
+*   Handle-based  — read_access() / write_access() return
+*                   const_locked_ref / locked_ref RAII handles
+*                   that hold a lock for the lifetime of the
+*                   handle.  Use for batched operations.
+*                   snapshot() copies under a read lock and then
+*                   iterates without holding any lock.
 *
 * CONVENIENCE ALIASES:
-*   threadsafe_vector<T, Policy>
-*   threadsafe_fixed_array<T, N, Policy>
+*   mutex_array<T, N, L, I>    — exclusive_lock_policy
+*   shared_array<T, N, L, I>   — shared_lock_policy (C++17)
+*   timed_array<T, N, L, I>    — timed_lock_policy
 *
 * DEPENDENCIES:
-*   threadsafe/container_base.hpp  — CRTP locking base
-*   threadsafe/locked_accessor.hpp — locked_ref, locked_apply
-*   threadsafe/atomic_state.hpp    — atomic size/version
-*   threadsafe/snapshot.hpp        — snapshot_view, batch_guard
-*   array_container.hpp            — chunk_ref
-*   array_iterator.hpp             — circular_iterator
+*   array.hpp                       — wrapped container
+*   threadsafe.hpp                  — lock policies, guards
+*   threadsafe_container.hpp        — CRTP base, locked_ref,
+*                                     atomic_state, snapshot_view
+*   concurrency_strategy_traits.hpp — strategy tag types
 *
 * TABLE OF CONTENTS
 * =================
-* I.      threadsafe_array
-*           a. Construction / Assignment
-*           b. Lock-Free Queries
-*           c. Handle-Based Access
-*           d. Element Access (read-locked)
-*           e. Capacity (read-locked / write-locked)
-*           f. Modifiers (write-locked)
-*           g. Ordering (write-locked)
-*           h. Multiplicity (write-locked)
-*           i. Search (read-locked)
-*           j. Filter (read-locked / write-locked)
-*           k. Bulk / Slice (read-locked)
-*           l. Optimistic Read
-* II.     Convenience Aliases
+* I.    threadsafe_array
+*         a. Type aliases (forwarded from wrapped array)
+*         b. Strategy tag and trait constants
+*         c. Construction / Assignment
+*         d. Lock-Free Queries
+*         e. Handle-Based Access
+*         f. Element Access (locked)
+*         g. Bulk Operations (locked)
+*         h. Optimistic Read
+*         i. Snapshot
+* II.   Convenience Aliases
+* III.  Trait Specializations (axis preservation)
 *
 *
-* path:      \inc\container\threadsafe_array.hpp
+* path:      /inc/djinterp/container/array/threadsafe_array.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.29
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.26
 ******************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_ARRAY_
 #define DJINTERP_THREADSAFE_ARRAY_ 1
 
-#include <algorithm>
+// std
 #include <cstddef>
-#include <iterator>
 #include <type_traits>
-#include <vector>
-#include "..\djinterp.hpp"
-#include "threadsafe\container_base.hpp"
-#include "threadsafe\locked_accessor.hpp"
-#include "threadsafe\atomic_state.hpp"
-#include "threadsafe\snapshot.hpp"
-#include "array_container.hpp"
-#include "array_iterator.hpp"
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include <array>
-    #include <utility>
-#endif
+#include <utility>
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../sync/threadsafe.hpp"
+#include "../threadsafe_container.hpp"
+#include "../traits/concurrency_strategy_traits.hpp"
+#include "./array.hpp"
+#include "./array_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 // =============================================================================
 // I.   threadsafe_array
 // =============================================================================
 
-template<typename _Container,
+template<typename          _Type,
+         std::size_t       _N,
+         array_lifetime    _Lifetime = array_lifetime::mutable_lifetime,
+         array_iterability _Iterability = array_iterability::iterable,
          typename _Policy = default_lock_policy>
 class threadsafe_array
     : public threadsafe_container_base<
-          threadsafe_array<_Container, _Policy>,
+          threadsafe_array<_Type, _N, _Lifetime, _Iterability, _Policy>,
           _Policy>
 {
+private:
     using base_type = threadsafe_container_base<
-        threadsafe_array<_Container, _Policy>,
+        threadsafe_array<_Type, _N, _Lifetime, _Iterability, _Policy>,
         _Policy>;
 
+    using array_type = array<_Type, _N, _Lifetime, _Iterability>;
+
 public:
-    using container_type  = _Container;
-    using value_type      =
-        typename _Container::value_type;
-    using size_type       = std::size_t;
-    using lock_policy_type = _Policy;
+    // -------------------------------------------------------------
+    // a. Type aliases (forwarded from wrapped array)
+    // -------------------------------------------------------------
+    using value_type             = typename array_type::value_type;
+    using size_type              = typename array_type::size_type;
+    using difference_type        = typename array_type::difference_type;
+    using reference              = typename array_type::reference;
+    using const_reference        = typename array_type::const_reference;
+    using pointer                = typename array_type::pointer;
+    using const_pointer          = typename array_type::const_pointer;
+    using iterator               = typename array_type::iterator;
+    using const_iterator         = typename array_type::const_iterator;
+    using reverse_iterator       = typename array_type::reverse_iterator;
+    using const_reverse_iterator = typename array_type::const_reverse_iterator;
 
-    // atomic state type alias for trait detection
-    using atomic_size_type =
-        decltype(std::declval<atomic_state>().size);
+    // -------------------------------------------------------------
+    // b. Strategy tag and trait constants
+    // -------------------------------------------------------------
+    using underlying_type        = array_type;
+    using lock_policy_type       = _Policy;
+    using mutex_type             = typename _Policy::mutex_type;
+    using read_lock_type         = typename _Policy::read_lock_type;
+    using write_lock_type        = typename _Policy::write_lock_type;
 
-    // =========================================================
-    // a. Construction / Assignment
-    // =========================================================
+    // strategy tag — read by concurrency_strategy_traits
+    using concurrency_strategy_tag = locked_strategy_tag;
 
+    // axis re-export (inherited verbatim from the wrapped array)
+    D_STATIC_CONSTEXPR size_type extent = array_type::extent;
+    D_STATIC_CONSTEXPR
+        array_lifetime lifetime    = array_type::lifetime;
+    D_STATIC_CONSTEXPR
+        array_iterability         iterability = array_type::iterability;
+
+    // -------------------------------------------------------------
+    // c. Construction / Assignment
+    // -------------------------------------------------------------
     threadsafe_array() = default;
 
-    explicit threadsafe_array(
-        const _Container& _c)
-        : m_data(_c)
+    template<typename... _Args>
+    explicit threadsafe_array(_Args&&... _args)
+        : m_data(std::forward<_Args>(_args)...)
+    {}
+
+    // copy: lock the source for the duration of the copy
+    threadsafe_array(const threadsafe_array& _other)
     {
-        m_state.store_size(m_data.size());
+        typename _Policy::read_lock_type guard(
+            _other.base_type::mutex());
+
+        m_data = _other.m_data;
     }
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-    explicit threadsafe_array(_Container&& _c)
-        : m_data(std::move(_c))
+    threadsafe_array& operator=(const threadsafe_array& _other)
     {
-        m_state.store_size(m_data.size());
+        if (this != &_other)
+        {
+            // lock both, lower-address first to prevent deadlock
+            const threadsafe_array* first  = this;
+            const threadsafe_array* second = &_other;
+
+            if (second < first)
+            {
+                first  = &_other;
+                second = this;
+            }
+
+            typename _Policy::write_lock_type g1(
+                first->base_type::mutex());
+            typename _Policy::write_lock_type g2(
+                second->base_type::mutex());
+
+            m_data = _other.m_data;
+            m_state.increment_version();
+        }
+
+        return *this;
     }
 
-    threadsafe_array(
-        std::initializer_list<value_type> _init)
-        : m_data(_init)
-    {
-        m_state.store_size(m_data.size());
-    }
+    // move: not synchronizable in a portable way (the source's
+    // mutex may be destroyed before this completes).  Disabled.
+    threadsafe_array(threadsafe_array&&)            = delete;
+    threadsafe_array& operator=(threadsafe_array&&) = delete;
 
-#endif  // C++11
+    ~threadsafe_array() = default;
 
-    // non-copyable (inherits from base)
-    // movable on C++11+
+    // -------------------------------------------------------------
+    // d. Lock-Free Queries
+    // -------------------------------------------------------------
+    // size() and version() use the atomic_state; no lock needed.
 
-    // =========================================================
-    // b. Lock-Free Queries
-    // =========================================================
-    // No synchronization cost.  The atomic_state is
-    // maintained by every write operation.
-
-    size_type size() const noexcept
+    size_type size_lockfree() const noexcept
     {
         return m_state.load_size();
-    }
-
-    bool empty() const noexcept
-    {
-        return (m_state.load_size() == 0);
     }
 
     std::uint64_t version() const noexcept
@@ -168,975 +204,169 @@ public:
         return m_state.load_version();
     }
 
-    // =========================================================
-    // c. Handle-Based Access
-    // =========================================================
-    // Return RAII handles holding the lock.  Multiple
-    // operations can be performed under one lock.
+    bool empty_lockfree() const noexcept
+    {
+        return ( m_state.load_size() == 0 );
+    }
 
-    // read_access
-    //   returns a const_locked_ref holding a read lock.
-    const_locked_ref<_Container, _Policy>
+    // -------------------------------------------------------------
+    // e. Handle-Based Access
+    // -------------------------------------------------------------
+
+    const_locked_ref<array_type, _Policy>
     read_access() const
     {
-        return const_locked_ref<_Container, _Policy>(
+        return const_locked_ref<array_type, _Policy>(
             m_data, base_type::mutex());
     }
 
-    // write_access
-    //   returns a locked_ref holding a write lock.
-    locked_ref<_Container, _Policy>
+    locked_ref<array_type, _Policy>
     write_access()
     {
-        return locked_ref<_Container, _Policy>(
-            m_data, base_type::mutex());
-    }
-
-    // snapshot
-    //   copies all elements under read lock into an
-    // independent snapshot_view for safe iteration.
-    snapshot_view<_Container, _Policy>
-    snapshot() const
-    {
-        return snapshot_view<_Container, _Policy>(
+        return locked_ref<array_type, _Policy>(
             m_data, base_type::mutex());
     }
 
     // batch
-    //   returns a batch_guard holding a write lock
-    // for multiple operations.
-    batch_guard<_Policy>
-    batch()
+    //   acquires a write lock and returns a batch_guard
+    // for multi-operation atomicity.  Use with the
+    // write_access() handle inside the batch scope.
+    batch_guard<_Policy> batch()
     {
-        return batch_guard<_Policy>(
+        return batch_guard<_Policy>(base_type::mutex());
+    }
+
+    // -------------------------------------------------------------
+    // f. Element Access (locked)
+    // -------------------------------------------------------------
+
+    // size
+    //   read-locked size query.  Prefer size_lockfree() when
+    // exact-but-stale is acceptable.
+    size_type size() const
+    {
+        typename _Policy::read_lock_type guard(
             base_type::mutex());
+
+        return m_data.size();
     }
 
-    // locked_iterate
-    //   returns a locked_range for range-for iteration
-    // under read lock.
-    locked_range<_Container, _Policy>
-    locked_iterate() const
+    bool empty() const
     {
-        return locked_range<_Container, _Policy>(
-            m_data, base_type::mutex());
-    }
+        typename _Policy::read_lock_type guard(
+            base_type::mutex());
 
-    // =========================================================
-    // d. Element Access (read-locked)
-    // =========================================================
-    // Each call acquires and releases a read lock.
-    // Returns copies — the lock is not held after
-    // the call returns.
+        return ( m_data.size() == 0 );
+    }
 
     // at
-    //   returns a copy of the element at _index.
-    value_type at(size_type _index) const
+    //   returns a copy of element at index _i under a read
+    // lock.  Returning by value (not reference) keeps the
+    // caller from holding a stale pointer after the lock
+    // releases.
+    value_type at(size_type _i) const
     {
         typename _Policy::read_lock_type guard(
             base_type::mutex());
 
-        return m_data[_index];
+        return m_data[_i];
     }
 
-    // front
-    value_type front() const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        return m_data.front();
-    }
-
-    // back
-    value_type back() const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        return m_data.back();
-    }
-
-    // =========================================================
-    // e. Capacity (read-locked / write-locked)
-    // =========================================================
-
-    // capacity (read-locked, for dynamic containers)
-    template<typename C = _Container>
-    auto capacity() const
-        -> decltype(std::declval<const C&>().capacity())
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        return m_data.capacity();
-    }
-
-    // reserve (write-locked)
-    template<typename C = _Container>
-    auto reserve(size_type _n)
-        -> decltype(
-            std::declval<C&>().reserve(_n), void())
+    // set
+    //   updates element _i to _v under a write lock and
+    // bumps the version.
+    void set(size_type         _i,
+             const value_type& _v)
     {
         typename _Policy::write_lock_type guard(
             base_type::mutex());
 
-        m_data.reserve(_n);
-    }
-
-    // shrink_to_fit (write-locked)
-    template<typename C = _Container>
-    auto shrink_to_fit()
-        -> decltype(
-            std::declval<C&>().shrink_to_fit(),
-            void())
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        m_data.shrink_to_fit();
-    }
-
-    // resize (write-locked)
-    template<typename C = _Container>
-    auto resize(size_type _n)
-        -> decltype(
-            std::declval<C&>().resize(_n), void())
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        m_data.resize(_n);
-        sync_size();
-    }
-
-    // resize with fill value
-    template<typename C = _Container>
-    auto resize(size_type _n,
-                const value_type& _val)
-        -> decltype(
-            std::declval<C&>().resize(
-                _n, _val), void())
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        m_data.resize(_n, _val);
-        sync_size();
-    }
-
-    // =========================================================
-    // f. Modifiers (write-locked)
-    // =========================================================
-    // Each call acquires a write lock, performs the
-    // operation, updates atomic_state, and releases.
-
-    // push_back
-    template<typename C = _Container>
-    auto push_back(const value_type& _val)
-        -> decltype(
-            std::declval<C&>().push_back(_val),
-            void())
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        m_data.push_back(_val);
-        m_state.fetch_add_size(1);
+        m_data[_i] = _v;
         m_state.increment_version();
     }
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // -------------------------------------------------------------
+    // g. Bulk Operations (locked)
+    // -------------------------------------------------------------
 
-    // push_back (move)
-    template<typename C = _Container>
-    auto push_back(value_type&& _val)
-        -> decltype(
-            std::declval<C&>().push_back(
-                std::move(_val)), void())
+    // assign
+    //   replaces the entire contents under a write lock.
+    void assign(const array_type& _src)
     {
         typename _Policy::write_lock_type guard(
             base_type::mutex());
 
-        m_data.push_back(std::move(_val));
-        m_state.fetch_add_size(1);
+        m_data = _src;
+        m_state.store_size(_src.size());
         m_state.increment_version();
     }
 
-    // emplace_back
-    template<typename... _Args,
-             typename C = _Container>
-    auto emplace_back(_Args&&... _args)
-        -> decltype(
-            std::declval<C&>().emplace_back(
-                std::forward<_Args>(_args)...),
-            void())
+    // apply
+    //   acquires a write lock, invokes _fn on the array,
+    // bumps the version, returns the result.
+    template<typename _Fn>
+    auto apply(_Fn&& _fn)
+        -> decltype(_fn(std::declval<array_type&>()))
     {
         typename _Policy::write_lock_type guard(
             base_type::mutex());
-
-        m_data.emplace_back(
-            std::forward<_Args>(_args)...);
-        m_state.fetch_add_size(1);
-        m_state.increment_version();
-    }
-
-#endif  // C++11
-
-    // pop_back
-    template<typename C = _Container>
-    auto pop_back()
-        -> decltype(
-            std::declval<C&>().pop_back(), void())
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        if (!m_data.empty())
-        {
-            m_data.pop_back();
-            m_state.fetch_sub_size(1);
-            m_state.increment_version();
-        }
-    }
-
-    // clear
-    template<typename C = _Container>
-    auto clear()
-        -> decltype(
-            std::declval<C&>().clear(), void())
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        m_data.clear();
-        m_state.store_size(0);
-        m_state.increment_version();
-    }
-
-    // fill (all elements to _val)
-    void fill(const value_type& _val)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        std::fill(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        m_state.increment_version();
-    }
-
-    // assign (replace contents)
-    template<typename _InputIter>
-    void assign(_InputIter _first,
-                _InputIter _last)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        m_data.assign(_first, _last);
-        sync_size();
-    }
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-    // assign (initializer list)
-    void assign(
-        std::initializer_list<value_type> _init)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        m_data.assign(_init);
-        sync_size();
-    }
-
-    // swap
-    void swap(threadsafe_array& _other)
-    {
-        if (this == &_other)
-        {
-            return;
-        }
-
-        // lock both in address order to prevent
-        // deadlock
-        auto* first  = this;
-        auto* second = &_other;
-
-        if (first > second)
-        {
-            std::swap(first, second);
-        }
-
-        typename _Policy::write_lock_type g1(
-            first->mutex());
-        typename _Policy::write_lock_type g2(
-            second->mutex());
-
-        std::swap(m_data, _other.m_data);
-
-        sync_size();
-        _other.sync_size();
-    }
-
-#endif  // C++11
-
-    // =========================================================
-    // g. Ordering (write-locked)
-    // =========================================================
-
-    // sort
-    void sort()
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        std::sort(
-            std::begin(m_data),
-            std::end(m_data));
-
-        m_state.increment_version();
-    }
-
-    // sort (custom comparator)
-    template<typename _Compare>
-    void sort(_Compare _cmp)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        std::sort(
-            std::begin(m_data),
-            std::end(m_data),
-            _cmp);
-
-        m_state.increment_version();
-    }
-
-    // stable_sort
-    void stable_sort()
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        std::stable_sort(
-            std::begin(m_data),
-            std::end(m_data));
-
-        m_state.increment_version();
-    }
-
-    // sorted_insert
-    //   inserts _val maintaining sorted invariant.
-    template<typename C = _Container>
-    auto sorted_insert(const value_type& _val)
-        -> decltype(
-            std::declval<C&>().push_back(_val),
-            void())
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        auto pos = std::lower_bound(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        m_data.insert(pos, _val);
-        m_state.fetch_add_size(1);
-        m_state.increment_version();
-    }
-
-    // sorted_erase
-    //   removes first occurrence of _val from sorted
-    // data.  Returns true if found.
-    bool sorted_erase(const value_type& _val)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        auto it = std::lower_bound(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        if (it != std::end(m_data) &&
-            *it == _val)
-        {
-            m_data.erase(it);
-            m_state.fetch_sub_size(1);
-            m_state.increment_version();
-            return true;
-        }
-
-        return false;
-    }
-
-    // is_sorted (read-locked)
-    bool is_sorted() const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        return std::is_sorted(
-            std::begin(m_data),
-            std::end(m_data));
-    }
-
-    // =========================================================
-    // h. Multiplicity (write-locked)
-    // =========================================================
-
-    // deduplicate
-    //   removes adjacent duplicates.
-    // Returns count removed.
-    size_type deduplicate()
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        size_type old_size = m_data.size();
-
-        auto new_end = std::unique(
-            std::begin(m_data),
-            std::end(m_data));
-
-        m_data.erase(new_end, std::end(m_data));
-
-        size_type removed =
-            old_size - m_data.size();
-
-        if (removed > 0)
-        {
-            sync_size();
-        }
-
-        return removed;
-    }
-
-    // make_unique
-    //   sort + deduplicate.
-    // Returns count of duplicates removed.
-    size_type make_unique()
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        std::sort(
-            std::begin(m_data),
-            std::end(m_data));
-
-        size_type old_size = m_data.size();
-
-        auto new_end = std::unique(
-            std::begin(m_data),
-            std::end(m_data));
-
-        m_data.erase(new_end, std::end(m_data));
-
-        size_type removed =
-            old_size - m_data.size();
-
-        sync_size();
-
-        return removed;
-    }
-
-    // remove_all_of
-    //   erases every occurrence of _val.
-    // Returns count removed.
-    size_type remove_all_of(const value_type& _val)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        size_type old_size = m_data.size();
-
-        auto new_end = std::remove(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        m_data.erase(new_end, std::end(m_data));
-
-        size_type removed =
-            old_size - m_data.size();
-
-        if (removed > 0)
-        {
-            sync_size();
-        }
-
-        return removed;
-    }
-
-    // insert_unique
-    //   inserts _val only if not present (linear scan).
-    // Returns true if inserted.
-    bool insert_unique(const value_type& _val)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        auto it = std::find(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        if (it != std::end(m_data))
-        {
-            return false;
-        }
-
-        m_data.push_back(_val);
-        m_state.fetch_add_size(1);
-        m_state.increment_version();
-        return true;
-    }
-
-    // sorted_insert_unique
-    //   inserts into sorted data only if not present.
-    // O(log n) search.  Returns true if inserted.
-    bool sorted_insert_unique(
-        const value_type& _val)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        auto pos = std::lower_bound(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        if (pos != std::end(m_data) &&
-            *pos == _val)
-        {
-            return false;
-        }
-
-        m_data.insert(pos, _val);
-        m_state.fetch_add_size(1);
-        m_state.increment_version();
-        return true;
-    }
-
-    // =========================================================
-    // i. Search (read-locked)
-    // =========================================================
-
-    // contains
-    //   linear search.  O(n).
-    bool contains(const value_type& _val) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        return (std::find(
-            std::begin(m_data),
-            std::end(m_data),
-            _val) != std::end(m_data));
-    }
-
-    // sorted_contains
-    //   binary search.  O(log n).
-    bool sorted_contains(
-        const value_type& _val) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        auto it = std::lower_bound(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        return (it != std::end(m_data) &&
-                *it == _val);
-    }
-
-    // count_of
-    //   O(n) count of _val occurrences.
-    size_type count_of(
-        const value_type& _val) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        return static_cast<size_type>(
-            std::count(
-                std::begin(m_data),
-                std::end(m_data),
-                _val));
-    }
-
-    // lower_bound_index
-    //   on sorted data.
-    size_type lower_bound_index(
-        const value_type& _val) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        auto it = std::lower_bound(
-            std::begin(m_data),
-            std::end(m_data),
-            _val);
-
-        return static_cast<size_type>(
-            std::distance(
-                std::begin(m_data), it));
-    }
-
-    // =========================================================
-    // j. Filter (read-locked / write-locked)
-    // =========================================================
-
-    // filter_copy (read-locked)
-    //   returns a new vector of matching elements.
-    template<typename _Pred>
-    std::vector<value_type>
-    filter_copy(_Pred _pred) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        std::vector<value_type> result;
-
-        result.reserve(m_data.size() / 2);
-
-        for (auto it = std::begin(m_data);
-             it != std::end(m_data); ++it)
-        {
-            if (_pred(*it))
-            {
-                result.push_back(*it);
-            }
-        }
-
-        return result;
-    }
-
-    // filter_indices (read-locked)
-    template<typename _Pred>
-    std::vector<size_type>
-    filter_indices(_Pred _pred) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        std::vector<size_type> result;
-        size_type n = m_data.size();
-
-        for (size_type i = 0; i < n; ++i)
-        {
-            if (_pred(m_data[i]))
-            {
-                result.push_back(i);
-            }
-        }
-
-        return result;
-    }
-
-    // count_if (read-locked)
-    template<typename _Pred>
-    size_type count_if(_Pred _pred) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        size_type c = 0;
-
-        for (auto it = std::begin(m_data);
-             it != std::end(m_data); ++it)
-        {
-            if (_pred(*it))
-            {
-                ++c;
-            }
-        }
-
-        return c;
-    }
-
-    // any_of (read-locked)
-    template<typename _Pred>
-    bool any_of(_Pred _pred) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        for (auto it = std::begin(m_data);
-             it != std::end(m_data); ++it)
-        {
-            if (_pred(*it))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    // all_of (read-locked)
-    template<typename _Pred>
-    bool all_of(_Pred _pred) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        for (auto it = std::begin(m_data);
-             it != std::end(m_data); ++it)
-        {
-            if (!_pred(*it))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // none_of (read-locked)
-    template<typename _Pred>
-    bool none_of(_Pred _pred) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        for (auto it = std::begin(m_data);
-             it != std::end(m_data); ++it)
-        {
-            if (_pred(*it))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    // filter_in_place (write-locked)
-    //   removes elements NOT satisfying _pred.
-    // Returns count removed.
-    template<typename _Pred>
-    size_type filter_in_place(_Pred _pred)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        size_type old_size = m_data.size();
-
-        auto new_end = std::remove_if(
-            std::begin(m_data),
-            std::end(m_data),
-            [&_pred](const value_type& _v)
-            {
-                return !_pred(_v);
-            });
-
-        m_data.erase(new_end, std::end(m_data));
-
-        size_type removed =
-            old_size - m_data.size();
-
-        if (removed > 0)
-        {
-            sync_size();
-        }
-
-        return removed;
-    }
-
-    // partition (write-locked)
-    //   returns partition point index.
-    template<typename _Pred>
-    size_type partition(_Pred _pred)
-    {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        auto it = std::partition(
-            std::begin(m_data),
-            std::end(m_data),
-            _pred);
 
         m_state.increment_version();
 
-        return static_cast<size_type>(
-            std::distance(
-                std::begin(m_data), it));
-    }
-
-    // =========================================================
-    // k. Bulk / Slice (read-locked)
-    // =========================================================
-
-    // subarray_copy
-    //   returns a copy of [offset, offset+count).
-    std::vector<value_type>
-    subarray_copy(size_type _offset,
-                  size_type _count) const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        size_type sz = m_data.size();
-        size_type actual_offset =
-            (_offset < sz) ? _offset : sz;
-        size_type remaining =
-            sz - actual_offset;
-        size_type actual_count =
-            (_count < remaining)
-                ? _count : remaining;
-
-        auto bg = std::begin(m_data);
-        std::advance(bg, actual_offset);
-
-        auto nd = bg;
-        std::advance(nd, actual_count);
-
-        return std::vector<value_type>(bg, nd);
-    }
-
-    // first_n_copy
-    std::vector<value_type>
-    first_n_copy(size_type _n) const
-    {
-        return subarray_copy(0, _n);
-    }
-
-    // last_n_copy
-    std::vector<value_type>
-    last_n_copy(size_type _n) const
-    {
-        size_type sz = size();
-        size_type off = (_n < sz) ? (sz - _n) : 0;
-
-        return subarray_copy(off, _n);
-    }
-
-    // to_vector
-    //   returns a complete copy of the data.
-    std::vector<value_type>
-    to_vector() const
-    {
-        typename _Policy::read_lock_type guard(
-            base_type::mutex());
-
-        return std::vector<value_type>(
-            std::begin(m_data),
-            std::end(m_data));
-    }
-
-    // =========================================================
-    // l. Optimistic Read (C++11+)
-    // =========================================================
-    // Version-checked reads without acquiring a lock.
-    // Falls back to a real read lock if the version
-    // changes during the read.
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-    // optimistic_at
-    //   reads element at _index without a lock.
-    // Retries if version changes.
-    value_type optimistic_at(size_type _index) const
-    {
-        return optimistic_read<
-            _Container, _Policy>(
-                m_state,
-                m_data,
-                base_type::mutex(),
-                [_index](const _Container& _c)
-                {
-                    return _c[_index];
-                });
-    }
-
-    // optimistic_size
-    //   redundant with the lock-free size() for
-    // simple containers, but useful as a pattern
-    // for containers where size() accesses
-    // non-atomic internal state.
-    size_type optimistic_size() const
-    {
-        return optimistic_read<
-            _Container, _Policy>(
-                m_state,
-                m_data,
-                base_type::mutex(),
-                [](const _Container& _c)
-                {
-                    return _c.size();
-                });
+        return std::forward<_Fn>(_fn)(m_data);
     }
 
     // apply_read
-    //   acquires a read lock and invokes _fn with
-    // a const reference to the backing container.
+    //   read-locked counterpart of apply.  No version
+    // bump because no mutation is supposed to occur.
     template<typename _Fn>
     auto apply_read(_Fn&& _fn) const
-        -> decltype(_fn(
-            std::declval<const _Container&>()))
+        -> decltype(_fn(std::declval<const array_type&>()))
     {
-        return locked_apply_read<
-            _Container, _Policy>(
-                m_data,
-                base_type::mutex(),
-                std::forward<_Fn>(_fn));
-    }
-
-    // apply_write
-    //   acquires a write lock and invokes _fn with
-    // a mutable reference.  Updates atomic_state
-    // after _fn completes.
-    template<typename _Fn>
-    auto apply_write(_Fn&& _fn)
-        -> decltype(_fn(
-            std::declval<_Container&>()))
-    {
-        typename _Policy::write_lock_type guard(
+        typename _Policy::read_lock_type guard(
             base_type::mutex());
 
-        auto result =
-            std::forward<_Fn>(_fn)(m_data);
-
-        sync_size();
-
-        return result;
+        return std::forward<_Fn>(_fn)(m_data);
     }
 
-    // apply_write (void return)
+    // -------------------------------------------------------------
+    // h. Optimistic Read
+    // -------------------------------------------------------------
+
+    // optimistic
+    //   attempts up to _max_retries lock-free reads under
+    // version-check protection.  Falls back to a real read
+    // lock on the final attempt.  Use only for short read
+    // closures.
     template<typename _Fn>
-    void apply_write_void(_Fn&& _fn)
+    auto optimistic(
+        _Fn&&    _fn,
+        unsigned _max_retries = 3) const
+        -> decltype(_fn(std::declval<const array_type&>()))
     {
-        typename _Policy::write_lock_type guard(
-            base_type::mutex());
-
-        std::forward<_Fn>(_fn)(m_data);
-
-        sync_size();
+        return optimistic_read<array_type, _Policy>(
+            m_state,
+            m_data,
+            base_type::mutex(),
+            std::forward<_Fn>(_fn),
+            _max_retries);
     }
 
-#endif  // C++11
+    // -------------------------------------------------------------
+    // i. Snapshot
+    // -------------------------------------------------------------
+
+    // snapshot
+    //   copies the array under a read lock and returns a
+    // snapshot_view that iterates without holding any lock.
+    snapshot_view<array_type, _Policy> snapshot() const
+    {
+        return snapshot_view<array_type, _Policy>(
+            m_data, base_type::mutex());
+    }
 
 private:
-    // sync_size
-    //   updates the atomic_state from the backing
-    // container's actual size.  Must be called under
-    // a write lock after any operation that may change
-    // the container size.
-    void sync_size() noexcept
-    {
-        m_state.store_size(m_data.size());
-        m_state.increment_version();
-    }
-
-    _Container   m_data;
+    array_type   m_data;
     atomic_state m_state;
 };
 
@@ -1145,26 +375,138 @@ private:
 // II.  Convenience Aliases
 // =============================================================================
 
-// threadsafe_vector
-//   alias: threadsafe_array backed by std::vector.
-template<typename _Type,
-         typename _Policy = default_lock_policy>
-using threadsafe_vector =
-    threadsafe_array<
-        std::vector<_Type>, _Policy>;
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// threadsafe_fixed_array
-//   alias: threadsafe_array backed by std::array.
+// mutex_array
+//   alias: threadsafe_array with exclusive_lock_policy.
 template<typename _Type,
          std::size_t _N,
-         typename _Policy = default_lock_policy>
-using threadsafe_fixed_array =
-    threadsafe_array<
-        std::array<_Type, _N>, _Policy>;
+         array_lifetime _Lifetime    =
+             array_lifetime::mutable_lifetime,
+         array_iterability         _Iterability =
+             array_iterability::iterable>
+using mutex_array =
+    threadsafe_array<_Type, _N, _Lifetime, _Iterability,
+                     exclusive_lock_policy>;
+
+// timed_array
+//   alias: threadsafe_array with timed_lock_policy.
+template<typename _Type,
+         std::size_t _N,
+         array_lifetime _Lifetime    =
+             array_lifetime::mutable_lifetime,
+         array_iterability         _Iterability =
+             array_iterability::iterable>
+using timed_array =
+    threadsafe_array<_Type, _N, _Lifetime, _Iterability,
+                     timed_lock_policy>;
+
+#endif  // C++11
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+// shared_array
+//   alias: threadsafe_array with shared_lock_policy
+// (multi-reader, single-writer).
+template<typename _Type,
+         std::size_t _N,
+         array_lifetime _Lifetime    =
+             array_lifetime::mutable_lifetime,
+         array_iterability         _Iterability =
+             array_iterability::iterable>
+using shared_array =
+    threadsafe_array<_Type, _N, _Lifetime, _Iterability,
+                     shared_lock_policy>;
+
+#endif  // C++17
 
 
-NS_END  // container
+// =============================================================================
+// III. Trait Specializations (axis preservation)
+// =============================================================================
+// Delegate every structural classification to the wrapped
+// array.  This is what guarantees axes 1-7 are preserved
+// across the concurrency wrapping.
+
+
+template<typename _Type, std::size_t _N,
+         array_lifetime _L, array_iterability _I, typename _Policy>
+struct is_contiguous_array<threadsafe_array<_Type, _N, _L, _I, _Policy>>
+    : is_contiguous_array<array<_Type, _N, _L, _I>>
+{};
+
+template<typename _Type, std::size_t _N,
+         array_lifetime _L, array_iterability _I, typename _Policy>
+struct is_iterable_array<threadsafe_array<_Type, _N, _L, _I, _Policy>>
+    : is_iterable_array<array<_Type, _N, _L, _I>>
+{};
+
+template<typename _Type, std::size_t _N,
+         array_lifetime _L, array_iterability _I, typename _Policy>
+struct has_static_extent<threadsafe_array<_Type, _N, _L, _I, _Policy>>
+    : has_static_extent<array<_Type, _N, _L, _I>>
+{};
+
+template<typename _Type, std::size_t _N,
+         array_lifetime _L, array_iterability _I, typename _Policy>
+struct array_lifetime_of<threadsafe_array<_Type, _N, _L, _I, _Policy>>
+    : array_lifetime_of<array<_Type, _N, _L, _I>>
+{};
+
+
+
+
+
+// =============================================================================
+// IV.  Static Verification (axes 1-7 unchanged, axis 8 differs)
+// =============================================================================
+// Compile-time guarantee that wrapping does not drift any
+// structural axis.  Any future change to either array's
+// classification or threadsafe_array's specializations
+// breaks the build until reconciled.
+
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+
+NS_INTERNAL
+
+    using base = array<int, 16>;
+    using ts   = threadsafe_array<int, 16>;
+
+    // axes 1-7: must match
+    static_assert(
+        is_contiguous_array_v<ts> ==
+        is_contiguous_array_v<base>,
+        "threadsafe_array drifted on contiguity");
+
+    static_assert(
+        is_iterable_array_v<ts> ==
+        is_iterable_array_v<base>,
+        "threadsafe_array drifted on iterability");
+
+    static_assert(
+        has_static_extent_v<ts> ==
+        has_static_extent_v<base>,
+        "threadsafe_array drifted on extent class");
+
+    static_assert(
+        array_lifetime_of<ts>::value ==
+        array_lifetime_of<base>::value,
+        "threadsafe_array drifted on lifetime");
+
+    // axis 8: must differ
+    static_assert(
+        is_locked_container_v<ts>,
+        "threadsafe_array failed to register as locked");
+
+    static_assert(
+        !is_locked_container_v<base>,
+        "plain array misclassified as locked");
+
+NS_END  // internal
 NS_END  // djinterp
+
+
+#endif  // C++14
 
 
 #endif  // DJINTERP_THREADSAFE_ARRAY_

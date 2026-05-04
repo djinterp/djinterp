@@ -66,10 +66,10 @@
 #include <cstring>
 #include <type_traits>
 #include <vector>
-#include "..\djinterp.hpp"
-#include "container_binary.hpp"
+#include "../../djinterp.hpp"
+#include "../container_binary.hpp"
 #include "array_container.hpp"
-#include "meta\array_container_traits.hpp"
+#include "array_container_traits.hpp"
 
 
 NS_DJINTERP
@@ -595,7 +595,7 @@ public:
 private:
     // resize_if_possible
     //   attempts to resize the container if it
-    // supports resize().  SFINAE fallback is a no-op
+    // supports resize().  SFINAE fall is a no-op
     // for fixed-size containers.
 
     template<typename D = _Derived>

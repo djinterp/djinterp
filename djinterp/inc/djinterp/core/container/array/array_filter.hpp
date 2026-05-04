@@ -76,11 +76,11 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "..\djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "array_container.hpp"
 #include "array_iterator.hpp"
-#include "meta\array_container_traits.hpp"
-#include "meta\container_filter_traits.hpp"
+#include "array_container_traits.hpp"
+#include "../meta/container_filter_traits.hpp"
 
 
 NS_DJINTERP
@@ -433,7 +433,7 @@ public:
         {
             if (_pred(p[i]))
             {
-                result.push_back(i);
+                result.push_(i);
             }
         }
 
@@ -459,7 +459,7 @@ public:
         {
             if (_pred(p[i]))
             {
-                result.push_back(p[i]);
+                result.push_(p[i]);
             }
         }
 
@@ -468,7 +468,7 @@ public:
 
     // filter_into
     //   pushes matching elements into _out.
-    // _out must support push_back().
+    // _out must support push_().
     template<typename _Output,
              typename _Pred>
     std::size_t
@@ -483,7 +483,7 @@ public:
         {
             if (_pred(p[i]))
             {
-                _out.push_back(p[i]);
+                _out.push_(p[i]);
                 ++c;
             }
         }
@@ -512,12 +512,12 @@ public:
         {
             if (_pred(p[i]))
             {
-                _true_out.push_back(p[i]);
+                _true_out.push_(p[i]);
                 ++tc;
             }
             else
             {
-                _false_out.push_back(p[i]);
+                _false_out.push_(p[i]);
                 ++fc;
             }
         }
@@ -802,13 +802,13 @@ public:
         {
             if (_pred(*it))
             {
-                _true_out.push_back(
+                _true_out.push_(
                     std::move(*it));
                 ++tc;
             }
             else
             {
-                _false_out.push_back(
+                _false_out.push_(
                     std::move(*it));
                 ++fc;
             }
@@ -1125,7 +1125,7 @@ array_filter(const _Container& _src,
     {
         if (_pred(p[i]))
         {
-            result.push_back(p[i]);
+            result.push_(p[i]);
         }
     }
 
@@ -1134,7 +1134,7 @@ array_filter(const _Container& _src,
 
 // array_filter_into
 //   filters _src into _dst (any container with
-// push_back).  Returns count of elements added.
+// push_).  Returns count of elements added.
 template<typename _Container,
          typename _Output,
          typename _Pred>
@@ -1156,7 +1156,7 @@ array_filter_into(const _Container& _src,
     {
         if (_pred(p[i]))
         {
-            _dst.push_back(p[i]);
+            _dst.push_(p[i]);
             ++c;
         }
     }
@@ -1188,7 +1188,7 @@ array_filter_indices(const _Container& _src,
     {
         if (_pred(p[i]))
         {
-            result.push_back(i);
+            result.push_(i);
         }
     }
 
@@ -1290,12 +1290,12 @@ array_partition_copy(
     {
         if (_pred(p[i]))
         {
-            _true_out.push_back(p[i]);
+            _true_out.push_(p[i]);
             ++tc;
         }
         else
         {
-            _false_out.push_back(p[i]);
+            _false_out.push_(p[i]);
             ++fc;
         }
     }
