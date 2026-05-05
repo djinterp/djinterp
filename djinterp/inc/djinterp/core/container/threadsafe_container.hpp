@@ -251,14 +251,14 @@ template<typename _Container,
 class const_locked_ref
 {
 public:
-    using lock_type =
-        typename _Policy::read_lock_type;
+    using lock_type = typename _Policy::read_lock_type;
 
     explicit const_locked_ref(
         const _Container&          _c,
-        typename _Policy::mutex_type& _mutex)
-        : m_ref(_c)
-        , m_lock(_mutex)
+        typename _Policy::mutex_type& _mutex
+    )
+        : m_ref(_c),
+          m_lock(_mutex)
     {}
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -372,7 +372,8 @@ auto
 locked_apply(
     _Container&                   _c,
     typename _Policy::mutex_type& _mutex,
-    _Fn&&                         _fn)
+    _Fn&&                         _fn
+)
     -> decltype(_fn(_c))
 {
     typename _Policy::write_lock_type guard(_mutex);
@@ -390,7 +391,8 @@ auto
 locked_apply_read(
     const _Container&             _c,
     typename _Policy::mutex_type& _mutex,
-    _Fn&&                         _fn)
+    _Fn&&                         _fn
+)
     -> decltype(_fn(_c))
 {
     typename _Policy::read_lock_type guard(_mutex);
@@ -452,7 +454,8 @@ struct atomic_state
     std::size_t fetch_add_size(
         std::size_t _n,
         std::memory_order _order =
-            std::memory_order_acq_rel) noexcept
+        std::memory_order_acq_rel
+    ) noexcept
     {
         return size.fetch_add(_n, _order);
     }
@@ -460,7 +463,8 @@ struct atomic_state
     std::size_t fetch_sub_size(
         std::size_t _n,
         std::memory_order _order =
-            std::memory_order_acq_rel) noexcept
+        std::memory_order_acq_rel
+    ) noexcept
     {
         return size.fetch_sub(_n, _order);
     }
@@ -468,8 +472,8 @@ struct atomic_state
     // --- version operations ---
 
     std::uint64_t load_version(
-        std::memory_order _order =
-            std::memory_order_acquire) const noexcept
+        std::memory_order _order = std::memory_order_acquire
+    ) const noexcept
     {
         return version.load(_order);
     }
@@ -547,7 +551,8 @@ optimistic_read(
     const _Container&             _c,
     typename _Policy::mutex_type& _mutex,
     _Fn&&                         _fn,
-    unsigned                      _max_retries = 3)
+    unsigned                      _max_retries = 3
+)
     -> decltype(_fn(_c))
 {
     for (unsigned attempt = 0;
@@ -628,8 +633,10 @@ private:
     //   platform-specific pause hint for spin loops.
     static void spin_pause() noexcept
     {
-    #if defined(__x86_64__) || defined(_M_X64) || \
-        defined(__i386__)   || defined(_M_IX86)
+    #if defined(__x86_64__) ||                                                \
+        defined(_M_X64)     ||                                                \
+        defined(__i386__)   ||                                                \
+        defined(_M_IX86)
         #if defined(_MSC_VER)
             _mm_pause();
         #else
