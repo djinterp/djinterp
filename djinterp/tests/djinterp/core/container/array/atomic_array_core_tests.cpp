@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [testing]                              atomic_array_core_tests.cpp
+* djinterp [testing]                               atomic_array_core_tests.cpp
 *
 *   Implementation of the atomic_array portion of Part B (threadsafe
 * wrappers) of the array test suite under the return-a-subtree
@@ -28,17 +28,6 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.03
 ******************************************************************************/
 #include "./array_tests.hpp"
-
-// std
-#include <cstdint>          // std::uint64_t
-#include <type_traits>      // is_*_constructible
-#include <utility>          // std::move
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include <atomic>       // std::atomic, memory_order
-    #include <thread>       // std::thread for concurrent tests
-    #include <vector>       // std::vector for thread aggregation
-#endif
 
 
 NS_DJINTERP
@@ -89,61 +78,6 @@ namespace {
             test::make_test_block(_block_name));
 
         return result;
-    }
-
-
-    // graft_subtree_recursive
-    //   helper: recursive worker for graft_subtree().
-    inline void
-    graft_subtree_recursive(
-        array_test_tree& _dest,
-        node_alias*           _dest_parent,
-        const node_alias*     _src
-    )
-    {
-        node_alias*       new_node;
-        const node_alias* child;
-
-        if (_src == nullptr)
-        {
-            return;
-        }
-
-        new_node = _dest.underlying().append_child(_dest_parent,
-                                                   _src->data());
-
-        child = _src->first_child();
-
-        while (child != nullptr)
-        {
-            graft_subtree_recursive(_dest, new_node, child);
-            child = child->next_sibling();
-        }
-
-        return;
-    }
-
-
-    // graft_subtree
-    //   helper: copies _src's full structure under
-    // _dest_parent.
-    inline void
-    graft_subtree(
-        array_test_tree&       _dest,
-        node_alias*                 _dest_parent,
-        const array_test_tree& _src
-    )
-    {
-        if (_dest_parent == nullptr)
-        {
-            return;
-        }
-
-        graft_subtree_recursive(_dest,
-                                _dest_parent,
-                                _src.underlying().root());
-
-        return;
     }
 
 
@@ -204,8 +138,6 @@ test_atomic_array_traits_strategy_atomic(
     test::test_type_id /*_kind*/
 )
 {
-    using namespace djinterp;
-
     array_test_tree tree = make_block_tree(
         "trait conformance: atomic_array -> atomic strategy");
     auto* root = tree.underlying().root();
@@ -1120,82 +1052,51 @@ make_atomic_array_subtree(
     test::test_type_id _kind
 )
 {
-    array_test_tree result;
-    node_alias*     root;
-
-    result.underlying().emplace_root(
+    return combine_subtrees<array_test_tree>(
         array_test_obj(_kind, true,
-            "atomic_array test module"));
+            "atomic_array test module"),
+        {
+            // II.  trait conformance (atomic_array's own strategy)
+            test_atomic_array_traits_strategy_atomic(_kind),
 
-    root = result.underlying().root();
+            // III. construction
+            test_atomic_array_default_construction(_kind),
+            test_atomic_array_fill_construction(_kind),
+            test_atomic_array_copy_move_deletion_sfinae(_kind),
 
-    // II.  trait conformance (atomic_array's own strategy)
-    graft_subtree(result, root,
-        test_atomic_array_traits_strategy_atomic(_kind));
+            // IV.  element access
+            test_atomic_array_load_store(_kind),
+            test_atomic_array_exchange(_kind),
+            test_atomic_array_memory_orderings(_kind),
+            test_atomic_array_slot_independence(_kind),
 
-    // III. construction
-    graft_subtree(result, root,
-        test_atomic_array_default_construction(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_fill_construction(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_copy_move_deletion_sfinae(_kind));
+            // V.   element updates
+            test_atomic_array_fetch_add(_kind),
+            test_atomic_array_fetch_sub(_kind),
+            test_atomic_array_fetch_and(_kind),
+            test_atomic_array_fetch_or(_kind),
+            test_atomic_array_fetch_xor(_kind),
 
-    // IV.  element access
-    graft_subtree(result, root,
-        test_atomic_array_load_store(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_exchange(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_memory_orderings(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_slot_independence(_kind));
+            // VI.  CAS
+            test_atomic_array_cas_strong_success(_kind),
+            test_atomic_array_cas_strong_failure(_kind),
+            test_atomic_array_cas_weak_loop(_kind),
 
-    // V.   element updates
-    graft_subtree(result, root,
-        test_atomic_array_fetch_add(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_fetch_sub(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_fetch_and(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_fetch_or(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_fetch_xor(_kind));
+            // VII. bulk operations
+            test_atomic_array_size_empty(_kind),
+            test_atomic_array_fill(_kind),
+            test_atomic_array_is_lock_free(_kind),
 
-    // VI.  CAS
-    graft_subtree(result, root,
-        test_atomic_array_cas_strong_success(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_cas_strong_failure(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_cas_weak_loop(_kind));
+            // VIII. iteration
+            test_atomic_array_begin_end(_kind),
+            test_atomic_array_data_pointer(_kind),
+            test_atomic_array_range_based_for(_kind),
 
-    // VII. bulk operations
-    graft_subtree(result, root,
-        test_atomic_array_size_empty(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_fill(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_is_lock_free(_kind));
-
-    // VIII. iteration
-    graft_subtree(result, root,
-        test_atomic_array_begin_end(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_data_pointer(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_range_based_for(_kind));
-
-    // IX.  concurrent access
-    graft_subtree(result, root,
-        test_atomic_array_concurrent_fetch_add(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_concurrent_disjoint_slots(_kind));
-    graft_subtree(result, root,
-        test_atomic_array_concurrent_cas_loop(_kind));
-
-    return result;
+            // IX.  concurrent access
+            test_atomic_array_concurrent_fetch_add(_kind),
+            test_atomic_array_concurrent_disjoint_slots(_kind),
+            test_atomic_array_concurrent_cas_loop(_kind),
+        });
 }
 
 
