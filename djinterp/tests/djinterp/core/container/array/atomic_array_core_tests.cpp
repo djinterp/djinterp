@@ -29,6 +29,18 @@
 ******************************************************************************/
 #include "./array_tests.hpp"
 
+// std
+#include <chrono>           // steady_clock + duration in run_*_suite
+#include <cstdint>          // std::uint64_t
+#include <type_traits>      // is_*_constructible
+#include <utility>          // std::move
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #include <atomic>       // std::atomic, memory_order
+    #include <thread>       // std::thread for concurrent tests
+    #include <vector>       // std::vector for thread aggregation
+#endif
+
 
 NS_DJINTERP
 NS_TESTING
@@ -40,28 +52,14 @@ using namespace djinterp::test;
 // =========================================================================
 // I.   FILE-INTERNAL HELPERS
 // =========================================================================
+//   The eager `append_leaf` helper lives in `array_tests.hpp`
+// so that every translation unit in the suite shares one
+// definition.  Defining it again here would shadow the header
+// version with an identical signature and produce ambiguous-
+// call diagnostics at every assertion site, which is what the
+// previous revision of this file did.
 
 namespace {
-
-    using node_alias =
-        djinterp::nary_tree<array_test_obj>::node_type;
-
-
-    // append_leaf
-    //   helper: appends an assertion-kind leaf under _parent.
-    inline node_alias*
-    append_leaf(
-        array_test_tree& _tree,
-        node_alias*           _parent,
-        bool                  _passed,
-        const char*           _name
-    )
-    {
-        return _tree.underlying().append_child(
-            _parent,
-            test::make_assert(_passed, _name));
-    }
-
 
     // make_block_tree
     //   helper: constructs a fresh array_test_tree whose
@@ -93,7 +91,7 @@ namespace {
     using at_arr = djinterp::atomic_array<T, N>;
 
     template<typename T, std::size_t N>
-    using base_mi  = djinterp::mutable_iterable_array<T, N>;
+    using base_mi = djinterp::mutable_iterable_array<T, N>;
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -101,11 +99,11 @@ namespace {
     // run_threads
     //   helper: spawns _count threads, each invoking _worker(tid),
     // and joins them.  Used by the concurrent tests below.
-    template<typename Worker>
+    template<typename _Worker>
     inline void
     run_threads(
         std::size_t _count,
-        Worker      _worker
+        _Worker     _worker
     )
     {
         std::vector<std::thread> threads;
@@ -143,16 +141,16 @@ test_atomic_array_traits_strategy_atomic(
     auto* root = tree.underlying().root();
 
     append_leaf(tree, root,
-        djinterp::is_atomic_container_v<at_arr<int, 4>>,
-        "is_atomic_container_v<atomic_array> == true");
+        djinterp::is_atomic_container<at_arr<int, 4>>::value,
+        "is_atomic_container<atomic_array>::value == true");
     append_leaf(tree, root,
-        !djinterp::is_atomic_container_v<base_mi<int, 4>>,
-        "is_atomic_container_v<plain array> == false");
+        !djinterp::is_atomic_container<base_mi<int, 4>>::value,
+        "is_atomic_container<plain array>::value == false");
     append_leaf(tree, root,
-        !djinterp::is_locked_container_v<at_arr<int, 4>>,
+        !djinterp::is_locked_container<at_arr<int, 4>>::value,
         "atomic_array NOT classified as locked");
     append_leaf(tree, root,
-        !djinterp::is_cow_container_v<at_arr<int, 4>>,
+        !djinterp::is_cow_container<at_arr<int, 4>>::value,
         "atomic_array NOT classified as cow");
 
     // strategy tag check
@@ -863,7 +861,9 @@ test_atomic_array_range_based_for(
         "atomic_array: range-based for over atomic slots");
     auto* root = tree.underlying().root();
 
-#if D_ENV_CPP_FEATURE_LANG_RANGE_BASED_FOR
+    // range-based for is a C++11 feature and the suite's
+    // baseline is C++11, so no per-feature gate is needed
+    // here.
     at_arr<int, 4> a;
 
     int n = 1;
@@ -886,11 +886,6 @@ test_atomic_array_range_based_for(
     append_leaf(tree, root,
         total == 10,
         "range-based for: sum over loads == 10");
-#else
-    append_leaf(tree, root,
-        true,
-        "range-based for skipped (feature not enabled)");
-#endif
 
     return tree;
 }

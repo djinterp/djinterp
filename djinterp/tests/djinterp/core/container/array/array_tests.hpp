@@ -211,16 +211,9 @@
 
 
 // std
-#include <cstdint>          // std::uint64_t
-#include <type_traits>      // is_*_constructible
-#include <utility>          // std::move
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include <atomic>       // std::atomic, memory_order
-    #include <thread>       // std::thread for concurrent tests
-    #include <vector>       // std::vector for thread aggregation
-#endif
-
-// djinterp
+#include <cstddef>
+// djinterp  --  pull the environment header chain FIRST so that the
+// feature-flag macros below are defined before we test them.
 #include "../../../../../inc/djinterp/core/djinterp.hpp"
 #include "../../../../../inc/djinterp/core/container/tree/nary/nary_tree.hpp"
 #include "../../../../../inc/djinterp/core/container/traits/sorted_container_traits.hpp"
@@ -286,6 +279,109 @@ using array_test_tree = djinterp::test::test_tree<
                             djinterp::nary_tree<array_test_obj>>;
 
 
+// array_test_callable_table
+//   type: the suite's deferred-evaluation callable table.
+// Test functions register expensive closures (concurrent
+// loops, I/O, anything that should NOT run during eager
+// subtree construction) into a table of this type; the
+// closures fire during the handler's tree walk, so the
+// printer streams output as each test executes rather
+// than only after the whole suite has finished building.
+//   The table type matches array_test_obj's specialization
+// so the closure signature is consistent across the suite.
+using array_test_callable_table =
+    djinterp::test::basic_callable_table;
+
+
+// array_node_alias
+//   type: a pointer to a node in the suite's tree.  Used
+// by append_leaf / append_lazy_leaf to identify the
+// parent under which a new leaf goes.
+using array_node_alias =
+    djinterp::nary_tree<array_test_obj>::node_type;
+
+
+// append_leaf
+//   helper: appends an assertion-kind leaf under _parent
+// carrying the already-evaluated _passed result.  This is
+// the EAGER path: the assertion's value is computed before
+// the call (typically a trait check or arithmetic
+// comparison) and the framework simply records it.
+//
+//   Use this for trait checks, type predicates, simple
+// constant comparisons - anything that costs no measurable
+// time and has no setup.
+inline array_node_alias*
+append_leaf(
+    array_test_tree&  _tree,
+    array_node_alias* _parent,
+    bool              _passed,
+    const char*       _name
+)
+{
+    return _tree.underlying().append_child(
+        _parent,
+        djinterp::test::make_assert(_passed, _name));
+}
+
+
+// append_lazy_leaf
+//   helper: registers _fn into _table and appends an
+// assertion-kind leaf under _parent that carries the
+// returned callable id.  The leaf's result is not
+// evaluated by this call - it is evaluated by the handler
+// during the tree walk, when it invokes the registered
+// closure on the leaf's mutable test_object.
+//
+//   The closure must mutate the supplied test_object's
+// m_result and m_status fields to reflect the test's
+// outcome, exactly as the framework's evaluate(_result)
+// path does for the eager case.
+//
+//   Use this for any test whose body does measurable
+// runtime work: thread spawns, lock-protected loops,
+// long arithmetic, file I/O, anything that would block
+// the eager subtree-construction phase.
+//
+// Example:
+//   append_lazy_leaf(tree, root, table,
+//       "concurrent readers see consistent snapshots",
+//       [](array_test_obj& self) {
+//           ts_mtx_arr<int, 4> a(10, 20, 30, 40);
+//           // ... thread spawns, loops, joins ...
+//           bool ok = (mismatches == 0);
+//           self.m_result = ok;
+//           self.m_status = ok
+//               ? array_test_obj::status_passed
+//               : array_test_obj::status_failed;
+//       });
+template<typename _Fn>
+inline array_node_alias*
+append_lazy_leaf(
+    array_test_tree&           _tree,
+    array_node_alias*          _parent,
+    array_test_callable_table& _table,
+    const char*                _name,
+    _Fn                        _fn
+)
+{
+    djinterp::test::test_callable_id id =
+        _table.register_callable(
+            array_test_callable_table::callable_type{
+                static_cast<_Fn&&>(_fn) });
+
+    // start the leaf in the pending state; the closure
+    // will overwrite m_result / m_status during the walk.
+    array_test_obj obj(djinterp::test::D_TEST_KIND_ASSERT,
+                       false,
+                       _name);
+    obj.set_status(array_test_obj::status_pending);
+    obj.set_callable_id(id);
+
+    return _tree.underlying().append_child(_parent, obj);
+}
+
+
 // =========================================================================
 // PART A:  BASE ARRAY CONTAINER
 // =========================================================================
@@ -302,6 +398,7 @@ using array_test_tree = djinterp::test::test_tree<
 // classification_traits modules say it should.  Failures here
 // indicate a regression in the trait detectors OR in the array's
 // public interface (an unexpected method exposed/hidden).
+
 array_test_tree test_array_axis_constexpr_runtime(test::test_type_id _kind);
 array_test_tree test_array_axis_mutable_immutable(test::test_type_id _kind);
 array_test_tree test_array_axis_iterable_non_iterable(test::test_type_id _kind);
@@ -318,6 +415,7 @@ array_test_tree test_array_lifetime_taxonomy(test::test_type_id _kind);
 //   Default construction, parameter-pack construction, copy / move,
 // plus the two extent edge cases (extent=0 and extent=1).  These
 // tests trigger constructor selection for every cell of the cube.
+
 array_test_tree test_array_default_construction(test::test_type_id _kind);
 array_test_tree test_array_pack_construction(test::test_type_id _kind);
 array_test_tree test_array_copy_construction(test::test_type_id _kind);
@@ -332,6 +430,7 @@ array_test_tree test_array_single_extent_edge_case(test::test_type_id _kind);
 //   Verifies operator[], at(), front(), back(), and data() across
 // const and non-const overloads.  Edge case: a one-element array
 // has front() == back().
+
 array_test_tree test_array_subscript_access(test::test_type_id _kind);
 array_test_tree test_array_at_access(test::test_type_id _kind);
 array_test_tree test_array_front_back_access(test::test_type_id _kind);
@@ -344,6 +443,7 @@ array_test_tree test_array_const_access_paths(test::test_type_id _kind);
 // =========================================================================
 //   begin/end round-trips, range-based for, reverse iteration, and
 // SFINAE absence of begin() on non-iterable cells.
+
 array_test_tree test_array_begin_end(test::test_type_id _kind);
 array_test_tree test_array_const_iteration(test::test_type_id _kind);
 array_test_tree test_array_reverse_iteration(test::test_type_id _kind);
@@ -355,6 +455,7 @@ array_test_tree test_array_non_iterable_sfinae(test::test_type_id _kind);
 // VI.  CATEGORY: MUTATION
 // =========================================================================
 //   Mutators on mutable cells; SFINAE absence on immutable cells.
+
 array_test_tree test_array_subscript_assignment(test::test_type_id _kind);
 array_test_tree test_array_fill(test::test_type_id _kind);
 array_test_tree test_array_member_swap(test::test_type_id _kind);
@@ -364,6 +465,7 @@ array_test_tree test_array_immutable_sfinae(test::test_type_id _kind);
 // =========================================================================
 // VII. CATEGORY: BULK ALGORITHMS
 // =========================================================================
+
 array_test_tree test_array_equal_function(test::test_type_id _kind);
 array_test_tree test_array_copy_function(test::test_type_id _kind);
 array_test_tree test_array_swap_function(test::test_type_id _kind);
@@ -375,6 +477,7 @@ array_test_tree test_array_swap_function(test::test_type_id _kind);
 //   Demonstrates that an array can be constructed, accessed, and
 // compared inside a constant expression.  C++14+ also exercises
 // the relaxed-constexpr mutator path.
+
 array_test_tree test_array_constexpr_construction(test::test_type_id _kind);
 array_test_tree test_array_constexpr_access(test::test_type_id _kind);
 array_test_tree test_array_constexpr_mutation_cpp14(test::test_type_id _kind);
@@ -383,6 +486,7 @@ array_test_tree test_array_constexpr_mutation_cpp14(test::test_type_id _kind);
 // =========================================================================
 // IX.  CATEGORY: ITERATOR ALGORITHM INTEROP
 // =========================================================================
+
 array_test_tree test_array_constexpr_iterator_algorithms(test::test_type_id _kind);
 
 
@@ -411,11 +515,17 @@ array_test_tree test_array_constexpr_iterator_algorithms(test::test_type_id _kin
 // classification.  Failures here indicate a regression in the
 // trait detectors, in the wrappers' specializations, or in the
 // strategy tag exports.
-array_test_tree test_threadsafe_array_traits_axis_preservation(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_traits_strategy_locked(test::test_type_id _kind);
-array_test_tree test_atomic_array_traits_strategy_atomic(test::test_type_id _kind);
-array_test_tree test_cow_array_traits_strategy_cow(test::test_type_id _kind);
-array_test_tree test_threadsafe_traits_strategy_disjointness(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_traits_axis_preservation(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_traits_strategy_locked(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_traits_strategy_atomic(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_traits_strategy_cow(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_traits_strategy_disjointness(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -425,11 +535,17 @@ array_test_tree test_threadsafe_traits_strategy_disjointness(test::test_type_id 
 // construction, plus verification that move-construction and
 // move-assignment are correctly deleted (mutex non-portably-
 // transferable).
-array_test_tree test_threadsafe_array_default_construction(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_pack_construction(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_copy_construction(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_copy_assignment(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_move_deletion_sfinae(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_default_construction(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_pack_construction(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_copy_construction(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_copy_assignment(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_move_deletion_sfinae(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -440,9 +556,13 @@ array_test_tree test_threadsafe_array_move_deletion_sfinae(test::test_type_id _k
 // verify their values track mutations correctly even with
 // null_lock_policy (the lock-acquisition cost is zero but the
 // atomic_state still tracks).
-array_test_tree test_threadsafe_array_size_lockfree(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_version_query(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_empty_lockfree(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_size_lockfree(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_version_query(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_empty_lockfree(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -452,10 +572,15 @@ array_test_tree test_threadsafe_array_empty_lockfree(test::test_type_id _kind);
 // set(i,v).  Each acquires its own lock; tests verify that
 // values agree with the underlying array and that mutations
 // are visible across calls.
-array_test_tree test_threadsafe_array_size_locked(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_at_returns_value(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_set_visible(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_set_bumps_version(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_size_locked(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_at_returns_value(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_set_visible(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_set_bumps_version(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -466,9 +591,13 @@ array_test_tree test_threadsafe_array_set_bumps_version(test::test_type_id _kind
 // that handles dereference correctly, the underlying array
 // is reachable through operator-> and operator*, and that the
 // lock is released at scope exit.
-array_test_tree test_threadsafe_array_read_access(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_write_access(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_handle_lifetime(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_read_access(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_write_access(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_handle_lifetime(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -479,10 +608,16 @@ array_test_tree test_threadsafe_array_handle_lifetime(test::test_type_id _kind);
 // respectively; batch_guard holds a write lock across multiple
 // statements.  All paths must bump the version on mutation and
 // leave it untouched on read.
-array_test_tree test_threadsafe_array_assign(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_apply_write(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_apply_read(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_batch_guard(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_assign(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_apply_write(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_apply_read(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_batch_guard(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
 
 
 // =========================================================================
@@ -493,8 +628,11 @@ array_test_tree test_threadsafe_array_batch_guard(test::test_type_id _kind);
 // the read is retried.  Tests verify the protocol correctly
 // completes when uncontested and falls through to a real
 // read lock when contention exhausts the retry budget.
-array_test_tree test_threadsafe_array_optimistic_uncontested(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_optimistic_fallback(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_optimistic_uncontested(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_optimistic_fallback(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -505,8 +643,11 @@ array_test_tree test_threadsafe_array_optimistic_fallback(test::test_type_id _ki
 // Tests verify the snapshot's content matches the source at
 // the moment of capture, and that the snapshot is independent
 // of subsequent mutations.
-array_test_tree test_threadsafe_array_snapshot_content(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_snapshot_independence(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_snapshot_content(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_snapshot_independence(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -515,9 +656,13 @@ array_test_tree test_threadsafe_array_snapshot_independence(test::test_type_id _
 //   Verifies the alias templates resolve to the expected
 // concrete instantiations and that each carries the correct
 // lock-policy capability flags.
-array_test_tree test_threadsafe_array_alias_mutex(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_alias_timed(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_alias_shared_cpp17(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_alias_mutex(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_alias_timed(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_alias_shared_cpp17(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -528,10 +673,15 @@ array_test_tree test_threadsafe_array_alias_shared_cpp17(test::test_type_id _kin
 // behavior is uniform and that the policy-specific
 // capabilities (supports_shared, supports_timed) are reported
 // correctly through the CRTP base.
-array_test_tree test_threadsafe_array_policy_null(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_policy_exclusive(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_policy_timed(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_policy_shared_cpp17(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_policy_null(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_policy_exclusive(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_policy_timed(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_array_policy_shared_cpp17(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -541,10 +691,19 @@ array_test_tree test_threadsafe_array_policy_shared_cpp17(test::test_type_id _ki
 // readers do not corrupt state, concurrent writers
 // serialize correctly, version is monotonically
 // non-decreasing under writer load.
-array_test_tree test_threadsafe_array_concurrent_readers(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_concurrent_writers(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_concurrent_mixed(test::test_type_id _kind);
-array_test_tree test_threadsafe_array_concurrent_version_monotonic(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_array_concurrent_readers(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
+array_test_tree test_threadsafe_array_concurrent_writers(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
+array_test_tree test_threadsafe_array_concurrent_mixed(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
+array_test_tree test_threadsafe_array_concurrent_version_monotonic(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
 
 
 // =========================================================================
@@ -554,9 +713,13 @@ array_test_tree test_threadsafe_array_concurrent_version_monotonic(test::test_ty
 // constructor stores the supplied value to every slot;
 // copy/move are deleted because std::atomic<T> is non-
 // copyable.
-array_test_tree test_atomic_array_default_construction(test::test_type_id _kind);
-array_test_tree test_atomic_array_fill_construction(test::test_type_id _kind);
-array_test_tree test_atomic_array_copy_move_deletion_sfinae(test::test_type_id _kind);
+
+array_test_tree test_atomic_array_default_construction(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fill_construction(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_copy_move_deletion_sfinae(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -566,10 +729,15 @@ array_test_tree test_atomic_array_copy_move_deletion_sfinae(test::test_type_id _
 // optional memory_order.  Tests verify round-trip values,
 // independence of distinct slots, and that exchange()
 // returns the prior value.
-array_test_tree test_atomic_array_load_store(test::test_type_id _kind);
-array_test_tree test_atomic_array_exchange(test::test_type_id _kind);
-array_test_tree test_atomic_array_memory_orderings(test::test_type_id _kind);
-array_test_tree test_atomic_array_slot_independence(test::test_type_id _kind);
+
+array_test_tree test_atomic_array_load_store(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_exchange(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_memory_orderings(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_slot_independence(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -577,11 +745,17 @@ array_test_tree test_atomic_array_slot_independence(test::test_type_id _kind);
 // =========================================================================
 //   fetch_* family: returns the prior value and applies the
 // arithmetic / bitwise update atomically.
-array_test_tree test_atomic_array_fetch_add(test::test_type_id _kind);
-array_test_tree test_atomic_array_fetch_sub(test::test_type_id _kind);
-array_test_tree test_atomic_array_fetch_and(test::test_type_id _kind);
-array_test_tree test_atomic_array_fetch_or(test::test_type_id _kind);
-array_test_tree test_atomic_array_fetch_xor(test::test_type_id _kind);
+
+array_test_tree test_atomic_array_fetch_add(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_sub(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_and(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_or(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fetch_xor(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -591,9 +765,13 @@ array_test_tree test_atomic_array_fetch_xor(test::test_type_id _kind);
 // success returns true and leaves _expected unchanged;
 // failure returns false and updates _expected to the
 // observed value.
-array_test_tree test_atomic_array_cas_strong_success(test::test_type_id _kind);
-array_test_tree test_atomic_array_cas_strong_failure(test::test_type_id _kind);
-array_test_tree test_atomic_array_cas_weak_loop(test::test_type_id _kind);
+
+array_test_tree test_atomic_array_cas_strong_success(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_cas_strong_failure(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_cas_weak_loop(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -602,9 +780,13 @@ array_test_tree test_atomic_array_cas_weak_loop(test::test_type_id _kind);
 //   size, empty, fill, is_lock_free.  fill is per-element
 // atomic, NOT a coherent whole-array operation — tests
 // verify only that all slots end up at the supplied value.
-array_test_tree test_atomic_array_size_empty(test::test_type_id _kind);
-array_test_tree test_atomic_array_fill(test::test_type_id _kind);
-array_test_tree test_atomic_array_is_lock_free(test::test_type_id _kind);
+
+array_test_tree test_atomic_array_size_empty(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_fill(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_is_lock_free(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -613,9 +795,13 @@ array_test_tree test_atomic_array_is_lock_free(test::test_type_id _kind);
 //   begin/end/cbegin/cend yield std::atomic<T>* — callers
 // operate on each slot through its atomic interface.  data()
 // returns the underlying atomic_value_type pointer.
-array_test_tree test_atomic_array_begin_end(test::test_type_id _kind);
-array_test_tree test_atomic_array_data_pointer(test::test_type_id _kind);
-array_test_tree test_atomic_array_range_based_for(test::test_type_id _kind);
+
+array_test_tree test_atomic_array_begin_end(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_data_pointer(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_range_based_for(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -625,9 +811,13 @@ array_test_tree test_atomic_array_range_based_for(test::test_type_id _kind);
 // increments N times; the final sum must equal threads * N.
 // Verifies the per-element atomicity guarantee under
 // genuine contention.
-array_test_tree test_atomic_array_concurrent_fetch_add(test::test_type_id _kind);
-array_test_tree test_atomic_array_concurrent_disjoint_slots(test::test_type_id _kind);
-array_test_tree test_atomic_array_concurrent_cas_loop(test::test_type_id _kind);
+
+array_test_tree test_atomic_array_concurrent_fetch_add(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_concurrent_disjoint_slots(
+    test::test_type_id _kind);
+array_test_tree test_atomic_array_concurrent_cas_loop(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -636,9 +826,13 @@ array_test_tree test_atomic_array_concurrent_cas_loop(test::test_type_id _kind);
 //   Default construction yields an empty-state cow_state;
 // from-array construction copies the supplied array into
 // the state; copy/move are deleted (mutex inside).
-array_test_tree test_cow_array_default_construction(test::test_type_id _kind);
-array_test_tree test_cow_array_from_array_construction(test::test_type_id _kind);
-array_test_tree test_cow_array_copy_move_deletion_sfinae(test::test_type_id _kind);
+
+array_test_tree test_cow_array_default_construction(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_from_array_construction(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_copy_move_deletion_sfinae(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -646,9 +840,13 @@ array_test_tree test_cow_array_copy_move_deletion_sfinae(test::test_type_id _kin
 // =========================================================================
 //   read() returns a reference to the current array; size /
 // empty / at(i) are convenience wrappers.
-array_test_tree test_cow_array_read_returns_value(test::test_type_id _kind);
-array_test_tree test_cow_array_size_empty(test::test_type_id _kind);
-array_test_tree test_cow_array_at_returns_copy(test::test_type_id _kind);
+
+array_test_tree test_cow_array_read_returns_value(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_size_empty(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_at_returns_copy(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -658,10 +856,15 @@ array_test_tree test_cow_array_at_returns_copy(test::test_type_id _kind);
 // outlives subsequent writes.  Tests verify content fidelity
 // at capture time, independence from later mutations, and
 // version stamping behavior.
-array_test_tree test_cow_array_snapshot_content(test::test_type_id _kind);
-array_test_tree test_cow_array_snapshot_survives_write(test::test_type_id _kind);
-array_test_tree test_cow_array_snapshot_version(test::test_type_id _kind);
-array_test_tree test_cow_array_multiple_snapshots(test::test_type_id _kind);
+
+array_test_tree test_cow_array_snapshot_content(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_snapshot_survives_write(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_snapshot_version(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_multiple_snapshots(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -671,10 +874,15 @@ array_test_tree test_cow_array_multiple_snapshots(test::test_type_id _kind);
 // publishes the result; replace() swaps in a new array;
 // set(i, v) is the single-element shortcut.  Every write
 // bumps the version monotonically.
-array_test_tree test_cow_array_modify(test::test_type_id _kind);
-array_test_tree test_cow_array_replace(test::test_type_id _kind);
-array_test_tree test_cow_array_set_single(test::test_type_id _kind);
-array_test_tree test_cow_array_version_monotonic(test::test_type_id _kind);
+
+array_test_tree test_cow_array_modify(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_replace(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_set_single(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_version_monotonic(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -683,8 +891,11 @@ array_test_tree test_cow_array_version_monotonic(test::test_type_id _kind);
 //   Concurrent snapshots vs writers: snapshots are
 // self-consistent and writers serialize correctly under
 // the configured lock policy.
-array_test_tree test_cow_array_concurrent_snapshots(test::test_type_id _kind);
-array_test_tree test_cow_array_concurrent_writers(test::test_type_id _kind);
+
+array_test_tree test_cow_array_concurrent_snapshots(
+    test::test_type_id _kind);
+array_test_tree test_cow_array_concurrent_writers(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -693,9 +904,13 @@ array_test_tree test_cow_array_concurrent_writers(test::test_type_id _kind);
 //   Cross-cutting cases for all three wrappers: zero-extent,
 // single-element, large extents, and (where supported)
 // non-trivially-copyable element types.
-array_test_tree test_threadsafe_edge_zero_extent(test::test_type_id _kind);
-array_test_tree test_threadsafe_edge_single_element(test::test_type_id _kind);
-array_test_tree test_threadsafe_edge_large_extent(test::test_type_id _kind);
+
+array_test_tree test_threadsafe_edge_zero_extent(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_edge_single_element(
+    test::test_type_id _kind);
+array_test_tree test_threadsafe_edge_large_extent(
+    test::test_type_id _kind);
 
 
 // =========================================================================
@@ -752,25 +967,43 @@ array_test_tree test_threadsafe_edge_large_extent(test::test_type_id _kind);
 
 // make_array_test_subtree
 //   builds the subtree for Part A (base array container).
-array_test_tree make_array_test_subtree(test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+array_test_tree
+make_array_test_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
 
 // make_threadsafe_array_subtree
 //   builds the subtree for the threadsafe_array container, plus
 // the cross-cutting trait and edge-case tests.
-array_test_tree make_threadsafe_array_subtree(test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+//   Takes a callable table because the threadsafe_array module
+// includes runtime-heavy concurrent tests whose work is wrapped
+// in closures registered into the table; those closures fire
+// during the handler walk, not during this builder's call.
+array_test_tree
+make_threadsafe_array_subtree(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
 
 // make_atomic_array_subtree
 //   builds the subtree for the atomic_array container.
-array_test_tree make_atomic_array_subtree(test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+array_test_tree
+make_atomic_array_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
 
 // make_cow_array_subtree
 //   builds the subtree for the cow_array container.
-array_test_tree make_cow_array_subtree(test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+array_test_tree
+make_cow_array_subtree(
+    test::test_type_id _kind = test::D_TEST_KIND_MODULE);
 
 // make_threadsafe_array_test_subtree
 //   builds the suite-wide aggregate for Part B (all three
 // threadsafe wrappers combined under one suite root).
-array_test_tree make_threadsafe_array_test_subtree(test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+//   Takes a callable table forwarded to make_threadsafe_array_
+// subtree (the only sub-builder that currently has lazy leaves).
+array_test_tree
+make_threadsafe_array_test_subtree(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
 
 // make_combined_test_subtree
 //   builds a single tree containing both Part A (base array
@@ -782,7 +1015,11 @@ array_test_tree make_threadsafe_array_test_subtree(test::test_type_id _kind = te
 // runners back-to-back, but emits a single rooted tree so
 // that any printer or post-processor sees the whole suite
 // as one structural unit.
-array_test_tree make_combined_test_subtree(test::test_type_id _kind = test::D_TEST_KIND_MODULE);
+//   Takes a callable table forwarded into Part B's builder.
+array_test_tree
+make_combined_test_subtree(
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table);
 
 
 // =========================================================================
@@ -829,14 +1066,16 @@ array_test_tree make_combined_test_subtree(test::test_type_id _kind = test::D_TE
 // run_array_suite
 //   drives Part A (base array container).
 test::session_verdict
-run_array_suite(test::test_handler& _handler,
+run_array_suite(
+    test::test_handler& _handler,
     test::test_type_id  _kind        = test::D_TEST_KIND_MODULE,
     double*             _out_seconds = nullptr);
 
 // run_threadsafe_array_suite
 //   drives Part B (threadsafe wrappers).
 test::session_verdict
-run_threadsafe_array_suite(test::test_handler& _handler,
+run_threadsafe_array_suite(
+    test::test_handler& _handler,
     test::test_type_id  _kind        = test::D_TEST_KIND_MODULE,
     double*             _out_seconds = nullptr);
 
@@ -847,7 +1086,8 @@ run_threadsafe_array_suite(test::test_handler& _handler,
 // CI or a developer-facing one-shot runner that should print
 // every module's results together.
 test::session_verdict
-run_combined_suite(test::test_handler& _handler,
+run_combined_suite(
+    test::test_handler& _handler,
     test::test_type_id  _kind        = test::D_TEST_KIND_MODULE,
     double*             _out_seconds = nullptr);
 

@@ -107,6 +107,7 @@
 #include "./test_common.hpp"
 #include "./test_event.hpp"
 #include "./test_object.hpp"
+#include "./test_callable_table.hpp"
 
 
 // feature gates
@@ -272,7 +273,8 @@ public:
         : m_events(),
           m_result(),
           m_printer(nullptr),
-          m_printer_listener_ids()
+          m_printer_listener_ids(),
+          m_callable_table(nullptr)
     {}
 
     // destructor unbinds any printer bundle still attached.  The
@@ -453,6 +455,51 @@ public:
     printer() const D_NOEXCEPT
     {
         return m_printer;
+    }
+
+    // ---- deferred-callable table ----
+
+    // set_callable_table
+    //   binds a callable table to this handler.  When a table
+    // is bound, the walk inspects each leaf node's callable_id
+    // and, if non-zero, looks up and invokes the corresponding
+    // closure on the node BEFORE firing per-leaf status events.
+    // The closure is expected to mutate the node's m_result /
+    // m_status / m_message fields to reflect the test's
+    // outcome.
+    //
+    //   The handler stores only a non-owning pointer; the
+    // table's lifetime must encompass every walk.
+    //
+    //   Passing nullptr unbinds the table.  When unbound, all
+    // leaf nodes are treated as fully-evaluated (the framework
+    // behavior prior to the introduction of test_callable_table).
+    void set_callable_table(
+        basic_callable_table* _table
+    ) D_NOEXCEPT
+    {
+        m_callable_table = _table;
+
+        return;
+    }
+
+    // clear_callable_table
+    //   unbinds the callable table.  Equivalent to
+    // set_callable_table(nullptr).  Idempotent.
+    void clear_callable_table() D_NOEXCEPT
+    {
+        m_callable_table = nullptr;
+
+        return;
+    }
+
+    // callable_table
+    //   returns the currently bound callable table, or nullptr
+    // if none is bound.
+    D_CONSTEXPR basic_callable_table*
+    callable_table() const D_NOEXCEPT
+    {
+        return m_callable_table;
     }
 
     // ---- session lifecycle ----
@@ -649,22 +696,45 @@ private:
     // produce module_start / module_end pairs; leaf nodes
     // produce test_start / status-event / test_end triples.
     //
-    // The argument type is fixed at `basic_test` (the framework's
-    // concrete element type) because the lifecycle events carry
-    // `const basic_test*` payloads.  Callers wishing to walk
-    // protocol-satisfying types that are NOT basic_test should
-    // adapt them at the call site or fire events directly via
-    // `events()`.
+    //   When a callable table is bound and the leaf node
+    // carries a non-zero callable_id, the handler looks up
+    // the closure and invokes it on the (mutable) node BEFORE
+    // dispatching the status-specific event - so the
+    // closure's writes to m_result / m_status / m_message
+    // become visible to every downstream listener.  The
+    // closure is invoked exactly once per leaf visit.
+    //
+    // The argument type is `basic_test&` (mutable) because
+    // the deferred-callable path must be able to write the
+    // node's result fields.  Listeners receive the post-
+    // mutation value via const pointer; they do NOT see
+    // the pre-callable state.  Walks without a bound table
+    // skip the dispatch path and behave exactly as before.
     void visit_node(
-        const basic_test& _node
+        basic_test& _node
     )
     {
+        basic_test*       mut_ptr = &_node;
         const basic_test* obj_ptr = &_node;
         bool              is_leaf = node_is_leaf(_node);
 
         // dispatch interior-vs-leaf entry event
         if (is_leaf)
         {
+            // deferred-callable dispatch.  Invoked here -
+            // before on_test_start - so that any printer
+            // listener attached to on_test_start sees the
+            // post-mutation node.
+            if ( (m_callable_table != nullptr) &&
+                 _node.has_callable() )
+            {
+                test_callable_id id = _node.callable_id();
+                if (m_callable_table->contains(id))
+                {
+                    (*m_callable_table)[id](*mut_ptr);
+                }
+            }
+
             fire_if_listened<events::on_test_start>(obj_ptr);
         }
         else
@@ -836,6 +906,12 @@ protected:
     // virtual accessor on the hot path.
     test_printer*             m_printer;
     std::vector<listener_id>  m_printer_listener_ids;
+
+    // m_callable_table holds a non-owning pointer to the
+    // table consulted during walks for deferred evaluation.
+    // protected so subclasses can read it on the hot path
+    // without indirecting through the public accessor.
+    basic_callable_table*     m_callable_table;
 };
 
 
