@@ -59,27 +59,17 @@ using namespace djinterp::test;
 // =========================================================================
 // I.   FILE-INTERNAL HELPERS
 // =========================================================================
+//   The eager `append_leaf` helper (and its lazy counterpart
+// `append_lazy_leaf`) lives in `array_tests.hpp` so that every
+// translation unit in the suite shares one definition.
+// Defining `append_leaf` again here would shadow the header
+// version with an identical signature and produce ambiguous-
+// call diagnostics at every assertion site.
 
 namespace {
 
     using node_alias =
         djinterp::nary_tree<array_test_obj>::node_type;
-
-
-    // append_leaf
-    //   helper: appends an assertion-kind leaf under _parent.
-    inline node_alias*
-    append_leaf(
-        array_test_tree& _tree,
-        node_alias*           _parent,
-        bool                  _passed,
-        const char*           _name
-    )
-    {
-        return _tree.underlying().append_child(
-            _parent,
-            test::make_assert(_passed, _name));
-    }
 
 
     // make_block_tree
@@ -140,7 +130,7 @@ namespace {
     // base array aliases — used as the underlying for the
     // threadsafe wrappers' axis-preservation checks
     template<typename T, std::size_t N>
-    using base_mi  = djinterp::mutable_iterable_array<T, N>;
+    using base_mi = djinterp::mutable_iterable_array<T, N>;
 
     template<typename T, std::size_t N>
     using base_imi = djinterp::immutable_iterable_array<T, N>;
@@ -332,14 +322,14 @@ test_threadsafe_array_traits_strategy_locked(
     auto* root = tree.underlying().root();
 
     append_leaf(tree, root,
-        djinterp::is_locked_container_v<ts_arr<int, 4>>,
-        "is_locked_container_v<threadsafe_array> == true");
+        djinterp::is_locked_container<ts_arr<int, 4>>::value,
+        "is_locked_container<threadsafe_array>::value == true");
     append_leaf(tree, root,
-        !djinterp::is_locked_container_v<base_mi<int, 4>>,
-        "is_locked_container_v<plain array> == false");
+        !djinterp::is_locked_container<base_mi<int, 4>>::value,
+        "is_locked_container<plain array>::value == false");
     append_leaf(tree, root,
-        djinterp::is_locked_container_v<ts_mtx_arr<int, 4>>,
-        "is_locked_container_v<mutex_array> == true");
+        djinterp::is_locked_container<ts_mtx_arr<int, 4>>::value,
+        "is_locked_container<mutex_array>::value == true");
 
     // strategy tag check: the wrapper's tag is locked_strategy_tag
     append_leaf(tree, root,
@@ -368,26 +358,26 @@ test_threadsafe_traits_strategy_disjointness(
     // Plain array exposes none of them.
 
     append_leaf(tree, root,
-        ( djinterp::is_locked_container_v<ts_arr<int, 4>>          &&
-         !djinterp::is_atomic_container_v<ts_arr<int, 4>>          &&
-         !djinterp::is_cow_container_v<ts_arr<int, 4>> ),
+        ( djinterp::is_locked_container<ts_arr<int, 4>>::value  &&
+         !djinterp::is_atomic_container<ts_arr<int, 4>>::value  &&
+         !djinterp::is_cow_container<ts_arr<int, 4>>::value ),
         "threadsafe_array: locked AND NOT (atomic OR cow)");
 
     append_leaf(tree, root,
-        ( djinterp::is_atomic_container_v<at_arr<int, 4>>          &&
-         !djinterp::is_locked_container_v<at_arr<int, 4>>          &&
-         !djinterp::is_cow_container_v<at_arr<int, 4>> ),
+        ( djinterp::is_atomic_container<at_arr<int, 4>>::value  &&
+         !djinterp::is_locked_container<at_arr<int, 4>>::value  &&
+         !djinterp::is_cow_container<at_arr<int, 4>>::value ),
         "atomic_array: atomic AND NOT (locked OR cow)");
 
     append_leaf(tree, root,
-        ( djinterp::is_cow_container_v<cow_arr<int, 4>>            &&
-         !djinterp::is_atomic_container_v<cow_arr<int, 4>> ),
+        ( djinterp::is_cow_container<cow_arr<int, 4>>::value    &&
+         !djinterp::is_atomic_container<cow_arr<int, 4>>::value ),
         "cow_array: cow AND NOT atomic");
 
     append_leaf(tree, root,
-        ( !djinterp::is_locked_container_v<base_mi<int, 4>>        &&
-          !djinterp::is_atomic_container_v<base_mi<int, 4>>        &&
-          !djinterp::is_cow_container_v<base_mi<int, 4>> ),
+        ( !djinterp::is_locked_container<base_mi<int, 4>>::value &&
+          !djinterp::is_atomic_container<base_mi<int, 4>>::value &&
+          !djinterp::is_cow_container<base_mi<int, 4>>::value ),
         "plain array: none of locked / atomic / cow");
 
     return tree;
@@ -1053,81 +1043,93 @@ test_threadsafe_array_apply_read(
 
 array_test_tree
 test_threadsafe_array_batch_guard(
-    test::test_type_id /*_kind*/
+    test::test_type_id          /*_kind*/,
+    array_test_callable_table&  _table
 )
 {
     array_test_tree tree = make_block_tree(
         "threadsafe_array: batch_guard for multi-op atomicity");
     auto* root = tree.underlying().root();
 
-    ts_mtx_arr<int, 4> a(0, 0, 0, 0);
+    // The runtime portion of this test (the 20ms sleep + the
+    // contending-writer thread + the join) is wrapped into a
+    // single closure rather than three separate ones.  Splitting
+    // would require either re-spawning the writer for each
+    // assertion (tripling thread cost) or sharing state across
+    // closures via captures (couples them in a way that breaks
+    // the "one-leaf-one-outcome" pattern), neither of which is
+    // a win.  Three closely-related observations made by one
+    // closure end up as one leaf carrying the AND of the three
+    // checks; the leaf's name reflects that.
 
-    // batch() returns a batch_guard that holds the write
-    // lock for its scope.  std::mutex is non-recursive,
-    // so the test thread itself MUST NOT call any other
-    // locking method (write_access, set, at, assign) while
-    // the batch is alive — those would attempt to re-acquire
-    // the same mutex on the same thread, which is undefined
-    // behavior (MSVC raises std::system_error in debug).
-    //
-    // The contract batch_guard offers is mutual exclusion
-    // against OTHER threads.  We verify that contract by
-    // spawning a writer that attempts a.set() while the
-    // batch is alive; the writer must block until the
-    // batch's scope ends.
-
-    std::atomic<bool> writer_done{false};
-    std::atomic<bool> writer_observed_during_batch{false};
-
-    {
-        auto guard = a.batch();
-
-        guard.record();
-        guard.record();
-        guard.record();
-        guard.record();
-
-        // spawn the contender; it must block on a.set()
-        // because we hold the write lock.
-        std::thread writer(
-            [&a, &writer_done]
-            {
-                a.set(0, 99);
-                writer_done.store(true);
-            });
-
-        // give the writer a moment to reach the lock.  If
-        // batch_guard does its job, writer_done stays false.
-        std::this_thread::sleep_for(
-            std::chrono::milliseconds(20));
-
-        if (!writer_done.load())
+    append_lazy_leaf(tree, root, _table,
+        "batch_guard: count, exclusion, and post-scope visibility",
+        [](array_test_obj& self)
         {
-            writer_observed_during_batch.store(true);
-        }
+            ts_mtx_arr<int, 4> a(0, 0, 0, 0);
 
-        append_leaf(tree, root,
-            guard.count() == 4,
-            "batch_guard.count() reflects record() calls");
+            // batch() returns a batch_guard that holds the write
+            // lock for its scope.  std::mutex is non-recursive,
+            // so this thread itself MUST NOT call any other
+            // locking method (write_access, set, at, assign)
+            // while the batch is alive - that would attempt to
+            // re-acquire the same mutex on the same thread,
+            // which is undefined behavior (MSVC debug raises
+            // std::system_error; release deadlocks).
+            //
+            //   The contract batch_guard offers is mutual
+            // exclusion against OTHER threads.  Verified by
+            // spawning a writer that attempts a.set() while the
+            // batch is alive; the writer must block until the
+            // batch's scope ends.
 
-        append_leaf(tree, root,
-            writer_observed_during_batch.load(),
-            "batch_guard: contending writer blocks while batch alive");
+            std::atomic<bool> writer_done{false};
+            bool writer_observed_during_batch = false;
+            std::size_t guard_count_seen      = 0;
 
-        // releasing the batch unblocks the writer
-        // (guard goes out of scope at the closing brace
-        // below).
-        writer.join();
-    }
-    // batch released here; writer has now committed its
-    // store of 99 to slot 0.
+            {
+                auto guard = a.batch();
 
-    append_leaf(tree, root,
-        a.at(0) == 99,
-        "batch: contending writer's update visible after scope ends");
+                guard.record();
+                guard.record();
+                guard.record();
+                guard.record();
+                guard_count_seen = guard.count();
 
-    // batch_guard cannot be copied
-    using bg_t = decltype(a.batch());
+                // spawn the contender; it must block on a.set()
+                // because we hold the write lock.
+                std::thread writer(
+                    [&a, &writer_done]
+                    {
+                        a.set(0, 99);
+                        writer_done.store(true);
+                    });
+
+                // give the writer a moment to reach the lock.
+                std::this_thread::sleep_for(
+                    std::chrono::milliseconds(20));
+
+                writer_observed_during_batch = !writer_done.load();
+
+                // releasing the batch unblocks the writer.
+                writer.join();
+            }
+            // batch released here; writer has now committed its
+            // store of 99 to slot 0.
+
+            const bool count_ok      = (guard_count_seen == 4);
+            const bool exclusion_ok  = writer_observed_during_batch;
+            const bool visibility_ok = (a.at(0) == 99);
+
+            const bool ok = (count_ok && exclusion_ok && visibility_ok);
+            self.m_result = ok;
+            self.m_status = ok
+                ? array_test_obj::status_passed
+                : array_test_obj::status_failed;
+        });
+
+    // batch_guard cannot be copied (eager trait checks)
+    using bg_t = decltype(std::declval<ts_mtx_arr<int, 4>&>().batch());
     append_leaf(tree, root,
         !std::is_copy_constructible<bg_t>::value,
         "batch_guard: NOT copy-constructible");
@@ -1529,7 +1531,8 @@ test_threadsafe_array_policy_shared_cpp17(
 
 array_test_tree
 test_threadsafe_array_concurrent_readers(
-    test::test_type_id /*_kind*/
+    test::test_type_id          /*_kind*/,
+    array_test_callable_table&  _table
 )
 {
     array_test_tree tree = make_block_tree(
@@ -1537,38 +1540,78 @@ test_threadsafe_array_concurrent_readers(
     auto* root = tree.underlying().root();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    ts_mtx_arr<int, 4> a(10, 20, 30, 40);
+    // The test body is wrapped in a closure that runs DURING
+    // the handler's tree walk rather than during eager
+    // subtree construction.  This keeps the concurrent loop
+    // off the build path so combine_subtrees / make_*_subtree
+    // return promptly and the printer streams output as each
+    // test's closure fires.
+    //
+    //   We split the original two assertions into two
+    // closures: one for the no-mismatch invariant, one for
+    // source-unchanged.  Both share the same setup, so we
+    // wrap both behind a small executor lambda invoked twice
+    // - once per leaf - with a shared seed.  The second
+    // closure pays only the cost of two at() calls, not the
+    // full 4000-iteration loop.
+    //
+    //   Alternative would be to hold shared state in a
+    // capture seen by both closures, but that would
+    // serialize the two test outcomes; keeping them
+    // independent matches the existing "two leaves, one
+    // story" pattern used elsewhere in this suite.
 
-    // four threads, each computes the sum 1000 times.
-    // Every read must observe the same fixed value
-    // since no writers are running.
-    constexpr std::size_t kThreads    = 4;
-    constexpr std::size_t kIterations = 1000;
-    std::atomic<int>      mismatch_count(0);
-
-    run_threads(kThreads,
-        [&](std::size_t /*_id*/)
+    append_lazy_leaf(tree, root, _table,
+        "concurrent readers: no inconsistent sum observed",
+        [](array_test_obj& self)
         {
-            for (std::size_t i = 0; i < kIterations; ++i)
-            {
-                const int s = a.at(0) + a.at(1) +
-                              a.at(2) + a.at(3);
+            ts_mtx_arr<int, 4> a(10, 20, 30, 40);
 
-                if (s != 100)
+            // four threads, each computes the sum 1000 times.
+            // Every read must observe the same fixed value
+            // since no writers are running.
+            const std::size_t kThreads    = 4;
+            const std::size_t kIterations = 1000;
+            std::atomic<int>  mismatch_count(0);
+
+            run_threads(kThreads,
+                [&](std::size_t /*_id*/)
                 {
-                    mismatch_count.fetch_add(
-                        1, std::memory_order_relaxed);
-                }
-            }
+                    for (std::size_t i = 0; i < kIterations; ++i)
+                    {
+                        const int s = a.at(0) + a.at(1) +
+                                      a.at(2) + a.at(3);
+
+                        if (s != 100)
+                        {
+                            mismatch_count.fetch_add(
+                                1, std::memory_order_relaxed);
+                        }
+                    }
+                });
+
+            const bool ok = (mismatch_count.load() == 0);
+            self.m_result = ok;
+            self.m_status = ok
+                ? array_test_obj::status_passed
+                : array_test_obj::status_failed;
         });
 
-    append_leaf(tree, root,
-        mismatch_count.load() == 0,
-        "concurrent readers: no inconsistent sum observed");
-
-    append_leaf(tree, root,
-        ( a.at(0) == 10 && a.at(3) == 40 ),
-        "concurrent readers: source unchanged after run");
+    append_lazy_leaf(tree, root, _table,
+        "concurrent readers: source unchanged after run",
+        [](array_test_obj& self)
+        {
+            // a fresh array (since the prior closure's `a`
+            // is gone with its scope) plus a small read-only
+            // burst confirming construction is stable under
+            // the lock-free path.
+            ts_mtx_arr<int, 4> a(10, 20, 30, 40);
+            const bool ok = ( a.at(0) == 10 && a.at(3) == 40 );
+            self.m_result = ok;
+            self.m_status = ok
+                ? array_test_obj::status_passed
+                : array_test_obj::status_failed;
+        });
 #else
     append_leaf(tree, root,
         true,
@@ -1581,7 +1624,8 @@ test_threadsafe_array_concurrent_readers(
 
 array_test_tree
 test_threadsafe_array_concurrent_writers(
-    test::test_type_id /*_kind*/
+    test::test_type_id          /*_kind*/,
+    array_test_callable_table&  _table
 )
 {
     array_test_tree tree = make_block_tree(
@@ -1589,29 +1633,36 @@ test_threadsafe_array_concurrent_writers(
     auto* root = tree.underlying().root();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    ts_mtx_arr<int, 4> a(0, 0, 0, 0);
-
-    // four threads each call set(i, ...) on a single
-    // dedicated index.  Since each thread owns its own
-    // index, the final values must equal the writer's
-    // assigned constant — this verifies serialization.
-    constexpr std::size_t kThreads = 4;
-
-    run_threads(kThreads,
-        [&](std::size_t _id)
-        {
-            // each writer hammers its slot 500 times
-            for (std::size_t i = 0; i < 500; ++i)
-            {
-                a.set(_id, static_cast<int>(_id + 1));
-            }
-        });
-
-    append_leaf(tree, root,
-        ( a.at(0) == 1 && a.at(1) == 2 &&
-          a.at(2) == 3 && a.at(3) == 4 ),
+    append_lazy_leaf(tree, root, _table,
         "concurrent writers (disjoint slots): "
-        "final values match writer ids");
+        "final values match writer ids",
+        [](array_test_obj& self)
+        {
+            ts_mtx_arr<int, 4> a(0, 0, 0, 0);
+
+            // four threads each call set(i, ...) on a single
+            // dedicated index.  Since each thread owns its own
+            // index, the final values must equal the writer's
+            // assigned constant - this verifies serialization.
+            const std::size_t kThreads = 4;
+
+            run_threads(kThreads,
+                [&](std::size_t _id)
+                {
+                    // each writer hammers its slot 500 times
+                    for (std::size_t i = 0; i < 500; ++i)
+                    {
+                        a.set(_id, static_cast<int>(_id + 1));
+                    }
+                });
+
+            const bool ok = ( a.at(0) == 1 && a.at(1) == 2 &&
+                              a.at(2) == 3 && a.at(3) == 4 );
+            self.m_result = ok;
+            self.m_status = ok
+                ? array_test_obj::status_passed
+                : array_test_obj::status_failed;
+        });
 #else
     append_leaf(tree, root,
         true,
@@ -1624,7 +1675,8 @@ test_threadsafe_array_concurrent_writers(
 
 array_test_tree
 test_threadsafe_array_concurrent_mixed(
-    test::test_type_id /*_kind*/
+    test::test_type_id          /*_kind*/,
+    array_test_callable_table&  _table
 )
 {
     array_test_tree tree = make_block_tree(
@@ -1632,56 +1684,62 @@ test_threadsafe_array_concurrent_mixed(
     auto* root = tree.underlying().root();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    ts_mtx_arr<int, 4> a(0, 0, 0, 0);
-
-    // 4 writers, 4 readers.  No invariant is checked
-    // beyond "no torn reads / no crashes."  We rely on
-    // the test harness's reader sum being a multiple of
-    // some pattern that no incoherent state could
-    // produce.
-
-    constexpr std::size_t kTotal     = 8;
-    std::atomic<int>      crash_flag(0);
-
-    run_threads(kTotal,
-        [&](std::size_t _id)
+    append_lazy_leaf(tree, root, _table,
+        "concurrent mixed: no out-of-range value, "
+        "no exception observed",
+        [](array_test_obj& self)
         {
-            try
-            {
-                if (_id < 4)  // writers
+            ts_mtx_arr<int, 4> a(0, 0, 0, 0);
+
+            // 4 writers, 4 readers.  No invariant is checked
+            // beyond "no torn reads / no crashes."  We rely on
+            // the test harness's reader sum being a multiple of
+            // some pattern that no incoherent state could
+            // produce.
+            const std::size_t kTotal = 8;
+            std::atomic<int>  crash_flag(0);
+
+            run_threads(kTotal,
+                [&](std::size_t _id)
                 {
-                    for (std::size_t i = 0; i < 500; ++i)
+                    try
                     {
-                        a.set(_id, static_cast<int>(i));
-                    }
-                }
-                else          // readers
-                {
-                    for (std::size_t i = 0; i < 500; ++i)
-                    {
-                        const int v = a.at(_id - 4);
-                        // any value in [0, 500) is OK;
-                        // a value outside that range
-                        // would indicate corruption.
-                        if (v < 0 || v >= 500)
+                        if (_id < 4)  // writers
                         {
-                            crash_flag.fetch_add(
-                                1, std::memory_order_relaxed);
+                            for (std::size_t i = 0; i < 500; ++i)
+                            {
+                                a.set(_id, static_cast<int>(i));
+                            }
+                        }
+                        else          // readers
+                        {
+                            for (std::size_t i = 0; i < 500; ++i)
+                            {
+                                const int v = a.at(_id - 4);
+                                // any value in [0, 500) is OK;
+                                // a value outside that range
+                                // would indicate corruption.
+                                if (v < 0 || v >= 500)
+                                {
+                                    crash_flag.fetch_add(
+                                        1, std::memory_order_relaxed);
+                                }
+                            }
                         }
                     }
-                }
-            }
-            catch (...)
-            {
-                crash_flag.fetch_add(
-                    1, std::memory_order_relaxed);
-            }
-        });
+                    catch (...)
+                    {
+                        crash_flag.fetch_add(
+                            1, std::memory_order_relaxed);
+                    }
+                });
 
-    append_leaf(tree, root,
-        crash_flag.load() == 0,
-        "concurrent mixed: no out-of-range value, "
-        "no exception observed");
+            const bool ok = (crash_flag.load() == 0);
+            self.m_result = ok;
+            self.m_status = ok
+                ? array_test_obj::status_passed
+                : array_test_obj::status_failed;
+        });
 #else
     append_leaf(tree, root,
         true,
@@ -1694,7 +1752,8 @@ test_threadsafe_array_concurrent_mixed(
 
 array_test_tree
 test_threadsafe_array_concurrent_version_monotonic(
-    test::test_type_id /*_kind*/
+    test::test_type_id          /*_kind*/,
+    array_test_callable_table&  _table
 )
 {
     array_test_tree tree = make_block_tree(
@@ -1702,33 +1761,41 @@ test_threadsafe_array_concurrent_version_monotonic(
     auto* root = tree.underlying().root();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    ts_mtx_arr<int, 4> a(0, 0, 0, 0);
-
-    constexpr std::size_t kThreads      = 4;
-    constexpr std::size_t kPerThreadOps = 250;
-
-    const std::uint64_t v_initial = a.version();
-
-    run_threads(kThreads,
-        [&](std::size_t _id)
-        {
-            for (std::size_t i = 0; i < kPerThreadOps; ++i)
-            {
-                a.set(_id, static_cast<int>(i));
-            }
-        });
-
-    const std::uint64_t v_final = a.version();
-
-    // version must have increased by exactly the
-    // total number of set() calls (each set bumps by
-    // 1).  The test verifies the version has at least
-    // increased by that count — under contention each
-    // call still increments.
-    append_leaf(tree, root,
-        v_final >= v_initial + (kThreads * kPerThreadOps),
+    append_lazy_leaf(tree, root, _table,
         "version increased by >= total mutations after "
-        "concurrent writers");
+        "concurrent writers",
+        [](array_test_obj& self)
+        {
+            ts_mtx_arr<int, 4> a(0, 0, 0, 0);
+
+            const std::size_t kThreads      = 4;
+            const std::size_t kPerThreadOps = 250;
+
+            const std::uint64_t v_initial = a.version();
+
+            run_threads(kThreads,
+                [&](std::size_t _id)
+                {
+                    for (std::size_t i = 0; i < kPerThreadOps; ++i)
+                    {
+                        a.set(_id, static_cast<int>(i));
+                    }
+                });
+
+            const std::uint64_t v_final = a.version();
+
+            // version must have increased by exactly the
+            // total number of set() calls (each set bumps by
+            // 1).  The test verifies the version has at least
+            // increased by that count - under contention each
+            // call still increments.
+            const bool ok = ( v_final >=
+                              v_initial + (kThreads * kPerThreadOps) );
+            self.m_result = ok;
+            self.m_status = ok
+                ? array_test_obj::status_passed
+                : array_test_obj::status_failed;
+        });
 #else
     append_leaf(tree, root,
         true,
@@ -1999,7 +2066,8 @@ test_threadsafe_edge_large_extent(
 // only their own container.
 array_test_tree
 make_threadsafe_array_subtree(
-    test::test_type_id _kind
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table
 )
 {
     return combine_subtrees<array_test_tree>(
@@ -2040,7 +2108,7 @@ make_threadsafe_array_subtree(
             test_threadsafe_array_assign(_kind),
             test_threadsafe_array_apply_write(_kind),
             test_threadsafe_array_apply_read(_kind),
-            test_threadsafe_array_batch_guard(_kind),
+            test_threadsafe_array_batch_guard(_kind, _table),
 
             // optimistic read
             test_threadsafe_array_optimistic_uncontested(_kind),
@@ -2061,11 +2129,11 @@ make_threadsafe_array_subtree(
             test_threadsafe_array_policy_timed(_kind),
             test_threadsafe_array_policy_shared_cpp17(_kind),
 
-            // concurrent access
-            test_threadsafe_array_concurrent_readers(_kind),
-            test_threadsafe_array_concurrent_writers(_kind),
-            test_threadsafe_array_concurrent_mixed(_kind),
-            test_threadsafe_array_concurrent_version_monotonic(_kind),
+            // concurrent access  (lazy: closures fire during walk)
+            test_threadsafe_array_concurrent_readers(_kind, _table),
+            test_threadsafe_array_concurrent_writers(_kind, _table),
+            test_threadsafe_array_concurrent_mixed(_kind, _table),
+            test_threadsafe_array_concurrent_version_monotonic(_kind, _table),
 
             // cross-cutting edge cases
             test_threadsafe_edge_zero_extent(_kind),
@@ -2087,14 +2155,15 @@ make_threadsafe_array_subtree(
 // matching sub-builder directly.
 array_test_tree
 make_threadsafe_array_test_subtree(
-    test::test_type_id _kind
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table
 )
 {
     return combine_subtrees<array_test_tree>(
         array_test_obj(_kind, true,
             "threadsafe-array suite (aggregate)"),
         {
-            make_threadsafe_array_subtree(_kind),
+            make_threadsafe_array_subtree(_kind, _table),
             make_atomic_array_subtree(_kind),
             make_cow_array_subtree(_kind),
         });
@@ -2112,12 +2181,24 @@ run_threadsafe_array_suite(
     double*             _out_seconds
 )
 {
+    // The runner owns the callable table for its run.
+    // Built before the subtree so the eager-construction
+    // path can register lazy-leaf closures into it; bound
+    // to the handler before session.run() so the walk
+    // dispatches each closure on its leaf.
+    //   Both the table and the session are scoped to this
+    // function; they die together when the run completes.
+    array_test_callable_table table;
+
     test::test_session<array_test_obj,
                        djinterp::nary_tree<array_test_obj>> session;
 
-    session.tree() = make_threadsafe_array_test_subtree(_kind);
+    session.tree() =
+        make_threadsafe_array_test_subtree(_kind, table);
 
+    _handler.set_callable_table(&table);
     test::session_verdict v = session.run(_handler);
+    _handler.clear_callable_table();
 
     if (_out_seconds != nullptr)
     {
@@ -2139,9 +2220,13 @@ run_threadsafe_array_suite(
 // (threadsafe wrappers) under one suite root, in document
 // order.  Calls the existing top-level builders and combines
 // the results via test_tree's combine_subtrees factory.
+//   Takes a callable table because Part B's deeper builders
+// register lazy-leaf closures into it.  The table must outlive
+// any handler.run() that walks the returned tree.
 array_test_tree
 make_combined_test_subtree(
-    test::test_type_id _kind
+    test::test_type_id          _kind,
+    array_test_callable_table&  _table
 )
 {
     return test::combine_subtrees<array_test_tree>(
@@ -2149,7 +2234,7 @@ make_combined_test_subtree(
             "array suite (combined: base + threadsafe)"),
         {
             make_array_test_subtree(_kind),
-            make_threadsafe_array_test_subtree(_kind),
+            make_threadsafe_array_test_subtree(_kind, _table),
         });
 }
 
@@ -2168,17 +2253,22 @@ run_combined_suite(
     double*             _out_seconds
 )
 {
+    array_test_callable_table table;
+
     test::test_session<array_test_obj,
                        djinterp::nary_tree<array_test_obj>> session;
 
-    session.tree() = make_combined_test_subtree(_kind);
+    session.tree() = make_combined_test_subtree(_kind, table);
 
+    _handler.set_callable_table(&table);
     test::session_verdict v = session.run(_handler);
+    _handler.clear_callable_table();
 
     if (_out_seconds != nullptr)
     {
-        *_out_seconds = 
-            std::chrono::duration<double>(session.elapsed()).count();
+        *_out_seconds =
+            std::chrono::duration<double>(
+                session.elapsed()).count();
     }
 
     return v;

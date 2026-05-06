@@ -82,6 +82,38 @@ NS_TEST
 typedef std::int32_t test_type_id;
 
 
+// test_callable_id
+//   type: opaque non-owning handle into a test_callable_table.
+//
+//   Used by test_object to reference a deferred-evaluation
+// callable (a closure or function) without storing the
+// callable inline.  This keeps test_object trivially
+// copyable and constexpr-friendly while still allowing
+// individual leaves to carry runtime work that the handler
+// invokes during the tree walk.
+//
+//   The value 0 is reserved as the "no callable" sentinel.
+// Any node carrying id 0 is treated as fully-evaluated
+// (the value already in the node's m_result / m_status is
+// authoritative); any node carrying a non-zero id is
+// treated as deferred (the handler invokes the callable
+// from the bound table immediately before firing
+// per-test events).
+//
+//   The choice of std::uint32_t allows up to ~4 billion
+// distinct callables per table without wrap.  Test suites
+// of any realistic size fit easily within this range.
+typedef std::uint32_t test_callable_id;
+
+
+// k_no_callable
+//   constant: the reserved zero-id meaning "no deferred
+// callable is bound to this node".  Equivalent to writing
+// 0 directly, but more self-documenting at call sites.
+D_STATIC D_CONSTEXPR test_callable_id k_no_callable =
+    static_cast<test_callable_id>(0);
+
+
 ///////////////////////////////////////////////////////////////////////////////
 ///                II.  STATUS CLASSIFICATION                               ///
 ///////////////////////////////////////////////////////////////////////////////

@@ -52,17 +52,18 @@
 *   C++11 minimum.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    TEST OBJECT
-* II.   CONVENIENCE ALIASES
-* III.  FACTORY FUNCTIONS
-*
-*
 * path:      /inc/djinterp/test/test_object.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.14
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    test object
+II.   convenience alias
+III.  factory functions
+*/
 
 #ifndef DJINTERP_TEST_OBJECT_
 #define DJINTERP_TEST_OBJECT_ 1
@@ -137,7 +138,8 @@ struct test_object
           m_name(nullptr),
           m_message(nullptr),
           m_options(nullptr),
-          m_depth(0)
+          m_depth(0),
+          m_callable_id(k_no_callable)
     {}
 
     // from type id
@@ -151,7 +153,8 @@ struct test_object
           m_name(nullptr),
           m_message(nullptr),
           m_options(nullptr),
-          m_depth(0)
+          m_depth(0),
+          m_callable_id(k_no_callable)
     {}
 
     // from type id and result
@@ -166,7 +169,8 @@ struct test_object
           m_name(nullptr),
           m_message(nullptr),
           m_options(nullptr),
-          m_depth(0)
+          m_depth(0),
+          m_callable_id(k_no_callable)
     {}
 
     // from type id, result, and name
@@ -182,7 +186,8 @@ struct test_object
           m_name(_name),
           m_message(nullptr),
           m_options(nullptr),
-          m_depth(0)
+          m_depth(0),
+          m_callable_id(k_no_callable)
     {}
 
     // from type id, result, name, and message
@@ -199,7 +204,8 @@ struct test_object
           m_name(_name),
           m_message(_message),
           m_options(nullptr),
-          m_depth(0)
+          m_depth(0),
+          m_callable_id(k_no_callable)
     {}
 
     // from type id, result, name, pass message, fail message
@@ -217,7 +223,8 @@ struct test_object
           m_name(_name),
           m_message(_result ? _message_pass : _message_fail),
           m_options(nullptr),
-          m_depth(0)
+          m_depth(0),
+          m_callable_id(k_no_callable)
     {}
 
     // -----------------------------------------------------------------
@@ -425,6 +432,44 @@ struct test_object
     }
 
     // -----------------------------------------------------------------
+    //  deferred callable (opaque handle)
+    // -----------------------------------------------------------------
+    //   When non-zero, this object refers to a closure stored
+    // in a test_callable_table elsewhere.  The handler invokes
+    // the closure on this object during the tree walk,
+    // immediately before firing per-test events; the closure
+    // mutates m_result / m_status / m_message / m_name as
+    // appropriate to reflect the test's outcome.
+    //
+    //   When zero (the default, k_no_callable), this object is
+    // treated as fully evaluated by data: the value already in
+    // m_result / m_status is authoritative and no callable is
+    // invoked.  This preserves the behavior of every existing
+    // data-driven leaf.
+
+    D_CONSTEXPR test_callable_id
+    callable_id() const D_NOEXCEPT
+    {
+        return m_callable_id;
+    }
+
+    D_CONSTEXPR bool
+    has_callable() const D_NOEXCEPT
+    {
+        return (m_callable_id != k_no_callable);
+    }
+
+    void
+    set_callable_id(
+        test_callable_id _id
+    ) D_NOEXCEPT
+    {
+        m_callable_id = _id;
+
+        return;
+    }
+
+    // -----------------------------------------------------------------
     //  storage
     // -----------------------------------------------------------------
 
@@ -436,6 +481,7 @@ struct test_object
     const char*             m_message;
     const dtest_option_set* m_options;
     size_type               m_depth;
+    test_callable_id        m_callable_id;
 };
 
 

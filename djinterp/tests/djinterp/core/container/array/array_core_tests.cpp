@@ -39,33 +39,26 @@ NS_DJINTERP
 NS_TESTING
 
 
-using namespace test;
+using namespace djinterp::test;
 
 
 // =========================================================================
 // I.   FILE-INTERNAL HELPERS
 // =========================================================================
+//   The eager `append_leaf` helper used by every test in this
+// translation unit lives in `array_tests.hpp` so that all four
+// .cpp files in the suite share one definition; defining it
+// again here would shadow the header's version with an
+// identical signature and produce ambiguous-call diagnostics
+// at every assertion site.  Only helpers that are genuinely
+// file-private (block-tree construction, recursive grafting,
+// the cube-cell aliases, and the SFINAE expression detectors)
+// are kept inside the unnamed namespace below.
 
 namespace {
 
     using node_alias =
         nary_tree<array_test_obj>::node_type;
-
-
-    // append_leaf
-    //   helper: appends an assertion-kind leaf under _parent.
-    inline node_alias*
-    append_leaf(
-        array_test_tree& _tree,
-        node_alias*      _parent,
-        bool             _passed,
-        const char*      _name
-    )
-    {
-        return _tree.underlying().append_child(
-            _parent,
-            test::make_assert(_passed, _name));
-    }
 
 
     // make_block_tree
@@ -165,41 +158,56 @@ namespace {
     //  SFINAE expression detectors
     // -------------------------------------------------------------------
     template<typename T, typename = void>
-    struct has_begin : std::false_type {};
+    struct has_begin : std::false_type
+    {};
+
     template<typename T>
     struct has_begin<T,
         decltype(void(std::declval<T&>().begin()))>
-        : std::true_type {};
+        : std::true_type
+    {};
 
     template<typename T, typename = void>
-    struct has_end : std::false_type {};
+    struct has_end : std::false_type
+    {};
+
     template<typename T>
     struct has_end<T,
         decltype(void(std::declval<T&>().end()))>
-        : std::true_type {};
+        : std::true_type
+    {};
 
     template<typename T, typename = void>
-    struct has_rbegin : std::false_type {};
+    struct has_rbegin : std::false_type
+    {};
+
     template<typename T>
     struct has_rbegin<T,
         decltype(void(std::declval<T&>().rbegin()))>
-        : std::true_type {};
+        : std::true_type
+    {};
 
     template<typename T, typename = void>
-    struct has_fill : std::false_type {};
+    struct has_fill : std::false_type
+    {};
+
     template<typename T>
     struct has_fill<T,
         decltype(void(std::declval<T&>().fill(
             std::declval<typename T::value_type>())))>
-        : std::true_type {};
+        : std::true_type
+    {};
 
     template<typename T, typename = void>
-    struct has_member_swap : std::false_type {};
+    struct has_member_swap : std::false_type
+    {};
+
     template<typename T>
     struct has_member_swap<T,
         decltype(void(std::declval<T&>().swap(
             std::declval<T&>())))>
-        : std::true_type {};
+        : std::true_type
+    {};
 
 }  // unnamed namespace
 
