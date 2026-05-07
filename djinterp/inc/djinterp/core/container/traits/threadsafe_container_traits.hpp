@@ -13,16 +13,19 @@
 *        unlock(), try_lock(), lock_shared(), etc.?
 *     3. Atomic state:   does the container use atomic members for
 *        lock-free metadata (size, version)?
-*   The existing concurrency traits from cpp_named11.hpp
-* (djinterp::is_basic_lockable, is_lockable,
-* is_shared_lockable, etc.) are reused for direct-locking
-* detection on the container type.
+*   The lockable named requirement traits (is_basic_lockable,
+* is_lockable, is_shared_lockable, is_timed_lockable) are defined
+* in section III below using structural SFINAE detection.  They
+* mirror the standard library's named requirements:
+*     BasicLockable    - lock(), unlock()
+*     Lockable         - BasicLockable + try_lock()
+*     SharedLockable   - lock_shared(), unlock_shared() (C++17)
+*     TimedLockable    - try_lock_for(duration)        (C++11)
 *   All detection is purely structural SFINAE.
 *
 * DEPENDENCIES:
 *   container_traits.hpp    - container classification
 *   threadsafe.hpp          - lock policies, thread_safety_level
-*   cpp_named11.hpp         - lockable named requirement traits
 *
 *
 * path:      /inc/djinterp/core/container/traits/
@@ -49,6 +52,7 @@ VIII.   combined classification
 
 // std
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <type_traits>
 // djinterp
@@ -291,8 +295,149 @@ inline constexpr bool policy_supports_timed_v =
 // ===========================================================================
 // Detects whether the container itself exposes lock/unlock
 // methods (as opposed to delegating to a policy).
-// Delegates to the existing djinterp::is_*
-// lockable traits from cpp_named11.hpp.
+//
+// Section III.A defines the lockable named requirement
+// traits (BasicLockable, Lockable, SharedLockable,
+// TimedLockable).  Section III.B applies them to container
+// types via the is_directly_* family.
+
+// ---------------------------------------------------------------------------
+// III.A  Lockable Named Requirement Traits
+// ---------------------------------------------------------------------------
+// Structural SFINAE detection mirroring the standard
+// library's lockable named requirements.  Detection is
+// purely on the presence of the required member functions;
+// the return types are not constrained, matching the named
+// requirement specifications.
+
+// has_lock_method
+//   type trait: true if _Type exposes a .lock() method.
+D_TYPE_TRAIT_TRUE(has_lock_method,
+    decltype(std::declval<_Type&>().lock()))
+
+// has_unlock_method
+//   type trait: true if _Type exposes a .unlock() method.
+D_TYPE_TRAIT_TRUE(has_unlock_method,
+    decltype(std::declval<_Type&>().unlock()))
+
+// has_try_lock_method
+//   type trait: true if _Type exposes a .try_lock() method.
+D_TYPE_TRAIT_TRUE(has_try_lock_method,
+    decltype(std::declval<_Type&>().try_lock()))
+
+// has_lock_shared_method
+//   type trait: true if _Type exposes a .lock_shared()
+// method.
+D_TYPE_TRAIT_TRUE(has_lock_shared_method,
+    decltype(std::declval<_Type&>().lock_shared()))
+
+// has_unlock_shared_method
+//   type trait: true if _Type exposes a .unlock_shared()
+// method.
+D_TYPE_TRAIT_TRUE(has_unlock_shared_method,
+    decltype(std::declval<_Type&>().unlock_shared()))
+
+// has_try_lock_shared_method
+//   type trait: true if _Type exposes a .try_lock_shared()
+// method.
+D_TYPE_TRAIT_TRUE(has_try_lock_shared_method,
+    decltype(std::declval<_Type&>().try_lock_shared()))
+
+NS_INTERNAL
+
+    // has_try_lock_for_helper
+    //   helper: detects try_lock_for(duration) by probing
+    // with a concrete std::chrono::nanoseconds argument.
+    template<typename _Type, typename = void>
+    struct has_try_lock_for_helper : std::false_type
+    {};
+
+    template<typename _Type>
+    struct has_try_lock_for_helper<_Type,
+        std::void_t<decltype(std::declval<_Type&>().try_lock_for(
+            std::declval<std::chrono::nanoseconds>()))>>
+        : std::true_type
+    {};
+
+NS_END  // internal
+
+// has_try_lock_for_method
+//   type trait: true if _Type exposes try_lock_for(duration).
+template<typename _Type>
+struct has_try_lock_for_method
+{
+    static constexpr bool value =
+        internal::has_try_lock_for_helper<_Type>::value;
+};
+
+template<typename _Type>
+inline constexpr bool has_try_lock_for_method_v =
+    has_try_lock_for_method<_Type>::value;
+
+// is_basic_lockable
+//   type trait: true if _Type satisfies the BasicLockable
+// named requirement: exposes lock() and unlock().
+template<typename _Type>
+struct is_basic_lockable
+{
+    static constexpr bool value =
+        ( has_lock_method<_Type>::value    &&
+          has_unlock_method<_Type>::value );
+};
+
+template<typename _Type>
+inline constexpr bool is_basic_lockable_v =
+    is_basic_lockable<_Type>::value;
+
+// is_lockable
+//   type trait: true if _Type satisfies the Lockable named
+// requirement: BasicLockable + try_lock().
+template<typename _Type>
+struct is_lockable
+{
+    static constexpr bool value =
+        ( is_basic_lockable<_Type>::value      &&
+          has_try_lock_method<_Type>::value );
+};
+
+template<typename _Type>
+inline constexpr bool is_lockable_v =
+    is_lockable<_Type>::value;
+
+// is_shared_lockable
+//   type trait: true if _Type satisfies the SharedLockable
+// named requirement: lock_shared() and unlock_shared().
+template<typename _Type>
+struct is_shared_lockable
+{
+    static constexpr bool value =
+        ( has_lock_shared_method<_Type>::value    &&
+          has_unlock_shared_method<_Type>::value );
+};
+
+template<typename _Type>
+inline constexpr bool is_shared_lockable_v =
+    is_shared_lockable<_Type>::value;
+
+// is_timed_lockable
+//   type trait: true if _Type satisfies the TimedLockable
+// named requirement: BasicLockable + try_lock_for(duration).
+template<typename _Type>
+struct is_timed_lockable
+{
+    static constexpr bool value =
+        ( is_basic_lockable<_Type>::value          &&
+          has_try_lock_for_method<_Type>::value );
+};
+
+template<typename _Type>
+inline constexpr bool is_timed_lockable_v =
+    is_timed_lockable<_Type>::value;
+
+
+// ---------------------------------------------------------------------------
+// III.B  Direct Lockable Container Detection
+// ---------------------------------------------------------------------------
 
 // is_directly_lockable
 //   type trait: true if the container itself satisfies the

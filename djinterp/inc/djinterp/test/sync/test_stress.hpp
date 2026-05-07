@@ -84,7 +84,7 @@ NS_TEST
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- threadsafe foundation wrappers used by this module ---
-using ::djinterp::threadsafe::atomic_size;
+using ::atomic_size;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   STRESS REPORT                                       ///

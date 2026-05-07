@@ -380,7 +380,7 @@ public:
                 return true;
             }
 
-            threadsafe::d_thread_yield();
+            d_thread_yield();
             std::this_thread::sleep_for(
                 std::chrono::microseconds(100));
         }

@@ -76,7 +76,7 @@ struct has_entry_owns_constant<_Type,
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool has_entry_owns_constant_v =
+    constexpr bool has_entry_owns_constant_v =
         has_entry_owns_constant<_Type>::value;
 #endif
 
@@ -128,7 +128,7 @@ D_TYPE_TRAIT_TRUE(has_release_entry_method,
 template<typename _Type>
 struct has_any_entry_point
 {
-    static D_CONSTEXPR bool value =
+    static constexpr bool value =
         ( has_entry_point_method<_Type>::value ||
           has_root_method<_Type>::value        ||
           has_head_method<_Type>::value );
@@ -136,7 +136,7 @@ struct has_any_entry_point
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool has_any_entry_point_v =
+    constexpr bool has_any_entry_point_v =
         has_any_entry_point<_Type>::value;
 #endif
 
@@ -157,7 +157,7 @@ NS_INTERNAL
              bool _Has = has_node_type<_Type>::value>
     struct node_type_helper
     {
-        using type = djinterp::nonesuch;
+        using type = nonesuch;
     };
 
     template<typename _Type>
@@ -200,7 +200,7 @@ NS_INTERNAL
              bool _Has = has_ownership_policy<_Type>::value>
     struct ownership_model_impl
     {
-        static D_CONSTEXPR DOwnershipModel value =
+        static constexpr DOwnershipModel value =
             DOwnershipModel::non_owning;
     };
 
@@ -209,19 +209,19 @@ NS_INTERNAL
     {
         using policy = typename _Type::ownership_policy;
 
-        static D_CONSTEXPR DOwnershipModel value =
+        static constexpr DOwnershipModel value =
             std::is_same<policy,
-                         djinterp::unique_owning_policy
+                         unique_owning_policy
             >::value
                 ? DOwnershipModel::unique
 
             : std::is_same<policy,
-                           djinterp::shared_owning_policy
+                           shared_owning_policy
               >::value
                 ? DOwnershipModel::shared
 
             : std::is_same<policy,
-                           djinterp::non_owning_policy
+                           non_owning_policy
               >::value
                 ? DOwnershipModel::non_owning
 
@@ -240,7 +240,7 @@ struct ownership_model_of
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR DOwnershipModel ownership_model_of_v =
+    constexpr DOwnershipModel ownership_model_of_v =
         ownership_model_of<_Type>::value;
 #endif
 
@@ -262,7 +262,7 @@ struct is_owning_container<_Type,
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool is_owning_container_v =
+    constexpr bool is_owning_container_v =
         is_owning_container<_Type>::value;
 #endif
 
@@ -271,14 +271,14 @@ struct is_owning_container<_Type,
 template<typename _Type>
 struct is_unique_owning_container
 {
-    static D_CONSTEXPR bool value =
+    static constexpr bool value =
         ( ownership_model_of<_Type>::value ==
           DOwnershipModel::unique );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool is_unique_owning_container_v =
+    constexpr bool is_unique_owning_container_v =
         is_unique_owning_container<_Type>::value;
 #endif
 
@@ -287,14 +287,14 @@ struct is_unique_owning_container
 template<typename _Type>
 struct is_shared_owning_container
 {
-    static D_CONSTEXPR bool value =
+    static constexpr bool value =
         ( ownership_model_of<_Type>::value ==
           DOwnershipModel::shared );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool is_shared_owning_container_v =
+    constexpr bool is_shared_owning_container_v =
         is_shared_owning_container<_Type>::value;
 #endif
 
@@ -309,14 +309,14 @@ struct is_shared_owning_container
 template<typename _Type>
 struct is_node_container
 {
-    static D_CONSTEXPR bool value =
+    static constexpr bool value =
         ( has_node_type<_Type>::value &&
           has_any_entry_point<_Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool is_node_container_v =
+    constexpr bool is_node_container_v =
         is_node_container<_Type>::value;
 #endif
 
@@ -325,14 +325,14 @@ struct is_node_container
 template<typename _Type>
 struct is_tree_shaped_container
 {
-    static D_CONSTEXPR bool value =
+    static constexpr bool value =
         ( is_node_container<_Type>::value &&
           has_root_method<_Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool is_tree_shaped_container_v =
+    constexpr bool is_tree_shaped_container_v =
         is_tree_shaped_container<_Type>::value;
 #endif
 
@@ -341,14 +341,14 @@ struct is_tree_shaped_container
 template<typename _Type>
 struct is_list_shaped_container
 {
-    static D_CONSTEXPR bool value =
+    static constexpr bool value =
         ( is_node_container<_Type>::value &&
           has_head_method<_Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool is_list_shaped_container_v =
+    constexpr bool is_list_shaped_container_v =
         is_list_shaped_container<_Type>::value;
 #endif
 
@@ -357,14 +357,14 @@ struct is_list_shaped_container
 template<typename _Type>
 struct is_doubly_linked_container
 {
-    static D_CONSTEXPR bool value =
+    static constexpr bool value =
         ( is_list_shaped_container<_Type>::value &&
           has_tail_method<_Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR bool is_doubly_linked_container_v =
+    constexpr bool is_doubly_linked_container_v =
         is_doubly_linked_container<_Type>::value;
 #endif
 
@@ -389,7 +389,7 @@ NS_INTERNAL
     template<typename _Type>
     struct shape_impl
     {
-        static D_CONSTEXPR DNodeContainerShape value =
+        static constexpr DNodeContainerShape value =
             is_tree_shaped_container<_Type>::value
                 ? DNodeContainerShape::tree
 
@@ -414,7 +414,7 @@ struct node_container_shape_of
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     template<typename _Type>
-    D_CONSTEXPR DNodeContainerShape node_container_shape_of_v =
+    constexpr DNodeContainerShape node_container_shape_of_v =
         node_container_shape_of<_Type>::value;
 #endif
 
@@ -424,45 +424,45 @@ template<typename _Type>
 struct node_container_class
 {
     // identity
-    static D_CONSTEXPR bool is_node_container =
-        djinterp::is_node_container<_Type>::value;
+    static constexpr bool is_node_container =
+        ::djinterp::is_node_container<_Type>::value;
 
     // shape
-    static D_CONSTEXPR DNodeContainerShape shape =
+    static constexpr DNodeContainerShape shape =
         node_container_shape_of<_Type>::value;
-    static D_CONSTEXPR bool is_tree_shaped =
+    static constexpr bool is_tree_shaped =
         is_tree_shaped_container<_Type>::value;
-    static D_CONSTEXPR bool is_list_shaped =
+    static constexpr bool is_list_shaped =
         is_list_shaped_container<_Type>::value;
-    static D_CONSTEXPR bool is_doubly_linked =
+    static constexpr bool is_doubly_linked =
         is_doubly_linked_container<_Type>::value;
 
     // ownership
-    static D_CONSTEXPR bool has_ownership =
+    static constexpr bool has_ownership =
         has_ownership_policy<_Type>::value;
-    static D_CONSTEXPR DOwnershipModel ownership =
+    static constexpr DOwnershipModel ownership =
         ownership_model_of<_Type>::value;
-    static D_CONSTEXPR bool is_owning =
+    static constexpr bool is_owning =
         is_owning_container<_Type>::value;
-    static D_CONSTEXPR bool is_unique_owning =
+    static constexpr bool is_unique_owning =
         is_unique_owning_container<_Type>::value;
-    static D_CONSTEXPR bool is_shared_owning =
+    static constexpr bool is_shared_owning =
         is_shared_owning_container<_Type>::value;
 
     // entry point
-    static D_CONSTEXPR bool has_entry =
+    static constexpr bool has_entry =
         has_any_entry_point<_Type>::value;
-    static D_CONSTEXPR bool has_root =
+    static constexpr bool has_root =
         has_root_method<_Type>::value;
-    static D_CONSTEXPR bool has_head =
+    static constexpr bool has_head =
         has_head_method<_Type>::value;
-    static D_CONSTEXPR bool has_tail =
+    static constexpr bool has_tail =
         has_tail_method<_Type>::value;
-    static D_CONSTEXPR bool has_release =
+    static constexpr bool has_release =
         has_release_entry_method<_Type>::value;
 
     // node type
-    static D_CONSTEXPR bool has_node =
+    static constexpr bool has_node =
         has_node_type<_Type>::value;
     using node = node_type_of_t<_Type>;
 };

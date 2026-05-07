@@ -10,12 +10,12 @@
 * already exist in the project's container metaprogramming graph
 * (concurrency_strategy_traits.hpp and threadsafe_container_traits.hpp).
 * Instead it RE-EXPORTS those probes into the
-* `djinterp::test::traits` namespace and adds the test-suite-specific
+* `test::traits` namespace and adds the test-suite-specific
 * composites and the few probes that are not present upstream.  This
 * avoids two slightly different detection probes for the same concept
 * drifting out of sync over time.
 *
-*   ALIASED FROM djinterp::traits (concurrency_strategy_traits.hpp):
+*   ALIASED FROM traits (concurrency_strategy_traits.hpp):
 *     has_concurrency_strategy_tag
 *     has_read_lock_method, has_write_lock_method
 *     has_snapshot_method, has_cow_state_type
@@ -47,7 +47,7 @@
 *
 * TABLE OF CONTENTS
 * =================
-* I.    RE-EXPORTED TRAITS FROM djinterp::traits
+* I.    RE-EXPORTED TRAITS FROM traits
 * II.   RE-EXPORTED TRAITS FROM djinterp
 * III.  TEST-SPECIFIC NESTED TYPE DETECTION
 * IV.   TEST-SPECIFIC LOCK INTERFACE DETECTION
@@ -83,7 +83,7 @@ NS_TRAITS
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                I.   RE-EXPORTED TRAITS FROM djinterp::traits            ///
+///                I.   RE-EXPORTED TRAITS FROM traits            ///
 ///////////////////////////////////////////////////////////////////////////////
 //   These traits are defined canonically in
 // concurrency_strategy_traits.hpp.  Bringing them into
@@ -92,15 +92,15 @@ NS_TRAITS
 // the test classification stays in lockstep with the
 // container classification.
 
-using ::djinterp::has_concurrency_strategy_tag;
-using ::djinterp::has_read_lock_method;
-using ::djinterp::has_write_lock_method;
-using ::djinterp::has_snapshot_method;
-using ::djinterp::has_cow_state_type;
-using ::djinterp::has_rcu_protected_type;
-using ::djinterp::has_epoch_type;
-using ::djinterp::has_hazard_domain_type;
-using ::djinterp::has_atomic_load_at;
+using ::has_concurrency_strategy_tag;
+using ::has_read_lock_method;
+using ::has_write_lock_method;
+using ::has_snapshot_method;
+using ::has_cow_state_type;
+using ::has_rcu_protected_type;
+using ::has_epoch_type;
+using ::has_hazard_domain_type;
+using ::has_atomic_load_at;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,17 +113,17 @@ using ::djinterp::has_atomic_load_at;
 // has_mutex_type for symmetry with the rest of this
 // header's nested-alias detection family.
 
-using ::djinterp::has_lock_policy_type;
-using ::djinterp::has_atomic_size_type;
-using ::djinterp::has_atomic_version_type;
+using ::has_lock_policy_type;
+using ::has_atomic_size_type;
+using ::has_atomic_version_type;
 
 // has_mutex_type
 //   alias: presence-detection for a `mutex_type` nested
 // alias.  Same predicate as upstream
-// `djinterp::has_mutex_type_alias`, exposed here under
+// `has_mutex_type_alias`, exposed here under
 // a shorter name.
 template<typename _Type>
-using has_mutex_type = ::djinterp::has_mutex_type_alias<_Type>;
+using has_mutex_type = ::has_mutex_type_alias<_Type>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -428,27 +428,27 @@ struct thread_test_class
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
-    // re-exported _v variants from djinterp::traits
-    using ::djinterp::has_concurrency_strategy_tag_v;
-    using ::djinterp::has_read_lock_method_v;
-    using ::djinterp::has_write_lock_method_v;
-    using ::djinterp::has_snapshot_method_v;
-    using ::djinterp::has_cow_state_type_v;
-    using ::djinterp::has_rcu_protected_type_v;
-    using ::djinterp::has_epoch_type_v;
-    using ::djinterp::has_hazard_domain_type_v;
-    using ::djinterp::has_atomic_load_at_v;
+    // re-exported _v variants from traits
+    using ::has_concurrency_strategy_tag_v;
+    using ::has_read_lock_method_v;
+    using ::has_write_lock_method_v;
+    using ::has_snapshot_method_v;
+    using ::has_cow_state_type_v;
+    using ::has_rcu_protected_type_v;
+    using ::has_epoch_type_v;
+    using ::has_hazard_domain_type_v;
+    using ::has_atomic_load_at_v;
 
     // re-exported _v variants from djinterp
-    using ::djinterp::has_lock_policy_type_v;
-    using ::djinterp::has_atomic_size_type_v;
-    using ::djinterp::has_atomic_version_type_v;
+    using ::has_lock_policy_type_v;
+    using ::has_atomic_size_type_v;
+    using ::has_atomic_version_type_v;
 
     // has_mutex_type_v: same predicate as upstream
-    // djinterp::has_mutex_type_alias_v.
+    // has_mutex_type_alias_v.
     template<typename _Type>
     D_CONSTEXPR bool has_mutex_type_v =
-        ::djinterp::has_mutex_type_alias_v<_Type>;
+        ::has_mutex_type_alias_v<_Type>;
 
     // test-specific
     template<typename _Type>

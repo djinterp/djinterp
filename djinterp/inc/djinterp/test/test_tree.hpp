@@ -46,7 +46,8 @@
 * =================
 * I.    UNDERLYING PROTOCOL DETECTION
 * II.   TEST TREE
-* III.  CONVENIENCE ALIASES
+* III.  SUBTREE COMBINATION
+* IV.   CONVENIENCE ALIASES
 *
 *
 * path:      /inc/djinterp/test/test_tree.hpp
@@ -59,7 +60,9 @@
 
 // std
 #include <cstddef>
+#include <initializer_list>
 #include <type_traits>
+#include <utility>
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/meta/type_traits.hpp"
@@ -465,7 +468,151 @@ public:
                     static_cast<test_status>(4)) > 0);
     }
 
+    // -----------------------------------------------------------------
+    //  subtree composition
+    // -----------------------------------------------------------------
+
+    // graft
+    //   Copies the entire structure of _src under _parent in this
+    // tree.  _src is unchanged; this tree gains a deep copy of
+    // every node in _src rooted as a child of _parent.
+    //   Useful for assembling a multi-module test session out of
+    // independently-built per-module subtrees: build each module's
+    // tree with its own builder function, then graft each one
+    // under a shared parent root in a master tree.
+    //   The underlying container must support append_child and the
+    // node protocol (data() / first_child() / next_sibling()) for
+    // walking the source.  Any other underlying that exposes these
+    // names will work too.
+    //
+    //   No-ops (returns nullptr) if either:
+    //     - _parent is null, or
+    //     - _src has no root (empty source tree).
+    //
+    //   Rank invariant: when _ValidateRank is true and both element
+    // types expose rank(), grafting honors the same parent-vs-child
+    // rank check as direct insertion.  The check is applied at the
+    // graft seam (parent vs. _src.root()); deeper rank relationships
+    // inside _src are presumed already valid because _src was
+    // assembled under the same invariant.
+    //
+    // Parameters:
+    //   _parent: pointer to the node in this tree under which _src's
+    //            structure will be cloned.  Must belong to this
+    //            tree's underlying container.
+    //   _src:    source subtree to clone.  Read-only.
+    //
+    // Returns:
+    //   pointer to the new node corresponding to _src's root in this
+    //   tree, or nullptr if no graft was performed.
+    template<typename _OtherUnderlying>
+    auto
+    graft(
+        decltype(std::declval<_Underlying&>().root())  _parent,
+        const test_tree<_Element, _OtherUnderlying>&   _src
+    )
+        -> decltype(std::declval<_Underlying&>().root())
+    {
+        return graft_impl(_parent, _src.underlying().root());
+    }
+
+    // append_subtree
+    //   Convenience wrapper: grafts _src under this tree's existing
+    // root.  Equivalent to `graft(this->root(), _src)`.
+    //
+    //   No-op (returns nullptr) if this tree has no root yet — call
+    // emplace_root on the underlying first, or use combine_subtrees
+    // (below) which constructs a fresh root from a label.
+    template<typename _OtherUnderlying>
+    auto
+    append_subtree(
+        const test_tree<_Element, _OtherUnderlying>& _src
+    )
+        -> decltype(std::declval<_Underlying&>().root())
+    {
+        return graft_impl(m_underlying.root(),
+                          _src.underlying().root());
+    }
+
+    // merge_into
+    //   Grafts every immediate child of _src's root under this
+    // tree's root.  Differs from append_subtree() in that the
+    // source's root node itself is dropped; only its descendants
+    // are transplanted.
+    //
+    //   Useful when _src already has a wrapping module-kind root
+    // and the caller wants its categories to appear directly under
+    // this tree's root rather than under another nested module.
+    //
+    //   No-op if either tree has no root.
+    template<typename _OtherUnderlying>
+    void
+    merge_into(
+        const test_tree<_Element, _OtherUnderlying>& _src
+    )
+    {
+        auto* dest_root = m_underlying.root();
+        auto* src_root  = _src.underlying().root();
+
+        if ((dest_root == nullptr) || (src_root == nullptr))
+        {
+            return;
+        }
+
+        for (auto* child = src_root->first_child();
+             child != nullptr;
+             child = child->next_sibling())
+        {
+            graft_impl(dest_root, child);
+        }
+
+        return;
+    }
+
 private:
+    // -----------------------------------------------------------------
+    //  internal: graft worker
+    // -----------------------------------------------------------------
+
+    // graft_impl
+    //   Recursive worker for graft / append_subtree / merge_into.
+    // Walks _src in pre-order and reconstructs the structure as a
+    // child-chain rooted at _parent in this tree's underlying
+    // container.
+    //
+    //   Templated on the source-node pointer type so the same
+    // worker accepts both this tree's own node types and those of
+    // a structurally-compatible foreign underlying.  Both must
+    // expose data() / first_child() / next_sibling().
+    template<typename _SrcNodePtr>
+    auto
+    graft_impl(
+        decltype(std::declval<_Underlying&>().root()) _parent,
+        _SrcNodePtr                                   _src
+    )
+        -> decltype(std::declval<_Underlying&>().root())
+    {
+        if ( (_parent == nullptr) ||
+             (_src    == nullptr) )
+        {
+            return nullptr;
+        }
+
+        // copy the source root's value as a child of _parent
+        auto* placed = m_underlying.append_child(_parent,
+                                                 _src->data());
+
+        // recurse over the source root's children
+        for (auto* child = _src->first_child();
+             child != nullptr;
+             child = child->next_sibling())
+        {
+            graft_impl(placed, child);
+        }
+
+        return placed;
+    }
+
     // -----------------------------------------------------------------
     //  internal: rank validation dispatch (pre-C++17)
     // -----------------------------------------------------------------
@@ -542,7 +689,70 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III. CONVENIENCE ALIASES                                 ///
+///                III. SUBTREE COMBINATION                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+// combine_subtrees
+//   Free factory: builds a fresh test_tree whose root is a
+// freshly-constructed _RootValue and whose children are deep
+// copies of every subtree in _sources, grafted under the new
+// root in document order.
+//
+//   This is the high-level "many independent module trees -> one
+// suite tree" composition primitive.  Each entry in _sources is
+// expected to be a fully-built test_tree (typically returned by
+// a per-module make_*_subtree() builder).  The returned tree
+// owns its own storage, independent of any source.
+//
+// Usage:
+//
+//   array_test_tree suite = combine_subtrees<
+//       array_test_tree>(
+//           make_test_module("array suite"),
+//           {
+//               make_array_test_subtree(),
+//               make_threadsafe_array_test_subtree()
+//           });
+//
+//   handler.run(suite.underlying());
+//
+// Template parameters:
+//   _Tree       : the output test_tree type (concrete
+//                 instantiation expected; element + underlying
+//                 are deduced from it).
+//   _RootValue  : the type of the root node's value (typically
+//                 the same as _Tree::value_type, but accepting
+//                 any forwardable type widens convenience).
+//
+// Parameters:
+//   _root_value : value placed at the root of the returned
+//                 tree.  Forwarded into emplace_root.
+//   _sources    : initializer list of source subtrees to graft
+//                 (in order) under the new root.
+template<typename _Tree, 
+         typename _RootValue>
+_Tree
+combine_subtrees(
+    _RootValue&&                 _root_value,
+    std::initializer_list<_Tree> _sources
+)
+{
+    _Tree result;
+
+    result.underlying().emplace_root(
+        std::forward<_RootValue>(_root_value));
+
+    for (const auto& src : _sources)
+    {
+        result.append_subtree(src);
+    }
+
+    return result;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                IV.  CONVENIENCE ALIASES                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // Convenience aliases are defined in test_defaults.hpp after
