@@ -1,127 +1,121 @@
-###############################################################################
-# djinterp - master build configuration
-# 
-# Top-level CMake entry point for the djinterp project.
-# Builds djinterp.lib — the combined library spanning all language modules.
+# =============================================================================
+# djinterp - root CMakeLists
 #
-# Location: <root>/build/cmake/config/CMakeLists.txt
+#   The build/test config tree mirrors inc/, src/, and tests/ exactly.  A
+# given module's headers, sources, tests, and CMakeLists are all reachable
+# at the same relative path under those four roots:
 #
-# author(s): Samuel 'teer' Neal-Blim                          date: 2023.03.01
-###############################################################################
-cmake_minimum_required(VERSION 3.20)
-
-# Project name
-project(djinterp VERSION 0.1 LANGUAGES C CXX)
-
-###############################################################################
-# DIRECTORY SETUP
-###############################################################################
-
-# Determine the project root directory
-# This CMakeLists.txt is located at: <root>/build/cmake/config/CMakeLists.txt
-# So we need to go up 3 levels to reach the root
-#   config -> cmake -> build -> <root>
-get_filename_component(DJINTERP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
-
-# Detect platform architecture
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(PLATFORM_ARCH "x64")
-else()
-    set(PLATFORM_ARCH "x86")
-endif()
-
-# Include common CMake utilities (lives alongside this file in config/)
-include(${CMAKE_CURRENT_SOURCE_DIR}/common.cmake)
-
-# Set C/C++ standards (propagated to all submodules)
-set(CMAKE_C_STANDARD 17 CACHE INTERNAL "")
-set(CMAKE_C_STANDARD_REQUIRED ON CACHE INTERNAL "")
-set(CMAKE_CXX_STANDARD 23 CACHE INTERNAL "")
-set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE INTERNAL "")
-
-# Print configuration
-message(STATUS "========================================")
-message(STATUS "djinterp Master Configuration")
-message(STATUS "========================================")
-message(STATUS "Root:              ${DJINTERP_ROOT}")
-message(STATUS "Platform:          ${PLATFORM_ARCH}")
-message(STATUS "C Standard:        ${CMAKE_C_STANDARD}")
-message(STATUS "C++ Standard:      ${CMAKE_CXX_STANDARD}")
-message(STATUS "========================================")
-
-###############################################################################
-# COMPILER FLAGS
-###############################################################################
-
-if(MSVC)
-    add_compile_options(/FS)
-endif()
-
-###############################################################################
-# LANGUAGE MODULES
-###############################################################################
-
-# C language module — builds djinterpc.lib and all C submodules
-add_subdirectory(c)
-
-# Future language modules would be added here:
-# add_subdirectory(cpp)
-# add_subdirectory(asm)
-
-###############################################################################
-# COMBINED LIBRARY: djinterp.lib
+#     <root>/inc/djinterp/core/container/array/array.hpp
+#     <root>/src/djinterp/core/container/array/...               (if any)
+#     <root>/tests/djinterp/core/container/array/array_tests.hpp
+#     <root>/build/cmake/config/testing/djinterp/core/container/array/CMakeLists.txt
 #
-# Aggregates all language-specific object libraries into a single djinterp.lib
-# that downstream consumers can link against.
-###############################################################################
+#   The exe lands at the same relative path under bin/:
+#     <root>/bin/<arch>-<Config>/testing/djinterp/core/container/array/array_tests.exe
+#
+#
+#   GENERATOR / TOOLSET
+#
+#   Configure (from project root):
+#
+#     cmake -G "Visual Studio 17 2022" -A x64 -T ClangCL ^
+#           -S build/cmake/config ^
+#           -B build/cmake/msvs
+#     cmake --build build/cmake/msvs --config Debug
+#
+#   In cmake-gui:
+#     Source:   <root>/build/cmake/config
+#     Build:    <root>/build/cmake/msvs
+#     Toolset:  ClangCL  (leave blank for default MSVC)
+#
+#
+#   AGGREGATE TARGETS
+#
+#   Any directory in the testing tree may be turned into an aggregate
+# meta-target by giving it a CMakeLists.txt that calls
+# djinterp_add_test_subtree(<name>).  The aggregate depends on every test
+# exe defined in any descendant directory.  Aggregates compose freely; the
+# same leaf may belong to many aggregates at different depths.  See
+# djinterp_module.cmake for the full description.
+# =============================================================================
 
-# Set output directories for the combined library
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DJINTERP_ROOT}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DJINTERP_ROOT}/lib")
+cmake_minimum_required(VERSION 3.21)
 
-foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${CONFIG} CONFIG_UPPER)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${DJINTERP_ROOT}/lib")
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} "${DJINTERP_ROOT}/lib")
-endforeach()
+project(djinterp
+        LANGUAGES C CXX
+        VERSION   0.1.0)
 
-# Gather all C object library objects
-set(DJINTERP_ALL_OBJECTS "")
-if(TARGET djinterpc-objects)
-    list(APPEND DJINTERP_ALL_OBJECTS $<TARGET_OBJECTS:djinterpc-objects>)
+
+# -----------------------------------------------------------------------------
+# 0. resolve the project root and well-known subtrees
+# -----------------------------------------------------------------------------
+#   This file lives at <root>/build/cmake/config/CMakeLists.txt, so the
+# project root is three levels up.  All other roots are derived from it.
+get_filename_component(DJINTERP_PROJECT_ROOT
+                       "${CMAKE_CURRENT_SOURCE_DIR}/../../.."
+                       ABSOLUTE)
+
+set(DJINTERP_PROJECT_ROOT "${DJINTERP_PROJECT_ROOT}"
+    CACHE PATH "Absolute path to the djinterp project root" FORCE)
+
+set(DJINTERP_INC_ROOT     "${DJINTERP_PROJECT_ROOT}/inc"   CACHE PATH "" FORCE)
+set(DJINTERP_SRC_ROOT     "${DJINTERP_PROJECT_ROOT}/src"   CACHE PATH "" FORCE)
+set(DJINTERP_TESTS_ROOT   "${DJINTERP_PROJECT_ROOT}/tests" CACHE PATH "" FORCE)
+set(DJINTERP_BIN_ROOT     "${DJINTERP_PROJECT_ROOT}/bin"   CACHE PATH "" FORCE)
+set(DJINTERP_CONFIG_ROOT  "${CMAKE_CURRENT_SOURCE_DIR}"    CACHE PATH "" FORCE)
+
+
+# -----------------------------------------------------------------------------
+# 1. wire in the helper module
+# -----------------------------------------------------------------------------
+#   djinterp_module.cmake lives next to this CMakeLists.  We add the current
+# source dir to CMAKE_MODULE_PATH so include(djinterp_module) resolves -
+# this also makes the module available to every subdirectory CMakeLists in
+# case they need to call its functions explicitly.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+include(djinterp_module)
+
+
+# -----------------------------------------------------------------------------
+# 2. enable CTest
+# -----------------------------------------------------------------------------
+#   Each test exe registers itself as a CTest test (via add_test) inside
+# djinterp_add_test_executable.  Run them all from the build dir with:
+#     ctest --output-on-failure -C Debug
+include(CTest)
+
+
+# -----------------------------------------------------------------------------
+# 3. shared C runtime - linked into every test/non-test exe
+# -----------------------------------------------------------------------------
+add_library(djinterp_c_runtime STATIC
+    "${DJINTERP_SRC_ROOT}/djinterp/core/env/env.c"
+    "${DJINTERP_SRC_ROOT}/djinterp/c/djinterp.c"
+)
+
+target_include_directories(djinterp_c_runtime PUBLIC
+    "${DJINTERP_INC_ROOT}"
+)
+
+target_compile_features(djinterp_c_runtime PRIVATE c_std_17)
+
+set_target_properties(djinterp_c_runtime PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    FOLDER                    "djinterp/runtime"
+)
+
+if (MSVC)
+    target_compile_definitions(djinterp_c_runtime PRIVATE _UNICODE UNICODE)
+    target_compile_options(djinterp_c_runtime PRIVATE
+        /W3 /sdl /permissive- /Zc:preprocessor)
 endif()
 
-# Future: add object libraries from other language modules
-# if(TARGET djinterpcpp-objects)
-#     list(APPEND DJINTERP_ALL_OBJECTS $<TARGET_OBJECTS:djinterpcpp-objects>)
-# endif()
 
-if(DJINTERP_ALL_OBJECTS)
-    add_library(djinterp-lib STATIC ${DJINTERP_ALL_OBJECTS})
-    set_target_properties(djinterp-lib PROPERTIES OUTPUT_NAME "djinterp")
-
-    if(TARGET djinterpc)
-        target_link_libraries(djinterp-lib PUBLIC djinterpc)
-    endif()
-
-    if(MSVC)
-        set_target_properties(djinterp-lib PROPERTIES
-            COMPILE_PDB_NAME "djinterp"
-            COMPILE_PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/djinterp.dir"
-        )
-    endif()
-
-    message(STATUS "Created combined library: djinterp.lib")
-else()
-    message(STATUS "No object libraries found — djinterp.lib not created")
-endif()
-
-###############################################################################
-# SUMMARY
-###############################################################################
-
-message(STATUS "")
-message(STATUS "djinterp Master Build Summary:")
-message(STATUS "  Language modules: c")
-message(STATUS "  Combined library: djinterp.lib")
-message(STATUS "")
+# -----------------------------------------------------------------------------
+# 4. recurse into the testing tree
+# -----------------------------------------------------------------------------
+#   The testing tree mirrors tests/ exactly: testing/djinterp/<rel>/...
+# Each directory either calls djinterp_add_test_executable() (leaf) or
+# djinterp_add_test_subtree() (aggregate).  Recursion is handled by the
+# subtree helper, so this root only needs to enter the top of the tree.
+add_subdirectory(testing)
