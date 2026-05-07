@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [test]                                           test_session.hpp
+* djinterp [test]                                             test_session.hpp
 *
 *   Test session: the top-level runtime context for executing tests.
 * A session owns a test tree, maintains quasi-global options,
@@ -7,12 +7,16 @@
 * and provides pause/resume lifecycle control.
 *
 *   CURRENT SCOPE:
-*   This header defines the foundational session structure.  The
-* following capabilities are stubbed for future implementation:
+*   The session ties together the framework's execution
+* primitives: it owns a tree, drives a handler, manages timer
+* and counter state, and exposes the verdict at the end.  The
+* run(test_handler&) overload below is the main entry point.
+*   The following capabilities are still stubbed for future
+* implementation:
 *   - save/load (serialization to/from binary or text)
-*   - nested session composition
 *   - parallel execution dispatch
-*   - reporter/formatter attachment
+*   - reporter/formatter attachment beyond the handler's
+*     own listener bundle
 *
 *   SESSION STATE:
 *   A session transitions through a linear state machine:
@@ -28,8 +32,11 @@
 *
 *   COUNTERS:
 *   The session owns a test_counter for each status category.
-* Counters are incremented by the execution engine (not yet
-* implemented) as each test element completes.
+* When run(test_handler&) returns, every counter reflects the
+* most recent run's tally - synced from the handler's
+* session_result via on_reset / on_increment events so any
+* listener bound to those gets a faithful event stream even
+* though the underlying tally came from outside the session.
 *
 *   TIMER:
 *   The session owns a test_timer measuring wall-clock
@@ -41,26 +48,33 @@
 * and constexpr support.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    SESSION STATE
-* II.   TEST SESSION
-*
-*
 * path:      /inc/djinterp/test/test_session.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
 ******************************************************************************/
 
+/*
+TABLE OF CONTENTS
+=================
+I.    Session state
+II.   Test session
+III.  Suite composition
+*/
+
 #ifndef DJINTERP_TEST_SESSION_
 #define DJINTERP_TEST_SESSION_ 1
 
+// std
 #include <cstddef>
 #include <chrono>
+#include <initializer_list>
+#include <utility>
+// djinterp
 #include "../core/djinterp.hpp"
 #include "./test_common.hpp"
 #include "./test_tree.hpp"
 #include "./test_counter.hpp"
+#include "./test_handler.hpp"
 #include "./test_timer.hpp"
 
 
@@ -98,10 +112,16 @@ enum class session_state
 //
 // Usage:
 //   test_session<basic_test, my_tree<basic_test>> session;
-//   // populate session.tree() ...
-//   session.run();
-//   // ... execution engine drives tests ...
-//   session.finish();
+//   default_test_handler                          handler;
+//
+//   // populate session.tree() directly, or compose from
+//   // multiple per-module subtrees:
+//   compose(session, make_test_module("my suite"),
+//           { make_module_a_subtree(),
+//             make_module_b_subtree() });
+//
+//   session_verdict v = session.run(handler);
+//
 //   auto passed = session.passed().value();
 template<typename _Element,
          typename _Underlying>
@@ -190,6 +210,87 @@ public:
         m_timer.start();
 
         return;
+    }
+
+    // run (with handler)
+    //   Drives this session's owned tree against _handler.
+    // Performs the full execution lifecycle: transitions the
+    // session through idle -> running -> finished, brackets the
+    // walk with timer start/stop, hands the underlying tree to
+    // the handler (which fires its own session_start /
+    // session_end events and walks the tree firing per-node
+    // events), and finally syncs the session's per-status
+    // counters from the handler's session_result.
+    //
+    //   This is the standard "run a session and get a verdict"
+    // entry point; the zero-argument run() above is the
+    // state-only variant retained for cases where the caller
+    // wants to manage walking themselves.
+    //
+    //   No-op if the session is not idle (returns the existing
+    // verdict computed from current counters).
+    //
+    // Parameters:
+    //   _handler: the test_handler driving the walk.  Listener
+    //             bundle (printer, logger, etc.) must already be
+    //             attached if any output is desired.  Passed by
+    //             reference; the handler is not owned.
+    //
+    // Returns:
+    //   The session_verdict for this run, equivalent to
+    //   _handler.result().verdict() once the walk completes.
+    session_verdict
+    run(
+        test_handler& _handler
+    )
+    {
+        if (m_state != session_state::idle)
+        {
+            return current_verdict();
+        }
+
+        m_state = session_state::running;
+        m_timer.start();
+
+        // hand the underlying tree to the handler.  test_handler::run
+        // brackets its own walk with start_session / end_session and
+        // resets its session_result up front, so we always end this
+        // call with a fresh, reliable result snapshot.
+        _handler.run(m_tree.underlying());
+
+        // sync session-owned counters from the handler's totals so
+        // that the session's passed/failed/skipped/pending/errors
+        // accessors report the most recent run's tallies.
+        sync_counters_from(_handler.result());
+
+        m_state = session_state::finished;
+        m_timer.stop();
+
+        return current_verdict();
+    }
+
+    // run (with handler and tree)
+    //   Replaces this session's owned tree with _tree (by move),
+    // then drives the run as run(_handler) does above.
+    //   Convenient when a caller has built a subtree separately
+    // (e.g. via combine_subtrees) and wants the session to run
+    // it without first manually moving it into m_tree.
+    //
+    //   No-op if the session is not idle.
+    session_verdict
+    run(
+        test_handler& _handler,
+        tree_type&&   _tree
+    )
+    {
+        if (m_state != session_state::idle)
+        {
+            return current_verdict();
+        }
+
+        m_tree = static_cast<tree_type&&>(_tree);
+
+        return run(_handler);
     }
 
     // pause
@@ -409,6 +510,87 @@ public:
     }
 
 private:
+    // -----------------------------------------------------------------
+    //  internal: counter sync and verdict
+    // -----------------------------------------------------------------
+
+    // sync_counters_from
+    //   Copies the per-status totals from a session_result
+    // (produced by test_handler) into this session's owned
+    // counters.  Each counter is reset to its initial value
+    // and then incremented to the result's tally; the counter
+    // emits its on_reset and on_increment events, so any
+    // listener bound to those gets a faithful event stream
+    // even though the underlying tally came from outside the
+    // session.
+    void
+    sync_counters_from(
+        const session_result& _r
+    )
+    {
+        m_passed.reset();
+        m_failed.reset();
+        m_skipped.reset();
+        m_pending.reset();
+        m_errors.reset();
+
+        if (_r.passed  > 0) m_passed.increment(
+                                static_cast<counter_value_type>(_r.passed));
+        if (_r.failed  > 0) m_failed.increment(
+                                static_cast<counter_value_type>(_r.failed));
+        if (_r.skipped > 0) m_skipped.increment(
+                                static_cast<counter_value_type>(_r.skipped));
+        if (_r.pending > 0) m_pending.increment(
+                                static_cast<counter_value_type>(_r.pending));
+        if (_r.errors  > 0) m_errors.increment(
+                                static_cast<counter_value_type>(_r.errors));
+
+        return;
+    }
+
+    // current_verdict
+    //   Computes a session_verdict from this session's owned
+    // counters using the same decision order as
+    // session_result::verdict():
+    //     - empty when nothing observed
+    //     - failed when any failure or error
+    //     - pending when no failures but unfinished work
+    //     - passed otherwise
+    session_verdict
+    current_verdict() const D_NOEXCEPT
+    {
+        const auto p = m_passed.value();
+        const auto f = m_failed.value();
+        const auto s = m_skipped.value();
+        const auto pn = m_pending.value();
+        const auto e = m_errors.value();
+
+        const auto t = p + f + s + pn + e;
+
+        if (t == 0)
+        {
+            return session_verdict::empty;
+        }
+
+        if ((f > 0) || (e > 0))
+        {
+            return session_verdict::failed;
+        }
+
+        if (pn > 0)
+        {
+            return session_verdict::pending;
+        }
+
+        return session_verdict::passed;
+    }
+
+    // counter_value_type
+    //   the underlying integer the session's counters store.
+    // Aliased here so the increment calls above can cast cleanly
+    // from the std::size_t fields of session_result.
+    using counter_value_type = typename counter_type::value_type;
+
     tree_type     m_tree;
     session_state m_state;
     counter_type  m_passed;
@@ -418,6 +600,97 @@ private:
     counter_type  m_errors;
     timer_type    m_timer;
 };
+
+
+// =========================================================================
+// III. SUITE COMPOSITION
+// =========================================================================
+
+// compose
+//   Free function: replaces _session's owned tree with a freshly
+// composed one whose root is a freshly-constructed _RootValue and
+// whose children are deep copies of every subtree in _sources,
+// grafted under the new root in document order.
+//
+//   This is the high-level "many independent module subtrees ->
+// one suite session" composition primitive: it wraps the tree-
+// level combine_subtrees() factory and assigns the result into
+// the session's owned tree.  After this call returns, the
+// session is idle and ready to run.
+//
+//   Useful for assembling a multi-module CI run from per-module
+// builders that each return an array_test_tree (or any other
+// concrete test_tree instantiation):
+//
+//     compose(session,
+//             make_test_module("array suite"),
+//             {
+//                 make_array_test_subtree(),
+//                 make_threadsafe_array_test_subtree()
+//             });
+//     verdict = session.run(handler);
+//
+// Template parameters:
+//   _Element     : test_tree element type (deduced from _session).
+//   _Underlying  : test_tree underlying container (deduced).
+//   _RootValue   : root node's value type (typically _Element).
+//
+// Parameters:
+//   _session    : the session to populate.  Must be idle; if not,
+//                 the existing tree is replaced and the session is
+//                 reset to idle.
+//   _root_value : value placed at the root of the composed tree.
+//   _sources    : initializer list of source subtrees to graft.
+template<typename _Element,
+         typename _Underlying,
+         typename _RootValue>
+void
+compose(
+    test_session<_Element, _Underlying>&                    _session,
+    _RootValue&&                                            _root_value,
+    std::initializer_list<test_tree<_Element, _Underlying>> _sources
+)
+{
+    using tree_type = test_tree<_Element, _Underlying>;
+
+    // ensure the session is idle and the prior tree is cleared
+    _session.reset();
+
+    tree_type composed = combine_subtrees<tree_type>(
+        std::forward<_RootValue>(_root_value),
+        _sources);
+
+    _session.tree() = static_cast<tree_type&&>(composed);
+
+    return;
+}
+
+
+// compose_and_run
+//   Free function: composes a multi-subtree session and
+// immediately runs it against _handler, returning the resulting
+// verdict.  Equivalent to compose(_session, _root_value,
+// _sources) followed by _session.run(_handler), but written as a
+// single call for the common one-shot "build, run, return
+// verdict" pattern that CI drivers and test-binary main()s
+// typically want.
+template<typename _Element,
+         typename _Underlying,
+         typename _RootValue>
+session_verdict
+compose_and_run(
+    test_session<_Element, _Underlying>&                    _session,
+    test_handler&                                           _handler,
+    _RootValue&&                                            _root_value,
+    std::initializer_list<test_tree<_Element, _Underlying>> _sources
+)
+{
+    compose(_session,
+            std::forward<_RootValue>(_root_value),
+            _sources);
+
+    return _session.run(_handler);
+}
 
 
 NS_END  // test

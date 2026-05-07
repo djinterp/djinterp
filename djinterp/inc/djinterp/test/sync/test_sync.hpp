@@ -6,7 +6,7 @@
 * used to coordinate test threads at well-defined moments.
 *
 *   These primitives are deliberately distinct from the production
-* primitives in djinterp::threadsafe.  They are tuned for test
+* primitives in threadsafe.  They are tuned for test
 * coordination - clarity and correctness over absolute performance -
 * and they expose hooks that production primitives intentionally
 * don't (e.g. arrival counts, last-to-arrive flags, timing of every
@@ -89,8 +89,8 @@ NS_TEST
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- threadsafe foundation wrappers used by this module ---
-using ::djinterp::threadsafe::portable_condvar;
-using ::djinterp::threadsafe::exclusive_lock_policy;
+using ::portable_condvar;
+using ::exclusive_lock_policy;
 
 // test_latch
 //   class: one-shot countdown latch.  Threads call

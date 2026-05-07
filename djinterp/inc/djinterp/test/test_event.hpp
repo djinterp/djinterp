@@ -31,7 +31,7 @@
 *        test_defaults.hpp).
 *
 *   `test_event<_IntType>` lives in the `events::` sub-namespace to
-* avoid colliding with the legacy non-templated `djinterp::test::test_event`
+* avoid colliding with the legacy non-templated `test::test_event`
 * declared in test_common.hpp (kept for source compatibility with the
 * old option-based callback wiring).  New code should always reach for
 * `events::test_event<...>`.

@@ -85,8 +85,8 @@ NS_TEST
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- threadsafe foundation wrappers used by this module ---
-using ::djinterp::threadsafe::portable_condvar;
-using ::djinterp::threadsafe::exclusive_lock_policy;
+using ::portable_condvar;
+using ::exclusive_lock_policy;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   DEADLOCK REPORT                                     ///

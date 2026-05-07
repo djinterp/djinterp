@@ -13,11 +13,11 @@
 *   - unordered associative containers (std::unordered_map/set)
 *   - cyclic graphs (no stable "first" element)
 *   - multisets (iteration order is defined by comparator, not
-*     insertion — use is_sorted_container instead)
+*     insertion - use is_sorted_container instead)
 *
 *   The CRTP base provides order-dependent operations that work on
 * any sequential container without knowing its storage layout:
-*   - positional access (at, front, back)
+*   - positional access (at, front, )
 *   - slicing (sub-range extraction)
 *   - rotation and reversal
 *   - shift operations (logical shift left/right by N positions)
@@ -33,32 +33,30 @@
 * III.    Free-Function Order Algorithms
 *
 *
-* path:      \inc\container\sequential_container.hpp
+* path:      /inc/djinterp/core/container/sequential_container.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
 ******************************************************************************/
 
-#ifndef DJINTERP_SEQUENTIAL_CONTAINER_
-#define DJINTERP_SEQUENTIAL_CONTAINER_ 1
+#ifndef DJINTERP_CONTAINER_SEQUENTIAL_
+#define DJINTERP_CONTAINER_SEQUENTIAL_ 1
 
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
 #include <utility>
-#include "..\djinterp.hpp"
-#include "meta\container_traits.hpp"
-#include "meta\iterator_traits.hpp"
+#include "../djinterp.hpp"
+#include "./traits/container_traits.hpp"
+#include "./iterator/iterator_traits.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
-// =============================================================================
+
+// ===========================================================================
 // I.   Sequential Container Traits
-// =============================================================================
-
-NS_TRAITS
+// ===========================================================================
 
 // is_sequential_container
 //   type trait: true if the container preserves insertion
@@ -72,13 +70,14 @@ NS_TRAITS
 // always a full SequenceContainer.
 NS_INTERNAL
 
-    template<typename _C, typename = void>
+    template<typename _Container,
+             typename = void>
     struct has_hasher_check : std::false_type
     {};
 
-    template<typename _C>
-    struct has_hasher_check<_C,
-        std::void_t<typename _C::hasher>>
+    template<typename _Container>
+    struct has_hasher_check<_Container,
+        std::void_t<typename _Container::hasher>>
         : std::true_type
     {};
 
@@ -95,10 +94,12 @@ struct is_sequential_container
                clean_type>::value );
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_sequential_container_v =
     is_sequential_container<_Type>::value;
 
+#endif
 // DSequentialKind
 //   enum: classifies the sequential storage model.
 enum class DSequentialKind
@@ -124,7 +125,8 @@ enum class DSequentialKind
 
 NS_INTERNAL
 
-    template<typename _Type, typename = void>
+    template<typename _Type,
+             typename = void>
     struct has_c_str_check : std::false_type
     {};
 
@@ -136,34 +138,34 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct sequential_kind_impl
+    struct sequential_kind_helper
     {
-        using C = clean_t<_Type>;
+        using clean_type = clean_t<_Type>;
 
         static constexpr DSequentialKind value =
             // string-like (has c_str())
-            has_c_str_check<C>::value
+            has_c_str_check<clean_type>::value
                 ? DSequentialKind::string_like
 
             // contiguous + random-access
-            : ( has_data_accessor_v<C> &&
-                is_random_access_iterable_v<C> )
+            : ( has_data_accessor_v<clean_type> &&
+                is_random_access_iterable_v<clean_type> )
                 ? DSequentialKind::array_like
 
             // bidirectional but not contiguous
-            : ( is_bidirectional_iterable_v<C> &&
-                !has_data_accessor_v<C> )
+            : ( is_bidirectional_iterable_v<clean_type> &&
+                !has_data_accessor_v<clean_type> )
                 ? DSequentialKind::list_like
 
             // forward-only
-            : ( is_forward_iterable_v<C> &&
-                !is_bidirectional_iterable_v<C> )
+            : ( is_forward_iterable_v<clean_type> &&
+                !is_bidirectional_iterable_v<clean_type> )
                 ? DSequentialKind::forward_list_like
 
             // random-access but not contiguous
             // (deque pattern)
-            : ( is_random_access_iterable_v<C> &&
-                !has_data_accessor_v<C> )
+            : ( is_random_access_iterable_v<clean_type> &&
+                !has_data_accessor_v<clean_type> )
                 ? DSequentialKind::deque_like
 
             : DSequentialKind::none;
@@ -175,27 +177,23 @@ template<typename _Type>
 struct sequential_kind
 {
     static constexpr DSequentialKind value =
-        internal::sequential_kind_impl<_Type>::value;
+        internal::sequential_kind_helper<_Type>::value;
 };
 
 template<typename _Type>
-inline constexpr DSequentialKind
-    sequential_kind_v =
-        sequential_kind<_Type>::value;
-
-NS_END  // traits
+inline constexpr DSequentialKind sequential_kind_v = sequential_kind<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  sequential_base (CRTP)
-// =============================================================================
+// ===========================================================================
 // Provides order-dependent operations for any sequential
 // container.  The derived class must expose:
 //   - begin() / end()
 //   - size()
 // Optional for full functionality:
 //   - operator[] (for positional access)
-//   - push_back / insert (for mutable operations)
+//   - push_ / insert (for mutable operations)
 
 template<typename _Derived>
 class sequential_base
@@ -415,9 +413,9 @@ public:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. Free-Function Order Algorithms
-// =============================================================================
+// ===========================================================================
 // Non-member algorithms that work on any sequential
 // container.
 
@@ -426,8 +424,8 @@ public:
 template<typename _Container,
          typename _Prefix>
 inline typename std::enable_if<
-    traits::is_sequential_container_v<_Container> &&
-    traits::is_sequential_container_v<_Prefix>,
+    is_sequential_container_v<_Container> &&
+    is_sequential_container_v<_Prefix>,
     bool
 >::type
 starts_with(const _Container& _container,
@@ -455,8 +453,8 @@ starts_with(const _Container& _container,
 template<typename _Container,
          typename _Suffix>
 inline typename std::enable_if<
-    traits::is_sequential_container_v<_Container> &&
-    traits::is_sequential_container_v<_Suffix>,
+    is_sequential_container_v<_Container> &&
+    is_sequential_container_v<_Suffix>,
     bool
 >::type
 ends_with(const _Container& _container,
@@ -493,8 +491,8 @@ ends_with(const _Container& _container,
 template<typename _Container,
          typename _Sub>
 inline typename std::enable_if<
-    traits::is_sequential_container_v<_Container> &&
-    traits::is_sequential_container_v<_Sub>,
+    is_sequential_container_v<_Container> &&
+    is_sequential_container_v<_Sub>,
     bool
 >::type
 contains_subsequence(const _Container& _container,
@@ -508,8 +506,7 @@ contains_subsequence(const _Container& _container,
 }
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_SEQUENTIAL_CONTAINER_
+#endif  // DJINTERP_CONTAINER_SEQUENTIAL_

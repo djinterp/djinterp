@@ -24,7 +24,7 @@
 *
 * USAGE:
 *   // 1. declare a table (one statement)
-*   static const auto my_cli = djinterp::test::cli_option_defs({
+*   static const auto my_cli = test::cli_option_defs({
 *       { "name",    'n', D_TEST_OPT_NAME,      D_OPTION_TYPE_STRING, "test name"    },
 *       { "verbose", 'v', D_TEST_OPT_VERBOSITY,  D_OPTION_TYPE_INT,   "verbosity"    },
 *       { "color",    0,  D_TEST_OPT_COLOR,      D_OPTION_TYPE_BOOL,  "enable colors" },
@@ -32,14 +32,14 @@
 *   });
 *
 *   // 2. parse in one statement
-*   auto [opts, result] = djinterp::test::cli_parse(argc, argv, my_cli);
+*   auto [opts, result] = test::cli_parse(argc, argv, my_cli);
 *
 *   // -- or parse into an existing test_options --
-*   auto opts = djinterp::test::test_options_default();
-*   auto result = djinterp::test::cli_parse_into(argc, argv, my_cli, opts);
+*   auto opts = test::test_options_default();
+*   auto result = test::cli_parse_into(argc, argv, my_cli, opts);
 *
 *   // -- or use the framework default table --
-*   auto [opts, result] = djinterp::test::cli_parse(argc, argv);
+*   auto [opts, result] = test::cli_parse(argc, argv);
 *
 * CLI SYNTAX:
 *   --key value       long option with separate value
@@ -50,12 +50,12 @@
 *   --help / -h       prints help and returns help_requested
 *
 * COMPONENTS:
-*   djinterp::test::cli_option_def     - single option definition
-*   djinterp::test::cli_option_table   - array of definitions (template)
-*   djinterp::test::DCliParseStatus    - parse result code
-*   djinterp::test::cli_parse_result   - parse result with details
-*   djinterp::test::cli_parse          - parse into new test_options
-*   djinterp::test::cli_parse_into     - parse into existing test_options
+*   test::cli_option_def     - single option definition
+*   test::cli_option_table   - array of definitions (template)
+*   test::DCliParseStatus    - parse result code
+*   test::cli_parse_result   - parse result with details
+*   test::cli_parse          - parse into new test_options
+*   test::cli_parse_into     - parse into existing test_options
 *
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
@@ -119,7 +119,7 @@ NS_INTERNAL
 
     template<typename _Seq>
     struct seq_has_push_back<_Seq,
-        djinterp::void_t<decltype(
+        void_t<decltype(
             std::declval<_Seq&>().push_back(
                 std::declval<typename _Seq::value_type>()))>>
         : std::true_type
@@ -134,7 +134,7 @@ NS_INTERNAL
 
     template<typename _Seq>
     struct seq_has_size<_Seq,
-        djinterp::void_t<decltype(
+        void_t<decltype(
             std::declval<const _Seq&>().size())>>
         : std::true_type
     {};
@@ -148,7 +148,7 @@ NS_INTERNAL
 
     template<typename _Seq>
     struct seq_has_empty<_Seq,
-        djinterp::void_t<decltype(
+        void_t<decltype(
             std::declval<const _Seq&>().empty())>>
         : std::true_type
     {};
@@ -162,7 +162,7 @@ NS_INTERNAL
 
     template<typename _Seq>
     struct seq_has_subscript<_Seq,
-        djinterp::void_t<decltype(
+        void_t<decltype(
             std::declval<const _Seq&>()[
                 std::declval<std::size_t>()])>>
         : std::true_type
@@ -177,7 +177,7 @@ NS_INTERNAL
 
     template<typename _Seq>
     struct seq_is_iterable<_Seq,
-        djinterp::void_t<
+        void_t<
             decltype(std::declval<const _Seq&>().begin()),
             decltype(std::declval<const _Seq&>().end())>>
         : std::true_type

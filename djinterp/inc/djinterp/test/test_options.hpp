@@ -8,9 +8,9 @@
 * not override.
 *
 *   DESIGN:
-*   dtest_option_set is an alias for option_set<DTestOption, djinterp::any>,
+*   dtest_option_set is an alias for option_set<DTestOption, any>,
 * reusing the keyed-collection infrastructure from option_set.hpp.
-* Heterogeneous value storage is achieved through djinterp::any - each
+* Heterogeneous value storage is achieved through any - each
 * DTestOption key maps to a different runtime type (std::size_t, bool,
 * function pointers, etc.) stored uniformly.
 *
@@ -71,13 +71,13 @@ NS_TEST
 //   enum: identifies a configurable parameter for test
 // objects.  Each enumerator maps to a value of a specific
 // runtime type stored in a dtest_option_set via
-// djinterp::any.
+// any.
 //
 //   max_failures  - std::size_t, stop after N failures (0 = no limit)
 //   max_successes - std::size_t, stop after N successes (0 = no limit)
 //   handler       - fn_test_event_handler, event callback (nullptr = none)
 //   verbose       - bool, emit detailed output
-//   metadata      - djinterp::any, user-defined payload
+//   metadata      - any, user-defined payload
 enum class DTestOption
 {
     max_failures  = 0,
@@ -98,12 +98,12 @@ D_STATIC_CONSTEXPR std::size_t D_TEST_OPTION_COUNT = 5;
 
 // dtest_option_set
 //   type: the default DTest option set.  Maps DTestOption
-// enumerators to heterogeneous values via djinterp::any,
+// enumerators to heterogeneous values via any,
 // backed by the generic option_set container.
 //
 // Usage:
 //   dtest_option_set opts;
-//   opts.insert(DTestOption::verbose, djinterp::any(true));
+//   opts.insert(DTestOption::verbose, any(true));
 //   bool v = opts.at(DTestOption::verbose).template get<bool>();
 using dtest_option_set = option_set<DTestOption, restd::any>;
 

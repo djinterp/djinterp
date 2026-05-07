@@ -781,7 +781,7 @@ struct trait_suite
 // arguments for 'type_equal'" diagnostic from the compiler.
 #define D_TEST_TYPE_EQ(...)                                         \
     static_assert(                                                  \
-        (::djinterp::test::type_equal< __VA_ARGS__ >::value),       \
+        (::test::type_equal< __VA_ARGS__ >::value),       \
         "D_TEST_TYPE_EQ failed: " #__VA_ARGS__                      \
         " -- first and second template arguments are not the "      \
         "same type")
@@ -792,7 +792,7 @@ struct trait_suite
 // rationale.
 #define D_TEST_TYPE_NEQ(...)                                        \
     static_assert(                                                  \
-        (!::djinterp::test::type_equal< __VA_ARGS__ >::value),      \
+        (!::test::type_equal< __VA_ARGS__ >::value),      \
         "D_TEST_TYPE_NEQ failed: " #__VA_ARGS__                     \
         " -- first and second template arguments are "              \
         "unexpectedly the same type")
@@ -802,7 +802,7 @@ struct trait_suite
 // types agree.  Variadic; see D_TEST_TYPE_EQ.
 #define D_TEST_TYPE_EQ_DECAYED(...)                                 \
     static_assert(                                                  \
-        (::djinterp::test::type_equal_decayed<                      \
+        (::test::type_equal_decayed<                      \
              __VA_ARGS__ >::value),                                 \
         "D_TEST_TYPE_EQ_DECAYED failed: " #__VA_ARGS__              \
         " -- decayed forms of first and second type differ")
@@ -811,7 +811,7 @@ struct trait_suite
 //   macro: assert that _Op<__VA_ARGS__> is well-formed.
 #define D_TEST_TRAIT_DETECTED(_Op, ...)                             \
     static_assert(                                                  \
-        (::djinterp::test::is_detected<                             \
+        (::test::is_detected<                             \
              _Op , __VA_ARGS__ >::value),                           \
         "D_TEST_TRAIT_DETECTED failed: "                            \
         #_Op "<" #__VA_ARGS__ "> not detected (expression "         \
@@ -821,7 +821,7 @@ struct trait_suite
 //   macro: assert that _Op<__VA_ARGS__> is ill-formed.
 #define D_TEST_TRAIT_NOT_DETECTED(_Op, ...)                         \
     static_assert(                                                  \
-        (!::djinterp::test::is_detected<                            \
+        (!::test::is_detected<                            \
              _Op , __VA_ARGS__ >::value),                           \
         "D_TEST_TRAIT_NOT_DETECTED failed: "                        \
         #_Op "<" #__VA_ARGS__ "> unexpectedly detected")
@@ -831,7 +831,7 @@ struct trait_suite
 // _Expected.
 #define D_TEST_TRAIT_DETECTED_EXACT(_Expected, _Op, ...)            \
     static_assert(                                                  \
-        (::djinterp::test::is_detected_exact<                       \
+        (::test::is_detected_exact<                       \
              _Expected , _Op , __VA_ARGS__ >::value),               \
         "D_TEST_TRAIT_DETECTED_EXACT failed: "                      \
         #_Op "<" #__VA_ARGS__ "> did not yield " #_Expected)
@@ -841,7 +841,7 @@ struct trait_suite
 // in the pack.
 #define D_TEST_TRAIT_ALL_OF(_Predicate, ...)                        \
     static_assert(                                                  \
-        (::djinterp::test::pack_all_of<                             \
+        (::test::pack_all_of<                             \
              _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_ALL_OF failed: "                              \
         #_Predicate " is not satisfied by every type in {"          \
@@ -852,7 +852,7 @@ struct trait_suite
 // type in the pack.
 #define D_TEST_TRAIT_ANY_OF(_Predicate, ...)                        \
     static_assert(                                                  \
-        (::djinterp::test::pack_any_of<                             \
+        (::test::pack_any_of<                             \
              _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_ANY_OF failed: "                              \
         #_Predicate " is not satisfied by any type in {"            \
@@ -863,7 +863,7 @@ struct trait_suite
 // the pack.
 #define D_TEST_TRAIT_NONE_OF(_Predicate, ...)                       \
     static_assert(                                                  \
-        (::djinterp::test::pack_none_of<                            \
+        (::test::pack_none_of<                            \
              _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_NONE_OF failed: "                             \
         #_Predicate " is unexpectedly satisfied by some type "      \
@@ -876,7 +876,7 @@ struct trait_suite
 // (e.g. `std::tuple<int, char>`).
 #define D_TEST_TRAIT_CV_STABLE(_Predicate, ...)                     \
     static_assert(                                                  \
-        (::djinterp::test::trait_cv_stable<                         \
+        (::test::trait_cv_stable<                         \
              _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_CV_STABLE failed: "                           \
         #_Predicate " yields different results across cv "          \
@@ -887,7 +887,7 @@ struct trait_suite
 // qualification of the supplied type.  Trailing variadic.
 #define D_TEST_TRAIT_REF_STABLE(_Predicate, ...)                    \
     static_assert(                                                  \
-        (::djinterp::test::trait_ref_stable<                        \
+        (::test::trait_ref_stable<                        \
              _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_REF_STABLE failed: "                          \
         #_Predicate " yields different results across "             \
@@ -899,7 +899,7 @@ struct trait_suite
 // Trailing variadic.
 #define D_TEST_TRAIT_CVREF_STABLE(_Predicate, ...)                  \
     static_assert(                                                  \
-        (::djinterp::test::trait_cvref_stable<                      \
+        (::test::trait_cvref_stable<                      \
              _Predicate , __VA_ARGS__ >::value),                    \
         "D_TEST_TRAIT_CVREF_STABLE failed: "                        \
         #_Predicate " yields different results across cv/ref "      \
@@ -910,7 +910,7 @@ struct trait_suite
 // pack.  Use case: "is_integral implies is_arithmetic".
 #define D_TEST_TRAIT_IMPLIES(_P1, _P2, ...)                         \
     static_assert(                                                  \
-        (::djinterp::test::trait_implies_for<                       \
+        (::test::trait_implies_for<                       \
              _P1 , _P2 , __VA_ARGS__ >::value),                     \
         "D_TEST_TRAIT_IMPLIES failed: "                             \
         #_P1 " does not imply " #_P2 " over {" #__VA_ARGS__ "}")
@@ -920,7 +920,7 @@ struct trait_suite
 // every type in the pack.
 #define D_TEST_TRAIT_EQUIVALENT(_P1, _P2, ...)                      \
     static_assert(                                                  \
-        (::djinterp::test::trait_equivalent_for<                    \
+        (::test::trait_equivalent_for<                    \
              _P1 , _P2 , __VA_ARGS__ >::value),                     \
         "D_TEST_TRAIT_EQUIVALENT failed: "                          \
         #_P1 " and " #_P2 " disagree over {" #__VA_ARGS__ "}")
@@ -930,7 +930,7 @@ struct trait_suite
 // true for any type in the pack.
 #define D_TEST_TRAIT_DISJOINT(_P1, _P2, ...)                        \
     static_assert(                                                  \
-        (::djinterp::test::trait_disjoint_for<                      \
+        (::test::trait_disjoint_for<                      \
              _P1 , _P2 , __VA_ARGS__ >::value),                     \
         "D_TEST_TRAIT_DISJOINT failed: "                            \
         #_P1 " and " #_P2 " overlap on some type in {"              \
@@ -942,7 +942,7 @@ struct trait_suite
 // type containing commas (e.g. `std::tuple<int, char>`).
 #define D_TEST_TRAIT_ALIAS_CONSISTENT(_BaseTrait, _Alias, ...)      \
     static_assert(                                                  \
-        (::djinterp::test::alias_consistent<                        \
+        (::test::alias_consistent<                        \
              _BaseTrait , _Alias , __VA_ARGS__ >::value),           \
         "D_TEST_TRAIT_ALIAS_CONSISTENT failed: "                    \
         #_Alias "<" #__VA_ARGS__ "> differs from "                  \
@@ -952,7 +952,7 @@ struct trait_suite
 //   macro: assert alias_consistent for every type in the pack.
 #define D_TEST_TRAIT_ALIAS_CONSISTENT_FOR(_BaseTrait, _Alias, ...)  \
     static_assert(                                                  \
-        (::djinterp::test::alias_consistent_for<                    \
+        (::test::alias_consistent_for<                    \
              _BaseTrait , _Alias , __VA_ARGS__ >::value),           \
         "D_TEST_TRAIT_ALIAS_CONSISTENT_FOR failed: "                \
         #_Alias " and " #_BaseTrait "::type disagree over {"        \
