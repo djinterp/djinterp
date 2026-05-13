@@ -17,11 +17,11 @@
 *                       Flattening traverses DFS or BFS.
 *
 *   A container that is already flat and non-nested is trivially
-* "flattenable" (identity — just iterate normally).
+* "flattenable" (identity - just iterate normally).
 *
 * DEPENDENCIES:
-*   container_traits.hpp   — hierarchy detection, iterability
-*   iterator_traits.hpp    — iterator level detection
+*   container_traits.hpp   - hierarchy detection, iterability
+*   iterator_traits.hpp    - iterator level detection
 *
 * TABLE OF CONTENTS
 * =================
@@ -44,9 +44,9 @@
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
-#include "../djinterp.hpp"
-#include "../type_traits.hpp"
-#include "./container_traits.hpp"
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../meta/container_traits.hpp"
 #include "./iterator_traits.hpp"
 
 
@@ -54,9 +54,9 @@ NS_DJINTERP
 NS_CONTAINER
 NS_TRAITS
 
-// =============================================================================
+// ===========================================================================
 // I.   Nested Iterable Detection
-// =============================================================================
+// ===========================================================================
 // Detects whether the container's value_type is itself an
 // iterable range, enabling recursive flattening of nested
 // containers (vector<vector<T>>, list<deque<T>>, etc.).
@@ -219,9 +219,9 @@ inline constexpr std::size_t nesting_depth_v =
     nesting_depth<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Hierarchical Flatten Detection
-// =============================================================================
+// ===========================================================================
 // Detects whether a hierarchical container can be
 // flattened via DFS or BFS traversal of its children().
 
@@ -271,27 +271,27 @@ D_TYPE_TRAIT_TRUE(has_child_count_method,
         std::declval<const _Type&>().child_count()))
 
 
-// =============================================================================
+// ===========================================================================
 // III. Flatten Strategy Classification
-// =============================================================================
+// ===========================================================================
 
-// DFlattenStrategy
+// flatten_strategy
 //   enum: compile-time flattening approach.
-enum class DFlattenStrategy
+enum class flatten_strategy
 {
-    // already flat — identity iteration
+    // already flat - identity iteration
     identity,
 
-    // depth-1 nested — concatenate inner ranges
+    // depth-1 nested - concatenate inner ranges
     concat,
 
-    // depth-2+ nested — recursive concatenation
+    // depth-2+ nested - recursive concatenation
     recursive,
 
-    // hierarchical — DFS traversal via children()
+    // hierarchical - DFS traversal via children()
     dfs,
 
-    // hierarchical — BFS traversal via children()
+    // hierarchical - BFS traversal via children()
     bfs,
 
     // not flattenable
@@ -305,24 +305,24 @@ NS_INTERNAL
     {
         using C = clean_t<_Type>;
 
-        static constexpr DFlattenStrategy value =
+        static constexpr flatten_strategy value =
             // hierarchical with children()
             is_hierarchy_flattenable_v<C>
-                ? DFlattenStrategy::dfs
+                ? flatten_strategy::dfs
 
             // deeply nested (depth >= 2)
             : has_deeply_nested_elements_v<C>
-                ? DFlattenStrategy::recursive
+                ? flatten_strategy::recursive
 
             // depth-1 nested
             : has_nested_iterable_elements_v<C>
-                ? DFlattenStrategy::concat
+                ? flatten_strategy::concat
 
             // already flat and iterable
             : is_iterable_container_v<C>
-                ? DFlattenStrategy::identity
+                ? flatten_strategy::identity
 
-            : DFlattenStrategy::unsupported;
+            : flatten_strategy::unsupported;
     };
 
 NS_END  // internal
@@ -330,20 +330,20 @@ NS_END  // internal
 template<typename _Type>
 struct container_flatten_strategy
 {
-    static constexpr DFlattenStrategy value =
+    static constexpr flatten_strategy value =
         internal::flatten_strategy_impl<
             _Type>::value;
 };
 
 template<typename _Type>
-inline constexpr DFlattenStrategy
+inline constexpr flatten_strategy
     container_flatten_strategy_v =
         container_flatten_strategy<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Leaf Type Extraction
-// =============================================================================
+// ===========================================================================
 // Extracts the innermost (leaf) element type after full
 // recursive flattening.
 
@@ -388,9 +388,9 @@ using leaf_element_type_t =
     typename leaf_element_type<_Type>::type;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Convenience Predicates
-// =============================================================================
+// ===========================================================================
 
 // is_flattenable
 //   type trait: true if the container can be flattened
@@ -400,9 +400,9 @@ struct is_flattenable
 {
     static constexpr bool value =
         ( container_flatten_strategy_v<_Type> !=
-          DFlattenStrategy::unsupported  &&
+          flatten_strategy::unsupported  &&
           container_flatten_strategy_v<_Type> !=
-          DFlattenStrategy::identity );
+          flatten_strategy::identity );
 };
 
 template<typename _Type>
@@ -415,13 +415,13 @@ inline constexpr bool is_flattenable_v =
 template<typename _Type>
 struct needs_recursive_flatten
 {
-    static constexpr DFlattenStrategy s =
+    static constexpr flatten_strategy s =
         container_flatten_strategy_v<_Type>;
 
     static constexpr bool value =
-        ( s == DFlattenStrategy::recursive ||
-          s == DFlattenStrategy::dfs       ||
-          s == DFlattenStrategy::bfs );
+        ( s == flatten_strategy::recursive ||
+          s == flatten_strategy::dfs       ||
+          s == flatten_strategy::bfs );
 };
 
 template<typename _Type>
@@ -429,9 +429,9 @@ inline constexpr bool needs_recursive_flatten_v =
     needs_recursive_flatten<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  Combined Classification
-// =============================================================================
+// ===========================================================================
 
 template<typename _Type>
 struct flat_iterator_class
@@ -455,7 +455,7 @@ struct flat_iterator_class
         has_child_count_method_v<_Type>;
 
     // strategy
-    static constexpr DFlattenStrategy strategy =
+    static constexpr flatten_strategy strategy =
         container_flatten_strategy_v<_Type>;
 
     // aggregate

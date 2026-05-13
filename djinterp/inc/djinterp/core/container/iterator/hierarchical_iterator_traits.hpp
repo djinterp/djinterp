@@ -23,7 +23,7 @@
 * order, leaf-only) and the best iteration strategy.
 *
 * DEPENDENCIES:
-*   container_traits.hpp   — base hierarchy detection
+*   container_traits.hpp   - base hierarchy detection
 *
 * TABLE OF CONTENTS
 * =================
@@ -47,18 +47,18 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "../djinterp.hpp"
-#include "../type_traits.hpp"
-#include "./container_traits.hpp"
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../meta/container_traits.hpp"
 
 
 NS_DJINTERP
 NS_CONTAINER
 NS_TRAITS
 
-// =============================================================================
+// ===========================================================================
 // I.   Node Topology Detection
-// =============================================================================
+// ===========================================================================
 // Core tree navigation: parent, children, root.
 // These delegate to the existing container_traits
 // detectors where available.
@@ -108,12 +108,12 @@ inline constexpr bool is_navigable_node_v =
     is_navigable_node<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Sibling Navigation Detection
-// =============================================================================
+// ===========================================================================
 
 // (has_sibling_accessor and has_prev_sibling_accessor
-//  are defined in flat_iterator_traits.hpp — re-detect
+//  are defined in flat_iterator_traits.hpp - re-detect
 //  here for independence)
 
 NS_INTERNAL
@@ -193,13 +193,13 @@ inline constexpr bool
         has_bidirectional_siblings<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // III. Child Access Detection
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
 
-    // child_at(index) — positional child access
+    // child_at(index) - positional child access
     template<typename _Type, typename = void>
     struct has_child_at_check : std::false_type
     {};
@@ -332,9 +332,9 @@ inline constexpr bool
         has_random_access_children<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Depth and Path Detection
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
 
@@ -409,9 +409,9 @@ inline constexpr bool has_path_method_v =
     has_path_method<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Traversal Order Classification
-// =============================================================================
+// ===========================================================================
 
 // DTraversalOrder
 //   enum: supported tree traversal orders.
@@ -465,7 +465,7 @@ NS_INTERNAL
             has_children_accessor_v<C>;
 
         // in-order requires exactly 2 children
-        // (binary tree) — detected via child_count
+        // (binary tree) - detected via child_count
         // being constexpr 2, or a left()/right()
         // pair.  Conservative: require child_at.
         static constexpr bool has_indexed =
@@ -528,26 +528,26 @@ inline constexpr DTraversalCapability
             _Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  Iteration Strategy Classification
-// =============================================================================
+// ===========================================================================
 
-// DHierarchicalStrategy
+// hierarchical_strategy
 //   enum: best default iteration strategy for a
 // hierarchical container.
-enum class DHierarchicalStrategy
+enum class hierarchical_strategy
 {
-    // not hierarchical — use flat iteration
+    // not hierarchical - use flat iteration
     flat,
 
-    // children() iterable — stack-based DFS
+    // children() iterable - stack-based DFS
     stack_dfs,
 
-    // children() iterable + sibling nav —
+    // children() iterable + sibling nav -
     // sibling-chain DFS (avoids stack allocation)
     sibling_dfs,
 
-    // child_at(i) + child_count — index-based DFS
+    // child_at(i) + child_count - index-based DFS
     indexed_dfs,
 
     // not iterable
@@ -561,21 +561,21 @@ NS_INTERNAL
     {
         using C = clean_t<_Type>;
 
-        static constexpr DHierarchicalStrategy value
+        static constexpr hierarchical_strategy value
             = !is_hierarchical_container_v<C>
-                ? DHierarchicalStrategy::flat
+                ? hierarchical_strategy::flat
 
             : ( has_next_sibling_v<C> &&
                 has_first_child_accessor_v<C> )
-                ? DHierarchicalStrategy::sibling_dfs
+                ? hierarchical_strategy::sibling_dfs
 
             : has_random_access_children_v<C>
-                ? DHierarchicalStrategy::indexed_dfs
+                ? hierarchical_strategy::indexed_dfs
 
             : has_children_accessor_v<C>
-                ? DHierarchicalStrategy::stack_dfs
+                ? hierarchical_strategy::stack_dfs
 
-            : DHierarchicalStrategy::unsupported;
+            : hierarchical_strategy::unsupported;
     };
 
 NS_END  // internal
@@ -583,20 +583,19 @@ NS_END  // internal
 template<typename _Type>
 struct container_hierarchical_strategy
 {
-    static constexpr DHierarchicalStrategy value =
-        internal::hier_strategy_impl<_Type>::value;
+    static constexpr hierarchical_strategy value = internal::hier_strategy_impl<_Type>::value;
 };
 
 template<typename _Type>
-inline constexpr DHierarchicalStrategy
+inline constexpr hierarchical_strategy
     container_hierarchical_strategy_v =
         container_hierarchical_strategy<
             _Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // VII. Convenience Predicates
-// =============================================================================
+// ===========================================================================
 
 // is_tree_iterable
 //   type trait: true if the hierarchical container can be
@@ -606,9 +605,9 @@ struct is_tree_iterable
 {
     static constexpr bool value =
         ( container_hierarchical_strategy_v<_Type> !=
-              DHierarchicalStrategy::unsupported &&
+              hierarchical_strategy::unsupported &&
           container_hierarchical_strategy_v<_Type> !=
-              DHierarchicalStrategy::flat );
+              hierarchical_strategy::flat );
 };
 
 template<typename _Type>
@@ -646,9 +645,9 @@ inline constexpr bool supports_level_order_v =
     supports_level_order<_Type>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // VIII. Combined Classification
-// =============================================================================
+// ===========================================================================
 
 template<typename _Type>
 struct hierarchical_iterator_class
@@ -692,7 +691,7 @@ struct hierarchical_iterator_class
         traversals =
             container_traversal_capabilities_v<
                 _Type>;
-    static constexpr DHierarchicalStrategy
+    static constexpr hierarchical_strategy
         strategy =
             container_hierarchical_strategy_v<
                 _Type>;

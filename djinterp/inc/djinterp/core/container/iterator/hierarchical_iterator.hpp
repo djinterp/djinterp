@@ -6,10 +6,10 @@
 * awareness of the topology: depth tracking, traversal order
 * selection, and cursor-style parent/child/sibling movement.
 *
-*   tree_iterator<Node, Order>  — traverses a tree in a specified
+*   tree_iterator<Node, Order>  - traverses a tree in a specified
 *                                  order (pre, post, level, leaf)
 *                                  with depth tracking.
-*   tree_cursor<Node>           — stateful cursor with imperative
+*   tree_cursor<Node>           - stateful cursor with imperative
 *                                  navigation (go_parent, go_child,
 *                                  go_sibling) for manual tree
 *                                  walking.
@@ -44,15 +44,15 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
 NS_CONTAINER
 
-// =============================================================================
+// ===========================================================================
 // I.   Traversal Order Tag Types
-// =============================================================================
+// ===========================================================================
 // Lightweight empty structs used as template parameters
 // to select traversal order at compile time.
 
@@ -62,9 +62,9 @@ struct level_order_tag {};
 struct leaf_only_tag   {};
 
 
-// =============================================================================
+// ===========================================================================
 // II.  tree_iterator (pre-order)
-// =============================================================================
+// ===========================================================================
 // Visits each node before its children.
 // Root → Left subtree → Right subtree (generalized to
 // all children in order).
@@ -173,9 +173,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. tree_iterator (post-order)
-// =============================================================================
+// ===========================================================================
 // Visits each node after all its children.
 // Left subtree → Right subtree → Root.
 
@@ -263,7 +263,7 @@ public:
                 }
             }
 
-            // all children visited — emit parent
+            // all children visited - emit parent
             m_current = parent.first;
             m_depth   = parent.second;
         }
@@ -314,7 +314,7 @@ private:
 
             if (bg == std::end(kids))
             {
-                // leaf — this is the next node
+                // leaf - this is the next node
                 // to yield
                 m_current = _node;
                 m_depth   = _d;
@@ -334,9 +334,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  tree_iterator (level-order)
-// =============================================================================
+// ===========================================================================
 // Breadth-first: visits all nodes at depth d before any
 // at depth d+1.
 
@@ -434,9 +434,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // V.   tree_iterator (leaf-only)
-// =============================================================================
+// ===========================================================================
 // Visits only leaf nodes (nodes with no children), in
 // DFS pre-order.
 
@@ -536,9 +536,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  tree_cursor
-// =============================================================================
+// ===========================================================================
 // Stateful cursor for imperative tree navigation.
 // Tracks current node and depth, supports directional
 // movement: parent, first child, next sibling, prev
@@ -778,9 +778,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VII. View Adapters
-// =============================================================================
+// ===========================================================================
 
 // pre_order_view
 template<typename _Node>
@@ -891,9 +891,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VIII. Factory Functions
-// =============================================================================
+// ===========================================================================
 
 template<typename _Node>
 pre_order_view<_Node>

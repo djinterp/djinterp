@@ -5,12 +5,12 @@
 *   Provides zero-overhead iterators that present nested or
 * hierarchical structures as a single linear sequence.
 *
-*   concat_iterator<Outer>     — flattens depth-1 nesting by
+*   concat_iterator<Outer>     - flattens depth-1 nesting by
 *                                concatenating inner ranges.
-*   dfs_flatten_iterator<Node> — flattens a tree via depth-first
+*   dfs_flatten_iterator<Node> - flattens a tree via depth-first
 *                                traversal, yielding nodes in
 *                                pre-order.
-*   bfs_flatten_iterator<Node> — flattens a tree via breadth-first
+*   bfs_flatten_iterator<Node> - flattens a tree via breadth-first
 *                                traversal, yielding nodes level
 *                                by level.
 *
@@ -42,15 +42,15 @@
 #include <stack>
 #include <type_traits>
 #include <vector>
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
 NS_CONTAINER
 
-// =============================================================================
+// ===========================================================================
 // I.   concat_iterator (depth-1 flatten)
-// =============================================================================
+// ===========================================================================
 // Iterates over a container-of-containers, yielding the
 // inner elements in order.  When the current inner range
 // is exhausted, advances to the next outer element.
@@ -177,9 +177,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // II.  dfs_flatten_iterator (pre-order tree)
-// =============================================================================
+// ===========================================================================
 // Depth-first traversal of a hierarchical structure.
 // Yields each node in pre-order (parent before children).
 //
@@ -295,9 +295,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. bfs_flatten_iterator (level-order tree)
-// =============================================================================
+// ===========================================================================
 // Breadth-first traversal of a hierarchical structure.
 // Yields nodes level by level (root first, then all
 // depth-1 nodes, then all depth-2 nodes, etc.).
@@ -405,9 +405,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  View Adapters
-// =============================================================================
+// ===========================================================================
 
 // concat_view
 //   view: flattens a container-of-containers into a
@@ -512,9 +512,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Factory Functions
-// =============================================================================
+// ===========================================================================
 
 // make_concat_view
 template<typename _Container>
