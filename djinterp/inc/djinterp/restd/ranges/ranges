@@ -1,0 +1,202 @@
+/******************************************************************************
+* djinterp [restd]                                                     ranges
+*
+* ranges umbrella header:
+*   Pulls in every public symbol of the <ranges> module that is
+* currently shipped in restd. Mirrors the convention for #include
+* <ranges> — users may include this header to obtain the full
+* surface, or include the individual granular modules for finer
+* control over compile-time cost.
+*
+*   STATUS:
+*   - Phase R1:  foundations + primitive aliases + subrange + view_interface
+*   - Phase R2:  range concept layer as SFINAE traits
+*   - Phase R3:  view factories (empty_view, single_view, iota_view bounded)
+*   - Phase R4:  range-wrapping adaptors (ref_view, owning_view, views::all)
+*   - Phase R5:  take_view, drop_view, transform_view
+*   - Phase R6:  filter_view, reverse_view
+*   - Phase R7:  take_while_view, drop_while_view
+*   - Phase R8:  join_view (lvalue-reference inner case, forward category)
+*   - Phase R9:  unreachable_sentinel_t + unbounded iota_view
+*   - Phase R10: range_adaptor_closure + operator| pipe syntax across
+*                all shipped views::*
+*   - Phase R11: as_rvalue_view (C++23) — pipe-enabled
+*   - Phase R12: stride_view (C++23, forward category) — pipe-enabled
+*   - Phase R13: chunk_view (C++23, forward category) — pipe-enabled
+*   - Phase R14: chunk_by_view (C++23, forward category) — pipe-enabled
+*   - Phase R15: slide_view (C++23, forward category) — pipe-enabled
+*   - Phase R16: split_view (C++23, single-element delimiter) — pipe-enabled
+*   - Phase R17: repeat_view (C++23, bounded + unbounded)
+*   - Phase R18: join_with_view (C++23, single-value separator) — pipe-enabled
+*   - Phase R19: as_const_view (C++23, simplified) — pipe-enabled
+*   - Phase R21: output_range trait + viewable_range trait + lazy_split_view (C++20)
+*   - Phase R22: internal utilities — restd::iter_move CPO +
+*                iter_rvalue_reference_t (in iterator/), basic_const_iterator +
+*                iter_const_reference_t (in iterator/), non_propagating_cache
+*                + movable_box (ranges/internal/). Upgraded as_rvalue_view to
+*                route operator* through iter_move, and rewrote as_const_view
+*                as a thin wrapper over basic_const_iterator (dropping ~250
+*                lines of duplicated iterator surface).
+*   - Phase R23: range_rvalue_reference_t, range_const_reference_t,
+*                constant_range — three one-liner traits over R22's machinery.
+*   - Phase R24: ranges:: niebloid CPOs — begin / end / cbegin / cend /
+*                rbegin / rend / crbegin / crend / size / ssize / empty /
+*                data / cdata. All 13 in a single file using the same
+*                priority<N> + poison-pill ADL pattern as iter_move (R22).
+*                Live in restd::ranges:: sub-namespace to avoid collision
+*                with the existing flat-namespace restd::begin et al.
+*                ordinary-template overloads in <iterator>.
+*   - Phase R25: join_view upgrade — removed the static_assert that
+*                rejected prvalue inner ranges. The view now carries a
+*                mutable non_propagating_cache; iterators use tag-
+*                dispatched _materialize_inner / _current_inner helpers
+*                so reference inners pay zero overhead while prvalue
+*                inners route through the cache.
+*   - Phase R26: repeat_view upgrade — stored value now lives in a
+*                movable_box (the R22 utility). The view's default ctor
+*                is well-formed for any T; non-default-constructible T
+*                leaves the box empty until a value ctor populates it.
+*   - Phase R27: movable_box sweep across the 5 callable-storing
+*                adaptors — transform_view (m_fn), filter_view /
+*                take_while_view / drop_while_view / chunk_by_view
+*                (m_pred). Each adaptor's predicate or function is now
+*                wrapped, giving the views proper view-concept-
+*                compliant assignability even when the callable itself
+*                is a non-assignable lambda.
+*   - Phase R28: bidirectional upgrade — initially for stride_view,
+*                chunk_view, slide_view; completed across chunk_by_view,
+*                split_view, join_view, join_with_view. Each iterator's
+*                category is now derived from the underlying via a
+*                nested _bidi_clamp trait; bidi underlyings yield bidi
+*                adaptor iterators. stride_view tracks m_missing to
+*                recover the correct last stride boundary on -- from
+*                end. join_with_view restructured ++ so canonical
+*                separator state has m_outer at the next non-empty
+*                inner (allows forward / backward equality).
+*   - Phase R29: random-access optimisation for stride_view,
+*                chunk_view, slide_view. _bidi_clamp lifted to allow
+*                RA. O(1) operator+= / -= / +(n) / -(n) / [n] / it-it
+*                plus ordering operators added to each. stride_view
+*                uses the ideal-position (real + missing) calculation
+*                for correct distance arithmetic across the m_missing
+*                boundary; chunk_view + slide_view shift their cached
+*                endpoints by n with clamping at m_base_end.
+*
+*   Deferred: common_view (blocked on common_iterator);
+* range_common_reference_t (needs full common_reference chain);
+* basic_istream_view (needs iostream); elements_view / keys_view /
+* values_view, enumerate_view, zip_view, zip_transform_view, adjacent_view,
+* adjacent_transform_view, cartesian_product_view (all need <tuple>);
+* concat_view (needs variant); generator (needs coroutine); ranges::to
+* (needs concepts + concrete container types).
+*
+*
+* path:      /inc/djinterp/restd/ranges
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_RANGES_UMBRELLA_
+#define DJINTERP_RESTD_RANGES_UMBRELLA_ 1
+
+
+// I.    foundations (no concept dependencies, available C++98+)
+#include "./ranges/dangling.hpp"
+#include "./ranges/view_base.hpp"
+#include "./ranges/enable_view.hpp"
+#include "./ranges/enable_borrowed_range.hpp"
+#include "./ranges/subrange_kind.hpp"
+#include "./ranges/unreachable_sentinel_t.hpp"
+
+// II.   range type aliases (C++11+)
+#include "./ranges/iterator_t.hpp"
+#include "./ranges/sentinel_t.hpp"
+#include "./ranges/range_value_t.hpp"
+#include "./ranges/range_difference_t.hpp"
+#include "./ranges/range_reference_t.hpp"
+#include "./ranges/range_size_t.hpp"
+
+// II.b  range type aliases unblocked by R22 (depend on iter_move CPO / basic_const_iterator)
+#include "./ranges/range_rvalue_reference_t.hpp"  // R23
+#include "./ranges/range_const_reference_t.hpp"   // R23
+
+// III.  core types (C++11+)
+#include "./ranges/view_interface.hpp"
+#include "./ranges/subrange.hpp"
+
+// IV.   borrowed-range helpers (C++11+)
+#include "./ranges/borrowed_iterator_t.hpp"
+#include "./ranges/borrowed_subrange_t.hpp"
+
+// V.    range concept layer (Phase R2)
+#include "./ranges/range.hpp"
+#include "./ranges/sized_range.hpp"
+#include "./ranges/common_range.hpp"
+#include "./ranges/borrowed_range.hpp"
+#include "./ranges/view.hpp"
+
+// VI.   iterator-category-based range concepts (Phase R2)
+#include "./ranges/input_range.hpp"
+#include "./ranges/forward_range.hpp"
+#include "./ranges/bidirectional_range.hpp"
+#include "./ranges/random_access_range.hpp"
+#include "./ranges/contiguous_range.hpp"  // C++20+ only
+
+// VI.b  additional concept traits (Phase R21)
+#include "./ranges/output_range.hpp"     // R21 (two-parameter trait)
+#include "./ranges/viewable_range.hpp"   // R21 (disjunction trait)
+#include "./ranges/constant_range.hpp"   // R23 (depends on range_const_reference_t)
+
+// VII.  pipe infrastructure (Phase R10)
+#include "./ranges/range_adaptor_closure.hpp"
+
+// VII.b R22 internal utilities (exposition-only in std, restd::internal::)
+#include "./ranges/non_propagating_cache.hpp"
+#include "./ranges/movable_box.hpp"
+
+// VII.c ranges:: niebloid CPOs (Phase R24) — 13 customisation point
+//       objects in restd::ranges:: sub-namespace
+#include "./ranges/ranges_access.hpp"
+
+// VIII. view factories (Phase R3; iota_view extended in Phase R9)
+#include "./ranges/empty_view.hpp"
+#include "./ranges/single_view.hpp"
+#include "./ranges/iota_view.hpp"
+
+// IX.   range-wrapping adaptors + views::all closure (Phase R4 / R10)
+#include "./ranges/ref_view.hpp"
+#include "./ranges/owning_view.hpp"
+#include "./ranges/all.hpp"
+
+// X.    substantive view adaptors (Phase R5; pipe-enabled R10)
+#include "./ranges/take_view.hpp"
+#include "./ranges/drop_view.hpp"
+#include "./ranges/transform_view.hpp"
+
+// XI.   filter + reverse (Phase R6; pipe-enabled R10)
+#include "./ranges/filter_view.hpp"
+#include "./ranges/reverse_view.hpp"
+
+// XII.  predicate-driven slicing (Phase R7; pipe-enabled R10)
+#include "./ranges/take_while_view.hpp"
+#include "./ranges/drop_while_view.hpp"
+
+// XIII. range-of-ranges flattening (Phase R8; pipe-enabled R10)
+#include "./ranges/join_view.hpp"
+
+// XIII.b lazy_split_view (Phase R21) — input-friendly split, complements R16's split_view
+#include "./ranges/lazy_split_view.hpp"
+
+// XIV.  C++23 adaptors (Phases R11+)
+#include "./ranges/as_rvalue_view.hpp"   // R11
+#include "./ranges/stride_view.hpp"      // R12 (forward category only)
+#include "./ranges/chunk_view.hpp"       // R13 (forward category only)
+#include "./ranges/chunk_by_view.hpp"    // R14 (forward category only)
+#include "./ranges/slide_view.hpp"       // R15 (forward category only)
+#include "./ranges/split_view.hpp"       // R16 (single delimiter, forward category)
+#include "./ranges/repeat_view.hpp"      // R17 (bounded + unbounded)
+#include "./ranges/join_with_view.hpp"   // R18 (single separator)
+#include "./ranges/as_const_view.hpp"    // R19 (simplified)
+
+
+#endif  // DJINTERP_RESTD_RANGES_UMBRELLA_

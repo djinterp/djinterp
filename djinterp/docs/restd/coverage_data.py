@@ -1148,7 +1148,381 @@ SYMBOLS_TYPE_TRAITS = [
     ),
 ]
 
-# <utility> -- implemented in restd 2026-04-30
+# <functional> -- planned; not yet implemented in restd (roadmap priority 6)
+SYMBOLS_FUNCTIONAL = [
+    # ---- Arithmetic operations (function objects) -----------------------
+    S(
+        'plus', 'Arithmetic operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary +. Transparent void specialisation plus<> added in C++14 (decltype-deduced result).',
+    ),
+    S(
+        'minus', 'Arithmetic operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary -. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'multiplies', 'Arithmetic operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary *. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'divides', 'Arithmetic operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary /. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'modulus', 'Arithmetic operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary %. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'negate', 'Arithmetic operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Unary -. Transparent void specialisation in C++14.',
+    ),
+
+    # ---- Comparison operations ------------------------------------------
+    S(
+        'equal_to', 'Comparison operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary ==. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'not_equal_to', 'Comparison operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary !=. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'greater', 'Comparison operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary >. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'less', 'Comparison operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary <. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'greater_equal', 'Comparison operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary >=. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'less_equal', 'Comparison operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary <=. Transparent void specialisation in C++14.',
+    ),
+
+    # ---- Logical operations ---------------------------------------------
+    S(
+        'logical_and', 'Logical operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary &&. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'logical_or', 'Logical operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary ||. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'logical_not', 'Logical operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Unary !. Transparent void specialisation in C++14.',
+    ),
+
+    # ---- Bitwise operations ---------------------------------------------
+    S(
+        'bit_and', 'Bitwise operations',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary &. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'bit_or', 'Bitwise operations',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary |. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'bit_xor', 'Bitwise operations',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Binary ^. Transparent void specialisation in C++14.',
+    ),
+    S(
+        'bit_not', 'Bitwise operations',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++14',
+        notes='Unary ~. Added later than the other bitwise function objects.',
+    ),
+
+    # ---- Reference wrappers ---------------------------------------------
+    S(
+        'reference_wrapper', 'Reference wrappers',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++20',
+        notes='Copyable, assignable wrapper around a reference. Member operator T&() and operator() (via invoke) became constexpr in C++20 (P1065). Unblocks make_pair / make_tuple reference_wrapper unwrapping when shipped.',
+    ),
+    S(
+        'ref', 'Reference wrappers',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++20',
+        notes='Factory producing reference_wrapper<T>. Two overloads (lvalue / rvalue=deleted). noexcept on all tiers; constexpr from C++20.',
+    ),
+    S(
+        'cref', 'Reference wrappers',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++20',
+        notes='Factory producing reference_wrapper<const T>. Two overloads (lvalue / rvalue=deleted).',
+    ),
+    S(
+        'unwrap_reference', 'Reference wrappers',
+        std_in='C++20',
+        restd_min='C++11',
+        t_alias_in='C++20',
+        notes='Trait: yields T& if T is reference_wrapper<U>, otherwise T. Used by bind_front and friends.',
+    ),
+    S(
+        'unwrap_ref_decay', 'Reference wrappers',
+        std_in='C++20',
+        restd_min='C++11',
+        t_alias_in='C++20',
+        notes='Composes decay_t and unwrap_reference. Replaces the C++17 reference_wrapper-aware decay used by make_pair / make_tuple.',
+    ),
+
+    # ---- Invocation -----------------------------------------------------
+    S(
+        'invoke', 'Invocation',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++20',
+        notes='Generalised callable invocation. Dispatches across regular callables, pointer-to-member-function, pointer-to-member-data, and reference_wrapper. Unblocks tuple::apply, is_invocable, is_nothrow_invocable, etc.',
+    ),
+    S(
+        'invoke_r', 'Invocation',
+        std_in='C++23',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++23',
+        notes='invoke with an explicit return type, allowing implicit conversion or void-discard.',
+    ),
+
+    # ---- Function wrappers ----------------------------------------------
+    S(
+        'function', 'Function wrappers',
+        std_in='C++11',
+        restd_min=None,
+        notes='Type-erased polymorphic callable wrapper for any signature R(Args...). Standard never makes it constexpr (heap allocation in non-SBO path).',
+        failure_reason='Pending restd::functional milestone. Requires variadic templates + rvalue references for the signature pack and forwarding ctor (C++11+); needs heap alloc gated on D_ENV_CPP98_HAS_NEW.',
+    ),
+    S(
+        'bad_function_call', 'Function wrappers',
+        std_in='C++11',
+        restd_min='C++98',
+        notes='Thrown by function::operator() when the wrapper is empty. Conditional inheritance of std::exception when D_ENV_CPP98_HAS_EXCEPTION (mirrors bad_any_cast / bad_optional_access).',
+    ),
+    S(
+        'move_only_function', 'Function wrappers',
+        std_in='C++23',
+        restd_min=None,
+        notes='Move-only counterpart to function. Supports cv-, ref-, and noexcept-qualified call signatures.',
+        failure_reason='Pending restd::functional milestone. Builds on the function infrastructure plus signature-qualifier parsing.',
+    ),
+    S(
+        'copyable_function', 'Function wrappers',
+        std_in='C++26',
+        restd_min=None,
+        notes='C++26 successor to function with the same qualifier surface as move_only_function.',
+        failure_reason='Pending restd::functional milestone (and C++26 finalisation).',
+    ),
+    S(
+        'function_ref', 'Function wrappers',
+        std_in='C++26',
+        restd_min=None,
+        notes='Non-owning callable view. Trivially constexpr-friendly (no allocation).',
+        failure_reason='Pending restd::functional milestone (and C++26 finalisation).',
+    ),
+
+    # ---- Bind / placeholders --------------------------------------------
+    S(
+        'bind', 'Bind / placeholders',
+        std_in='C++11',
+        restd_min=None,
+        notes='Partial-application binder. Result is callable; not constexpr in std (the call uses invoke + tuple-like storage of arguments).',
+        failure_reason='Pending restd::functional milestone. Requires variadic templates, perfect forwarding, tuple-like argument storage, and the placeholder protocol (C++11+).',
+        depends_on=('tuple',),
+    ),
+    S(
+        'bind_front', 'Bind / placeholders',
+        std_in='C++20',
+        restd_min=None,
+        constexpr_in_std='C++20',
+        notes='Forward-args-only binder; no placeholders. Constexpr from inception.',
+        failure_reason='Pending restd::functional milestone. Builds on invoke + tuple-like storage.',
+        depends_on=('tuple',),
+    ),
+    S(
+        'bind_back', 'Bind / placeholders',
+        std_in='C++23',
+        restd_min=None,
+        constexpr_in_std='C++23',
+        notes='Like bind_front but appends bound args after the call args.',
+        failure_reason='Pending restd::functional milestone.',
+        depends_on=('tuple',),
+    ),
+    S(
+        'is_bind_expression', 'Bind / placeholders',
+        std_in='C++11',
+        restd_min='C++11',
+        v_var_in='C++17',
+        notes='Trait: detects whether a type is the result of bind. User-specialisable for custom binders.',
+    ),
+    S(
+        'is_placeholder', 'Bind / placeholders',
+        std_in='C++11',
+        restd_min='C++11',
+        v_var_in='C++17',
+        notes='Trait: yields the 1-based placeholder index, or 0 for non-placeholders.',
+    ),
+    S(
+        'placeholders::_1 ... _N', 'Bind / placeholders',
+        std_in='C++11',
+        restd_min=None,
+        notes='Inline-namespace constants used by bind. The standard guarantees at least _1 through _10. restd will provide the same range.',
+        failure_reason='Pending restd::functional milestone. Requires inline-namespace placement (C++11+).',
+    ),
+
+    # ---- Member function adapters ---------------------------------------
+    S(
+        'mem_fn', 'Member function adapters',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++20',
+        notes='Wraps a pointer-to-member-function or pointer-to-member-data into a uniform callable object. Constexpr from C++20 (P1065).',
+    ),
+
+    # ---- Negators -------------------------------------------------------
+    S(
+        'not_fn', 'Negators',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++20',
+        notes='Returns a callable that negates the wrapped predicate via invoke. Replaces the deprecated not1 / not2.',
+    ),
+
+    # ---- Identity -------------------------------------------------------
+    S(
+        'identity', 'Identity',
+        std_in='C++20',
+        restd_min='C++11',
+        constexpr_in_restd='C++11',
+        constexpr_in_std='C++20',
+        notes='Transparent passthrough: returns its argument unchanged via perfect forwarding. Used as a default projection in <ranges>.',
+    ),
+
+    # ---- Hash support ---------------------------------------------------
+    S(
+        'hash', 'Hash support',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Primary template plus standard specialisations for arithmetic types, pointers, nullptr_t, string-likes, optional, variant, etc. The arithmetic specialisations are trivial; container specialisations require the corresponding container modules.',
+    ),
+
+    # ---- Searchers ------------------------------------------------------
+    S(
+        'default_searcher', 'Searchers',
+        std_in='C++17',
+        restd_min=None,
+        notes='Trivial naive searcher. The default for std::search.',
+        failure_reason='Pending restd::functional milestone (and restd::algorithm for std::search itself).',
+        depends_on=('search',),
+    ),
+    S(
+        'boyer_moore_searcher', 'Searchers',
+        std_in='C++17',
+        restd_min=None,
+        notes='Boyer-Moore string searcher. Precomputes bad-character and good-suffix tables in its ctor; never constexpr (heap-allocated tables).',
+        failure_reason='Pending restd::functional milestone (and restd::algorithm).',
+        depends_on=('search',),
+    ),
+    S(
+        'boyer_moore_horspool_searcher', 'Searchers',
+        std_in='C++17',
+        restd_min=None,
+        notes='Boyer-Moore-Horspool string searcher. Smaller table than full BM; never constexpr.',
+        failure_reason='Pending restd::functional milestone (and restd::algorithm).',
+        depends_on=('search',),
+    ),
+]
+
+# <utility> -- foundational symbols shipped 2026-04-30 (swap, move,
+# forward, declval, pair, make_pair); tail shipped 2026-05-09 in Phase 9
+# (exchange, as_const, to_underlying, integer_sequence family, cmp_* +
+# in_range, unreachable, forward_like, in_place_type/in_place_index).
+# Single remaining gap: move_if_noexcept (blocked on is_copy_constructible).
 SYMBOLS_UTILITY = [
     S(
         'swap', 'Generic algorithms',
@@ -1323,92 +1697,87 @@ SYMBOLS_UTILITY = [
         failure_reason='Requires the C++20 three_way_comparable concept and <compare> ordering categories. Pending restd::compare.',
     ),
     S(
-        'exchange', 'Object utilities',
+        'exchange', 'Cast utilities',
         std_in='C++14',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Replace value, return old. Trivially implementable; deferred for grouping with optional/variant work.',
-        failure_reason="Trivially implementable but not yet shipped. Slated for the same milestone as the rest of <utility>'s C++14+ tail.",
+        constexpr_in_restd='C++14',
+        notes='Replace value, return old. Uses move + perfect-forwarding. constexpr on C++14+ via D_CONSTEXPR_CPP14. Header gated on rvalue refs (C++11+); a copy-based C++98 form would compile but defeat the purpose, so not provided.',
     ),
     S(
         'as_const', 'Object utilities',
         std_in='C++17',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++17',
-        notes='Returns const T&. Trivial; deferred.',
-        failure_reason='Trivial helper, slated alongside exchange.',
+        constexpr_in_restd='C++11',
+        notes='Returns const T&. Includes the deleted rvalue overload to prevent binding a const& to a temporary that escapes the full-expression lifetime.',
     ),
     S(
         'in_place_type_t<T>', 'In-place tags',
         std_in='C++17',
-        restd_min=None,
-        notes='Type-tagged variant of in_place. Used by variant. (in_place_t / in_place themselves now ship under <optional>.)',
-        depends_on=('variant',),
-        failure_reason='Slated alongside <variant>.',
+        restd_min='C++11',
+        notes='Type-tagged variant of in_place. Class template; used by variant for unambiguous type-disambiguated overload selection.',
     ),
     S(
         'in_place_type<T>', 'In-place tags',
         std_in='C++17',
-        restd_min=None,
-        notes='Tag template variable.',
-        depends_on=('variant',),
-        failure_reason='Slated alongside <variant>.',
+        restd_min='C++14',
+        notes='Tag template variable. Gated on D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES (C++14+).',
     ),
     S(
         'in_place_index_t<I>', 'In-place tags',
         std_in='C++17',
-        restd_min=None,
-        notes='Index-tagged variant of in_place. Used by variant.',
-        depends_on=('variant',),
-        failure_reason='Slated alongside <variant>.',
+        restd_min='C++11',
+        notes='Index-tagged variant of in_place. Class template; used by variant for index-disambiguated overload selection.',
     ),
     S(
         'in_place_index<I>', 'In-place tags',
         std_in='C++17',
-        restd_min=None,
-        notes='Tag template variable.',
-        depends_on=('variant',),
-        failure_reason='Slated alongside <variant>.',
+        restd_min='C++14',
+        notes='Tag template variable. Gated on D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES (C++14+).',
     ),
     S(
         'integer_sequence<T,Is...>', 'Integer sequences',
         std_in='C++14',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++14',
-        notes='Compile-time integer pack. Foundational for tuple_cat, apply, etc.',
-        failure_reason='Required by tuple_cat / apply / make_from_tuple. Slated for the next utility milestone.',
+        constexpr_in_restd='C++11',
+        notes='Compile-time integer pack. value_type and ::size() exposed per std contract. Foundational for tuple_cat, apply, etc.',
     ),
     S(
         'index_sequence<Is...>', 'Integer sequences',
         std_in='C++14',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++14',
-        notes='Alias for integer_sequence<size_t,...>.',
-        failure_reason='Same milestone as integer_sequence.',
+        constexpr_in_restd='C++11',
+        notes='Alias for integer_sequence<size_t, ...>. Gated on alias-templates feature macro (C++11 has them).',
     ),
     S(
         'make_integer_sequence<T,N>', 'Integer sequences',
         std_in='C++14',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++14',
-        notes='Generator alias. Best-quality impl uses __make_integer_seq intrinsic where available.',
-        failure_reason='Same milestone as integer_sequence; intrinsic-accelerated path planned.',
+        constexpr_in_restd='C++11',
+        intrinsic_required=False,
+        intrinsic_names='__make_integer_seq (Clang/MSVC) / __integer_pack (GCC/Intel)',
+        detection_macro='D_RESTD_HAS_MAKE_INTEGER_SEQ_INTRINSIC',
+        notes='Dual path: builtin (O(1) instantiation depth) when available; recursive fallback otherwise. Recursive fallback caps around N=512 (gcc default depth). Documented limit; consumers needing big sequences on a fallback compiler should split work or bump -ftemplate-depth.',
     ),
     S(
         'make_index_sequence<N>', 'Integer sequences',
         std_in='C++14',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++14',
-        notes='Generator alias.',
-        failure_reason='Same milestone as integer_sequence.',
+        constexpr_in_restd='C++11',
+        notes='Generator alias = make_integer_sequence<size_t, N>.',
     ),
     S(
         'index_sequence_for<Ts...>', 'Integer sequences',
         std_in='C++14',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++14',
-        notes='Alias for make_index_sequence<sizeof...(Ts)>.',
-        failure_reason='Same milestone as integer_sequence.',
+        constexpr_in_restd='C++11',
+        notes='Alias for make_index_sequence<sizeof...(Ts)>. The most-used form in practice (unpacking variadic packs).',
     ),
     S(
         'move_if_noexcept', 'Cast utilities',
@@ -1422,81 +1791,83 @@ SYMBOLS_UTILITY = [
     S(
         'forward_like', 'Cast utilities',
         std_in='C++23',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++23',
-        notes='Forwards an object using the value category of a template parameter.',
-        failure_reason='C++23 cast utility; not yet implemented.',
+        constexpr_in_restd='C++11',
+        notes='Propagates the const-ness and value category of T to U. Used in deducing-this methods and lambdas with explicit object parameters. Six type rules verified via static_assert in test 16: T=lvalue/rvalue/non-ref crossed with const/non-const. Helpers internal::cond_const + cond_ref pick the right qualifier.',
     ),
     S(
         'to_underlying', 'Enum utilities',
         std_in='C++23',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++23',
-        notes='static_cast<underlying_type_t<E>>(e). Requires underlying_type intrinsic.',
-        failure_reason='Trivially implementable on top of restd::underlying_type. Slated for the next utility milestone.',
+        constexpr_in_restd='C++11',
+        notes='static_cast<underlying_type_t<E>>(e). Gated on D_RESTD_HAS_UNDERLYING_TYPE (the __underlying_type intrinsic) - inherits the same gating as the underlying_type trait itself.',
     ),
     S(
         'cmp_equal', 'Integer comparisons',
         std_in='C++20',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Sign-aware integer comparison.',
-        failure_reason='Family of six C++20 sign-aware comparators. Slated for the next utility milestone.',
+        constexpr_in_restd='C++11',
+        notes='Sign-aware integer comparison. Dispatches on (signedness-of-T, signedness-of-U) cartesian product via partial specialisations of internal::intcmp_eq. Verified against the famous trap: cmp_equal(int(-1), unsigned(-1)) returns false (mathematically correct).',
     ),
     S(
         'cmp_not_equal', 'Integer comparisons',
         std_in='C++20',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Sign-aware integer comparison.',
-        failure_reason='Same family as cmp_equal.',
+        constexpr_in_restd='C++11',
+        notes='Defined as !cmp_equal(t, u).',
     ),
     S(
         'cmp_less', 'Integer comparisons',
         std_in='C++20',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Sign-aware integer comparison.',
-        failure_reason='Same family as cmp_equal.',
+        constexpr_in_restd='C++11',
+        notes='Sign-aware integer less-than. Verified against the famous trap: cmp_less(int(-1), unsigned(0)) returns true (mathematically correct, vs. native operator< which returns false after promotion to unsigned).',
     ),
     S(
         'cmp_greater', 'Integer comparisons',
         std_in='C++20',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Sign-aware integer comparison.',
-        failure_reason='Same family as cmp_equal.',
+        constexpr_in_restd='C++11',
+        notes='Defined as cmp_less(u, t).',
     ),
     S(
         'cmp_less_equal', 'Integer comparisons',
         std_in='C++20',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Sign-aware integer comparison.',
-        failure_reason='Same family as cmp_equal.',
+        constexpr_in_restd='C++11',
+        notes='Defined as !cmp_less(u, t).',
     ),
     S(
         'cmp_greater_equal', 'Integer comparisons',
         std_in='C++20',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Sign-aware integer comparison.',
-        failure_reason='Same family as cmp_equal.',
+        constexpr_in_restd='C++11',
+        notes='Defined as !cmp_less(t, u).',
     ),
     S(
         'in_range<R>(t)', 'Integer comparisons',
         std_in='C++20',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++20',
-        notes='Range-checked integer cast probe.',
-        failure_reason='Same family as cmp_equal.',
+        constexpr_in_restd='C++11',
+        notes='Range-checked integer fit: cmp_greater_equal(t, R::min) && cmp_less_equal(t, R::max). Built on the cmp_* primitives so the same sign-safety holds.',
     ),
     S(
         'unreachable', 'Diagnostics',
         std_in='C++23',
-        restd_min=None,
-        notes='Marks code as unreachable; UB if reached. Wraps __builtin_unreachable / __assume.',
-        failure_reason='C++23 utility; trivial wrapper around compiler intrinsics. Slated for the next utility milestone.',
+        restd_min='C++11',
+        intrinsic_required=False,
+        intrinsic_names='__builtin_unreachable (gcc/clang/intel) / __assume(0) (MSVC)',
+        detection_macro='D_RESTD_HAS_BUILTIN_UNREACHABLE',
+        notes='[[noreturn]] hint that this point cannot be reached. Compiler intrinsic preferred; falls back to std::abort() on unknown compilers. Note: std contract says UB if reached, but a defined abort is strictly safer than silent miscompilation - documented intentional deviation.',
     ),
 ]
 
@@ -1632,20 +2003,2321 @@ SYMBOLS_OPTIONAL = [
     ),
 ]
 
+# ============================================================================
+# <iterator> — shipped 2026-05-08 / 2026-05-09 (Phases 7a + 7b)
+# ============================================================================
+SYMBOLS_ITERATOR = [
+    # ---- tag types ----
+    S(
+        'input_iterator_tag', 'Tag types',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Empty struct for tag dispatch. Restd tag is structurally distinct from std; iterator_traits primary translates std tags to restd via is_base_of cascade.',
+    ),
+    S(
+        'output_iterator_tag', 'Tag types',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Independent tag (does NOT derive from input_iterator_tag); matches the std hierarchy convention.',
+    ),
+    S(
+        'forward_iterator_tag', 'Tag types',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Derives from input_iterator_tag.',
+    ),
+    S(
+        'bidirectional_iterator_tag', 'Tag types',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Derives from forward_iterator_tag.',
+    ),
+    S(
+        'random_access_iterator_tag', 'Tag types',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Derives from bidirectional_iterator_tag. Raw pointers carry this tag through iterator_traits<T*>.',
+    ),
+    S(
+        'contiguous_iterator_tag', 'Tag types',
+        std_in='C++20',
+        restd_min='C++20',
+        notes='Derives from random_access_iterator_tag. Raw pointers carry this via iterator_concept on C++20+ (in addition to the random_access iterator_category).',
+    ),
+
+    # ---- traits ----
+    S(
+        'iterator_traits', 'Traits',
+        std_in='C++98',
+        restd_min='C++11',
+        notes='Detection-based primary template (matches C++17+ std behaviour: empty when It does not expose all five member typedefs). Std-to-restd tag translation in primary via std::is_base_of cascade; raw-pointer specialisations defined directly. iterator_concept (C++20+) on raw pointers only — user-defined iterators flow through iterator_category translation. Currently leaks <iterator> + <type_traits> dependencies into restd; documented as localised, justified.',
+        failure_reason='C++98 path not yet shipped — uses void_t (C++11). The detection-based primary requires SFINAE machinery that the C++98 path can be retrofitted to provide via a tag-type approach when needed.',
+    ),
+
+    # ---- stepping ----
+    S(
+        'advance', 'Stepping',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++11',
+        notes='Tag-dispatched on iterator_category: O(1) random_access (+=), O(|n|) bidirectional (with negative-n support), O(n) input/forward (positive-only).',
+    ),
+    S(
+        'distance', 'Stepping',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++11',
+        notes='Tag-dispatched: O(1) for random_access, O(distance) otherwise.',
+    ),
+    S(
+        'next', 'Stepping',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++11',
+        notes='Returns it advanced by n (default 1). Built on advance().',
+    ),
+    S(
+        'prev', 'Stepping',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++11',
+        notes='Returns it stepped backward by n (default 1). advance(-n) under the hood.',
+    ),
+
+    # ---- range access ----
+    S(
+        'begin', 'Range access',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++14',
+        constexpr_in_restd='C++14',
+        notes='Four overload categories: container& / const container& (member begin), T(&)[N] (raw arrays), and initializer_list.',
+    ),
+    S(
+        'end', 'Range access',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++14',
+        constexpr_in_restd='C++14',
+        notes='Mirrors begin.',
+    ),
+    S(
+        'cbegin', 'Range access',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++14',
+        constexpr_in_restd='C++14',
+        notes='Forces const path of begin. Always yields const_iterator (or const T* on arrays).',
+    ),
+    S(
+        'cend', 'Range access',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++14',
+        constexpr_in_restd='C++14',
+        notes='Pairs with cbegin.',
+    ),
+    S(
+        'rbegin', 'Range access',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='For containers, forwards member rbegin. For arrays/initializer_list, wraps end()/il.end() in restd::reverse_iterator.',
+    ),
+    S(
+        'rend', 'Range access',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Pairs with rbegin.',
+    ),
+    S(
+        'crbegin', 'Range access',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Forces const path of rbegin.',
+    ),
+    S(
+        'crend', 'Range access',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Pairs with crbegin.',
+    ),
+    S(
+        'size', 'Range access',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Forwards member size for containers; returns N for raw arrays. Std ssize (signed-size variant, C++20) not yet implemented.',
+    ),
+    S(
+        'empty', 'Range access',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Forwards member empty for containers; returns false for raw arrays (zero-extent is ill-formed); checks .size() == 0 for initializer_list.',
+    ),
+    S(
+        'data', 'Range access',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Forwards member data; pointer-to-first for arrays; il.begin() for initializer_list. Caller is responsible for the contiguity precondition.',
+    ),
+
+    # ---- adaptors ----
+    S(
+        'reverse_iterator', 'Adaptors',
+        std_in='C++98',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Off-by-one: base() points one past the dereferenced element. Mutating ops (op++, op*, op->, op+=, op[]) are constexpr only on C++14+ via local D_CONSTEXPR_CPP14 macro. operator-> uses & on the dereference for non-pointer iterators (no addressof — would create a <memory> dependency). Std uses addressof in the reference branch; restd matches std for raw pointers and most class iterators with operator->().',
+        failure_reason='C++98 path planned but not yet shipped; would need a non-constexpr variant and copy-based ctors.',
+    ),
+    S(
+        'make_reverse_iterator', 'Adaptors',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++11',
+        notes='Trivial wrapper.',
+    ),
+    S(
+        'move_iterator', 'Adaptors',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='reference type chosen via internal::move_reference_of: on T& base it yields T&& (xvalue), on by-value base (proxy iterator) it yields T unchanged. Matches the C++17+ std contract; pre-C++17 std had a worse contract that broke proxies — restd does NOT reproduce that. iterator_concept = input_iterator_tag on C++20+. operator-> kept on every tier (deprecated C++20, removed C++23 in std).',
+    ),
+    S(
+        'make_move_iterator', 'Adaptors',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++11',
+        notes='Trivial wrapper.',
+    ),
+    S(
+        'back_insert_iterator', 'Adaptors',
+        std_in='C++98',
+        restd_min='C++11',
+        notes='Output-only iterator. operator= calls container.push_back(value); ++ is a no-op; * returns *this. Two assignment overloads (const T& and T&&) for move-friendly insertion.',
+        failure_reason='C++98 path planned but not yet shipped; the rvalue overload is gated on C++11+. The const-ref-only form would back-port to C++98 directly.',
+    ),
+    S(
+        'back_inserter', 'Adaptors',
+        std_in='C++98',
+        restd_min='C++11',
+        notes='Trivial wrapper.',
+    ),
+    S(
+        'front_insert_iterator', 'Adaptors',
+        std_in='C++98',
+        restd_min='C++11',
+        notes='Like back_insert_iterator but calls push_front. NOTE: copying [first, last) into a front_insert_iterator REVERSES the order in the destination — each element pushed becomes the new front.',
+        failure_reason='C++98 path planned but not yet shipped (rvalue overload).',
+    ),
+    S(
+        'front_inserter', 'Adaptors',
+        std_in='C++98',
+        restd_min='C++11',
+        notes='Trivial wrapper.',
+    ),
+    S(
+        'insert_iterator', 'Adaptors',
+        std_in='C++98',
+        restd_min='C++11',
+        notes='Tracks position via iter = container->insert(iter, v); ++iter. PRESERVES source order (unlike front_inserter). Works correctly even when the underlying container invalidates iterators on insert.',
+        failure_reason='C++98 path planned but not yet shipped (rvalue overload).',
+    ),
+    S(
+        'inserter', 'Adaptors',
+        std_in='C++98',
+        restd_min='C++11',
+        notes='Trivial wrapper. Takes a hint iterator.',
+    ),
+
+    # ---- not yet implemented ----
+    S(
+        'istream_iterator', 'Stream iterators',
+        std_in='C++98',
+        restd_min=None,
+        notes='Reads values from an input stream until EOF.',
+        failure_reason='Awaits restd::<istream> / restd::<iostream>; currently absent.',
+        depends_on=('restd::istream',),
+    ),
+    S(
+        'ostream_iterator', 'Stream iterators',
+        std_in='C++98',
+        restd_min=None,
+        notes='Writes values to an output stream, optionally interleaved with a separator.',
+        failure_reason='Awaits restd::<ostream> / restd::<iostream>.',
+        depends_on=('restd::ostream',),
+    ),
+    S(
+        'istreambuf_iterator', 'Stream iterators',
+        std_in='C++98',
+        restd_min=None,
+        notes='Lower-level than istream_iterator; reads characters from a streambuf.',
+        failure_reason='Awaits restd::<streambuf> / restd::<iostream>.',
+        depends_on=('restd::streambuf',),
+    ),
+    S(
+        'ostreambuf_iterator', 'Stream iterators',
+        std_in='C++98',
+        restd_min=None,
+        notes='Lower-level than ostream_iterator.',
+        failure_reason='Awaits restd::<streambuf> / restd::<iostream>.',
+        depends_on=('restd::streambuf',),
+    ),
+    S(
+        'common_iterator', 'C++20 ranges adaptors',
+        std_in='C++20',
+        restd_min=None,
+        notes='Wraps an iterator/sentinel pair into something with iterator_category (for legacy algorithm interop).',
+        failure_reason='Out of scope until restd::<concepts> + ranges machinery is in place.',
+        depends_on=('restd::<concepts>',),
+    ),
+    S(
+        'counted_iterator', 'C++20 ranges adaptors',
+        std_in='C++20',
+        restd_min=None,
+        notes='Wraps an iterator with a remaining-count to enable take_view-style ranges.',
+        failure_reason='Out of scope until restd::<ranges>.',
+        depends_on=('restd::<ranges>',),
+    ),
+    S(
+        'iter_move', 'C++20 ranges adaptors',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Customisation point object (niebloid) shipped Phase R22. Two-stage dispatch via priority<N> hierarchy: ADL iter_move(it) for user customisations, else static_cast<rvalue-ref>(*it) as the default fallback. Poison-pill iter_move() = delete forces ADL discovery. Inline-constexpr instance on C++17+, static-constexpr on C++11/14.',
+        failure_reason='Niebloid + ADL machinery requires C++11+.',
+    ),
+    S(
+        'iter_rvalue_reference_t', 'C++20 ranges adaptors',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Alias for decltype(restd::iter_move(declval<I&>())). Shipped Phase R22 alongside the iter_move CPO.',
+        failure_reason='Alias template depending on iter_move CPO.',
+    ),
+    S(
+        'basic_const_iterator', 'C++23 ranges adaptors',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Wraps an iterator I and presents its dereference as a const reference. Full iterator surface (forward/bidi/RA ops) with const-projection via const_ref_projection helper mapping T& → const T&, T&& → const T&&, T → T. Cross-type ==/!= against arbitrary sentinel types so it works in non-common ranges without partial specialisation. Shipped Phase R22; powers as_const_view (R22 rewrite) and the cbegin/cend/crbegin/crend CPOs (R24).',
+        failure_reason='Requires alias templates + iterator_traits delegation.',
+    ),
+    S(
+        'iter_const_reference_t', 'C++23 ranges adaptors',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Alias yielding the const-projected reference type for an iterator. Shipped Phase R22 alongside basic_const_iterator.',
+        failure_reason='Alias template depending on basic_const_iterator.',
+    ),
+    S(
+        'iter_concept (member typedef pull-through)', 'Traits',
+        std_in='C++20',
+        restd_min=None,
+        notes="Optional iterator_concept on user-defined class iterators is currently NOT pulled through iterator_traits's primary translation; only iterator_category translates. Raw-pointer specs do define iterator_concept = contiguous_iterator_tag on C++20+. A class iterator with iterator_concept = std::contiguous_iterator_tag and iterator_category = std::random_access_iterator_tag will translate to restd::random_access (most-specific by category alone).",
+        failure_reason='Mechanical to add: extend the iter_traits_impl partial spec to detect iterator_concept and translate alongside iterator_category, with the more-specific of the two winning. Slated for a follow-up.',
+    ),
+    S(
+        'iterator (base class template)', 'Deprecated',
+        std_in='C++98',
+        restd_min=None,
+        deprecated_in='C++17',
+        notes='Removed in C++20. restd intentionally does NOT ship this base class — modern user iterators expose member typedefs directly.',
+        failure_reason='Intentionally not implemented. Code using std::iterator should be ported to declare typedefs directly.',
+    ),
+]
+
+
+# ============================================================================
+# <memory> — shipped Phases 1-6c (2026-04 .. 2026-05-02)
+# ============================================================================
+SYMBOLS_MEMORY = [
+    # ---- foundations (Phase 1) ----
+    S(
+        'addressof', 'Pointer utilities',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++11',
+        intrinsic_required=True,
+        intrinsic_names='__builtin_addressof (gcc/clang/msvc 19.16+/intel)',
+        detection_macro='D_RESTD_HAS_BUILTIN_ADDRESSOF',
+        notes='Used by every smart pointer and uninitialized algorithm. Bypasses overloaded operator&. Without the builtin, falls back to a reinterpret-via-char-cast helper that is constexpr-friendly only on certain compilers; default detection enables on the four major compilers.',
+    ),
+    S(
+        'pointer_traits', 'Pointer utilities',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Trait surface needed by allocator_traits. Detects member typedefs (element_type, difference_type, rebind) with sensible defaults when absent.',
+    ),
+    S(
+        'construct_at', 'Construction',
+        std_in='C++20',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Placement-new wrapper. constexpr at C++20+ in std; restd back-ports unconditionally on C++14+.',
+    ),
+    S(
+        'destroy_at', 'Destruction',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Calls p->~T(). Array destructor handling for T[N] from C++20.',
+    ),
+    S(
+        'destroy', 'Destruction',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Range form of destroy_at.',
+    ),
+    S(
+        'default_delete', 'Deleters',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Stateless deleter for unique_ptr. Two specialisations: T (delete) and T[] (delete[]).',
+    ),
+    S(
+        'allocator_arg_t / allocator_arg', 'Allocator tags',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++11',
+        constexpr_in_restd='C++11',
+        notes='Tag type and constexpr instance for allocator-extended ctors of allocator-aware types.',
+    ),
+    S(
+        'uses_allocator', 'Allocator support',
+        std_in='C++11',
+        restd_min='C++11',
+        v_var_in='C++17',
+        notes='Trait that signals allocator-awareness via member uses_allocator typedef on a target type.',
+    ),
+    S(
+        'bad_weak_ptr', 'Smart pointer exception',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Thrown by shared_ptr ctor from expired weak_ptr.',
+    ),
+
+    # ---- allocator core (Phase 2) ----
+    S(
+        'allocator', 'Allocator',
+        std_in='C++98',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++20',
+        notes='Default allocator. Most surface deprecated in C++17 (capacity, address, construct, destroy) and removed in C++20; restd honours the C++17 deprecation and the C++20 surface change. Ships allocator<void> specialisation.',
+        failure_reason='C++98 path planned; current implementation uses C++11 deduction tools (rebind_alloc helper).',
+    ),
+    S(
+        'allocator_traits', 'Allocator',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++20',
+        notes='~10 SFINAE detection points (allocate, deallocate, construct, destroy, max_size, propagate_on_*, is_always_equal, select_on_container_copy_construction, rebind_alloc).',
+    ),
+
+    # ---- unique_ptr (Phase 3) ----
+    S(
+        'unique_ptr', 'Smart pointer',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++23',
+        notes='Both <T,D> and <T[],D> specs. Pointer-type detection via void_t. Converting moves with full SFINAE. Comparison ops use raw < (not less<common_type_t>) — minor deviation from the std contract.',
+        failure_reason='C++98 path requires substantial redesign (no rvalue refs); planned but deferred.',
+    ),
+    S(
+        'unique_ptr (no EBO)', 'Design choice',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='restd stores deleter as a member, not via EBO. Pays one word of size when D is empty; trades simplicity for slight overhead. Documented deviation from std::unique_ptr (which uses EBO via tuple<T*, D>).',
+    ),
+    S(
+        'make_unique<T>(args)', 'Smart pointer factory',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++23',
+        notes='Non-array form.',
+    ),
+    S(
+        'make_unique<T[]>(n)', 'Smart pointer factory',
+        std_in='C++14',
+        restd_min='C++11',
+        constexpr_in_std='C++23',
+        notes='Unbounded-array form, value-init.',
+    ),
+    S(
+        'make_unique_for_overwrite', 'Smart pointer factory',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Default-init variants (single + array). Back-ported unconditionally.',
+    ),
+
+    # ---- shared_ptr (Phases 4a/4b/6b/6c) ----
+    S(
+        'shared_ptr', 'Smart pointer',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Atomic refcount via __atomic_* builtins (gcc/clang/intel only — MSVC interlocked path TBD). Public-but-underscored _sp_internal_from_cb factory. Comparison ops use raw < (matches unique_ptr).',
+        failure_reason='Atomics gating + C++11 floor.',
+    ),
+    S(
+        'shared_ptr<T[]>', 'Smart pointer',
+        std_in='C++17',
+        restd_min='C++11',
+        notes='Unbounded-array partial spec. operator[] replaces operator*/->. Conversion from shared_ptr<U[]> uses qualification-only convertibility on (Y(*)[] -> T(*)[]).',
+    ),
+    S(
+        'shared_ptr<T[N]>', 'Smart pointer',
+        std_in='C++17',
+        restd_min='C++11',
+        notes='Bounded-array spec. Decay conversion to shared_ptr<T[]> provided. Cross-element-type qualification-only conversions NOT YET implemented (rare; mechanical to add).',
+    ),
+    S(
+        'weak_ptr', 'Smart pointer',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Paired with shared_ptr; observes without owning. lock() returns a strong shared_ptr, or empty if expired.',
+    ),
+    S(
+        'weak_ptr<T[]> / weak_ptr<T[N]>', 'Smart pointer',
+        std_in='C++17',
+        restd_min='C++11',
+        notes='Array partial specs of weak_ptr.',
+    ),
+    S(
+        'enable_shared_from_this', 'Smart pointer',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='CRTP base. Inline-friend ADL trick: the template friend sp_esft_link is found via ADL on the cb pointer; a catch-all in restd:: (NOT internal::) ensures unqualified calls always resolve. Subtle to get right; see notes in source.',
+    ),
+    S(
+        'make_shared (single)', 'Smart pointer factory',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Single allocation: cb + object. Forwards args to T ctor.',
+    ),
+    S(
+        'make_shared<T[]>(n) / (n,u)', 'Smart pointer factory',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Unbounded array forms. Single-allocation byte-arithmetic layout: [cb header][pad][T[0]..T[n-1]]. Strong exception safety with reverse-order rollback. Over-aligned types (alignas > __STDCPP_DEFAULT_NEW_ALIGNMENT__) NOT YET supported — would need ::operator new with align_val_t (C++17+).',
+    ),
+    S(
+        'make_shared<T[N]>() / (u)', 'Smart pointer factory',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Bounded-array forms. Same single-allocation layout via internal::array_extent helper.',
+    ),
+    S(
+        'make_shared_for_overwrite', 'Smart pointer factory',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Default-init variant (single + unbounded + bounded array forms). Tag-dispatched ctor on sp_cb_inplace via internal::sp_for_overwrite_t.',
+    ),
+    S(
+        'allocate_shared (single)', 'Smart pointer factory',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Allocator-aware variant of make_shared.',
+    ),
+    S(
+        'allocate_shared array forms', 'Smart pointer factory',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Four array overloads (T[]+n, T[]+n+u, T[N], T[N]+u). Allocator rebound to unsigned char for the byte block; cb destroy() takes a copy of the allocator before destructing self, then deallocates via the rebound copy.',
+    ),
+    S(
+        'allocate_shared_for_overwrite', 'Smart pointer factory',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Default-init allocator-aware factory (single + array forms).',
+    ),
+    S(
+        'static_pointer_cast', 'Pointer cast',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Const-ref + rvalue overloads (rvalue-cast added in C++20 std; restd back-ports unconditionally).',
+    ),
+    S(
+        'dynamic_pointer_cast', 'Pointer cast',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Per [util.smartptr.shared.cast] the rvalue-on-failure path leaves the source UNCHANGED (does not move-from on a failed cast).',
+    ),
+    S(
+        'const_pointer_cast', 'Pointer cast',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Same shape as static_pointer_cast.',
+    ),
+    S(
+        'reinterpret_pointer_cast', 'Pointer cast',
+        std_in='C++17',
+        restd_min='C++11',
+        notes='Same shape as static_pointer_cast.',
+    ),
+    S(
+        'owner_less', 'Comparator',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Three specs: shared_ptr<T>, weak_ptr<T>, void (heterogeneous, is_transparent).',
+    ),
+    S(
+        'get_deleter', 'Smart pointer access',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Type-erased deleter retrieval via typeid (or restd alternate when typeinfo absent).',
+    ),
+    S(
+        'swap (smart pointers)', 'Free functions',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Non-member swap for shared_ptr, weak_ptr, unique_ptr (T) and (T[]).',
+    ),
+
+    # ---- uninitialized memory algorithms (Phase 5) ----
+    S(
+        'uninitialized_copy', 'Uninitialized memory',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Strong exception safety: rolls back constructed elements on throw. Now uses restd::iterator_traits (Phase 5 stub retired).',
+    ),
+    S(
+        'uninitialized_copy_n', 'Uninitialized memory',
+        std_in='C++11',
+        restd_min='C++98',
+        notes='Returns pair<input_iter, dest_iter>.',
+    ),
+    S(
+        'uninitialized_fill', 'Uninitialized memory',
+        std_in='C++98',
+        restd_min='C++98',
+    ),
+    S(
+        'uninitialized_fill_n', 'Uninitialized memory',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='C++11 added a return value (past-the-end iterator); restd matches the C++11 signature on every tier.',
+    ),
+    S(
+        'uninitialized_default_construct(_n)', 'Uninitialized memory',
+        std_in='C++17',
+        restd_min='C++98',
+        notes='Default-init (no parens after T): leaves trivials indeterminate.',
+    ),
+    S(
+        'uninitialized_value_construct(_n)', 'Uninitialized memory',
+        std_in='C++17',
+        restd_min='C++98',
+        notes='Value-init (parens after T): zero-fills trivials. Container resize uses this.',
+    ),
+    S(
+        'uninitialized_move(_n)', 'Uninitialized memory',
+        std_in='C++17',
+        restd_min='C++11',
+        notes='Move-construct from src; rollback is destination-only (any moved-from src elements remain moved-from).',
+    ),
+
+    # ---- small utilities (Phase 6c) ----
+    S(
+        'align', 'Memory utilities',
+        std_in='C++11',
+        restd_min='C++11',
+        notes='Power-of-two alignment via bitmask. Returns nullptr on insufficient space, leaving the input ptr/space pair untouched.',
+    ),
+    S(
+        'to_address', 'Pointer utilities',
+        std_in='C++20',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++11',
+        notes='Two-overload tag-dispatch: pointer_traits::to_address path (C++20+) preferred, operator->() recursion as fallback. function_pointer overload static_asserts against use.',
+    ),
+    S(
+        'assume_aligned', 'Memory utilities',
+        std_in='C++20',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++11',
+        intrinsic_required=True,
+        intrinsic_names='__builtin_assume_aligned (gcc/clang/intel) / __assume (MSVC)',
+        notes='Compiler hint only; informational. Degrades to identity on unknown compilers.',
+    ),
+
+    # ---- not yet implemented ----
+    S(
+        'aligned_new for over-aligned types', 'Known gap',
+        std_in='C++17',
+        restd_min=None,
+        notes='make_shared<T[]>(n) and the other array factories use plain ::operator new(bytes) — alignas-T greater than __STDCPP_DEFAULT_NEW_ALIGNMENT__ will not be honoured.',
+        failure_reason='Needs ::operator new with align_val_t (C++17+) plus a manual over-allocation/pointer-adjust fallback for C++11/14. Focused follow-up phase.',
+    ),
+    S(
+        'atomic shared_ptr ops', 'Atomic operations',
+        std_in='C++11',
+        restd_min=None,
+        deprecated_in='C++20',
+        notes='atomic_load(shared_ptr*), atomic_store, atomic_compare_exchange_*. Free-function form deprecated in C++20 in favour of std::atomic<shared_ptr<T>> (C++20).',
+        failure_reason='Lower priority than <iterator>/<algorithm>; substantial work.',
+        depends_on=('restd::<atomic>',),
+    ),
+    S(
+        'std::atomic<shared_ptr<T>>', 'Atomic operations',
+        std_in='C++20',
+        restd_min=None,
+        notes='C++20 specialisation that subsumes the deprecated free-function forms.',
+        failure_reason='Substantial work; awaits restd::<atomic>.',
+        depends_on=('restd::<atomic>',),
+    ),
+    S(
+        'hash<shared_ptr> / hash<unique_ptr>', 'Hash specialisations',
+        std_in='C++11',
+        restd_min=None,
+        notes='Specialisations of std::hash for the smart pointers.',
+        failure_reason='Awaits restd::<functional> (which provides the hash primary template).',
+        depends_on=('restd::<functional>::hash',),
+    ),
+    S(
+        'MSVC atomic refcount', 'Compiler support',
+        std_in=None,
+        restd_min=None,
+        notes='Implementation detail (not a std symbol). shared_ptr atomic refcount uses __atomic_* (gcc/clang/intel). MSVC needs interlocked-intrinsic path. Currently MSVC builds will fail on the include.',
+        failure_reason='Mechanical; needs InterlockedIncrement/Decrement wrappers in internal/sp_atomics.hpp.',
+    ),
+]
+
+
+# ============================================================================
+# <numeric> — shipped 2026-05-09 (Phase 8)
+# ============================================================================
+SYMBOLS_NUMERIC = [
+    # ---- serial folds ----
+    S(
+        'accumulate', 'Serial folds',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Strict left-fold; iteration order respected. Two overloads (default operator+ and custom op).',
+    ),
+    S(
+        'inner_product', 'Serial folds',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Generalised dot product. Default ops are operator+ (reduce) and operator* (transform).',
+    ),
+
+    # ---- sequence-writing folds ----
+    S(
+        'partial_sum', 'Sequence folds',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Running fold. Two overloads (default + and custom op).',
+    ),
+    S(
+        'adjacent_difference', 'Sequence folds',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Pairwise diffs. Op order: op(curr, prev) — second arg is the EARLIER element, matching std.',
+    ),
+
+    # ---- generation ----
+    S(
+        'iota', 'Sequence generation',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Fills with v, ++v, ++v, ... — any type with operator++ works, not only integers.',
+    ),
+
+    # ---- number theory ----
+    S(
+        'gcd', 'Number theory',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Euclidean kernel runs in unsigned space. Handles INT_MIN safely (the unsigned-magnitude trick avoids -INT_MIN UB).',
+    ),
+    S(
+        'lcm', 'Number theory',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Built on gcd. Divides first to limit intermediate overflow. lcm(0, k) = 0 for any k.',
+    ),
+    S(
+        'midpoint (integer)', 'Number theory',
+        std_in='C++20',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++11',
+        notes='Overflow-safe via unsigned-magnitude formula. Rounds toward a per std contract.',
+    ),
+    S(
+        'midpoint (pointer)', 'Number theory',
+        std_in='C++20',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++11',
+        notes='a + (b - a) / 2; a and b must be into the same array.',
+    ),
+    S(
+        'midpoint (floating-point)', 'Number theory',
+        std_in='C++20',
+        restd_min=None,
+        notes='Float/double/long double overload deferred — has subtle rounding/inf/NaN requirements that benefit from focused testing.',
+        failure_reason='Focused phase pending.',
+    ),
+
+    # ---- parallel-friendly folds (serial impl) ----
+    S(
+        'reduce', 'Parallel-friendly folds',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Three overloads (no init, init, init+op). REQUIRES associative+commutative op per the contract; restd implementation is currently serial — the user contract holds for forward compatibility with parallel restd impls.',
+    ),
+    S(
+        'transform_reduce', 'Parallel-friendly folds',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Three overloads (two-range default ops, two-range custom, single-range with unary op).',
+    ),
+    S(
+        'inclusive_scan', 'Parallel-friendly folds',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Each output includes the corresponding input. Three overloads (default op, custom op, custom op + init).',
+    ),
+    S(
+        'exclusive_scan', 'Parallel-friendly folds',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Each output excludes the corresponding input. Init is mandatory (no default-init overload per std).',
+    ),
+    S(
+        'transform_inclusive_scan', 'Parallel-friendly folds',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Inclusive scan with a unary transform applied per element before fold. Two overloads.',
+    ),
+    S(
+        'transform_exclusive_scan', 'Parallel-friendly folds',
+        std_in='C++17',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Exclusive scan with a unary transform.',
+    ),
+
+    # ---- not yet implemented ----
+    S(
+        'parallel-execution-policy overloads', 'Execution policies',
+        std_in='C++17',
+        restd_min=None,
+        notes='Overloads taking std::execution::par etc. for reduce, scan, etc.',
+        failure_reason='Awaits restd::<execution>.',
+        depends_on=('restd::<execution>',),
+    ),
+    S(
+        'add_sat / sub_sat / mul_sat / div_sat', 'Saturation arithmetic',
+        std_in='C++26',
+        restd_min=None,
+        notes='Saturating integer arithmetic. Each op clamps to type bounds rather than wrapping.',
+        failure_reason='Focused phase pending — correct implementation per the C++26 contract is non-trivial across signed/unsigned and width pairings.',
+    ),
+    S(
+        'saturate_cast', 'Saturation arithmetic',
+        std_in='C++26',
+        restd_min=None,
+        notes='Saturating cast between integer types.',
+        failure_reason='Focused phase pending.',
+    ),
+]
+
+
+SYMBOLS_ALGORITHM = [
+    # ---- non-modifying sequence ops ----
+    S(
+        'all_of', 'Non-modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Vacuously true for empty range; short-circuits on first false. std C++11 only because that is when it was added; back-ported (no language feature blocker).',
+    ),
+    S(
+        'any_of', 'Non-modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='False for empty range; short-circuits on first true. Back-ported to C++98.',
+    ),
+    S(
+        'none_of', 'Non-modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Vacuously true for empty range. Back-ported to C++98.',
+    ),
+    S(
+        'for_each', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Returns f by value (NRVO + copy elision keep this efficient on every tier). C++11 std uses move(f); semantically equivalent for non-throwing functors. Sequential ordering only on this no-policy overload.',
+    ),
+    S(
+        'for_each_n', 'Non-modifying sequence ops',
+        std_in='C++17',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Counted variant; returns iterator past last visited element. Back-ported to C++98 (counted loop, no blocker).',
+    ),
+    S(
+        'count', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Return type iterator_traits<It>::difference_type. Returns 0 for empty range.',
+    ),
+    S(
+        'count_if', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Predicate variant; same difference_type return.',
+    ),
+    S(
+        'mismatch', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Four overloads: 3-arg vs 4-arg x default == vs custom pred. The 4-arg forms (two explicit ranges) are C++14 in std; restd back-ports them to C++98. Returns pair<It1, It2>.',
+    ),
+    S(
+        'find', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Linear search; returns last on miss.',
+    ),
+    S(
+        'find_if', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Linear search with predicate.',
+    ),
+    S(
+        'find_if_not', 'Non-modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Inverse of find_if; back-ported to C++98 (pure predicate negation).',
+    ),
+    S(
+        'find_end', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Last occurrence of needle as subsequence. Two overloads. Empty-needle returns last1 per std (note asymmetry vs search).',
+    ),
+    S(
+        'find_first_of', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='O(N*M) naive scan (matches std). Two overloads.',
+    ),
+    S(
+        'adjacent_find', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='First adjacent pair satisfying ==/pred. Two overloads.',
+    ),
+    S(
+        'search', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='First occurrence of needle as subsequence. Two C++98 overloads (default == / pred). Empty-needle returns first1 (asymmetry with find_end is std-mandated). O(N*M) naive.',
+    ),
+    S(
+        'search (searcher overload)', 'Non-modifying sequence ops',
+        std_in='C++17',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='C++17 form search(first, last, searcher) delegates to the searcher callable. Ships at C++98 (the overload itself has no language blocker; concrete searcher types live in <functional> and are deferred there).',
+    ),
+    S(
+        'search_n', 'Non-modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='First run of count consecutive equal elements. Two overloads. count <= 0 returns first per LWG 426.',
+    ),
+
+    # ---- modifying sequence ops (write-only) ----
+    S(
+        'copy', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Returns one past last copied. Source and destination must not overlap unless d_first is outside [first, last).',
+    ),
+    S(
+        'copy_if', 'Modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Predicate-filtered copy. Back-ported to C++98 (no language blocker).',
+    ),
+    S(
+        'copy_n', 'Modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Counted copy. Back-ported to C++98.',
+    ),
+    S(
+        'copy_backward', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Walks in reverse; safe when source and destination overlap and d_last lies inside (first, last]. Returns iterator to new beginning.',
+    ),
+    S(
+        'move (algorithm)', 'Modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Cannot be back-ported to C++98 (a copy fallback would silently change move-only-type semantics). Coexists with restd::move (the utility cast) via overload resolution (one arg vs three).',
+    ),
+    S(
+        'move_backward', 'Modifying sequence ops',
+        std_in='C++11',
+        restd_min='C++11',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Same gating rationale as move (algorithm). Bidirectional iterators required.',
+    ),
+    S(
+        'fill', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Assigns value to every element.',
+    ),
+    S(
+        'fill_n', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='restd always ships the C++11 iterator-returning signature on every tier; C++98 callers can ignore the return.',
+    ),
+    S(
+        'transform', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Unary and binary overloads. Unary allows in-place transform (d_first may equal first).',
+    ),
+    S(
+        'generate', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Calls g() to fill the range; g may carry state across calls.',
+    ),
+    S(
+        'generate_n', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Always ships the C++11 iterator-returning signature on every tier.',
+    ),
+    S(
+        'remove', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='In-place compaction. C++11 strengthened kept-element transfer to move; restd matches per-tier (copy on C++98, move on C++11+). Returns one past last kept; tail is valid-but-unspecified (erase-remove idiom).',
+    ),
+    S(
+        'remove_if', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Predicate variant of remove; same per-tier move/copy gating.',
+    ),
+    S(
+        'remove_copy', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Out-of-place; pure copy semantics (no conditional move dance).',
+    ),
+    S(
+        'remove_copy_if', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Predicate variant of remove_copy.',
+    ),
+    S(
+        'replace', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='In-place value-based replacement.',
+    ),
+    S(
+        'replace_if', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Predicate variant of replace.',
+    ),
+    S(
+        'replace_copy', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Out-of-place sibling of replace.',
+    ),
+    S(
+        'replace_copy_if', 'Modifying sequence ops',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Out-of-place sibling of replace_if.',
+    ),
+
+    # ---- modifying sequence ops (rearrangement) ----
+    S(
+        'iter_swap', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='ADL-friendly: using restd::swap; swap(*a, *b); — picks up user-supplied swap via ADL.',
+    ),
+    S(
+        'swap_ranges', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Parallel element-wise swap of two ranges.',
+    ),
+    S(
+        'reverse', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='In-place two-pointer reversal. Bidirectional iterators required.',
+    ),
+    S(
+        'reverse_copy', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Out-of-place sibling of reverse.',
+    ),
+    S(
+        'rotate', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='restd always ships the C++11 iterator-returning signature. Forward-iterator algorithm via swap-walk with manually eliminated tail recursion (per Stepanov & McJones, Elements of Programming).',
+    ),
+    S(
+        'rotate_copy', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Out-of-place rotate; two inlined copy loops to keep the file independent of copy.hpp.',
+    ),
+    S(
+        'shift_left', 'Rearrangement',
+        std_in='C++20',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Back-ported to C++98 (forward walk with assignment). Per-tier move/copy gating like remove.',
+    ),
+    S(
+        'shift_right', 'Rearrangement',
+        std_in='C++20',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='DEVIATION FROM STD: requires BidirectionalIterator (std requires only ForwardIterator). Forward-only algorithm is essentially a hidden rotate and was judged not worth the niche path.',
+    ),
+    S(
+        'shuffle', 'Rearrangement',
+        std_in='C++11',
+        restd_min='C++98',
+        notes='Fisher-Yates with unbiased rejection sampling against a caller-supplied URBG. No <random> dependency. Back-ported to C++98 by relaxing the URBG parameter to lvalue reference. NOT constexpr — URBG state mutation is canonically constexpr-hostile.',
+    ),
+    S(
+        'sample', 'Rearrangement',
+        std_in='C++17',
+        restd_min='C++98',
+        notes='Tag-dispatched: forward iterator -> Knuth Algorithm S (preserves input order); input iterator -> Vitter Algorithm R (reservoir). No <random> dependency. NOT constexpr.',
+    ),
+    S(
+        'unique', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Collapses consecutive duplicates. Per-tier move/copy gating like remove. Two overloads (default == / pred).',
+    ),
+    S(
+        'unique_copy', 'Rearrangement',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Out-of-place; uses saved-local approach (requires CopyConstructible + CopyAssignable value type) rather than std s 3-form tag-dispatch. Two overloads.',
+    ),
+
+    # ---- sort ----
+    S(
+        'sort', 'Sort',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Introsort: median-of-3 + Lomuto partition; heapsort fallback at depth 2*floor(log2(N)); insertion sort below 16 elements. Tail-recurses on the larger half (O(log N) stack). NOT constexpr (matches std through C++26).',
+    ),
+    S(
+        'stable_sort', 'Sort',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Bottom-up merge sort with no-buffer in-place merge (asymmetric lower_bound/upper_bound preserves stability). O(N log^2 N) worst-case allocator-free; std s typical implementation uses get_temporary_buffer for O(N log N) when allocation succeeds. NOT constexpr.',
+    ),
+    S(
+        'partial_sort', 'Sort',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Heap-based, O(N log k). Inlines a private _sift_down_ helper; cleanup ticket to call restd::make_heap/sort_heap when those are refactored. NOT constexpr.',
+    ),
+    S(
+        'partial_sort_copy', 'Sort',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Out-of-place sibling of partial_sort; heap-based, O(N log min(N,M)). NOT constexpr.',
+    ),
+    S(
+        'is_sorted', 'Sort',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Built on is_sorted_until; range is sorted iff until-iterator equals last.',
+    ),
+    S(
+        'is_sorted_until', 'Sort',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='First out-of-order position. Back-ported to C++98.',
+    ),
+    S(
+        'nth_element', 'Sort',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Introselect: quickselect with median-of-3 + Lomuto, heap-based fallback at depth 2*floor(log2(N)). Average O(N), worst O(N log N). NOT constexpr.',
+    ),
+
+    # ---- binary search ----
+    S(
+        'lower_bound', 'Binary search',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='First position not less than value. O(log N) comparisons on every iterator category; O(log N) stepping on random access, O(N) on forward.',
+    ),
+    S(
+        'upper_bound', 'Binary search',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='First position strictly greater than value.',
+    ),
+    S(
+        'equal_range', 'Binary search',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Returns pair(lower_bound, upper_bound). Pivot-then-bounded-scan implementation does strictly fewer comparisons than two separate calls.',
+    ),
+    S(
+        'binary_search', 'Binary search',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Built on lower_bound; checks the found position is actually equivalent.',
+    ),
+
+    # ---- partition ----
+    S(
+        'is_partitioned', 'Partition',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Skip leading trues, verify suffix all-false. Vacuously true for empty / one-element. Back-ported to C++98.',
+    ),
+    S(
+        'partition', 'Partition',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++26',
+        constexpr_in_restd='C++14',
+        notes='DEVIATION FROM STD C++11+: requires BidirectionalIterator (std relaxed to ForwardIterator in C++11). Hoare two-cursor scan.',
+    ),
+    S(
+        'partition_copy', 'Partition',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Splits into two output ranges by predicate. Returns pair of output-end iterators. Back-ported to C++98.',
+    ),
+    S(
+        'stable_partition', 'Partition',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Recursive split-and-rotate (mirror of stable_sort s no-buffer merge). O(N log N) allocator-free; std s typical impl uses get_temporary_buffer for O(N). Bidirectional iterators required. NOT constexpr.',
+    ),
+    S(
+        'partition_point', 'Partition',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Binary search variant taking a unary predicate (lower_bound for partitioned ranges). Back-ported to C++98.',
+    ),
+
+    # ---- heap ----
+    S(
+        'push_heap', 'Heap',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Sift-up; inserts (last - 1) into the heap [first, last - 1). iter_swap-based; a future perf pass could swap in hole-walking (~30% faster for non-trivial types).',
+    ),
+    S(
+        'pop_heap', 'Heap',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Sift-down; moves the heap max to (last - 1) and restores the heap on the shrunken range.',
+    ),
+    S(
+        'make_heap', 'Heap',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Bottom-up Floyd construction; O(N) (not O(N log N) as naive N successive push_heaps would be).',
+    ),
+    S(
+        'sort_heap', 'Heap',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Repeated extract-max into the shrinking tail; O(N log N). Inlines its own _sift_down_ rather than delegating to pop_heap (saves the per-pop length recheck).',
+    ),
+    S(
+        'is_heap', 'Heap',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Thin wrapper over is_heap_until. Back-ported to C++98.',
+    ),
+    S(
+        'is_heap_until', 'Heap',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='First parent-child pair violating the heap property. Back-ported to C++98.',
+    ),
+
+    # ---- set operations ----
+    S(
+        'merge', 'Set operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Stable merge of two sorted ranges. Stability test: emit right only when STRICTLY less than left.',
+    ),
+    S(
+        'inplace_merge', 'Set operations',
+        std_in='C++98',
+        restd_min='C++98',
+        notes='Public lift of stable_sort s private _stable_in_place_merge_. No-buffer divide-and-rotate (Knuth, TAOCP 5.2.4). O((N1+N2) log(min(N1,N2))) allocator-free. NOT constexpr (mirrors std).',
+    ),
+    S(
+        'includes', 'Set operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Multiset subsequence test. O(N+M).',
+    ),
+    S(
+        'set_union', 'Set operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Multiset union: max(n1, n2) copies per value. Emits range1 s copy on equivalent tie.',
+    ),
+    S(
+        'set_intersection', 'Set operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Multiset intersection: min(n1, n2) copies. Drawn from range1.',
+    ),
+    S(
+        'set_difference', 'Set operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Multiset difference range1 - range2: max(0, n1 - n2) copies.',
+    ),
+    S(
+        'set_symmetric_difference', 'Set operations',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Multiset XOR: |n1 - n2| copies.',
+    ),
+
+    # ---- min/max/clamp ----
+    S(
+        'min', 'Min/max',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++14',
+        constexpr_in_restd='C++14',
+        notes='Two-argument forms return const reference. Initializer_list overload (C++11+, gated on D_ENV_CPP_FEATURE_LANG_INITIALIZER_LISTS) returns by value. Returns first arg on tie.',
+    ),
+    S(
+        'max', 'Min/max',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++14',
+        constexpr_in_restd='C++14',
+        notes='Mirror of min. Returns first arg on tie.',
+    ),
+    S(
+        'min_element', 'Min/max',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='First occurrence of the minimum (strict-less update preserves first-of-ties).',
+    ),
+    S(
+        'max_element', 'Min/max',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='First occurrence of the maximum.',
+    ),
+    S(
+        'minmax', 'Min/max',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++14',
+        constexpr_in_restd='C++14',
+        notes='Two-argument forms return pair of const refs. Initializer_list overload gated on C++11+. Returns pair(a, b) on tie. Back-ported to C++98.',
+    ),
+    S(
+        'minmax_element', 'Min/max',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='3N/2 comparisons via pairwise processing. Asymmetric tie-breaking: min = first occurrence, max = LAST (mandated by std to distinguish from (min_element, max_element)). Back-ported.',
+    ),
+    S(
+        'clamp', 'Min/max',
+        std_in='C++17',
+        restd_min='C++98',
+        constexpr_in_std='C++17',
+        constexpr_in_restd='C++14',
+        notes='Returns const ref to v / lo / hi. Precondition !(hi < lo) is caller s responsibility (matches std). Back-ported to C++98.',
+    ),
+
+    # ---- comparison ----
+    S(
+        'equal', 'Comparison',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Four overloads: 3-arg vs 4-arg x default == vs custom pred. 4-arg forms (C++14 std) back-ported to C++98. 4-arg length-mismatch short-circuit (random-access tag dispatch) deferred — current impl always walks parallel ranges.',
+    ),
+    S(
+        'lexicographical_compare', 'Comparison',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Dictionary-order strict-less. Shorter prefix compares less. Two overloads.',
+    ),
+    S(
+        'lexicographical_compare_three_way', 'Comparison',
+        std_in='C++20',
+        restd_min=None,
+        notes='Three-way ordering of two ranges. Header placeholder exists; function body deferred pending restd::<compare> (strong_ordering / weak_ordering / partial_ordering).',
+        failure_reason='Awaits restd::<compare> (roadmap priority 12).',
+        depends_on=('restd::<compare>',),
+    ),
+
+    # ---- permutation ----
+    S(
+        'is_permutation', 'Permutation',
+        std_in='C++11',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Strip matching prefix, then quadratic count-based comparison. Four overloads (3-arg + 4-arg x default == / pred); 4-arg added in C++14 std, back-ported.',
+    ),
+    S(
+        'next_permutation', 'Permutation',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Pandita s algorithm (find rightmost ascent + smallest-larger swap + reverse suffix). O(N). Returns false and rewinds to smallest on wrap.',
+    ),
+    S(
+        'prev_permutation', 'Permutation',
+        std_in='C++98',
+        restd_min='C++98',
+        constexpr_in_std='C++20',
+        constexpr_in_restd='C++14',
+        notes='Mirror of next_permutation with comparison flipped.',
+    ),
+
+    # ---- not yet implemented ----
+    S(
+        'ranges algorithm overloads', 'Ranges overloads',
+        std_in='C++20',
+        restd_min=None,
+        notes='ranges::find, ranges::sort, ranges::transform, etc. — the constrained range-accepting forms of every algorithm.',
+        failure_reason='Awaits restd::<ranges>.',
+        depends_on=('restd::<ranges>',),
+    ),
+    S(
+        'ranges fold algorithms', 'Ranges overloads',
+        std_in='C++23',
+        restd_min=None,
+        notes='ranges::fold_left, ranges::fold_right, ranges::fold_left_first, ranges::fold_right_last, plus the *_with_iter variants. Live in <algorithm> in the standard but are exclusively range-based.',
+        failure_reason='Awaits restd::<ranges>.',
+        depends_on=('restd::<ranges>',),
+    ),
+    S(
+        'parallel-execution-policy overloads', 'Execution policies',
+        std_in='C++17',
+        restd_min=None,
+        notes='Overloads taking std::execution::par etc. for the parallelisable algorithms (for_each, transform, reduce, sort, ...).',
+        failure_reason='Awaits restd::<execution>.',
+        depends_on=('restd::<execution>',),
+    ),
+]
+
+
+
+# ============================================================================
+# <ranges> — Phases R1 through R29 shipped between 2026-05-13 and 2026-05-13
+# ============================================================================
+# Phase summary:
+#   R1-R10  foundations + concept layer + factories + adaptors + pipe machinery
+#   R11-R19 the C++23 adaptor batch (as_rvalue / stride / chunk / chunk_by /
+#           slide / split / repeat / join_with / as_const)
+#   R20     catalog refresh and workbook rebuild
+#   R21     output_range trait + viewable_range trait + lazy_split_view
+#   R22     internal utilities — iter_move CPO + basic_const_iterator (in
+#           <iterator>); non_propagating_cache + movable_box (ranges/internal)
+#   R23     three one-liner traits: range_rvalue_reference_t,
+#           range_const_reference_t, constant_range
+#   R24     13 ranges:: niebloid CPOs (begin / end / cbegin / cend / rbegin /
+#           rend / crbegin / crend / size / ssize / empty / data / cdata)
+#   R25     join_view upgrade — prvalue inner support via non_propagating_cache
+#   R26     repeat_view upgrade — value stored in movable_box
+#   R27     movable_box sweep across the 5 callable-storing adaptors
+#   R28     bidirectional upgrades for all 7+ forward-only adaptors
+#   R29     random-access optimisation for stride_view, chunk_view, slide_view
+# Still deferred (every remaining item is blocked on an external module):
+#   range_common_reference_t (needs full common_reference chain);
+#   basic_istream_view (needs <istream>); common_view (needs common_iterator
+#   from iterator Phase 7c); the tuple-dependent batch — elements_view /
+#   keys_view / values_view, enumerate_view, zip_view, zip_transform_view,
+#   adjacent_view, adjacent_transform_view, cartesian_product_view (all need
+#   <tuple>); concat_view (C++26, needs <variant>); generator (needs
+#   <coroutine>); ranges::to (needs concepts + concrete container types).
+SYMBOLS_RANGES = [
+    # ====================================================================
+    # PHASE R1 — foundations + primitive aliases + subrange + view_interface
+    # ====================================================================
+    S(
+        'dangling', 'Utility types',
+        std_in='C++20',
+        restd_min='C++98',
+        notes='Empty placeholder returned by range algorithms when the source is an rvalue non-borrowed range.',
+    ),
+    S(
+        'view_base', 'Utility types',
+        std_in='C++20',
+        restd_min='C++98',
+        notes='Empty marker class. Public derivation opts a type into the default enable_view specialisation.',
+    ),
+    S(
+        'subrange_kind', 'Utility types',
+        std_in='C++20',
+        restd_min='C++98',
+        notes='Two-value enum (sized / unsized). C++11+: enum class. C++98/03: struct-wrapper.',
+    ),
+    S(
+        'unreachable_sentinel_t', 'Utility types',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Never-equal sentinel. Templated friend operator== / != return false / true unconditionally. Used as the end sentinel for unbounded ranges. Shipped Phase R9.',
+        failure_reason='Templated friend operators + variadic SFINAE requirements are C++11+.',
+    ),
+    S(
+        'enable_view', 'Customisation points',
+        std_in='C++20',
+        restd_min='C++98',
+        v_var_in='C++14',
+        notes='Default specialisation returns true iff the type publicly derives from view_base. Variable-template enable_view_v gated on C++14+.',
+    ),
+    S(
+        'enable_borrowed_range', 'Customisation points',
+        std_in='C++20',
+        restd_min='C++98',
+        v_var_in='C++14',
+        notes='Defaults to false for every type. Specialised true for subrange, empty_view, iota_view, ref_view, reverse_view (when base is borrowed), owning_view (when base is borrowed), as_rvalue_view (when base is borrowed), as_const_view (when base is borrowed).',
+    ),
+
+    # ====================================================================
+    # PHASE R1 — range type aliases
+    # ====================================================================
+    S(
+        'iterator_t', 'Range type aliases',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='decltype(restd::begin(declval<R&>())). Routes through the shipped restd::begin overloaded template.',
+        failure_reason='Alias-template + decltype dependency precludes a C++98/03 path.',
+    ),
+    S(
+        'sentinel_t', 'Range type aliases',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='decltype(restd::end(declval<R&>())).',
+        failure_reason='Alias-template + decltype dependency precludes a C++98/03 path.',
+    ),
+    S(
+        'range_value_t', 'Range type aliases',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='iterator_traits<iterator_t<R>>::value_type.',
+        failure_reason='Alias-template dependency precludes a C++98/03 path.',
+    ),
+    S(
+        'range_difference_t', 'Range type aliases',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='iterator_traits<iterator_t<R>>::difference_type.',
+        failure_reason='Alias-template dependency precludes a C++98/03 path.',
+    ),
+    S(
+        'range_reference_t', 'Range type aliases',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='iterator_traits<iterator_t<R>>::reference.',
+        failure_reason='Alias-template dependency precludes a C++98/03 path.',
+    ),
+    S(
+        'range_size_t', 'Range type aliases',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='decltype(restd::size(declval<R&>())).',
+        failure_reason='Alias-template + decltype dependency precludes a C++98/03 path.',
+    ),
+    S(
+        'range_rvalue_reference_t', 'Range type aliases',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='iter_rvalue_reference_t<iterator_t<R>>. Shipped Phase R23 as a one-liner over the iter_move CPO machinery shipped in R22.',
+        failure_reason='Alias-template dependency precludes a C++98/03 path; also requires the iter_move CPO (R22).',
+    ),
+    S(
+        'range_const_reference_t', 'Range type aliases',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='iter_const_reference_t<iterator_t<R>>. Shipped Phase R23 as a one-liner over the basic_const_iterator machinery shipped in R22.',
+        failure_reason='Alias-template dependency precludes a C++98/03 path; also requires basic_const_iterator (R22).',
+    ),
+    S(
+        'range_common_reference_t', 'Range type aliases',
+        std_in='C++23',
+        restd_min=None,
+        notes='common_reference_t of the range_reference_t and range_value_t&. Used by zip_transform_view etc.',
+        failure_reason='Awaits the full restd::common_reference machinery (only basic common_reference shipped in type_traits).',
+        depends_on=('restd::common_reference (full chain)',),
+    ),
+
+    # ====================================================================
+    # PHASE R1 — core types + borrowed-range helpers
+    # ====================================================================
+    S(
+        'view_interface', 'Core types',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='CRTP base supplying empty / operator bool / size / front / back / operator[] / data via lazy template instantiation on the derived type. Public derivation from view_base.',
+        failure_reason='CRTP + trailing return types + decltype are C++11+.',
+    ),
+    S(
+        'subrange', 'Core types',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Iterator/sentinel pair. Primary template (unsized) and subrange_kind::sized partial specialisation with cached size. CRTP-derives from view_interface. Specialises enable_borrowed_range to true.',
+        failure_reason='Requires alias templates, trailing returns, decltype, rvalue refs.',
+    ),
+    S(
+        'borrowed_iterator_t', 'Borrowed-range helpers',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='conditional<is_reference<R> || enable_borrowed_range<remove_cvref<R>>, iterator_t<remove_reference<R>>, dangling>.',
+        failure_reason='Alias-template dependency precludes a C++98/03 path.',
+    ),
+    S(
+        'borrowed_subrange_t', 'Borrowed-range helpers',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Same conditional as borrowed_iterator_t, yielding subrange<iterator_t<R>>.',
+        failure_reason='Alias-template dependency precludes a C++98/03 path.',
+    ),
+
+    # ====================================================================
+    # PHASE R2 — range concept layer (as SFINAE traits)
+    # ====================================================================
+    S(
+        'range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='SFINAE trait via void_t partial-spec on iterator_t<T> + sentinel_t<T>. On C++20+ this slot will become a proper concept; the trait struct form remains as the back-port.',
+        failure_reason='SFINAE detection requires void_t + alias templates (C++11+).',
+    ),
+    S(
+        'borrowed_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND (is_lvalue_reference<T> OR enable_borrowed_range<cv/ref-stripped T>).',
+        failure_reason='Depends on range trait.',
+    ),
+    S(
+        'sized_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND restd::size(declval<T&>()) is well-formed.',
+        failure_reason='Depends on range trait + decltype.',
+    ),
+    S(
+        'common_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND is_same<iterator_t<T>, sentinel_t<T>>.',
+        failure_reason='Depends on range trait.',
+    ),
+    S(
+        'view', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND is_move_constructible<T> AND is_default_constructible<T> AND enable_view<T>. Approximates the C++20 movable concept with move_constructible alone (conservative); the assignable_from trait is not yet shipped.',
+        failure_reason='Depends on range trait.',
+    ),
+    S(
+        'input_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND iterator_traits<iterator_t<T>>::iterator_category derives from input_iterator_tag. Iterator-category-based approximation; the C++20 input_iterator concept includes operational checks (dereferenceable, equality_comparable) that this back-port omits.',
+        failure_reason='Depends on range trait.',
+    ),
+    S(
+        'output_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND a SFINAE-detected indirectly_writable approximation (*it = t is valid). Shipped Phase R21 as a two-parameter SFINAE trait.',
+        failure_reason='Depends on range trait + void_t-based SFINAE.',
+    ),
+    S(
+        'forward_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND iterator_category derives from forward_iterator_tag.',
+        failure_reason='Depends on range trait.',
+    ),
+    S(
+        'bidirectional_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND iterator_category derives from bidirectional_iterator_tag.',
+        failure_reason='Depends on range trait.',
+    ),
+    S(
+        'random_access_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND iterator_category derives from random_access_iterator_tag.',
+        failure_reason='Depends on range trait.',
+    ),
+    S(
+        'contiguous_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++20',
+        v_var_in='C++20',
+        notes='range<T> AND iterator_category derives from contiguous_iterator_tag (C++20 tag). Only correctly detects raw pointers and user iterators that explicitly set iterator_category to contiguous_iterator_tag; iterator_concept is not pulled through restd::iterator_traits primary (tracked in iterator roadmap).',
+        failure_reason='contiguous_iterator_tag is C++20-only in restd.',
+    ),
+    S(
+        'viewable_range', 'Concepts',
+        std_in='C++20',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='range<T> AND ((view<remove_cvref<T>> AND constructible_from<remove_cvref<T>, T>) OR (NOT view<remove_cvref<T>> AND (is_lvalue_reference<T> OR (movable<remove_reference<T>> AND NOT is_initializer_list<remove_cvref<T>>)))). Shipped Phase R21 as a disjunction-encoded SFINAE trait. Approximations: movable ≈ is_move_constructible; constructible_from ≈ is_constructible.',
+        failure_reason='Depends on range trait, view trait, initializer_list detection.',
+    ),
+    S(
+        'constant_range', 'Concepts',
+        std_in='C++23',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='input_range<R> AND is_same<range_reference_t<R>, range_const_reference_t<R>>. Shipped Phase R23 as a one-liner once basic_const_iterator (R22) and range_const_reference_t (R23) were in place.',
+        failure_reason='Depends on input_range trait + range_const_reference_t.',
+    ),
+
+    # ====================================================================
+    # PHASE R10 — range-adaptor-closure machinery (pipe syntax)
+    # ====================================================================
+    S(
+        'range_adaptor_closure', 'Pipe machinery',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Empty CRTP marker base. Closures publicly derive to be recognised by the pipe-detection trait. Shipped Phase R10.',
+        failure_reason='CRTP base requires C++11+ semantics.',
+    ),
+    S(
+        'is_range_adaptor_closure', 'Pipe machinery',
+        std_in='C++23',
+        restd_min='C++11',
+        v_var_in='C++14',
+        notes='SFINAE detection trait via conversion-overload idiom on range_adaptor_closure<U>*. Restd-specific name (std uses the concept syntax directly). Shipped Phase R10.',
+        failure_reason='Requires alias-template usage.',
+    ),
+    S(
+        'pipe_composition', 'Pipe machinery',
+        std_in=None,
+        restd_min='C++11',
+        notes='Restd-internal closure type that holds two closures and applies them in sequence. Itself derives from range_adaptor_closure so compositions chain. Shipped Phase R10.',
+        failure_reason='Implementation detail; not in std but exposed for diagnostic / debugging.',
+    ),
+    S(
+        'operator| (range | closure)', 'Pipe machinery',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='SFINAE-guarded: fires when RHS is_range_adaptor_closure and LHS is not. Calls closure(range). Shipped Phase R10.',
+        failure_reason='Requires SFINAE via enable_if.',
+    ),
+    S(
+        'operator| (closure | closure)', 'Pipe machinery',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='SFINAE-guarded: fires when both sides are closures. Returns pipe_composition. Shipped Phase R10.',
+        failure_reason='Requires SFINAE via enable_if.',
+    ),
+
+    # ====================================================================
+    # PHASE R22 — internal utilities (exposition-only in std)
+    # ====================================================================
+    S(
+        'non_propagating_cache', 'Internal utilities',
+        std_in=None,
+        restd_min='C++11',
+        notes='restd::internal::non_propagating_cache<T> — exposition-only in C++20 std. Optional-T storage whose presence does NOT survive copy/move/assignment. Shipped Phase R22; powers the prvalue-inner support in join_view (R25). Wraps restd::optional.',
+        failure_reason='Requires restd::optional (C++11+) and noexcept-friendly assignment semantics.',
+    ),
+    S(
+        'movable_box', 'Internal utilities',
+        std_in=None,
+        restd_min='C++11',
+        notes='restd::internal::movable_box<T> — exposition-only in C++20/23 std. Optional-T wrapper providing default-construction, copy/move, and destroy-and-reconstruct assignment so non-default-constructible / non-assignable T (e.g. lambdas) can satisfy view-concept requirements. Shipped Phase R22; powers repeat_view (R26) and the 5 callable-storing adaptors (R27 — transform_view, filter_view, take_while_view, drop_while_view, chunk_by_view).',
+        failure_reason='Requires restd::optional + SFINAE-dispatched default-init helper.',
+    ),
+
+    # ====================================================================
+    # PHASE R3 — view factories
+    # ====================================================================
+    S(
+        'empty_view', 'Factories',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Zero-element view of T. All accessors static constexpr. Specialises enable_borrowed_range to true. Colocates views::empty<T>() function form.',
+        failure_reason='CRTP + view_interface is C++11+.',
+    ),
+    S(
+        'single_view', 'Factories',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='One-element view holding T by value. Pointer-based begin/end. Not borrowed (owns the element). Colocates views::single(t).',
+        failure_reason='CRTP + view_interface is C++11+.',
+    ),
+    S(
+        'iota_view', 'Factories',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Bounded form iota_view<W, W> (R3) — half-open [start, bound). Unbounded form iota_view<W, unreachable_sentinel_t> (R9) — infinite. Nested random-access iterator with std::ptrdiff_t difference_type (simplification vs C++20 iota-diff-t machinery). Specialises enable_borrowed_range to true. Colocates views::iota(start, bound) and views::iota(start).',
+        failure_reason='CRTP + view_interface is C++11+.',
+    ),
+    S(
+        'repeat_view', 'Factories',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Yields one value N times (bounded form repeat_view<T, ptrdiff_t>) or forever (unbounded form repeat_view<T, unreachable_sentinel_t>). Iterator carries a pointer to the stored T plus a position counter. Random-access iterator. R26 wrapped the stored value in movable_box so the view is default-constructible for any T (non-default-constructible T leaves the box empty until a value ctor populates it).',
+        failure_reason='CRTP + view_interface is C++11+.',
+    ),
+    S(
+        'basic_istream_view', 'Factories',
+        std_in='C++20',
+        restd_min=None,
+        notes='Reads values of T from an input stream lazily as the view is iterated.',
+        failure_reason='Awaits restd::<istream> / <iostream>.',
+        depends_on=('restd::<istream>',),
+    ),
+    S(
+        'views::empty / single / iota / repeat / istream',
+        'Factory entry points',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='views::empty<T>() — function template. views::single(t) — function. views::iota(s, b) bounded, views::iota(s) unbounded. views::repeat(v, n) bounded, views::repeat(v) unbounded. views::istream not shipped (basic_istream_view deferred).',
+        failure_reason='Mixed: most shipped, views::istream awaits basic_istream_view.',
+    ),
+
+    # ====================================================================
+    # PHASES R4, R10 — range-wrapping adaptors + views::all entry
+    # ====================================================================
+    S(
+        'ref_view', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Wraps a reference to a non-view range; forwards begin/end/size/empty/data. Rvalue ctor deleted. Specialises enable_borrowed_range to true. Shipped Phase R4.',
+        failure_reason='CRTP + view_interface + trailing return types are C++11+.',
+    ),
+    S(
+        'owning_view', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Owns a moved-in range; move-only (copy ctor/assign deleted). ref-qualified base() overloads. enable_borrowed_range inherits from underlying. Shipped Phase R4.',
+        failure_reason='Move-only + ref-qualifiers + CRTP are C++11+.',
+    ),
+    S(
+        'all_view / views::all', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='views::all is a range_adaptor_closure instance (R10 promotion): inline-constexpr on C++17+, static-constexpr on C++11/14. Three-way dispatch via internal::all_dispatch — view→forward, lvalue→ref_view, rvalue→owning_view. all_t<R> alias resolves to the appropriate result. Shipped Phase R4, pipe-promoted Phase R10.',
+        failure_reason='CRTP + alias templates are C++11+.',
+    ),
+
+    # ====================================================================
+    # PHASES R5-R8, R10 — substantive C++20 adaptors (pipe-enabled in R10)
+    # ====================================================================
+    S(
+        'filter_view / views::filter', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Custom iterator with skip-on-++ (scan forward past failing predicates) and skip-on-- (scan backward, bidirectional only). Begin lazy-cached with mutable storage. Category clamped at bidirectional_iterator_tag (random-access cannot survive filtering). Iterator carries parent back-pointer; not borrowed. R27 wrapped the stored predicate in movable_box for proper view-concept-compliant assignability (lambdas now work). Bound form views::filter(pred) is a filter_closure for pipe composition.',
+        failure_reason='CRTP + lazy template instantiation are C++11+.',
+    ),
+    S(
+        'transform_view / views::transform', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Custom iterator with parent back-pointer for function access. Full random-access op set (lazy-instantiated). Reference type = decltype(fn(*it)). Iterator_category carried from underlying (back-port simplification — C++20 clamps based on whether F returns a reference). R27 wrapped the stored function in movable_box. Bound form is a transform_closure.',
+        failure_reason='CRTP + decltype + trailing returns are C++11+.',
+    ),
+    S(
+        'take_view / views::take', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Iterator paired with a remaining count; sentinel checks underlying-end OR count-zero. One-word overhead per iterator. Bound form is take_closure.',
+        failure_reason='CRTP + custom iterator/sentinel are C++11+.',
+    ),
+    S(
+        'take_while_view / views::take_while', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='C++20-faithful design: no custom iterator (uses iterator_t<V> directly), only a custom sentinel that checks underlying-end short-circuit OR predicate failure. NOT a common_range. R27 wrapped predicate in movable_box. Bound form is take_while_closure.',
+        failure_reason='CRTP + sentinel-with-predicate are C++11+.',
+    ),
+    S(
+        'drop_view / views::drop', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Skip first N elements via lazy first-call advance. mutable cache + init-flag pair. size() = max(0, base_size - n) via SFINAE. Bound form is drop_closure.',
+        failure_reason='CRTP + mutable members are C++11+.',
+    ),
+    S(
+        'drop_while_view / views::drop_while', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Skips prefix while predicate true. mutable lazy cache; end forwards underlying sentinel directly. IS a common_range when V is. R27 wrapped predicate in movable_box. Bound form is drop_while_closure.',
+        failure_reason='CRTP + mutable members are C++11+.',
+    ),
+    S(
+        'join_view / views::join', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Range-of-ranges flattening. Iterator pairs (outer_iter, inner_iter) + parent back-pointer; satisfy() skips empty inners. R25 added prvalue-inner support via mutable non_propagating_cache on the view + tag-dispatched _materialize_inner / _current_inner helpers (reference-inner case is zero-overhead). R28 added bidi support — operator-- backs up through empty inners to find the previous non-empty (requires both outer and inner bidi + V to be a common_range). views::join is a range_adaptor_closure instance (R10).',
+        failure_reason='CRTP + static_assert + tag dispatch are C++11+.',
+    ),
+    S(
+        'lazy_split_view / views::lazy_split', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='C++20-original input-friendly split. Shipped Phase R21. Each outer iteration yields an inner_view whose iterators share state with the outer iterator via pointer-back. Single-pass-correct on input ranges, distinct from split_view (R16) which is forward-only with subrange chunks. Single-element delimiter only — sub-range pattern deferred.',
+        failure_reason='CRTP + pointer-coupled inner iterator design are C++11+.',
+    ),
+    S(
+        'split_view / views::split', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Single-element delimiter form (not pattern). Iterator scans forward to next delimiter, yields subrange, advances past delimiter. Handles trailing-empty / leading-empty / no-delimiter cases. R28 added bidi: m_base_begin tracked, operator-- backs up to find the previous delimiter or to base_begin. Bound form is split_closure. Shipped Phases R16 + R10. C++23 sub-range-pattern form deferred.',
+        failure_reason='Pattern-range form requires multi-pass forward search inside ++; deferred.',
+    ),
+    S(
+        'common_view / views::common', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min=None,
+        notes='Coerces a non-common range (sentinel != iterator) into a common range via common_iterator.',
+        failure_reason='Awaits common_iterator (deferred in iterator Phase 7c).',
+        depends_on=('restd::common_iterator',),
+    ),
+    S(
+        'reverse_view / views::reverse', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Thin wrapper over restd::reverse_iterator. Requires bidirectional + common_range V (non-common needs common_view, deferred). enable_borrowed_range inherits from V. views::reverse is a range_adaptor_closure instance. Shipped Phases R6 + R10.',
+        failure_reason='CRTP + reverse_iterator are C++11+.',
+    ),
+    S(
+        'elements_view / views::elements (incl. keys / values)', 'Range adaptors (C++20)',
+        std_in='C++20',
+        restd_min=None,
+        notes='Tuple-protocol projection: views::elements<I> picks the I-th element of every tuple in the range.',
+        failure_reason='Needs <tuple> integration (tuple_size / tuple_element / get<I>). Restd <tuple> not yet shipped.',
+        depends_on=('restd::<tuple>',),
+    ),
+
+    # ====================================================================
+    # PHASES R11-R19 — C++23 adaptors (bidi/RA added in R28/R29 for some)
+    # ====================================================================
+    S(
+        'as_rvalue_view / views::as_rvalue', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Custom iterator with reference type = iter_rvalue_reference_t<iterator_t<V>>. R22 routed operator* through the restd::iter_move CPO so user customisations are honoured via ADL. Full random-access op set. enable_borrowed_range inherits. views::as_rvalue is a range_adaptor_closure instance.',
+        failure_reason='CRTP + iter_move CPO are C++11+.',
+    ),
+    S(
+        'stride_view / views::stride', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Every Nth element. R28 added bidi support via the missing-field design (m_missing tracks step-overshoot at base_end so -- lands on the actual last yielded stride boundary). R29 added RA support — O(1) operator+= / -= / +(n) / -(n) / [n] using ideal-position (real + missing) calculation. size() = ceil(size(base) / step). Bound form is stride_closure.',
+        failure_reason='CRTP is C++11+.',
+    ),
+    S(
+        'chunk_view / views::chunk', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Non-overlapping N-element windows; yields subrange<iterator_t<V>>. Cached chunk_end (O(1) operator*, O(N) operator++). Last chunk may be short. R28 added bidi: operator-- retreats m_n positions on the underlying. R29 added RA: O(1) advance to chunk K via m_start += K*m_n. Bound form is chunk_closure.',
+        failure_reason='CRTP + nested iterator are C++11+.',
+    ),
+    S(
+        'chunk_by_view / views::chunk_by', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Adjacent-element grouping by binary predicate. Iterator scans from chunk_start tracking (prev, cur); chunk ends at first false. Cached chunk_end + parent back-pointer. R27 wrapped predicate in movable_box. R28 added bidi: m_base_begin tracked, operator-- scans backward through positions where pred(prev, cur) holds. Bound form is chunk_by_closure.',
+        failure_reason='CRTP + nested iterator are C++11+.',
+    ),
+    S(
+        'slide_view / views::slide', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Sliding overlapping N-element windows. Iterator state (start, window_end, base_end, exhausted). R28 added bidi: operator-- slides both endpoints back; from exhausted state, simply clears the flag (positions still cached). R29 added RA: O(1) operator+= shifts both endpoints. size() = max(0, size(base) - N + 1). Bound form is slide_closure.',
+        failure_reason='CRTP + nested iterator are C++11+.',
+    ),
+    S(
+        'join_with_view / views::join_with', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='Join with single-value separator. Iterator alternates between inner elements and separator via in_sep flag. R28 restructured forward operator++ so the canonical in_sep state has m_outer at the next non-empty inner (allows forward / backward equality) + added operator--. Bidi requires both outer and inner bidi + V common_range. Bound form is join_with_closure.',
+        failure_reason='CRTP + tag dispatch are C++11+. Range-separator form not yet shipped.',
+    ),
+    S(
+        'as_const_view / views::as_const', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min='C++11',
+        notes='R22 rewrite: thin wrapper over restd::basic_const_iterator. begin() yields basic_const_iterator<iterator_t<V>>; end() yields the underlying sentinel directly (basic_const_iterator has cross-type ==/!= so common and non-common ranges both work). Dropped ~250 lines of duplicated iterator surface from the R19 original. enable_borrowed_range inherits. views::as_const is a range_adaptor_closure instance.',
+        failure_reason='CRTP + basic_const_iterator (R22) are C++11+.',
+    ),
+
+    # ====================================================================
+    # PHASE R24 — ranges:: niebloid CPOs
+    # ====================================================================
+    S(
+        'ranges::begin / end / cbegin / cend / rbegin / rend / crbegin / crend',
+        'Range access CPOs',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Customisation point objects (niebloids) shipped Phase R24. Each uses the priority<N> + poison-pill ADL pattern (same as iter_move from R22). Dispatch order: array specialisation → member function → ADL → computed fallback (begin/end/cbegin/cend/rbegin/rend/crbegin/crend). cbegin/cend/crbegin/crend route through basic_const_iterator. Live in restd::ranges:: sub-namespace to avoid colliding with the existing flat restd::begin / restd::end ordinary-template overloads in <iterator>.',
+        failure_reason='Niebloid + ADL machinery requires C++11+.',
+    ),
+    S(
+        'ranges::size / ssize / empty / data / cdata',
+        'Range access CPOs',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Companion CPOs to begin/end family. size dispatches array → member → ADL → end-begin fallback. ssize signed-casts size. empty: member empty() → size == 0 → begin == end. data: array → member data() → &*begin. cdata: const-cast over data. All shipped Phase R24 in restd::ranges::.',
+        failure_reason='Same machinery as begin/end family.',
+    ),
+
+    # ====================================================================
+    # C++23 adaptors — still deferred (tuple-dependent)
+    # ====================================================================
+    S(
+        'enumerate_view / views::enumerate', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min=None,
+        notes='Pairs each element with its zero-based index; reference type is a tuple<index, ref>.',
+        failure_reason='Needs <tuple>.',
+        depends_on=('restd::<tuple>',),
+    ),
+    S(
+        'zip_view / views::zip', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min=None,
+        notes='Cartesian-style zip of N ranges; iteration stops at first to exhaust.',
+        failure_reason='Needs <tuple>.',
+        depends_on=('restd::<tuple>',),
+    ),
+    S(
+        'zip_transform_view / views::zip_transform', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min=None,
+        notes='zip composed with transform.',
+        failure_reason='Needs <tuple>.',
+        depends_on=('restd::<tuple>',),
+    ),
+    S(
+        'adjacent_view / views::adjacent', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min=None,
+        notes='Compile-time-N sliding window yielding N-tuples.',
+        failure_reason='Needs <tuple>.',
+        depends_on=('restd::<tuple>',),
+    ),
+    S(
+        'adjacent_transform_view / views::adjacent_transform', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min=None,
+        notes='adjacent composed with transform.',
+        failure_reason='Needs <tuple>.',
+        depends_on=('restd::<tuple>',),
+    ),
+    S(
+        'cartesian_product_view / views::cartesian_product', 'Range adaptors (C++23)',
+        std_in='C++23',
+        restd_min=None,
+        notes='N-ary cartesian product; lexicographic iteration over N positions.',
+        failure_reason='Needs <tuple>.',
+        depends_on=('restd::<tuple>',),
+    ),
+
+    # ====================================================================
+    # C++26 and coroutine-backed (deferred)
+    # ====================================================================
+    S(
+        'concat_view / views::concat', 'Range adaptors (C++26)',
+        std_in='C++26',
+        restd_min=None,
+        notes='Concatenates N ranges of a common reference type. Iterator carries a variant of underlying iterator types.',
+        failure_reason='Needs <variant> + full common_reference.',
+        depends_on=('restd::<variant>',),
+    ),
+    S(
+        'generator', 'Coroutine views',
+        std_in='C++23',
+        restd_min=None,
+        notes='Coroutine-backed input view. Each co_yield produces one element.',
+        failure_reason='Awaits coroutine plumbing (restd::<coroutine>).',
+        depends_on=('restd::<coroutine>',),
+    ),
+
+    # ====================================================================
+    # ranges::to (deferred)
+    # ====================================================================
+    S(
+        'ranges::to', 'Conversion',
+        std_in='C++23',
+        restd_min=None,
+        notes='Materialises a range into a concrete container — ranges::to<vector>(r), etc.',
+        failure_reason='Awaits restd::<concepts> + concrete container types (restd::vector, ...). Restd does not yet ship any containers.',
+        depends_on=('restd::<concepts>', 'restd::vector',),
+    ),
+]
+
+
 HEADERS = {
+    "<algorithm>": SYMBOLS_ALGORITHM,
     "<any>": SYMBOLS_ANY,
+    "<functional>": SYMBOLS_FUNCTIONAL,
+    "<iterator>": SYMBOLS_ITERATOR,
+    "<memory>": SYMBOLS_MEMORY,
+    "<numeric>": SYMBOLS_NUMERIC,
     "<optional>": SYMBOLS_OPTIONAL,
+    "<ranges>": SYMBOLS_RANGES,
     "<tuple>": SYMBOLS_TUPLE,
     "<type_traits>": SYMBOLS_TYPE_TRAITS,
     "<utility>": SYMBOLS_UTILITY,
 }
 
 HEADER_SUBTITLES = {
+    "<algorithm>": "Per-symbol coverage of the C++ <algorithm> header. Phase 10 (2026-05-13) shipped 89 algorithms: non-modifying sequence ops, modifying ops (copy/move/fill/transform/generate/remove/replace families), rearrangement (iter_swap/swap_ranges/reverse/rotate/shift_left/shift_right/shuffle/sample/unique), sort (introsort) + stable_sort (no-buffer in-place merge, O(N log^2 N)), binary search, partition + stable_partition (allocator-free O(N log N)), heap, set operations, min/max/clamp, comparison, and permutation. Three deferrals: ranges:: overloads (await <ranges>), parallel-execution-policy overloads (await <execution>), lexicographical_compare_three_way (awaits <compare>).",
     "<any>": "Per-symbol coverage of the C++ <any> header (C++17).",
+    "<functional>": "Per-symbol coverage of the C++ <functional> header. Planned; not yet implemented in restd (roadmap priority 6).",
+    "<iterator>": "Per-symbol coverage of the C++ <iterator> header. Tags, iterator_traits, stepping (advance/distance/next/prev), 11 range-access free functions, and 5 non-stream adaptors. Stream iterators await <iostream>.",
+    "<memory>": "Per-symbol coverage of the C++ <memory> header. Smart pointers (unique_ptr, shared_ptr, weak_ptr including all array forms), factories (make_unique, make_shared, allocate_shared, *_for_overwrite variants), uninitialized memory algorithms, allocator+allocator_traits, and small utilities (align, to_address, assume_aligned).",
+    "<numeric>": "Per-symbol coverage of the C++ <numeric> header. Serial folds (accumulate, inner_product), sequence folds (partial_sum, adjacent_difference), iota, gcd/lcm/midpoint, and the C++17 parallel-friendly fold family (reduce, transform_reduce, scans).",
     "<optional>": "Per-symbol coverage of the C++ <optional> header (C++17).",
+    "<ranges>": "Per-symbol coverage of the C++ <ranges> header (C++20+). Phases R1-R29 (2026-05-13) shipped 65 of 78 catalogued symbols. Foundations + concept layer + factories + adaptors + pipe machinery (R1-R10); the full C++23 adaptor batch (R11-R19); output_range / viewable_range / lazy_split_view (R21); internal utilities non_propagating_cache + movable_box (R22, plus iter_move CPO and basic_const_iterator in <iterator>); three one-liner traits range_rvalue_reference_t / range_const_reference_t / constant_range (R23); the 13 ranges:: niebloid CPOs begin/end/cbegin/cend/rbegin/rend/crbegin/crend/size/ssize/empty/data/cdata (R24); prvalue-inner support for join_view (R25); movable_box wrapping in repeat_view (R26) and the 5 callable-storing adaptors (R27); bidirectional upgrades for all 7+ forward-only adaptors (R28); RA optimisation for stride_view/chunk_view/slide_view (R29). The 13 remaining deferred symbols are all blocked on external modules — range_common_reference_t (full common_reference chain); basic_istream_view (<iostream>); common_view (common_iterator from iterator Phase 7c); the seven tuple-dependent C++23 views (elements/enumerate/zip/zip_transform/adjacent/adjacent_transform/cartesian_product); concat_view (<variant>); generator (<coroutine>); ranges::to (concepts + concrete containers).",
     "<tuple>": "Per-symbol coverage of the C++ <tuple> header (C++11).",
     "<type_traits>": "Per-symbol coverage of the C++ <type_traits> header.",
-    "<utility>": "Per-symbol coverage of the C++ <utility> header (C++98 / C++11+).",
+    "<utility>": "Per-symbol coverage of the C++ <utility> header. Foundational symbols (swap, move, forward, declval, pair, make_pair) shipped 2026-04-30; tail (exchange, as_const, to_underlying, integer_sequence family, cmp_* + in_range, unreachable, forward_like, in_place_type/in_place_index) shipped 2026-05-09 (Phase 9). Single remaining gap: move_if_noexcept.",
 }
 
 # Priority-ordered roadmap. Lower number = sooner. Final row is the meta REMINDER.
@@ -1654,32 +4326,71 @@ ROADMAP = [
     # Priorities 1, 2, and 3a are now complete (Group B swap/convertibility variants;
     # Group C invocation surface; aligned_storage / aligned_union). Removed from
     # roadmap; their symbols appear on the <type_traits> data sheet as shipped.
+    #
+    # <memory> (former priority 7) is now SHIPPED across Phases 1-6c (smart
+    # pointers + factories + uninitialized algorithms + allocator(_traits) +
+    # align/to_address/assume_aligned). Removed from roadmap; coverage is in
+    # the <memory> data sheet, with carry-forward stubs in the data and in the
+    # Coverage Failures sheet (over-aligned types in make_shared<T[]>, atomic
+    # shared_ptr ops, hash<smart_ptr>, MSVC atomic refcount).
+    #
+    # <iterator> (Phases 7a + 7b, 2026-05-08/09) is SHIPPED: tag types,
+    # iterator_traits, stepping, range access, reverse/move/back/front/insert
+    # iterator adaptors. Stream iterators deferred until <iostream>.
+    #
+    # <numeric> (Phase 8, 2026-05-09) is SHIPPED: accumulate, inner_product,
+    # partial_sum, adjacent_difference, iota, gcd, lcm, midpoint (int/ptr),
+    # reduce, transform_reduce, inclusive_scan, exclusive_scan, transform_*_scan.
+    # Floating-point midpoint, parallel exec policies, and C++26 saturation
+    # arithmetic deferred.
+    #
+    # <algorithm> (Phase 10, 2026-05-13) is SHIPPED: 89 algorithms across
+    # non-modifying sequence ops, modifying ops (copy/move/fill/transform/
+    # generate/remove/replace), rearrangement (iter_swap/swap_ranges/reverse/
+    # rotate/shift_left/shift_right/shuffle/sample/unique), sort (introsort) +
+    # stable_sort (no-buffer in-place merge, O(N log^2 N) allocator-free),
+    # binary search (lower_bound/upper_bound/equal_range/binary_search),
+    # partition (incl. allocator-free O(N log N) stable_partition),
+    # heap, set operations, min/max/clamp, comparison, permutation. Three
+    # deferrals carried forward: ranges:: overloads, parallel-execution-policy
+    # overloads, lexicographical_compare_three_way. Removed from roadmap;
+    # coverage is in the <algorithm> data sheet.
     (3, "<type_traits>", "C++20 layout-compat family (is_layout_compatible, is_pointer_interconvertible_base_of, is_pointer_interconvertible_with_class).", "Compiler intrinsic-backed; needs __is_layout_compatible / __is_pointer_interconvertible_* probes.", "C++20"),
     (4, "<type_traits>", "C++23 reference-from-temporary detection (reference_constructs_from_temporary, reference_converts_from_temporary).", "—", "C++23 (intrinsic only)"),
-    (5, "<utility>", "Tail of <utility>: exchange, as_const, integer_sequence/index_sequence family, move_if_noexcept, to_underlying, cmp_* / in_range, unreachable, forward_like. (in_place_t / in_place have shipped under <optional>; the <utility> in_place_type and in_place_index families remain.)", "is_copy_constructible (for move_if_noexcept).", "C++11 / C++14 / C++20 / C++23 (per symbol)"),
-    (6, "<functional>", "invoke, reference_wrapper, ref/cref, function, bind, plus the standard arithmetic / comparison / logical function objects.", "restd::invoke unblocks tuple::apply, invoke_result's reference_wrapper form (1.5).", "C++11"),
-    (7, "<memory>", "allocator, allocator_traits, allocator_arg_t, uses_allocator, addressof, pointer_traits, unique_ptr, shared_ptr, weak_ptr, make_unique, make_shared, destroy_at, construct_at.", "Unblocks tuple::allocator-extended ctors.", "C++11"),
-    (8, "<optional>", "optional<T> container itself, plus make_optional, comparisons, swap, hash specialisation. Tag types and exception (nullopt_t / nullopt / in_place_t / in_place / bad_optional_access) have already shipped.", "—", "C++11"),
+    (5, "<utility>", "Single remaining gap in <utility>: move_if_noexcept. Blocked on is_copy_constructible (not yet in restd::type_traits foundation). Phase 9 (2026-05-09) shipped the rest of the tail: exchange, as_const, to_underlying, integer_sequence family, cmp_* + in_range, unreachable, forward_like, in_place_type/in_place_index.", "is_copy_constructible (which depends on the __is_constructible intrinsic).", "C++11"),
+    (6, "<functional>", "invoke, reference_wrapper, ref/cref, function, bind, plus the standard arithmetic / comparison / logical function objects. Unblocks hash<shared_ptr> / hash<unique_ptr> via the hash primary template.", "restd::invoke unblocks tuple::apply, invoke_result's reference_wrapper form (1.5).", "C++11"),
+    (8, "<optional>", "optional<T> container itself, plus make_optional, comparisons, swap, hash specialisation. Tag types and exception have already shipped.", "—", "C++11"),
     (9, "<variant>", "variant<Ts...>, monostate, bad_variant_access, visit, holds_alternative, get<I>/get<T>, variant_size, variant_alternative.", "Heaviest unimplemented module; requires careful constexpr work.", "C++11"),
     (10, "<expected>", "expected<T,E>, unexpected<E>, bad_expected_access, in_place_t / unexpect_t tags. C++23.", "Builds on the in_place tags.", "C++11 (back-port of C++23 surface)"),
-    (11, "<tuple>", "Full tuple implementation. operator<=> blocked on restd::compare; allocator-aware ctors blocked on restd::memory.", "restd::compare, restd::memory, restd::reference_wrapper, restd::utility integer_sequence", "C++11"),
+    (11, "<tuple>", "Full tuple implementation. operator<=> blocked on restd::compare; allocator-aware ctors blocked on restd::memory.", "restd::compare (memory now satisfied), restd::reference_wrapper, restd::utility integer_sequence", "C++11"),
     (12, "<compare>", "Three-way comparison ordering categories (strong_ordering, weak_ordering, partial_ordering). Concept three_way_comparable.", "Unblocks operator<=> on every comparable restd type.", "C++20"),
-    (13, "<algorithm>", "The C++98 algorithms first (find, sort, transform, accumulate, ...), then C++17/20/23 additions.", "—", "C++98"),
     (14, "<array>", "array<T,N> with the C++14 constexpr surface and C++17 deduction guides.", "—", "C++98 (interface), C++14 (constexpr)"),
     (15, "<string_view>", "basic_string_view + char_traits enough to support it.", "—", "C++11 (back-port of C++17 surface)"),
     (16, "<span>", "span<T,N>. Trivially constexpr.", "—", "C++11 (back-port of C++20 surface)"),
-    # Final entry: REMINDER about deferred Master / Index sheets.
-    (99, "(meta)", "REMINDER: deferred Master and Index sheets. Add when ~5+ headers are covered. Master concatenates every per-header sheet body with header rows reprinted between sections; Index lists every (symbol, header) pair flattened and sorted alphabetically by symbol.", "—", "—"),
+    (17, "<iterator>", "Phase 7c follow-ups: iter_concept pull-through in iterator_traits primary; istream_iterator / ostream_iterator / istreambuf_iterator / ostreambuf_iterator (need <iostream>); common_iterator and counted_iterator (need <ranges>).", "<iostream> for stream iterators; <ranges> for the C++20 adaptors.", "C++11 / C++20"),
+    (18, "<memory>", "Phase 6d follow-ups: aligned-new for over-aligned types in make_shared<T[]>; atomic shared_ptr ops + std::atomic<shared_ptr<T>>; hash<shared_ptr>/hash<unique_ptr>; MSVC atomic refcount path; shared_ptr<T[N]> <-> shared_ptr<U[N]> qualification-only conversions.", "<atomic> for atomic shared_ptr; <functional> hash for the hash specs.", "C++11 / C++17 / C++20"),
+    (19, "<numeric>", "Floating-point midpoint(double,...) — needs careful inf/NaN/rounding handling; parallel-execution-policy overloads (need <execution>); C++26 saturation arithmetic (add_sat, sub_sat, mul_sat, div_sat, saturate_cast).", "<execution> for parallel; focused phase for sat arith.", "C++20 / C++17 / C++26"),
+    # Final entry: REMINDER about deferred Master / Index sheets and stubs.
+    (20, "<ranges>", "Phase R30+ — remaining work after Phases R1-R29 shipped 2026-05-13. Every remaining catalogued <ranges> symbol is blocked on an external module being unfinished: range_common_reference_t (needs full common_reference chain — basic common_reference is shipped, but the chain handling needs completion); basic_istream_view (needs restd::<iostream>); common_view (blocked on common_iterator from iterator Phase 7c); the seven tuple-dependent C++23 views — elements_view / keys_view / values_view, enumerate_view, zip_view, zip_transform_view, adjacent_view, adjacent_transform_view, cartesian_product_view (all need restd::<tuple>); concat_view (C++26, needs restd::<variant>); generator (needs restd::<coroutine>); ranges::to (needs concepts + concrete container types — e.g. restd::vector). No <ranges>-internal work remains.", "<concepts> syntax for the proper concept-form versions; <tuple> for the 7 tuple-dependent views; <variant> for concat_view; <coroutine> for generator; <iostream> for basic_istream_view; concrete container types for ranges::to; common_iterator from <iterator> for common_view; full common_reference for range_common_reference_t.", "C++20 (remaining) / C++23 (remaining) / C++26"),
+    (99, "(meta)", "REMINDER: deferred Master and Index sheets. Add when ~5+ headers are covered. Master concatenates every per-header sheet body with header rows reprinted between sections; Index lists every (symbol, header) pair flattened and sorted alphabetically by symbol. ALSO: in-tree stub status — internal::iter_value (<memory> Phase 5 stub) was retired in 2026-05-09, replaced by restd::iterator_traits across the 10 uninitialized memory algorithms. lexicographical_compare_three_way.hpp shipped as an empty placeholder pending <compare>. No other stubs currently in tree. SEPARATE: D_CONSTEXPR_CPP14 macro is now locally redefined in dozens of files across <iterator>, <numeric>, <utility>, and the bulk of <algorithm> (Phase 10) pending a global qualifier-macro-table entry. Not a stub — these are the canonical implementations — but the duplication is a growing refactor opportunity. ALGORITHM-SPECIFIC: <algorithm> has its own internal duplication tickets — private _sift_down_ helpers appear in 4 files (sort, partial_sort, partial_sort_copy, nth_element); private _median_of_3_/_lomuto_partition_/_insertion_sort_ in 2-3 files (sort, nth_element, stable_sort); private _lower_bound_/_upper_bound_ in stable_sort. Cleanup tickets: (a) refactor sort/partial_sort/partial_sort_copy/nth_element to call restd::make_heap+sort_heap; (b) refactor stable_sort to call restd::lower_bound/upper_bound (and ideally restd::inplace_merge, which is now the public source of truth for the no-buffer merge); (c) optional _detail/ convention for shared sort helpers.", "—", "—"),
 ]
 
 LEGEND_SHEETS = [
     ("Legend", "You are here. Colour key + column meanings."),
+    ("<algorithm>",  "Per-symbol coverage of the C++ <algorithm> header. 89 algorithms shipped 2026-05-13 (Phase 10) covering non-modifying / modifying / rearrangement / sort / binary search / partition / heap / set ops / min-max / comparison / permutation. ranges:: overloads, parallel exec policies, and lexicographical_compare_three_way deferred."),
     ("<any>",        "Per-symbol coverage of the C++ <any> header (C++17)."),
+    ("<functional>", "Per-symbol coverage of the C++ <functional> header. Planned; not yet implemented in restd (roadmap priority 6)."),
+    ("<iterator>",   "Per-symbol coverage of the C++ <iterator> header. Tags, iterator_traits, stepping, range access, and the 5 non-stream adaptors shipped in Phases 7a + 7b (2026-05-08/09). Stream iterators await <iostream>; common/counted_iterator await <ranges>."),
+    ("<memory>",     "Per-symbol coverage of the C++ <memory> header. Smart pointers, factories, uninitialized memory algorithms, allocator + allocator_traits, and small utilities — shipped across Phases 1-6c (2026-04 .. 2026-05-02). Carry-forward gaps: aligned-new, atomic shared_ptr ops, hash specialisations, MSVC atomic refcount path."),
+    ("<numeric>",    "Per-symbol coverage of the C++ <numeric> header. Folds, scans, gcd/lcm, integer/pointer midpoint — shipped 2026-05-09 (Phase 8). Floating-point midpoint, parallel exec policies, and C++26 saturation arithmetic deferred."),
     ("<optional>",   "Per-symbol coverage of the C++ <optional> header (C++17). Tag types and exception shipped; container itself pending."),
+    ("<ranges>",     "Per-symbol coverage of the C++ <ranges> header (C++20+). Phases R1-R29 (2026-05-13) shipped 65 of 78 catalogued symbols — foundations + concept layer + factories + adaptors + pipe machinery (R1-R10), the full C++23 adaptor batch (R11-R19), output_range / viewable_range / lazy_split_view (R21), internal utilities non_propagating_cache + movable_box plus iter_move CPO and basic_const_iterator (R22), the three one-liner traits unblocked by R22 (R23), the 13 ranges:: niebloid CPOs (R24), and a series of view upgrades — prvalue inner join_view (R25), movable_box wrapping in repeat_view and 5 callable-storing adaptors (R26+R27), bidi upgrades for all 7+ forward-only adaptors (R28), RA optimisation for stride/chunk/slide (R29). The 13 remaining deferred symbols are all blocked on external restd modules — see Roadmap and Pending Dependencies for details."),
     ("<tuple>",      "Per-symbol coverage of the C++ <tuple> header. Planned; not yet implemented in restd."),
     ("<type_traits>","Per-symbol coverage of the C++ <type_traits> header."),
-    ("<utility>",    "Per-symbol coverage of the C++ <utility> header. Foundational symbols shipped 2026-04-30; tail (exchange, as_const, integer_sequence family, etc.) deferred."),
+    ("<utility>",    "Per-symbol coverage of the C++ <utility> header. Foundational symbols shipped 2026-04-30; tail shipped 2026-05-09 (Phase 9). Single remaining gap: move_if_noexcept (blocked on is_copy_constructible)."),
     ("Pending Dependencies", "Symbols that need other restd modules before they reach full coverage. Auto-derived from the depends_on field in coverage_data.py."),
     ("Coverage Failures",    "Detailed list of every symbol that does not reach C++98+ coverage, with the reason."),
-    ("Roadmap",              "Priority-ordered plan for remaining work. The final entry is a REMINDER about deferred Master and Index sheets."),
+    ("Roadmap",              "Priority-ordered plan for remaining work. The final entry is a REMINDER about deferred Master/Index sheets and in-tree stub status."),
 ]
+
+
