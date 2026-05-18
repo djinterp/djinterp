@@ -66,6 +66,146 @@ SYMBOLS_ANY = [
     ),
 ]
 
+# ============================================================================
+# <compare> — Phase C1 shipped 2026-05-17
+# ============================================================================
+# Phase summary:
+#   C1  Ordering category classes: partial_ordering, weak_ordering,
+#       strong_ordering. Plus the internal literal_zero_helper that
+#       enables comparison-vs-literal-0 semantics via the null-pointer-
+#       literal-conversion trick.
+# Deferred future phases:
+#   C2  common_comparison_category + alias
+#   C3  three_way_comparable / _with concepts (trait-shimmed on C++11+)
+#   C4  compare_three_way function object, the {strong,weak,partial}_order
+#       niebloids, and the compare_{strong,weak,partial}_order_fallback
+#       niebloids
+SYMBOLS_COMPARE = [
+    # --- Phase C1: ordering category classes ---
+    S(
+        'partial_ordering', 'Comparison category classes',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Weakest of the three categories. Shipped Phase C1 (2026-05-17). Four static instances: less, equivalent, greater, unordered. Encodes the value as a signed-char (-1 / 0 / +1 / +2-sentinel-for-unordered). All six relational operators against literal 0 are provided in both directions; for the unordered state, every relational op returns false. The literal-0 trick uses internal::literal_zero_helper which is only constructible from the null-pointer-literal-conversion of 0 (preventing other integers from being silently accepted).',
+        failure_reason='Requires C++11+ constexpr ctors and rvalue-friendly machinery; class itself works under any tier that supports those.',
+    ),
+    S(
+        'weak_ordering', 'Comparison category classes',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Middle category — total ordering allowing equivalent-but-distinct values (e.g. case-insensitive string compare). Shipped Phase C1. Three static instances: less, equivalent, greater. Implicit conversion to partial_ordering preserves the ordering state; never yields partial_ordering::unordered. Same literal-0 comparison surface as partial_ordering.',
+        failure_reason='Same as partial_ordering — C++11+ constexpr.',
+    ),
+    S(
+        'strong_ordering', 'Comparison category classes',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Strongest category — total ordering with substitutability. Shipped Phase C1. Four static instances: less, equal, equivalent, greater (equal and equivalent share the same value encoding per [cmp.strongord]/3). Implicit conversions to both weak_ordering and partial_ordering. Same literal-0 comparison surface as the other categories.',
+        failure_reason='Same as partial_ordering — C++11+ constexpr.',
+    ),
+    S(
+        'literal_zero_helper (internal)', 'Comparison category classes',
+        std_in=None,
+        restd_min='C++11',
+        notes='restd::internal helper, not in std. Pseudo-type accepting only the literal 0 (via the null-pointer-literal conversion to a pointer-to-self). Used as the RHS-of-comparison parameter type for the ordering category classes so that `cmp == 0`, `cmp < 0`, etc. compile while `cmp == 42` or `cmp == some_int_variable` does NOT — matching the C++20 spec for ordering-vs-0 inspection.',
+    ),
+
+    # --- Phase C2 helper meta-functions ---
+    S(
+        'common_comparison_category', 'Helper traits',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Shipped Phase C2 (2026-05-17). Variadic meta-function yielding the weakest common comparison category among Ts. Implemented as a recursive partial-spec fold over an internal pick_weaker<T, U> helper, with an internal cmp_rank<T> trait (strong = 0, weak = 1, partial = 2). Empty pack yields strong_ordering; any non-category input yields void (sticky void propagation through pick_weaker).',
+    ),
+    S(
+        'common_comparison_category_t', 'Helper traits',
+        std_in='C++20',
+        restd_min='C++14',
+        notes='Shipped Phase C2 alongside the trait. Convenience alias gated on D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES (C++14+).',
+    ),
+    S(
+        'compare_three_way_result', 'Helper traits',
+        std_in='C++20',
+        restd_min='C++11',
+        notes='Shipped Phase C2 as a SFINAE-detected trait. Primary template (gated on void_t) has no `type`; a partial spec (gated on D_ENV_LANG_IS_CPP20_OR_HIGHER) supplies `type` only when the const-lvalue <=> expression is well-formed. On C++11-17 the trait is intentionally ill-formed-when-used (no <=> operator at parse time). _U defaults to _T per the standard.',
+    ),
+    S(
+        'compare_three_way_result_t', 'Helper traits',
+        std_in='C++20',
+        restd_min='C++14',
+        notes='Shipped Phase C2 alongside the trait. Convenience alias gated on alias-template support.',
+    ),
+
+    # --- Phase C3 deferred: concepts/traits ---
+    S(
+        'three_way_comparable', 'Concepts',
+        std_in='C++20',
+        restd_min=None,
+        v_var_in='C++14',
+        notes='Concept (C++20) / SFINAE trait (C++11+) checking that T has operator<=> returning a comparison category. Phase C3 work.',
+        failure_reason='Phase C3 — depends on operator<=> well-formedness detection. C++20+ uses the actual <=> operator; on C++11-17 the trait can only check for restd-style ordering returns.',
+    ),
+    S(
+        'three_way_comparable_with', 'Concepts',
+        std_in='C++20',
+        restd_min=None,
+        v_var_in='C++14',
+        notes='Cross-type counterpart to three_way_comparable. Phase C3 work.',
+        failure_reason='Phase C3 — depends on three_way_comparable.',
+    ),
+
+    # --- Phase C4 deferred: function objects + niebloids ---
+    S(
+        'compare_three_way', 'Function objects',
+        std_in='C++20',
+        restd_min=None,
+        notes='Function object whose call operator returns a <=> b. Phase C4 work.',
+        failure_reason='Phase C4 — depends on operator<=> at call site (C++20-only language feature).',
+    ),
+    S(
+        'strong_order', 'Customisation point objects',
+        std_in='C++20',
+        restd_min=None,
+        notes='Niebloid yielding a strong_ordering for inputs whose three-way comparison is well-formed. Phase C4 work.',
+        failure_reason='Phase C4 — niebloid + ADL machinery + <=>.',
+    ),
+    S(
+        'weak_order', 'Customisation point objects',
+        std_in='C++20',
+        restd_min=None,
+        notes='Niebloid yielding a weak_ordering. Phase C4 work.',
+        failure_reason='Phase C4.',
+    ),
+    S(
+        'partial_order', 'Customisation point objects',
+        std_in='C++20',
+        restd_min=None,
+        notes='Niebloid yielding a partial_ordering. Phase C4 work.',
+        failure_reason='Phase C4.',
+    ),
+    S(
+        'compare_strong_order_fallback', 'Customisation point objects',
+        std_in='C++20',
+        restd_min=None,
+        notes='Niebloid synthesising a strong_ordering from `<` and `==` when `<=>` is unavailable. Phase C4 work.',
+        failure_reason='Phase C4 — synthesis logic for <=>-less types.',
+    ),
+    S(
+        'compare_weak_order_fallback', 'Customisation point objects',
+        std_in='C++20',
+        restd_min=None,
+        notes='Niebloid synthesising a weak_ordering. Phase C4 work.',
+        failure_reason='Phase C4.',
+    ),
+    S(
+        'compare_partial_order_fallback', 'Customisation point objects',
+        std_in='C++20',
+        restd_min=None,
+        notes='Niebloid synthesising a partial_ordering. Phase C4 work.',
+        failure_reason='Phase C4.',
+    ),
+]
+
 SYMBOLS_TUPLE = [
     S(
         'tuple_size', 'Helper traits',
@@ -86,7 +226,7 @@ SYMBOLS_TUPLE = [
         std_in='C++11',
         restd_min='C++11',
         constexpr_in_std='C++11',
-        notes='Recursive-inheritance design with EBO for empty element types. Members: ctor, op=, swap.',
+        notes='Recursive-inheritance design with EBO for empty element types. Members: default ctor, direct-element ctor, generic forwarding ctor (SFINAE on arity match + is_constructible<_Head, _UHead&&>), converting tuple-from-tuple copy/move ctors (matching arity + per-element constructibility), pair-converting copy/move ctors restricted to 2-element tuples via sizeof...(_Tail) == 1 SFINAE (added 2026-05-17 alongside the pair-tuple interop), four assignment ops (copy/move + cross-type tuple copy/move) plus two pair-converting assignment ops, and swap. pair-converting members require pair to be complete at instantiation point — forward declared in tuple.hpp so users can opt in by including utility/pair.hpp.',
         failure_reason='Requires variadic templates and rvalue references (C++11+). No portable C++98/03 implementation is planned; the restd::pair already covers two-element aggregation on that tier.',
     ),
     S(
@@ -1656,36 +1796,28 @@ SYMBOLS_UTILITY = [
     S(
         'tuple_size<pair>', 'Tuple protocol',
         std_in='C++11',
-        restd_min=None,
-        notes='Specialisation. Pending restd::tuple.',
-        depends_on=('tuple',),
-        failure_reason='Pending restd::tuple to define the primary template.',
+        restd_min='C++11',
+        notes='Specialisation shipped 2026-05-17 in utility/pair_tuple_size.hpp. tuple_size<pair<T1, T2>>::value == 2. The cv-qualified passthrough specialisations on tuple_size pick up cv-qualified pairs automatically (LWG 2762).',
     ),
     S(
         'tuple_element<I,pair>', 'Tuple protocol',
         std_in='C++11',
-        restd_min=None,
-        notes='Specialisation. Pending restd::tuple.',
-        depends_on=('tuple',),
-        failure_reason='Pending restd::tuple to define the primary template.',
+        restd_min='C++11',
+        notes='Specialisations shipped 2026-05-17 in utility/pair_tuple_element.hpp. tuple_element<0, pair<T1,T2>>::type == T1, tuple_element<1, pair<T1,T2>>::type == T2. Indices outside {0,1} are SFINAE-rejected.',
     ),
     S(
         'get<I>(pair)', 'Tuple protocol',
         std_in='C++11',
-        restd_min=None,
+        restd_min='C++11',
         constexpr_in_std='C++14',
-        notes='Index-based access. Four value-category overloads. Depends on tuple_element being defined.',
-        depends_on=('tuple_element',),
-        failure_reason='Pending tuple_element specialisation for pair.',
+        notes='Index-based access shipped 2026-05-17 in utility/pair_get.hpp. Four value-category overloads (lvalue, const lvalue, rvalue, const rvalue) dispatched through an internal pair_get_helper<I> tag-dispatch specialised on I in {0,1}.',
     ),
     S(
         'get<T>(pair)', 'Tuple protocol',
         std_in='C++14',
-        restd_min=None,
+        restd_min='C++14',
         constexpr_in_std='C++14',
-        notes='Type-based access. Pending tuple-protocol scaffolding.',
-        depends_on=('tuple_element',),
-        failure_reason='Pending tuple-protocol scaffolding.',
+        notes='Type-based access shipped 2026-05-17 in utility/pair_get.hpp. Eight overloads (4 categories × 2 element positions) SFINAE-restricted via enable_if on is_same<_T,_T1>/is_same<_T,_T2> AND NOT is_same<_T1,_T2> (uniqueness requirement). Returns the matching element by reference of the appropriate category.',
     ),
     S(
         'operator<=> (pair)', 'Pair comparisons',
@@ -4295,6 +4427,7 @@ SYMBOLS_RANGES = [
 HEADERS = {
     "<algorithm>": SYMBOLS_ALGORITHM,
     "<any>": SYMBOLS_ANY,
+    "<compare>": SYMBOLS_COMPARE,
     "<functional>": SYMBOLS_FUNCTIONAL,
     "<iterator>": SYMBOLS_ITERATOR,
     "<memory>": SYMBOLS_MEMORY,
@@ -4309,6 +4442,7 @@ HEADERS = {
 HEADER_SUBTITLES = {
     "<algorithm>": "Per-symbol coverage of the C++ <algorithm> header. Phase 10 (2026-05-13) shipped 89 algorithms: non-modifying sequence ops, modifying ops (copy/move/fill/transform/generate/remove/replace families), rearrangement (iter_swap/swap_ranges/reverse/rotate/shift_left/shift_right/shuffle/sample/unique), sort (introsort) + stable_sort (no-buffer in-place merge, O(N log^2 N)), binary search, partition + stable_partition (allocator-free O(N log N)), heap, set operations, min/max/clamp, comparison, and permutation. Three deferrals: ranges:: overloads (await <ranges>), parallel-execution-policy overloads (await <execution>), lexicographical_compare_three_way (awaits <compare>).",
     "<any>": "Per-symbol coverage of the C++ <any> header (C++17).",
+    "<compare>": "Per-symbol coverage of the C++ <compare> header (C++20). Phase C1 (2026-05-17) shipped the foundational ordering category classes — partial_ordering (with the unordered state), weak_ordering (with conversion to partial), strong_ordering (with conversions to both weak and partial). Each class uses the internal literal_zero_helper to implement comparison-vs-literal-0 via the null-pointer-literal-conversion trick (matching libstdc++'s __cmp_cat::__unspec design). Phase C2 (2026-05-17) shipped common_comparison_category (recursive partial-spec fold over a cmp_rank trait, sticky-void propagation through pick_weaker) + the C++14+ alias common_comparison_category_t, plus compare_three_way_result and its alias as SFINAE-detected traits gated on operator<=> (meaningful on C++20+ tier only). Deferred future phases: C3 — three_way_comparable and three_way_comparable_with concepts; C4 — compare_three_way function object and the strong_order / weak_order / partial_order plus *_fallback niebloids.",
     "<functional>": "Per-symbol coverage of the C++ <functional> header. Planned; not yet implemented in restd (roadmap priority 6).",
     "<iterator>": "Per-symbol coverage of the C++ <iterator> header. Tags, iterator_traits, stepping (advance/distance/next/prev), 11 range-access free functions, and 5 non-stream adaptors. Stream iterators await <iostream>.",
     "<memory>": "Per-symbol coverage of the C++ <memory> header. Smart pointers (unique_ptr, shared_ptr, weak_ptr including all array forms), factories (make_unique, make_shared, allocate_shared, *_for_overwrite variants), uninitialized memory algorithms, allocator+allocator_traits, and small utilities (align, to_address, assume_aligned).",
@@ -4363,7 +4497,7 @@ ROADMAP = [
     (9, "<variant>", "variant<Ts...>, monostate, bad_variant_access, visit, holds_alternative, get<I>/get<T>, variant_size, variant_alternative.", "Heaviest unimplemented module; requires careful constexpr work.", "C++11"),
     (10, "<expected>", "expected<T,E>, unexpected<E>, bad_expected_access, in_place_t / unexpect_t tags. C++23.", "Builds on the in_place tags.", "C++11 (back-port of C++23 surface)"),
     (11, "<tuple>", "Full tuple implementation. operator<=> blocked on restd::compare; allocator-aware ctors blocked on restd::memory.", "restd::compare (memory now satisfied), restd::reference_wrapper, restd::utility integer_sequence", "C++11"),
-    (12, "<compare>", "Three-way comparison ordering categories (strong_ordering, weak_ordering, partial_ordering). Concept three_way_comparable.", "Unblocks operator<=> on every comparable restd type.", "C++20"),
+    (12, "<compare>", "Phase C3+ — remaining work after Phases C1+C2 shipped 2026-05-17. C1 delivered the three foundational ordering category classes (partial_ordering, weak_ordering, strong_ordering) via the literal_zero_helper trick. C2 delivered common_comparison_category + compare_three_way_result plus C++14+ aliases. Still to ship: C3 — three_way_comparable / three_way_comparable_with (concept on C++20+, SFINAE trait on C++11+); C4 — compare_three_way function object plus the strong_order / weak_order / partial_order niebloids and their compare_*_fallback synthesising variants.", "C3-C4 work needs the C++20 operator<=> language feature at usage sites; the niebloids rely on the same priority<N> + ADL-poison-pill machinery used for ranges:: CPOs.", "C++20"),
     (14, "<array>", "array<T,N> with the C++14 constexpr surface and C++17 deduction guides.", "—", "C++98 (interface), C++14 (constexpr)"),
     (15, "<string_view>", "basic_string_view + char_traits enough to support it.", "—", "C++11 (back-port of C++17 surface)"),
     (16, "<span>", "span<T,N>. Trivially constexpr.", "—", "C++11 (back-port of C++20 surface)"),
@@ -4379,6 +4513,7 @@ LEGEND_SHEETS = [
     ("Legend", "You are here. Colour key + column meanings."),
     ("<algorithm>",  "Per-symbol coverage of the C++ <algorithm> header. 89 algorithms shipped 2026-05-13 (Phase 10) covering non-modifying / modifying / rearrangement / sort / binary search / partition / heap / set ops / min-max / comparison / permutation. ranges:: overloads, parallel exec policies, and lexicographical_compare_three_way deferred."),
     ("<any>",        "Per-symbol coverage of the C++ <any> header (C++17)."),
+    ("<compare>",    "Per-symbol coverage of the C++ <compare> header (C++20). Phase C1 (2026-05-17) shipped the three ordering category classes (partial_ordering, weak_ordering, strong_ordering) back-ported to C++11+ via the literal-zero-helper trick. Phase C2 (2026-05-17) shipped common_comparison_category + compare_three_way_result and their C++14+ aliases. Phases C3-C4 deferred (three_way_comparable concepts, compare_three_way + niebloids + fallback CPOs)."),
     ("<functional>", "Per-symbol coverage of the C++ <functional> header. Planned; not yet implemented in restd (roadmap priority 6)."),
     ("<iterator>",   "Per-symbol coverage of the C++ <iterator> header. Tags, iterator_traits, stepping, range access, and the 5 non-stream adaptors shipped in Phases 7a + 7b (2026-05-08/09). Stream iterators await <iostream>; common/counted_iterator await <ranges>."),
     ("<memory>",     "Per-symbol coverage of the C++ <memory> header. Smart pointers, factories, uninitialized memory algorithms, allocator + allocator_traits, and small utilities — shipped across Phases 1-6c (2026-04 .. 2026-05-02). Carry-forward gaps: aligned-new, atomic shared_ptr ops, hash specialisations, MSVC atomic refcount path."),
