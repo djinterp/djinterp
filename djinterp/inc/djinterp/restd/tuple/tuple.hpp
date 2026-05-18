@@ -38,6 +38,14 @@
 *   - get<I>() and get<T>() are constexpr (via free-function form).
 *   - Assignment is constexpr only on C++14+ (relaxed constexpr).
 *
+*   PAIR INTEROP:
+*   The 2-element specialisation supports pair-converting copy and
+* move construction plus pair-converting copy and move assignment.
+* These template members are SFINAE-restricted to sizeof...(_Tail)
+* == 1 and require pair to be complete at the point of instantiation
+* (a forward declaration is supplied above; the user must include
+* "../utility/pair.hpp" before invoking).
+*
 *
 * path:      /inc/djinterp/restd/tuple/tuple.hpp
 * link(s):   TBA
@@ -72,6 +80,25 @@
 #include "../type_traits/is_final.hpp"
 #include "../type_traits/decay.hpp"
 #include "../type_traits/remove_reference.hpp"
+
+
+NS_RESTD
+
+
+// =============================================================================
+// FORWARD DECLARATION OF PAIR
+// =============================================================================
+// Forward-declared rather than #included so tuple.hpp stays
+// independent of <utility>'s pair definition at parse time. The
+// pair-converting ctor / assignment templates below only instantiate
+// when called, at which point pair must be complete (via the user's
+// own #include of pair.hpp or via pair_tuple_size.hpp / pair_get.hpp).
+template<typename _T1,
+         typename _T2>
+struct pair;
+
+
+NS_END  // restd
 
 
 NS_RESTD
@@ -303,6 +330,42 @@ public:
           _tail_base(static_cast<tuple<_UTail...>&&>(_other.tail_ref()))
     {}
 
+    // 6) Pair-converting copy constructor (2-element tuples only).
+    //    Initialises from pair.first / pair.second. SFINAE-restricted
+    // to 2-element tuples (sizeof...(_Tail) == 1) so it doesn't fire
+    // for other arities. Requires pair to be complete at the point
+    // of instantiation (via #include "../utility/pair.hpp" in user
+    // code or via pair_tuple_size.hpp / pair_get.hpp).
+    template<typename _U1,
+             typename _U2,
+             typename = typename enable_if<
+                 ( sizeof...(_Tail) == 1 &&
+                   is_constructible<_Head, const _U1&>::value )
+             >::type>
+    D_CONSTEXPR
+    tuple(
+        const pair<_U1, _U2>& _p
+    )
+        : _head_base(_p.first),
+          _tail_base(_p.second)
+    {}
+
+    // 7) Pair-converting move constructor (2-element tuples only).
+    //    Same shape as (6) but rvalue-extracting pair.first / .second.
+    template<typename _U1,
+             typename _U2,
+             typename = typename enable_if<
+                 ( sizeof...(_Tail) == 1 &&
+                   is_constructible<_Head, _U1&&>::value )
+             >::type>
+    D_CONSTEXPR
+    tuple(
+        pair<_U1, _U2>&& _p
+    )
+        : _head_base(static_cast<_U1&&>(_p.first)),
+          _tail_base(static_cast<_U2&&>(_p.second))
+    {}
+
     // ---------------------------------------------------------------
     // Assignment
     // ---------------------------------------------------------------
@@ -354,6 +417,41 @@ public:
     {
         head_ref() = static_cast<_UHead&&>(_other.head_ref());
         tail_ref() = static_cast<tuple<_UTail...>&&>(_other.tail_ref());
+        return *this;
+    }
+
+    // Pair-converting copy assignment (2-element tuples only).
+    //   Assigns head from pair.first and the single-element tail's
+    // head from pair.second. SFINAE-restricted to sizeof...(_Tail)
+    // == 1 so it does not match for other arities.
+    template<typename _U1,
+             typename _U2>
+    typename enable_if<
+        sizeof...(_Tail) == 1,
+        tuple&
+    >::type
+    operator=(
+        const pair<_U1, _U2>& _p
+    )
+    {
+        head_ref() = _p.first;
+        tail_ref().head_ref() = _p.second;
+        return *this;
+    }
+
+    // Pair-converting move assignment (2-element tuples only).
+    template<typename _U1,
+             typename _U2>
+    typename enable_if<
+        sizeof...(_Tail) == 1,
+        tuple&
+    >::type
+    operator=(
+        pair<_U1, _U2>&& _p
+    )
+    {
+        head_ref() = static_cast<_U1&&>(_p.first);
+        tail_ref().head_ref() = static_cast<_U2&&>(_p.second);
         return *this;
     }
 
