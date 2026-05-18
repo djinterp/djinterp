@@ -1,0 +1,87 @@
+/******************************************************************************
+* djinterp [restd]                                                       compare
+*
+* compare umbrella header (extension-less, mirrors std's <compare>):
+*   Aggregates the granular per-symbol headers under
+* /inc/djinterp/restd/compare/.
+*
+*   GRANULARITY:
+*   Every public symbol lives in its own .hpp file under this directory.
+* This umbrella adds no symbols of its own.
+*
+*   PORTABILITY:
+*   The C++20 <compare> header is gated on the operator<=> language
+* feature when used with std's three-way-comparison machinery; the
+* restd::compare ordering category classes themselves are usable on
+* C++11+ as plain classes (with all comparison-vs-literal-0
+* operators). The header expands to nothing on C++98/03.
+*
+*
+* TABLE OF CONTENTS
+* =================
+* I.    ORDERING CATEGORY CLASSES — Phase C1 (2026-05-17)
+*         partial_ordering
+*         weak_ordering
+*         strong_ordering
+*       INTERNAL: literal_zero_helper (comparison-vs-0 mechanism)
+*
+* II.   HELPERS                     — Phase C2 (2026-05-17)
+*         common_comparison_category
+*         common_comparison_category_t
+*         compare_three_way_result
+*         compare_three_way_result_t
+*
+* III.  CONCEPTS / TRAITS           — Phase C3 (2026-05-17)
+*         three_way_comparable
+*         three_way_comparable_with
+*
+* IV.   FUNCTION OBJECTS            — Phase C4 (2026-05-17)
+*         compare_three_way
+*         strong_order, weak_order, partial_order  (niebloids)
+*
+* V.    FALLBACK CPOs               — Phase C5 (planned)
+*         compare_strong_order_fallback
+*         compare_weak_order_fallback
+*         compare_partial_order_fallback
+*
+*
+* path:      /inc/djinterp/restd/compare/compare
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_COMPARE_UMBRELLA_
+#define DJINTERP_RESTD_COMPARE_UMBRELLA_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+
+// I. Ordering category classes (Phase C1)
+#include "./partial_ordering.hpp"
+#include "./weak_ordering.hpp"
+#include "./strong_ordering.hpp"
+
+// II. Helpers (Phase C2)
+#include "./common_comparison_category.hpp"
+#include "./compare_three_way_result.hpp"
+
+// III. Concepts/traits (Phase C3)
+#include "./three_way_comparable.hpp"
+#include "./three_way_comparable_with.hpp"
+
+// IV. Function objects + niebloids (Phase C4) — all gated on C++20
+//     inside the individual files since their bodies use operator<=>.
+#include "./compare_three_way.hpp"
+#include "./strong_order.hpp"
+#include "./weak_order.hpp"
+#include "./partial_order.hpp"
+
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+
+#endif  // DJINTERP_RESTD_COMPARE_UMBRELLA_
