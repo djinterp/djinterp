@@ -23,9 +23,10 @@
 #ifndef DJINTERP_RESTD_RANGES_FORWARD_RANGE_
 #define DJINTERP_RESTD_RANGES_FORWARD_RANGE_ 1
 
+// djinterp
 #include "../../core/djinterp.hpp"
 
-#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES && \
+#if ( D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES &&                               \
       D_ENV_LANG_IS_CPP11_OR_HIGHER )
 
 #include "../type_traits/type_traits.hpp"
@@ -40,13 +41,13 @@ NS_RESTD
 NS_INTERNAL
 
 template<typename _Type,
-         bool _IsRange = range<_Type>::value>
-struct forward_range_impl
+         bool     _IsRange = range<_Type>::value>
+struct forward_range_helper
     : false_type
 {};
 
 template<typename _Type>
-struct forward_range_impl<_Type, true>
+struct forward_range_helper<_Type, true>
     : is_base_of<forward_iterator_tag,
                  typename iterator_traits<iterator_t<_Type> >::iterator_category>
 {};
@@ -60,7 +61,7 @@ NS_END  // internal
 
 template<typename _Type>
 struct forward_range
-    : internal::forward_range_impl<_Type>
+    : internal::forward_range_helper<_Type>
 {};
 
 

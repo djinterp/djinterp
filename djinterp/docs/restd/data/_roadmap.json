@@ -1,0 +1,121 @@
+[
+  {
+    "priority": 3,
+    "header": "<type_traits>",
+    "summary": "C++20 layout-compat family (is_layout_compatible, is_pointer_interconvertible_base_of, is_pointer_interconvertible_with_class).",
+    "blockers": "Compiler intrinsic-backed; needs __is_layout_compatible / __is_pointer_interconvertible_* probes.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 4,
+    "header": "<type_traits>",
+    "summary": "C++23 reference-from-temporary detection (reference_constructs_from_temporary, reference_converts_from_temporary).",
+    "blockers": "—",
+    "est_min_cpp": "C++23 (intrinsic only)"
+  },
+  {
+    "priority": 5,
+    "header": "<utility>",
+    "summary": "Single remaining gap in <utility>: move_if_noexcept. Blocked on is_copy_constructible (not yet in restd::type_traits foundation). Phase 9 (2026-05-09) shipped the rest of the tail: exchange, as_const, to_underlying, integer_sequence family, cmp_* + in_range, unreachable, forward_like, in_place_type/in_place_index.",
+    "blockers": "is_copy_constructible (which depends on the __is_constructible intrinsic).",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 6,
+    "header": "<functional>",
+    "summary": "invoke, reference_wrapper, ref/cref, function, bind, plus the standard arithmetic / comparison / logical function objects. Unblocks hash<shared_ptr> / hash<unique_ptr> via the hash primary template.",
+    "blockers": "restd::invoke unblocks tuple::apply, invoke_result's reference_wrapper form (1.5).",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 8,
+    "header": "<optional>",
+    "summary": "optional<T> container itself, plus make_optional, comparisons, swap, hash specialisation. Tag types and exception have already shipped.",
+    "blockers": "—",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 9,
+    "header": "<variant>",
+    "summary": "variant<Ts...>, monostate, bad_variant_access, visit, holds_alternative, get<I>/get<T>, variant_size, variant_alternative.",
+    "blockers": "Heaviest unimplemented module; requires careful constexpr work.",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 10,
+    "header": "<expected>",
+    "summary": "expected<T,E>, unexpected<E>, bad_expected_access, in_place_t / unexpect_t tags. C++23.",
+    "blockers": "Builds on the in_place tags.",
+    "est_min_cpp": "C++11 (back-port of C++23 surface)"
+  },
+  {
+    "priority": 11,
+    "header": "<tuple>",
+    "summary": "Full tuple implementation. operator<=> blocked on restd::compare; allocator-aware ctors blocked on restd::memory.",
+    "blockers": "restd::compare (memory now satisfied), restd::reference_wrapper, restd::utility integer_sequence",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 12,
+    "header": "<compare>",
+    "summary": "Phase C6 — the only remaining work after Phases C1-C5 shipped 2026-05-17 (all 17 catalogued symbols delivered). C6 covers the floating-point special case in the strong_order / weak_order niebloids: per [cmp.alg], for `float`, `double`, `long double` inputs the niebloid must produce a deterministic total order even across NaN (treating NaN as ordered relative to all finite values, distinguishing +NaN from -NaN, distinguishing -0 from +0). The standard's algorithm operates on the bit pattern; implementations typically use bit_cast (C++20+) or memcpy. Deferred because the rest of the module is functionally complete without it — FP inputs currently route through path (c) of the niebloid and return their built-in partial_ordering, which fails to convert to strong/weak ordering for NaN (compile or runtime mismatch).",
+    "blockers": "Per-platform IEEE-754 sign-and-bit-pattern manipulation, ideally via restd::bit_cast (not yet shipped) or std::memcpy.",
+    "est_min_cpp": "C++20 (refinement)"
+  },
+  {
+    "priority": 14,
+    "header": "<array>",
+    "summary": "array<T,N> with the C++14 constexpr surface and C++17 deduction guides.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (interface), C++14 (constexpr)"
+  },
+  {
+    "priority": 15,
+    "header": "<string_view>",
+    "summary": "basic_string_view + char_traits enough to support it.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 (back-port of C++17 surface)"
+  },
+  {
+    "priority": 16,
+    "header": "<span>",
+    "summary": "span<T,N>. Trivially constexpr.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 (back-port of C++20 surface)"
+  },
+  {
+    "priority": 17,
+    "header": "<iterator>",
+    "summary": "Phase 7c follow-ups: iter_concept pull-through in iterator_traits primary; istream_iterator / ostream_iterator / istreambuf_iterator / ostreambuf_iterator (need <iostream>); common_iterator and counted_iterator (need <ranges>).",
+    "blockers": "<iostream> for stream iterators; <ranges> for the C++20 adaptors.",
+    "est_min_cpp": "C++11 / C++20"
+  },
+  {
+    "priority": 18,
+    "header": "<memory>",
+    "summary": "Phase 6d follow-ups: aligned-new for over-aligned types in make_shared<T[]>; atomic shared_ptr ops + std::atomic<shared_ptr<T>>; hash<shared_ptr>/hash<unique_ptr>; MSVC atomic refcount path; shared_ptr<T[N]> <-> shared_ptr<U[N]> qualification-only conversions.",
+    "blockers": "<atomic> for atomic shared_ptr; <functional> hash for the hash specs.",
+    "est_min_cpp": "C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 19,
+    "header": "<numeric>",
+    "summary": "Floating-point midpoint(double,...) — needs careful inf/NaN/rounding handling; parallel-execution-policy overloads (need <execution>); C++26 saturation arithmetic (add_sat, sub_sat, mul_sat, div_sat, saturate_cast).",
+    "blockers": "<execution> for parallel; focused phase for sat arith.",
+    "est_min_cpp": "C++20 / C++17 / C++26"
+  },
+  {
+    "priority": 20,
+    "header": "<ranges>",
+    "summary": "Phase R30+ — remaining work after Phases R1-R29 shipped 2026-05-13. Every remaining catalogued <ranges> symbol is blocked on an external module being unfinished: range_common_reference_t (needs full common_reference chain — basic common_reference is shipped, but the chain handling needs completion); basic_istream_view (needs restd::<iostream>); common_view (blocked on common_iterator from iterator Phase 7c); the seven tuple-dependent C++23 views — elements_view / keys_view / values_view, enumerate_view, zip_view, zip_transform_view, adjacent_view, adjacent_transform_view, cartesian_product_view (all need restd::<tuple>); concat_view (C++26, needs restd::<variant>); generator (needs restd::<coroutine>); ranges::to (needs concepts + concrete container types — e.g. restd::vector). No <ranges>-internal work remains.",
+    "blockers": "<concepts> syntax for the proper concept-form versions; <tuple> for the 7 tuple-dependent views; <variant> for concat_view; <coroutine> for generator; <iostream> for basic_istream_view; concrete container types for ranges::to; common_iterator from <iterator> for common_view; full common_reference for range_common_reference_t.",
+    "est_min_cpp": "C++20 (remaining) / C++23 (remaining) / C++26"
+  },
+  {
+    "priority": 99,
+    "header": "(meta)",
+    "summary": "REMINDER: deferred Master and Index sheets. Add when ~5+ headers are covered. Master concatenates every per-header sheet body with header rows reprinted between sections; Index lists every (symbol, header) pair flattened and sorted alphabetically by symbol. ALSO: in-tree stub status — internal::iter_value (<memory> Phase 5 stub) was retired in 2026-05-09, replaced by restd::iterator_traits across the 10 uninitialized memory algorithms. lexicographical_compare_three_way.hpp shipped as an empty placeholder pending <compare>. No other stubs currently in tree. SEPARATE: D_CONSTEXPR_CPP14 macro is now locally redefined in dozens of files across <iterator>, <numeric>, <utility>, and the bulk of <algorithm> (Phase 10) pending a global qualifier-macro-table entry. Not a stub — these are the canonical implementations — but the duplication is a growing refactor opportunity. ALGORITHM-SPECIFIC: <algorithm> has its own internal duplication tickets — private _sift_down_ helpers appear in 4 files (sort, partial_sort, partial_sort_copy, nth_element); private _median_of_3_/_lomuto_partition_/_insertion_sort_ in 2-3 files (sort, nth_element, stable_sort); private _lower_bound_/_upper_bound_ in stable_sort. Cleanup tickets: (a) refactor sort/partial_sort/partial_sort_copy/nth_element to call restd::make_heap+sort_heap; (b) refactor stable_sort to call restd::lower_bound/upper_bound (and ideally restd::inplace_merge, which is now the public source of truth for the no-buffer merge); (c) optional _detail/ convention for shared sort helpers.",
+    "blockers": "—",
+    "est_min_cpp": "—"
+  }
+]
