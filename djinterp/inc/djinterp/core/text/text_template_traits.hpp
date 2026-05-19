@@ -53,8 +53,6 @@
 
 
 NS_DJINTERP
-NS_TEXT
-NS_TRAITS
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -515,8 +513,6 @@ struct text_template_class
 #endif  // __cpp_concepts
 
 
-NS_END  // traits
-NS_END  // text
 NS_END  // djinterp
 
 

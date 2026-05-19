@@ -97,7 +97,6 @@
 
 
 NS_DJINTERP
-NS_TEXT
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1231,7 +1230,6 @@ make_mustache_template()
 }
 
 
-NS_END  // text
 NS_END  // djinterp
 
 
