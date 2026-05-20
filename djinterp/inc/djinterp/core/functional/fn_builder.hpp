@@ -33,9 +33,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "./djinterp.h"
-#include "../env/env.h"
-#include "./cpp_features.h"
+#include "./djinterp.hpp"
 #include "./functional_traits.hpp"
 
 

@@ -60,7 +60,6 @@
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
-#include "../env/env.h"
 #include "./functional.hpp"
 #include "./functional_traits.hpp"
 
