@@ -1,31 +1,45 @@
 [
   {
+    "priority": 0,
+    "header": "<algorithm>",
+    "summary": "SHIPPED 2026-05-13 (Phase 10). 89 algorithms across non-modifying / modifying / rearrangement / sort / binary search / partition + stable_partition / heap / set ops / min-max-clamp / comparison / permutation. Three external deferrals tracked in HEADER_SUBTITLES, not here: ranges:: overloads (await <ranges>'s tuple-dependent views), parallel-execution-policy overloads (await <execution>), lexicographical_compare_three_way (awaits <compare> Phase C6's FP total order).",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 / C++14 / C++17 / C++20"
+  },
+  {
     "priority": 3,
     "header": "<type_traits>",
     "summary": "C++20 layout-compat family (is_layout_compatible, is_pointer_interconvertible_base_of, is_pointer_interconvertible_with_class).",
-    "blockers": "Compiler intrinsic-backed; needs __is_layout_compatible / __is_pointer_interconvertible_* probes.",
-    "est_min_cpp": "C++20"
+    "blockers": "Compiler intrinsic-backed; needs __is_layout_compatible / __is_pointer_interconvertible_*. Add to detection-macro table.",
+    "est_min_cpp": "C++20 (refinement)"
   },
   {
     "priority": 4,
     "header": "<type_traits>",
     "summary": "C++23 reference-from-temporary detection (reference_constructs_from_temporary, reference_converts_from_temporary).",
-    "blockers": "—",
-    "est_min_cpp": "C++23 (intrinsic only)"
+    "blockers": "Compiler intrinsic-backed; needs __reference_constructs_from_temporary / __reference_converts_from_temporary.",
+    "est_min_cpp": "C++23 (refinement)"
   },
   {
     "priority": 5,
     "header": "<utility>",
-    "summary": "Single remaining gap in <utility>: move_if_noexcept. Blocked on is_copy_constructible (not yet in restd::type_traits foundation). Phase 9 (2026-05-09) shipped the rest of the tail: exchange, as_const, to_underlying, integer_sequence family, cmp_* + in_range, unreachable, forward_like, in_place_type/in_place_index.",
-    "blockers": "is_copy_constructible (which depends on the __is_constructible intrinsic).",
+    "summary": "move_if_noexcept. The single deferred utility. Trivially small — 8 lines.",
+    "blockers": "is_copy_constructible (not yet in restd's type_traits).",
     "est_min_cpp": "C++11"
   },
   {
     "priority": 6,
     "header": "<functional>",
-    "summary": "invoke, reference_wrapper, ref/cref, function, bind, plus the standard arithmetic / comparison / logical function objects. Unblocks hash<shared_ptr> / hash<unique_ptr> via the hash primary template.",
-    "blockers": "restd::invoke unblocks tuple::apply, invoke_result's reference_wrapper form (1.5).",
-    "est_min_cpp": "C++11"
+    "summary": "Full <functional> implementation.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11"
+  },
+  {
+    "priority": 7,
+    "header": "<any>",
+    "summary": "Mostly shipped (5 of 5 catalogued symbols). The C++98/03 path for the SBO + heap-fallback storage is the only outstanding work; the C++11+ path uses variadic templates + rvalue refs for the forwarding ctors and is functionally complete. Tracked in the <any> data sheet's failure_reason field.",
+    "blockers": "Pre-C++11 implementation needs a hand-written tag-dispatched storage discriminant (SFINAE on traits available pre-C++11).",
+    "est_min_cpp": "C++98/03 back-port"
   },
   {
     "priority": 8,
@@ -112,7 +126,742 @@
     "est_min_cpp": "C++20 (remaining) / C++23 (remaining) / C++26"
   },
   {
+    "priority": 21,
+    "header": "<new>",
+    "summary": "Placement new, std::nothrow, bad_alloc / bad_array_new_length, hardware_destructive_interference_size / hardware_constructive_interference_size (C++17), launder (C++17), align_val_t + over-aligned new (C++17). Foundational — many other modules need at least bad_alloc.",
+    "blockers": "Some are compiler-magic (launder, hardware_*_interference_size). Bad_alloc inheritance from <exception>.",
+    "est_min_cpp": "C++98 / C++17"
+  },
+  {
+    "priority": 22,
+    "header": "<exception>",
+    "summary": "exception base class, exception_ptr, current_exception / rethrow_exception, make_exception_ptr, throw_with_nested, rethrow_if_nested, nested_exception, terminate / set_terminate / get_terminate, uncaught_exception(s). Foundational — almost every module's exception-throwing path needs this.",
+    "blockers": "exception_ptr is opaque, needs platform-specific support; nested_exception needs RTTI.",
+    "est_min_cpp": "C++98 / C++11 / C++17"
+  },
+  {
+    "priority": 23,
+    "header": "<stdexcept>",
+    "summary": "logic_error, runtime_error, and their concrete derivatives (domain_error, invalid_argument, length_error, out_of_range, range_error, overflow_error, underflow_error). All public-inheritance from std::exception. Tiny but pervasive.",
+    "blockers": "<exception>.",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 24,
+    "header": "<typeinfo>",
+    "summary": "type_info, bad_cast, bad_typeid. Needs RTTI; std::type_info::operator== and ::name() are core. Anchor for <typeindex>, <any>, dynamic_cast.",
+    "blockers": "RTTI must be enabled (-fno-rtti would gate this out); type_info::operator== requires platform-specific name interning.",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 25,
+    "header": "<typeindex>",
+    "summary": "type_index — a wrapper around type_info* providing operator< and hash<type_index>. Tiny once <typeinfo> is in place.",
+    "blockers": "<typeinfo>, <functional> for hash.",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 26,
+    "header": "<system_error>",
+    "summary": "error_code, error_condition, error_category, errc enum, system_error exception, generic_category / system_category, make_error_code / make_error_condition. Foundational for <filesystem>, <future>, <thread>, networking.",
+    "blockers": "Platform errno-table mapping for system_category; <exception> for system_error base.",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 27,
+    "header": "<initializer_list>",
+    "summary": "initializer_list<E>. Compiler-magic: the type the compiler binds to braced-init-list expressions. Trivial wrapper class with begin/end/size; the magic is in the compiler.",
+    "blockers": "Compiler support for the brace-init-list -> initializer_list deduction (C++11+).",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 28,
+    "header": "<limits>",
+    "summary": "numeric_limits<T> with per-type specializations for every fundamental arithmetic type. Many member values are intrinsics-friendly (__FLT_MAX__, etc). Foundational for <chrono>, <random>, <bitset>, and arithmetic templates.",
+    "blockers": "Per-platform intrinsic constants (could use std:: as canonical for non-strict mode).",
+    "est_min_cpp": "C++98 / C++11"
+  },
+  {
+    "priority": 29,
+    "header": "<version>",
+    "summary": "Feature-test macros only — no symbols. Pure macro file expanding to __cpp_lib_* values. Probably mostly a generated artifact from restd's detection-macro table.",
+    "blockers": "—",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 30,
+    "header": "<source_location>",
+    "summary": "source_location class with file_name / function_name / line / column accessors and the consteval factory current(). Needs __builtin_source_location (GCC) or __builtin_FILE / __builtin_LINE / __builtin_COLUMN / __builtin_FUNCTION (Clang).",
+    "blockers": "Compiler intrinsics.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 31,
+    "header": "<concepts>",
+    "summary": "Foundational concept library: same_as, derived_from, convertible_to, common_reference_with, common_with, integral, floating_point, signed_integral, unsigned_integral, assignable_from, swappable, destructible, constructible_from, default_initializable, move_constructible, copy_constructible, equality_comparable(_with), totally_ordered(_with), movable, copyable, semiregular, regular, invocable, regular_invocable, predicate, relation, equivalence_relation, strict_weak_order.",
+    "blockers": "C++20 concept syntax for true concept-form versions; pre-C++20 back-port as SFINAE traits is feasible (restd already has the foundations in <type_traits>).",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 32,
+    "header": "<coroutine>",
+    "summary": "coroutine_traits, coroutine_handle, noop_coroutine, suspend_never, suspend_always. Compiler-magic — depends on the coroutine state machine the compiler generates around co_await / co_yield / co_return.",
+    "blockers": "Compiler must support C++20 coroutines (-fcoroutines on GCC, /await on MSVC). The library half is small; the language half is the constraint.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 33,
+    "header": "<bit>",
+    "summary": "bit_cast (C++20), byteswap (C++23), has_single_bit, bit_ceil, bit_floor, bit_width, rotl, rotr, countl_zero / countl_one / countr_zero / countr_one, popcount, endian enum. Many map to compiler intrinsics (__builtin_*).",
+    "blockers": "Compiler intrinsics (__builtin_clz/ctz/popcount); bit_cast needs is_trivially_copyable and memcpy-style reinterpret.",
+    "est_min_cpp": "C++20 / C++23"
+  },
+  {
+    "priority": 34,
+    "header": "<numbers>",
+    "summary": "Mathematical constants: e_v, log2e_v, log10e_v, pi_v, inv_pi_v, inv_sqrtpi_v, ln2_v, ln10_v, sqrt2_v, sqrt3_v, inv_sqrt3_v, egamma_v, phi_v plus the implicit-double aliases. Trivial constexpr template variables.",
+    "blockers": "—",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 35,
+    "header": "<ratio>",
+    "summary": "ratio<N,D>, ratio_add / subtract / multiply / divide, ratio_equal / not_equal / less / less_equal / greater / greater_equal, SI prefix typedefs (atto..exa). Foundational for <chrono>.",
+    "blockers": "—",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 36,
+    "header": "<bitset>",
+    "summary": "bitset<N>, all bitwise ops, to_ulong / to_ullong / to_string, count, size, test, all/any/none, set / reset / flip, hash<bitset>. Medium-sized but mechanically simple.",
+    "blockers": "<string> for to_string and the string-ctor; <functional> hash for the hash spec.",
+    "est_min_cpp": "C++98 / C++11"
+  },
+  {
+    "priority": 37,
+    "header": "<stacktrace>",
+    "summary": "stacktrace_entry, basic_stacktrace, stacktrace = basic_stacktrace<allocator<stacktrace_entry>>. C++23. Heavily platform-dependent — needs DWARF/PDB symbolisation or the libbacktrace / libunwind path.",
+    "blockers": "Platform unwinder (libunwind / Windows DbgHelp); symbol resolution table; <format> for formatter<stacktrace_entry> specialisation.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 38,
+    "header": "<chrono>",
+    "summary": "duration, time_point, system_clock / steady_clock / high_resolution_clock; C++20 calendar (year_month_day, weekday, last_spec, etc.); time zones (zoned_time, tzdb_list, get_tzdb); duration_cast / time_point_cast; formatter specialisations; literals (1s, 1ms, etc.). Large.",
+    "blockers": "<ratio> for duration's Period parameter; <format> for the C++20 formatters; <locale> for some locale-aware parsing; tzdata for time zones.",
+    "est_min_cpp": "C++11 / C++20"
+  },
+  {
+    "priority": 39,
+    "header": "<complex>",
+    "summary": "complex<T>, full arithmetic + transcendental support (exp, log, sqrt, sin/cos/tan + hyperbolic + inverse variants), operator<< / operator>>. Medium surface; complex<float/double/long double> specialisations may use compiler builtins.",
+    "blockers": "<cmath> for the transcendentals; <iostream> for stream operators (which can be deferred).",
+    "est_min_cpp": "C++98 / C++11"
+  },
+  {
+    "priority": 40,
+    "header": "<random>",
+    "summary": "Engines (linear_congruential_engine, mersenne_twister_engine, subtract_with_carry_engine, the named typedefs mt19937 etc., random_device); adaptors (discard_block_engine, independent_bits_engine, shuffle_order_engine); distributions (uniform_int/real, bernoulli, binomial, geometric, negative_binomial, poisson, exponential, gamma, weibull, extreme_value, normal, lognormal, chi_squared, cauchy, fisher_f, student_t, discrete, piecewise_constant, piecewise_linear); seed_seq, generate_canonical. Large.",
+    "blockers": "<limits>, <type_traits>; for random_device, a platform entropy source.",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 41,
+    "header": "<valarray>",
+    "summary": "valarray<T>, slice / gslice, slice_array / gslice_array / mask_array / indirect_array, transcendentals on valarrays. Specialised; rarely used but still in the standard.",
+    "blockers": "<cmath> for the elementwise transcendentals.",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 42,
+    "header": "<string>",
+    "summary": "basic_string<CharT, Traits, Allocator>, the four char specialisations (string / wstring / u8string (C++20) / u16string / u32string), char_traits<CharT> per-char-type, std::stoX number parsers, std::to_string, the C++17 std::string_view interop, operator+ overloads, hash<string>. Large core component.",
+    "blockers": "<memory> for allocator; <iterator>; <functional> hash for the hash specs; <limits>.",
+    "est_min_cpp": "C++98 / C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 43,
+    "header": "<charconv>",
+    "summary": "to_chars / from_chars + chars_format enum. C++17 fast numeric ↔ string conversion (locale-independent). Performance-critical; the integer paths are simple but the FP paths (Ryu / Dragonbox) are substantial.",
+    "blockers": "—",
+    "est_min_cpp": "C++17 / C++20 (FP)"
+  },
+  {
+    "priority": 44,
+    "header": "<format>",
+    "summary": "format / format_to / format_to_n / formatted_size / vformat, format_string, format_args, basic_format_arg, basic_format_context, formatter<T> per-type specs (arithmetic / strings / chrono / ranges / pointers / etc.). Large. Anchor for <print> and <chrono> formatters.",
+    "blockers": "<string_view>, <string>, <utility>; type-erased visitor for format_args; <charconv> for the numeric paths.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 45,
+    "header": "<memory_resource>",
+    "summary": "polymorphic_allocator<T>, memory_resource ABC, new_delete_resource / null_memory_resource / get_default_resource / set_default_resource, pool_options, unsynchronized_pool_resource / synchronized_pool_resource / monotonic_buffer_resource. Pmr namespace.",
+    "blockers": "<memory> for allocator_traits interop; <mutex> for synchronized_pool_resource.",
+    "est_min_cpp": "C++17"
+  },
+  {
+    "priority": 46,
+    "header": "<scoped_allocator>",
+    "summary": "scoped_allocator_adaptor<OuterAlloc, InnerAllocs...>. Niche but standardised — propagates inner allocator to nested containers.",
+    "blockers": "<memory>, <tuple>.",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 47,
+    "header": "<stdfloat>",
+    "summary": "Extended floating-point types: float16_t, float32_t, float64_t, float128_t, bfloat16_t. C++23. Some require compiler / ABI support and may be conditionally absent (_Float16, __bf16, etc.).",
+    "blockers": "Compiler support for _Float16 / __bf16 / __float128.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 50,
+    "header": "<vector>",
+    "summary": "vector<T, Alloc> + vector<bool> specialisation, hash<vector<bool>>, comparisons (incl. operator<=>), erase / erase_if free functions. Anchor container — many other modules implicitly need it (e.g. ranges::to default target).",
+    "blockers": "<memory>, <iterator>, <initializer_list>, <compare>.",
+    "est_min_cpp": "C++98 / C++11 / C++20"
+  },
+  {
+    "priority": 51,
+    "header": "<deque>",
+    "summary": "deque<T, Alloc>, comparisons, erase / erase_if. Block-of-blocks layout — implementation is more involved than vector.",
+    "blockers": "<memory>, <iterator>, <initializer_list>, <compare>.",
+    "est_min_cpp": "C++98 / C++20"
+  },
+  {
+    "priority": 52,
+    "header": "<list>",
+    "summary": "list<T, Alloc>, comparisons, erase / erase_if. Doubly-linked list, splice / merge / sort / unique / remove / remove_if / reverse.",
+    "blockers": "<memory>, <iterator>, <initializer_list>, <compare>.",
+    "est_min_cpp": "C++98 / C++20"
+  },
+  {
+    "priority": 53,
+    "header": "<forward_list>",
+    "summary": "forward_list<T, Alloc>, comparisons, erase / erase_if. Singly-linked list (C++11).",
+    "blockers": "<memory>, <iterator>, <initializer_list>, <compare>.",
+    "est_min_cpp": "C++11 / C++20"
+  },
+  {
+    "priority": 54,
+    "header": "<stack>",
+    "summary": "stack<T, Container=deque<T>> container adaptor. Trivial wrapper.",
+    "blockers": "<deque> (default underlying); <vector> / <list> alternatives.",
+    "est_min_cpp": "C++98 / C++20"
+  },
+  {
+    "priority": 55,
+    "header": "<queue>",
+    "summary": "queue<T, Container=deque<T>>, priority_queue<T, Container=vector<T>, Compare=less<T>>. Container adaptors.",
+    "blockers": "<deque>, <vector>, <functional> (for less and the heap algorithms — already in <algorithm>).",
+    "est_min_cpp": "C++98 / C++20"
+  },
+  {
+    "priority": 56,
+    "header": "<map>",
+    "summary": "map<Key, T, Compare, Alloc> + multimap. Red-black-tree based. Insertion / lookup / range erase / structured-binding-friendly iterators (key, value pair).",
+    "blockers": "<memory>, <iterator>, <utility> for pair, <compare>, <initializer_list>.",
+    "est_min_cpp": "C++98 / C++17 (node_handle) / C++20"
+  },
+  {
+    "priority": 57,
+    "header": "<set>",
+    "summary": "set<Key, Compare, Alloc> + multiset. Same tree backbone as <map> but key-only.",
+    "blockers": "<memory>, <iterator>, <compare>, <initializer_list>.",
+    "est_min_cpp": "C++98 / C++17 / C++20"
+  },
+  {
+    "priority": 58,
+    "header": "<unordered_map>",
+    "summary": "unordered_map<Key, T, Hash, KeyEqual, Alloc> + unordered_multimap. Hash-table based.",
+    "blockers": "<memory>, <iterator>, <utility> for pair, <functional> for hash and equal_to.",
+    "est_min_cpp": "C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 59,
+    "header": "<unordered_set>",
+    "summary": "unordered_set<Key, Hash, KeyEqual, Alloc> + unordered_multiset.",
+    "blockers": "<memory>, <iterator>, <functional> for hash and equal_to.",
+    "est_min_cpp": "C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 60,
+    "header": "<flat_map>",
+    "summary": "flat_map<Key, T, Compare, KeyContainer, MappedContainer> + flat_multimap. C++23 — sorted-vector-of-pairs adaptor; cache-friendly alternative to <map>.",
+    "blockers": "<vector>, <algorithm>, <compare>.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 61,
+    "header": "<flat_set>",
+    "summary": "flat_set<Key, Compare, KeyContainer> + flat_multiset. C++23 — sorted-vector adaptor; cache-friendly alternative to <set>.",
+    "blockers": "<vector>, <algorithm>, <compare>.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 62,
+    "header": "<mdspan>",
+    "summary": "mdspan<T, Extents, LayoutPolicy, AccessorPolicy>, extents, dextents, layout_left / layout_right / layout_stride, default_accessor. C++23 multi-dimensional non-owning view.",
+    "blockers": "<span>, <array>, <type_traits>.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 63,
+    "header": "<inplace_vector>",
+    "summary": "inplace_vector<T, N>. C++26 fixed-capacity vector with inline storage. Smaller surface than <vector> but with C++26's deducing-this and constexpr support.",
+    "blockers": "<memory>, <iterator>, <initializer_list>, <compare>.",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 64,
+    "header": "<hive>",
+    "summary": "hive<T, Alloc>. C++26 (formerly colony). Bucketed container with stable iterators across insertion / erasure. New design.",
+    "blockers": "<memory>, <iterator>, <initializer_list>, <compare>.",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 70,
+    "header": "<locale>",
+    "summary": "std::locale, facet ABC, the named facets (collate, ctype, codecvt, numpunct, num_get/put, money_get/put, time_get/put, messages, money_punct), use_facet / has_facet. Locale-aware character conversion + numeric / time formatting. Large.",
+    "blockers": "<string>; platform locale database (the C locale at minimum).",
+    "est_min_cpp": "C++98 / C++11"
+  },
+  {
+    "priority": 71,
+    "header": "<codecvt>",
+    "summary": "codecvt_utf8 / codecvt_utf16 / codecvt_utf8_utf16 specialisations + codecvt_mode. DEPRECATED in C++17, REMOVED in C++26. Implement only for backward compat if at all.",
+    "blockers": "<locale> for codecvt facet base.",
+    "est_min_cpp": "C++11 (deprecated C++17, removed C++26)"
+  },
+  {
+    "priority": 72,
+    "header": "<regex>",
+    "summary": "basic_regex<CharT, Traits>, regex / wregex typedefs, regex_match / regex_search / regex_replace / regex_iterator / regex_token_iterator, match_results / sub_match, regex_constants, regex_error, the regex_traits<CharT> trait. Significant — the parser + NFA/DFA engine is the bulk of the work.",
+    "blockers": "<string>, <iterator>, <locale> for collation.",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 73,
+    "header": "<filesystem>",
+    "summary": "filesystem::path, directory_entry, directory_iterator / recursive_directory_iterator, file_status, perms, file_type, the filesystem free functions (canonical, absolute, copy / copy_file, create_directory, current_path, exists, file_size, hard_link_count, is_*, last_write_time, permissions, read_symlink, remove / remove_all, rename, resize_file, space, status, symlink_status, temp_directory_path, weakly_canonical), filesystem_error.",
+    "blockers": "Platform stat / opendir / NTFS bindings; <system_error>; <string>, <string_view>.",
+    "est_min_cpp": "C++17"
+  },
+  {
+    "priority": 75,
+    "header": "<iosfwd>",
+    "summary": "Forward declarations for the iostream subsystem. Tiny — just the templated typedef chain that lets you forward-declare std::ostream et al without dragging in <iostream>.",
+    "blockers": "—",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 76,
+    "header": "<ios>",
+    "summary": "ios_base, basic_ios, fmtflags / iostate / openmode / seekdir / streamoff / streampos, manipulators (boolalpha, showpoint, etc.). Foundational for the whole I/O subsystem.",
+    "blockers": "<locale> for imbue; <system_error> for io_errc.",
+    "est_min_cpp": "C++98 / C++11"
+  },
+  {
+    "priority": 77,
+    "header": "<streambuf>",
+    "summary": "basic_streambuf<CharT, Traits>. The buffer ABC that every iostream sits on. Virtual interface; concrete derived buffers live in <fstream>, <sstream>, <syncstream>, <spanstream>.",
+    "blockers": "<ios>, <locale>.",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 78,
+    "header": "<istream>",
+    "summary": "basic_istream<CharT, Traits>, basic_iostream<CharT, Traits>, operator>> overloads for the arithmetic types and std::string, ws / getline manipulators.",
+    "blockers": "<ios>, <streambuf>, <string>.",
+    "est_min_cpp": "C++98 / C++11"
+  },
+  {
+    "priority": 79,
+    "header": "<ostream>",
+    "summary": "basic_ostream<CharT, Traits>, operator<< overloads for the arithmetic types and std::string, endl / ends / flush / emit_on_flush / noemit_on_flush / flush_emit manipulators.",
+    "blockers": "<ios>, <streambuf>, <string>.",
+    "est_min_cpp": "C++98 / C++20"
+  },
+  {
+    "priority": 80,
+    "header": "<iostream>",
+    "summary": "The global standard streams: cin / cout / cerr / clog and their wide cousins. Static-init order is delicate (the Schwarz counter pattern).",
+    "blockers": "<istream>, <ostream>; freestanding-mode behaviour needs platform glue (write(2) / WriteFile).",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 81,
+    "header": "<fstream>",
+    "summary": "basic_filebuf, basic_ifstream / basic_ofstream / basic_fstream. The disk-backed stream family.",
+    "blockers": "<streambuf>; platform file I/O bindings.",
+    "est_min_cpp": "C++98 / C++11 (move) / C++17 (filesystem::path ctor)"
+  },
+  {
+    "priority": 82,
+    "header": "<sstream>",
+    "summary": "basic_stringbuf, basic_istringstream / basic_ostringstream / basic_stringstream. String-backed streams; common for parsing and formatting.",
+    "blockers": "<streambuf>, <string>.",
+    "est_min_cpp": "C++98 / C++20 (view), C++26 (string_view)"
+  },
+  {
+    "priority": 83,
+    "header": "<iomanip>",
+    "summary": "Parametric manipulators: setbase, setfill, setprecision, setw, setiosflags, resetiosflags, get_time / put_time, get_money / put_money, quoted (C++14). Tiny — each manipulator is a small expression-template.",
+    "blockers": "<ios>, <locale> for the time/money variants.",
+    "est_min_cpp": "C++98 / C++14"
+  },
+  {
+    "priority": 84,
+    "header": "<syncstream>",
+    "summary": "basic_osyncstream / basic_syncbuf. C++20 — wraps an underlying stream and atomically emits on destruction. Synchronises concurrent writes.",
+    "blockers": "<ostream>, <streambuf>, <mutex>.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 85,
+    "header": "<spanstream>",
+    "summary": "basic_spanstream and basic_spanbuf. C++23 — span-backed stream (alternative to stringstream for fixed-buffer use cases).",
+    "blockers": "<streambuf>, <span>.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 86,
+    "header": "<print>",
+    "summary": "std::print / std::println / std::vprint_unicode / std::vprint_nonunicode. C++23 — std::format-based formatted I/O, the closest std equivalent to printf.",
+    "blockers": "<format>; platform Unicode-stdout detection (IsConsole + GetConsoleMode on Windows).",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 87,
+    "header": "<strstream>",
+    "summary": "strstream / istrstream / ostrstream / strstreambuf. DEPRECATED since C++98 — superseded by <sstream>. Include only for backwards compat.",
+    "blockers": "<streambuf>.",
+    "est_min_cpp": "C++98 (deprecated since C++98)"
+  },
+  {
+    "priority": 90,
+    "header": "<atomic>",
+    "summary": "std::atomic<T> + std::atomic_flag, the full operation surface (load / store / exchange / compare_exchange_weak/strong / fetch_add/sub/and/or/xor / wait/notify_one/notify_all (C++20)), memory_order enum, atomic_ref<T> (C++20), atomic<shared_ptr<T>> + atomic<weak_ptr<T>> (C++20). Anchor for lock-free programming and the <memory> Phase 6d follow-ups.",
+    "blockers": "Compiler intrinsics (__atomic_* / __c11_atomic_* / std::atomic builtins); platform memory model.",
+    "est_min_cpp": "C++11 / C++20"
+  },
+  {
+    "priority": 91,
+    "header": "<thread>",
+    "summary": "std::thread, std::jthread (C++20), this_thread:: namespace (get_id / sleep_for / sleep_until / yield), thread::id and its hash, hardware_concurrency. Foundational for the rest of concurrency.",
+    "blockers": "Platform thread creation (pthread / Win32); <stop_token> for jthread; <chrono> for sleep_*.",
+    "est_min_cpp": "C++11 / C++20"
+  },
+  {
+    "priority": 92,
+    "header": "<mutex>",
+    "summary": "mutex / recursive_mutex / timed_mutex / recursive_timed_mutex, lock_guard / unique_lock / scoped_lock (C++17), once_flag / call_once, try_lock, std::lock (variadic). Pervasive.",
+    "blockers": "Platform mutex (pthread_mutex_t / CRITICAL_SECTION); <chrono> for the timed variants.",
+    "est_min_cpp": "C++11 / C++17"
+  },
+  {
+    "priority": 93,
+    "header": "<shared_mutex>",
+    "summary": "shared_mutex (C++17), shared_timed_mutex (C++14), shared_lock. Reader-writer locking.",
+    "blockers": "Platform RWLock (pthread_rwlock_t / SRWLOCK).",
+    "est_min_cpp": "C++14 / C++17"
+  },
+  {
+    "priority": 94,
+    "header": "<condition_variable>",
+    "summary": "condition_variable, condition_variable_any, cv_status enum, notify_all_at_thread_exit. The wait/notify primitive for thread coordination.",
+    "blockers": "<mutex>, <chrono>; platform CV (pthread_cond_t / CONDITION_VARIABLE).",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 95,
+    "header": "<future>",
+    "summary": "future / shared_future / promise / packaged_task, async, launch enum, future_status / future_error / future_errc / future_category. Asynchronous result delivery.",
+    "blockers": "<thread>, <mutex>, <condition_variable>, <chrono>, <system_error>.",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 96,
+    "header": "<semaphore>",
+    "summary": "counting_semaphore<LeastMaxValue> + binary_semaphore alias. C++20 acquire / release / try_acquire / try_acquire_for / try_acquire_until.",
+    "blockers": "<atomic> for the counter; <chrono> for the timed variants.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 97,
+    "header": "<latch>",
+    "summary": "std::latch. C++20 single-use down-counter — count_down / wait / try_wait / arrive_and_wait.",
+    "blockers": "<atomic>.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 98,
+    "header": "<barrier>",
+    "summary": "std::barrier<CompletionFunction>. C++20 reusable barrier — arrive / wait / arrive_and_wait / arrive_and_drop, with an optional completion phase.",
+    "blockers": "<atomic>, <functional>.",
+    "est_min_cpp": "C++20"
+  },
+  {
     "priority": 99,
+    "header": "<stop_token>",
+    "summary": "stop_token / stop_source / stop_callback / nostopstate_t. Cooperative cancellation primitive. Anchors jthread's stop API.",
+    "blockers": "<atomic>; ref-counted stop state.",
+    "est_min_cpp": "C++20"
+  },
+  {
+    "priority": 100,
+    "header": "<execution>",
+    "summary": "execution policies (sequenced_policy, parallel_policy, parallel_unsequenced_policy, unsequenced_policy + the seq / par / par_unseq / unseq instances). The hook for parallel-algorithm overloads in <algorithm> and <numeric>.",
+    "blockers": "Platform thread pool / TBB / OpenMP integration for the par_* policies.",
+    "est_min_cpp": "C++17 / C++20"
+  },
+  {
+    "priority": 101,
+    "header": "<hazard_pointer>",
+    "summary": "hazard_pointer / hazard_pointer_obj_base. C++26 lock-free reclamation primitive.",
+    "blockers": "<atomic>.",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 102,
+    "header": "<rcu>",
+    "summary": "rcu_obj_base / rcu_domain. C++26 read-copy-update synchronisation primitive.",
+    "blockers": "<atomic>; deferred-reclamation infrastructure.",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 103,
+    "header": "<generator>",
+    "summary": "std::generator<Ref, V, Allocator>. C++23 coroutine-based input range view. Anchor for the deferred <ranges>::generator dependency.",
+    "blockers": "<coroutine>, <ranges>.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 104,
+    "header": "<linalg>",
+    "summary": "C++26 std::linalg namespace — BLAS-style dense linear algebra (matrix_*, vector_*, the operation tags + the free functions add / scale / scaled / conjugated / transposed / hermitian_transposed / etc.). Layered on <mdspan>.",
+    "blockers": "<mdspan>, <complex>; optional BLAS backend.",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 105,
+    "header": "<debugging>",
+    "summary": "is_debugger_present, breakpoint, breakpoint_if_debugging. C++26 debugger interaction primitives.",
+    "blockers": "Platform debugger-detection (ptrace / IsDebuggerPresent).",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 106,
+    "header": "<text_encoding>",
+    "summary": "std::text_encoding. C++26 identification of named character encodings (mostly IANA names).",
+    "blockers": "<string_view>; embedded encoding registry (could share data with <format>'s Unicode width tables).",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 110,
+    "header": "<cassert>",
+    "summary": "assert macro. Toggles on NDEBUG. Trivial passthrough to the C <assert.h>.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 111,
+    "header": "<cctype>",
+    "summary": "isalnum / isalpha / isblank / iscntrl / isdigit / isgraph / islower / isprint / ispunct / isspace / isupper / isxdigit / tolower / toupper. Locale-affected in C but always-C-locale in restd unless wired through <locale>.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 112,
+    "header": "<cerrno>",
+    "summary": "errno macro + the E* error number constants. Pure passthrough to <errno.h>.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 113,
+    "header": "<cfenv>",
+    "summary": "fenv_t, fexcept_t, feclearexcept / fegetexceptflag / feraiseexcept / fesetexceptflag / fetestexcept, fegetround / fesetround, fegetenv / fesetenv / feholdexcept / feupdateenv. FP environment access.",
+    "blockers": "Platform FP env hooks (fenv.h).",
+    "est_min_cpp": "C++11 (passthrough)"
+  },
+  {
+    "priority": 114,
+    "header": "<cfloat>",
+    "summary": "FLT_* / DBL_* / LDBL_* numeric limit macros. Pure passthrough to <float.h>.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 115,
+    "header": "<cinttypes>",
+    "summary": "PRI* / SCN* printf/scanf format macros, imaxabs / imaxdiv / strtoimax / strtoumax / wcstoimax / wcstoumax. Pure passthrough to <inttypes.h>.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 (passthrough)"
+  },
+  {
+    "priority": 116,
+    "header": "<climits>",
+    "summary": "CHAR_BIT / SCHAR_MIN / SCHAR_MAX / CHAR_MIN / CHAR_MAX / SHRT_* / INT_* / LONG_* / LLONG_* / MB_LEN_MAX. Pure passthrough to <limits.h>.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 117,
+    "header": "<clocale>",
+    "summary": "locale-related — setlocale, localeconv, lconv struct, LC_* category macros. Passthrough to <locale.h>. Distinct from <locale>.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 118,
+    "header": "<cmath>",
+    "summary": "abs / fabs / fmod / remainder / remquo / fma / fmin / fmax / fdim / nan / exp / exp2 / expm1 / log / log10 / log2 / log1p / pow / sqrt / cbrt / hypot / sin / cos / tan / asin / acos / atan / atan2 / sinh / cosh / tanh / asinh / acosh / atanh / erf / erfc / lgamma / tgamma / ceil / floor / trunc / round / lround / llround / nearbyint / rint / lrint / llrint / frexp / ldexp / modf / scalbn / scalbln / ilogb / logb / nextafter / nexttoward / copysign / FP classification (fpclassify / isfinite / isinf / isnan / isnormal / signbit) / FP comparison (isgreater / isgreaterequal / isless / islessequal / islessgreater / isunordered). Pure passthrough but enormous surface.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 / C++17 (passthrough)"
+  },
+  {
+    "priority": 119,
+    "header": "<csetjmp>",
+    "summary": "jmp_buf, setjmp / longjmp. Pure passthrough — discouraged in C++ (skips destructors).",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 120,
+    "header": "<csignal>",
+    "summary": "sig_atomic_t, SIG_* macros, signal / raise. Pure passthrough.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 121,
+    "header": "<cstdarg>",
+    "summary": "va_list / va_start / va_arg / va_end / va_copy. Pure passthrough.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 122,
+    "header": "<cstddef>",
+    "summary": "size_t, ptrdiff_t, max_align_t (C++11), nullptr_t (C++11), byte (C++17), offsetof macro, NULL macro. Foundational — many other modules need at least size_t / ptrdiff_t / nullptr_t.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 / C++17"
+  },
+  {
+    "priority": 123,
+    "header": "<cstdint>",
+    "summary": "intN_t / uintN_t / int_fastN_t / uint_fastN_t / int_leastN_t / uint_leastN_t (N = 8/16/32/64), intmax_t / uintmax_t, intptr_t / uintptr_t, INT*_MIN/MAX, INTMAX_MIN/MAX, INTPTR_MIN/MAX, PTRDIFF_MIN/MAX, SIZE_MAX, WCHAR_MIN/MAX, WINT_MIN/MAX, INT*_C / UINT*_C macros.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 (passthrough)"
+  },
+  {
+    "priority": 124,
+    "header": "<cstdio>",
+    "summary": "FILE, fpos_t, EOF / NULL / BUFSIZ / FILENAME_MAX / FOPEN_MAX / L_tmpnam / TMP_MAX, stdin/stdout/stderr, fopen / freopen / fclose / fflush / setbuf / setvbuf, fread / fwrite, fgetc / fputc / fgets / fputs / fgetpos / fsetpos / fseek / ftell / rewind / ferror / feof / clearerr / perror, printf family, scanf family, remove / rename / tmpfile / tmpnam. Pure passthrough.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 125,
+    "header": "<cstdlib>",
+    "summary": "atof / atoi / atol / atoll / strtod / strtof / strtol / strtoll / strtold / strtoul / strtoull, rand / srand / RAND_MAX, malloc / free / calloc / realloc / aligned_alloc (C++17), abort / atexit / at_quick_exit / exit / quick_exit / _Exit / EXIT_SUCCESS / EXIT_FAILURE, getenv, system, qsort / bsearch, abs / labs / llabs / div / ldiv / lldiv, mblen / mbtowc / wctomb / mbstowcs / wcstombs, MB_CUR_MAX.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 / C++17 (passthrough)"
+  },
+  {
+    "priority": 126,
+    "header": "<cstring>",
+    "summary": "memchr / memcmp / memcpy / memmove / memset, strcpy / strncpy / strcat / strncat / strcmp / strncmp / strchr / strrchr / strspn / strcspn / strpbrk / strstr / strtok / strlen, strcoll / strxfrm, strerror, NULL. Pure passthrough.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 127,
+    "header": "<ctime>",
+    "summary": "clock_t, time_t, tm struct, timespec (C++17), CLOCKS_PER_SEC, clock / time / difftime / mktime / asctime / ctime / gmtime / localtime / strftime / timespec_get (C++17). Pure passthrough.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++17 (passthrough)"
+  },
+  {
+    "priority": 128,
+    "header": "<cuchar>",
+    "summary": "char16_t / char32_t (C++11), mbrtoc16 / c16rtomb / mbrtoc32 / c32rtomb. Multi-byte to char16_t/char32_t conversion.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 (passthrough)"
+  },
+  {
+    "priority": 129,
+    "header": "<cwchar>",
+    "summary": "wchar_t, wint_t, mbstate_t, WCHAR_MIN/MAX, WEOF, the wide-char string functions (wcscpy / wcsncpy / wcscat / etc.), the wide stdio (fwide / fgetwc / fputwc / fgetws / fputws / fwprintf / fwscanf / etc.), wcstod / wcstof / wcstold / wcstol / wcstoll / wcstoul / wcstoull, mbsinit / btowc / wctob / mbrlen / mbrtowc / wcrtomb / mbsrtowcs / wcsrtombs.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 (passthrough)"
+  },
+  {
+    "priority": 130,
+    "header": "<cwctype>",
+    "summary": "wint_t, wctype_t, wctrans_t, WEOF, iswalnum / iswalpha / iswblank / iswcntrl / iswdigit / iswgraph / iswlower / iswprint / iswpunct / iswspace / iswupper / iswxdigit, iswctype / wctype, towlower / towupper, towctrans / wctrans.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (passthrough)"
+  },
+  {
+    "priority": 140,
+    "header": "<stdatomic.h>",
+    "summary": "C atomic operations. C++23 added this header for C-source-compat scenarios; explicitly no <cstdatomic> equivalent. Mostly mirrors <atomic> semantics but with C-syntax (atomic_int + atomic_load / atomic_store).",
+    "blockers": "<atomic>.",
+    "est_min_cpp": "C++23"
+  },
+  {
+    "priority": 141,
+    "header": "<stdbit.h>",
+    "summary": "C bit-manipulation functions (stdc_leading_zeros / stdc_count_ones / etc.). C++26; no <cstdbit> equivalent.",
+    "blockers": "<bit>.",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 142,
+    "header": "<stdckdint.h>",
+    "summary": "Checked integer arithmetic (ckd_add / ckd_sub / ckd_mul). C++26; no <cstdckdint> equivalent.",
+    "blockers": "Compiler intrinsics (__builtin_*_overflow).",
+    "est_min_cpp": "C++26"
+  },
+  {
+    "priority": 150,
+    "header": "<ciso646>",
+    "summary": "C++ equivalent of <iso646.h>. Meaningless in C++ since the alternative tokens (and / or / not / etc.) are language keywords. DEPRECATED in C++17, REMOVED in C++20. Empty file in restd for C++11-17 compat.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 (deprecated C++17, removed C++20)"
+  },
+  {
+    "priority": 151,
+    "header": "<cstdalign>",
+    "summary": "C++ equivalent of <stdalign.h>. Meaningless in C++ since alignas / alignof are language keywords. DEPRECATED in C++17, REMOVED in C++20.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 (deprecated C++17, removed C++20)"
+  },
+  {
+    "priority": 152,
+    "header": "<cstdbool>",
+    "summary": "C++ equivalent of <stdbool.h>. Meaningless in C++ since bool / true / false are language keywords. DEPRECATED in C++17, REMOVED in C++20.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 (deprecated C++17, removed C++20)"
+  },
+  {
+    "priority": 153,
+    "header": "<ccomplex>",
+    "summary": "Re-included <complex> for C compatibility. DEPRECATED in C++17, REMOVED in C++20. Pure forwarding header — no actual content.",
+    "blockers": "<complex>.",
+    "est_min_cpp": "C++11 (deprecated C++17, removed C++20)"
+  },
+  {
+    "priority": 154,
+    "header": "<ctgmath>",
+    "summary": "Re-included <ccomplex> + <cmath> for C compatibility (the C99 tgmath.h type-generic math). DEPRECATED in C++17, REMOVED in C++20.",
+    "blockers": "<complex>, <cmath>.",
+    "est_min_cpp": "C++11 (deprecated C++17, removed C++20)"
+  },
+  {
+    "priority": 9999,
     "header": "(meta)",
     "summary": "REMINDER: deferred Master and Index sheets. Add when ~5+ headers are covered. Master concatenates every per-header sheet body with header rows reprinted between sections; Index lists every (symbol, header) pair flattened and sorted alphabetically by symbol. ALSO: in-tree stub status — internal::iter_value (<memory> Phase 5 stub) was retired in 2026-05-09, replaced by restd::iterator_traits across the 10 uninitialized memory algorithms. lexicographical_compare_three_way.hpp shipped as an empty placeholder pending <compare>. No other stubs currently in tree. SEPARATE: D_CONSTEXPR_CPP14 macro is now locally redefined in dozens of files across <iterator>, <numeric>, <utility>, and the bulk of <algorithm> (Phase 10) pending a global qualifier-macro-table entry. Not a stub — these are the canonical implementations — but the duplication is a growing refactor opportunity. ALGORITHM-SPECIFIC: <algorithm> has its own internal duplication tickets — private _sift_down_ helpers appear in 4 files (sort, partial_sort, partial_sort_copy, nth_element); private _median_of_3_/_lomuto_partition_/_insertion_sort_ in 2-3 files (sort, nth_element, stable_sort); private _lower_bound_/_upper_bound_ in stable_sort. Cleanup tickets: (a) refactor sort/partial_sort/partial_sort_copy/nth_element to call restd::make_heap+sort_heap; (b) refactor stable_sort to call restd::lower_bound/upper_bound (and ideally restd::inplace_merge, which is now the public source of truth for the no-buffer merge); (c) optional _detail/ convention for shared sort helpers.",
     "blockers": "—",
