@@ -22,21 +22,22 @@
 * 
 * path:      /inc/functional/predicate.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_PREDICATE_
 #define DJINTERP_FUNCTIONAL_PREDICATE_ 1
 
+// std
 #include <cstddef>
 #include <type_traits>
 #include <utility>
+// djinterp
 #include "../djinterp.hpp"
 #include "./functional_traits.hpp"
 
 
 NS_DJINTERP
-NS_FUNCTIONAL
 
 
 // combinator classes
@@ -487,10 +488,9 @@ struct is_predicate_combinator
     template<typename _Type>
     inline constexpr bool is_predicate_combinator_v =
         is_predicate_combinator<_Type>::value;
-#endif
+#endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 
-NS_END  // functional
 NS_END  // djinterp
 
 

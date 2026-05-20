@@ -35,7 +35,7 @@
 *
 * path:      /inc/functional/functional.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
 
 /*
@@ -61,6 +61,7 @@ XIV.  SLICE AND RANGE
 #ifndef DJINTERP_FUNCTIONAL_
 #define DJINTERP_FUNCTIONAL_ 1
 
+// std
 #include <algorithm>
 #include <cstddef>
 #include <functional>
@@ -70,8 +71,8 @@ XIV.  SLICE AND RANGE
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 #include "../djinterp.hpp"
-// submodule includes
 #include "./functional_core.hpp"
 #include "./functional_traits.hpp"
 #include "./predicate.hpp"
@@ -82,14 +83,13 @@ XIV.  SLICE AND RANGE
 
 
 NS_DJINTERP
-NS_FUNCTIONAL
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.    INTERNAL HELPERS                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
-
     // has_begin_end
     //   helper: detects if a type has begin() and end() member
     // functions.
@@ -1438,7 +1438,6 @@ range(
 }
 
 
-NS_END  // functional
 NS_END  // djinterp
 
 

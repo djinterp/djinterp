@@ -17,7 +17,7 @@
 *
 * path:      /inc/functional/meta/filterable_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.12
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.12
 ******************************************************************************/
 
 /*
@@ -50,14 +50,18 @@ VI.   SFINAE-GATED FILTER FUNCTION
       2.  filter              (native dispatch)
 */
 
+#ifndef DJINTERP_FUNCTIONAL_FILTERABLE_TRAITS_
+#define DJINTERP_FUNCTIONAL_FILTERABLE_TRAITS_ 1
 
-#ifndef DJINTERP_FUNCTIONAL_TRAITS_FILTERABLE_
-#define DJINTERP_FUNCTIONAL_TRAITS_FILTERABLE_ 1
-
+// std
 #include <cstddef>
 #include <type_traits>
 #include <iterator>
+// djinterp
 #include "../djinterp.hpp"
+
+
+NS_DJINTERP
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -319,8 +323,7 @@ typename std::enable_if<
     is_filterable<_Container>::value,
     _Container
 >::type
-filter
-(
+filter(
     const _Container& _source,
     _Predicate        _predicate
 );
@@ -337,11 +340,13 @@ typename std::enable_if<
       has_filter_method<_Container>::value ),
     _Container
 >::type
-filter
-(
+filter(
     const _Container& _source,
     _Predicate        _predicate
 );
 
 
-#endif  // DJINTERP_FUNCTIONAL_TRAITS_FILTERABLE_
+NS_END  // djinterp
+
+
+#endif  // DJINTERP_FUNCTIONAL_FILTERABLE_TRAITS_
