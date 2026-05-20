@@ -20,26 +20,26 @@
 *
 * path:      \inc\functional\fn_builder.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_FN_BUILDER_HPP_
-#define DJINTERP_FUNCTIONAL_FN_BUILDER_HPP_ 1
+#ifndef DJINTERP_FUNCTIONAL_FN_BUILDER_
+#define DJINTERP_FUNCTIONAL_FN_BUILDER_ 1
 
+// std
 #include <cstddef>
 #include <functional>
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 #include "./djinterp.h"
-#include "./env.h"
+#include "../env/env.h"
 #include "./cpp_features.h"
-#include "./functional.hpp"
 #include "./functional_traits.hpp"
 
 
 NS_DJINTERP
-NS_FUNCTIONAL
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -461,16 +461,14 @@ public:
 // make_builder
 //   function: creates a new function chain builder for the given type.
 template<typename _Type>
-D_NODISCARD
-fn_builder<_Type, _Type>
+D_NODISCARD fn_builder<_Type, _Type>
 make_builder()
 {
     return fn_builder<_Type, _Type>::create();
 }
 
 
-NS_END  // functional
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_FN_BUILDER_HPP_
+#endif  // DJINTERP_FUNCTIONAL_FN_BUILDER_

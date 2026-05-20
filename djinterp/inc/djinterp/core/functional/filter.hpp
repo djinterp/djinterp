@@ -44,12 +44,13 @@
 *
 * path:      \inc\functional\filter.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_FILTER_HPP_
-#define DJINTERP_FUNCTIONAL_FILTER_HPP_ 1
+#ifndef DJINTERP_FUNCTIONAL_FILTER_
+#define DJINTERP_FUNCTIONAL_FILTER_ 1
 
+// std
 #include <algorithm>
 #include <cstddef>
 #include <functional>
@@ -57,14 +58,14 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 #include "../djinterp.hpp"
-#include "../../c/env.h"
+#include "../env/env.h"
 #include "./functional.hpp"
 #include "./functional_traits.hpp"
 
 
 NS_DJINTERP
-NS_FUNCTIONAL
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,7 +85,6 @@ using filter_op_fn = std::function<
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
-
     // make_take_first_op
     //   helper: keeps the first _n elements.
     template<typename _Type>
@@ -993,8 +993,7 @@ public:
 };
 
 
-NS_END  // functional
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_FILTER_HPP_
+#endif  // DJINTERP_FUNCTIONAL_FILTER_

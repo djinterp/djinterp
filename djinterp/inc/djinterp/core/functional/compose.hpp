@@ -16,26 +16,27 @@
 *
 * path:      /inc/functional/compose.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
 
 #ifndef DJINTERP_FUNCTIONAL_COMPOSE_
 #define DJINTERP_FUNCTIONAL_COMPOSE_ 1
 
+// std
 #include <cstddef>
 #include <functional>
 #include <map>
 #include <type_traits>
 #include <utility>
+// djinterp
 #include "./djinterp.h"
-#include "./env.h"
+#include "../env/env.h"
 #include "./cpp_features.h"
 #include "./functional.hpp"
 #include "./functional_traits.hpp"
 
 
 NS_DJINTERP
-NS_FUNCTIONAL
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,6 @@ NS_FUNCTIONAL
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
-
     // composed_transformer
     //   helper: composition of two transformers with optional contexts.
     // Mirrors d_composed_transformer from compose.h but is fully typed.
@@ -367,7 +367,6 @@ memoize
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
-
     // fix_helper
     //   helper: Y combinator for expressing recursive lambdas.
     template<typename _Function>
@@ -404,17 +403,17 @@ NS_END  // internal
 //   });
 //   factorial(5);  // 120
 template<typename _Function>
-D_CONSTEXPR
-internal::fix_helper<typename std::decay<_Function>::type>
-fix(_Function&& _function)
+D_CONSTEXPR internal::fix_helper<typename std::decay<_Function>::type>
+fix(
+    _Function&& _function
+)
 {
     return internal::fix_helper<typename std::decay<_Function>::type>(
         std::forward<_Function>(_function));
 }
 
 
-NS_END  // functional
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_COMPOSE_HPP_
+#endif  // DJINTERP_FUNCTIONAL_COMPOSE_

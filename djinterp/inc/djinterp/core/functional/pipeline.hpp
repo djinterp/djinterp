@@ -12,25 +12,26 @@
 * full type safety. Errors are tracked via an optional-like mechanism.
 *
 * USAGE:
-*   auto result = d_pipeline::from(my_vector)
+*   auto result = function_pipeline::from(my_vector)
 *       .filter([](int x) { return x > 0; })
 *       .map([](int x) { return x * 2; })
 *       .take(10)
 *       .to_vector();
 *
-*   auto sum = d_pipeline::from(data)
+*   auto sum = function_pipeline::from(data)
 *       .filter(is_valid)
 *       .map(extract_value)
 *       .fold(0, std::plus<int>{});
 *
 * path:      \inc\functional\pipeline.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.02.19
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_PIPELINE_HPP_
-#define DJINTERP_FUNCTIONAL_PIPELINE_HPP_ 1
+#ifndef DJINTERP_FUNCTIONAL_PIPELINE_
+#define DJINTERP_FUNCTIONAL_PIPELINE_ 1
 
+// std
 #include <algorithm>
 #include <cstddef>
 #include <functional>
@@ -38,28 +39,28 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
 #include "./djinterp.h"
-#include "./env.h"
+#include "../env/env.h"
 #include "./cpp_features.h"
 #include "./functional.hpp"
 #include "./functional_traits.hpp"
 
 
 NS_DJINTERP
-NS_FUNCTIONAL
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.    PIPELINE CLASS                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// d_pipeline
+// function_pipeline
 //   class: typed function pipeline for chaining operations.
 // Holds a vector of intermediate results. Each operation produces a new
 // pipeline with the transformed data. If an error occurs at any stage,
 // subsequent operations are no-ops and the error is propagated.
 template<typename _Type>
-class d_pipeline
+class function_pipeline
 {
 private:
     std::vector<_Type> m_data;
@@ -67,7 +68,7 @@ private:
     int                m_error_code;
 
     // private constructor for internal use
-    explicit d_pipeline(std::vector<_Type>&& _data,
+    explicit function_pipeline(std::vector<_Type>&& _data,
                         bool                 _has_error = false,
                         int                  _error_code = 0)
         : m_data(std::move(_data))
@@ -82,7 +83,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     // default constructor (empty pipeline)
-    d_pipeline()
+    function_pipeline()
         : m_data()
         , m_has_error(false)
         , m_error_code(0)
@@ -97,31 +98,31 @@ public:
                          std::declval<const _Container&>()))>::type,
                      _Type>::value
              >::type>
-    static d_pipeline from(const _Container& _input)
+    static function_pipeline from(const _Container& _input)
     {
-        return d_pipeline(
+        return function_pipeline(
             std::vector<_Type>(std::begin(_input), std::end(_input)));
     }
 
     // from (move)
     //   static: creates a pipeline by moving a vector.
-    static d_pipeline from(std::vector<_Type>&& _data)
+    static function_pipeline from(std::vector<_Type>&& _data)
     {
-        return d_pipeline(std::move(_data));
+        return function_pipeline(std::move(_data));
     }
 
     // from (initializer list)
     //   static: creates a pipeline from an initializer list.
-    static d_pipeline from(std::initializer_list<_Type> _init)
+    static function_pipeline from(std::initializer_list<_Type> _init)
     {
-        return d_pipeline(std::vector<_Type>(_init));
+        return function_pipeline(std::vector<_Type>(_init));
     }
 
     // from (raw array)
     //   static: creates a pipeline from a C-style array.
-    static d_pipeline from(const _Type* _data, std::size_t _count)
+    static function_pipeline from(const _Type* _data, std::size_t _count)
     {
-        return d_pipeline(std::vector<_Type>(_data, _data + _count));
+        return function_pipeline(std::vector<_Type>(_data, _data + _count));
     }
 
     // of (variadic)
@@ -130,7 +131,7 @@ public:
              typename = typename std::enable_if<
                  (sizeof...(_Args) > 0)
              >::type>
-    static d_pipeline of(_Args&&... _args)
+    static function_pipeline of(_Args&&... _args)
     {
         std::vector<_Type> data;
 
@@ -141,14 +142,14 @@ public:
             std::forward<_Args>(_args)), 0)... };
         (void)dummy;
 
-        return d_pipeline(std::move(data));
+        return function_pipeline(std::move(data));
     }
 
     // error
     //   static: creates an error pipeline.
-    static d_pipeline error(int _code = -1)
+    static function_pipeline error(int _code = -1)
     {
-        return d_pipeline(std::vector<_Type>(), true, _code);
+        return function_pipeline(std::vector<_Type>(), true, _code);
     }
 
 
@@ -165,12 +166,12 @@ public:
                  is_callable<_Fn, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline<_ResultType>
+    function_pipeline<_ResultType>
     map(_Fn&& _fn) const
     {
         if (m_has_error)
         {
-            return d_pipeline<_ResultType>::error(m_error_code);
+            return function_pipeline<_ResultType>::error(m_error_code);
         }
 
         std::vector<_ResultType> result;
@@ -182,7 +183,7 @@ public:
             result.push_back(std::forward<_Fn>(_fn)(element));
         }
 
-        return d_pipeline<_ResultType>::from(std::move(result));
+        return function_pipeline<_ResultType>::from(std::move(result));
     }
 
     // filter
@@ -192,11 +193,11 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline filter(_Pred&& _pred) const
+    function_pipeline filter(_Pred&& _pred) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::vector<_Type> result;
@@ -209,7 +210,7 @@ public:
             }
         }
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // filter_not
@@ -219,7 +220,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline filter_not(_Pred&& _pred) const
+    function_pipeline filter_not(_Pred&& _pred) const
     {
         return filter([&_pred](const _Type& _e)
         {
@@ -259,7 +260,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    const d_pipeline& for_each(_Fn&& _fn) const
+    const function_pipeline& for_each(_Fn&& _fn) const
     {
         if (!m_has_error)
         {
@@ -275,16 +276,16 @@ public:
     // take
     //   method: keeps only the first _n elements.
     D_NODISCARD
-    d_pipeline take(std::size_t _n) const
+    function_pipeline take(std::size_t _n) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::size_t actual = (_n < m_data.size()) ? _n : m_data.size();
 
-        return d_pipeline(std::vector<_Type>(
+        return function_pipeline(std::vector<_Type>(
             m_data.begin(),
             m_data.begin() + static_cast<typename
                 std::vector<_Type>::difference_type>(actual)));
@@ -293,19 +294,19 @@ public:
     // take_last
     //   method: keeps only the last _n elements.
     D_NODISCARD
-    d_pipeline take_last(std::size_t _n) const
+    function_pipeline take_last(std::size_t _n) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         if (_n >= m_data.size())
         {
-            return d_pipeline(std::vector<_Type>(m_data));
+            return function_pipeline(std::vector<_Type>(m_data));
         }
 
-        return d_pipeline(std::vector<_Type>(
+        return function_pipeline(std::vector<_Type>(
             m_data.begin() + static_cast<typename
                 std::vector<_Type>::difference_type>(
                     m_data.size() - _n),
@@ -319,11 +320,11 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline take_while(_Pred&& _pred) const
+    function_pipeline take_while(_Pred&& _pred) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::vector<_Type> result;
@@ -338,25 +339,25 @@ public:
             result.push_back(element);
         }
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // skip
     //   method: removes the first _n elements.
     D_NODISCARD
-    d_pipeline skip(std::size_t _n) const
+    function_pipeline skip(std::size_t _n) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         if (_n >= m_data.size())
         {
-            return d_pipeline(std::vector<_Type>());
+            return function_pipeline(std::vector<_Type>());
         }
 
-        return d_pipeline(std::vector<_Type>(
+        return function_pipeline(std::vector<_Type>(
             m_data.begin() + static_cast<typename
                 std::vector<_Type>::difference_type>(_n),
             m_data.end()));
@@ -369,11 +370,11 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline skip_while(_Pred&& _pred) const
+    function_pipeline skip_while(_Pred&& _pred) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::vector<_Type> result;
@@ -390,19 +391,19 @@ public:
             result.push_back(element);
         }
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // slice
     //   method: takes elements in range [start, end) with given step.
     D_NODISCARD
-    d_pipeline slice(std::size_t _start,
+    function_pipeline slice(std::size_t _start,
                      std::size_t _end,
                      std::size_t _step = 1) const
     {
         if (m_has_error || _step == 0)
         {
-            return d_pipeline::error(m_has_error ? m_error_code : -1);
+            return function_pipeline::error(m_has_error ? m_error_code : -1);
         }
 
         std::vector<_Type> result;
@@ -414,17 +415,17 @@ public:
             result.push_back(m_data[i]);
         }
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // distinct
     //   method: removes duplicate elements using operator==.
     D_NODISCARD
-    d_pipeline distinct() const
+    function_pipeline distinct() const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::vector<_Type> result;
@@ -448,7 +449,7 @@ public:
             }
         }
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // distinct (with comparator)
@@ -458,11 +459,11 @@ public:
                  is_callable<_Eq, const _Type&, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline distinct(_Eq&& _eq) const
+    function_pipeline distinct(_Eq&& _eq) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::vector<_Type> result;
@@ -486,22 +487,22 @@ public:
             }
         }
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // reversed
     //   method: returns a pipeline with elements in reverse order.
     D_NODISCARD
-    d_pipeline reversed() const
+    function_pipeline reversed() const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::vector<_Type> result(m_data.rbegin(), m_data.rend());
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // sorted
@@ -511,11 +512,11 @@ public:
                  is_callable<_Compare, const _Type&, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline sorted(_Compare&& _cmp) const
+    function_pipeline sorted(_Compare&& _cmp) const
     {
         if (m_has_error)
         {
-            return d_pipeline::error(m_error_code);
+            return function_pipeline::error(m_error_code);
         }
 
         std::vector<_Type> result(m_data);
@@ -523,13 +524,13 @@ public:
         std::sort(result.begin(), result.end(),
                   std::forward<_Compare>(_cmp));
 
-        return d_pipeline(std::move(result));
+        return function_pipeline(std::move(result));
     }
 
     // sorted (default ordering)
     //   method: returns a pipeline sorted with operator<.
     D_NODISCARD
-    d_pipeline sorted() const
+    function_pipeline sorted() const
     {
         return sorted([](const _Type& _a, const _Type& _b)
         {
@@ -548,12 +549,12 @@ public:
                  is_callable<_Fn, const _Type&>::value
              >::type>
     D_NODISCARD
-    d_pipeline<_ResultType>
+    function_pipeline<_ResultType>
     flat_map(_Fn&& _fn) const
     {
         if (m_has_error)
         {
-            return d_pipeline<_ResultType>::error(m_error_code);
+            return function_pipeline<_ResultType>::error(m_error_code);
         }
 
         std::vector<_ResultType> result;
@@ -568,7 +569,7 @@ public:
             }
         }
 
-        return d_pipeline<_ResultType>::from(std::move(result));
+        return function_pipeline<_ResultType>::from(std::move(result));
     }
 
     // partition_pipe
@@ -578,14 +579,14 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    std::pair<d_pipeline, d_pipeline>
+    std::pair<function_pipeline, function_pipeline>
     partition_pipe(_Pred&& _pred) const
     {
         if (m_has_error)
         {
             return std::make_pair(
-                d_pipeline::error(m_error_code),
-                d_pipeline::error(m_error_code));
+                function_pipeline::error(m_error_code),
+                function_pipeline::error(m_error_code));
         }
 
         std::vector<_Type> pass;
@@ -604,8 +605,8 @@ public:
         }
 
         return std::make_pair(
-            d_pipeline(std::move(pass)),
-            d_pipeline(std::move(fail)));
+            function_pipeline(std::move(pass)),
+            function_pipeline(std::move(fail)));
     }
 
     // group_by
@@ -643,12 +644,12 @@ public:
                  is_callable<_Fn, const _Type&, const _Other&>::value
              >::type>
     D_NODISCARD
-    d_pipeline<_ResultType>
-    zip_with(const d_pipeline<_Other>& _other, _Fn&& _fn) const
+    function_pipeline<_ResultType>
+    zip_with(const function_pipeline<_Other>& _other, _Fn&& _fn) const
     {
         if (m_has_error || _other.has_error())
         {
-            return d_pipeline<_ResultType>::error(
+            return function_pipeline<_ResultType>::error(
                 m_has_error ? m_error_code : _other.error_code());
         }
 
@@ -665,7 +666,7 @@ public:
                 m_data[i], other_data[i]));
         }
 
-        return d_pipeline<_ResultType>::from(std::move(result));
+        return function_pipeline<_ResultType>::from(std::move(result));
     }
 
 
@@ -832,26 +833,28 @@ public:
 template<typename _Container,
          typename _ValueType = typename std::decay<
              decltype(*std::begin(std::declval<const _Container&>()))>::type>
-D_NODISCARD
-d_pipeline<_ValueType>
-pipeline_from(const _Container& _input)
+D_NODISCARD function_pipeline<_ValueType>
+pipeline_from(
+    const _Container& _input
+)
 {
-    return d_pipeline<_ValueType>::from(_input);
+    return function_pipeline<_ValueType>::from(_input);
 }
 
 // pipeline_from (raw array)
 //   function: creates a pipeline from a C-style array.
 template<typename _Type>
-D_NODISCARD
-d_pipeline<_Type>
-pipeline_from(const _Type* _data, std::size_t _count)
+D_NODISCARD function_pipeline<_Type>
+pipeline_from(
+    const _Type* _data,
+    std::size_t  _count
+)
 {
-    return d_pipeline<_Type>::from(_data, _count);
+    return function_pipeline<_Type>::from(_data, _count);
 }
 
 
-NS_END  // functional
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_PIPELINE_HPP_
+#endif  // DJINTERP_FUNCTIONAL_PIPELINE_
