@@ -1,0 +1,41 @@
+/******************************************************************************
+* djinterp [restd]                                                       array
+*
+* array umbrella header:
+*   Convenience header that #includes every granular module under
+* restd/array/. Matches the project convention: user code may
+* #include "restd/array" instead of pulling in each piece directly.
+*
+*   Per-symbol headers (preferred for build-time minimisation):
+*
+*     array.hpp                       - class array<_Type, _Size>
+*                                     - C++17 deduction guide
+*     array_get.hpp                   - get<I>(array)  (4 overloads)
+*     array_compare.hpp               - ==  !=  <  <=  >  >=
+*     array_compare_three_way.hpp     - <=>             (C++20)
+*     array_swap.hpp                  - swap(array&, array&)
+*     to_array.hpp                    - to_array(T(&)[N]) (C++11 back-port)
+*                                     - to_array(T(&&)[N])
+*     array_tuple_size.hpp            - tuple_size<array>
+*     array_tuple_element.hpp         - tuple_element<I, array>
+*
+*
+* path:      /inc/djinterp/restd/array
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.05.19
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_ARRAY_UMBRELLA_
+#define DJINTERP_RESTD_ARRAY_UMBRELLA_ 1
+
+#include "./array/array.hpp"
+#include "./array/array_get.hpp"
+#include "./array/array_compare.hpp"
+#include "./array/array_compare_three_way.hpp"
+#include "./array/array_swap.hpp"
+#include "./array/to_array.hpp"
+#include "./array/array_tuple_size.hpp"
+#include "./array/array_tuple_element.hpp"
+
+
+#endif  // DJINTERP_RESTD_ARRAY_UMBRELLA_
