@@ -33,6 +33,7 @@
 *   five();                         // 5
 *   five(1, 2, "x");                // 5  (ignores all args)
 *
+* 
 * path:      /inc/djinterp/core/functional/curry.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
