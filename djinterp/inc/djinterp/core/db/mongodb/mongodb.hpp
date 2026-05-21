@@ -51,15 +51,14 @@
 #ifndef DJINTERP_DATABASE_MONGODB_
 #define DJINTERP_DATABASE_MONGODB_
 
-#include "database_connection.hpp"
-#include "mongo_traits.hpp"
-
-#include "../env/db/env_mongodb.h"
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../../env/db/env_mongodb.h"
+#include "../database_connection.hpp"
+#include "./mongo_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_MONGO
 
 
 // =============================================================================
@@ -1156,8 +1155,6 @@ private:
 struct mongo_result_set_impl;
 
 
-NS_END  // mongo
-NS_END  // database
 NS_END  // djinterp
 
 

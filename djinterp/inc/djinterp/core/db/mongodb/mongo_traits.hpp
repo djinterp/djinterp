@@ -40,26 +40,14 @@
 #ifndef DJINTERP_DATABASE_MONGO_TRAITS_
 #define DJINTERP_DATABASE_MONGO_TRAITS_
 
-#include "database_traits.hpp"
-
+// std
 #include <vector>
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../database_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-// =========================================================================
-//  NS_MONGO
-// =========================================================================
-
-#ifndef D_KEYWORD_MONGO
-    #define D_KEYWORD_MONGO     mongo
-#endif
-
-#ifndef NS_MONGO
-    #define NS_MONGO            D_NAMESPACE(D_KEYWORD_MONGO)
-#endif
-
-NS_MONGO
 
 
 // =============================================================================
@@ -519,8 +507,6 @@ using enable_if_has_mongo_gridfs =
     typename std::enable_if<has_mongo_gridfs<_T>::value>::type;
 
 
-NS_END  // mongo
-NS_END  // database
 NS_END  // djinterp
 
 

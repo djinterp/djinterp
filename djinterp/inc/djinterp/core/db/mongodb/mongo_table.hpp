@@ -48,14 +48,12 @@
 #define DJINTERP_DATABASE_MONGO_TABLE_
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../mongodb.hpp"
-#include "./database_table.hpp"
+#include "../../../djinterp.hpp"
+#include "./mongodb.hpp"
+#include "../database_table.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_MONGO
 
 
     // =========================================================================
@@ -99,7 +97,7 @@ NS_MONGO
     //   class: MongoDB-collection-backed database table. Extends the
     // generic database_table with projection, filter, sort, concern, and
     // aggregation-pipeline facilities appropriate to a document store.
-    template<typename _Config = container::empty_config>
+    template<typename _Config = void>
     class mongo_table
         : public database_table<mongo_connection,
                                 value,
@@ -483,8 +481,6 @@ NS_MONGO
     };
 
 
-NS_END  // mongo
-NS_END  // database
 NS_END  // djinterp
 
 

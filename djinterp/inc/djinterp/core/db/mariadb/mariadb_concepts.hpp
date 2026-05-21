@@ -21,7 +21,7 @@
 *
 * path:      /inc/djinterp/core/db/mariadb/mariadb_concepts.hpp
 * link(s):   TBA
-* author(s): OpenAI ChatGPT                                   date: 2026.04.07
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_MARIADB_CONCEPTS_
@@ -30,7 +30,7 @@
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "./mariadb_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
@@ -39,12 +39,11 @@
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
-// =============================================================================
+// ===========================================================================
 // I.   Core MariaDB Connection Concepts
-// =============================================================================
+// ===========================================================================
 
 // mariadb_connection
 //   concept: constrains types implementing the MariaDB connection
@@ -81,9 +80,9 @@ concept mariadb_async_connection =
     has_mariadb_async<clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  MariaDB Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // mariadb_reset_connection_capable
 //   concept: constrains types exposing reset_connection().
@@ -116,9 +115,9 @@ concept mariadb_table_names_query =
     is_detected<mariadb_get_table_names_t, clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // III. Tagless MariaDB Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // mariadb_async_handshakeable
 //   concept: constrains types satisfying the full tagless async
@@ -142,7 +141,6 @@ concept mariadb_full_connection =
     mariadb_is_full_connection<clean_t<_Type>>;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

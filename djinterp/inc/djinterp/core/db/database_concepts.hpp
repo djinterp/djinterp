@@ -44,9 +44,9 @@
 NS_DJINTERP
 NS_DATABASE
 
-// =============================================================================
+// ===========================================================================
 // I.   Connection Concepts
-// =============================================================================
+// ===========================================================================
 
 // connection
 //   concept: constrains types implementing the basic connection interface.
@@ -98,9 +98,9 @@ concept prepared_connection =
     has_prepared_statements<clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Transaction Concepts
-// =============================================================================
+// ===========================================================================
 
 // transactional_connection
 //   concept: constrains connections supporting begin/commit/rollback.
@@ -151,9 +151,9 @@ concept savepoint_rollback_connection =
     is_detected<rollback_to_savepoint_t, clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // III. Result Set Concepts
-// =============================================================================
+// ===========================================================================
 
 // result_set
 //   concept: constrains types implementing the result-set interface.
@@ -198,9 +198,9 @@ concept key_addressable_result_set =
     is_detected<get_value_name_t, clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Statement Concepts
-// =============================================================================
+// ===========================================================================
 
 // statement
 //   concept: constrains types implementing the prepared-statement interface.
@@ -239,9 +239,9 @@ concept parameterized_statement =
     is_detected<parameter_count_t, clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Vendor Connection Concepts
-// =============================================================================
+// ===========================================================================
 
 // vendor_connection
 //   concept: constrains types implementing the full vendor connection
@@ -287,9 +287,9 @@ concept row_info_connection =
     has_row_info<clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  Tagless Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // can_connect_connection
 //   concept: constrains types satisfying the tagless can_connect capability.
@@ -390,9 +390,9 @@ concept bindable_database_statement =
     is_bindable_statement<clean_t<_Type>>;
 
 
-// =============================================================================
+// ===========================================================================
 // VII. Extracted Type Concepts
-// =============================================================================
+// ===========================================================================
 
 // query_result_connection
 //   concept: constrains connections whose execute_query() return type yields

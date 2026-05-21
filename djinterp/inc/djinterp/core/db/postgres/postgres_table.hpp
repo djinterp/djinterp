@@ -33,13 +33,12 @@
 #define DJINTERP_DATABASE_POSTGRES_TABLE_
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../postgres.hpp"
-#include "./database_table.hpp"
+#include "../../../djinterp.hpp"
+#include "./postgres.hpp"
+#include "../database_table.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
     // =========================================================================
@@ -87,7 +86,7 @@ NS_DATABASE
     //   class: PostgreSQL-specific database table. Extends the generic
     // database_table with PostgreSQL DDL, identifier quoting, COPY
     // acceleration, and VACUUM / ANALYZE maintenance.
-    template<typename _Config = container::empty_config>
+    template<typename _Config = void>
     class postgres_table
         : public database_table<pg_connection,
                                 value,
@@ -419,7 +418,6 @@ NS_DATABASE
     };
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

@@ -55,15 +55,14 @@
 #ifndef DJINTERP_DATABASE_ARANGODB_
 #define DJINTERP_DATABASE_ARANGODB_
 
-#include "..\database_connection.hpp"
-#include "arango_traits.hpp"
-
-#include "..\..\core\env\env_arangodb.h"
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../../env/db/env_arangodb.h"
+#include "../database_connection.hpp"
+#include "./arango_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_ARANGO
 
 
 // =============================================================================
@@ -1120,8 +1119,6 @@ private:
 struct arango_result_set_impl;
 
 
-NS_END  // arango
-NS_END  // database
 NS_END  // djinterp
 
 

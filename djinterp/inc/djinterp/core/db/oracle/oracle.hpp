@@ -50,15 +50,13 @@
 #ifndef DJINTERP_DATABASE_ORACLE_
 #define DJINTERP_DATABASE_ORACLE_
 
-#include "database_connection.hpp"
-#include "oracle_traits.hpp"
+#include "../database_connection.hpp"
+#include "./oracle_traits.hpp"
 
-#include "../env/db/env_oracle.h"
+#include "../../../env/db/env_oracle.h"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_ORA
 
 
 // =============================================================================
@@ -1064,8 +1062,6 @@ struct oracle_result_set_impl;
 struct oracle_statement_impl;
 
 
-NS_END  // ora
-NS_END  // database
 NS_END  // djinterp
 
 

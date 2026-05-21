@@ -41,13 +41,16 @@
 #ifndef DJINTERP_DATABASE_POSTGRES_TRAITS_
 #define DJINTERP_DATABASE_POSTGRES_TRAITS_
 
-#include "../djinterp.hpp"
-#include "./database_traits.hpp"
+// std
 #include <vector>
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../database_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
+
+
 // =============================================================================
 // I.   EXPRESSION DETECTORS
 // =============================================================================
@@ -608,7 +611,6 @@ using enable_if_has_pg_listen_notify =
     typename std::enable_if<has_pg_listen_notify<_T>::value>::type;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

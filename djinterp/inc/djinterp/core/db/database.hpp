@@ -1,43 +1,91 @@
 /******************************************************************************
-* djinterp [database]                                      database_common.hpp
+* djinterp [database]                                             database.hpp
 * 
-* djinterp database common module:
-*   This header provides comprehensive base classes, interfaces, and utilities
-* for database operations that are vendor-agnostic, including:
-*   - connection management and pooling
-*   - transaction handling with RAII semantics
-*   - query execution and result set handling
-*   - parameter binding and prepared statements
-*   - error handling and diagnostics
-*   - type conversion utilities
-*   - connection string parsing
+* djinterp database foundational module:
+*   The foundational module for ALL database-related functionality in
+* djinterp. Holds the greatest-common subset of types, idioms, and
+* patterns shared across every database back-end — vendor-agnostic
+* primitives that every dialect builds on, without committing to any
+* particular vendor's specifics.
 *
-*   This module serves as the foundation for vendor-specific implementations
-* (MariaDB, MySQL, PostgreSQL, SQLite, MongoDB, etc.) providing a unified
-* interface and common functionality that can be extended or specialized.
+*   CONTENTS
+*   ========
+*   Type vocabulary:
+*     - `value`              : `std::variant` covering null / bool / ints /
+*                              double / string / binary / timestamp — the
+*                              universal cell type for all back-ends.
+*     - `row`                : `std::map<std::string, value>` — column-
+*                              name-keyed row representation.
+*     - `database_type`      : enumerator naming every supported vendor.
+*     - `field_type`         : abstract column type (one rung above SQL
+*                              types — every vendor maps it to its own).
+*     - `connection_state`   : connection-lifecycle enum.
+*     - `connection_config`  : universal connection-parameters struct.
+*     - `vendor_info`        : runtime vendor-identification struct.
+*     - `vendor_traits<>`    : compile-time vendor metadata primary
+*                              template (each vendor specialises).
 *
-*   The design leverages modern C++ features including:
-*   - RAII for resource management
-*   - move semantics for efficient resource transfer
-*   - templates for type-safe operations
-*   - CRTP for zero-overhead compile-time polymorphism
-*   - smart pointers for automatic memory management
+*   Exception hierarchy:
+*     - `exception`              : base class for all database errors.
+*     - `connection_exception`   : connection-time / liveness failures.
+*     - `query_exception`        : SQL execution / parsing failures.
+*     - `transaction_exception`  : transaction lifecycle failures.
+*     - `type_conversion_exception` : value-conversion failures.
 *
-*   PORTABILITY:
+*   CRTP scaffolding:
+*     - `connection<_helper>`    : base for all connection types.
+*     - `statement<_helper>`     : base for prepared statements.
+*     - `result_set<_helper>`    : base for result-set iteration.
+*     - `transaction<_Connection>`  : RAII transaction wrapper.
+*     - `connection_pool<_Connection>` : connection-pool template.
+*
+*   Utilities:
+*     - `quote_identifier(name, db_type)` — dialect-aware identifier
+*                                            quoting helper.
+*     - `parse_connection_string(...)`    — uniform parser.
+*
+*   LAYERING
+*   ========
+*   Every other database header builds on this one. The layer diagram:
+*
+*     database.hpp                              foundational vocabulary
+*        ↑
+*     database_connection_template.hpp         vendor_traits specialisations
+*        ↑
+*     database_connection.hpp                  state-machine connection base
+*        ↑
+*     <vendor>_common*.hpp                     family-shared bits (mysql/maria,
+*                                              postgres/cockroach, ...)
+*        ↑
+*     <vendor>.hpp                             concrete vendor connection
+*
+*   database_table.hpp also builds directly on this header.
+*
+*   PORTABILITY
+*   ===========
 *   This header requires C++17 or later due to its use of std::optional,
 * std::variant, and std::string_view in the public API surface. Internal
-* metaprogramming (detection idiom, conjunction, is_invocable) is delegated
-* to type_traits.hpp for consistency with the rest of the djinterp
-* tool-chain.
+* metaprogramming (detection idiom, conjunction, is_invocable) is
+* delegated to type_traits.hpp for consistency with the rest of the
+* djinterp tool-chain.
+*
+*   HISTORY
+*   =======
+*   Previously known as `database_common.hpp`. Renamed to `database.hpp`
+* in 2026.05 to reflect its role as THE foundational database module —
+* the "_common" suffix was inherited from an early design where this
+* header was supposed to share space with a "_specific" companion. No
+* such companion ever existed; the module has always been the
+* foundation.
 *
 * 
-* path:      /inc/djinterp/core/db/database_common.hpp                                           
+* path:      /inc/djinterp/core/db/database.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.25
 ******************************************************************************/
 
-#ifndef DJINTERP_DATABASE_COMMON_
-#define DJINTERP_DATABASE_COMMON_
+#ifndef DJINTERP_DATABASE_
+#define DJINTERP_DATABASE_ 1
 
 // std
 #include <algorithm>
@@ -1655,4 +1703,4 @@ exception::error_code() const noexcept
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_DATABASE_COMMON_
+#endif  // DJINTERP_DATABASE_

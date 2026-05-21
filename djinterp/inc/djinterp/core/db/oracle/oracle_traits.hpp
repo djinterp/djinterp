@@ -41,29 +41,16 @@
 #ifndef DJINTERP_DATABASE_ORACLE_TRAITS_
 #define DJINTERP_DATABASE_ORACLE_TRAITS_
 
-#include "database_traits.hpp"
-
+// std
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
+// djinterp
+#include "../database_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-// =========================================================================
-//  NS_ORA
-// =========================================================================
-
-#ifndef D_KEYWORD_ORA
-    #define D_KEYWORD_ORA   ora
-#endif
-
-#ifndef NS_ORA
-    #define NS_ORA          D_NAMESPACE(D_KEYWORD_ORA)
-#endif
-
-NS_ORA
 
 
 // =============================================================================
@@ -690,8 +677,6 @@ using enable_if_has_oci_session_pool =
     typename std::enable_if<has_oci_session_pool<_T>::value>::type;
 
 
-NS_END  // ora
-NS_END  // database
 NS_END  // djinterp
 
 

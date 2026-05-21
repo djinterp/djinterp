@@ -43,17 +43,16 @@
 #define DJINTERP_DATABASE_MYSQL_TRAITS_
 
 // djinterp
-#include "../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "./mysql_common_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
-// =============================================================================
+// ===========================================================================
 // I.   EXPRESSION DETECTORS (Oracle MySQL-specific)
-// =============================================================================
+// ===========================================================================
 
 // -------------------------------------------------------------------------
 // A.  connection reset
@@ -149,9 +148,9 @@ using mysql_ora_get_table_names_t =
     decltype(std::declval<const _Type&>().get_table_names());
 
 
-// =============================================================================
+// ===========================================================================
 // II.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+// ===========================================================================
 
 // has_mysql_ora_reset
 //   trait: checks if type _Type supports connection reset.
@@ -238,9 +237,9 @@ struct is_mysql_ora_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // III. TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+// ===========================================================================
 
 // -------------------------------------------------------------------------
 // A.  individual capability tags
@@ -332,9 +331,9 @@ constexpr bool mysql_ora_is_full_connection =
       mysql_ora_can_query_schema<_Type> );
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  SFINAE HELPERS
-// =============================================================================
+// ===========================================================================
 
 // enable_if_mysql_ora_connection
 //   type: SFINAE helper for Oracle MySQL connection constraints.
@@ -369,7 +368,6 @@ using enable_if_has_mysql_ora_query_attributes =
         has_mysql_ora_query_attributes<_Type>::value>::type;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

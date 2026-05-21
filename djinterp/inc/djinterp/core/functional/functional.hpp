@@ -172,8 +172,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Fn, const _ValueType&>::value>::type>
-D_NODISCARD
-std::vector<_ResultType>
+D_NODISCARD std::vector<_ResultType>
 map(
     const _Container& _input,
     _Fn&& _fn
@@ -201,8 +200,7 @@ template<typename _InputIt,
          typename _ResultType = callable_result_t<_Fn, const _ValueType&>,
          typename = typename std::enable_if<
              is_callable<_Fn, const _ValueType&>::value>::type>
-D_NODISCARD
-std::vector<_ResultType>
+D_NODISCARD std::vector<_ResultType>
 map(
     _InputIt _first,
     _InputIt _last,
@@ -230,8 +228,7 @@ template<typename _Type,
          typename = typename std::enable_if<
              is_callable<_Fn, const _Type&>::value
          >::type>
-D_NODISCARD
-std::vector<_ResultType>
+D_NODISCARD std::vector<_ResultType>
 map(
     const _Type* _data,
     std::size_t _count, 
@@ -287,8 +284,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value>::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 filter(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -315,8 +311,7 @@ template<typename _InputIt,
          typename = typename std::enable_if<
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 filter(
     _InputIt _first,
     _InputIt _last,
@@ -343,8 +338,7 @@ template<typename _Type,
          typename = typename std::enable_if<
              is_predicate<_Predicate, const _Type&>::value
          >::type>
-D_NODISCARD
-std::vector<_Type>
+D_NODISCARD std::vector<_Type>
 filter(
     const _Type* _data,
     std::size_t _count,
@@ -374,8 +368,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 filter_not(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -404,8 +397,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Fn, const _Acc&, const _ValueType&>::value
          >::type>
-D_NODISCARD
-_Acc
+D_NODISCARD _Acc
 fold_left(
     const _Container& _input,
     _Acc              _init,
@@ -430,8 +422,7 @@ template<typename _InputIt,
          typename = typename std::enable_if<
              is_callable<_Fn, const _Acc&, const _ValueType&>::value
          >::type>
-D_NODISCARD
-_Acc
+D_NODISCARD _Acc
 fold_left(
     _InputIt _first,
     _InputIt _last,
@@ -459,8 +450,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Fn, const _ValueType&, const _Acc&>::value
          >::type>
-D_NODISCARD
-_Acc
+D_NODISCARD _Acc
 fold_right(
     const _Container& _input,
     _Acc              _init,
@@ -489,8 +479,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Fn, const _ValueType&, const _ValueType&>::value
          >::type>
-D_NODISCARD
-_ValueType
+D_NODISCARD _ValueType
 reduce(
     const _Container& _input,
     _Fn&& _fn
@@ -520,8 +509,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Fn, const _ValueType&, const _ValueType&>::value
          >::type>
-D_NODISCARD
-_ValueType
+D_NODISCARD _ValueType
 reduce(
     const _Container& _input,
     _ValueType        _init,
@@ -548,8 +536,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Fn, const _Acc&, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::vector<_Acc>
+D_NODISCARD std::vector<_Acc>
 scan(
     const _Container& _input,
     _Acc              _init,
@@ -668,8 +655,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-bool
+D_NODISCARD bool
 any(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -696,8 +682,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-bool
+D_NODISCARD bool
 all(
     const _Container& _input,
     _Predicate&& _predicate
@@ -724,8 +709,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-bool
+D_NODISCARD bool
 none(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -748,8 +732,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::size_t
+D_NODISCARD std::size_t
 count_if(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -778,8 +761,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-const _ValueType*
+D_NODISCARD const _ValueType*
 find_if(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -807,8 +789,7 @@ template<typename _Container,
              is_predicate<_Predicate, const _ValueType&>::value &&
              !std::is_const<_Container>::value
          >::type>
-D_NODISCARD
-_ValueType*
+D_NODISCARD _ValueType*
 find_if(
     _Container&  _input,
     _Predicate&& _predicate
@@ -835,8 +816,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-const _ValueType*
+D_NODISCARD const _ValueType*
 find_last(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -865,8 +845,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::size_t
+D_NODISCARD std::size_t
 index_of(
     const _Container& _input,
     _Predicate&& _predicate
@@ -897,8 +876,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::size_t
+D_NODISCARD std::size_t
 last_index_of(
     const _Container& _input,
     _Predicate&& _predicate
@@ -935,8 +913,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Compare, const _ValueType&, const _ValueType&>::value
          >::type>
-D_NODISCARD
-bool
+D_NODISCARD bool
 is_sorted
 (
     const _Container& _input,
@@ -974,8 +951,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value
          >::type>
-D_NODISCARD
-bool
+D_NODISCARD bool
 is_sorted(
     const _Container& _input
 )
@@ -999,8 +975,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 take(const _Container& _input, std::size_t _n)
 {
     std::vector<_ValueType> result;
@@ -1029,8 +1004,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 take_while(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -1058,8 +1032,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 skip(
     const _Container& _input,
     std::size_t _n
@@ -1091,8 +1064,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 skip_while(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -1133,8 +1105,7 @@ template<typename _Container,
              is_callable<_Fn, const _ValueType&>::value &&
              internal::has_begin_end<const _InnerContainer>::value
          >::type>
-D_NODISCARD
-std::vector<_ResultType>
+D_NODISCARD std::vector<_ResultType>
 flat_map(
     const _Container& _input,
     _Fn&&             _fn
@@ -1170,8 +1141,7 @@ template<typename _Container1,
              internal::has_begin_end<const _Container2>::value &&
              is_callable<_Fn, const _Value1&, const _Value2&>::value
          >::type>
-D_NODISCARD
-std::vector<_ResultType>
+D_NODISCARD std::vector<_ResultType>
 zip_with(
     const _Container1& _input1,
     const _Container2& _input2,
@@ -1205,8 +1175,7 @@ template<typename _Container1,
              internal::has_begin_end<const _Container1>::value &&
              internal::has_begin_end<const _Container2>::value
          >::type>
-D_NODISCARD
-std::vector<std::pair<_Value1, _Value2>>
+D_NODISCARD std::vector<std::pair<_Value1, _Value2>>
 zip(
     const _Container1& _input1,
     const _Container2& _input2
@@ -1235,8 +1204,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_KeyFn, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::map<_KeyType, std::vector<_ValueType>>
+D_NODISCARD std::map<_KeyType, std::vector<_ValueType>>
 group_by(
     const _Container& _input,
     _KeyFn&&          _key_fn
@@ -1262,8 +1230,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_predicate<_Predicate, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::pair<std::vector<_ValueType>, std::vector<_ValueType>>
+D_NODISCARD std::pair<std::vector<_ValueType>, std::vector<_ValueType>>
 partition(
     const _Container& _input,
     _Predicate&&      _predicate
@@ -1301,8 +1268,7 @@ template<typename _Container,
              internal::has_begin_end<const _Container>::value &&
              is_callable<_Eq, const _ValueType&, const _ValueType&>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 distinct(
     const _Container& _input,
     _Eq&&             _eq
@@ -1339,8 +1305,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 distinct(
     const _Container& _input
 )
@@ -1359,8 +1324,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 reverse(const _Container& _input)
 {
     std::vector<_ValueType> result(std::begin(_input), std::end(_input));
@@ -1383,8 +1347,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 slice(
     const _Container& _input,
     std::size_t       _start,
@@ -1426,8 +1389,7 @@ template<typename _Container,
          typename = typename std::enable_if<
              internal::has_begin_end<const _Container>::value
          >::type>
-D_NODISCARD
-std::vector<_ValueType>
+D_NODISCARD std::vector<_ValueType>
 range(
     const _Container& _input,
     std::size_t       _start,

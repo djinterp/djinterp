@@ -31,7 +31,7 @@
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "./mysql_common_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
@@ -40,11 +40,10 @@
 
 
 NS_DJINTERP
-NS_DATABASE
 
-// =============================================================================
+// ===========================================================================
 // I.   Core MySQL-family Connection Concepts
-// =============================================================================
+// ===========================================================================
 
 // mysql_connection
 //   concept: constrains types implementing the MySQL-family connection
@@ -108,9 +107,9 @@ concept mysql_engine_connection =
     has_mysql_engine<clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  MySQL-family Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // mysql_select_db_connection
 //   concept: constrains types exposing select_db(database).
@@ -192,9 +191,9 @@ concept mysql_get_engine_connection =
     is_detected<mysql_get_engine_t, clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // III. Tagless MySQL-family Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // mysql_charset_manageable
 //   concept: constrains types satisfying the tagless charset capability set.
@@ -274,7 +273,6 @@ concept mysql_full_connection =
     mysql_is_full_connection<clean_t<_Type>>;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

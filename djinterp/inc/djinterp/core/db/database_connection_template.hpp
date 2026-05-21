@@ -4,7 +4,7 @@
 * djinterp database connection template module:
 *   This header provides the vendor-parameterized connection template that
 * serves as the bridge between the generic CRTP connection base in
-* database_common.hpp and concrete vendor-specific implementations. It
+* database.hpp and concrete vendor-specific implementations. It
 * includes:
 *   - vendor_traits specializations for all supported database vendors
 *   - connection_template CRTP base with vendor-aware defaults
@@ -46,17 +46,16 @@
 // std
 #include <type_traits>
 // djinterp
-#include "./database_common.hpp"
+#include "./database.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
-// =============================================================================
+// ===========================================================================
 // I.   VENDOR TRAITS SPECIALIZATIONS
-// =============================================================================
+// ===========================================================================
 // Each specialization provides compile-time metadata for a specific
-// database vendor. The primary template in database_common.hpp provides
+// database vendor. The primary template in database.hpp provides
 // safe defaults for unknown vendors.
 //
 // Native handle types are declared as void* here because this header
@@ -461,9 +460,9 @@ struct vendor_traits<database_type::mssql>
 };
 
 
-// =============================================================================
+// ===========================================================================
 // II.  CONNECTION TEMPLATE
-// =============================================================================
+// ===========================================================================
 
 // connection_template
 //   class template: vendor-parameterized CRTP base for database connections.
@@ -633,7 +632,6 @@ protected:
 };
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

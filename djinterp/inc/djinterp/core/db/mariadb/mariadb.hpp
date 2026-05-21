@@ -58,18 +58,18 @@
 #define DJINTERP_DATABASE_MARIADB_
 
 // djinterp
-#include "../djinterp.hpp"
-#include "../env/db/env_mariadb.h"
-#include "./mysql_common.hpp"
+#include "../../../djinterp.hpp"
+#include "../../../env/db/mariadb/env_mariadb.h"
+#include "../database.hpp"
+#include "../mysql/mysql_common.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
-// =============================================================================
+// ===========================================================================
 // I.   MYSQL-FAMILY NATIVE FIELD TYPES
-// =============================================================================
+// ===========================================================================
 // These values mirror the MYSQL_TYPE_* / FIELD_TYPE_* constants from the
 // MySQL wire protocol. They are identical in both Oracle MySQL and
 // MariaDB for the shared set. Declared as a scoped enum so that the
@@ -135,9 +135,9 @@ enum class mysql_field_type : std::uint16_t
 };
 
 
-// =============================================================================
+// ===========================================================================
 // II.  MARIADB-SPECIFIC EXTENDED FIELD TYPES
-// =============================================================================
+// ===========================================================================
 // MariaDB extends the MySQL type system with vendor-specific types.
 // These are NOT present in the MYSQL_TYPE_* enum; they are sent over
 // the wire using existing type codes plus column metadata flags, or
@@ -166,9 +166,9 @@ enum class mariadb_field_type : std::uint16_t
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. DATA TYPE AVAILABILITY (compile-time, version-gated)
-// =============================================================================
+// ===========================================================================
 // Compile-time predicates for MariaDB-specific data type availability.
 // These use D_ENV_MARIADB_* macros to gate by version, enabling code
 // to conditionally handle types that may not exist in older versions.
@@ -310,9 +310,9 @@ struct mariadb_type_support
 };
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  DATA TYPE MAPPING
-// =============================================================================
+// ===========================================================================
 // Conversion between MySQL/MariaDB wire protocol types and the generic
 // djinterp::database::field_type enumeration.
 
@@ -492,9 +492,9 @@ inline const char* field_type_to_mariadb_sql(
 }
 
 
-// =============================================================================
+// ===========================================================================
 // V.   MARIADB SQL FEATURE SUPPORT (compile-time, version-gated)
-// =============================================================================
+// ===========================================================================
 
 // mariadb_feature_support
 //   struct: compile-time SQL feature availability flags.
@@ -798,9 +798,9 @@ struct mariadb_feature_support
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  MARIADB VERSION INFORMATION
-// =============================================================================
+// ===========================================================================
 
 // mariadb_version_info
 //   struct: compile-time version decomposition.
@@ -834,9 +834,9 @@ struct mariadb_version_info
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VII. MARIADB CONNECTION CONFIGURATION
-// =============================================================================
+// ===========================================================================
 
 // mariadb_connect_config
 //   struct: MariaDB-specific connection configuration extending the
@@ -872,9 +872,9 @@ struct mariadb_connect_config
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VIII. MARIADB CONNECTION
-// =============================================================================
+// ===========================================================================
 
 // mariadb_connection
 //   class: concrete MariaDB connection implementation. This is the
@@ -1125,9 +1125,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // IX.  FORWARD DECLARATIONS
-// =============================================================================
+// ===========================================================================
 // Vendor-specific result_set and statement implementations.
 // These would be defined in separate headers or in the mariadb.cpp
 // source file.
@@ -1143,7 +1143,6 @@ struct mariadb_result_set_helper;
 struct mariadb_statement_helper;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

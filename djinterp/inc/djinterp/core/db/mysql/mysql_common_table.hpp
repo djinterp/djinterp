@@ -35,13 +35,12 @@
 // mysql
 #include <mysql/mysql.h>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../mysql_common.hpp"
-#include "./database_table.hpp"
+#include "../../../djinterp.hpp"
+#include "../database_table.hpp"
+#include "./mysql_common.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
     // =========================================================================
@@ -86,7 +85,7 @@ NS_DATABASE
     // MariaDB.
     template<typename _Connection,
              typename _ValueType = value,
-             typename _Config    = container::empty_config>
+             typename _Config    = void>
     class mysql_common_table
         : public database_table<_Connection, _ValueType, _Config>
     {
@@ -870,7 +869,6 @@ NS_DATABASE
     };
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

@@ -46,19 +46,18 @@
 #define DJINTERP_DATABASE_MYSQL_
 
 // djinterp
-#include "../djinterp.hpp"
-#include "../env/db/env_mysql.h"
+#include "../../../djinterp.hpp"
+#include "../../../env/db/mysql/env_mysql.h"
 #include "./mysql_common.hpp"
 #include "./mysql_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
-// =============================================================================
+// ===========================================================================
 // I.   MYSQL-SPECIFIC TYPE SUPPORT
-// =============================================================================
+// ===========================================================================
 // The wire protocol MYSQL_TYPE_* codes and mysql_type_to_field_type()
 // mapping are defined in mysql_common.hpp and shared with MariaDB.
 // This struct adds compile-time flags for MySQL-specific type features
@@ -173,9 +172,9 @@ struct mysql_type_support
 };
 
 
-// =============================================================================
+// ===========================================================================
 // II.  FEATURE SUPPORT (compile-time, version-gated)
-// =============================================================================
+// ===========================================================================
 
 // mysql_feature_support
 //   struct: compile-time feature availability flags for Oracle MySQL.
@@ -427,9 +426,9 @@ struct mysql_feature_support
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. VERSION INFORMATION
-// =============================================================================
+// ===========================================================================
 
 // mysql_version_info
 //   struct: compile-time version decomposition for Oracle MySQL.
@@ -466,9 +465,9 @@ struct mysql_version_info
 };
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  MYSQL-SPECIFIC CONNECTION CONFIGURATION
-// =============================================================================
+// ===========================================================================
 
 // mysql_ssl_mode
 //   enum: MySQL SSL connection modes (mysql_ssl_mode from mysql.h).
@@ -526,9 +525,9 @@ struct oracle_mysql_connect_config
 };
 
 
-// =============================================================================
+// ===========================================================================
 // V.   MYSQL CONNECTION
-// =============================================================================
+// ===========================================================================
 
 // mysql_connection
 //   class: concrete Oracle MySQL connection implementation. This is the
@@ -774,9 +773,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  FORWARD DECLARATIONS
-// =============================================================================
+// ===========================================================================
 
 // mysql_result_set_helper
 //   struct: forward declaration of the Oracle MySQL result set
@@ -789,7 +788,6 @@ struct mysql_result_set_helper;
 struct mysql_statement_helper;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

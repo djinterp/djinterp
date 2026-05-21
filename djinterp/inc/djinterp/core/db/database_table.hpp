@@ -1,73 +1,80 @@
 /******************************************************************************
 * djinterp [database]                                       database_table.hpp
 *
-* djinterp database table module:
-*   A dynamic, database-backed table class providing the structural interface
-* expected by the table and container trait systems, while storing data
-* retrieved from (and optionally synchronized with) a live database
-* connection.
+* djinterp database-table module:
+*   The foundational module for all table-based database back-ends —
+* MySQL, MariaDB, PostgreSQL, SQLite, and Oracle. Vendors with a non-
+* table-based model (Redis key-value, ArangoDB / MongoDB document) are
+* explicitly OUT of scope here and use their own primitives.
 *
-*   Unlike the compile-time-fixed table<T, Rows, Cols>, a database_table has
-* runtime-determined dimensions: rows arrive from queries, columns from
-* schema introspection. The class bridges the container and database
-* subsystems - it satisfies is_table_type detection (rows(), cols(), cell())
-* and participates in the container_traits twelve-axis classification, while
-* also exposing connection, transaction, and schema management facilities.
+*   DESIGN
+*   ======
+*   `database_table<_Connection, _ValueType, _Config>` is a CONCRETE
+* class. It is NOT a CRTP base, NOT designed for virtual inheritance,
+* and exposes NO `virtual` methods. Vendor variation flows through the
+* `_Connection` template parameter — a vendor's concrete connection
+* type drives every interaction with the back-end, and that connection
+* type already encapsulates dialect-specific behaviour via the
+* `djinterp::connection<_helper>` CRTP surface in `database.hpp`.
+* Different vendors therefore give rise to different concrete
+* instantiations of the same template — there is no inheritance
+* hierarchy to maintain.
 *
-*   TABLE KINDS:
-*     base_table         - an ordinary read/write table
-*     view               - a read-only view (immutable)
-*     materialized_view  - a cached, periodically refreshed view
-*     temporary          - a session-scoped temporary table
+*   The class internally holds the diverse data types that arrive
+* from a back-end (defaulting to the `value` variant from
+* `database.hpp`, which covers null / bool / int / long /
+* double / string / binary / timestamp) and exposes a row-oriented
+* container surface (`rows()`, `cols()`, `cell()`, `insert_row()`,
+* row iteration, …) suitable for plugging into the broader djinterp
+* trait machinery.
 *
-*   SYNC POLICIES (when local cache refreshes from the database):
-*     manual             - only on explicit refresh() calls
-*     on_access          - lazy refresh on first read after invalidation
-*     on_modify          - refresh after every local modification is committed
-*     periodic           - refresh at a caller-configured interval
+*   What lives WHERE
+*   ----------------
+*     This file:                  the basics — enums, schema descriptors,
+*                                 sync configuration, the class itself,
+*                                 SQL-dialect helpers.
+*     database_table_traits.hpp:  the type traits (is_database_table,
+*                                 has_database_sync, etc.) and the
+*                                 `database_table_class` classification.
+*                                 (NOT in this header — separate module.)
+*     table_common.hpp:           the foundation shared with `table.hpp`
+*                                 (axis tags, option keys, alias surface).
+*     database.hpp:        the vendor-agnostic connection /
+*                                 statement / result-set CRTP surface.
 *
-*   STRUCTURAL DETECTION:
-*     The class exposes rows(), cols(), cell(), and config_type - the same
-*   method-level interface as table<> - but does NOT expose static constexpr
-*   num_rows / num_cols / total_cells (dimensions are runtime).  Therefore:
-*     - is_table_type<database_table<...>>  → FALSE  (requires fixed dims)
-*     - is_database_table<database_table<...>> → TRUE (new trait, this header)
-*     - is_any_table<database_table<...>>   → TRUE  (unifying super-trait)
-*   Shape modifiers (add_row, remove_row, add_column, remove_column, resize)
-*   are always structurally present - view immutability is enforced at
-*   runtime via validate_mutable().  This means has_shape_modifiers will
-*   be true for all database_table instantiations regardless of table_kind.
+*   COMPILE-TIME EMPHASIS
+*   =====================
+*   Templates everywhere; `virtual` nowhere. The vendor-specific bits
+* — dialect quirks for `LIMIT` / `OFFSET`, identifier quoting, schema
+* introspection — are resolved either via the connection's interface
+* (the connection knows its dialect) or via small free-function
+* dispatch on a runtime `database_type` enum (a no-cost switch for
+* an enum-of-a-handful-of-values).
 *
-*   CONTAINER_TRAITS CLASSIFICATION (auto-detected):
-*     Lifetime:    mutable_storage (dynamic row count, mutable cells)
-*     Bounds:      unbounded (row count is runtime-variable)
-*     Storage:     dynamic (allocator-backed)
-*     Iteration:   random_access (index-based row/column access)
-*     Ordering:    ordered (row insertion order preserved)
-*     Sorted:      unsorted
-*     Uniqueness:  allows duplicates
-*     Structure:   flat
-*     Backing:     fundamental (owns its local cache)
-*     Database:    round_trip (serialize + deserialize through connection)
+*   PORTABILITY
+*   ===========
+*     version: C++17 or later (std::optional, std::variant,
+*              std::string_view).
+*     dependencies:
+*       - djinterp.hpp           : NS_DJINTERP, D_CONSTEXPR, D_INLINE
+*       - core/table_common.hpp  : axis tags, option keys (consumed
+*                                  optionally for classification)
+*       - core/db/database.hpp
+*                                : `value`, `database_type`, connection /
+*                                  statement / result_set surfaces,
+*                                  `quote_identifier`, exception types
 *
-*   This module is vendor-agnostic. Vendor-specific subclasses (e.g.
-* sqlite_database_table) specialize refresh, commit, and schema operations
-* by providing a concrete _Connection type that satisfies the database
-* connection CRTP interface from database_common.hpp.
 *
-*   PORTABILITY:
-*   Requires C++17 or later (std::optional, std::string_view, std::variant).
-*
-* path:      /inc/djinterp/core/db/table/database_table.hpp
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.05
+* path:      /inc/djinterp/core/db/database_table.hpp
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.18
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_TABLE_
 #define DJINTERP_DATABASE_TABLE_ 1
 
 #if !D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #error "`database_table.hpp` requires C++17 or later                     \
+    #error "`database_table.hpp` requires C++17 or later                       \
             (std::optional, std::variant, std::string_view)."
 #endif
 
@@ -76,7 +83,6 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -85,13 +91,12 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../database_common.hpp"
-#include "../../container/table/table_traits.hpp"
+#include "../djinterp.hpp"
+#include "./table_common.hpp"
+#include "./db/database.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
     // =========================================================================
@@ -122,7 +127,7 @@ NS_DATABASE
 
     // modify_action
     //   enum: categorization of modification operations for
-    // sync_policy::on_modify filtering.
+    // `sync_policy::on_modify` filtering.
     enum class modify_action
     {
         insert_row,
@@ -167,18 +172,18 @@ NS_DATABASE
         {}
 
         explicit column_info(
-                std::string _name,
-                field_type  _type        = field_type::string,
-                bool        _nullable    = true,
-                bool        _primary_key = false
-            )
-                : name(std::move(_name)),
-                  type(_type),
-                  nullable(_nullable),
-                  is_primary_key(_primary_key),
-                  is_auto_increment(false),
-                  is_unique(_primary_key),
-                  is_indexed(_primary_key)
+            std::string _name,
+            field_type  _type        = field_type::string,
+            bool        _nullable    = true,
+            bool        _primary_key = false
+        )
+            : name(std::move(_name)),
+              type(_type),
+              nullable(_nullable),
+              is_primary_key(_primary_key),
+              is_auto_increment(false),
+              is_unique(_primary_key),
+              is_indexed(_primary_key)
         {}
     };
 
@@ -192,14 +197,18 @@ NS_DATABASE
         std::vector<column_info> columns;
         std::vector<std::string> primary_key_columns;
 
+        // column_count
+        //   function: number of columns described by the schema.
         std::size_t column_count() const noexcept
         {
             return columns.size();
         }
 
-        std::optional<std::size_t> column_index(
-                std::string_view _name
-            ) const
+        // column_index
+        //   function: returns the index of the column with the given
+        // name, or `std::nullopt` when no such column exists.
+        std::optional<std::size_t>
+        column_index(std::string_view _name) const
         {
             for (std::size_t i = 0; i < columns.size(); ++i)
             {
@@ -212,9 +221,11 @@ NS_DATABASE
             return std::nullopt;
         }
 
-        const column_info* column_by_name(
-                std::string_view _name
-            ) const
+        // column_by_name
+        //   function: returns a pointer to the column_info matching
+        // `_name`, or nullptr when no such column exists.
+        const column_info*
+        column_by_name(std::string_view _name) const
         {
             auto idx = column_index(_name);
 
@@ -233,31 +244,33 @@ NS_DATABASE
     // =========================================================================
 
     // sync_config
-    //   struct: configuration for the synchronization policy.
-    // Controls refresh timing and modification filtering.
+    //   struct: configuration for the synchronization policy. Controls
+    // refresh timing and modification-tracking filtering.
     struct sync_config
     {
-        sync_policy                   policy;
-        std::chrono::milliseconds     refresh_interval;
-        std::vector<modify_action>    tracked_actions;
-        bool                          auto_commit;
+        sync_policy                policy;
+        std::chrono::milliseconds  refresh_interval;
+        std::vector<modify_action> tracked_actions;
+        bool                       auto_commit;
 
         sync_config()
-            : policy(sync_policy::manual)
-            , refresh_interval(std::chrono::milliseconds(0))
-            , auto_commit(false)
-        {
-        }
+            : policy(sync_policy::manual),
+              refresh_interval(std::chrono::milliseconds(0)),
+              auto_commit(false)
+        {}
 
         explicit sync_config(
-                sync_policy _policy
-            )
-                : policy(_policy)
-                , refresh_interval(std::chrono::milliseconds(0))
-                , auto_commit(false)
-        {
-        }
+            sync_policy _policy
+        )
+            : policy(_policy),
+              refresh_interval(std::chrono::milliseconds(0)),
+              auto_commit(false)
+        {}
 
+        // tracks_action
+        //   function: returns whether `_action` is one of the actions
+        // this sync config has opted to track. An empty `tracked_actions`
+        // list is treated as "track everything".
         bool tracks_action(modify_action _action) const
         {
             // empty tracked_actions means track all
@@ -275,36 +288,121 @@ NS_DATABASE
 
 
     // =========================================================================
-    // IV.  DATABASE TABLE CLASS
+    // IV.  SQL DIALECT HELPERS
+    // =========================================================================
+    //   Free-function dispatch on `database_type` for the small set of
+    // SQL-syntax quirks that vary across the supported back-ends. Each
+    // helper is a thin switch — no inheritance, no virtual calls — and
+    // is invoked from `database_table` at runtime (the table holds a
+    // connection whose `database_type` is a small enum).
+    //
+    //   Identifier quoting is delegated to
+    // `djinterp::quote_identifier(name, db_type)` from
+    // `database.hpp` — that function already covers the
+    // backtick / double-quote / square-bracket variants per vendor.
+
+    NS_INTERNAL
+
+        // dialect_format_limit_offset
+        //   helper: emits the dialect-appropriate LIMIT/OFFSET clause.
+        //   - MySQL, MariaDB, SQLite, PostgreSQL: `LIMIT n OFFSET m`.
+        //   - Oracle, MSSQL:                      `OFFSET m ROWS FETCH
+        //                                          NEXT n ROWS ONLY`.
+        //   When neither limit nor offset is set, returns an empty
+        // string.
+        D_INLINE std::string
+        dialect_format_limit_offset(
+            database_type                    _db_type,
+            const std::optional<std::size_t>& _limit,
+            const std::optional<std::size_t>& _offset
+        )
+        {
+            std::string result;
+
+            // no pagination clause needed
+            if ( (!_limit.has_value()) &&
+                 (!_offset.has_value()) )
+            {
+                return result;
+            }
+
+            // OFFSET-FETCH dialects (Oracle 12c+ / SQL Server 2012+)
+            if ( (_db_type == database_type::oracle) ||
+                 (_db_type == database_type::mssql)  ||
+                 (_db_type == database_type::db2) )
+            {
+                // OFFSET is required for FETCH NEXT in these dialects
+                result += " OFFSET ";
+                result += std::to_string(_offset.value_or(0));
+                result += " ROWS";
+
+                if (_limit.has_value())
+                {
+                    result += " FETCH NEXT ";
+                    result += std::to_string(_limit.value());
+                    result += " ROWS ONLY";
+                }
+
+                return result;
+            }
+
+            // LIMIT-OFFSET dialects (MySQL / MariaDB / Postgres / SQLite)
+            if (_limit.has_value())
+            {
+                result += " LIMIT ";
+                result += std::to_string(_limit.value());
+            }
+
+            if (_offset.has_value())
+            {
+                result += " OFFSET ";
+                result += std::to_string(_offset.value());
+            }
+
+            return result;
+        }
+
+    NS_END  // internal
+
+
+    // =========================================================================
+    // V.   DATABASE TABLE
     // =========================================================================
     //
-    // The primary database-backed table.  Satisfies table structural detection
-    // (is_table_type) with runtime dimensions and dynamic storage.  Shape
-    // modifiers are conditionally defined: views suppress them so that
-    // is_structurally_immutable fires correctly.
+    // `database_table<_Connection, _ValueType, _Config>`
+    //   The concrete class. One template instantiation per vendor,
+    // driven by the `_Connection` template parameter — a MySQL
+    // connection gives `database_table<mysql_connection, ...>`,
+    // a PostgreSQL connection gives `database_table<pg_connection,
+    // ...>`, and so on. No inheritance, no virtual functions, no
+    // CRTP — every variation in behaviour is supplied through the
+    // connection type.
     //
-    // Template parameters:
-    //   _Connection - a concrete CRTP connection type satisfying the
-    //                 database::connection interface.
-    //   _ValueType  - the cell value type.  Defaults to db::value (the
-    //                 std::variant covering all common database types).
-    //   _Config     - an optional table_traits-compatible configuration
-    //                 struct (headers, footers, spans, etc.).
-    //
+    //   Template parameters:
+    //     _Connection  - the concrete connection type. Must satisfy the
+    //                    `djinterp::connection<_helper>` CRTP surface
+    //                    from `database.hpp` (execute_query,
+    //                    get_database_type, is_connected, …).
+    //     _ValueType   - the cell value type. Defaults to `value`, the
+    //                    `std::variant` covering null / bool / ints /
+    //                    double / string / binary / timestamp.
+    //     _Config      - an opaque pass-through used by downstream
+    //                    layout / decoration layers. Not interpreted
+    //                    here; surfaced as the `config_type` alias for
+    //                    consumers that want to attach metadata.
 
     // database_table
-    //   class: dynamic database-backed table with configurable mutability,
-    // schema introspection, and synchronization policies.  Provides the
-    // structural interface required by is_table_type and the container
-    // trait system.
+    //   class: concrete, non-polymorphic database-backed table. Owns
+    // a local cache of rows plus a non-owning connection handle; all
+    // back-end interaction flows through the connection's interface.
     template<typename _Connection,
              typename _ValueType = value,
-             typename _Config    = container::empty_config>
+             typename _Config    = void>
     class database_table
     {
     public:
         // -----------------------------------------------------------------
-        //  standard container type aliases (structural detection targets)
+        //  standard container type aliases
         // -----------------------------------------------------------------
         using value_type      = _ValueType;
         using size_type       = std::size_t;
@@ -316,7 +414,7 @@ NS_DATABASE
         using allocator_type  = std::allocator<value_type>;
 
         // -----------------------------------------------------------------
-        //  self type, config, and database types
+        //  identity / row / storage aliases
         // -----------------------------------------------------------------
         using self_type       = database_table<_Connection, _ValueType, _Config>;
         using config_type     = _Config;
@@ -326,128 +424,125 @@ NS_DATABASE
         using storage_type    = std::vector<row_type>;
 
         // -----------------------------------------------------------------
-        //  row-level iterator types (structural detection: iterable)
-        //  Iteration is over rows (each element is a row_type vector).
+        //  row-level iterator types. Iteration is over ROWS — each step
+        //  yields a `row_type` (a `std::vector<value_type>`). Cell
+        //  access is via `cell(r, c)` / `at(r, c)`.
         // -----------------------------------------------------------------
-        using row_iterator               = typename storage_type::iterator;
-        using const_row_iterator         = typename storage_type::const_iterator;
-        using reverse_row_iterator       = typename storage_type::reverse_iterator;
-        using const_reverse_row_iterator = typename storage_type::const_reverse_iterator;
+        using iterator               = typename storage_type::iterator;
+        using const_iterator         = typename storage_type::const_iterator;
+        using reverse_iterator       = typename storage_type::reverse_iterator;
+        using const_reverse_iterator = typename storage_type::const_reverse_iterator;
 
         // -----------------------------------------------------------------
-        //  runtime dimensional constants
-        //  (not static constexpr - dimensions are dynamic)
+        //  compile-time classification flags
         // -----------------------------------------------------------------
 
-        // num_rows / num_cols are exposed as non-static members so that
-        // traits probing T::num_rows will SFINAE-fail; the dynamic
-        // counterpart is rows() / cols() which the detection idiom also
-        // recognizes.
-
-        // -----------------------------------------------------------------
-        //  compile-time kind and policy constants
-        // -----------------------------------------------------------------
+        // has_dynamic_rows / has_dynamic_cols
+        //   value: database tables always have runtime-determined
+        // dimensions. These flags let the trait machinery distinguish
+        // dynamic tables from fixed-extent tables at compile time.
         static constexpr bool has_dynamic_rows = true;
         static constexpr bool has_dynamic_cols = true;
 
 
         // =================================================================
-        //  constructors
+        //  CONSTRUCTORS
         // =================================================================
 
         // database_table()
-        //   constructor: default - creates an empty, disconnected table.
+        //   constructor: default — empty, disconnected table.
         database_table()
-            : m_connection(nullptr)
-            , m_kind(table_kind::base_table)
-            , m_dirty(false)
-            , m_stale(true)
-            , m_num_rows(0)
-            , m_num_cols(0)
-        {
-        }
+            : m_connection(nullptr),
+              m_kind(table_kind::base_table),
+              m_dirty(false),
+              m_stale(true),
+              m_num_rows(0),
+              m_num_cols(0)
+        {}
 
         // database_table(connection, name)
-        //   constructor: creates a table bound to a connection and table
-        // name.  Does not automatically fetch schema or data; call
-        // fetch_schema() and refresh() after construction.
+        //   constructor: bound to a connection and identified by name.
+        // Does not automatically fetch schema or data — call
+        // `fetch_schema()` and `refresh()` after construction.
         explicit database_table(
-                _Connection&       _conn,
-                std::string        _table_name,
-                table_kind         _kind = table_kind::base_table
-            )
-                : m_connection(&_conn)
-                , m_kind(_kind)
-                , m_dirty(false)
-                , m_stale(true)
-                , m_num_rows(0)
-                , m_num_cols(0)
+            _Connection& _conn,
+            std::string  _table_name,
+            table_kind   _kind = table_kind::base_table
+        )
+            : m_connection(&_conn),
+              m_kind(_kind),
+              m_dirty(false),
+              m_stale(true),
+              m_num_rows(0),
+              m_num_cols(0)
         {
             m_schema.table_name = std::move(_table_name);
         }
 
         // database_table(connection, schema)
-        //   constructor: creates a table bound to a connection with an
-        // explicit schema.  Useful when schema is already known or was
-        // retrieved externally.
+        //   constructor: bound to a connection with an explicit schema.
+        // Useful when schema is already known or was retrieved externally.
         explicit database_table(
-                _Connection&  _conn,
-                table_schema  _schema,
-                table_kind    _kind = table_kind::base_table
-            )
-                : m_connection(&_conn)
-                , m_schema(std::move(_schema))
-                , m_kind(_kind)
-                , m_dirty(false)
-                , m_stale(true)
-                , m_num_rows(0)
-                , m_num_cols(0)
+            _Connection& _conn,
+            table_schema _schema,
+            table_kind   _kind = table_kind::base_table
+        )
+            : m_connection(&_conn),
+              m_schema(std::move(_schema)),
+              m_kind(_kind),
+              m_dirty(false),
+              m_stale(true),
+              m_num_rows(0),
+              m_num_cols(0)
         {
             m_num_cols = m_schema.columns.size();
         }
 
-        // database_table(connection, schema, sync)
-        //   constructor: creates a table with an explicit sync policy.
+        // database_table(connection, schema, kind, sync)
+        //   constructor: bound to a connection with an explicit schema
+        // and sync policy.
         explicit database_table(
-                _Connection&      _conn,
-                table_schema      _schema,
-                table_kind        _kind,
-                const sync_config& _sync
-            )
-                : m_connection(&_conn)
-                , m_schema(std::move(_schema))
-                , m_kind(_kind)
-                , m_sync(_sync)
-                , m_dirty(false)
-                , m_stale(true)
-                , m_num_rows(0)
-                , m_num_cols(0)
+            _Connection&       _conn,
+            table_schema       _schema,
+            table_kind         _kind,
+            const sync_config& _sync
+        )
+            : m_connection(&_conn),
+              m_schema(std::move(_schema)),
+              m_kind(_kind),
+              m_sync(_sync),
+              m_dirty(false),
+              m_stale(true),
+              m_num_rows(0),
+              m_num_cols(0)
         {
             m_num_cols = m_schema.columns.size();
         }
 
-        virtual ~database_table() = default;
-
-        // disable copying (connection handle is non-owning)
+        // disable copying — connection handle is non-owning, copy
+        // semantics for "shares a connection" vs "duplicates the
+        // cache" are ambiguous.
         database_table(const database_table&)            = delete;
         database_table& operator=(const database_table&) = delete;
 
-        // enable moving
+        // database_table(database_table&&)
+        //   constructor: move — leaves `_other` in a disconnected,
+        // empty-but-stale state.
         database_table(database_table&& _other) noexcept
-            : m_connection(_other.m_connection)
-            , m_schema(std::move(_other.m_schema))
-            , m_kind(_other.m_kind)
-            , m_sync(std::move(_other.m_sync))
-            , m_data(std::move(_other.m_data))
-            , m_dirty(_other.m_dirty)
-            , m_stale(_other.m_stale)
-            , m_num_rows(_other.m_num_rows)
-            , m_num_cols(_other.m_num_cols)
-            , m_last_refresh(_other.m_last_refresh)
-            , m_where_clause(std::move(_other.m_where_clause))
-            , m_order_clause(std::move(_other.m_order_clause))
-            , m_limit(_other.m_limit)
-            , m_offset(_other.m_offset)
+            : m_connection(_other.m_connection),
+              m_schema(std::move(_other.m_schema)),
+              m_kind(_other.m_kind),
+              m_sync(std::move(_other.m_sync)),
+              m_data(std::move(_other.m_data)),
+              m_dirty(_other.m_dirty),
+              m_stale(_other.m_stale),
+              m_num_rows(_other.m_num_rows),
+              m_num_cols(_other.m_num_cols),
+              m_last_refresh(_other.m_last_refresh),
+              m_where_clause(std::move(_other.m_where_clause)),
+              m_order_clause(std::move(_other.m_order_clause)),
+              m_limit(_other.m_limit),
+              m_offset(_other.m_offset)
         {
             _other.m_connection = nullptr;
             _other.m_num_rows   = 0;
@@ -456,24 +551,27 @@ NS_DATABASE
             _other.m_stale      = true;
         }
 
-        database_table& operator=(database_table&& _other) noexcept
+        // operator=(database_table&&)
+        //   assignment: move — same semantics as the move constructor.
+        database_table&
+        operator=(database_table&& _other) noexcept
         {
             if (this != &_other)
             {
-                m_connection    = _other.m_connection;
-                m_schema        = std::move(_other.m_schema);
-                m_kind          = _other.m_kind;
-                m_sync          = std::move(_other.m_sync);
-                m_data          = std::move(_other.m_data);
-                m_dirty         = _other.m_dirty;
-                m_stale         = _other.m_stale;
-                m_num_rows      = _other.m_num_rows;
-                m_num_cols      = _other.m_num_cols;
-                m_last_refresh  = _other.m_last_refresh;
-                m_where_clause  = std::move(_other.m_where_clause);
-                m_order_clause  = std::move(_other.m_order_clause);
-                m_limit         = _other.m_limit;
-                m_offset        = _other.m_offset;
+                m_connection   = _other.m_connection;
+                m_schema       = std::move(_other.m_schema);
+                m_kind         = _other.m_kind;
+                m_sync         = std::move(_other.m_sync);
+                m_data         = std::move(_other.m_data);
+                m_dirty        = _other.m_dirty;
+                m_stale        = _other.m_stale;
+                m_num_rows     = _other.m_num_rows;
+                m_num_cols     = _other.m_num_cols;
+                m_last_refresh = _other.m_last_refresh;
+                m_where_clause = std::move(_other.m_where_clause);
+                m_order_clause = std::move(_other.m_order_clause);
+                m_limit        = _other.m_limit;
+                m_offset       = _other.m_offset;
 
                 _other.m_connection = nullptr;
                 _other.m_num_rows   = 0;
@@ -485,43 +583,44 @@ NS_DATABASE
             return *this;
         }
 
+        ~database_table() = default;
+
 
         // =================================================================
-        //  capacity (structural detection: sized, dynamic)
+        //  CAPACITY
         // =================================================================
 
         // size
-        //   function: returns the total number of cells in the local cache.
+        //   function: total cell count in the local cache (rows * cols).
         size_type size() const noexcept
         {
             return (m_num_rows * m_num_cols);
         }
 
         // empty
-        //   function: returns whether the local cache contains zero cells.
+        //   function: true when the local cache holds zero rows.
         bool empty() const noexcept
         {
             return (m_num_rows == 0);
         }
 
         // rows
-        //   function: returns the number of rows in the local cache.
-        // Detected by: detect_rows_method (table type detection).
+        //   function: number of rows currently in the local cache.
         size_type rows() const noexcept
         {
             return m_num_rows;
         }
 
         // cols
-        //   function: returns the number of columns.
-        // Detected by: detect_cols_method (table type detection).
+        //   function: number of columns described by the schema.
         size_type cols() const noexcept
         {
             return m_num_cols;
         }
 
         // total_cells
-        //   function: returns the total cell count (rows * cols).
+        //   function: total cell count (rows * cols). Convenience
+        // alias for `size()` for callers preferring the explicit name.
         size_type total_cells() const noexcept
         {
             return (m_num_rows * m_num_cols);
@@ -529,16 +628,15 @@ NS_DATABASE
 
 
         // =================================================================
-        //  element access
+        //  ELEMENT ACCESS
         // =================================================================
 
         // cell
-        //   function: unchecked two-dimensional element access.
-        // Detected by: detect_cell_method (table type detection).
-        reference cell(
-                size_type _row,
-                size_type _col
-            )
+        //   function: unchecked two-dimensional element access. Triggers
+        // a lazy refresh when sync policy is `on_access` and the cache
+        // is stale.
+        reference cell(size_type _row,
+                       size_type _col)
         {
             ensure_fresh();
 
@@ -547,56 +645,36 @@ NS_DATABASE
 
         // cell (const)
         //   function: unchecked two-dimensional const element access.
-        const_reference cell(
-                size_type _row,
-                size_type _col
-            ) const
+        const_reference cell(size_type _row,
+                             size_type _col) const
         {
             return m_data[_row][_col];
         }
 
         // at
-        //   function: two-dimensional element access with bounds checking.
-        reference at(
-                size_type _row,
-                size_type _col
-            )
+        //   function: bounds-checked two-dimensional element access.
+        reference at(size_type _row,
+                     size_type _col)
         {
             ensure_fresh();
-
-            // bounds validation
-            if ( (_row >= m_num_rows) ||
-                 (_col >= m_num_cols) )
-            {
-                throw std::out_of_range(
-                    "database_table::at: row or column index out of range.");
-            }
+            check_bounds(_row, _col, "at");
 
             return m_data[_row][_col];
         }
 
         // at (const)
-        //   function: two-dimensional const element access with bounds
-        // checking.
-        const_reference at(
-                size_type _row,
-                size_type _col
-            ) const
+        //   function: bounds-checked two-dimensional const element access.
+        const_reference at(size_type _row,
+                           size_type _col) const
         {
-            // bounds validation
-            if ( (_row >= m_num_rows) ||
-                 (_col >= m_num_cols) )
-            {
-                throw std::out_of_range(
-                    "database_table::at: row or column index out of range.");
-            }
+            check_bounds(_row, _col, "at");
 
             return m_data[_row][_col];
         }
 
         // operator[]
         //   function: row-indexed access returning a reference to the
-        // underlying row vector.
+        // underlying row vector. No bounds check.
         row_type& operator[](size_type _row)
         {
             ensure_fresh();
@@ -605,88 +683,51 @@ NS_DATABASE
         }
 
         // operator[] (const)
-        //   function: row-indexed const access.
+        //   function: row-indexed const access. No bounds check.
         const row_type& operator[](size_type _row) const
         {
             return m_data[_row];
         }
 
         // cell_by_name
-        //   function: element access by column name with bounds checking.
-        reference cell_by_name(
-                size_type        _row,
-                std::string_view _column_name
-            )
+        //   function: bounds-checked element access by column name.
+        reference cell_by_name(size_type        _row,
+                               std::string_view _column_name)
         {
             ensure_fresh();
 
-            auto col_idx = m_schema.column_index(_column_name);
+            size_type col_idx = resolve_column(_column_name, "cell_by_name");
+            check_row(_row, "cell_by_name");
 
-            if (!col_idx.has_value())
-            {
-                throw std::out_of_range(
-                    "database_table::cell_by_name: unknown column.");
-            }
-
-            // bounds validation
-            if (_row >= m_num_rows)
-            {
-                throw std::out_of_range(
-                    "database_table::cell_by_name: row index out of range.");
-            }
-
-            return m_data[_row][col_idx.value()];
+            return m_data[_row][col_idx];
         }
 
         // cell_by_name (const)
-        //   function: const element access by column name.
-        const_reference cell_by_name(
-                size_type        _row,
-                std::string_view _column_name
-            ) const
+        //   function: bounds-checked const element access by column name.
+        const_reference cell_by_name(size_type        _row,
+                                     std::string_view _column_name) const
         {
-            auto col_idx = m_schema.column_index(_column_name);
+            size_type col_idx = resolve_column(_column_name, "cell_by_name");
+            check_row(_row, "cell_by_name");
 
-            if (!col_idx.has_value())
-            {
-                throw std::out_of_range(
-                    "database_table::cell_by_name: unknown column.");
-            }
-
-            // bounds validation
-            if (_row >= m_num_rows)
-            {
-                throw std::out_of_range(
-                    "database_table::cell_by_name: row index out of range.");
-            }
-
-            return m_data[_row][col_idx.value()];
+            return m_data[_row][col_idx];
         }
 
         // get_row
         //   function: returns a copy of a single row.
         row_type get_row(size_type _row) const
         {
-            // bounds validation
-            if (_row >= m_num_rows)
-            {
-                throw std::out_of_range(
-                    "database_table::get_row: row index out of range.");
-            }
+            check_row(_row, "get_row");
 
             return m_data[_row];
         }
 
         // get_column
         //   function: returns all values in a column by index.
-        std::vector<value_type> get_column(size_type _col) const
+        std::vector<value_type>
+        get_column(size_type _col) const
         {
-            // bounds validation
-            if (_col >= m_num_cols)
-            {
-                throw std::out_of_range(
-                    "database_table::get_column: column index out of range.");
-            }
+            check_col(_col, "get_column");
 
             std::vector<value_type> result;
             result.reserve(m_num_rows);
@@ -701,143 +742,49 @@ NS_DATABASE
 
         // get_column (by name)
         //   function: returns all values in a column by name.
-        std::vector<value_type> get_column(
-                std::string_view _column_name
-            ) const
+        std::vector<value_type>
+        get_column(std::string_view _column_name) const
         {
-            auto col_idx = m_schema.column_index(_column_name);
+            size_type col_idx = resolve_column(_column_name, "get_column");
 
-            if (!col_idx.has_value())
-            {
-                throw std::out_of_range(
-                    "database_table::get_column: unknown column.");
-            }
-
-            return get_column(col_idx.value());
+            return get_column(col_idx);
         }
 
 
         // =================================================================
-        //  row-level iteration (structural detection: iterable)
-        //  Each iteration step yields a row_type (vector of value_type).
+        //  ITERATION (row-level)
         // =================================================================
+        //   `begin()` / `end()` yield row iterators (each `*it` is a
+        // `row_type` vector of value_types). Cell-level iteration is
+        // not directly supported — drop into the row to scan cells.
 
-        // row_begin
-        //   function: returns a row iterator to the first row.
-        row_iterator row_begin() noexcept
-        {
-            return m_data.begin();
-        }
+        iterator       begin()        noexcept { return m_data.begin();   }
+        const_iterator begin()  const noexcept { return m_data.begin();   }
+        const_iterator cbegin() const noexcept { return m_data.cbegin();  }
+        iterator       end()          noexcept { return m_data.end();     }
+        const_iterator end()    const noexcept { return m_data.end();     }
+        const_iterator cend()   const noexcept { return m_data.cend();    }
 
-        // row_begin (const)
-        //   function: returns a const row iterator to the first row.
-        const_row_iterator row_begin() const noexcept
-        {
-            return m_data.begin();
-        }
-
-        // row_end
-        //   function: returns a row iterator past the last row.
-        row_iterator row_end() noexcept
-        {
-            return m_data.end();
-        }
-
-        // row_end (const)
-        //   function: returns a const row iterator past the last row.
-        const_row_iterator row_end() const noexcept
-        {
-            return m_data.end();
-        }
-
-        // row_cbegin
-        //   function: returns a const row iterator to the first row.
-        const_row_iterator row_cbegin() const noexcept
-        {
-            return m_data.cbegin();
-        }
-
-        // row_cend
-        //   function: returns a const row iterator past the last row.
-        const_row_iterator row_cend() const noexcept
-        {
-            return m_data.cend();
-        }
-
-        // row_rbegin
-        //   function: returns a reverse row iterator to the last row.
-        reverse_row_iterator row_rbegin() noexcept
-        {
-            return m_data.rbegin();
-        }
-
-        // row_rbegin (const)
-        //   function: returns a const reverse row iterator to the last
-        // row.
-        const_reverse_row_iterator row_rbegin() const noexcept
-        {
-            return m_data.rbegin();
-        }
-
-        // row_rend
-        //   function: returns a reverse row iterator before the first
-        // row.
-        reverse_row_iterator row_rend() noexcept
-        {
-            return m_data.rend();
-        }
-
-        // row_rend (const)
-        //   function: returns a const reverse row iterator before the
-        // first row.
-        const_reverse_row_iterator row_rend() const noexcept
-        {
-            return m_data.rend();
-        }
-
-        // begin / end  (range-based for loop support)
-        //   function: aliases for row_begin / row_end enabling
-        // range-based for: `for (auto& row : my_db_table) { ... }`
-        row_iterator begin() noexcept
-        {
-            return row_begin();
-        }
-
-        const_row_iterator begin() const noexcept
-        {
-            return row_begin();
-        }
-
-        row_iterator end() noexcept
-        {
-            return row_end();
-        }
-
-        const_row_iterator end() const noexcept
-        {
-            return row_end();
-        }
+        reverse_iterator       rbegin()        noexcept { return m_data.rbegin();  }
+        const_reverse_iterator rbegin()  const noexcept { return m_data.rbegin();  }
+        const_reverse_iterator crbegin() const noexcept { return m_data.crbegin(); }
+        reverse_iterator       rend()          noexcept { return m_data.rend();    }
+        const_reverse_iterator rend()    const noexcept { return m_data.rend();    }
+        const_reverse_iterator crend()   const noexcept { return m_data.crend();   }
 
 
         // =================================================================
-        //  row modification (structural detection: shape modifiers)
-        //  Gated: only available for non-view table kinds.
+        //  ROW MUTATION
         // =================================================================
+        //   Mutation is gated by `is_mutable()` — runtime kind check.
+        // View tables (kind == view) throw on any mutation attempt.
 
         // insert_row
         //   function: appends a row to the local cache.
-        // Throws if the table is a view.
         void insert_row(const row_type& _row)
         {
             validate_mutable("insert_row");
-
-            // width validation
-            if (_row.size() != m_num_cols)
-            {
-                throw query_exception(
-                    "database_table::insert_row: row width does not "
-                    "match column count.");
-            }
+            check_row_width(_row, "insert_row");
 
             m_data.push_back(_row);
             ++m_num_rows;
@@ -851,14 +798,7 @@ NS_DATABASE
         void insert_row(row_type&& _row)
         {
             validate_mutable("insert_row");
-
-            // width validation
-            if (_row.size() != m_num_cols)
-            {
-                throw query_exception(
-                    "database_table::insert_row: row width does not "
-                    "match column count.");
-            }
+            check_row_width(_row, "insert_row");
 
             m_data.push_back(std::move(_row));
             ++m_num_rows;
@@ -873,15 +813,10 @@ NS_DATABASE
         {
             validate_mutable("insert_rows");
 
+            // pre-validate all widths before mutating
             for (const auto& r : _rows)
             {
-                // width validation
-                if (r.size() != m_num_cols)
-                {
-                    throw query_exception(
-                        "database_table::insert_rows: row width does not "
-                        "match column count.");
-                }
+                check_row_width(r, "insert_rows");
             }
 
             m_data.insert(m_data.end(),
@@ -895,17 +830,10 @@ NS_DATABASE
 
         // remove_row
         //   function: removes a row by index from the local cache.
-        // Detected by: detect_remove_row (shape modifier).
         void remove_row(size_type _row)
         {
             validate_mutable("remove_row");
-
-            // bounds validation
-            if (_row >= m_num_rows)
-            {
-                throw std::out_of_range(
-                    "database_table::remove_row: row index out of range.");
-            }
+            check_row(_row, "remove_row");
 
             m_data.erase(m_data.begin()
                          + static_cast<difference_type>(_row));
@@ -917,7 +845,6 @@ NS_DATABASE
 
         // add_row
         //   function: appends an empty (default-valued) row.
-        // Detected by: detect_add_row (shape modifier).
         void add_row()
         {
             validate_mutable("add_row");
@@ -944,21 +871,12 @@ NS_DATABASE
 
         // update_cell
         //   function: sets a single cell value in the local cache.
-        void update_cell(
-                size_type        _row,
-                size_type        _col,
-                const value_type& _value
-            )
+        void update_cell(size_type         _row,
+                         size_type         _col,
+                         const value_type& _value)
         {
             validate_mutable("update_cell");
-
-            // bounds validation
-            if ( (_row >= m_num_rows) ||
-                 (_col >= m_num_cols) )
-            {
-                throw std::out_of_range(
-                    "database_table::update_cell: index out of range.");
-            }
+            check_bounds(_row, _col, "update_cell");
 
             m_data[_row][_col] = _value;
             mark_dirty(modify_action::update_cell);
@@ -968,37 +886,25 @@ NS_DATABASE
 
         // update_cell (by column name)
         //   function: sets a cell value addressed by column name.
-        void update_cell(
-                size_type         _row,
-                std::string_view  _column_name,
-                const value_type& _value
-            )
+        void update_cell(size_type         _row,
+                         std::string_view  _column_name,
+                         const value_type& _value)
         {
-            auto col_idx = m_schema.column_index(_column_name);
+            size_type col_idx = resolve_column(_column_name, "update_cell");
 
-            if (!col_idx.has_value())
-            {
-                throw std::out_of_range(
-                    "database_table::update_cell: unknown column.");
-            }
-
-            update_cell(_row,
-                        col_idx.value(),
-                        _value);
+            update_cell(_row, col_idx, _value);
 
             return;
         }
 
 
         // =================================================================
-        //  column modification (structural: add_column / remove_column)
-        //  Gated: only available for non-view table kinds.
+        //  COLUMN MUTATION
         // =================================================================
 
         // add_column
         //   function: appends a column to the schema and extends every
         // cached row with a default value.
-        // Detected by: detect_add_column (shape modifier).
         void add_column(const column_info& _col_info)
         {
             validate_mutable("add_column");
@@ -1018,11 +924,9 @@ NS_DATABASE
         }
 
         // add_column (convenience)
-        //   function: appends a column with name and type only.
-        void add_column(
-                std::string _name,
-                field_type  _type = field_type::string
-            )
+        //   function: appends a column with only name and type specified.
+        void add_column(std::string _name,
+                        field_type  _type = field_type::string)
         {
             add_column(column_info(std::move(_name), _type));
 
@@ -1032,18 +936,10 @@ NS_DATABASE
         // remove_column
         //   function: removes a column by index from the schema and
         // all cached rows.
-        // Detected by: detect_remove_column (shape modifier).
         void remove_column(size_type _col)
         {
             validate_mutable("remove_column");
-
-            // bounds validation
-            if (_col >= m_num_cols)
-            {
-                throw std::out_of_range(
-                    "database_table::remove_column: column index out "
-                    "of range.");
-            }
+            check_col(_col, "remove_column");
 
             m_schema.columns.erase(
                 m_schema.columns.begin()
@@ -1069,15 +965,9 @@ NS_DATABASE
         //   function: removes a column by name.
         void remove_column(std::string_view _column_name)
         {
-            auto col_idx = m_schema.column_index(_column_name);
+            size_type col_idx = resolve_column(_column_name, "remove_column");
 
-            if (!col_idx.has_value())
-            {
-                throw std::out_of_range(
-                    "database_table::remove_column: unknown column.");
-            }
-
-            remove_column(col_idx.value());
+            remove_column(col_idx);
 
             return;
         }
@@ -1085,11 +975,8 @@ NS_DATABASE
         // resize
         //   function: resizes the local cache to the specified dimensions.
         // New cells are default-initialized.
-        // Detected by: detect_resize (shape modifier).
-        void resize(
-                size_type _rows,
-                size_type _cols
-            )
+        void resize(size_type _rows,
+                    size_type _cols)
         {
             validate_mutable("resize");
 
@@ -1109,49 +996,36 @@ NS_DATABASE
 
 
         // =================================================================
-        //  schema accessors
+        //  SCHEMA ACCESSORS
         // =================================================================
 
         // get_schema
-        //   function: returns a const reference to the table schema.
+        //   function: const reference to the table schema.
         const table_schema& get_schema() const noexcept
         {
             return m_schema;
         }
 
         // column_name
-        //   function: returns the name of the column at the given index.
+        //   function: name of the column at the given index.
         const std::string& column_name(size_type _col) const
         {
-            // bounds validation
-            if (_col >= m_num_cols)
-            {
-                throw std::out_of_range(
-                    "database_table::column_name: column index out "
-                    "of range.");
-            }
+            check_col(_col, "column_name");
 
             return m_schema.columns[_col].name;
         }
 
         // column_type
-        //   function: returns the field_type of the column at the given
-        // index.
+        //   function: field_type of the column at the given index.
         field_type column_type(size_type _col) const
         {
-            // bounds validation
-            if (_col >= m_num_cols)
-            {
-                throw std::out_of_range(
-                    "database_table::column_type: column index out "
-                    "of range.");
-            }
+            check_col(_col, "column_type");
 
             return m_schema.columns[_col].type;
         }
 
         // column_count
-        //   function: returns the number of columns in the schema.
+        //   function: number of columns in the schema.
         size_type column_count() const noexcept
         {
             return m_num_cols;
@@ -1159,18 +1033,18 @@ NS_DATABASE
 
 
         // =================================================================
-        //  database connection and identity
+        //  CONNECTION / IDENTITY
         // =================================================================
 
         // get_connection
-        //   function: returns a pointer to the bound connection.
+        //   function: pointer to the bound connection (may be null).
         _Connection* get_connection() noexcept
         {
             return m_connection;
         }
 
         // get_connection (const)
-        //   function: returns a const pointer to the bound connection.
+        //   function: const pointer to the bound connection.
         const _Connection* get_connection() const noexcept
         {
             return m_connection;
@@ -1188,8 +1062,7 @@ NS_DATABASE
         }
 
         // is_connected
-        //   function: returns whether the table has a bound, live
-        // connection.
+        //   function: true iff the table has a bound, live connection.
         bool is_connected() const noexcept
         {
             return ( (m_connection != nullptr) &&
@@ -1197,28 +1070,30 @@ NS_DATABASE
         }
 
         // table_name
-        //   function: returns the database table name.
+        //   function: the database table name.
         const std::string& table_name() const noexcept
         {
             return m_schema.table_name;
         }
 
         // kind
-        //   function: returns the table_kind classification.
+        //   function: the table_kind classification.
         table_kind kind() const noexcept
         {
             return m_kind;
         }
 
         // is_view
-        //   function: returns whether this table is a read-only view.
+        //   function: true iff this table is a read-only view.
         bool is_view() const noexcept
         {
             return (m_kind == table_kind::view);
         }
 
         // is_mutable
-        //   function: returns whether this table supports modifications.
+        //   function: true iff this table accepts modifications. Base
+        // tables and temporary tables are mutable; views and
+        // materialized views are not.
         bool is_mutable() const noexcept
         {
             return ( (m_kind == table_kind::base_table) ||
@@ -1227,11 +1102,11 @@ NS_DATABASE
 
 
         // =================================================================
-        //  synchronization control
+        //  SYNCHRONIZATION
         // =================================================================
 
         // get_sync_config
-        //   function: returns a const reference to the sync configuration.
+        //   function: const reference to the sync configuration.
         const sync_config& get_sync_config() const noexcept
         {
             return m_sync;
@@ -1247,7 +1122,7 @@ NS_DATABASE
         }
 
         // is_dirty
-        //   function: returns whether the local cache has uncommitted
+        //   function: true iff the local cache has uncommitted
         // modifications.
         bool is_dirty() const noexcept
         {
@@ -1255,8 +1130,9 @@ NS_DATABASE
         }
 
         // is_stale
-        //   function: returns whether the local cache may be outdated
-        // relative to the database.
+        //   function: true iff the local cache may be outdated relative
+        // to the database. For `sync_policy::periodic`, returns true
+        // when the refresh interval has elapsed since the last refresh.
         bool is_stale() const noexcept
         {
             if (m_stale)
@@ -1267,8 +1143,8 @@ NS_DATABASE
             // periodic staleness check
             if (m_sync.policy == sync_policy::periodic)
             {
-                auto now      = std::chrono::steady_clock::now();
-                auto elapsed  = std::chrono::duration_cast<
+                auto now     = std::chrono::steady_clock::now();
+                auto elapsed = std::chrono::duration_cast<
                     std::chrono::milliseconds>(now - m_last_refresh);
 
                 return (elapsed >= m_sync.refresh_interval);
@@ -1287,8 +1163,7 @@ NS_DATABASE
         }
 
         // last_refresh
-        //   function: returns the time point of the last successful
-        // refresh.
+        //   function: the time point of the last successful refresh.
         std::chrono::steady_clock::time_point
         last_refresh() const noexcept
         {
@@ -1297,12 +1172,16 @@ NS_DATABASE
 
 
         // =================================================================
-        //  query configuration (filtering / ordering / pagination)
+        //  QUERY CONFIGURATION
         // =================================================================
+        //   Filtering, ordering, and pagination clauses applied to
+        // refresh queries. Setting any of these marks the local cache
+        // as stale so the next access (under the appropriate sync
+        // policy) re-fetches with the new clause.
 
         // set_where
         //   function: sets a WHERE clause filter for refresh queries.
-        // The clause should not include the "WHERE" keyword.
+        // The clause should NOT include the "WHERE" keyword.
         void set_where(std::string _clause)
         {
             m_where_clause = std::move(_clause);
@@ -1322,15 +1201,15 @@ NS_DATABASE
         }
 
         // get_where
-        //   function: returns the current WHERE clause, if any.
+        //   function: the current WHERE clause (empty if unset).
         const std::string& get_where() const noexcept
         {
             return m_where_clause;
         }
 
         // set_order
-        //   function: sets an ORDER BY clause for refresh queries.
-        // The clause should not include the "ORDER BY" keywords.
+        //   function: sets an ORDER BY clause. The clause should NOT
+        // include the "ORDER BY" keywords.
         void set_order(std::string _clause)
         {
             m_order_clause = std::move(_clause);
@@ -1350,7 +1229,7 @@ NS_DATABASE
         }
 
         // get_order
-        //   function: returns the current ORDER BY clause, if any.
+        //   function: the current ORDER BY clause (empty if unset).
         const std::string& get_order() const noexcept
         {
             return m_order_clause;
@@ -1367,7 +1246,7 @@ NS_DATABASE
         }
 
         // get_limit
-        //   function: returns the current row limit, if any.
+        //   function: the current row limit (nullopt if unset).
         std::optional<size_type> get_limit() const noexcept
         {
             return m_limit;
@@ -1384,7 +1263,7 @@ NS_DATABASE
         }
 
         // get_offset
-        //   function: returns the current row offset, if any.
+        //   function: the current row offset (nullopt if unset).
         std::optional<size_type> get_offset() const noexcept
         {
             return m_offset;
@@ -1392,28 +1271,37 @@ NS_DATABASE
 
 
         // =================================================================
-        //  database operations (virtual - overridden by vendor subclasses)
+        //  DATABASE OPERATIONS
         // =================================================================
+        //   All of these are CONCRETE — no `virtual`, no override hooks.
+        // Vendor variation is supplied by the `_Connection` template
+        // parameter (which knows its own dialect) plus dialect-aware
+        // free helpers (`quote_identifier`, `dialect_format_limit_offset`).
 
         // fetch_schema
-        //   function: retrieves the table schema from the database.
-        // Vendor subclasses override this to issue the appropriate
-        // introspection queries.
-        virtual void fetch_schema()
+        //   function: retrieves the table schema from the database
+        // using the universal "zero-row SELECT" probe — issues
+        // `SELECT * FROM <table> WHERE 1=0` and reads column metadata
+        // from the resulting empty result set. Works on every supported
+        // SQL back-end (MySQL / MariaDB / PostgreSQL / SQLite / Oracle)
+        // because the result-set metadata path is part of every
+        // vendor's wire protocol.
+        //
+        //   Richer schema information (primary keys, foreign keys,
+        // indexes) requires vendor-specific introspection queries
+        // (`INFORMATION_SCHEMA.*`, `pg_catalog.*`, `sqlite_master`,
+        // `USER_TAB_COLUMNS`, …) and is left to the consumer to add
+        // when needed.
+        void fetch_schema()
         {
             validate_connected("fetch_schema");
 
-            // default implementation: use INFORMATION_SCHEMA-style query.
-            // vendor subclasses should override with vendor-appropriate
-            // introspection.  The base implementation is intentionally
-            // minimal - it sets column count from the result set metadata
-            // of a zero-row SELECT.
-
-            auto rs = m_connection->execute_query(
-                "SELECT * FROM "
+            std::string query = "SELECT * FROM "
                 + quote_identifier(m_schema.table_name,
                                    m_connection->get_database_type())
-                + " WHERE 1=0");
+                + " WHERE 1=0";
+
+            auto rs = m_connection->execute_query(query);
 
             m_schema.columns.clear();
 
@@ -1436,16 +1324,16 @@ NS_DATABASE
 
         // refresh
         //   function: re-fetches data from the database into the local
-        // cache, respecting query configuration (where, order, limit,
-        // offset).  Vendor subclasses override to build vendor-specific
-        // SQL.
-        virtual void refresh()
+        // cache, respecting the active query configuration (where,
+        // order, limit, offset). The select statement is built by
+        // `build_select_query()` and uses dialect-aware helpers for
+        // identifier quoting and LIMIT / OFFSET syntax.
+        void refresh()
         {
             validate_connected("refresh");
 
             std::string query = build_select_query();
-
-            auto rs = m_connection->execute_query(query);
+            auto        rs    = m_connection->execute_query(query);
 
             // ensure we know the column count
             if (m_num_cols == 0)
@@ -1457,30 +1345,33 @@ NS_DATABASE
 
             while (rs->next())
             {
-                row_type row;
-                row.reserve(m_num_cols);
+                row_type r;
+                r.reserve(m_num_cols);
 
                 for (size_type c = 0; c < m_num_cols; ++c)
                 {
-                    row.push_back(rs->get_value(c));
+                    r.push_back(rs->get_value(c));
                 }
 
-                m_data.push_back(std::move(row));
+                m_data.push_back(std::move(r));
             }
 
             m_num_rows     = m_data.size();
             m_stale        = false;
+            m_dirty        = false;
             m_last_refresh = std::chrono::steady_clock::now();
 
             return;
         }
 
         // commit
-        //   function: pushes locally modified data back to the database.
-        // Vendor subclasses override to generate appropriate INSERT /
-        // UPDATE / DELETE statements.  The base implementation provides
-        // a transaction-wrapped stub that vendor modules flesh out.
-        virtual void commit()
+        //   function: pushes locally-modified data back to the database
+        // inside a transaction. The full-replace strategy below is the
+        // safe vendor-agnostic default — callers needing efficient
+        // differential updates (INSERT/UPDATE/DELETE per row delta)
+        // can call back with a hand-built statement; that customization
+        // is out of scope for the generic class.
+        void commit()
         {
             validate_connected("commit");
             validate_mutable("commit");
@@ -1490,14 +1381,11 @@ NS_DATABASE
                 return;
             }
 
-            // base implementation: full-replace strategy wrapped in a
-            // transaction.  Vendor subclasses should provide efficient
-            // differential updates.
             transaction<_Connection> txn(*m_connection);
 
             try
             {
-                commit_helper();
+                commit_replace();
                 txn.commit();
                 m_dirty = false;
             }
@@ -1511,9 +1399,10 @@ NS_DATABASE
         }
 
         // exists
-        //   function: checks whether the backing table exists in the
-        // database.
-        virtual bool exists() const
+        //   function: probes the database for the existence of the
+        // backing table using the same zero-row select trick used by
+        // `fetch_schema`.
+        bool exists() const
         {
             validate_connected("exists");
 
@@ -1534,14 +1423,14 @@ NS_DATABASE
         }
 
         // row_count_remote
-        //   function: returns the row count from the database without
-        // fetching all data.
-        virtual std::int64_t row_count_remote() const
+        //   function: queries the database for the row count without
+        // fetching the rows themselves. Respects any active WHERE
+        // clause.
+        std::int64_t row_count_remote() const
         {
             validate_connected("row_count_remote");
 
-            std::string query =
-                "SELECT COUNT(*) FROM "
+            std::string query = "SELECT COUNT(*) FROM "
                 + quote_identifier(m_schema.table_name,
                                    m_connection->get_database_type());
 
@@ -1567,40 +1456,7 @@ NS_DATABASE
 
 
         // =================================================================
-        //  config-aware accessors (inherited from table_traits system)
-        // =================================================================
-
-        // header_rows
-        //   function: returns the number of header rows from config.
-        static constexpr size_type header_rows() noexcept
-        {
-            return container::get_header_rows<_Config>::value;
-        }
-
-        // header_cols
-        //   function: returns the number of header columns from config.
-        static constexpr size_type header_cols() noexcept
-        {
-            return container::get_header_cols<_Config>::value;
-        }
-
-        // footer_rows
-        //   function: returns the number of footer rows from config.
-        static constexpr size_type footer_rows() noexcept
-        {
-            return container::get_footer_rows<_Config>::value;
-        }
-
-        // footer_cols
-        //   function: returns the number of footer columns from config.
-        static constexpr size_type footer_cols() noexcept
-        {
-            return container::get_footer_cols<_Config>::value;
-        }
-
-
-        // =================================================================
-        //  comparison operators
+        //  COMPARISON
         // =================================================================
 
         // operator==
@@ -1609,9 +1465,9 @@ NS_DATABASE
         bool operator==(const self_type& _other) const
         {
             return ( (m_schema.table_name == _other.m_schema.table_name) &&
-                     (m_num_rows == _other.m_num_rows)                   &&
-                     (m_num_cols == _other.m_num_cols)                    &&
-                     (m_data     == _other.m_data) );
+                     (m_num_rows          == _other.m_num_rows)          &&
+                     (m_num_cols          == _other.m_num_cols)          &&
+                     (m_data              == _other.m_data) );
         }
 
         // operator!=
@@ -1625,18 +1481,18 @@ NS_DATABASE
     protected:
 
         // =================================================================
-        //  protected helpers
+        //  INTERNAL HELPERS
         // =================================================================
 
         // validate_connected
-        //   function: throws if no active connection exists.
+        //   helper: throws `connection_exception` if no live connection
+        // is bound.
         void validate_connected(const char* _caller) const
         {
             if (!is_connected())
             {
                 throw connection_exception(
-                    std::string("database_table::")
-                    + _caller
+                    std::string("database_table::") + _caller
                     + ": no active connection.");
             }
 
@@ -1644,15 +1500,14 @@ NS_DATABASE
         }
 
         // validate_mutable
-        //   function: throws if the table kind does not permit
-        // modifications.
+        //   helper: throws `query_exception` if the table kind does not
+        // permit modifications.
         void validate_mutable(const char* _caller) const
         {
             if (!is_mutable())
             {
                 throw query_exception(
-                    std::string("database_table::")
-                    + _caller
+                    std::string("database_table::") + _caller
                     + ": table is not mutable (kind="
                     + std::to_string(static_cast<int>(m_kind))
                     + ").");
@@ -1661,16 +1516,97 @@ NS_DATABASE
             return;
         }
 
+        // check_row
+        //   helper: bounds-checks a row index.
+        void check_row(size_type   _row,
+                       const char* _caller) const
+        {
+            if (_row >= m_num_rows)
+            {
+                throw std::out_of_range(
+                    std::string("database_table::") + _caller
+                    + ": row index out of range.");
+            }
+
+            return;
+        }
+
+        // check_col
+        //   helper: bounds-checks a column index.
+        void check_col(size_type   _col,
+                       const char* _caller) const
+        {
+            if (_col >= m_num_cols)
+            {
+                throw std::out_of_range(
+                    std::string("database_table::") + _caller
+                    + ": column index out of range.");
+            }
+
+            return;
+        }
+
+        // check_bounds
+        //   helper: bounds-checks a (row, col) pair.
+        void check_bounds(size_type   _row,
+                          size_type   _col,
+                          const char* _caller) const
+        {
+            if ( (_row >= m_num_rows) ||
+                 (_col >= m_num_cols) )
+            {
+                throw std::out_of_range(
+                    std::string("database_table::") + _caller
+                    + ": row or column index out of range.");
+            }
+
+            return;
+        }
+
+        // check_row_width
+        //   helper: validates that `_row` has the expected column count.
+        void check_row_width(const row_type& _row,
+                             const char*     _caller) const
+        {
+            if (_row.size() != m_num_cols)
+            {
+                throw query_exception(
+                    std::string("database_table::") + _caller
+                    + ": row width does not match column count.");
+            }
+
+            return;
+        }
+
+        // resolve_column
+        //   helper: resolves a column name to an index, throwing on
+        // unknown name.
+        size_type resolve_column(std::string_view _name,
+                                 const char*      _caller) const
+        {
+            auto idx = m_schema.column_index(_name);
+
+            if (!idx.has_value())
+            {
+                throw std::out_of_range(
+                    std::string("database_table::") + _caller
+                    + ": unknown column '"
+                    + std::string(_name) + "'.");
+            }
+
+            return idx.value();
+        }
+
         // mark_dirty
-        //   function: flags the local cache as modified and triggers
-        // any sync_policy callbacks.
+        //   helper: flags the local cache as modified and triggers an
+        // auto-commit when configured and the action is tracked.
         void mark_dirty(modify_action _action)
         {
             m_dirty = true;
 
-            // auto-commit if configured and the action is tracked
-            if ( (m_sync.auto_commit)        &&
-                 (m_sync.tracks_action(_action)) &&
+            // auto-commit when configured and the action is tracked
+            if ( (m_sync.auto_commit)             &&
+                 (m_sync.tracks_action(_action))  &&
                  (is_connected()) )
             {
                 commit();
@@ -1681,8 +1617,8 @@ NS_DATABASE
         }
 
         // ensure_fresh
-        //   function: refreshes the local cache if the sync policy
-        // demands it and the cache is stale.
+        //   helper: refreshes the local cache when the sync policy is
+        // `on_access` and the cache is stale.
         void ensure_fresh()
         {
             if ( (m_sync.policy == sync_policy::on_access) &&
@@ -1696,13 +1632,13 @@ NS_DATABASE
         }
 
         // build_select_query
-        //   function: constructs a SELECT statement from the table name
-        // and active query configuration.  Vendor subclasses may override
-        // for dialect-specific syntax.
-        virtual std::string build_select_query() const
+        //   helper: builds the SELECT statement used by `refresh()`.
+        // Identifier quoting is dialect-aware via `quote_identifier`;
+        // LIMIT / OFFSET formatting is dialect-aware via
+        // `internal::dialect_format_limit_offset`.
+        std::string build_select_query() const
         {
-            std::string query =
-                "SELECT * FROM "
+            std::string query = "SELECT * FROM "
                 + quote_identifier(m_schema.table_name,
                                    m_connection->get_database_type());
 
@@ -1716,346 +1652,161 @@ NS_DATABASE
                 query += " ORDER BY " + m_order_clause;
             }
 
-            if (m_limit.has_value())
-            {
-                query += " LIMIT "
-                         + std::to_string(m_limit.value());
-            }
-
-            if (m_offset.has_value())
-            {
-                query += " OFFSET "
-                         + std::to_string(m_offset.value());
-            }
+            query += internal::dialect_format_limit_offset(
+                m_connection->get_database_type(),
+                m_limit,
+                m_offset);
 
             return query;
         }
 
-        // commit_helper
-        //   function: internal commit implementation.  Vendor subclasses
-        // override this to provide efficient differential updates.
-        // The default is an intentional no-op; vendors fill it in.
-        virtual void commit_helper()
+        // commit_replace
+        //   helper: vendor-agnostic full-replace commit strategy used
+        // by `commit()`. Truncates the backing table and re-inserts
+        // every cached row. Wrapped in a transaction by the caller.
+        //
+        //   The strategy is intentionally simple and safe; users
+        // needing differential commits should issue their own
+        // INSERT / UPDATE / DELETE statements through the connection.
+        void commit_replace()
         {
-            // vendor subclasses implement INSERT / UPDATE / DELETE
-            // generation here.  The base class wraps this call in
-            // a transaction (see commit()).
+            std::string qname = quote_identifier(
+                m_schema.table_name,
+                m_connection->get_database_type());
+
+            // truncate the table
+            m_connection->execute_update("DELETE FROM " + qname);
+
+            // re-insert every cached row, if any
+            if ( (m_num_rows == 0) ||
+                 (m_num_cols == 0) )
+            {
+                return;
+            }
+
+            // build the column-name list and parameter placeholder list
+            std::string col_list;
+            std::string ph_list;
+
+            for (size_type c = 0; c < m_num_cols; ++c)
+            {
+                if (c > 0)
+                {
+                    col_list += ", ";
+                    ph_list  += ", ";
+                }
+
+                col_list += quote_identifier(
+                    m_schema.columns[c].name,
+                    m_connection->get_database_type());
+                ph_list  += "?";
+            }
+
+            std::string insert_sql = "INSERT INTO " + qname
+                + " (" + col_list + ") VALUES (" + ph_list + ")";
+
+            auto stmt = m_connection->prepare(insert_sql);
+
+            for (size_type r = 0; r < m_num_rows; ++r)
+            {
+                stmt->clear_parameters();
+
+                for (size_type c = 0; c < m_num_cols; ++c)
+                {
+                    bind_value(*stmt, c + 1, m_data[r][c]);
+                }
+
+                stmt->execute_update();
+            }
+
+            return;
+        }
+
+        // bind_value
+        //   helper: dispatches a `value` variant onto the appropriate
+        // statement bind method. Index is 1-based per the statement
+        // CRTP surface convention.
+        template<typename _Statement>
+        static void bind_value(_Statement&       _stmt,
+                               std::size_t       _index,
+                               const value_type& _v)
+        {
+            std::visit(
+                [&_stmt, _index](const auto& _arg) -> void
+                {
+                    using arg_t = std::decay_t<decltype(_arg)>;
+
+                    if constexpr (std::is_same_v<arg_t, std::monostate>)
+                    {
+                        _stmt.bind_null(_index);
+                    }
+                    else if constexpr (std::is_same_v<arg_t, bool>)
+                    {
+                        _stmt.bind_bool(_index, _arg);
+                    }
+                    else if constexpr (std::is_same_v<arg_t, std::int32_t>)
+                    {
+                        _stmt.bind_int(_index, _arg);
+                    }
+                    else if constexpr (std::is_same_v<arg_t, std::int64_t>)
+                    {
+                        _stmt.bind_long(_index, _arg);
+                    }
+                    else if constexpr (std::is_same_v<arg_t, double>)
+                    {
+                        _stmt.bind_double(_index, _arg);
+                    }
+                    else if constexpr (std::is_same_v<arg_t, std::string>)
+                    {
+                        _stmt.bind_string(_index, _arg);
+                    }
+                    else if constexpr (std::is_same_v<
+                        arg_t, std::vector<std::uint8_t>>)
+                    {
+                        _stmt.bind_binary(_index, _arg);
+                    }
+                    else
+                    {
+                        // timestamp and any future variant arms fall
+                        // through to a null bind by default; vendors
+                        // requiring native timestamp binding should
+                        // override at the call site.
+                        _stmt.bind_null(_index);
+                    }
+
+                    return;
+                },
+                _v);
 
             return;
         }
 
 
         // =================================================================
-        //  protected members
+        //  PROTECTED MEMBERS
         // =================================================================
 
-        _Connection*  m_connection;
-        table_schema  m_schema;
-        table_kind    m_kind;
-        sync_config   m_sync;
-        storage_type  m_data;
+        _Connection* m_connection;
+        table_schema m_schema;
+        table_kind   m_kind;
+        sync_config  m_sync;
+        storage_type m_data;
 
-        bool          m_dirty;
-        bool          m_stale;
-        size_type     m_num_rows;
-        size_type     m_num_cols;
+        bool      m_dirty;
+        bool      m_stale;
+        size_type m_num_rows;
+        size_type m_num_cols;
 
         std::chrono::steady_clock::time_point m_last_refresh;
 
         // query configuration
-        std::string                m_where_clause;
-        std::string                m_order_clause;
-        std::optional<size_type>   m_limit;
-        std::optional<size_type>   m_offset;
+        std::string              m_where_clause;
+        std::string              m_order_clause;
+        std::optional<size_type> m_limit;
+        std::optional<size_type> m_offset;
     };
 
 
-    // =========================================================================
-    // V.   DATABASE TABLE SFINAE TRAITS
-    // =========================================================================
-    //
-    // Detect database_table-specific structural properties via SFINAE.
-    // These traits complement the table detection from table_traits.hpp
-    // and the database capability detection from database_traits.hpp.
-    //
-
-    NS_INTERNAL
-        // detect_connection_type
-        //   trait: detection operation for connection_type alias.
-        template<typename _Type>
-        using detect_connection_type = typename _Type::connection_type;
-
-        // detect_schema_type
-        //   trait: detection operation for schema_type alias.
-        template<typename _Type>
-        using detect_schema_type = typename _Type::schema_type;
-
-        // detect_get_schema
-        //   trait: detection operation for get_schema() const method.
-        template<typename _Type>
-        using detect_get_schema =
-            decltype(std::declval<const _Type&>().get_schema());
-
-        // detect_refresh
-        //   trait: detection operation for refresh() method.
-        template<typename _Type>
-        using detect_refresh = decltype(std::declval<_Type&>().refresh());
-
-        // detect_commit
-        //   trait: detection operation for commit() method.
-        template<typename _Type>
-        using detect_commit = decltype(std::declval<_Type&>().commit());
-
-        // detect_table_name
-        //   trait: detection operation for table_name() method.
-        template<typename _Type>
-        using detect_table_name =
-            decltype(std::declval<const _Type&>().table_name());
-
-        // detect_is_view
-        //   trait: detection operation for is_view() method.
-        template<typename _Type>
-        using detect_is_view =
-            decltype(std::declval<const _Type&>().is_view());
-
-        // detect_is_dirty
-        //   trait: detection operation for is_dirty() method.
-        template<typename _Type>
-        using detect_is_dirty =
-            decltype(std::declval<const _Type&>().is_dirty());
-
-        // detect_cell_by_name
-        //   trait: detection operation for cell_by_name() method.
-        template<typename _Type>
-        using detect_cell_by_name = decltype(
-            std::declval<_Type&>().cell_by_name(
-                std::size_t{},
-                std::declval<std::string_view>()));
-
-        // detect_dynamic_rows
-        //   trait: detection operation for has_dynamic_rows constant.
-        template<typename _Type>
-        using detect_dynamic_rows = decltype(
-            std::integral_constant<bool, _Type::has_dynamic_rows>{});
-
-        // detect_rows_method (runtime)
-        //   trait: detection operation for non-static rows() method.
-        template<typename _Type>
-        using detect_rows_method_rt =
-            decltype(std::declval<const _Type&>().rows());
-
-        // detect_cols_method (runtime)
-        //   trait: detection operation for non-static cols() method.
-        template<typename _Type>
-        using detect_cols_method_rt =
-            decltype(std::declval<const _Type&>().cols());
-
-        // detect_cell_method_rt
-        //   trait: detection operation for cell(row, col) method
-        // on an instance (not static).
-        template<typename _Type>
-        using detect_cell_method_rt = decltype(
-            std::declval<_Type&>().cell(std::size_t{}, std::size_t{}));
-
-    NS_END  // internal
-
-
-    // is_database_table
-    //   trait: true if a type exposes the structural interface of a
-    // database table (connection_type, schema_type, rows(), cols(),
-    // cell(), refresh(), table_name()).
-    template<typename _Type,
-             typename = void>
-    struct is_database_table : std::false_type
-    {};
-
-    // is_database_table (specialization)
-    //   trait: SFINAE success case - all database table probes are
-    // well-formed.
-    template<typename _Type>
-    struct is_database_table<_Type,
-        djinterp::void_t<
-            internal::detect_connection_type<_Type>,
-            internal::detect_schema_type<_Type>,
-            internal::detect_rows_method_rt<_Type>,
-            internal::detect_cols_method_rt<_Type>,
-            internal::detect_cell_method_rt<_Type>,
-            internal::detect_refresh<_Type>,
-            internal::detect_table_name<_Type>>>
-        : std::true_type
-    {};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_database_table_v
-    //   value: convenience variable template for is_database_table.
-    template<typename _Type>
-    constexpr bool is_database_table_v =
-        is_database_table<_Type>::value;
-#endif
-
-    // has_database_sync
-    //   trait: true if the type supports the synchronization interface
-    // (refresh + commit + is_dirty + is_stale).
-    template<typename _Type,
-             typename = void>
-    struct has_database_sync : std::false_type
-    {};
-
-    // has_database_sync (specialization)
-    //   trait: SFINAE success - all sync probes well-formed.
-    template<typename _Type>
-    struct has_database_sync<_Type,
-        djinterp::void_t<
-            internal::detect_refresh<_Type>,
-            internal::detect_commit<_Type>,
-            internal::detect_is_dirty<_Type>>>
-        : std::true_type
-    {};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // has_database_sync_v
-    //   value: convenience variable template for has_database_sync.
-    template<typename _Type>
-    constexpr bool has_database_sync_v =
-        has_database_sync<_Type>::value;
-#endif
-
-    // has_named_column_access
-    //   trait: true if the type supports column access by name
-    // (cell_by_name).
-    template<typename _Type,
-             typename = void>
-    struct has_named_column_access : std::false_type
-    {};
-
-    // has_named_column_access (specialization)
-    //   trait: SFINAE success - cell_by_name probe well-formed.
-    template<typename _Type>
-    struct has_named_column_access<_Type,
-        djinterp::void_t<internal::detect_cell_by_name<_Type>>>
-        : std::true_type
-    {};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // has_named_column_access_v
-    //   value: convenience variable template for has_named_column_access.
-    template<typename _Type>
-    constexpr bool has_named_column_access_v =
-        has_named_column_access<_Type>::value;
-#endif
-
-    // is_dynamic_table
-    //   trait: true if the type has runtime-determined dimensions
-    // (has_dynamic_rows constant).
-    template<typename _Type,
-             typename = void>
-    struct is_dynamic_table : std::false_type
-    {};
-
-    // is_dynamic_table (specialization)
-    //   trait: SFINAE success - dynamic rows probe well-formed.
-    template<typename _Type>
-    struct is_dynamic_table<_Type,
-        djinterp::void_t<internal::detect_dynamic_rows<_Type>>>
-        : std::true_type
-    {};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_dynamic_table_v
-    //   value: convenience variable template for is_dynamic_table.
-    template<typename _Type>
-    constexpr bool is_dynamic_table_v =
-        is_dynamic_table<_Type>::value;
-#endif
-
-
-    // is_any_table
-    //   trait: unifying super-trait that is true for both fixed-dimension
-    // tables (detected by container::is_table_type) and dynamic database
-    // tables (detected by is_database_table).  This enables generic code
-    // that operates on any table-like type regardless of storage model.
-    //
-    // NOTE: this trait requires table.hpp to be included (for
-    // container::is_table_type).  When only database_table.hpp is
-    // included, the fixed-table branch is absent and is_any_table
-    // reduces to is_database_table.
-
-#ifdef DJINTERP_TABLE_
-    template<typename _Type>
-    struct is_any_table
-        : std::integral_constant<bool,
-            ( container::is_table_type<_Type>::value ||
-              is_database_table<_Type>::value )>
-    {};
-#else
-    template<typename _Type>
-    struct is_any_table
-        : is_database_table<_Type>
-    {};
-#endif
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_any_table_v
-    //   value: convenience variable template for is_any_table.
-    template<typename _Type>
-    constexpr bool is_any_table_v = is_any_table<_Type>::value;
-#endif
-
-
-    // =========================================================================
-    // VI.  DATABASE TABLE CLASSIFICATION
-    // =========================================================================
-    //
-    // Aggregates all database-table-specific structural detections into a
-    // single compile-time classification struct. Analogous to table_class<T>
-    // for the table system, but incorporating database capabilities.
-    //
-
-    // database_table_class
-    //   struct: compile-time classification of a database table type.
-    // Aggregates table identity, mutability model, database capabilities,
-    // and sync properties.  All members are static constexpr, determined
-    // purely by structural SFINAE.
-    template<typename _Type,
-             bool     _IsDbTable = is_database_table<_Type>::value>
-    struct database_table_class
-    {
-        // identity
-        static constexpr bool is_database_table_type = false;
-        static constexpr bool is_dynamic             = false;
-        static constexpr bool has_named_access       = false;
-
-        // sync capabilities
-        static constexpr bool has_sync       = false;
-
-        // mutability (cannot determine without the type being valid)
-        static constexpr bool has_shape_modifiers_value = false;
-    };
-
-    // database_table_class (specialization)
-    //   struct: classification for types that satisfy the database table
-    // structural interface.
-    template<typename _Type>
-    struct database_table_class<_Type, true>
-    {
-        // identity
-        static constexpr bool is_database_table_type = true;
-        static constexpr bool is_dynamic =
-            is_dynamic_table<_Type>::value;
-        static constexpr bool has_named_access =
-            has_named_column_access<_Type>::value;
-
-        // sync capabilities
-        static constexpr bool has_sync =
-            has_database_sync<_Type>::value;
-
-        // mutability - check for shape-modifier methods
-        static constexpr bool has_shape_modifiers_value =
-            container::has_shape_modifiers<_Type>::value;
-    };
-
-
-NS_END  // database
 NS_END  // djinterp
 
 

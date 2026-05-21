@@ -29,8 +29,10 @@
 #ifndef DJINTERP_DATABASE_ORACLE_CONCEPTS_
 #define DJINTERP_DATABASE_ORACLE_CONCEPTS_ 1
 
+// std
 #include <type_traits>
-#include "oracle_traits.hpp"
+// djinterp
+#include "./oracle_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
     #error "oracle_concepts.hpp requires C++20 concepts support."
@@ -38,8 +40,6 @@
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_ORA
 
 // =============================================================================
 // I.   Core Oracle Connection Concepts
@@ -265,8 +265,6 @@ concept full_oci_connection =
     oci_is_full_connection<clean_t<_Type>>;
 
 
-NS_END  // ora
-NS_END  // database
 NS_END  // djinterp
 
 

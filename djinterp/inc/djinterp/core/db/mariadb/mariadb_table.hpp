@@ -38,13 +38,12 @@
 // mariadb
 #include <mariadb/conncpp.hpp>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../mariadb.hpp"
-#include "./mysql_common_table.hpp"
+#include "../../../djinterp.hpp"
+#include "../mysql/mysql_common_table.hpp"
+#include "./mariadb.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
     // ===========================================================================
     // I.   MARIADB TABLE
@@ -54,7 +53,7 @@ NS_DATABASE
     //   class: MariaDB-specific database table. Extends the shared
     // MySQL-family table with MariaDB vendor features. Uses
     // mariadb_connection as the concrete connection type.
-    template<typename _Config = container::empty_config>
+    template<typename _Config = void>
     class mariadb_table : public mysql_common_table<mariadb_connection,
                                                                   value,
                                                                   _Config>
@@ -633,7 +632,6 @@ NS_DATABASE
     };
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

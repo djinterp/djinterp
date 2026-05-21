@@ -29,17 +29,18 @@
 #ifndef DJINTERP_DATABASE_SQLITE_CONCEPTS_
 #define DJINTERP_DATABASE_SQLITE_CONCEPTS_ 1
 
-#include <type_traits>
-#include "sqlite_traits.hpp"
-
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
     #error "sqlite_concepts.hpp requires C++20 concepts support."
 #endif
 
+// std
+#include <type_traits>
+// djinterp
+#include "./sqlite_traits.hpp"
+
 
 NS_DJINTERP
-NS_DATABASE
-NS_SQLITE
+
 
 // =============================================================================
 // I.   Core SQLite Connection Concepts
@@ -260,8 +261,6 @@ concept sqlite_full_connection =
     sqlite_is_full_connection<clean_t<_Type>>;
 
 
-NS_END  // sqlite
-NS_END  // database
 NS_END  // djinterp
 
 
