@@ -241,8 +241,7 @@ public:
     // Used by combinators (contramap, map_output, filtered, take)
     // to compose the inner accumulator's behavior without rebuilding
     // it per element.
-    D_NODISCARD
-    const step_fn_type&
+    D_NODISCARD     const step_fn_type&
     step_fn() const
     {
         return m_step;
@@ -252,8 +251,7 @@ public:
     //   method: returns the stored finalize function by const
     // reference. Used by combinators that compose with the inner
     // accumulator's output transform.
-    D_NODISCARD
-    const final_fn_type&
+    D_NODISCARD     const final_fn_type&
     finalize_fn() const
     {
         return m_finalize;
@@ -1226,8 +1224,7 @@ NS_END  // internal
 //   All inner accumulators must accept the same input type. The
 // input type is taken from the first accumulator.
 template<typename... _Accs>
-D_NODISCARD
-internal::combine_helper<typename std::decay<_Accs>::type...>
+D_NODISCARD internal::combine_helper<typename std::decay<_Accs>::type...>
 combine(
     _Accs&&... _accs
 )

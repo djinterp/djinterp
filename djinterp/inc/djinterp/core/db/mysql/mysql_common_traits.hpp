@@ -25,7 +25,7 @@
 *   PORTABILITY:
 *   Tagged traits are available in C++11+. Tagless traits require C++17
 * (variable template partial specialization over void_t). The database
-* module gates on C++17 through database_common.hpp.
+* module gates on C++17 through database.hpp.
 *
 *   NAMING CONVENTION:
 *   Expression detectors:   mysql_<method>_t
@@ -44,22 +44,16 @@
 #define DJINTERP_DATABASE_MYSQL_COMMON_TRAITS_
 
 // djinterp
-#include "../djinterp.hpp"
-#include "./database_traits.hpp"
+#include "../../../djinterp.hpp"
+#include "../database_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-
-// =========================================================================
-//  NS_MYSQL_COMMON
-// =========================================================================
-// nested namespace for MySQL-family shared infrastructure.
 
 
-// =============================================================================
+// ===========================================================================
 // I.   EXPRESSION DETECTORS
-// =============================================================================
+// ===========================================================================
 // Expression alias templates for SFINAE-based detection of MySQL-family
 // specific methods. These follow the same pattern as the generic
 // detectors in database_traits.hpp but target MySQL C API wrapper
@@ -230,9 +224,9 @@ using mysql_set_engine_t = decltype(std::declval<_Type&>().set_engine(
     std::declval<const std::string&>()));
 
 
-// =============================================================================
+// ===========================================================================
 // II.  TAGGED CAPABILITY TRAITS (struct-based)
-// =============================================================================
+// ===========================================================================
 
 // has_mysql_charset
 //   trait: checks if type _Type supports character set management
@@ -384,9 +378,9 @@ struct is_mysql_connection : djinterp::conjunction<
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // III. TAGLESS CAPABILITY TRAITS (constexpr bool)
-// =============================================================================
+// ===========================================================================
 
 // -------------------------------------------------------------------------
 // A.  individual capability tags
@@ -562,9 +556,9 @@ constexpr bool mysql_is_full_connection =
       mysql_can_escape_string<_Type> );
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  SFINAE HELPERS
-// =============================================================================
+// ===========================================================================
 
 // enable_if_mysql_connection
 //   type: SFINAE helper for MySQL-family connection constraints.
@@ -591,7 +585,6 @@ using enable_if_has_mysql_diagnostics =
     typename std::enable_if<has_mysql_diagnostics<_Type>::value>::type;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

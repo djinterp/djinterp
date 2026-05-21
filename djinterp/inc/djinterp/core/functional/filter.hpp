@@ -424,41 +424,33 @@ public:
     {
     }
 
-    D_NODISCARD
-    bool ok() const
+    D_NODISCARD     bool ok() const
     {
         return m_status == filter_result_status::success;
     }
 
-    D_NODISCARD
-    bool empty() const { return m_elements.empty(); }
+    D_NODISCARD     bool empty() const { return m_elements.empty(); }
 
-    D_NODISCARD
-    filter_result_status status() const { return m_status; }
+    D_NODISCARD     filter_result_status status() const { return m_status; }
 
-    D_NODISCARD
-    const std::string& error_message() const
+    D_NODISCARD     const std::string& error_message() const
     {
         return m_error_message;
     }
 
-    D_NODISCARD
-    std::size_t count() const { return m_elements.size(); }
+    D_NODISCARD     std::size_t count() const { return m_elements.size(); }
 
-    D_NODISCARD
-    const std::vector<_Type>& elements() const
+    D_NODISCARD     const std::vector<_Type>& elements() const
     {
         return m_elements;
     }
 
-    D_NODISCARD
-    std::vector<_Type> take_elements()
+    D_NODISCARD     std::vector<_Type> take_elements()
     {
         return std::move(m_elements);
     }
 
-    D_NODISCARD
-    const std::vector<std::size_t>& indices() const
+    D_NODISCARD     const std::vector<std::size_t>& indices() const
     {
         return m_indices;
     }
@@ -507,8 +499,7 @@ public:
     // apply
     //   method: applies the chain to input data and returns a
     // filter result.
-    D_NODISCARD
-    filter_result<_Type>
+    D_NODISCARD     filter_result<_Type>
     apply(const std::vector<_Type>& _input) const
     {
         // start with all indices
@@ -565,11 +556,9 @@ public:
     }
 
     // length
-    D_NODISCARD
-    std::size_t length() const { return m_operations.size(); }
+    D_NODISCARD     std::size_t length() const { return m_operations.size(); }
 
-    D_NODISCARD
-    bool is_empty() const { return m_operations.empty(); }
+    D_NODISCARD     bool is_empty() const { return m_operations.empty(); }
 
     void clear()
     {
@@ -588,8 +577,7 @@ public:
 //   function: applies union semantics (OR) over multiple filter
 // chains.  An element is included if it passes any of the chains.
 template<typename _Type>
-D_NODISCARD
-filter_result<_Type>
+D_NODISCARD filter_result<_Type>
 filter_union(const std::vector<filter_chain<_Type>>& _chains,
              const std::vector<_Type>&                _input)
 {
@@ -625,8 +613,7 @@ filter_union(const std::vector<filter_chain<_Type>>& _chains,
 //   function: applies intersection semantics (AND) over multiple
 // chains.  An element is included only if it passes all chains.
 template<typename _Type>
-D_NODISCARD
-filter_result<_Type>
+D_NODISCARD filter_result<_Type>
 filter_intersection(
     const std::vector<filter_chain<_Type>>& _chains,
     const std::vector<_Type>&               _input)
@@ -664,8 +651,7 @@ filter_intersection(
 //   function: applies difference semantics (A - B).
 // An element is included if it passes _include but not _exclude.
 template<typename _Type>
-D_NODISCARD
-filter_result<_Type>
+D_NODISCARD filter_result<_Type>
 filter_difference(const filter_chain<_Type>& _include,
                   const filter_chain<_Type>& _exclude,
                   const std::vector<_Type>&  _input)
@@ -722,11 +708,9 @@ public:
         m_indices = result.indices();
     }
 
-    D_NODISCARD
-    bool has_next() const { return m_pos < m_indices.size(); }
+    D_NODISCARD     bool has_next() const { return m_pos < m_indices.size(); }
 
-    D_NODISCARD
-    const _Type& next()
+    D_NODISCARD     const _Type& next()
     {
         return (*m_input)[m_indices[m_pos++]];
     }
@@ -738,8 +722,7 @@ public:
         return;
     }
 
-    D_NODISCARD
-    std::size_t remaining() const
+    D_NODISCARD     std::size_t remaining() const
     {
         return m_indices.size() - m_pos;
     }
@@ -915,8 +898,7 @@ public:
     }
 
     // apply (execute the chain)
-    D_NODISCARD
-    filter_result<_Type>
+    D_NODISCARD     filter_result<_Type>
     apply(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input);
@@ -930,8 +912,7 @@ public:
                          std::declval<const _Container&>()))>::type,
                      _Type>::value
              >::type>
-    D_NODISCARD
-    filter_result<_Type>
+    D_NODISCARD     filter_result<_Type>
     apply(const _Container& _input) const
     {
         std::vector<_Type> vec(std::begin(_input),
@@ -941,51 +922,44 @@ public:
     }
 
     // build_chain (extract the chain for use in combinators)
-    D_NODISCARD
-    filter_chain<_Type> build_chain() const
+    D_NODISCARD     filter_chain<_Type> build_chain() const
     {
         return m_chain;
     }
 
     // build_chain (move)
-    D_NODISCARD
-    filter_chain<_Type> build_chain() &&
+    D_NODISCARD     filter_chain<_Type> build_chain() &&
     {
         return std::move(m_chain);
     }
 
     // iterator
-    D_NODISCARD
-    filter_iterator<_Type>
+    D_NODISCARD     filter_iterator<_Type>
     iterator(const std::vector<_Type>& _input) const
     {
         return filter_iterator<_Type>(_input, m_chain);
     }
 
     // any_match
-    D_NODISCARD
-    bool any_match(const std::vector<_Type>& _input) const
+    D_NODISCARD     bool any_match(const std::vector<_Type>& _input) const
     {
         return !m_chain.apply(_input).empty();
     }
 
     // all_match
-    D_NODISCARD
-    bool all_match(const std::vector<_Type>& _input) const
+    D_NODISCARD     bool all_match(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input).count() == _input.size();
     }
 
     // none_match
-    D_NODISCARD
-    bool none_match(const std::vector<_Type>& _input) const
+    D_NODISCARD     bool none_match(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input).empty();
     }
 
     // count_matches
-    D_NODISCARD
-    std::size_t count_matches(const std::vector<_Type>& _input) const
+    D_NODISCARD     std::size_t count_matches(const std::vector<_Type>& _input) const
     {
         return m_chain.apply(_input).count();
     }

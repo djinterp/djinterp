@@ -42,11 +42,10 @@
 #define DJINTERP_DATABASE_MARIADB_TRAITS_
 
 // djinterp
-#include "./mysql_common_traits.hpp"
+#include "../mysql/mysql_common_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
 // ===========================================================================
@@ -289,7 +288,6 @@ using enable_if_has_mariadb_schema_query =
     typename std::enable_if<has_mariadb_schema_query<_Type>::value>::type;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

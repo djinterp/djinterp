@@ -97,8 +97,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _CurrentType&>::value
              >::type>
-    D_NODISCARD
-    fn_builder<_InputType, _ResultType>
+    D_NODISCARD     fn_builder<_InputType, _ResultType>
     map(_Fn _fn) const
     {
         auto prev_chain = m_chain;
@@ -128,8 +127,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _CurrentType&>::value
              >::type>
-    D_NODISCARD
-    fn_builder<_InputType, _ResultType>
+    D_NODISCARD     fn_builder<_InputType, _ResultType>
     and_then(_Fn _fn) const
     {
         return map(std::move(_fn));
@@ -142,8 +140,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _CurrentType&>::value
              >::type>
-    D_NODISCARD
-    fn_builder<_InputType, _CurrentType>
+    D_NODISCARD     fn_builder<_InputType, _CurrentType>
     filter(_Pred _pred) const
     {
         auto prev_chain = m_chain;
@@ -173,8 +170,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _CurrentType&>::value
              >::type>
-    D_NODISCARD
-    fn_builder<_InputType, _CurrentType>
+    D_NODISCARD     fn_builder<_InputType, _CurrentType>
     where(_Pred _pred) const
     {
         return filter(std::move(_pred));
@@ -182,8 +178,7 @@ public:
 
     // take
     //   method: keeps only the first _n elements.
-    D_NODISCARD
-    fn_builder<_InputType, _CurrentType>
+    D_NODISCARD     fn_builder<_InputType, _CurrentType>
     take(std::size_t _n) const
     {
         auto prev_chain = m_chain;
@@ -205,8 +200,7 @@ public:
 
     // skip
     //   method: removes the first _n elements.
-    D_NODISCARD
-    fn_builder<_InputType, _CurrentType>
+    D_NODISCARD     fn_builder<_InputType, _CurrentType>
     skip(std::size_t _n) const
     {
         auto prev_chain = m_chain;
@@ -231,8 +225,7 @@ public:
 
     // distinct
     //   method: removes duplicate elements.
-    D_NODISCARD
-    fn_builder<_InputType, _CurrentType>
+    D_NODISCARD     fn_builder<_InputType, _CurrentType>
     distinct() const
     {
         auto prev_chain = m_chain;
@@ -269,8 +262,7 @@ public:
 
     // reversed
     //   method: reverses element order.
-    D_NODISCARD
-    fn_builder<_InputType, _CurrentType>
+    D_NODISCARD     fn_builder<_InputType, _CurrentType>
     reversed() const
     {
         auto prev_chain = m_chain;
@@ -294,8 +286,7 @@ public:
                  is_callable<_Compare,
                      const _CurrentType&, const _CurrentType&>::value
              >::type>
-    D_NODISCARD
-    fn_builder<_InputType, _CurrentType>
+    D_NODISCARD     fn_builder<_InputType, _CurrentType>
     sorted(_Compare _cmp) const
     {
         auto prev_chain = m_chain;
@@ -323,8 +314,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _CurrentType&>::value
              >::type>
-    D_NODISCARD
-    fn_builder<_InputType, _ResultType>
+    D_NODISCARD     fn_builder<_InputType, _ResultType>
     flat_map(_Fn _fn) const
     {
         auto prev_chain = m_chain;
@@ -357,8 +347,7 @@ public:
 
     // execute (vector)
     //   method: executes the accumulated chain on an input vector.
-    D_NODISCARD
-    std::vector<_CurrentType>
+    D_NODISCARD     std::vector<_CurrentType>
     execute(const std::vector<_InputType>& _input) const
     {
         return m_chain(_input);
@@ -373,8 +362,7 @@ public:
                          std::declval<const _Container&>()))>::type,
                      _InputType>::value
              >::type>
-    D_NODISCARD
-    std::vector<_CurrentType>
+    D_NODISCARD     std::vector<_CurrentType>
     execute(const _Container& _input) const
     {
         std::vector<_InputType> vec(std::begin(_input),
@@ -385,8 +373,7 @@ public:
 
     // execute (raw array)
     //   method: executes the chain on a C-style array.
-    D_NODISCARD
-    std::vector<_CurrentType>
+    D_NODISCARD     std::vector<_CurrentType>
     execute(const _InputType* _data, std::size_t _count) const
     {
         std::vector<_InputType> vec(_data, _data + _count);
@@ -396,8 +383,7 @@ public:
 
     // operator() (shorthand for execute)
     template<typename _Container>
-    D_NODISCARD
-    std::vector<_CurrentType>
+    D_NODISCARD     std::vector<_CurrentType>
     operator()(const _Container& _input) const
     {
         return execute(_input);
@@ -411,8 +397,7 @@ public:
                  is_callable<_Fn, const _Acc&,
                      const _CurrentType&>::value
              >::type>
-    D_NODISCARD
-    _Acc
+    D_NODISCARD     _Acc
     fold(const std::vector<_InputType>& _input,
          _Acc                           _init,
          _Fn&&                          _fn) const
@@ -430,8 +415,7 @@ public:
 
     // count (terminal operation)
     //   method: executes the chain then counts matching elements.
-    D_NODISCARD
-    std::size_t
+    D_NODISCARD     std::size_t
     count(const std::vector<_InputType>& _input) const
     {
         return m_chain(_input).size();
@@ -439,8 +423,7 @@ public:
 
     // any (terminal operation)
     //   method: executes the chain then checks if any element exists.
-    D_NODISCARD
-    bool
+    D_NODISCARD     bool
     any(const std::vector<_InputType>& _input) const
     {
         return !m_chain(_input).empty();

@@ -57,18 +57,17 @@
 #define DJINTERP_DATABASE_MYSQL_COMMON_
 
 // djinterp
-#include "../djinterp.hpp"
-#include "../env/db/env_mysql_common.h"
-#include "./database_connection.hpp"
+#include "../../../djinterp.hpp"
+#include "../../../env/db/mysql/env_mysql_common.h"
+#include "../database_connection.hpp"
 #include "./mysql_common_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
-// =============================================================================
+// ===========================================================================
 // I.   MYSQL-FAMILY CLIENT FLAGS
-// =============================================================================
+// ===========================================================================
 // Portable compile-time constants for commonly used MySQL client flags.
 // The actual CLIENT_* macros come from the MySQL C API header; these
 // provide named constants usable without including <mysql.h>.
@@ -136,9 +135,9 @@ D_INLINE constexpr mysql_client_flag& operator|=(
 }
 
 
-// =============================================================================
+// ===========================================================================
 // II.  MYSQL-FAMILY CONNECTION CONFIGURATION
-// =============================================================================
+// ===========================================================================
 
 // mysql_connect_config
 //   struct: extended configuration for MySQL-family connections.
@@ -175,9 +174,9 @@ struct mysql_connect_config
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. MYSQL-FAMILY COMMON CONNECTION TEMPLATE
-// =============================================================================
+// ===========================================================================
 
 // mysql_common_connection
 //   class template: shared CRTP base for MySQL-family connections.
@@ -590,7 +589,6 @@ private:
 };
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

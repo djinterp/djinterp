@@ -163,8 +163,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline<_ResultType>
+    D_NODISCARD     function_pipeline<_ResultType>
     map(_Fn&& _fn) const
     {
         if (m_has_error)
@@ -190,8 +189,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline filter(_Pred&& _pred) const
+    D_NODISCARD     function_pipeline filter(_Pred&& _pred) const
     {
         if (m_has_error)
         {
@@ -217,8 +215,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline filter_not(_Pred&& _pred) const
+    D_NODISCARD     function_pipeline filter_not(_Pred&& _pred) const
     {
         return filter([&_pred](const _Type& _e)
         {
@@ -233,8 +230,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Acc&, const _Type&>::value
              >::type>
-    D_NODISCARD
-    _Acc
+    D_NODISCARD     _Acc
     fold(_Acc _init, _Fn&& _fn) const
     {
         if (m_has_error)
@@ -273,8 +269,7 @@ public:
 
     // take
     //   method: keeps only the first _n elements.
-    D_NODISCARD
-    function_pipeline take(std::size_t _n) const
+    D_NODISCARD     function_pipeline take(std::size_t _n) const
     {
         if (m_has_error)
         {
@@ -291,8 +286,7 @@ public:
 
     // take_last
     //   method: keeps only the last _n elements.
-    D_NODISCARD
-    function_pipeline take_last(std::size_t _n) const
+    D_NODISCARD     function_pipeline take_last(std::size_t _n) const
     {
         if (m_has_error)
         {
@@ -317,8 +311,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline take_while(_Pred&& _pred) const
+    D_NODISCARD     function_pipeline take_while(_Pred&& _pred) const
     {
         if (m_has_error)
         {
@@ -342,8 +335,7 @@ public:
 
     // skip
     //   method: removes the first _n elements.
-    D_NODISCARD
-    function_pipeline skip(std::size_t _n) const
+    D_NODISCARD     function_pipeline skip(std::size_t _n) const
     {
         if (m_has_error)
         {
@@ -367,8 +359,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline skip_while(_Pred&& _pred) const
+    D_NODISCARD     function_pipeline skip_while(_Pred&& _pred) const
     {
         if (m_has_error)
         {
@@ -394,8 +385,7 @@ public:
 
     // slice
     //   method: takes elements in range [start, end) with given step.
-    D_NODISCARD
-    function_pipeline slice(std::size_t _start,
+    D_NODISCARD     function_pipeline slice(std::size_t _start,
                      std::size_t _end,
                      std::size_t _step = 1) const
     {
@@ -418,8 +408,7 @@ public:
 
     // distinct
     //   method: removes duplicate elements using operator==.
-    D_NODISCARD
-    function_pipeline distinct() const
+    D_NODISCARD     function_pipeline distinct() const
     {
         if (m_has_error)
         {
@@ -456,8 +445,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Eq, const _Type&, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline distinct(_Eq&& _eq) const
+    D_NODISCARD     function_pipeline distinct(_Eq&& _eq) const
     {
         if (m_has_error)
         {
@@ -490,8 +478,7 @@ public:
 
     // reversed
     //   method: returns a pipeline with elements in reverse order.
-    D_NODISCARD
-    function_pipeline reversed() const
+    D_NODISCARD     function_pipeline reversed() const
     {
         if (m_has_error)
         {
@@ -509,8 +496,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Compare, const _Type&, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline sorted(_Compare&& _cmp) const
+    D_NODISCARD     function_pipeline sorted(_Compare&& _cmp) const
     {
         if (m_has_error)
         {
@@ -527,8 +513,7 @@ public:
 
     // sorted (default ordering)
     //   method: returns a pipeline sorted with operator<.
-    D_NODISCARD
-    function_pipeline sorted() const
+    D_NODISCARD     function_pipeline sorted() const
     {
         return sorted([](const _Type& _a, const _Type& _b)
         {
@@ -546,8 +531,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline<_ResultType>
+    D_NODISCARD     function_pipeline<_ResultType>
     flat_map(_Fn&& _fn) const
     {
         if (m_has_error)
@@ -576,8 +560,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    std::pair<function_pipeline, function_pipeline>
+    D_NODISCARD     std::pair<function_pipeline, function_pipeline>
     partition_pipe(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -614,8 +597,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_KeyFn, const _Type&>::value
              >::type>
-    D_NODISCARD
-    std::map<_KeyType, std::vector<_Type>>
+    D_NODISCARD     std::map<_KeyType, std::vector<_Type>>
     group_by(_KeyFn&& _key_fn) const
     {
         std::map<_KeyType, std::vector<_Type>> result;
@@ -641,8 +623,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&, const _Other&>::value
              >::type>
-    D_NODISCARD
-    function_pipeline<_ResultType>
+    D_NODISCARD     function_pipeline<_ResultType>
     zip_with(const function_pipeline<_Other>& _other, _Fn&& _fn) const
     {
         if (m_has_error || _other.has_error())
@@ -674,16 +655,14 @@ public:
 
     // to_vector
     //   method: returns the pipeline data as a vector.
-    D_NODISCARD
-    std::vector<_Type> to_vector() const
+    D_NODISCARD     std::vector<_Type> to_vector() const
     {
         return m_data;
     }
 
     // to_vector (move)
     //   method: moves the pipeline data out.
-    D_NODISCARD
-    std::vector<_Type> to_vector() &&
+    D_NODISCARD     std::vector<_Type> to_vector() &&
     {
         return std::move(m_data);
     }
@@ -695,8 +674,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&, const _Type&>::value
              >::type>
-    D_NODISCARD
-    _Type
+    D_NODISCARD     _Type
     reduce(_Fn&& _fn) const
     {
         _Type acc = m_data[0];
@@ -716,8 +694,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    bool any(_Pred&& _pred) const
+    D_NODISCARD     bool any(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
 
@@ -738,8 +715,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    bool all(_Pred&& _pred) const
+    D_NODISCARD     bool all(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
 
@@ -760,8 +736,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    bool none(_Pred&& _pred) const
+    D_NODISCARD     bool none(_Pred&& _pred) const
     {
         return !any(std::forward<_Pred>(_pred));
     }
@@ -772,8 +747,7 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD
-    std::size_t count(_Pred&& _pred) const
+    D_NODISCARD     std::size_t count(_Pred&& _pred) const
     {
         if (m_has_error) { return 0; }
 
@@ -795,23 +769,17 @@ public:
     ///         iv.   ACCESSORS AND STATUS                                  ///
     ///////////////////////////////////////////////////////////////////////////
 
-    D_NODISCARD
-    std::size_t size() const { return m_data.size(); }
+    D_NODISCARD     std::size_t size() const { return m_data.size(); }
 
-    D_NODISCARD
-    bool empty() const { return m_data.empty(); }
+    D_NODISCARD     bool empty() const { return m_data.empty(); }
 
-    D_NODISCARD
-    bool has_error() const { return m_has_error; }
+    D_NODISCARD     bool has_error() const { return m_has_error; }
 
-    D_NODISCARD
-    int error_code() const { return m_error_code; }
+    D_NODISCARD     int error_code() const { return m_error_code; }
 
-    D_NODISCARD
-    const std::vector<_Type>& data() const { return m_data; }
+    D_NODISCARD     const std::vector<_Type>& data() const { return m_data; }
 
-    D_NODISCARD
-    const _Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
+    D_NODISCARD     const _Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
 
     // begin/end for range-for support
     typename std::vector<_Type>::const_iterator begin() const

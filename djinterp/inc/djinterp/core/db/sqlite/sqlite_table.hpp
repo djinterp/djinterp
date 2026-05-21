@@ -36,14 +36,12 @@
 #define DJINTERP_DATABASE_SQLITE_TABLE_
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../sqlite.hpp"
-#include "./database_table.hpp"
+#include "../../../djinterp.hpp"
+#include "./sqlite.hpp"
+#include "../database_table.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_SQLITE
 
 
     // =========================================================================
@@ -91,7 +89,7 @@ NS_SQLITE
     //   class: SQLite-specific database table. Extends the generic
     // database_table with SQLite DDL (WITHOUT ROWID, STRICT), affinity-
     // based typing, ATTACH qualification, and PRAGMA helpers.
-    template<typename _Config = container::empty_config>
+    template<typename _Config = void>
     class sqlite_table
         : public database_table<sqlite_connection,
                                 value,
@@ -377,8 +375,6 @@ NS_SQLITE
     };
 
 
-NS_END  // sqlite
-NS_END  // database
 NS_END  // djinterp
 
 

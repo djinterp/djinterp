@@ -36,15 +36,14 @@
 // mysql
 #include <mysql/mysql.h>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../database_common.hpp"
-#include "../mysql.hpp"
+#include "../../../djinterp.hpp"
+#include "../database.hpp"
 #include "./mysql_common_table.hpp"
+#include "./mysql.hpp"
 
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
     // =========================================================================
@@ -65,7 +64,7 @@ NS_DATABASE
     //   class: Oracle-MySQL-specific database table. Extends the shared
     // MySQL-family table with Oracle MySQL vendor features. Uses
     // mysql_connection as the concrete connection type.
-    template<typename _Config = container::empty_config>
+    template<typename _Config = void>
     class mysql_table
         : public mysql_common_table<
               mysql_connection,
@@ -422,7 +421,6 @@ NS_DATABASE
     };
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

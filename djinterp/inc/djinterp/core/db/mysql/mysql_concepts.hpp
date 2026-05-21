@@ -32,16 +32,15 @@
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "./mysql_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
-// =============================================================================
+// ===========================================================================
 // I.   Core Oracle MySQL Connection Concepts
-// =============================================================================
+// ===========================================================================
 
 // mysql_connection
 //   concept: constrains types implementing the Oracle MySQL connection
@@ -93,9 +92,9 @@ concept mysql_query_attributes_connection =
     has_mysql_ora_query_attributes<clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Oracle MySQL Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // mysql_reset_connection_capable
 //   concept: constrains types exposing reset_connection().
@@ -152,9 +151,9 @@ concept mysql_x_protocol_query =
     is_detected<mysql_ora_has_x_protocol_t, clean_t<_Type>>::value;
 
 
-// =============================================================================
+// ===========================================================================
 // III. Tagless Oracle MySQL Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // mysql_async_queryable
 //   concept: constrains types satisfying the full tagless Oracle MySQL
@@ -178,9 +177,9 @@ concept mysql_full_connection =
     mysql_ora_is_full_connection<clean_t<_Type>>;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Compact Oracle MySQL Aliases
-// =============================================================================
+// ===========================================================================
 
 // mysql_ora_connection
 //   concept: alias for mysql_connection.
@@ -195,7 +194,6 @@ concept mysql_ora_full_connection =
     mysql_full_connection<_Type>;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

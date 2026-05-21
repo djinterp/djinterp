@@ -29,19 +29,20 @@
 #ifndef DJINTERP_DATABASE_ARANGO_CONCEPTS_
 #define DJINTERP_DATABASE_ARANGO_CONCEPTS_ 1
 
-#include <type_traits>
-#include "../djinterp.hpp"
-#include "./arango_traits.hpp"
-
-#if !defined(__cpp_concepts) ||                                               \
-    (__cpp_concepts < 201907L)
+#if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
     #error "arango_concepts.hpp requires C++20 concepts support."
 #endif
 
+// std
+#include <type_traits>
+// djinterp
+#include "../../../djinterp.hpp"
+#include "./arango_traits.hpp"
+
 
 NS_DJINTERP
-NS_DATABASE
-NS_ARANGO
+
+
 // ===========================================================================
 // I.   Core ArangoDB Connection Concepts
 // ===========================================================================
@@ -290,8 +291,6 @@ concept full_arango_connection =
     arango_is_full_connection<clean_t<_Type>>;
 
 
-NS_END  // arango
-NS_END  // database
 NS_END  // djinterp
 
 

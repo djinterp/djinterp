@@ -34,14 +34,12 @@
 #define DJINTERP_DATABASE_ORACLE_TABLE_
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../oracle.hpp"
-#include "./database_table.hpp"
+#include "../../../djinterp.hpp"
+#include "./oracle.hpp"
+#include "../database_table.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_ORA
 
 
     // =========================================================================
@@ -89,7 +87,7 @@ NS_ORA
     //   class: Oracle-specific database table. Extends the generic
     // database_table with Oracle DDL, identifier quoting, optimizer
     // hints, flashback queries, and tablespace control.
-    template<typename _Config = container::empty_config>
+    template<typename _Config = void>
     class oracle_table
         : public database_table<oracle_connection,
                                 value,
@@ -414,8 +412,6 @@ NS_ORA
     };
 
 
-NS_END  // ora
-NS_END  // database
 NS_END  // djinterp
 
 

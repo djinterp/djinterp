@@ -40,30 +40,18 @@
 #ifndef DJINTERP_DATABASE_ARANGO_TRAITS_
 #define DJINTERP_DATABASE_ARANGO_TRAITS_
 
-#include "../database_traits.hpp"
-
+// std
 #include <cstddef>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../database_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-// =========================================================================
-//  NS_ARANGO
-// =========================================================================
-
-#ifndef D_KEYWORD_ARANGO
-    #define D_KEYWORD_ARANGO    arango
-#endif
-
-#ifndef NS_ARANGO
-    #define NS_ARANGO           D_NAMESPACE(D_KEYWORD_ARANGO)
-#endif
-
-NS_ARANGO
 
 
 // =============================================================================
@@ -618,8 +606,6 @@ using enable_if_has_arango_database_ops =
     typename std::enable_if<has_arango_database_ops<_Type>::value>::type;
 
 
-NS_END  // arango
-NS_END  // database
 NS_END  // djinterp
 
 

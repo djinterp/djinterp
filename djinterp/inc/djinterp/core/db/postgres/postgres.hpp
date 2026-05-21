@@ -40,21 +40,22 @@
 * the concrete _impl method definitions in postgres.cpp include it.
 *
 * 
-* path:      /inc/djinterp/core/db/postgresql/postgres.hpp
+* path:      /inc/djinterp/core/db/postgres/postgres.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.26
 ******************************************************************************/
 
 #ifndef DJINTERP_DATABASE_POSTGRES_
 #define DJINTERP_DATABASE_POSTGRES_
-#include "../djinterp.hpp"
-#include "../env/db/env_postgresql.h"
-#include "database_connection.hpp"
+
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../../env/db/env_postgresql.h"
+#include "../database_connection.hpp"
 #include "./postgres_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 // =============================================================================
 // I.   POSTGRESQL OID TYPE CONSTANTS
 // =============================================================================
@@ -1253,7 +1254,6 @@ struct pg_result_set_impl;
 struct pg_statement_impl;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

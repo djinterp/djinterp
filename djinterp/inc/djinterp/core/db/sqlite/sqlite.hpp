@@ -41,7 +41,7 @@
 *
 *   PORTABILITY:
 *   This header requires C++17 or later. It does not include <sqlite3.h>;
-* the concrete _impl method definitions in sqlite.cpp include it.
+* the concrete _helper method definitions in sqlite.cpp include it.
 *
 * 
 * path:      /inc/djinterp/core/db/sqlite/sqlite.hpp
@@ -52,15 +52,14 @@
 #ifndef DJINTERP_DATABASE_SQLITE_
 #define DJINTERP_DATABASE_SQLITE_
 
-#include "database_connection.hpp"
-#include "sqlite_traits.hpp"
-
-#include "../env/db/env_sqlite.h"
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../../env/db/sqlite/env_sqlite.h"
+#include "../database_connection.hpp"
+#include "./sqlite_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_SQLITE
 
 
 // =============================================================================
@@ -860,7 +859,7 @@ struct sqlite_connect_config
     }
 
     explicit sqlite_connect_config(
-		const std::string& _pat
+		const std::string& _path
 	)
         : file_path(_path),
           open_flags(sqlite_open_flag::read_write),
@@ -924,8 +923,8 @@ struct sqlite_connect_config
 
 // sqlite_connection
 //   class: concrete SQLite connection implementation. This is the
-// CRTP leaf class that provides the _impl methods required by the
-// base class chain. The _impl method bodies would be defined in the
+// CRTP leaf class that provides the _helper methods required by the
+// base class chain. The _helper method bodies would be defined in the
 // corresponding sqlite.cpp source file that includes <sqlite3.h>.
 //
 // Usage:
@@ -1018,14 +1017,14 @@ public:
 	)
     {
         this->ensure_connected();
-        self().set_journal_mode_impl(_mode);
+        self().set_journal_mode_helper(_mode);
     }
 
     // get_journal_mode
     //   function: returns the current journal mode.
     std::string get_journal_mode() const
     {
-        return self().get_journal_mode_impl();
+        return self().get_journal_mode_helper();
     }
 
     // checkpoint
@@ -1039,7 +1038,7 @@ public:
 	)
     {
         this->ensure_connected();
-        self().checkpoint_impl(_mode);
+        self().checkpoint_helper(_mode);
     }
 
     // enable_wal
@@ -1061,14 +1060,14 @@ public:
                         const std::string& _value)
     {
         this->ensure_connected();
-        self().execute_pragma_impl(_pragma, _value);
+        self().execute_pragma_helper(_pragma, _value);
     }
 
     // get_pragma
     //   function: queries a PRAGMA and returns its current value.
     std::string get_pragma(const std::string& _pragma) const
     {
-        return self().get_pragma_impl(_pragma);
+        return self().get_pragma_helper(_pragma);
     }
 
     // set_foreign_keys
@@ -1089,7 +1088,7 @@ public:
     {
         this->ensure_connected();
         m_sqlite_config.busy_timeout_ms = _timeout_ms;
-        self().set_busy_timeout_impl(_timeout_ms);
+        self().set_busy_timeout_helper(_timeout_ms);
     }
 
     // -----------------------------------------------------------------
@@ -1103,7 +1102,7 @@ public:
                 const std::string& _alias)
     {
         this->ensure_connected();
-        self().attach_impl(_file_path, _alias);
+        self().attach_helper(_file_path, _alias);
     }
 
     // detach
@@ -1112,7 +1111,7 @@ public:
     void detach(const std::string& _alias)
     {
         this->ensure_connected();
-        self().detach_impl(_alias);
+        self().detach_helper(_alias);
     }
 
     // -----------------------------------------------------------------
@@ -1123,14 +1122,14 @@ public:
     //   function: tests whether a table exists in the database.
     bool table_exists(const std::string& _table_name) const
     {
-        return self().table_exists_impl(_table_name);
+        return self().table_exists_helper(_table_name);
     }
 
     // get_table_names
     //   function: returns a vector of all table names in the database.
     std::vector<std::string> get_table_names() const
     {
-        return self().get_table_names_impl();
+        return self().get_table_names_helper();
     }
 
     // -----------------------------------------------------------------
@@ -1142,7 +1141,7 @@ public:
     void begin_deferred()
     {
         this->ensure_connected();
-        self().begin_deferred_impl();
+        self().begin_deferred_helper();
         this->m_in_transaction = true;
     }
 
@@ -1151,7 +1150,7 @@ public:
     void begin_immediate()
     {
         this->ensure_connected();
-        self().begin_immediate_impl();
+        self().begin_immediate_helper();
         this->m_in_transaction = true;
     }
 
@@ -1160,7 +1159,7 @@ public:
     void begin_exclusive()
     {
         this->ensure_connected();
-        self().begin_exclusive_impl();
+        self().begin_exclusive_helper();
         this->m_in_transaction = true;
     }
 
@@ -1281,51 +1280,51 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // _impl methods (defined in sqlite.cpp)
+    // _helper methods (defined in sqlite.cpp)
     // -----------------------------------------------------------------
 
-    void        connect_impl();
-    void        disconnect_impl();
-    bool        is_connected_impl() const;
-    bool        ping_impl() const;
+    void        connect_helper();
+    void        disconnect_helper();
+    bool        is_connected_helper() const;
+    bool        ping_helper() const;
 
-    auto        execute_query_impl(const std::string& _query)
+    auto        execute_query_helper(const std::string& _query)
                     -> std::unique_ptr<
-                        result_set<struct sqlite_result_set_impl>>;
-    std::int64_t execute_update_impl(const std::string& _query);
-    bool        execute_impl(const std::string& _query);
+                        result_set<struct sqlite_result_set_helper>>;
+    std::int64_t execute_update_helper(const std::string& _query);
+    bool        execute_helper(const std::string& _query);
 
-    auto        prepare_impl(const std::string& _query)
+    auto        prepare_helper(const std::string& _query)
                     -> std::unique_ptr<
-                        statement<struct sqlite_statement_impl>>;
+                        statement<struct sqlite_statement_helper>>;
 
-    std::string  get_server_version_impl() const;
-    std::string  get_last_error_impl() const;
-    int          get_last_error_code_impl() const;
-    std::int64_t get_last_insert_id_impl() const;
-    std::int64_t get_affected_rows_impl() const;
+    std::string  get_server_version_helper() const;
+    std::string  get_last_error_helper() const;
+    int          get_last_error_code_helper() const;
+    std::int64_t get_last_insert_id_helper() const;
+    std::int64_t get_affected_rows_helper() const;
 
-    // SQLite-specific _impl methods
-    void        set_journal_mode_impl(const std::string& _mode);
-    std::string get_journal_mode_impl() const;
-    void        checkpoint_impl(int _mode);
-    void        execute_pragma_impl(const std::string& _pragma,
+    // SQLite-specific _helper methods
+    void        set_journal_mode_helper(const std::string& _mode);
+    std::string get_journal_mode_helper() const;
+    void        checkpoint_helper(int _mode);
+    void        execute_pragma_helper(const std::string& _pragma,
                                     const std::string& _value);
-    std::string get_pragma_impl(const std::string& _pragma) const;
-    void        set_busy_timeout_impl(int _timeout_ms);
-    void        attach_impl(const std::string& _file_path,
+    std::string get_pragma_helper(const std::string& _pragma) const;
+    void        set_busy_timeout_helper(int _timeout_ms);
+    void        attach_helper(const std::string& _file_path,
                             const std::string& _alias);
-    void        detach_impl(const std::string& _alias);
-    bool        table_exists_impl(const std::string& _name) const;
-    std::vector<std::string> get_table_names_impl() const;
-    void        begin_deferred_impl();
-    void        begin_immediate_impl();
-    void        begin_exclusive_impl();
+    void        detach_helper(const std::string& _alias);
+    bool        table_exists_helper(const std::string& _name) const;
+    std::vector<std::string> get_table_names_helper() const;
+    void        begin_deferred_helper();
+    void        begin_immediate_helper();
+    void        begin_exclusive_helper();
 
-    // transaction _impl methods
-    void begin_transaction_impl();
-    void commit_impl();
-    void rollback_impl();
+    // transaction _helper methods
+    void begin_transaction_helper();
+    void commit_helper();
+    void rollback_helper();
 
     // version-gated methods
 
@@ -1382,19 +1381,17 @@ private:
 // IX.  FORWARD DECLARATIONS
 // =============================================================================
 
-// sqlite_result_set_impl
+// sqlite_result_set_helper
 //   struct: forward declaration of the SQLite result set
 // implementation.
-struct sqlite_result_set_impl;
+struct sqlite_result_set_helper;
 
-// sqlite_statement_impl
+// sqlite_statement_helper
 //   struct: forward declaration of the SQLite prepared statement
 // implementation.
-struct sqlite_statement_impl;
+struct sqlite_statement_helper;
 
 
-NS_END  // sqlite
-NS_END  // database
 NS_END  // djinterp
 
 

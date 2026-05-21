@@ -27,16 +27,19 @@
 #ifndef DJINTERP_DATABASE_POSTGRES_CONCEPTS_
 #define DJINTERP_DATABASE_POSTGRES_CONCEPTS_ 1
 
-#include <type_traits>
-#include "postgres_traits.hpp"
-
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
     #error "postgres_concepts.hpp requires C++20 concepts support."
 #endif
 
+// std
+#include <type_traits>
+// djinterp
+#include "./postgres_traits.hpp"
+
 
 NS_DJINTERP
-NS_DATABASE
+
+
 // =============================================================================
 // I.   Core PostgreSQL Connection Concepts
 // =============================================================================
@@ -313,7 +316,6 @@ concept pg_full_connection =
     postgres_full_connection<_Type>;
 
 
-NS_END  // database
 NS_END  // djinterp
 
 

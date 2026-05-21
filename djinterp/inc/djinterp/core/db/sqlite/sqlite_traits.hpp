@@ -42,24 +42,11 @@
 #ifndef DJINTERP_DATABASE_SQLITE_TRAITS_
 #define DJINTERP_DATABASE_SQLITE_TRAITS_
 
-#include "database_traits.hpp"
+// djinterp
+#include "../database_traits.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-// =========================================================================
-//  NS_SQLITE
-// =========================================================================
-
-#ifndef D_KEYWORD_SQLITE
-    #define D_KEYWORD_SQLITE    sqlite
-#endif
-
-#ifndef NS_SQLITE
-    #define NS_SQLITE           D_NAMESPACE(D_KEYWORD_SQLITE)
-#endif
-
-NS_SQLITE
 
 
 // =============================================================================
@@ -599,8 +586,6 @@ using enable_if_has_sqlite_backup =
     typename std::enable_if<has_sqlite_backup<_T>::value>::type;
 
 
-NS_END  // sqlite
-NS_END  // database
 NS_END  // djinterp
 
 

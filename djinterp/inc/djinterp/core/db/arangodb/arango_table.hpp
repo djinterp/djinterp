@@ -46,14 +46,12 @@
 #define DJINTERP_DATABASE_ARANGO_TABLE_
 
 // djinterp
-#include "../../djinterp.hpp"
-#include "../arangodb.hpp"
-#include "./database_table.hpp"
+#include "../../../djinterp.hpp"
+#include "./arangodb.hpp"
+#include "../database_table.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
-NS_ARANGO
 
 
     // =========================================================================
@@ -84,7 +82,7 @@ NS_ARANGO
     //   class: ArangoDB-collection-backed database table. Supports
     // both document and edge collections, with AQL-backed refresh and
     // graph-aware edge handling.
-    template<typename _Config = container::empty_config>
+    template<typename _Config = void>
     class arango_table
         : public database_table<arango_connection,
                                 value,
@@ -476,8 +474,6 @@ NS_ARANGO
     };
 
 
-NS_END  // arango
-NS_END  // database
 NS_END  // djinterp
 
 

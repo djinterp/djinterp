@@ -43,18 +43,17 @@
 #include <atomic>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
-#include "./database_common.hpp"
+#include "../../djinterp.hpp"
+#include "./database.hpp"
 #include "./database_connection_template.hpp"
 
 
 NS_DJINTERP
-NS_DATABASE
 
 
-// =============================================================================
+// ===========================================================================
 // I.   DATABASE CONNECTION
-// =============================================================================
+// ===========================================================================
 
 // database_connection
 //   class template: operational connection base with state management,
@@ -642,7 +641,6 @@ private:
 };
 
 
-NS_END  // database
 NS_END  // djinterp
 
 
