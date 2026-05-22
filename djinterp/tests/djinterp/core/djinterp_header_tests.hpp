@@ -49,7 +49,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
+#include <djinterp/core/djinterp.hpp>
 
 
 NS_DJINTERP
