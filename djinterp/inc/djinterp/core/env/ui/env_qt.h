@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                     env_qt.h
+* djinterp [core]                                                    env_qt.h
 *
 *   djinterp Qt environment detection header:
 * This header provides comprehensive, compile-time detection of the Qt
@@ -30,9 +30,9 @@
 *   D_ENV_QT_[CATEGORY]_[FEATURE] - 1 if available, 0 otherwise
 *
 *
-* path:      /inc/base/env/ui/env_qt.h
+* path:      \inc\core\env\env_qt.h
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.28
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.28
 ******************************************************************************/
 
 #ifndef DJINTERP_ENV_QT_
@@ -41,11 +41,13 @@
 #include "./env.h"
 
 
-//////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // I.   QT VERSION CONSTANTS
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
+// -----------------------------------------------------------------------------
 // A.  major version constants
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_VERSION_1
 //   constant: QT_VERSION value for Qt 1.x (earliest public release).
@@ -72,7 +74,9 @@
 #define D_ENV_QT_VERSION_6              0x060000
 
 
+// -----------------------------------------------------------------------------
 // B.  notable minor version constants (Qt 4)
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_VERSION_4_6
 //   constant: QT_VERSION for Qt 4.6.0 (animation framework, state machines).
@@ -87,7 +91,9 @@
 #define D_ENV_QT_VERSION_4_8            0x040800
 
 
+// -----------------------------------------------------------------------------
 // C.  notable minor version constants (Qt 5)
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_VERSION_5_0
 //   constant: QT_VERSION for Qt 5.0.0 (initial Qt 5 release).
@@ -139,7 +145,9 @@
 #define D_ENV_QT_VERSION_5_15           0x050F00
 
 
+// -----------------------------------------------------------------------------
 // D.  notable minor version constants (Qt 6)
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_VERSION_6_0
 //   constant: QT_VERSION for Qt 6.0.0 (C++17 required, CMake build system).
@@ -181,11 +189,13 @@
 #define D_ENV_QT_VERSION_6_8            0x060800
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // II.  COMPILE-TIME QT DETECTION
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
+// -----------------------------------------------------------------------------
 // A.  presence and version extraction
+// -----------------------------------------------------------------------------
 
 // detect Qt via QT_VERSION (defined by <QtGlobal> or <QtCore/qglobal.h>)
 #if defined(QT_VERSION)
@@ -225,7 +235,9 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // B.  major version classification
+// -----------------------------------------------------------------------------
 
 #if D_ENV_QT_AVAILABLE
 
@@ -277,11 +289,13 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // III. QT BUILD CONFIGURATION
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
+// -----------------------------------------------------------------------------
 // A.  static vs shared linkage
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_STATIC
 //   feature: detect if Qt was built as a static library.
@@ -301,7 +315,9 @@
     #define D_ENV_QT_LINKAGE            "Unknown (assuming Shared)"
 #endif
 
+// -----------------------------------------------------------------------------
 // B.  debug vs release
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_DEBUG
 //   feature: detect if Qt was built in debug mode.
@@ -319,7 +335,9 @@
     #define D_ENV_QT_BUILD_MODE         "Unknown"
 #endif
 
+// -----------------------------------------------------------------------------
 // C.  namespace
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_NAMESPACED
 //   feature: detect if Qt was built with a custom namespace
@@ -331,14 +349,16 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // IV.  CORE MODULE DETECTION
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
 // module detection via QT_MODULE_* or module-specific macros defined when
 // the corresponding Qt module header is included.
 
+// -----------------------------------------------------------------------------
 // A.  essential modules (all Qt 5/6 installations)
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_CORE
 //   feature: detect if QtCore module is available.
@@ -413,7 +433,9 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // B.  QML and Quick modules
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_QML
 //   feature: detect if QtQml module is available (Qt 5+).
@@ -462,7 +484,9 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // C.  media and graphics modules
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_MULTIMEDIA
 //   feature: detect if QtMultimedia module is available.
@@ -476,7 +500,7 @@
 //   feature: detect if QtOpenGL module is available.
 #if defined(QT_OPENGL_LIB)
     #define D_ENV_QT_HAS_OPENGL        1
-#elif ( D_ENV_QT_AVAILABLE &&                                                 \
+#elif ( D_ENV_QT_AVAILABLE &&                                                  \
         !defined(QT_NO_OPENGL) )
     #define D_ENV_QT_HAS_OPENGL        1
 #else
@@ -500,7 +524,9 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // D.  data and serialization modules
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_XML
 //   feature: detect if QtXml module is available.
@@ -531,7 +557,7 @@
 
 // D_ENV_QT_HAS_CBOR
 //   feature: detect if CBOR support is available (Qt 5.12+).
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
       (D_ENV_QT_VER >= D_ENV_QT_VERSION_5_12) )
     #define D_ENV_QT_HAS_CBOR          1
 #else
@@ -539,12 +565,14 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // E.  web and connectivity modules
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_WEBENGINE
 //   feature: detect if Qt WebEngine module is available (Qt 5.4+).
 #if ( defined(QT_WEBENGINE_LIB)      ||                                       \
-      defined(QT_WEBENGINECORE_LIB)   ||                                      \
+      defined(QT_WEBENGINECORE_LIB)   ||                                       \
       defined(QT_WEBENGINEWIDGETS_LIB) )
     #define D_ENV_QT_HAS_WEBENGINE     1
 #else
@@ -641,12 +669,14 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // F.  3D, charts, and visualization modules
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_3D
 //   feature: detect if Qt 3D module is available (Qt 5.5+).
-#if ( defined(QT_3DCORE_LIB)    ||                                            \
-      defined(QT_3DRENDER_LIB)  ||                                            \
+#if ( defined(QT_3DCORE_LIB)    ||                                             \
+      defined(QT_3DRENDER_LIB)  ||                                             \
       defined(QT_3DINPUT_LIB) )
     #define D_ENV_QT_HAS_3D            1
 #else
@@ -699,7 +729,9 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // G.  positioning, sensors, and input
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_POSITIONING
 //   feature: detect if QtPositioning module is available (Qt 5.2+).
@@ -727,11 +759,13 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // V.   PLATFORM INTEGRATION
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
+// -----------------------------------------------------------------------------
 // A.  platform backend detection
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_PLATFORM_XCB
 //   feature: detect if the XCB (X11) platform plugin is targeted.
@@ -750,8 +784,8 @@
 //   feature: detect if Wayland platform plugin support is available.
 #if defined(QT_WAYLAND_LIB)
     #define D_ENV_QT_PLATFORM_WAYLAND   1
-#elif ( defined(Q_OS_LINUX) &&                                                \
-        D_ENV_QT_AVAILABLE  &&                                                \
+#elif ( defined(Q_OS_LINUX) &&                                                 \
+        D_ENV_QT_AVAILABLE  &&                                                 \
         (D_ENV_QT_VER >= D_ENV_QT_VERSION_5_4) )
     // Wayland support available since Qt 5.4 on Linux
     #define D_ENV_QT_PLATFORM_WAYLAND   1
@@ -838,7 +872,9 @@
 #endif
 
 
+// -----------------------------------------------------------------------------
 // B.  platform extras modules (Qt 5 only; removed in Qt 6)
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_X11EXTRAS
 //   feature: detect if QtX11Extras module is available (Qt 5 only,
@@ -868,9 +904,9 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // VI.  OPENGL AND RENDERING
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
 // D_ENV_QT_OPENGL_ES
 //   feature: detect if Qt is configured for OpenGL ES.
@@ -914,8 +950,8 @@
 
 // D_ENV_QT_HAS_VULKAN
 //   feature: detect if Qt Vulkan support is available (Qt 5.10+).
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
-      !defined(QT_NO_VULKAN) &&                                               \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
+      !defined(QT_NO_VULKAN) &&                                                \
       (D_ENV_QT_VER >= D_ENV_QT_VERSION_5_10) )
     #define D_ENV_QT_HAS_VULKAN        1
 #else
@@ -932,26 +968,30 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // VII. CORE FEATURE FLAGS
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
+// -----------------------------------------------------------------------------
 // A.  accessibility
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_ACCESSIBILITY
 //   feature: detect if accessibility support is enabled.
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
       !defined(QT_NO_ACCESSIBILITY) )
     #define D_ENV_QT_HAS_ACCESSIBILITY 1
 #else
     #define D_ENV_QT_HAS_ACCESSIBILITY 0
 #endif
 
+// -----------------------------------------------------------------------------
 // B.  internationalization
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_TRANSLATION
 //   feature: detect if Qt translation/i18n support is available.
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
       !defined(QT_NO_TRANSLATION) )
     #define D_ENV_QT_HAS_TRANSLATION   1
 #else
@@ -966,11 +1006,13 @@
     #define D_ENV_QT_HAS_ICU           0
 #endif
 
+// -----------------------------------------------------------------------------
 // C.  threading and concurrency
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_THREAD
 //   feature: detect if Qt threading support is enabled.
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
       !defined(QT_NO_THREAD) )
     #define D_ENV_QT_HAS_THREAD        1
 #else
@@ -986,11 +1028,13 @@
     #define D_ENV_QT_HAS_FUTURE        0
 #endif
 
+// -----------------------------------------------------------------------------
 // D.  file system and I/O
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_FILESYSTEMWATCHER
 //   feature: detect if QFileSystemWatcher is available.
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
       !defined(QT_NO_FILESYSTEMWATCHER) )
     #define D_ENV_QT_HAS_FILESYSTEMWATCHER 1
 #else
@@ -999,7 +1043,7 @@
 
 // D_ENV_QT_HAS_PROCESS
 //   feature: detect if QProcess is available.
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
       !defined(QT_NO_PROCESS) )
     #define D_ENV_QT_HAS_PROCESS       1
 #else
@@ -1008,14 +1052,16 @@
 
 // D_ENV_QT_HAS_SHAREDMEMORY
 //   feature: detect if QSharedMemory is available.
-#if ( D_ENV_QT_AVAILABLE &&                                                   \
+#if ( D_ENV_QT_AVAILABLE &&                                                    \
       !defined(QT_NO_SHAREDMEMORY) )
     #define D_ENV_QT_HAS_SHAREDMEMORY  1
 #else
     #define D_ENV_QT_HAS_SHAREDMEMORY  0
 #endif
 
+// -----------------------------------------------------------------------------
 // E.  SSL and cryptography
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_SSL
 //   feature: detect if SSL/TLS support is available in QtNetwork.
@@ -1039,11 +1085,13 @@
     #define D_ENV_QT_OPENSSL_LINKED    0
 #endif
 
+// -----------------------------------------------------------------------------
 // F.  regular expressions
+// -----------------------------------------------------------------------------
 
 // D_ENV_QT_HAS_REGEXP
 //   feature: detect if QRegExp is available (Qt 4/5, removed in Qt 6).
-#if ( (D_ENV_QT_IS_QT4 || D_ENV_QT_IS_QT5) &&                                 \
+#if ( (D_ENV_QT_IS_QT4 || D_ENV_QT_IS_QT5) &&                                \
       !defined(QT_NO_REGEXP) )
     #define D_ENV_QT_HAS_REGEXP        1
 #else
@@ -1053,7 +1101,7 @@
 // D_ENV_QT_HAS_REGULAREXPRESSION
 //   feature: detect if QRegularExpression is available (Qt 5.0+).
 // this is the PCRE2-based replacement for QRegExp.
-#if ( D_ENV_QT_AVAILABLE                    &&                                \
+#if ( D_ENV_QT_AVAILABLE                    &&                                 \
       (D_ENV_QT_VER >= D_ENV_QT_VERSION_5)  &&                                \
       !defined(QT_NO_REGULAREXPRESSION) )
     #define D_ENV_QT_HAS_REGULAREXPRESSION 1
@@ -1062,9 +1110,9 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // VIII. C++ STANDARD INTERPLAY
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
 // D_ENV_QT_CPP_MINIMUM_MET
 //   feature: evaluates to 1 if the current C++ standard meets the minimum
@@ -1072,7 +1120,7 @@
 // Qt 6 requires C++17; Qt 5.7+ requires C++11; Qt 4 requires C++98.
 #if D_ENV_QT_IS_QT6
     #ifdef D_ENV_LANG_CPP_STANDARD
-        #define D_ENV_QT_CPP_MINIMUM_MET                                      \
+        #define D_ENV_QT_CPP_MINIMUM_MET                                       \
             (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP17)
     #else
         #define D_ENV_QT_CPP_MINIMUM_MET 0
@@ -1080,7 +1128,7 @@
 #elif ( D_ENV_QT_IS_QT5 &&                                                    \
         (D_ENV_QT_VER >= D_ENV_QT_VERSION_5_7) )
     #ifdef D_ENV_LANG_CPP_STANDARD
-        #define D_ENV_QT_CPP_MINIMUM_MET                                      \
+        #define D_ENV_QT_CPP_MINIMUM_MET                                       \
             (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP11)
     #else
         #define D_ENV_QT_CPP_MINIMUM_MET 0
@@ -1088,7 +1136,7 @@
 #elif ( D_ENV_QT_IS_QT5 ||                                                    \
         D_ENV_QT_IS_QT4 )
     #ifdef D_ENV_LANG_CPP_STANDARD
-        #define D_ENV_QT_CPP_MINIMUM_MET                                      \
+        #define D_ENV_QT_CPP_MINIMUM_MET                                       \
             (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP98)
     #else
         #define D_ENV_QT_CPP_MINIMUM_MET 0
@@ -1103,7 +1151,7 @@
 #if ( D_ENV_QT_IS_QT6                                                ||       \
       (D_ENV_QT_IS_QT5 && (D_ENV_QT_VER >= D_ENV_QT_VERSION_5_15)) )
     #ifdef D_ENV_LANG_CPP_STANDARD
-        #define D_ENV_QT_HAS_CPP17_API                                        \
+        #define D_ENV_QT_HAS_CPP17_API                                         \
             (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP17)
     #else
         #define D_ENV_QT_HAS_CPP17_API  0
@@ -1118,7 +1166,7 @@
 #if ( D_ENV_QT_IS_QT6 &&                                                      \
       (D_ENV_QT_VER >= D_ENV_QT_VERSION_6_4) )
     #ifdef D_ENV_LANG_CPP_STANDARD
-        #define D_ENV_QT_HAS_CPP20_API                                        \
+        #define D_ENV_QT_HAS_CPP20_API                                         \
             (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP20)
     #else
         #define D_ENV_QT_HAS_CPP20_API  0
@@ -1128,9 +1176,9 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // IX.  DEPRECATION AND MIGRATION
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
 // D_ENV_QT_DISABLE_DEPRECATED_BEFORE
 //   feature: detect the Qt deprecation cutoff version if configured.
@@ -1159,9 +1207,9 @@
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // X.   RUNTIME DETECTION FUNCTIONS
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
 #ifdef __cplusplus
 extern "C" {
@@ -1203,62 +1251,62 @@ void d_env_qt_print_info(void);
 #endif
 
 
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 // XI.  CONVENIENCE MACROS
-////////////////////////////////////////////////////////////////////////////////
+// =============================================================================
 
 // D_ENV_HAS_QT
 //   macro: evaluates to 1 if any version of Qt is detected, 0 otherwise.
-#define D_ENV_HAS_QT()                                                        \
+#define D_ENV_HAS_QT()                                                         \
     (D_ENV_QT_AVAILABLE)
 
 // D_ENV_QT_AT_LEAST
 //   macro: evaluates to 1 if the detected Qt version is at least the
 // specified major, minor, patch version.
-#define D_ENV_QT_AT_LEAST(major, minor, patch)                                \
-    ( D_ENV_QT_AVAILABLE &&                                                   \
+#define D_ENV_QT_AT_LEAST(major, minor, patch)                                 \
+    ( D_ENV_QT_AVAILABLE &&                                                    \
       (D_ENV_QT_VER >= QT_VERSION_CHECK(major, minor, patch)) )
 
 // D_ENV_QT_AT_LEAST_HEX
 //   macro: evaluates to 1 if the detected Qt version is at least the
 // specified hex version constant (e.g. D_ENV_QT_VERSION_5_12).
-#define D_ENV_QT_AT_LEAST_HEX(hex_version)                                    \
-    ( D_ENV_QT_AVAILABLE &&                                                   \
+#define D_ENV_QT_AT_LEAST_HEX(hex_version)                                     \
+    ( D_ENV_QT_AVAILABLE &&                                                    \
       (D_ENV_QT_VER >= (hex_version)) )
 
 // D_ENV_QT_VERSION_CHECK_COMPAT
 //   macro: compatibility shim for QT_VERSION_CHECK on pre-Qt environments.
 // if QT_VERSION_CHECK is not defined (no Qt headers), provide an equivalent.
 #ifndef QT_VERSION_CHECK
-    #define QT_VERSION_CHECK(major, minor, patch)                             \
+    #define QT_VERSION_CHECK(major, minor, patch)                              \
         ((major << 16) | (minor << 8) | (patch))
 #endif
 
 // D_ENV_QT_IS_SERIES
 //   macro: evaluates to 1 if the detected Qt major version matches.
-#define D_ENV_QT_IS_SERIES(major)                                             \
-    ( D_ENV_QT_AVAILABLE &&                                                   \
+#define D_ENV_QT_IS_SERIES(major)                                              \
+    ( D_ENV_QT_AVAILABLE &&                                                    \
       (D_ENV_QT_VER_MAJOR == (major)) )
 
 // D_ENV_QT_IS_LTS
 //   macro: evaluates to 1 if the detected Qt version is a known LTS
 // release (Qt 5.6, 5.9, 5.12, 5.15, 6.2, 6.5, 6.8).
-#define D_ENV_QT_IS_LTS()                                                     \
+#define D_ENV_QT_IS_LTS()                                                      \
     ( ( D_ENV_QT_IS_QT5 &&                                                    \
-        ( (D_ENV_QT_VER_MINOR == 6)  ||                                       \
-          (D_ENV_QT_VER_MINOR == 9)  ||                                       \
-          (D_ENV_QT_VER_MINOR == 12) ||                                       \
-          (D_ENV_QT_VER_MINOR == 15) ) )                                      \
-      ||                                                                      \
+        ( (D_ENV_QT_VER_MINOR == 6)  ||                                        \
+          (D_ENV_QT_VER_MINOR == 9)  ||                                        \
+          (D_ENV_QT_VER_MINOR == 12) ||                                        \
+          (D_ENV_QT_VER_MINOR == 15) ) )                                       \
+      ||                                                                       \
       ( D_ENV_QT_IS_QT6 &&                                                    \
-        ( (D_ENV_QT_VER_MINOR == 2)  ||                                       \
-          (D_ENV_QT_VER_MINOR == 5)  ||                                       \
+        ( (D_ENV_QT_VER_MINOR == 2)  ||                                        \
+          (D_ENV_QT_VER_MINOR == 5)  ||                                        \
           (D_ENV_QT_VER_MINOR == 8) ) ) )
 
 // D_ENV_QT_HAS_MODERN_CONNECT
 //   macro: evaluates to 1 if the Qt 5+ type-safe signal/slot connect
 // syntax is available.
-#define D_ENV_QT_HAS_MODERN_CONNECT()                                         \
+#define D_ENV_QT_HAS_MODERN_CONNECT()                                          \
     ( D_ENV_QT_IS_QT5 ||                                                      \
       D_ENV_QT_IS_QT6 )
 

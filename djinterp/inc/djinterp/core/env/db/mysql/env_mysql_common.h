@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                         env_mysql_common.h
+* djinterp [db]                                             env_mysql_common.h
 *
 * djinterp MySQL-family common infrastructure header:
 * This header provides compile-time detection of features, capabilities, and
@@ -36,21 +36,26 @@
 * env_mysql.h or env_mariadb.h instead, which will pull in this header
 * automatically.
 *
-* path:      \inc\core\env\env_mysql_common.h
+* 
+* path:      /inc/djinterp/core/env/db/mysql/env_mysql_common.h
+* link(s)    TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
 ******************************************************************************/
 
 #ifndef DJINTERP_ENVIRONMENT_MYSQL_COMMON_
 #define DJINTERP_ENVIRONMENT_MYSQL_COMMON_ 1
 
-// djinterp
+// env_mysql_common.h is pulled in by BOTH env_mariadb.h and env_mysql.h.
+// To remain entry-point-agnostic, pull in both vendor config files so that
+// D_CFG_ENV_USING_MARIADB, D_CFG_ENV_USING_MYSQL, and their path/custom
+// companions are always defined by the time the include logic below runs.
 #include "../../../../config/core/env/db/mariadb/env_mariadb_config.h"
 #include "../../../../config/core/env/db/mysql/env_mysql_config.h"
 
 
-// =============================================================================
+// ===========================================================================
 // 0.   VENDOR HEADER INCLUSION
-// =============================================================================
+// ===========================================================================
 //   The MySQL family shares a single C client surface (libmysqlclient /
 // MariaDB Connector/C / mysql.h). This section performs that inclusion once,
 // driven by D_CFG_ENV_USING_MARIADB and D_CFG_ENV_USING_MYSQL from
@@ -213,9 +218,9 @@
     #endif
 #endif  // D_CFG_ENV_USING_MYSQL && __cplusplus
 
-// =============================================================================
+// ===========================================================================
 // I.   VENDOR DISAMBIGUATION
-// =============================================================================
+// ===========================================================================
 //   MariaDB defines MYSQL_VERSION_ID alongside MARIADB_VERSION_ID for
 // compatibility. We must check the MariaDB sentinels first to avoid
 // misidentifying a MariaDB build as Oracle MySQL.
@@ -259,9 +264,9 @@
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // II.  VERSION ENCODING
-// =============================================================================
+// ===========================================================================
 //   Both Oracle MySQL and MariaDB use the same encoding scheme:
 //     MAJOR * 10000 + MINOR * 100 + PATCH
 //   e.g. MySQL 8.0.35 = 80035, MariaDB 11.4.2 = 110402.
@@ -288,9 +293,9 @@
     ((ver_id) % 100)
 
 
-// =============================================================================
+// ===========================================================================
 // III. CLIENT LIBRARY DETECTION
-// =============================================================================
+// ===========================================================================
 //   These macros detect the presence of a MySQL-compatible C client library
 // regardless of vendor. They do NOT depend on version numbering.
 
@@ -320,9 +325,9 @@
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  C API FEATURES (VERSION-AGNOSTIC)
-// =============================================================================
+// ===========================================================================
 //   These C API features have existed since before the MySQL 5.5 fork point
 // and are present in every modern build of both Oracle MySQL and MariaDB.
 // They depend only on a client library being detected, not on version.
@@ -543,9 +548,9 @@
     #define D_ENV_MYSQL_COMMON_HAS_PLUGGABLE_AUTH      1
 
 
-// =============================================================================
+// ===========================================================================
 // V.   CORE STORAGE ENGINE DETECTION
-// =============================================================================
+// ===========================================================================
 //   Engines that are always compiled in, or detected via vendor-provided
 // compile-time defines. These do not depend on version gating.
 
@@ -599,9 +604,9 @@
     #endif
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  SSL/TLS LIBRARY DETECTION
-// =============================================================================
+// ===========================================================================
 //   Both products support SSL, but the underlying library varies (OpenSSL,
 // wolfSSL, yaSSL). This section detects the SSL backend, not protocol
 // features (which are version-gated and belong in vendor headers).
@@ -645,9 +650,9 @@
           D_ENV_MYSQL_COMMON_HAS_YASSL )
 
 
-// =============================================================================
+// ===========================================================================
 // VII. COMMON DATA TYPES
-// =============================================================================
+// ===========================================================================
 //   Types present in every MySQL-compatible server and client since before
 // the fork point.
 
@@ -673,9 +678,9 @@
     #define D_ENV_MYSQL_COMMON_HAS_SET_TYPE            1
 
 
-// =============================================================================
+// ===========================================================================
 // VIII. CHARACTER SET BASICS
-// =============================================================================
+// ===========================================================================
 
     // D_ENV_MYSQL_COMMON_HAS_UTF8MB3
     //   feature: utf8 (3-byte, aliased utf8mb3) character set is available.
@@ -689,9 +694,9 @@
     #define D_ENV_MYSQL_COMMON_UTF8_IS_UTF8MB3         1
 
 
-// =============================================================================
+// ===========================================================================
 // IX.  PLATFORM CONNECTION METHODS
-// =============================================================================
+// ===========================================================================
 
     // D_ENV_MYSQL_COMMON_HAS_TCP_IP
     //   feature: TCP/IP connections are available (always).

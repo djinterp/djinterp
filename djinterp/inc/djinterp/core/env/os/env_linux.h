@@ -32,7 +32,7 @@
 *
 * path:      \inc\core\env\env_linux.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.28
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.28
 ******************************************************************************/
 
 #ifndef DJINTERP_ENV_LINUX_
@@ -1261,7 +1261,7 @@
 
 // D_ENV_LINUX_HAS_SANITIZERS
 //   feature: detect if address/thread/undefined sanitizers are active.
-#if ( defined(__SANITIZE_ADDRESS__)  ||                                         \
+#if ( defined(__SANITIZE_ADDRESS__)  ||                                        \
       defined(__SANITIZE_THREAD__) )
     #define D_ENV_LINUX_HAS_SANITIZERS  1
 #elif ( defined(__has_feature) )

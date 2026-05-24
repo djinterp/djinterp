@@ -25,7 +25,7 @@
 *   section bits to enable testing different environments.
 * 
 *
-* path:      \inc\env.h                                           
+* path:      /inc/djinterp/core/env/env.h                                           
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2023.03.27
 ******************************************************************************/
@@ -34,17 +34,17 @@
 #define DJINTERP_ENVIRONMENT_ 1
 
 
-// =============================================================================
+// ===========================================================================
 // I.   CONFIGURATION SYSTEM
-// =============================================================================
+// ===========================================================================
 //   All D_CFG_ENV_* macros (master custom flag, bitfield positions,
 // section-enable helpers) are defined in the sibling config file below.
 
 #include "../../config/core/env/env_config.h"
 
-// =============================================================================
+// ===========================================================================
 // II.  LANGUAGE ENVIRONMENT 
-// =============================================================================
+// ===========================================================================
 
 // language standard version constants
 #define D_ENV_LANG_C_STANDARD_C95        199409L
@@ -166,32 +166,32 @@
 
     // D_ENV_LANG_IS_CPP98_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++98 or later.
-    #define D_ENV_LANG_IS_CPP98_OR_HIGHER  \
+    #define D_ENV_LANG_IS_CPP98_OR_HIGHER                                     \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP98)
 
     // D_ENV_LANG_IS_CPP11_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++11 or later.
-    #define D_ENV_LANG_IS_CPP11_OR_HIGHER  \
+    #define D_ENV_LANG_IS_CPP11_OR_HIGHER                                     \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP11)
 
     // D_ENV_LANG_IS_CPP14_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++14 or later.
-    #define D_ENV_LANG_IS_CPP14_OR_HIGHER  \
+    #define D_ENV_LANG_IS_CPP14_OR_HIGHER                                     \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP14)
 
     // D_ENV_LANG_IS_CPP17_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++17 or later.
-    #define D_ENV_LANG_IS_CPP17_OR_HIGHER  \
+    #define D_ENV_LANG_IS_CPP17_OR_HIGHER                                     \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP17)
 
     // D_ENV_LANG_IS_CPP20_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++20 or later.
-    #define D_ENV_LANG_IS_CPP20_OR_HIGHER  \
+    #define D_ENV_LANG_IS_CPP20_OR_HIGHER                                     \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP20)
 
     // D_ENV_LANG_IS_CPP23_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++23 or later.
-    #define D_ENV_LANG_IS_CPP23_OR_HIGHER  \
+    #define D_ENV_LANG_IS_CPP23_OR_HIGHER                                     \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP23)
 #else
     #define D_ENV_LANG_USING_CPP 0
@@ -205,32 +205,44 @@
 
 // D_ENV_LANG_IS_C95_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C95 or later.
-#define D_ENV_LANG_IS_C95_OR_HIGHER  \
+#define D_ENV_LANG_IS_C95_OR_HIGHER                                           \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C95)
 
 // D_ENV_LANG_IS_C99_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C99 or later.
-#define D_ENV_LANG_IS_C99_OR_HIGHER  \
+#define D_ENV_LANG_IS_C99_OR_HIGHER                                           \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C99)
 
 // D_ENV_LANG_IS_C11_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C11 or later.
-#define D_ENV_LANG_IS_C11_OR_HIGHER  \
+#define D_ENV_LANG_IS_C11_OR_HIGHER                                           \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C11)
 
 // D_ENV_LANG_IS_C17_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C17 or later.
-#define D_ENV_LANG_IS_C17_OR_HIGHER  \
+#define D_ENV_LANG_IS_C17_OR_HIGHER                                           \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C17)
 
 // D_ENV_LANG_IS_C23_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C23 or later.
-#define D_ENV_LANG_IS_C23_OR_HIGHER  \
+#define D_ENV_LANG_IS_C23_OR_HIGHER                                           \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C23)
 
-// =============================================================================
+// D_DELETE
+//   macro: resolves to "= delete" on C++11+, where deleted functions are part
+// of the language baseline.  On C++03, expands to nothing; the function should 
+// be left declared in the private section to achieve the same effect.
+#ifndef D_DELETE
+    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #define D_DELETE = delete
+    #else
+        #define D_DELETE
+    #endif
+#endif  // D_DELETE
+
+// ===========================================================================
 // III. POSIX STANDARDS DETECTION
-// =============================================================================
+// ===========================================================================
 
 // POSIX version constants
 #define D_ENV_POSIX_VERSION_1988        198808L  // POSIX.1-1988 (IEEE 1003.1)
@@ -581,9 +593,9 @@
 #define D_ENV_XSI_VERSION_AT_LEAST(version) \
     (D_ENV_POSIX_XSI_VERSION >= (version))
 
-// =============================================================================
+// ===========================================================================
 // IV.  COMPILER DETECTION
-// =============================================================================
+// ===========================================================================
 
 // compiler detection logic 
 #if D_CFG_ENV_COMPILER_ENABLED
@@ -794,9 +806,9 @@
 #define D_ENV_PP_HAS_VA_OPT_ENABLED  \
     D_ENV_PP_HAS_VA_OPT
 
-// =============================================================================
+// ===========================================================================
 // IV-A. PREPROCESSOR LIMITS
-// =============================================================================
+// ===========================================================================
 // This section defines preprocessor translation limits based on the C/C++
 // standard and compiler-specific implementations. These limits describe the
 // maximum capabilities guaranteed or supported by the environment.
@@ -964,9 +976,9 @@
 #define D_ENV_PP_EFFECTIVE_LIMIT(limit) \
     (D_ENV_PP_IS_UNLIMITED(limit) ? 2147483647L : (limit))
 
-// =============================================================================
+// ===========================================================================
 // V.   ARCHITECTURE DETECTION
-// =============================================================================
+// ===========================================================================
 
 // architecture type constants
 #define D_ENV_ARCH_TYPE_X86     0
@@ -1261,9 +1273,9 @@
     #define D_ENV_ARCH_IS_BIG_ENDIAN 0
 #endif  // (D_ENV_ARCH_ENDIAN == D_ENV_ARCH_ENDIAN_BIG)
 
-// =============================================================================
+// ===========================================================================
 // VI.  OPERATING SYSTEM DETECTION
-// =============================================================================
+// ===========================================================================
 
 // OS flag definitions
 #define D_ENV_OS_FLAG_APPLE             0x00
@@ -1569,9 +1581,9 @@
 
 #define D_ENV_PLATFORM_NAME D_ENV_OS_NAME
 
-// =============================================================================
+// ===========================================================================
 // VII.  C/C++ FEATURES
-// =============================================================================
+// ===========================================================================
 
 // -----------------------------------------------------------------------------
 // A.  Threading and Concurrency Support
@@ -1632,9 +1644,9 @@
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 //      STANDARD LIBRARY FEATURE DETECTION
-// =============================================================================
+// ===========================================================================
 
 // -----------------------------------------------------------------------------
 // B. Standard Headers Availability
@@ -2252,9 +2264,9 @@
 
 #endif  // __STDC_HOSTED__
 
-// =============================================================================
+// ===========================================================================
 // VIII.  BUILD CONFIGURATION
-// =============================================================================
+// ===========================================================================
 
 // build configuration detection logic
 #if D_CFG_ENV_BUILD_IS_ENABLED
@@ -2282,9 +2294,9 @@
     #endif
 #endif  // D_CFG_ENV_BUILD_IS_ENABLED
 
-// =============================================================================
+// ===========================================================================
 // IX.  DEBUG UTILITIES
-// =============================================================================
+// ===========================================================================
 
 #ifdef D_DEBUG_
     #include <stdio.h>

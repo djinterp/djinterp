@@ -66,8 +66,8 @@
 #ifndef DJINTERP_ENVIRONMENT_ORACLE_
 #define DJINTERP_ENVIRONMENT_ORACLE_ 1
 
-#include "../../../config/core/env/db/env_oracle_config.h"
-#include "./env_db.h"
+#include "../../../../config/core/env/db/oracle/env_oracle_config.h"
+#include "../env_db.h"
 
 
 // =============================================================================
