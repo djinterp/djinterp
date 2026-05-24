@@ -53,8 +53,9 @@
 #ifndef DJINTERP_ENVIRONMENT_POSTGRESQL_
 #define DJINTERP_ENVIRONMENT_POSTGRESQL_ 1
 
-#include "../../../config/core/env/db/env_postgresql_config.h"
-#include "./env_db.h"
+// djinterp
+#include "../../../../config/core/env/db/postgres/env_postgres_config.h"
+#include "../env_db.h"
 
 
 // =============================================================================

@@ -30,18 +30,31 @@
 *
 * path:      /inc/c/core/config/env_attributes.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          date: 2023.11.12
+* author(s): Sam 'teer' Neal-Blim                             date: 2023.11.12
 ******************************************************************************/
 
 #ifndef DJINTERP_ENV_ATTRIBUTES_
 #define DJINTERP_ENV_ATTRIBUTES_ 1
 
 
-// =============================================================================
+// ===========================================================================
 // I.   C++ ATTRIBUTES
-// =============================================================================
+// ===========================================================================
 
 #if defined(__cplusplus)
+
+// D_DELETE
+//   macro: resolves to "= delete" on C++11+, where deleted
+// functions are part of the language baseline.  On C++03,
+// expands to nothing; the function should be left declared
+// in the private section to achieve the same effect.
+#ifndef D_DELETE
+    #if D_ENV_LANG_IS_CPP11_OR_HIGHER
+        #define D_DELETE        = delete
+    #else
+        #define D_DELETE
+    #endif
+#endif  // D_DELETE
 
 // -----------------------------------------------------------------------------
 // D_NORETURN                                                     (C++11, §7.6.8)
@@ -371,9 +384,9 @@
 #endif  // D_ASSUME (outer guard)
 
 
-// =============================================================================
+// ===========================================================================
 // II.  C ATTRIBUTES
-// =============================================================================
+// ===========================================================================
 
 #else  // !defined(__cplusplus) - compiling as C
 

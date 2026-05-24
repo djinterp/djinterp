@@ -63,8 +63,9 @@
 #ifndef DJINTERP_ENVIRONMENT_ARANGODB_
 #define DJINTERP_ENVIRONMENT_ARANGODB_ 1
 
-#include "../../../config/core/env/db/env_arangodb_config.h"
-#include "./env_db.h"
+// djinterp
+#include "../../../../config/core/env/db/arangodb/env_arangodb_config.h"
+#include "../env_db.h"
 
 
 // =============================================================================

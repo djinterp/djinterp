@@ -39,7 +39,7 @@
 *
 * path:      \inc\core\env\env_apple.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.28
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.28
 ******************************************************************************/
 
 #ifndef DJINTERP_ENV_APPLE_

@@ -65,8 +65,9 @@
 #ifndef DJINTERP_ENVIRONMENT_MONGODB_
 #define DJINTERP_ENVIRONMENT_MONGODB_ 1
 
-#include "../../../config/core/env/db/env_mongodb_config.h"
-#include "./env_db.h"
+// djinterp
+#include "../../../../config/core/env/db/mongodb/env_mongodb_config.h"
+#include "../env_db.h"
 
 
 // =============================================================================
