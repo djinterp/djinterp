@@ -1,80 +1,50 @@
 /******************************************************************************
 * djinterp [options]                                          option_traits.hpp
 *
-*   Tagless structural detection, form classification, and pack
-* normalization for the options machinery.
+*   Trait machinery for option<>:
 *
-*   STRUCTURAL CLASSIFIERS:
-*   Five purely structural detectors over arbitrary types:
+*     1. is_option<T>          - detect "T is an option<...> specialization"
+*     2. find_arg              - generic predicate-based pack search
+*     3. option_find_arg       - same, adapted to walk an option's args
+*     4. option_has_arg        - boolean form of option_find_arg
+*     5. value<>               - the built-in "this option carries a value"
+*                                tag, kept alongside its detection traits
+*                                so the canonical example is self-contained
+*     6. option_from_tuple     - lift a tuple-shaped schema row into option<>
 *
-*     is_option              - is exactly option<_K, _V>
-*     is_option_list         - is exactly option_list<...>
-*     is_option_entry_like   - has .key, .value, key_type, value_type
-*     is_option_set_like     - has key_type, mapped_type, value_type,
-*                              find(_K), contains(_K)
-*     is_option_container_like - iterable, value_type is entry-like,
-*                              not set-like
+*   ADDING A NEW CONTEXT TAG (e.g. verifier, description, range, ...):
 *
-*   No tags, no markers, no registration.  A type is what it structurally
-* presents itself as.
+*     1. Define a tag struct:
+*          template<auto _Fn>
+*          struct verifier { static constexpr auto fn = _Fn; };
 *
-*   FORM CLASSIFICATION:
-*   `option_form` is a six-position enum classifying any type by its most
-* specific recognized shape.  The priority lattice is:
+*     2. Define a predicate trait that detects it:
+*          template<typename _T> struct is_verifier : std::false_type {};
+*          template<auto _Fn>
+*          struct is_verifier<verifier<_Fn>> : std::true_type {};
 *
-*     1. option_list_form          (canonical pack -> flatten)
-*     2. option_canonical_form     (canonical entry -> passthrough)
-*     3. option_set_form           (set-like -> runtime carrier hint)
-*     4. option_container_form     (container-of-entries -> runtime carrier hint)
-*     5. option_entry_form         (entry-like -> extract types)
-*     6. bare_key_form             (anything else -> claim next slot)
+*     3. (Optional) Convenience extractor over an option:
+*          template<typename _Option>
+*          using option_verifier_tag =
+*              option_find_arg_t<_Option, is_verifier>;
 *
-*   The bare_key_form is the negative-detection fallback that makes
-* `K, V, K, V` syntax work without any key-tag concept.
-*
-*   NORMALIZER:
-*   `normalize_options_t<_Options...>` walks any pack of mixed wire
-* formats and produces a single `option_list<option<K,V>...>`.  It is
-* the only entry point most users need.
-*
-*   QUERY TRAITS:
-*   Recursive walks over option_list:
-*
-*     option_list_contains  - is a key present?
-*     option_list_lookup    - get value type for a key (with default)
-*     option_list_keys      - the option_list with values stripped
-*
-* DEPENDENCIES:
-*   djinterp.hpp       - D_CONSTEXPR, void_t, clean_t, namespaces
-*   type_traits.hpp    - portable type_traits
-*   options.hpp        - option, option_list, list manipulation
+*   No central registration is required.  See option_tags.hpp for the
+* full shipped tag library following this pattern.
 *
 *
-* path:      /inc/djinterp/options/option_traits.hpp
+* path:      /inc/djinterp/core/options/option_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    Structural Classifiers
-      1. is_option
-      2. is_option_list
-      3. is_iterable_for_options     (file-local helper)
-      4. is_option_entry_like
-      5. is_option_set_like
-      6. is_option_container_like
-II.   Form Classification
-      1. option_form                 (enum)
-      2. classify_option_form
-III.  Normalizer
-      1. normalize_options
-IV.   Query Traits
-      1. option_list_contains
-      2. option_list_lookup
-      3. option_list_keys
-V.    Convenience _v / _t Aliases
+I.    is_option                          (option<> specialization detection)
+II.   find_arg                           (generic pack search by predicate)
+III.  option_find_arg / option_has_arg   (option-adapted)
+IV.   value<> tag + detection traits
+V.    option_from_tuple
 */
 
 #ifndef DJINTERP_OPTION_TRAITS_
@@ -82,509 +52,315 @@ V.    Convenience _v / _t Aliases
 
 // std
 #include <cstddef>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
-#include "../meta/type_traits.hpp"
-#include "./options.hpp"
+#include "./option.hpp"
 
 
 NS_DJINTERP
 
 
 // ===========================================================================
-// I.   Structural Classifiers
+// I.   is_option
 // ===========================================================================
-// All purely structural - no tags, no registration.  Each
-// classifier asks one yes/no question about a type's shape.
-
-// ---------------------------------------------------------------------------
-// 1. is_option
-// ---------------------------------------------------------------------------
 
 // is_option
-//   trait: true iff _Type is exactly option<_K, _V>.
-template<typename _Type>
+//   trait: true iff _T is some option<_Key, _Args...> specialization.
+// Catches both the unary form (option<K>) and the args form
+// (option<K, A, B, ...>) via a single _Args... pack that may be empty.
+template<typename _T>
 struct is_option : std::false_type
 {};
 
-template<typename _Key,
-         typename _Value>
-struct is_option<option<_Key, _Value>> : std::true_type
+template<auto        _Key,
+         typename... _Args>
+struct is_option<option<_Key, _Args...>> : std::true_type
 {};
 
-
-// ---------------------------------------------------------------------------
-// 2. is_option_list
-// ---------------------------------------------------------------------------
-
-// is_option_list
-//   trait: true iff _Type is exactly option_list<...>.
-template<typename _Type>
-struct is_option_list : std::false_type
-{};
-
-template<typename... _Options>
-struct is_option_list<option_list<_Options...>> : std::true_type
-{};
-
-
-// ---------------------------------------------------------------------------
-// 3. is_iterable_for_options  (file-local helper)
-// ---------------------------------------------------------------------------
-// Purely structural check: does _Type expose .begin() and
-// .end() callable on an lvalue?  This is the file-local
-// iteration predicate the container-form classifier consults.
-//
-//   This helper is intentionally narrow - the framework's
-// general-purpose iterable trait lives elsewhere; option_traits
-// rolls its own to avoid a circular header dependency.
-
-NS_INTERNAL
-
-    template<typename _Type,
-             typename = void>
-    struct is_iterable_for_options : std::false_type
-    {};
-
-    template<typename _Type>
-    struct is_iterable_for_options<_Type, void_t<
-        decltype(std::declval<_Type&>().begin()),
-        decltype(std::declval<_Type&>().end())
-    >> : std::true_type
-    {};
-
-NS_END  // internal
-
-
-// ---------------------------------------------------------------------------
-// 4. is_option_entry_like
-// ---------------------------------------------------------------------------
-
-// is_option_entry_like
-//   trait: true iff _Type exposes the entry surface:
-//     - nested key_type
-//     - nested value_type
-//     - .key   member (any access path)
-//     - .value member (any access path)
-//
-//   option_pair<K,V> satisfies this.  User-defined entry types
-// satisfy it automatically by structural conformance.
-template<typename _Type,
-         typename = void>
-struct is_option_entry_like : std::false_type
-{};
-
-template<typename _Type>
-struct is_option_entry_like<_Type, void_t<
-    typename clean_t<_Type>::key_type,
-    typename clean_t<_Type>::value_type,
-    decltype(std::declval<clean_t<_Type>&>().key),
-    decltype(std::declval<clean_t<_Type>&>().value)
->> : std::true_type
-{};
-
-
-// ---------------------------------------------------------------------------
-// 5. is_option_set_like
-// ---------------------------------------------------------------------------
-
-// is_option_set_like
-//   trait: true iff _Type exposes the set surface:
-//     - nested key_type, mapped_type, value_type
-//     - find(const key_type&) callable on a const lvalue
-//     - contains(const key_type&) callable on a const lvalue
-//
-//   option_set<K,V> satisfies this.  std::map and std::unordered_map
-// also satisfy it (in C++20+ for contains; pre-C++20 they do not
-// expose contains and so are classified as container_like below).
-template<typename _Type,
-         typename = void>
-struct is_option_set_like : std::false_type
-{};
-
-template<typename _Type>
-struct is_option_set_like<_Type, void_t<
-    typename clean_t<_Type>::key_type,
-    typename clean_t<_Type>::mapped_type,
-    typename clean_t<_Type>::value_type,
-    decltype(std::declval<const clean_t<_Type>&>().find(
-        std::declval<const typename clean_t<_Type>::key_type&>())),
-    decltype(std::declval<const clean_t<_Type>&>().contains(
-        std::declval<const typename clean_t<_Type>::key_type&>()))
->> : std::true_type
-{};
-
-
-// ---------------------------------------------------------------------------
-// 6. is_option_container_like
-// ---------------------------------------------------------------------------
-
-// is_option_container_like
-//   trait: true iff _Type is iterable and its value_type is
-// entry-like, but it is NOT set-like (no find/contains).
-//
-//   This catches std::vector<option_pair<K,V>>, plain arrays
-// of entries (when wrapped in a span-like view), and similar
-// flat sequences-of-entries.
-NS_INTERNAL
-
-    template<typename _Type,
-             typename = void>
-    struct is_option_container_like_helper : std::false_type
-    {};
-
-    template<typename _Type>
-    struct is_option_container_like_helper<_Type, std::enable_if_t<
-        ( is_iterable_for_options<_Type>::value  &&
-          !is_option_set_like<_Type>::value      &&
-          is_option_entry_like<
-              typename clean_t<_Type>::value_type>::value )
-    >> : std::true_type
-    {};
-
-NS_END  // internal
-
-template<typename _Type>
-struct is_option_container_like
-    : internal::is_option_container_like_helper<_Type>
-{};
+template<typename _T>
+inline constexpr bool is_option_v = is_option<_T>::value;
 
 
 // ===========================================================================
-// II.  Form Classification
+// II.  find_arg
 // ===========================================================================
 
-// option_form
-//   enum: classifies any type by its most-specific recognized
-// shape.  Priority is highest at the top.
+// find_arg
+//   trait: finds the first type in the pack for which
+// _Predicate<T>::value is true.  Members mirror std::find:
 //
-//   The bare_key_form is the negative-detection fallback that
-// catches anything not matching the other five.  This is what
-// makes the K,V,K,V wire format work tag-free.
-enum class option_form
+//     ::type   - the matching type, or arg_not_found on miss.
+//     ::found  - bool.
+//     ::index  - position of the match, or arg_npos on miss.
+//
+//   _Predicate is a single-parameter trait template (the same shape
+// as std::is_pointer, std::is_class, etc.).  This lets callers pass
+// any predicate they want without coupling find_arg to a specific
+// context.
+template<template<typename> class _Predicate,
+         typename...               _Args>
+struct find_arg;
+
+// base case: empty pack
+template<template<typename> class _Predicate>
+struct find_arg<_Predicate>
 {
-    // most specific - exact framework types
-    option_list_form,
-    option_canonical_form,
+    using type = arg_not_found;
 
-    // structural detection forms (high to low specificity)
-    option_set_form,
-    option_container_form,
-    option_entry_form,
-
-    // negative-detection fallback
-    bare_key_form
+    static constexpr bool        found = false;
+    static constexpr std::size_t index = arg_npos;
 };
 
-
-// classify_option_form
-//   trait: classifies _Type into an option_form.
-//
-//   Priority is enforced by short-circuit evaluation: the
-// first classifier that matches wins.  A type satisfying both
-// is_option_set_like and is_option_entry_like is classified
-// as set (more specific surface).
-template<typename _Type>
-struct classify_option_form
+// recursive case
+template<template<typename> class _Predicate,
+         typename                  _Head,
+         typename...               _Tail>
+struct find_arg<_Predicate, _Head, _Tail...>
 {
 private:
-    using clean_type = clean_t<_Type>;
+    static constexpr bool head_matches = _Predicate<_Head>::value;
+
+    using next_t = find_arg<_Predicate, _Tail...>;
 
 public:
-    static constexpr option_form value =
-          ( is_option_list<clean_type>::value )
-              ? option_form::option_list_form
-        : ( is_option<clean_type>::value )
-              ? option_form::option_canonical_form
-        : ( is_option_set_like<clean_type>::value )
-              ? option_form::option_set_form
-        : ( is_option_container_like<clean_type>::value )
-              ? option_form::option_container_form
-        : ( is_option_entry_like<clean_type>::value )
-              ? option_form::option_entry_form
-              : option_form::bare_key_form;
-};
-
-
-// ===========================================================================
-// III. Normalizer
-// ===========================================================================
-
-// Recursive type-level state machine that consumes a pack of
-// mixed wire formats and produces option_list<option<K,V>...>.
-//   The dispatcher is a separate template specialized on
-// option_form so each form's behavior is one isolated rule.
-
-NS_INTERNAL
-
-    // forward declaration of the public recursive helper
-    template<typename... _Pack>
-    struct normalize_helper;
-
-    // ----------------------------------------------------------------
-    // dispatcher - one specialization per form
-    // ----------------------------------------------------------------
-
-    template<option_form _Form,
-             typename... _Pack>
-    struct normalize_dispatch;
-
-    // option_list_form: flatten the inner pack and recurse
-    template<typename... _Inner,
-             typename... _Rest>
-    struct normalize_dispatch<option_form::option_list_form,
-                              option_list<_Inner...>,
-                              _Rest...>
-    {
-        using type = typename normalize_helper<_Inner..., _Rest...>::type;
-    };
-
-    // option_canonical_form: passthrough
-    template<typename    _Key,
-             typename    _Value,
-             typename... _Rest>
-    struct normalize_dispatch<option_form::option_canonical_form,
-                              option<_Key, _Value>,
-                              _Rest...>
-    {
-        using type = option_list_prepend_t<
-            option<_Key, _Value>,
-            typename normalize_helper<_Rest...>::type>;
-    };
-
-    // option_set_form: record runtime carrier hint
-    template<typename    _Head,
-             typename... _Rest>
-    struct normalize_dispatch<option_form::option_set_form,
-                              _Head,
-                              _Rest...>
-    {
-        using type = option_list_prepend_t<
-            option<runtime_options_carrier_key, clean_t<_Head>>,
-            typename normalize_helper<_Rest...>::type>;
-    };
-
-    // option_container_form: same treatment as set_form
-    template<typename    _Head,
-             typename... _Rest>
-    struct normalize_dispatch<option_form::option_container_form,
-                              _Head,
-                              _Rest...>
-    {
-        using type = option_list_prepend_t<
-            option<runtime_options_carrier_key, clean_t<_Head>>,
-            typename normalize_helper<_Rest...>::type>;
-    };
-
-    // option_entry_form: extract key_type and value_type
-    template<typename    _Head,
-             typename... _Rest>
-    struct normalize_dispatch<option_form::option_entry_form,
-                              _Head,
-                              _Rest...>
-    {
-        using type = option_list_prepend_t<
-            option<typename clean_t<_Head>::key_type,
-                   typename clean_t<_Head>::value_type>,
-            typename normalize_helper<_Rest...>::type>;
-    };
-
-    // bare_key_form (paired): claim next slot as value
-    template<typename    _Key,
-             typename    _Value,
-             typename... _Rest>
-    struct normalize_dispatch<option_form::bare_key_form,
-                              _Key,
-                              _Value,
-                              _Rest...>
-    {
-        using type = option_list_prepend_t<
-            option<_Key, _Value>,
-            typename normalize_helper<_Rest...>::type>;
-    };
-
-    // bare_key_form (lone): trailing flag-style key
-    template<typename _Key>
-    struct normalize_dispatch<option_form::bare_key_form, _Key>
-    {
-        using type = option_list<option<_Key, std::true_type>>;
-    };
-
-    // ----------------------------------------------------------------
-    // public recursive helper
-    // ----------------------------------------------------------------
-
-    // empty pack -> empty list
-    template<typename... _Pack>
-    struct normalize_helper
-    {
-        using type = option_list<>;
-    };
-
-    // non-empty pack -> classify head and dispatch
-    template<typename    _Head,
-             typename... _Rest>
-    struct normalize_helper<_Head, _Rest...>
-    {
-    private:
-        using clean_head = clean_t<_Head>;
-
-    public:
-        using type = typename normalize_dispatch<
-            classify_option_form<clean_head>::value,
-            clean_head,
-            _Rest...>::type;
-    };
-
-NS_END  // internal
-
-
-// normalize_options
-//   trait: the public entry point.  Normalizes any pack of
-// mixed wire formats into option_list<option<K,V>...>.
-template<typename... _Options>
-struct normalize_options
-{
     using type =
-        typename internal::normalize_helper<_Options...>::type;
+        std::conditional_t<head_matches, _Head, typename next_t::type>;
+
+    static constexpr bool found = (head_matches || next_t::found);
+
+    static constexpr std::size_t index =
+        head_matches
+            ? 0
+            : ( (next_t::index == arg_npos)
+                  ? arg_npos
+                  : (next_t::index + 1) );
 };
 
-// normalize_options_t
-//   type: convenience alias for normalize_options<...>::type.
-template<typename... _Options>
-using normalize_options_t =
-    typename normalize_options<_Options...>::type;
+template<template<typename> class _Predicate,
+         typename...               _Args>
+using find_arg_t = typename find_arg<_Predicate, _Args...>::type;
 
 
 // ===========================================================================
-// IV.  Query Traits
+// III. option_find_arg / option_has_arg
 // ===========================================================================
-// All queries operate on a normalized option_list.
 
-// ---------------------------------------------------------------------------
-// 1. option_list_contains
-// ---------------------------------------------------------------------------
+// option_find_arg
+//   adapter: applies find_arg to an option's args.  Yields
+// arg_not_found / false / arg_npos when the option has no args at
+// all (matching the empty-pack behavior of find_arg).
+template<typename                 _Option,
+         template<typename> class _Predicate>
+struct option_find_arg;
 
-// option_list_contains
-//   trait: true iff _List contains an option whose key_type
-// matches _Key (using std::is_same).
-template<typename _List,
-         typename _Key>
-struct option_list_contains : std::false_type
+// unary option: empty args -> miss
+template<auto                     _Key,
+         template<typename> class _Predicate>
+struct option_find_arg<option<_Key>, _Predicate>
+{
+    using type = arg_not_found;
+
+    static constexpr bool        found = false;
+    static constexpr std::size_t index = arg_npos;
+};
+
+// option with args
+template<auto                      _Key,
+         typename                  _First,
+         typename...               _Rest,
+         template<typename> class  _Predicate>
+struct option_find_arg<option<_Key, _First, _Rest...>, _Predicate>
+{
+private:
+    using inner_t = find_arg<_Predicate, _First, _Rest...>;
+
+public:
+    using type = typename inner_t::type;
+
+    static constexpr bool        found = inner_t::found;
+    static constexpr std::size_t index = inner_t::index;
+};
+
+template<typename                 _Option,
+         template<typename> class _Predicate>
+using option_find_arg_t = typename option_find_arg<_Option, _Predicate>::type;
+
+
+// option_has_arg
+//   trait: true iff some arg in the option satisfies _Predicate.
+template<typename                 _Option,
+         template<typename> class _Predicate>
+struct option_has_arg
+    : std::integral_constant<bool,
+        option_find_arg<_Option, _Predicate>::found>
 {};
 
-template<typename    _Key,
-         typename    _Head,
-         typename... _Tail>
-struct option_list_contains<option_list<_Head, _Tail...>, _Key>
+template<typename                 _Option,
+         template<typename> class _Predicate>
+inline constexpr bool option_has_arg_v =
+    option_has_arg<_Option, _Predicate>::value;
+
+
+// ===========================================================================
+// IV.  value<> tag + detection traits
+// ===========================================================================
+
+// value
+//   tag: "this option carries a value".  Mirrors the
+// std::integral_constant interface (::value_type, ::value), so it
+// composes with anything that already speaks that vocabulary.
+//
+//   The type is deduced from the NTTP via `auto`:
+//
+//     value<false>        ->  value_type = bool,    value = false
+//     value<42>           ->  value_type = int,     value = 42
+//     value<some_enum::x> ->  value_type = some_enum
+//
+//   The "user-explicit" form value<bool, false> is intentionally not
+// supported: type deduction from the NTTP is sufficient.  If you
+// genuinely need to override the deduced type, cast the NTTP at the
+// call site (e.g. `value<static_cast<long>(0)>`).
+template<auto _V>
+struct value
 {
-    static constexpr bool value =
-        ( std::is_same<typename _Head::key_type, _Key>::value ||
-          option_list_contains<option_list<_Tail...>,
-                               _Key>::value );
+    using value_type = decltype(_V);
+
+    static constexpr value_type the_value = _V;
 };
 
+// is_value
+//   trait: true iff _T is an instantiation of value<>.
+//   Closed over value<_V> by design - users add their own contexts
+// by defining their own predicates, not by extending is_value.
+template<typename _T>
+struct is_value : std::false_type
+{};
 
-// ---------------------------------------------------------------------------
-// 2. option_list_lookup
-// ---------------------------------------------------------------------------
+template<auto _V>
+struct is_value<value<_V>> : std::true_type
+{};
 
-// option_list_lookup
-//   trait: yields the value_type of the option whose key
-// matches _Key.  Falls back to _Default if absent.
-template<typename _List,
-         typename _Key,
-         typename _Default = void>
-struct option_list_lookup
-{
-    using type = _Default;
-};
-
-template<typename    _Key,
-         typename    _Default,
-         typename    _Head,
-         typename... _Tail>
-struct option_list_lookup<option_list<_Head, _Tail...>,
-                          _Key,
-                          _Default>
-{
-    using type = std::conditional_t<
-        std::is_same<typename _Head::key_type, _Key>::value,
-        typename _Head::value_type,
-        typename option_list_lookup<option_list<_Tail...>,
-                                    _Key,
-                                    _Default>::type>;
-};
-
-// option_list_lookup_t
-//   type: convenience alias for option_list_lookup<...>::type.
-template<typename _List,
-         typename _Key,
-         typename _Default = void>
-using option_list_lookup_t = typename option_list_lookup<_List, _Key, _Default>::type;
+template<typename _T>
+inline constexpr bool is_value_v = is_value<_T>::value;
 
 
-// ---------------------------------------------------------------------------
-// 3. option_list_keys
-// ---------------------------------------------------------------------------
+// option_value_tag
+//   trait: yields the option's value<> tag if present, or
+// arg_not_found otherwise.
+template<typename _Option>
+using option_value_tag = option_find_arg<_Option, is_value>;
 
-// option_list_keys
-//   trait: produces an option_list whose entries' value_types
-// have been replaced by void.  Useful when only key presence
-// matters and downstream code wants a fixed shape.
+template<typename _Option>
+using option_value_tag_t = typename option_value_tag<_Option>::type;
+
+// option_has_value
+//   trait: true iff the option carries a value<> tag among its args.
+template<typename _Option>
+struct option_has_value
+    : std::integral_constant<bool, option_value_tag<_Option>::found>
+{};
+
+template<typename _Option>
+inline constexpr bool option_has_value_v = option_has_value<_Option>::value;
+
+
+// ===========================================================================
+// V.   option_from_tuple
+// ===========================================================================
+
+// option_from_tuple
+//   trait: lifts a std::tuple-shaped schema into an option<>.  The
+// element at _KeyIndex is treated as the key carrier - it must
+// expose a static constexpr ::value member, which becomes the
+// option's key NTTP.  All other elements (in their original
+// left-to-right order) become the option's args.
+//
+// Example:
+//   template<auto _V>
+//   struct key_v { static constexpr auto value = _V; };
+//
+//   using row = std::tuple<key_v<window_opt::title>,
+//                          value<"Untitled">,
+//                          verifier<&fn>>;
+//   using opt = option_from_tuple_t<row, 0>;
+//   // opt == option<window_opt::title,
+//   //               value<"Untitled">,
+//   //               verifier<&fn>>
+template<typename    _Tuple,
+         std::size_t _KeyIndex>
+struct option_from_tuple;
+
 NS_INTERNAL
 
-    template<typename _Option>
-    struct strip_value
+    // option_from_tuple_helper
+    //   helper: given an index_sequence covering the args (length
+    // tuple_size - 1, since the key element is skipped), maps each
+    // sequence index i to either tuple_element_t<i, _Tuple> (when
+    // i < _KeyIndex) or tuple_element_t<i + 1, _Tuple> (when
+    // i >= _KeyIndex).  Classic skip-the-i-th trick.
+    template<typename    _Tuple,
+             std::size_t _KeyIndex,
+             typename    _IndexSequence>
+    struct option_from_tuple_helper;
+
+    template<typename       _Tuple,
+             std::size_t    _KeyIndex,
+             std::size_t... _Indexes>
+    struct option_from_tuple_helper<_Tuple,
+                                    _KeyIndex,
+                                    std::index_sequence<_Indexes...>>
     {
-        using type = option<typename _Option::key_type, void>;
+        using key_carrier_type =
+            std::tuple_element_t<_KeyIndex, _Tuple>;
+
+        static_assert(
+            requires { key_carrier_type::value; },
+            "option_from_tuple: the element at _KeyIndex must "
+            "expose a static constexpr ::value member.");
+
+        template<std::size_t _Index>
+        using arg_at =
+            std::conditional_t<
+                (_Index < _KeyIndex),
+                std::tuple_element_t<_Index,     _Tuple>,
+                std::tuple_element_t<_Index + 1, _Tuple>>;
+
+        using type = option<key_carrier_type::value, arg_at<_Indexes>...>;
     };
 
 NS_END  // internal
 
-template<typename _List>
-struct option_list_keys;
-
-template<typename... _Options>
-struct option_list_keys<option_list<_Options...>>
+template<typename    _Tuple,
+         std::size_t _KeyIndex>
+struct option_from_tuple
 {
-    using type = option_list<
-        typename internal::strip_value<_Options>::type...>;
+private:
+    static constexpr std::size_t tuple_size = std::tuple_size_v<_Tuple>;
+
+    static_assert(tuple_size >= 1,
+                  "option_from_tuple: tuple must contain at least the key.");
+    static_assert(_KeyIndex < tuple_size,
+                  "option_from_tuple: key index is out of range.");
+
+    // Compute args sequence length safely: 0 for key-only tuples.
+    // Prevents ever forming make_index_sequence<-1>.
+    static constexpr std::size_t args_count =
+        (tuple_size > 0 ? tuple_size - 1 : 0);
+
+public:
+    using type =
+        typename internal::option_from_tuple_helper<
+            _Tuple,
+            _KeyIndex,
+            std::make_index_sequence<args_count>>::type;
 };
 
-// option_list_keys_t
-//   type: convenience alias for option_list_keys<...>::type.
-template<typename _List>
-using option_list_keys_t = typename option_list_keys<_List>::type;
-
-
-// ===========================================================================
-// V.   Convenience _v Aliases
-// ===========================================================================
-
-template<typename _Type>
-inline constexpr bool is_option_v = is_option<_Type>::value;
-
-template<typename _Type>
-inline constexpr bool is_option_list_v = is_option_list<_Type>::value;
-
-template<typename _Type>
-inline constexpr bool is_option_entry_like_v = is_option_entry_like<_Type>::value;
-
-template<typename _Type>
-inline constexpr bool is_option_set_like_v = is_option_set_like<_Type>::value;
-
-template<typename _Type>
-inline constexpr bool is_option_container_like_v = is_option_container_like<_Type>::value;
-
-template<typename _Type>
-inline constexpr option_form classify_option_form_v = classify_option_form<_Type>::value;
-
-template<typename _List,
-         typename _Key>
-inline constexpr bool option_list_contains_v = option_list_contains<_List, _Key>::value;
+template<typename    _Tuple,
+         std::size_t _KeyIndex>
+using option_from_tuple_t = typename option_from_tuple<_Tuple, _KeyIndex>::type;
 
 
 NS_END  // djinterp
