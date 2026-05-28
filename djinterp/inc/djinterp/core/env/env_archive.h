@@ -65,6 +65,22 @@
     #define D_INTERNAL_ARCHIVE_PROBE(header) 0
 #endif
 
+// D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP
+//   configuration: the djinterp archive facade (archive.hpp / archive.cpp)
+// ships dependency-free ustar and ZIP writers/readers. These default to 1 so
+// the capability roll-ups below report tar and zip as available even when no
+// third-party archive library is detected. The ZIP writer's DEFLATE method
+// additionally requires a DEFLATE codec; with none present it falls back to
+// the store method, so the built-in remains usable either way. Define either
+// macro to 0 to model an environment that excludes the built-in writers.
+#ifndef D_ENV_ARCHIVE_HAVE_BUILTIN_TAR
+    #define D_ENV_ARCHIVE_HAVE_BUILTIN_TAR  1
+#endif
+
+#ifndef D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP
+    #define D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP  1
+#endif
+
 
 // =============================================================================
 // II.  LIBARCHIVE (multi-format)
@@ -259,12 +275,15 @@
 
 // D_ENV_ARCHIVE_CAN_READ_RAR5
 //   feature: 1 if a backend that understands the RAR5 format is available.
-// UnRAR and 7-Zip handle RAR5; libarchive added RAR5 read support in 3.4.0.
+// UnRAR and 7-Zip handle RAR5; libarchive has supported RAR5 read since 3.4.0.
+// As with 7z write, we key on libarchive presence rather than
+// D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST (which requires including <archive.h>);
+// any libarchive recent enough to be installed satisfies the 3.4 floor.
 #define D_ENV_ARCHIVE_CAN_READ_RAR5                                          \
-    ( D_ENV_ARCHIVE_HAVE_UNRAR ||                                            \
-      D_ENV_ARCHIVE_HAVE_BIT7Z ||                                            \
-      D_ENV_ARCHIVE_HAVE_RAR_TOOL ||                                         \
-      D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST(3, 4, 0) )
+    ( D_ENV_ARCHIVE_HAVE_UNRAR    ||                                        \
+      D_ENV_ARCHIVE_HAVE_BIT7Z    ||                                        \
+      D_ENV_ARCHIVE_HAVE_RAR_TOOL ||                                        \
+      D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
 
 // =============================================================================
@@ -335,7 +354,8 @@
       D_ENV_ARCHIVE_HAVE_LIBZIP          ||                                   \
       D_ENV_ARCHIVE_HAVE_MINIZIP         ||                                   \
       D_ENV_COMPRESSION_HAVE_MINIZ       ||                                   \
-      D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP )
+      D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP   ||                                   \
+      D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP )
 
 // D_ENV_ARCHIVE_CAN_WRITE_ZIP
 //   feature: 1 if some backend can write zip archives.
@@ -349,7 +369,8 @@
 //   feature: 1 if some backend can read tar archives (uncompressed).
 #define D_ENV_ARCHIVE_CAN_READ_TAR                                            \
     ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                        \
-      D_ENV_ARCHIVE_HAVE_LIBTAR )
+      D_ENV_ARCHIVE_HAVE_LIBTAR     ||                                        \
+      D_ENV_ARCHIVE_HAVE_BUILTIN_TAR )
 
 // D_ENV_ARCHIVE_CAN_WRITE_TAR
 //   feature: 1 if some backend can write tar archives (uncompressed).
@@ -360,7 +381,8 @@
 // gzip codec, or libarchive which bundles the gzip filter).
 #define D_ENV_ARCHIVE_CAN_WRITE_TGZ                                           \
     ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                        \
-      ( D_ENV_ARCHIVE_HAVE_LIBTAR && D_ENV_COMPRESSION_HAVE_GZIP ) )
+      ( D_ENV_ARCHIVE_HAVE_LIBTAR      && D_ENV_COMPRESSION_HAVE_GZIP ) ||    \
+      ( D_ENV_ARCHIVE_HAVE_BUILTIN_TAR && D_ENV_COMPRESSION_HAVE_GZIP_WRAP ) )
 
 // -----------------------------------------------------------------------------
 // C.  gz (gzip stream)
@@ -386,12 +408,15 @@
 #define D_ENV_ARCHIVE_CAN_READ_7Z           D_ENV_ARCHIVE_HAVE_7ZIP
 
 // D_ENV_ARCHIVE_CAN_WRITE_7Z
-//   feature: 1 if some backend can write 7z archives. libarchive gained 7z
-// write support in 3.x; bit7z and the LZMA SDK can also create 7z.
+//   feature: 1 if some backend can write 7z archives. libarchive has shipped
+// 7z write support since 3.0; we key on presence rather than
+// D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST (which needs <archive.h> to be included to
+// read ARCHIVE_VERSION_NUMBER, and this is a presence-only detection layer).
+// bit7z and the LZMA SDK can also create 7z.
 #define D_ENV_ARCHIVE_CAN_WRITE_7Z                                            \
-    ( D_ENV_ARCHIVE_HAVE_BIT7Z    ||                                          \
-      D_ENV_ARCHIVE_HAVE_LZMA_SDK ||                                          \
-      D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST(3, 0, 0) )
+    ( D_ENV_ARCHIVE_HAVE_BIT7Z      ||                                        \
+      D_ENV_ARCHIVE_HAVE_LZMA_SDK   ||                                        \
+      D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
 // -----------------------------------------------------------------------------
 // E.  rar
@@ -441,6 +466,7 @@
 #define D_ENV_ARCHIVE_BACKEND_BIT7Z         8
 #define D_ENV_ARCHIVE_BACKEND_UNRAR         9
 #define D_ENV_ARCHIVE_BACKEND_RAR_TOOL      10
+#define D_ENV_ARCHIVE_BACKEND_BUILTIN       11
 
 // D_ENV_ARCHIVE_PREFERRED_ZIP
 //   constant: preferred zip backend. a dedicated zip library is favoured for
@@ -456,16 +482,20 @@
     #define D_ENV_ARCHIVE_PREFERRED_ZIP     D_ENV_ARCHIVE_BACKEND_LIBARCHIVE
 #elif D_ENV_COMPRESSION_HAVE_MINIZ
     #define D_ENV_ARCHIVE_PREFERRED_ZIP     D_ENV_ARCHIVE_BACKEND_MINIZ
+#elif D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP
+    #define D_ENV_ARCHIVE_PREFERRED_ZIP     D_ENV_ARCHIVE_BACKEND_BUILTIN
 #else
     #define D_ENV_ARCHIVE_PREFERRED_ZIP     D_ENV_ARCHIVE_BACKEND_NONE
 #endif
 
 // D_ENV_ARCHIVE_PREFERRED_TAR
-//   constant: preferred tar backend (libarchive, then libtar).
+//   constant: preferred tar backend (libarchive, then libtar, then built-in).
 #if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
     #define D_ENV_ARCHIVE_PREFERRED_TAR     D_ENV_ARCHIVE_BACKEND_LIBARCHIVE
 #elif D_ENV_ARCHIVE_HAVE_LIBTAR
     #define D_ENV_ARCHIVE_PREFERRED_TAR     D_ENV_ARCHIVE_BACKEND_LIBTAR
+#elif D_ENV_ARCHIVE_HAVE_BUILTIN_TAR
+    #define D_ENV_ARCHIVE_PREFERRED_TAR     D_ENV_ARCHIVE_BACKEND_BUILTIN
 #else
     #define D_ENV_ARCHIVE_PREFERRED_TAR     D_ENV_ARCHIVE_BACKEND_NONE
 #endif

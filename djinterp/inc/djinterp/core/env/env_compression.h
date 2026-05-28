@@ -1,5 +1,5 @@
 /*******************************************************************************
-* djinterp [env]                                                 env_compress.h
+* djinterp [core]                                            env_compression.h
 *
 *   djinterp compression-codec environment detection header:
 * This header provides compile-time detection of third-party data-compression
@@ -36,8 +36,7 @@
 *   D_ENV_COMPRESSION_[LIB]_[FIELD]  - version / metadata for a detected library
 *   D_ENV_COMPRESSION_HAVE_[CODEC]   - 1 if some library provides the codec
 *
-
-* path:      /inc/djinterp/core/env/env_compress.h
+* path:      \inc\core\env\env_compression.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.05.23
 *******************************************************************************/
