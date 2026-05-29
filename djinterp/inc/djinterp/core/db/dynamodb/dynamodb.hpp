@@ -1,0 +1,1467 @@
+/******************************************************************************
+* djinterp [database]                                             dynamodb.hpp
+*
+* djinterp DynamoDB connection module:
+*   This header provides the Amazon DynamoDB-specific connection
+* implementation and associated data type infrastructure for the djinterp
+* database module, including:
+*   - DynamoDB attribute type enumeration (S, N, B, BOOL, NULL, M, L,
+*     SS, NS, BS)
+*   - attribute-type-to-field_type mapping (one rung above the wire
+*     descriptor)
+*   - compile-time type and feature availability via D_ENV_DYNAMODB_*
+*     macros covering attribute types, transactions, PartiQL, streams,
+*     global tables, on-demand capacity, PITR, DAX, and encryption
+*   - DynamoDB-specific connection configuration (AWS region, endpoint
+*     override, credential profile, DAX cluster endpoint, default read
+*     consistency, retry policy, capacity mode)
+*   - the concrete dynamodb_connection CRTP leaf class with item
+*     operations, batch operations, query/scan, transactions, PartiQL,
+*     conditional writes, table management, secondary indexes, Streams,
+*     TTL management, backup / PITR, diagnostics, global tables, and
+*     resource tagging
+*   - feature-gated method declarations for transactions, PartiQL,
+*     Streams, and global tables
+*
+*   DynamoDB is a managed key-value / document store, not a relational
+* database. There is no SQL dialect (PartiQL aside), no server-side
+* joins, and no INFORMATION_SCHEMA. Every operation is a request against
+* the control plane (table administration) or data plane (item access)
+* over a fleet of tables holding schemaless items keyed by a partition
+* key plus an optional sort key. The connection surface mirrors the
+* AWS SDK for C++ client (Aws::DynamoDB::DynamoDBClient) rather than any
+* SQL connection idiom.
+*
+*   LAYER DIAGRAM:
+*     dynamodb_connection (this file)
+*       -> database_connection<dynamodb_connection, database_type::dynamodb>
+*         -> connection_template<dynamodb_connection,
+*                                database_type::dynamodb>
+*           -> connection<dynamodb_connection>
+*
+*   NOTE: database_type::dynamodb must be present in the database_type
+* enumeration in database.hpp (e.g. dynamodb = 0x0F). The corresponding
+* db_traits<database_type::dynamodb> specialization supplies the default
+* endpoint/port metadata.
+*
+*   PORTABILITY:
+*   This header requires C++17 or later. It does not include the AWS SDK
+* headers; the concrete _impl method definitions in dynamodb.cpp include
+* <aws/dynamodb/DynamoDBClient.h> and related headers.
+*
+*
+* path:      /inc/djinterp/core/db/dynamodb/dynamodb.hpp
+* link:      TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.28
+******************************************************************************/
+
+#ifndef DJINTERP_DATABASE_DYNAMODB_
+#define DJINTERP_DATABASE_DYNAMODB_
+
+// std
+#include <chrono>
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+// djinterp
+#include "../../../djinterp.hpp"
+#include "../../../env/db/dynamodb/env_dynamodb.h"
+#include "../database_connection.hpp"
+#include "./dynamodb_traits.hpp"
+
+
+NS_DJINTERP
+
+
+// =============================================================================
+// I.   DYNAMODB ATTRIBUTE TYPE ENUMERATION
+// =============================================================================
+// DynamoDB describes every attribute value with a single-letter type
+// descriptor on the wire. Unlike SQL OIDs these are not numeric identifiers;
+// the values below are djinterp-local enumerators mapping onto those
+// descriptors. The concrete connection's marshalling code in dynamodb.cpp
+// translates between this enum and the AWS SDK's AttributeValue type.
+
+// dynamodb_attribute_type
+//   enumeration: DynamoDB attribute value descriptors.
+enum class dynamodb_attribute_type : std::uint16_t
+{
+    // -----------------------------------------------------------------
+    // none / missing
+    // -----------------------------------------------------------------
+    none        = 0x00,
+
+    // -----------------------------------------------------------------
+    // scalar types
+    // -----------------------------------------------------------------
+    string      = 0x01,     // "S"    — UTF-8 string
+    number      = 0x02,     // "N"    — number (sent as a string)
+    binary      = 0x03,     // "B"    — binary blob
+    boolean     = 0x04,     // "BOOL" — boolean
+    null_value  = 0x05,     // "NULL" — explicit null
+
+    // -----------------------------------------------------------------
+    // document types
+    // -----------------------------------------------------------------
+    map         = 0x10,     // "M"    — nested attribute map
+    list        = 0x11,     // "L"    — ordered list of values
+
+    // -----------------------------------------------------------------
+    // set types
+    // -----------------------------------------------------------------
+    string_set  = 0x20,     // "SS"   — set of strings
+    number_set  = 0x21,     // "NS"   — set of numbers
+    binary_set  = 0x22,     // "BS"   — set of binary blobs
+
+    // -----------------------------------------------------------------
+    // sentinel: not a recognised descriptor
+    // -----------------------------------------------------------------
+    unknown     = 0xFF
+};
+
+
+// =============================================================================
+// II.  ATTRIBUTE-TYPE-TO-FIELD_TYPE MAPPING
+// =============================================================================
+
+// dynamodb_attribute_type_to_field_type
+//   function: maps a DynamoDB attribute type to the generic djinterp
+// field_type. Aggregate types (map, list, sets) have no single field-
+// level mapping and resolve to field_type::custom.
+inline field_type dynamodb_attribute_type_to_field_type(
+    dynamodb_attribute_type _type) noexcept
+{
+    switch (_type)
+    {
+        case dynamodb_attribute_type::none:
+        case dynamodb_attribute_type::null_value:
+            return field_type::null;
+
+        case dynamodb_attribute_type::string:
+            return field_type::string;
+
+        case dynamodb_attribute_type::number:
+            // DynamoDB numbers carry up to 38 digits of precision and
+            // are transmitted as strings; expose as decimal so callers
+            // do not silently lose precision to a binary double.
+            return field_type::decimal;
+
+        case dynamodb_attribute_type::binary:
+        case dynamodb_attribute_type::binary_set:
+            return field_type::binary;
+
+        case dynamodb_attribute_type::boolean:
+            return field_type::boolean;
+
+        case dynamodb_attribute_type::map:
+            // maps are JSON-like documents.
+            return field_type::json;
+
+        case dynamodb_attribute_type::list:
+        case dynamodb_attribute_type::string_set:
+        case dynamodb_attribute_type::number_set:
+            return field_type::array;
+
+        case dynamodb_attribute_type::unknown:
+        default:
+            return field_type::custom;
+    }
+}
+
+// dynamodb_attribute_type_from_descriptor
+//   function: maps the wire descriptor ("S", "N", "B", "BOOL",
+// "NULL", "M", "L", "SS", "NS", "BS") to dynamodb_attribute_type.
+inline dynamodb_attribute_type dynamodb_attribute_type_from_descriptor(
+    const std::string& _descriptor) noexcept
+{
+    if (_descriptor == "S")
+    {
+        return dynamodb_attribute_type::string;
+    }
+
+    if (_descriptor == "N")
+    {
+        return dynamodb_attribute_type::number;
+    }
+
+    if (_descriptor == "B")
+    {
+        return dynamodb_attribute_type::binary;
+    }
+
+    if (_descriptor == "BOOL")
+    {
+        return dynamodb_attribute_type::boolean;
+    }
+
+    if (_descriptor == "NULL")
+    {
+        return dynamodb_attribute_type::null_value;
+    }
+
+    if (_descriptor == "M")
+    {
+        return dynamodb_attribute_type::map;
+    }
+
+    if (_descriptor == "L")
+    {
+        return dynamodb_attribute_type::list;
+    }
+
+    if (_descriptor == "SS")
+    {
+        return dynamodb_attribute_type::string_set;
+    }
+
+    if (_descriptor == "NS")
+    {
+        return dynamodb_attribute_type::number_set;
+    }
+
+    if (_descriptor == "BS")
+    {
+        return dynamodb_attribute_type::binary_set;
+    }
+
+    return dynamodb_attribute_type::unknown;
+}
+
+// field_type_to_dynamodb_descriptor
+//   function: returns the closest DynamoDB attribute descriptor for a
+// given field_type. Used by the table layer when laying out item
+// attributes.
+inline const char* field_type_to_dynamodb_descriptor(field_type _type)
+    noexcept
+{
+    switch (_type)
+    {
+        case field_type::null:           return "NULL";
+        case field_type::boolean:        return "BOOL";
+        case field_type::integer:        return "N";
+        case field_type::big_integer:    return "N";
+        case field_type::floating_point: return "N";
+        case field_type::decimal:        return "N";
+        case field_type::string:         return "S";
+        case field_type::binary:         return "B";
+        case field_type::date:           return "S";
+        case field_type::time:           return "S";
+        case field_type::datetime:       return "S";
+        case field_type::timestamp:      return "N";
+        case field_type::json:           return "M";
+        case field_type::xml:            return "S";
+        case field_type::uuid:           return "S";
+        case field_type::array:          return "L";
+        case field_type::custom:
+        default:                         return "S";
+    }
+}
+
+
+// =============================================================================
+// III. FEATURE SUPPORT (compile-time, version-gated)
+// =============================================================================
+
+// dynamodb_type_support
+//   struct: compile-time attribute type availability flags gated by
+// D_ENV_DYNAMODB_* macros. The scalar/document/set descriptors have
+// been stable since the 2012-08-10 API version, so they are reported
+// available whenever DynamoDB support is detected.
+struct dynamodb_type_support
+{
+#if D_ENV_DYNAMODB_DETECTED
+
+    static constexpr bool has_string        = true;
+    static constexpr bool has_number        = true;
+    static constexpr bool has_binary        = true;
+    static constexpr bool has_boolean       = true;
+    static constexpr bool has_null          = true;
+    static constexpr bool has_map           = true;
+    static constexpr bool has_list          = true;
+    static constexpr bool has_string_set    = true;
+    static constexpr bool has_number_set    = true;
+    static constexpr bool has_binary_set    = true;
+
+#else
+    static constexpr bool has_string        = false;
+    static constexpr bool has_number        = false;
+    static constexpr bool has_binary        = false;
+    static constexpr bool has_boolean       = false;
+    static constexpr bool has_null          = false;
+    static constexpr bool has_map           = false;
+    static constexpr bool has_list          = false;
+    static constexpr bool has_string_set    = false;
+    static constexpr bool has_number_set    = false;
+    static constexpr bool has_binary_set    = false;
+#endif  // D_ENV_DYNAMODB_DETECTED
+};
+
+// dynamodb_feature_support
+//   struct: compile-time service feature availability flags.
+struct dynamodb_feature_support
+{
+#if D_ENV_DYNAMODB_DETECTED
+
+    // core data-plane operations (always present)
+    static constexpr bool has_item_ops      = true;
+    static constexpr bool has_query_scan    = true;
+    static constexpr bool has_batch_ops     = true;
+
+    // conditional writes (condition expressions)
+    static constexpr bool has_conditional_writes =
+    #if D_ENV_DYNAMODB_HAS_CONDITIONAL_WRITES
+        true;
+    #else
+        false;
+    #endif
+
+    // transactions (TransactWriteItems / TransactGetItems)
+    static constexpr bool has_transactions =
+    #if D_ENV_DYNAMODB_HAS_TRANSACTIONS
+        true;
+    #else
+        false;
+    #endif
+
+    // PartiQL
+    static constexpr bool has_partiql =
+    #if D_ENV_DYNAMODB_HAS_PARTIQL
+        true;
+    #else
+        false;
+    #endif
+
+    // DynamoDB Streams
+    static constexpr bool has_streams =
+    #if D_ENV_DYNAMODB_HAS_STREAMS
+        true;
+    #else
+        false;
+    #endif
+
+    // secondary indexes (GSI / LSI)
+    static constexpr bool has_global_secondary_indexes =
+    #if D_ENV_DYNAMODB_HAS_GSI
+        true;
+    #else
+        false;
+    #endif
+
+    static constexpr bool has_local_secondary_indexes =
+    #if D_ENV_DYNAMODB_HAS_LSI
+        true;
+    #else
+        false;
+    #endif
+
+    // global tables (multi-region replication)
+    static constexpr bool has_global_tables =
+    #if D_ENV_DYNAMODB_HAS_GLOBAL_TABLES
+        true;
+    #else
+        false;
+    #endif
+
+    // on-demand (pay-per-request) capacity mode
+    static constexpr bool has_on_demand_capacity =
+    #if D_ENV_DYNAMODB_HAS_ON_DEMAND
+        true;
+    #else
+        false;
+    #endif
+
+    // time-to-live
+    static constexpr bool has_ttl =
+    #if D_ENV_DYNAMODB_HAS_TTL
+        true;
+    #else
+        false;
+    #endif
+
+    // on-demand backup
+    static constexpr bool has_backup =
+    #if D_ENV_DYNAMODB_HAS_BACKUP
+        true;
+    #else
+        false;
+    #endif
+
+    // point-in-time recovery
+    static constexpr bool has_pitr =
+    #if D_ENV_DYNAMODB_HAS_PITR
+        true;
+    #else
+        false;
+    #endif
+
+    // DynamoDB Accelerator (DAX) in-memory cache
+    static constexpr bool has_dax =
+    #if D_ENV_DYNAMODB_HAS_DAX
+        true;
+    #else
+        false;
+    #endif
+
+    // server-side encryption at rest
+    static constexpr bool has_encryption_at_rest =
+    #if D_ENV_DYNAMODB_HAS_ENCRYPTION
+        true;
+    #else
+        false;
+    #endif
+
+    // strongly consistent reads
+    static constexpr bool has_strong_consistency =
+    #if D_ENV_DYNAMODB_HAS_STRONG_CONSISTENCY
+        true;
+    #else
+        false;
+    #endif
+
+    // resource tagging
+    static constexpr bool has_tagging =
+    #if D_ENV_DYNAMODB_HAS_TAGGING
+        true;
+    #else
+        false;
+    #endif
+
+#else
+    static constexpr bool has_item_ops                 = false;
+    static constexpr bool has_query_scan               = false;
+    static constexpr bool has_batch_ops                = false;
+    static constexpr bool has_conditional_writes       = false;
+    static constexpr bool has_transactions             = false;
+    static constexpr bool has_partiql                  = false;
+    static constexpr bool has_streams                  = false;
+    static constexpr bool has_global_secondary_indexes = false;
+    static constexpr bool has_local_secondary_indexes  = false;
+    static constexpr bool has_global_tables            = false;
+    static constexpr bool has_on_demand_capacity       = false;
+    static constexpr bool has_ttl                      = false;
+    static constexpr bool has_backup                   = false;
+    static constexpr bool has_pitr                     = false;
+    static constexpr bool has_dax                      = false;
+    static constexpr bool has_encryption_at_rest       = false;
+    static constexpr bool has_strong_consistency       = false;
+    static constexpr bool has_tagging                  = false;
+#endif  // D_ENV_DYNAMODB_DETECTED
+};
+
+
+// =============================================================================
+// IV.  DYNAMODB API VERSION INFORMATION
+// =============================================================================
+// DynamoDB is a managed service: there is no on-premises server version to
+// query. What is versioned is the service API contract (date-stamped, e.g.
+// "2012-08-10") and the AWS SDK build in use. This struct exposes that
+// metadata in the same shape as the other vendors' version_info structs.
+
+// dynamodb_version_info
+//   struct: compile-time API / SDK version metadata.
+struct dynamodb_version_info
+{
+#if D_ENV_DYNAMODB_DETECTED
+    static constexpr bool          detected    = true;
+    static constexpr const char*   api_version = D_ENV_DYNAMODB_API_VERSION;
+    static constexpr std::uint32_t sdk_id      = D_ENV_DYNAMODB_SDK_VERSION_ID;
+    static constexpr std::uint16_t sdk_major   = D_ENV_DYNAMODB_SDK_VERSION_MAJOR;
+    static constexpr std::uint16_t sdk_minor   = D_ENV_DYNAMODB_SDK_VERSION_MINOR;
+    static constexpr std::uint16_t sdk_patch   = D_ENV_DYNAMODB_SDK_VERSION_PATCH;
+    static constexpr const char*   sdk_string  = D_ENV_DYNAMODB_SDK_VERSION_STRING;
+#else
+    static constexpr bool          detected    = false;
+    static constexpr const char*   api_version = "not detected";
+    static constexpr std::uint32_t sdk_id      = 0;
+    static constexpr std::uint16_t sdk_major   = 0;
+    static constexpr std::uint16_t sdk_minor   = 0;
+    static constexpr std::uint16_t sdk_patch   = 0;
+    static constexpr const char*   sdk_string  = "not detected";
+#endif
+
+    // sdk_at_least
+    //   function: returns true if the detected AWS SDK build is at
+    // least (major, minor, patch).
+    static constexpr bool sdk_at_least(std::uint16_t _major,
+                                       std::uint16_t _minor,
+                                       std::uint16_t _patch) noexcept
+    {
+        return sdk_id >= (_major * 10000u + _minor * 100u + _patch);
+    }
+};
+
+
+// =============================================================================
+// V.   DYNAMODB MODE / CONSISTENCY ENUMERATIONS
+// =============================================================================
+
+// dynamodb_capacity_mode
+//   enumeration: table throughput billing mode.
+enum class dynamodb_capacity_mode : std::uint8_t
+{
+    provisioned = 0,    // fixed RCU / WCU
+    on_demand   = 1     // pay-per-request
+};
+
+// dynamodb_read_consistency
+//   enumeration: read consistency model for reads that support it.
+enum class dynamodb_read_consistency : std::uint8_t
+{
+    eventual = 0,       // eventually consistent (default, cheaper)
+    strong   = 1        // strongly consistent
+};
+
+// dynamodb_endpoint_mode
+//   enumeration: which endpoint the connection targets.
+enum class dynamodb_endpoint_mode : std::uint8_t
+{
+    standard = 0,       // regional DynamoDB endpoint
+    dax      = 1,       // DynamoDB Accelerator (DAX) cluster
+    local    = 2        // DynamoDB Local (dev/test)
+};
+
+// dynamodb_return_values
+//   enumeration: ReturnValues option controlling what a write returns.
+enum class dynamodb_return_values : std::uint8_t
+{
+    none        = 0,    // NONE
+    all_old     = 1,    // ALL_OLD
+    updated_old = 2,    // UPDATED_OLD
+    all_new     = 3,    // ALL_NEW
+    updated_new = 4     // UPDATED_NEW
+};
+
+
+// =============================================================================
+// VI.  DYNAMODB CONNECTION CONFIGURATION
+// =============================================================================
+
+// dynamodb_connect_config
+//   struct: DynamoDB-specific connection configuration extending the
+// generic connection_config with AWS region, endpoint override,
+// credential profile, DAX endpoint, retry policy, capacity mode, and
+// default read consistency.
+struct dynamodb_connect_config
+{
+    connection_config           base;
+
+    // AWS region (e.g. "us-east-1"). Required for the standard endpoint.
+    std::string                 region;
+
+    // optional explicit endpoint override (DynamoDB Local, VPC endpoint,
+    // FIPS endpoint, etc.); when empty the SDK derives it from region.
+    std::string                 endpoint_override;
+
+    // endpoint topology
+    dynamodb_endpoint_mode      endpoint_mode;
+
+    // DAX cluster endpoint (used when endpoint_mode == dax).
+    std::string                 dax_endpoint;
+
+    // credentials — when use_profile is true, profile_name selects a
+    // named profile from the shared credentials file; otherwise the
+    // base.username / base.password fields carry the access key id and
+    // secret access key respectively.
+    bool                        use_profile;
+    std::string                 profile_name;
+    std::string                 session_token;
+
+    // default read consistency for reads that accept it.
+    dynamodb_read_consistency   default_consistency;
+
+    // default capacity mode for tables created through this connection.
+    dynamodb_capacity_mode      default_capacity_mode;
+
+    // retry policy
+    int                         max_retries;
+    std::chrono::milliseconds   request_timeout;
+
+    // optional tagging applied to created resources.
+    std::map<std::string, std::string> default_tags;
+
+    dynamodb_connect_config()
+        : region("us-east-1")
+        , endpoint_mode(dynamodb_endpoint_mode::standard)
+        , use_profile(false)
+        , default_consistency(dynamodb_read_consistency::eventual)
+        , default_capacity_mode(dynamodb_capacity_mode::on_demand)
+        , max_retries(3)
+        , request_timeout(std::chrono::milliseconds(10000))
+    {
+        // DynamoDB is reached over HTTPS; host/port in the generic
+        // config are informational and overridden by region/endpoint.
+        base.host        = "dynamodb.us-east-1.amazonaws.com";
+        base.port        = 443;
+        base.enable_ssl  = true;
+    }
+
+    explicit dynamodb_connect_config(const connection_config& _base)
+        : base(_base)
+        , region("us-east-1")
+        , endpoint_mode(dynamodb_endpoint_mode::standard)
+        , use_profile(false)
+        , default_consistency(dynamodb_read_consistency::eventual)
+        , default_capacity_mode(dynamodb_capacity_mode::on_demand)
+        , max_retries(3)
+        , request_timeout(std::chrono::milliseconds(10000))
+    {
+        if (base.port == 0)
+        {
+            base.port = 443;
+        }
+    }
+};
+
+
+// =============================================================================
+// VII. DYNAMODB CONNECTION
+// =============================================================================
+
+// dynamodb_connection
+//   class: concrete DynamoDB connection implementation via the AWS SDK
+// for C++ (or equivalent). This is the CRTP leaf class; _impl methods
+// are defined in dynamodb.cpp which includes the AWS SDK headers.
+//
+// Usage:
+//   dynamodb_connection conn;
+//   conn.connect(dynamodb_connect_config{...});
+//   dynamodb_item item = { {"id", value{std::string{"42"}}},
+//                          {"name", value{std::string{"teer"}}} };
+//   conn.put_item("users", item);
+//   auto got = conn.get_item("users", {{"id", value{std::string{"42"}}}});
+class dynamodb_connection
+    : public database_connection<dynamodb_connection,
+                                 database_type::dynamodb>
+{
+public:
+    using base_type       = database_connection<
+        dynamodb_connection, database_type::dynamodb>;
+    using type_support    = dynamodb_type_support;
+    using feature_support = dynamodb_feature_support;
+    using version_info    = dynamodb_version_info;
+
+    // item_type / key_type
+    //   types: convenience aliases re-exporting the trait-layer item
+    // and key representations.
+    using item_type   = dynamodb_item;
+    using key_type    = dynamodb_key;
+
+    // scan_page / query_page
+    //   types: a page of results plus the LastEvaluatedKey cursor for
+    // continuation (empty optional indicates the final page).
+    using result_page = std::pair<std::vector<dynamodb_item>,
+                                  std::optional<dynamodb_key>>;
+
+    dynamodb_connection()
+        : base_type()
+    {
+    }
+
+    explicit dynamodb_connection(const connection_config& _config)
+        : base_type(_config)
+    {
+    }
+
+    explicit dynamodb_connection(const dynamodb_connect_config& _config)
+        : base_type(_config.base),
+          m_dynamodb_config(_config)
+    {
+    }
+
+    ~dynamodb_connection() = default;
+
+    // disable copying
+    dynamodb_connection(const dynamodb_connection&)            = delete;
+    dynamodb_connection& operator=(const dynamodb_connection&) = delete;
+
+    // enable moving
+    dynamodb_connection(dynamodb_connection&&) noexcept            = default;
+    dynamodb_connection& operator=(dynamodb_connection&&) noexcept = default;
+
+
+    // -----------------------------------------------------------------
+    // item operations
+    // -----------------------------------------------------------------
+
+    // put_item
+    //   function: PutItem — writes (or replaces) a single item.
+    bool put_item(const std::string&  _table,
+                  const dynamodb_item& _item)
+    {
+        this->ensure_connected();
+
+        return self().put_item_impl(_table, _item);
+    }
+
+    // get_item
+    //   function: GetItem — reads a single item by primary key.
+    std::optional<dynamodb_item> get_item(
+        const std::string& _table,
+        const dynamodb_key& _key) const
+    {
+        return self().get_item_impl(_table, _key);
+    }
+
+    // update_item
+    //   function: UpdateItem — mutates attributes of an existing item.
+    bool update_item(const std::string&  _table,
+                     const dynamodb_key&  _key,
+                     const dynamodb_item& _updates)
+    {
+        this->ensure_connected();
+
+        return self().update_item_impl(_table, _key, _updates);
+    }
+
+    // delete_item
+    //   function: DeleteItem — removes a single item by primary key.
+    bool delete_item(const std::string& _table,
+                     const dynamodb_key& _key)
+    {
+        this->ensure_connected();
+
+        return self().delete_item_impl(_table, _key);
+    }
+
+
+    // -----------------------------------------------------------------
+    // batch operations
+    // -----------------------------------------------------------------
+
+    // batch_get_item
+    //   function: BatchGetItem — reads up to 100 items in one call.
+    std::vector<dynamodb_item> batch_get_item(
+        const std::string&             _table,
+        const std::vector<dynamodb_key>& _keys) const
+    {
+        return self().batch_get_item_impl(_table, _keys);
+    }
+
+    // batch_write_item
+    //   function: BatchWriteItem — writes up to 25 items in one call.
+    bool batch_write_item(
+        const std::string&              _table,
+        const std::vector<dynamodb_item>& _items)
+    {
+        this->ensure_connected();
+
+        return self().batch_write_item_impl(_table, _items);
+    }
+
+
+    // -----------------------------------------------------------------
+    // query and scan
+    // -----------------------------------------------------------------
+
+    // query
+    //   function: Query — partition-key-bounded retrieval with an
+    // optional sort-key condition expression. Returns one page plus a
+    // continuation cursor.
+    result_page query(const std::string& _table,
+                      const std::string& _key_condition) const
+    {
+        return self().query_impl(_table, _key_condition);
+    }
+
+    // scan
+    //   function: Scan — full-table sequential read. Returns one page
+    // plus a continuation cursor. Expensive; prefer query().
+    result_page scan(const std::string& _table) const
+    {
+        return self().scan_impl(_table);
+    }
+
+
+    // -----------------------------------------------------------------
+    // transactions
+    // -----------------------------------------------------------------
+
+    // transact_write_items
+    //   function: TransactWriteItems — all-or-nothing write of up to
+    // 100 items.
+    bool transact_write_items(
+        const std::vector<dynamodb_item>& _items)
+    {
+        this->ensure_connected();
+
+        return self().transact_write_items_impl(_items);
+    }
+
+    // transact_get_items
+    //   function: TransactGetItems — consistent snapshot read of up to
+    // 100 items.
+    std::vector<dynamodb_item> transact_get_items(
+        const std::vector<dynamodb_key>& _keys) const
+    {
+        return self().transact_get_items_impl(_keys);
+    }
+
+
+    // -----------------------------------------------------------------
+    // PartiQL
+    // -----------------------------------------------------------------
+
+    // execute_statement
+    //   function: ExecuteStatement — a single PartiQL statement.
+    auto execute_statement(const std::string& _statement)
+    {
+        this->ensure_connected();
+
+        return self().execute_statement_impl(_statement);
+    }
+
+    // batch_execute_statement
+    //   function: BatchExecuteStatement — multiple PartiQL statements.
+    auto batch_execute_statement(
+        const std::vector<std::string>& _statements)
+    {
+        this->ensure_connected();
+
+        return self().batch_execute_statement_impl(_statements);
+    }
+
+    // execute_transaction
+    //   function: ExecuteTransaction — transactional PartiQL statements.
+    auto execute_transaction(
+        const std::vector<std::string>& _statements)
+    {
+        this->ensure_connected();
+
+        return self().execute_transaction_impl(_statements);
+    }
+
+
+    // -----------------------------------------------------------------
+    // conditional writes
+    // -----------------------------------------------------------------
+
+    // put_item_conditional
+    //   function: PutItem with a ConditionExpression. Returns false if
+    // the condition fails (ConditionalCheckFailed).
+    bool put_item_conditional(const std::string&  _table,
+                              const dynamodb_item& _item,
+                              const std::string&   _condition)
+    {
+        this->ensure_connected();
+
+        return self().put_item_conditional_impl(_table,
+                                                _item,
+                                                _condition);
+    }
+
+    // delete_item_conditional
+    //   function: DeleteItem with a ConditionExpression. Returns false
+    // if the condition fails.
+    bool delete_item_conditional(const std::string& _table,
+                                 const dynamodb_key& _key,
+                                 const std::string&  _condition)
+    {
+        this->ensure_connected();
+
+        return self().delete_item_conditional_impl(_table,
+                                                   _key,
+                                                   _condition);
+    }
+
+
+    // -----------------------------------------------------------------
+    // table management (control plane)
+    // -----------------------------------------------------------------
+
+    // create_table
+    //   function: CreateTable. An empty _sort_key denotes a simple
+    // (partition-only) key schema.
+    bool create_table(const std::string& _table,
+                      const std::string& _partition_key,
+                      const std::string& _sort_key)
+    {
+        this->ensure_connected();
+
+        return self().create_table_impl(_table,
+                                        _partition_key,
+                                        _sort_key);
+    }
+
+    // delete_table
+    //   function: DeleteTable.
+    bool delete_table(const std::string& _table)
+    {
+        this->ensure_connected();
+
+        return self().delete_table_impl(_table);
+    }
+
+    // describe_table
+    //   function: DescribeTable — returns the table description block.
+    std::string describe_table(const std::string& _table) const
+    {
+        return self().describe_table_impl(_table);
+    }
+
+    // update_table
+    //   function: UpdateTable — throughput / billing / index changes
+    // expressed as a JSON spec string.
+    bool update_table(const std::string& _table,
+                      const std::string& _spec)
+    {
+        this->ensure_connected();
+
+        return self().update_table_impl(_table, _spec);
+    }
+
+    // list_tables
+    //   function: ListTables — returns the table names in the account
+    // and region.
+    std::vector<std::string> list_tables() const
+    {
+        return self().list_tables_impl();
+    }
+
+
+    // -----------------------------------------------------------------
+    // secondary indexes
+    // -----------------------------------------------------------------
+
+    // create_global_secondary_index
+    //   function: UpdateTable with a GSI create action.
+    bool create_global_secondary_index(
+        const std::string& _table,
+        const std::string& _index,
+        const std::string& _partition_key)
+    {
+        this->ensure_connected();
+
+        return self().create_global_secondary_index_impl(_table,
+                                                         _index,
+                                                         _partition_key);
+    }
+
+    // delete_global_secondary_index
+    //   function: UpdateTable with a GSI delete action.
+    bool delete_global_secondary_index(const std::string& _table,
+                                       const std::string& _index)
+    {
+        this->ensure_connected();
+
+        return self().delete_global_secondary_index_impl(_table,
+                                                        _index);
+    }
+
+    // query_index
+    //   function: Query against a secondary index. Returns one page
+    // plus a continuation cursor.
+    result_page query_index(const std::string& _table,
+                            const std::string& _index,
+                            const std::string& _key_condition) const
+    {
+        return self().query_index_impl(_table, _index, _key_condition);
+    }
+
+
+    // -----------------------------------------------------------------
+    // DynamoDB Streams
+    // -----------------------------------------------------------------
+
+    // describe_stream
+    //   function: DescribeStream.
+    std::string describe_stream(const std::string& _stream_arn) const
+    {
+        return self().describe_stream_impl(_stream_arn);
+    }
+
+    // get_shard_iterator
+    //   function: GetShardIterator.
+    std::string get_shard_iterator(const std::string& _stream_arn,
+                                   const std::string& _shard_id) const
+    {
+        return self().get_shard_iterator_impl(_stream_arn, _shard_id);
+    }
+
+    // get_records
+    //   function: GetRecords — reads stream records for a shard
+    // iterator.
+    std::vector<dynamodb_item> get_records(
+        const std::string& _shard_iterator) const
+    {
+        return self().get_records_impl(_shard_iterator);
+    }
+
+    // list_streams
+    //   function: ListStreams — stream ARNs for a table.
+    std::vector<std::string> list_streams(
+        const std::string& _table) const
+    {
+        return self().list_streams_impl(_table);
+    }
+
+
+    // -----------------------------------------------------------------
+    // TTL management
+    // -----------------------------------------------------------------
+
+    // update_time_to_live
+    //   function: UpdateTimeToLive — enables/disables a TTL attribute.
+    bool update_time_to_live(const std::string& _table,
+                             const std::string& _attribute,
+                             bool               _enabled)
+    {
+        this->ensure_connected();
+
+        return self().update_time_to_live_impl(_table,
+                                              _attribute,
+                                              _enabled);
+    }
+
+    // describe_time_to_live
+    //   function: DescribeTimeToLive — TTL configuration status.
+    std::string describe_time_to_live(const std::string& _table) const
+    {
+        return self().describe_time_to_live_impl(_table);
+    }
+
+
+    // -----------------------------------------------------------------
+    // backup / point-in-time recovery
+    // -----------------------------------------------------------------
+
+    // create_backup
+    //   function: CreateBackup — on-demand backup; returns the backup
+    // ARN.
+    std::string create_backup(const std::string& _table,
+                              const std::string& _backup_name)
+    {
+        this->ensure_connected();
+
+        return self().create_backup_impl(_table, _backup_name);
+    }
+
+    // restore_table_from_backup
+    //   function: RestoreTableFromBackup.
+    bool restore_table_from_backup(const std::string& _table,
+                                   const std::string& _backup_arn)
+    {
+        this->ensure_connected();
+
+        return self().restore_table_from_backup_impl(_table,
+                                                    _backup_arn);
+    }
+
+    // describe_continuous_backups
+    //   function: DescribeContinuousBackups — PITR status.
+    std::string describe_continuous_backups(
+        const std::string& _table) const
+    {
+        return self().describe_continuous_backups_impl(_table);
+    }
+
+
+    // -----------------------------------------------------------------
+    // diagnostics
+    // -----------------------------------------------------------------
+
+    // describe_limits
+    //   function: DescribeLimits — account/table capacity limits.
+    std::string describe_limits() const
+    {
+        return self().describe_limits_impl();
+    }
+
+    // describe_endpoints
+    //   function: DescribeEndpoints — regional endpoint discovery.
+    std::string describe_endpoints() const
+    {
+        return self().describe_endpoints_impl();
+    }
+
+    // table_status
+    //   function: convenience accessor over DescribeTable returning the
+    // table state (CREATING / ACTIVE / UPDATING / DELETING).
+    std::string table_status(const std::string& _table) const
+    {
+        return self().table_status_impl(_table);
+    }
+
+
+    // -----------------------------------------------------------------
+    // global tables
+    // -----------------------------------------------------------------
+
+    // create_global_table
+    //   function: CreateGlobalTable — multi-region replication.
+    bool create_global_table(
+        const std::string&              _table,
+        const std::vector<std::string>& _regions)
+    {
+        this->ensure_connected();
+
+        return self().create_global_table_impl(_table, _regions);
+    }
+
+    // describe_global_table
+    //   function: DescribeGlobalTable.
+    std::string describe_global_table(const std::string& _table) const
+    {
+        return self().describe_global_table_impl(_table);
+    }
+
+    // update_global_table
+    //   function: UpdateGlobalTable — add/remove replica regions.
+    bool update_global_table(
+        const std::string&              _table,
+        const std::vector<std::string>& _regions)
+    {
+        this->ensure_connected();
+
+        return self().update_global_table_impl(_table, _regions);
+    }
+
+
+    // -----------------------------------------------------------------
+    // resource tagging
+    // -----------------------------------------------------------------
+
+    // tag_resource
+    //   function: TagResource.
+    bool tag_resource(
+        const std::string&                        _arn,
+        const std::map<std::string, std::string>& _tags)
+    {
+        this->ensure_connected();
+
+        return self().tag_resource_impl(_arn, _tags);
+    }
+
+    // untag_resource
+    //   function: UntagResource.
+    bool untag_resource(const std::string&              _arn,
+                        const std::vector<std::string>& _keys)
+    {
+        this->ensure_connected();
+
+        return self().untag_resource_impl(_arn, _keys);
+    }
+
+    // list_tags_of_resource
+    //   function: ListTagsOfResource.
+    std::map<std::string, std::string> list_tags_of_resource(
+        const std::string& _arn) const
+    {
+        return self().list_tags_of_resource_impl(_arn);
+    }
+
+
+    // -----------------------------------------------------------------
+    // feature queries (compile-time)
+    // -----------------------------------------------------------------
+
+    static constexpr bool supports_transactions() noexcept
+    {
+        return feature_support::has_transactions;
+    }
+
+    static constexpr bool supports_partiql() noexcept
+    {
+        return feature_support::has_partiql;
+    }
+
+    static constexpr bool supports_streams() noexcept
+    {
+        return feature_support::has_streams;
+    }
+
+    static constexpr bool supports_global_tables() noexcept
+    {
+        return feature_support::has_global_tables;
+    }
+
+    static constexpr bool supports_on_demand_capacity() noexcept
+    {
+        return feature_support::has_on_demand_capacity;
+    }
+
+    static constexpr bool supports_ttl() noexcept
+    {
+        return feature_support::has_ttl;
+    }
+
+    static constexpr bool supports_backup() noexcept
+    {
+        return feature_support::has_backup;
+    }
+
+    static constexpr bool supports_pitr() noexcept
+    {
+        return feature_support::has_pitr;
+    }
+
+    static constexpr bool supports_dax() noexcept
+    {
+        return feature_support::has_dax;
+    }
+
+    static constexpr bool supports_strong_consistency() noexcept
+    {
+        return feature_support::has_strong_consistency;
+    }
+
+
+    // -----------------------------------------------------------------
+    // data type mapping
+    // -----------------------------------------------------------------
+
+    static field_type map_type(dynamodb_attribute_type _type) noexcept
+    {
+        return dynamodb_attribute_type_to_field_type(_type);
+    }
+
+    static dynamodb_attribute_type type_from_descriptor(
+        const std::string& _descriptor) noexcept
+    {
+        return dynamodb_attribute_type_from_descriptor(_descriptor);
+    }
+
+    static const char* native_descriptor(field_type _type) noexcept
+    {
+        return field_type_to_dynamodb_descriptor(_type);
+    }
+
+
+    // -----------------------------------------------------------------
+    // DynamoDB-specific configuration
+    // -----------------------------------------------------------------
+
+    // get_dynamodb_config
+    //   function: returns the DynamoDB-specific configuration.
+    const dynamodb_connect_config& get_dynamodb_config() const noexcept
+    {
+        return m_dynamodb_config;
+    }
+
+    // set_dynamodb_config
+    //   function: replaces the DynamoDB-specific configuration. Must be
+    // called before connect().
+    void set_dynamodb_config(const dynamodb_connect_config& _config)
+    {
+        m_dynamodb_config = _config;
+        this->m_config    = _config.base;
+    }
+
+    // get_default_consistency / set_default_consistency
+    //   functions: read/modify the default read consistency.
+    dynamodb_read_consistency get_default_consistency() const noexcept
+    {
+        return m_dynamodb_config.default_consistency;
+    }
+
+    void set_default_consistency(dynamodb_read_consistency _c) noexcept
+    {
+        m_dynamodb_config.default_consistency = _c;
+
+        return;
+    }
+
+
+    // -----------------------------------------------------------------
+    // _impl methods (defined in dynamodb.cpp)
+    // -----------------------------------------------------------------
+
+    void         connect_impl();
+    void         disconnect_impl();
+    bool         is_connected_impl() const;
+    bool         ping_impl() const;
+    std::string  get_server_version_impl() const;
+    std::string  get_last_error_impl() const;
+    int          get_last_error_code_impl() const;
+
+    // item operations
+    bool         put_item_impl(const std::string&  _table,
+                               const dynamodb_item& _item);
+    std::optional<dynamodb_item>
+                 get_item_impl(const std::string& _table,
+                               const dynamodb_key& _key) const;
+    bool         update_item_impl(const std::string&  _table,
+                                  const dynamodb_key&  _key,
+                                  const dynamodb_item& _updates);
+    bool         delete_item_impl(const std::string& _table,
+                                  const dynamodb_key& _key);
+
+    // batch operations
+    std::vector<dynamodb_item>
+                 batch_get_item_impl(
+                     const std::string&             _table,
+                     const std::vector<dynamodb_key>& _keys) const;
+    bool         batch_write_item_impl(
+                     const std::string&              _table,
+                     const std::vector<dynamodb_item>& _items);
+
+    // query and scan
+    result_page  query_impl(const std::string& _table,
+                            const std::string& _key_condition) const;
+    result_page  scan_impl(const std::string& _table) const;
+
+    // transactions
+    bool         transact_write_items_impl(
+                     const std::vector<dynamodb_item>& _items);
+    std::vector<dynamodb_item>
+                 transact_get_items_impl(
+                     const std::vector<dynamodb_key>& _keys) const;
+
+    // PartiQL
+    auto         execute_statement_impl(const std::string& _statement)
+                     -> std::unique_ptr<
+                         result_set<struct dynamodb_result_set_impl>>;
+    auto         batch_execute_statement_impl(
+                     const std::vector<std::string>& _statements)
+                     -> std::unique_ptr<
+                         result_set<struct dynamodb_result_set_impl>>;
+    auto         execute_transaction_impl(
+                     const std::vector<std::string>& _statements)
+                     -> std::unique_ptr<
+                         result_set<struct dynamodb_result_set_impl>>;
+
+    // conditional writes
+    bool         put_item_conditional_impl(
+                     const std::string&  _table,
+                     const dynamodb_item& _item,
+                     const std::string&   _condition);
+    bool         delete_item_conditional_impl(
+                     const std::string& _table,
+                     const dynamodb_key& _key,
+                     const std::string&  _condition);
+
+    // table management
+    bool         create_table_impl(const std::string& _table,
+                                   const std::string& _partition_key,
+                                   const std::string& _sort_key);
+    bool         delete_table_impl(const std::string& _table);
+    std::string  describe_table_impl(const std::string& _table) const;
+    bool         update_table_impl(const std::string& _table,
+                                   const std::string& _spec);
+    std::vector<std::string>
+                 list_tables_impl() const;
+
+    // secondary indexes
+    bool         create_global_secondary_index_impl(
+                     const std::string& _table,
+                     const std::string& _index,
+                     const std::string& _partition_key);
+    bool         delete_global_secondary_index_impl(
+                     const std::string& _table,
+                     const std::string& _index);
+    result_page  query_index_impl(
+                     const std::string& _table,
+                     const std::string& _index,
+                     const std::string& _key_condition) const;
+
+    // streams
+    std::string  describe_stream_impl(
+                     const std::string& _stream_arn) const;
+    std::string  get_shard_iterator_impl(
+                     const std::string& _stream_arn,
+                     const std::string& _shard_id) const;
+    std::vector<dynamodb_item>
+                 get_records_impl(
+                     const std::string& _shard_iterator) const;
+    std::vector<std::string>
+                 list_streams_impl(const std::string& _table) const;
+
+    // TTL management
+    bool         update_time_to_live_impl(const std::string& _table,
+                                          const std::string& _attribute,
+                                          bool               _enabled);
+    std::string  describe_time_to_live_impl(
+                     const std::string& _table) const;
+
+    // backup / PITR
+    std::string  create_backup_impl(const std::string& _table,
+                                    const std::string& _backup_name);
+    bool         restore_table_from_backup_impl(
+                     const std::string& _table,
+                     const std::string& _backup_arn);
+    std::string  describe_continuous_backups_impl(
+                     const std::string& _table) const;
+
+    // diagnostics
+    std::string  describe_limits_impl() const;
+    std::string  describe_endpoints_impl() const;
+    std::string  table_status_impl(const std::string& _table) const;
+
+    // global tables
+    bool         create_global_table_impl(
+                     const std::string&              _table,
+                     const std::vector<std::string>& _regions);
+    std::string  describe_global_table_impl(
+                     const std::string& _table) const;
+    bool         update_global_table_impl(
+                     const std::string&              _table,
+                     const std::vector<std::string>& _regions);
+
+    // tagging
+    bool         tag_resource_impl(
+                     const std::string&                        _arn,
+                     const std::map<std::string, std::string>& _tags);
+    bool         untag_resource_impl(
+                     const std::string&              _arn,
+                     const std::vector<std::string>& _keys);
+    std::map<std::string, std::string>
+                 list_tags_of_resource_impl(
+                     const std::string& _arn) const;
+
+
+    // -----------------------------------------------------------------
+    // feature-gated methods
+    // -----------------------------------------------------------------
+
+#if D_ENV_DYNAMODB_DETECTED
+
+    #if D_ENV_DYNAMODB_HAS_ON_DEMAND
+    // set_billing_mode
+    //   function: switches a table between provisioned and on-demand
+    // capacity. Requires on-demand capacity support.
+    bool set_billing_mode(const std::string&     _table,
+                          dynamodb_capacity_mode _mode);
+    #endif
+
+    #if D_ENV_DYNAMODB_HAS_ENCRYPTION
+    // enable_encryption
+    //   function: enables server-side encryption at rest with an
+    // optional KMS key ARN (empty -> AWS-owned key).
+    bool enable_encryption(const std::string& _table,
+                           const std::string& _kms_key_arn);
+    #endif
+
+#endif  // D_ENV_DYNAMODB_DETECTED
+
+
+private:
+    dynamodb_connect_config m_dynamodb_config;
+
+    dynamodb_connection& self()
+    {
+        return *this;
+    }
+
+    const dynamodb_connection& self() const
+    {
+        return *this;
+    }
+};
+
+
+// =============================================================================
+// VIII. FORWARD DECLARATIONS
+// =============================================================================
+
+// dynamodb_result_set_impl
+//   struct: forward declaration of the DynamoDB result set
+// implementation (used by the PartiQL surface).
+struct dynamodb_result_set_impl;
+
+
+NS_END  // djinterp
+
+
+#endif  // DJINTERP_DATABASE_DYNAMODB_
