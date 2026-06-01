@@ -7,10 +7,8 @@
 * which uses void* and function pointers, these combinators are fully typed
 * and work with any callable (lambdas, function objects, function pointers,
 * std::function, etc.).
-*
 *   Each combinator stores its predicates by value (decayed), supports
 * perfect forwarding at call sites in C++11+ mode, and propagates noexcept.
-*
 *   In C++98 mode, perfect forwarding and variadic operator() are
 * unavailable. Each combinator instead exposes fixed-arity operator()
 * overloads (unary and binary) and takes its predicates by const&. The
@@ -21,13 +19,12 @@
 * USAGE:
 *   auto combo = predicate_and(is_positive, is_even);
 *   bool result = combo(42);   // true if both return true
-*
 *   auto chain = predicate_or(
 *       predicate_not(is_negative),
 *       predicate_and(is_small, is_prime));
 *
 * 
-* path:      /inc/functional/predicate.hpp
+* path:      /inc/djinterp/core/functional/predicate.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
@@ -43,7 +40,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 #  include <type_traits>
-#endif
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
 NS_DJINTERP
@@ -115,8 +112,17 @@ NS_INTERNAL
 #endif
 
         // accessors for introspection
-        D_CONSTEXPR const _Predicate1& first()  const { return m_predicate1; }
-        D_CONSTEXPR const _Predicate2& second() const { return m_predicate2; }
+        D_CONSTEXPR const _Predicate1&
+        first()  const
+        {
+            return m_predicate1;
+        }
+
+        D_CONSTEXPR const _Predicate2&
+        second() const
+        {
+            return m_predicate2;
+        }
     };
 
     // predicate_or_combinator
@@ -312,15 +318,19 @@ NS_INTERNAL
         template<typename _Predicate1Fwd,
                  typename _Predicate2Fwd>
         D_CONSTEXPR
-        predicate_nand_combinator(_Predicate1Fwd&& _predicate1,
-                                  _Predicate2Fwd&& _predicate2)
+        predicate_nand_combinator(
+            _Predicate1Fwd&& _predicate1,
+            _Predicate2Fwd&& _predicate2
+        )
             : m_predicate1(std::forward<_Predicate1Fwd>(_predicate1))
             , m_predicate2(std::forward<_Predicate2Fwd>(_predicate2))
         {}
 
         template<typename... _Args>
-        D_CONSTEXPR
-        bool operator()(_Args&&... _args) const
+        D_CONSTEXPR bool
+        operator()(
+            _Args&&... _args
+        ) const
         {
             return !(m_predicate1(std::forward<_Args>(_args)...) &&
                      m_predicate2(std::forward<_Args>(_args)...));
@@ -392,7 +402,10 @@ NS_INTERNAL
 
         template<typename _A,
                  typename _B>
-        bool operator()(const _A& _a, const _B& _b) const
+        bool operator()(
+            const _A& _a, 
+            const _B& _b
+        ) const
         {
             return !(m_predicate1(_a, _b) || m_predicate2(_a, _b));
         }
@@ -415,8 +428,7 @@ template<typename _Predicate1,
 D_CONSTEXPR
 internal::predicate_and_combinator<typename std::decay<_Predicate1>::type,
                                    typename std::decay<_Predicate2>::type>
-predicate_and
-(
+predicate_and(
     _Predicate1&& _predicate1,
     _Predicate2&& _predicate2
 )
@@ -484,11 +496,10 @@ predicate_or
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 template<typename _Predicate1,
          typename _Predicate2>
-D_CONSTEXPR
-internal::predicate_xor_combinator<typename std::decay<_Predicate1>::type,
-                                   typename std::decay<_Predicate2>::type>
-predicate_xor
-(
+D_CONSTEXPR internal::predicate_xor_combinator<
+    typename std::decay<_Predicate1>::type,
+    typename std::decay<_Predicate2>::type>
+predicate_xor(
     _Predicate1&& _predicate1,
     _Predicate2&& _predicate2
 )
