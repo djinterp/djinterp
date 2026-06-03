@@ -18,7 +18,7 @@
 *
 * USAGE:
 *   // explicit iteration via the producer interface
-*   auto fibs = producers::iterate(std::make_pair(0, 1),
+*   auto fibs = iterate(std::make_pair(0, 1),
 *       [](std::pair<int,int> p){
 *           return std::make_pair(p.second, p.first + p.second);
 *       });
@@ -29,11 +29,10 @@
 *   }
 *
 *   // bounded consumption via take_n
-*   auto first_ten = producers::take_n(fibs, 10).collect();
+*   auto first_ten = take_n(fibs, 10).collect();
 *
 *   // sequencing: 1..3 then 100..102
-*   auto seq = producers::concat(producers::range(1, 4),
-*                                producers::range(100, 103));
+*   auto seq = concat(range(1, 4), range(100, 103));
 *
 * 
 * path:      /inc/djinterp/core/functional/producer.hpp
@@ -62,7 +61,7 @@ II.   INTERNAL PRODUCER HELPER CLASSES
       13. interleave_helper                   (alternate between two)
       14. transform_helper                    (apply f to outputs)
       15. filter_helper                       (keep matching outputs)
-III.  PRODUCER FACTORIES   (namespace producers)
+III.  PRODUCER FACTORIES   (flat in djinterp)
       1.  iterate
       2.  unfold
       3.  range / iota
@@ -79,6 +78,11 @@ IV.   TERMINAL CONVENIENCES
       1.  collect                             (drain to vector)
       2.  for_each                            (apply consumer until exhaust)
       3.  fold                                (drain via accumulator step)
+V.    PRODUCER TRAITS & CONCEPTS
+      1.  is_producer_step<T>                 (is T a producer_step?)
+      2.  is_producer<T>                      (does T model the protocol?)
+      3.  producer_value_type<T>              (the emitted value type)
+      4.  producer_step_type / producer       (C++20 concepts)
 */
 
 #ifndef DJINTERP_FUNCTIONAL_PRODUCER_
@@ -92,7 +96,7 @@ IV.   TERMINAL CONVENIENCES
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
-#include "./functional_traits.hpp"
+#include "./function_traits.hpp"
 
 
 NS_DJINTERP
@@ -171,6 +175,44 @@ no_step()
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
+    // producer_base
+    //   CRTP mixin giving every producer helper a uniform collect()
+    //   terminal. Previously collect() was defined only on a few helpers
+    //   (take_n / drop_n / single), so range(...).collect(),
+    //   transform(...).collect(), etc. did not compile despite the
+    //   documented `.collect()` usage. Deriving every helper from this
+    //   base provides collect() once, in terms of the derived operator().
+    //   (added 2026-05-30)
+    template<typename _Derived>
+    class producer_base
+    {
+    public:
+        // collect
+        //   pulls all remaining values into a vector by repeatedly
+        // invoking the derived producer until exhaustion.
+        template<typename _D = _Derived>
+        std::vector<typename _D::value_type>
+        collect() const
+        {
+            const _Derived& self = static_cast<const _Derived&>(*this);
+            std::vector<typename _D::value_type> result;
+
+            while (true)
+            {
+                auto step = self();
+
+                if (!step.has_value)
+                {
+                    break;
+                }
+
+                result.push_back(std::move(step.value));
+            }
+
+            return result;
+        }
+    };
+
     // iterate_helper
     //   helper: infinite producer driven by repeated application of
     // a step function to a seed. The seed is the first value emitted;
@@ -178,6 +220,7 @@ NS_INTERNAL
     template<typename _Seed,
              typename _Step>
     class iterate_helper
+        : public producer_base<iterate_helper<_Seed, _Step>>
     {
     public:
         using value_type = _Seed;
@@ -225,6 +268,7 @@ NS_INTERNAL
              typename _Step,
              typename _Value>
     class unfold_helper
+        : public producer_base<unfold_helper<_State, _Step, _Value>>
     {
     public:
         using value_type = _Value;
@@ -276,6 +320,7 @@ NS_INTERNAL
     // sign of _step; a zero step is treated as exhausted.
     template<typename _Int>
     class range_helper
+        : public producer_base<range_helper<_Int>>
     {
     public:
         using value_type = _Int;
@@ -320,6 +365,7 @@ NS_INTERNAL
     //   helper: produces a stored value indefinitely.
     template<typename _Value>
     class repeat_helper
+        : public producer_base<repeat_helper<_Value>>
     {
     public:
         using value_type = _Value;
@@ -348,6 +394,7 @@ NS_INTERNAL
     // signals exhaustion.
     template<typename _Value>
     class repeat_n_helper
+        : public producer_base<repeat_n_helper<_Value>>
     {
     public:
         using value_type = _Value;
@@ -387,6 +434,7 @@ NS_INTERNAL
     // immediately if the container is empty (avoiding a hang).
     template<typename _Container>
     class cycle_helper
+        : public producer_base<cycle_helper<_Container>>
     {
     public:
         using value_type = typename std::decay<decltype(
@@ -431,6 +479,7 @@ NS_INTERNAL
     // its result. Useful for random numbers, time samples, etc.
     template<typename _Function>
     class generate_helper
+        : public producer_base<generate_helper<_Function>>
     {
     public:
         using value_type = typename std::decay<
@@ -459,6 +508,7 @@ NS_INTERNAL
     //   helper: produces no values. Useful as an identity for concat.
     template<typename _Type>
     struct empty_producer_helper
+        : public producer_base<empty_producer_helper<_Type>>
     {
         using value_type = _Type;
         using step_type  = producer_step<_Type>;
@@ -476,6 +526,7 @@ NS_INTERNAL
     // exhaustion. Equivalent to repeat_n(_value, 1) but cheaper.
     template<typename _Value>
     class single_helper
+        : public producer_base<single_helper<_Value>>
     {
     public:
         using value_type = _Value;
@@ -514,6 +565,7 @@ NS_INTERNAL
     // producer is exhausted.
     template<typename _Producer>
     class take_n_helper
+        : public producer_base<take_n_helper<_Producer>>
     {
     public:
         using value_type = typename _Producer::value_type;
@@ -586,6 +638,7 @@ NS_INTERNAL
     // is also exhausted.
     template<typename _Producer>
     class drop_n_helper
+        : public producer_base<drop_n_helper<_Producer>>
     {
     public:
         using value_type = typename _Producer::value_type;
@@ -632,6 +685,7 @@ NS_INTERNAL
     template<typename _First,
              typename _Second>
     class concat_helper
+        : public producer_base<concat_helper<_First, _Second>>
     {
     public:
         using value_type = typename _First::value_type;
@@ -680,6 +734,7 @@ NS_INTERNAL
     template<typename _First,
              typename _Second>
     class interleave_helper
+        : public producer_base<interleave_helper<_First, _Second>>
     {
     public:
         using value_type = typename _First::value_type;
@@ -719,6 +774,7 @@ NS_INTERNAL
     template<typename _Producer,
              typename _Function>
     class transform_helper
+        : public producer_base<transform_helper<_Producer, _Function>>
     {
     public:
         using source_type = typename _Producer::value_type;
@@ -763,6 +819,7 @@ NS_INTERNAL
     template<typename _Producer,
              typename _Predicate>
     class filter_helper
+        : public producer_base<filter_helper<_Producer, _Predicate>>
     {
     public:
         using value_type = typename _Producer::value_type;
@@ -809,8 +866,10 @@ NS_END  // internal
 ///             III.  PRODUCER FACTORIES                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace producers
-{
+// NOTE: the producer factories below were previously nested in a
+// `namespace producers` sub-namespace; they are now flat in djinterp so
+// callers write `iterate(...)`, `range(...)`, etc. directly. The internal
+// helper classes they return remain in `djinterp::internal`.
 
     // iterate
     //   function: infinite producer iterate(x, f) yielding x, f(x),
@@ -1138,6 +1197,7 @@ namespace producers
     // copy. The producer exhausts when the iterator reaches end().
     template<typename _Container>
     class from_container_producer
+        : public internal::producer_base<from_container_producer<_Container> >
     {
     public:
         using container_type = typename std::decay<_Container>::type;
@@ -1188,8 +1248,6 @@ namespace producers
                 std::forward<_Container>(_container));
     }
 
-}   // namespace producers
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             IV.   TERMINAL CONVENIENCES                                 ///
@@ -1200,8 +1258,7 @@ namespace producers
 // bounded) into a std::vector. Pulls until the producer signals
 // exhaustion.
 template<typename _Producer>
-D_NODISCARD
-std::vector<typename _Producer::value_type>
+D_NODISCARD std::vector<typename _Producer::value_type>
 collect
 (
     _Producer& _producer
@@ -1280,6 +1337,134 @@ fold
 
     return _init;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             V.    PRODUCER TRAITS & CONCEPTS                            ///
+///////////////////////////////////////////////////////////////////////////////
+// SFINAE-friendly structural introspection of the producer protocol. A
+// "producer" is a const-invocable nullary callable whose result is a
+// producer_step<V>, and which advertises that V via a nested value_type.
+// These traits surface that contract as first-class, and the C++20 concepts
+// wrap them for use in requires-clauses.
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+NS_INTERNAL
+
+    // producer_make_void
+    //   trait: header-local map from any type sequence to void; the
+    // foundation for the detection idiom below. Kept local so the trait
+    // block carries no dependency on an external void_t facility.
+    template<typename...>
+    struct producer_make_void
+    {
+        typedef void type;
+    };
+
+    // producer_void_t
+    //   type: header-local alias for producer_make_void<...>::type.
+    template<typename... _Types>
+    using producer_void_t = typename producer_make_void<_Types...>::type;
+
+
+    // is_producer_step_helper
+    //   trait: detects whether _Type is a producer_step specialization
+    // (primary / failure case).
+    template<typename _Type>
+    struct is_producer_step_helper : std::false_type
+    {};
+
+    // is_producer_step_helper<producer_step<_Value>>
+    //   trait: success specialization for producer_step.
+    template<typename _Value>
+    struct is_producer_step_helper<producer_step<_Value> > : std::true_type
+    {};
+
+
+    // is_producer_helper
+    //   trait: detects whether _Type satisfies the producer protocol --
+    // it has a nested value_type, is const-invocable with no arguments,
+    // and the call result is a producer_step. Primary / failure case.
+    template<typename _Type,
+             typename _AlwaysVoid = void>
+    struct is_producer_helper : std::false_type
+    {};
+
+    // is_producer_helper (success case)
+    //   trait: specialization that fires only when every protocol element
+    // is well-formed.
+    template<typename _Type>
+    struct is_producer_helper<
+        _Type,
+        producer_void_t<
+            typename _Type::value_type,
+            decltype(std::declval<const _Type&>()())> >
+        : is_producer_step_helper<
+              typename std::decay<
+                  decltype(std::declval<const _Type&>()())>::type>
+    {};
+
+NS_END  // internal
+
+
+// is_producer_step
+//   trait: true if _Type (decayed) is a producer_step specialization.
+template<typename _Type>
+struct is_producer_step
+    : internal::is_producer_step_helper<typename std::decay<_Type>::type>
+{};
+
+
+// is_producer
+//   trait: true if _Type (decayed) models the producer protocol: a nested
+// value_type, const-nullary-invocable, returning a producer_step.
+template<typename _Type>
+struct is_producer
+    : internal::is_producer_helper<typename std::decay<_Type>::type>
+{};
+
+
+// producer_value_type
+//   trait: extracts the value_type a producer emits. Only well-formed when
+// is_producer<_Type>::value is true; intended for use behind that guard.
+template<typename _Type>
+struct producer_value_type
+{
+    typedef typename std::decay<_Type>::type::value_type type;
+};
+
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    // is_producer_step_v
+    //   value: convenience alias for is_producer_step<_Type>::value.
+    template<typename _Type>
+    static constexpr bool is_producer_step_v =
+        is_producer_step<_Type>::value;
+
+    // is_producer_v
+    //   value: convenience alias for is_producer<_Type>::value.
+    template<typename _Type>
+    static constexpr bool is_producer_v = is_producer<_Type>::value;
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+
+    // producer_step_type
+    //   concept: satisfied by any producer_step specialization.
+    template<typename _Type>
+    concept producer_step_type = is_producer_step<_Type>::value;
+
+    // producer
+    //   concept: satisfied by any type modeling the producer protocol.
+    template<typename _Type>
+    concept producer = is_producer<_Type>::value;
+
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
+
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
 
 NS_END  // djinterp
 
