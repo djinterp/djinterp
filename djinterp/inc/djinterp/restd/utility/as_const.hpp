@@ -1,22 +1,24 @@
 /***********************************************************************
-* restd                                                       as_const.hpp
+* restd                                                      as_const.hpp
 *
-* as_const(_v):
-*   Returns a const lvalue reference to _v. Used to force selection
-* of const overloads, particularly to avoid accidentally invoking
-* mutating range-based-for begin()/end() on containers that have a
-* const overload distinct from the non-const one.
+* const-view cast utility:
+*   Provides restd::as_const, which returns a const reference to its
+* argument. Useful for triggering const-qualified overloads of member
+* functions or for capturing-by-const-ref in a way that's explicit at
+* the call site.
 *
-*   The deleted rvalue overload prevents `as_const(temporary())` --
-* binding a const& to a temporary in a way that escapes the
-* expression's lifetime is a common bug.
+*   Two overloads:
+*     as_const(T&)          -> const T&    (returns the const view)
+*     as_const(const T&&)   = delete       (banned: would dangle)
 *
-* added in std C++17.
+*   STANDARD STATUS:
+*   Introduced in C++17. restd back-ports to C++11+ (the implementation
+* needs only `= delete` and add_const, both available since C++11).
 *
 *
 * path:      /inc/restd/utility/as_const.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.05.09
+* author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/
 
 #ifndef RESTD_UTILITY_AS_CONST_
@@ -24,26 +26,35 @@
 
 #include "djinterp.hpp"
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#include "../type_traits/add_const.hpp"
 
-namespace restd
+NS_RESTD
+
+// =============================================================================
+// AS_CONST
+// =============================================================================
+
+// as_const (lvalue overload)
+//   function: returns a const reference to the argument. Single-
+//   statement; constexpr-eligible from C++11.
+template<typename _Type>
+D_CONSTEXPR
+typename add_const<_Type>::type& as_const(_Type& _value) noexcept
 {
-
-template<typename _T>
-D_CONSTEXPR const _T& as_const(_T& _v) D_NOEXCEPT
-{
-    return _v;
+    return _value;
 }
 
-// Disable rvalue arg: would otherwise bind a const& to a temporary
-// that dies at the end of the full-expression.
-template<typename _T>
-void as_const(const _T&&) = delete;
+// as_const (rvalue overload, deleted)
+//   function: forbidden -- as_const on an rvalue would return a
+//   reference to a soon-to-die temporary. Deletion is part of the
+//   standard's interface.
+template<typename _Type>
+void as_const(const _Type&&) = delete;
 
+NS_END  // restd
 
-}  // namespace restd
-
-#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #endif  // RESTD_UTILITY_AS_CONST_

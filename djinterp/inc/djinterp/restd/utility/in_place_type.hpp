@@ -1,27 +1,27 @@
 /***********************************************************************
-* restd                                                  in_place_type.hpp
+* restd                                                 in_place_type.hpp
 *
-* in_place_type_t<T> / in_place_type<T>:
-*   tag types/values for selecting type-disambiguated overloads. Used
-* mainly by variant<Ts...>: variant(in_place_type<T>, args...)
-* unambiguously selects the alternative of type T.
+* in_place_type tag type and variable:
+*   Disambiguating tag for type-tagged in-place construction in
+* variant<Ts...>, expected<T,E> (for unexpected<E>::unexpected<U>(in_place_type<U>, ...))
+* and similar containers. Where in_place_t (in optional/in_place.hpp)
+* selects the held type implicitly, in_place_type<T> selects an explicit
+* T from a variant's alternative list.
 *
-* in_place_index_t<I> / in_place_index<I>:
-*   the index-disambiguated variant. variant(in_place_index<2>, args...)
-* selects the alternative at index 2.
+*   Provided as a class template (in_place_type_t<T>) plus a variable
+* template (in_place_type<T>) on C++14+. The variable template is
+* gated on D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES; on C++11 only
+* the type is available, and callers must construct in_place_type_t<T>{}
+* explicitly.
 *
-*   The bare in_place_t / in_place tags ship under <optional>
-* (restd/optional/in_place.hpp); the standard puts all of them in
-* <utility>. We split because <optional> ships earlier in the
-* dependency order. This file adds the typed and indexed variants
-* needed by variant.
-*
-* added in std C++17.
+*   STANDARD STATUS:
+*   Introduced in C++17 alongside <variant>. restd back-ports to C++11+
+* since variant itself is planned at C++11+.
 *
 *
 * path:      /inc/restd/utility/in_place_type.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.05.09
+* author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/
 
 #ifndef RESTD_UTILITY_IN_PLACE_TYPE_
@@ -29,49 +29,42 @@
 
 #include "djinterp.hpp"
 
-
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include <cstddef>
+NS_RESTD
 
+// =============================================================================
+// IN_PLACE_TYPE
+// =============================================================================
 
-namespace restd
-{
-
-// =====================================================================
-// in_place_type_t<T> + in_place_type<T>
-// =====================================================================
-
-template<typename _T>
+// in_place_type_t
+//   struct: tag type for type-tagged in-place construction. Has an
+//   explicit constexpr default constructor so brace-initialisation of
+//   a variant from {} cannot accidentally select an in_place_type_t
+//   constructor.
+template<typename _Type>
 struct in_place_type_t
 {
-    explicit D_CONSTEXPR in_place_type_t() = default;
+    explicit D_CONSTEXPR in_place_type_t() noexcept
+    {}
 };
 
+// in_place_type
+//   variable: template variable yielding a default-constructed
+//   in_place_type_t<_Type>. Inline on C++17+ for single-instance
+//   linkage; on C++14 each TU gets its own copy (harmless because
+//   in_place_type_t is stateless).
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // Variable-template form (C++17+ in std). One instance per T.
-    template<typename _T>
-    D_CONSTEXPR in_place_type_t<_T> in_place_type{};
+
+    template<typename _Type>
+    #if D_ENV_LANG_IS_CPP17_OR_HIGHER
+    inline
+    #endif
+    D_CONSTEXPR in_place_type_t<_Type> in_place_type{};
+
 #endif
 
-
-// =====================================================================
-// in_place_index_t<I> + in_place_index<I>
-// =====================================================================
-
-template<std::size_t _I>
-struct in_place_index_t
-{
-    explicit D_CONSTEXPR in_place_index_t() = default;
-};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    template<std::size_t _I>
-    D_CONSTEXPR in_place_index_t<_I> in_place_index{};
-#endif
-
-
-}  // namespace restd
+NS_END  // restd
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 

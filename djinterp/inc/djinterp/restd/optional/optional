@@ -1,0 +1,41 @@
+/******************************************************************************
+* djinterp [restd]                                                      optional
+*
+* <optional> umbrella header:
+*   Convenience aggregator that pulls in every granular module of the
+* restd optional implementation. Users may include this header to get
+* the full optional surface (matching the experience of std's
+* `#include <optional>`), or include individual granular headers from
+* the `optional/` subdirectory for more precise dependency control.
+*
+*   FILES PULLED IN:
+*     optional/nullopt.hpp              -- nullopt_t, nullopt
+*     optional/bad_optional_access.hpp  -- the exception type
+*     optional/optional.hpp             -- the optional<T> class
+*                                          template + comparison ops
+*     optional/make_optional.hpp        -- make_optional factories
+*     optional/optional_swap.hpp        -- non-member swap overload
+*
+*   The in_place_t / in_place tag (which optional consumes) is
+* technically a <utility> symbol and is included transitively via
+* optional.hpp; it is not exposed here as a top-level optional concern.
+*
+*   STANDARD STATUS:
+*   Mirrors std::<optional> from C++17. restd provides on C++11+.
+*
+*
+* path:      /inc/djinterp/restd/optional
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_OPTIONAL_
+#define DJINTERP_RESTD_OPTIONAL_ 1
+
+#include "./optional/nullopt.hpp"
+#include "./optional/bad_optional_access.hpp"
+#include "./optional/optional.hpp"
+#include "./optional/make_optional.hpp"
+#include "./optional/optional_swap.hpp"
+
+#endif  // DJINTERP_RESTD_OPTIONAL_

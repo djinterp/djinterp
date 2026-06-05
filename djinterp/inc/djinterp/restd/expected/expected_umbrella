@@ -1,0 +1,43 @@
+/******************************************************************************
+* djinterp [restd]                                                       expected
+*
+* expected umbrella header:
+*   Convenience header that #includes every granular module under
+* restd/expected/. Matches the project convention: user code may
+* #include "restd/expected" instead of pulling in each piece directly.
+*
+*   Per-symbol headers:
+*
+*     unexpect.hpp                - unexpect_t tag + unexpect constant
+*     bad_expected_access.hpp     - exception thrown by expected::value()
+*     unexpected.hpp              - unexpected<E> error-wrapper class
+*     unexpected_compare.hpp      - operator== for unexpected
+*     expected.hpp                - expected<T, E> + expected<void, E>
+*     expected_compare.hpp        - operator== overloads for expected
+*     expected_swap.hpp           - non-member swap
+*
+*   PORTABILITY:
+*   The entire module is gated on C++11+. There is no C++98/03
+* back-port path; the design requires variadic templates, rvalue
+* refs, defaulted/deleted special members, and union-with-non-trivial-
+* members (all C++11 features).
+*
+*
+* path:      /inc/djinterp/restd/expected
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.05.19
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_EXPECTED_UMBRELLA_
+#define DJINTERP_RESTD_EXPECTED_UMBRELLA_ 1
+
+#include "./expected/unexpect.hpp"
+#include "./expected/bad_expected_access.hpp"
+#include "./expected/unexpected.hpp"
+#include "./expected/unexpected_compare.hpp"
+#include "./expected/expected.hpp"
+#include "./expected/expected_compare.hpp"
+#include "./expected/expected_swap.hpp"
+
+
+#endif  // DJINTERP_RESTD_EXPECTED_UMBRELLA_

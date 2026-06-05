@@ -1,0 +1,36 @@
+/***********************************************************************
+* restd                                                     system_error
+*
+* umbrella header for the restd system_error module:
+*   pulls in every granular module of <system_error>: the error_category
+*   base, the error_code / error_condition value types, the system_error
+*   exception, the errc enum, the is_error_*_enum traits, the
+*   make_error_* factories, the generic_/system_category accessors, and
+*   the restd::hash specialisations. Including the umbrella is the easy
+*   default; users who need only one symbol may include its granular
+*   header instead.
+*
+*
+* path:      /inc/restd/system_error
+* link(s):   TBA
+* author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
+***********************************************************************/
+
+#ifndef RESTD_SYSTEM_ERROR_
+#define RESTD_SYSTEM_ERROR_ 1
+
+// restd :: system_error
+#include "system_error/error_category.hpp"
+#include "system_error/error_code.hpp"
+#include "system_error/error_condition.hpp"
+#include "system_error/system_error.hpp"
+#include "system_error/errc.hpp"
+#include "system_error/is_error_code_enum.hpp"
+#include "system_error/is_error_condition_enum.hpp"
+#include "system_error/make_error_code.hpp"
+#include "system_error/make_error_condition.hpp"
+#include "system_error/generic_category.hpp"
+#include "system_error/system_category.hpp"
+#include "system_error/hash.hpp"
+
+#endif  // RESTD_SYSTEM_ERROR_

@@ -1,0 +1,61 @@
+/******************************************************************************
+* djinterp [restd]                                                    typeinfo
+*
+* typeinfo umbrella header:
+*   Aggregates the granular per-symbol headers under
+* /inc/djinterp/restd/typeinfo/. Mirrors the standard <typeinfo> header.
+* The whole module is a strategic re-export: type_info, bad_cast, and
+* bad_typeid are compiler-and-runtime-provided RTTI types that cannot be
+* reimplemented portably, so restd surfaces the std types in-namespace
+* via identity-preserving using-declarations. This umbrella adds no
+* symbols of its own.
+*
+*   PORTABILITY:
+*   Every symbol is C++98 baseline, gated on D_ENV_CPP98_HAS_TYPEINFO
+* (RTTI availability). On a -fno-rtti build the module expands to
+* nothing. type_info::hash_code() (C++11) and the C++23 constant-
+* evaluation support for type_info comparisons ride along from the std
+* type with no restd involvement.
+*
+*
+* TABLE OF CONTENTS
+* =================
+* I.    type_info
+* II.   bad_cast
+* III.  bad_typeid
+*
+*
+* path:      /inc/djinterp/restd/typeinfo/typeinfo
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_TYPEINFO_
+#define DJINTERP_RESTD_TYPEINFO_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+// =============================================================================
+// I.   type_info
+// =============================================================================
+
+#include "./type_info.hpp"
+
+
+// =============================================================================
+// II.  bad_cast
+// =============================================================================
+
+#include "./bad_cast.hpp"
+
+
+// =============================================================================
+// III. bad_typeid
+// =============================================================================
+
+#include "./bad_typeid.hpp"
+
+
+#endif  // DJINTERP_RESTD_TYPEINFO_

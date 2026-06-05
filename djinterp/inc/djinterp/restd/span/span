@@ -1,0 +1,38 @@
+/***********************************************************************
+* restd                                                             span
+*
+* umbrella header for <span>:
+*   Pulls in every granular restd::span module. Include this for the full
+* std::span-equivalent surface, or include the individual granular
+* headers under restd/span/ to minimise translation-unit cost.
+*
+*   Contents:
+*     restd/span/dynamic_extent.hpp     - dynamic_extent constant
+*     restd/span/span.hpp               - span<T, Extent> + deduction guides
+*     restd/span/as_bytes.hpp           - as_bytes            (C++17+)
+*     restd/span/as_writable_bytes.hpp  - as_writable_bytes   (C++17+)
+*
+*   Deferred (pending restd::ranges, not yet shipped):
+*     - the contiguous-range constructor span(R&&)
+*     - the ranges::enable_borrowed_range<span> / enable_view<span> opt-ins
+*   These are tracked as depends_on "<ranges>" in the coverage data and
+*   will land with that module.
+*
+*   Not a dependency: <string_view>. span has no relationship to
+*   basic_string_view; the two modules are independent.
+*
+*
+* path:      /inc/restd/span
+* link(s):   TBA
+* author(s): restd contributors                        date: 2026.06.04
+***********************************************************************/
+
+#ifndef RESTD_SPAN_
+#define RESTD_SPAN_ 1
+
+#include "restd/span/dynamic_extent.hpp"
+#include "restd/span/span.hpp"
+#include "restd/span/as_bytes.hpp"
+#include "restd/span/as_writable_bytes.hpp"
+
+#endif  // RESTD_SPAN_

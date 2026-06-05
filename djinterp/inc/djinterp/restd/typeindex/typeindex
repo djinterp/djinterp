@@ -1,0 +1,30 @@
+/***********************************************************************
+* restd                                                        typeindex
+*
+* umbrella header for <typeindex>:
+*   Pulls in the restd::type_index class. Include this for the std::
+* <typeindex>-equivalent surface.
+*
+*   Contents:
+*     restd/typeindex/type_index.hpp   - type_index (C++11; op<=> C++20+)
+*
+*   Deferred (pending restd::hash from <functional>, not yet shipped):
+*     - hash<type_index>, the std::hash specialisation. Tracked as
+*       depends_on "<functional>" in the coverage data; it will be a small
+*       follow-up file (forwards to type_index::hash_code()).
+*
+*   Requires RTTI / <typeinfo>: the class is gated on
+* D_ENV_CPP98_HAS_TYPEINFO and is absent where that is unavailable.
+*
+*
+* path:      /inc/restd/typeindex
+* link(s):   TBA
+* author(s): restd contributors                        date: 2026.06.05
+***********************************************************************/
+
+#ifndef RESTD_TYPEINDEX_
+#define RESTD_TYPEINDEX_ 1
+
+#include "restd/typeindex/type_index.hpp"
+
+#endif  // RESTD_TYPEINDEX_
