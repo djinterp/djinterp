@@ -7,6 +7,83 @@
     "est_min_cpp": "C++98 / C++11 / C++14 / C++17 / C++20"
   },
   {
+    "priority": 0,
+    "header": "<array>",
+    "summary": "SHIPPED 2026-05-19. All 14 catalogued symbols: array<T,N> aggregate class (C++98 brace-init via public _M_elems + internal::array_storage zero-size helper), get<I> (four overloads on C++11+, two lvalue overloads on C++98), the six legacy comparison operators (restd-ahead-of-std: constexpr from C++14, std waited for C++20 / P1614), operator<=> (C++20), non-member swap, to_array (back-ported to C++11+, restd-ahead-of-std: std waited for C++20), tuple_size and tuple_element specialisations, C++17 deduction guide with fold-expression homogeneity SFINAE. Three language-feature ceilings tracked on the per-symbol sheet's Coverage Failures column, not here: operator<=> bounded by C++20 spaceship operator, to_array bounded by C++11 variadic templates + rvalue refs, deduction guide bounded by C++17 CTAD.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 0,
+    "header": "<expected>",
+    "summary": "SHIPPED 2026-05-20. All 14 catalogued symbols: expected<T,E> + expected<void,E> partial specialisation (anonymous-union discriminated storage, ten ctor flavours each including the in_place/unexpect/initializer_list family, full assignment + emplace + member swap, every observer overload ref-qualified), unexpected<E> wrapper with C++17 deduction guide, the bad_expected_access<void> base + bad_expected_access<E> payload exception family (three inheritance fallbacks: std::bad_cast / std::exception / standalone), unexpect_t tag, the five operator== overloads (expected/expected, expected/value, expected/unexpected, unexpected/unexpected, void variants), explicit operator!= overloads gated on pre-C++20, non-member swap for expected and unexpected, plus the four monadic operations (and_then, or_else, transform, transform_error) each in three ref-qualified overloads. RESTD AHEAD OF STD: 12-year back-port — std::expected ships in C++23, restd::expected ships from C++11. Constexpr from C++20 (3-year lead vs std's C++23). Two language-feature ceilings tracked on the per-symbol sheet's Coverage Failures column: the deduction guide requires C++17 CTAD, and the whole module requires C++11 variadic templates + rvalue refs + union-with-non-trivial-members (no C++98 path exists). Monadic ops use direct call syntax rather than restd::invoke (blocked on <functional>) — function objects, lambdas, free function pointers all work; pointer-to-member-function does NOT (same limitation std::expected has without invoke). Reference specialisation expected<T&, E> deferred to a dedicated phase. Conditional triviality not implemented — restd always emits user-defined special members (correctness over optimisation, documented limitation).",
+    "blockers": "—",
+    "est_min_cpp": "C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 0,
+    "header": "<new>",
+    "summary": "SHIPPED 2026-05-20. All 11 catalogued symbols across 8 granular headers. Strategy is strategic re-export plus targeted back-ports: bad_alloc, nothrow_t/nothrow, set_new_handler are pass-throughs from std (C++98 baseline); bad_array_new_length back-ports from C++11 to C++98 (class deriving from std::bad_alloc); get_new_handler back-ports from C++11 to C++98 via a shadow-storage wrapper; align_val_t back-ports from C++17 to C++11 as enum class (struct wrapper on C++98); launder back-ports from C++17 to C++98 via __builtin_launder (GCC 7+, Clang 3.6+, MSVC equivalent) with identity-function fallback when intrinsic absent; hardware_destructive_interference_size and hardware_constructive_interference_size back-port from C++17 to C++98 with platform heuristic (__GCC_DESTRUCTIVE_SIZE if defined, Apple Silicon ARM64 special-case -> 128, else 64) and constexpr from C++11 (ahead of std's C++17); destroying_delete_t back-ports from C++20 to C++11 (cannot reach C++98 — requires constexpr ctor for the named-instance pattern, tracked on Coverage Failures). Operator new / operator delete and their array variants are runtime-provided and explicitly NOT shipped (cannot be portably reimplemented). Placement new itself is a language operator and just works via #include <new>. RESTD AHEAD OF STD: 19-year back-port of the C++17 surface, 13-year back-port of the C++11 surface. One language-feature ceiling on Coverage Failures: destroying_delete_t cannot reach C++98 (constexpr-ctor requirement).",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 0,
+    "header": "<variant>",
+    "summary": "SHIPPED 2026-05-20. 12 granular headers, 12 of 15 catalogued symbols complete. variant<Ts...> with recursive-union storage (libc++/MSVC pattern), all 6 ctor flavours (default, copy, move, forwarding-from-U via two-pass best_match with exact-match preference, in_place_type, in_place_index, all with initializer_list variants where applicable), complete assignment + emplace + member swap + observers (index, valueless_by_exception), monostate, bad_variant_access (three-fallback inheritance chain), variant_npos, variant_size + variant_alternative traits with cv-qualified passthrough, holds_alternative<T> with exactly-once enforcement, get<I>/get<T> (8 ref-qualified overloads each), get_if<I>/get_if<T> (4 each, pointer-style non-throwing), single-variant visit (recursive index dispatch — works for void and non-void return), six legacy relational operators with proper valueless-state semantics per [variant.relops], non-member swap. RESTD AHEAD OF STD: 6-year back-port to C++11. THREE DEFERRED SYMBOLS tracked on Coverage Failures: operator<=> (interacts with deferred <compare> Phase C6 floating-point work), multi-variant visit + visit<R> (N-ary cartesian-product index dispatch, planned follow-up phase), hash<variant> (blocked on <functional>). DOCUMENTED DIVERGENCES: (1) Forwarding ctor uses simplified two-pass best_match (exact-match-after-decay preferred, falls back to first-constructible) instead of std's full P0608 imaginary-function rule — handles the common narrowing-rejection cases correctly (variant<int,double,string> v=3.14 -> double; variant<int,string> v=\"lit\" -> string); diverges only when multiple alternatives are convertible from the same source with no exact match. (2) Conditional triviality NOT implemented — restd always emits user-defined SMFs (correctness over optimisation). (3) Full constexpr surface NOT shipped — placement-new lifetime management isn't constexpr-friendly pre-C++20. (4) Allocator-aware ctors and reference alternatives both deferred.",
+    "blockers": "—",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 0,
+    "header": "<span>",
+    "summary": "SHIPPED 2026-06-04. All 7 catalogued symbols across 5 granular headers. span<T,Extent> (fixed-extent stays pointer-sized via internal::span_storage; dynamic_extent specialisation tracks a run-time size) ships on C++11+ with the full accessor/observer/subview surface and is constexpr from C++11 — ahead of std, which made span constexpr only in C++20; the lone exception is rbegin/rend, constexpr from C++17 (reverse_iterator constexpr-ness). dynamic_extent is an inline constexpr var on C++17+, plain constexpr below. as_bytes / as_writable_bytes are C++17+ (need std::byte) and non-constexpr everywhere (reinterpret_cast). CTAD deduction guides are C++17. DEFERRED pending restd::ranges: the contiguous-range constructor span(R&&) and the ranges::enable_borrowed_range / enable_view opt-ins (tracked on Pending Dependencies). No dependency on <string_view>.",
+    "blockers": "—",
+    "est_min_cpp": "C++11 / C++17 / C++20"
+  },
+  {
+    "priority": 0,
+    "header": "<string_view>",
+    "summary": "SHIPPED 2026-06-04. Seven granular headers under string_view/. All 16 catalogued symbols: char_traits (generic primary + char/wchar_t/char16_t/char32_t/char8_t specialisations; char/wchar_t reach C++98, char16/char32 C++11, char8 C++20; string-view-supporting subset only — no off_type/pos_type/state_type/comparison_category), basic_string_view<CharT,Traits> with the complete C++17 member surface (construction incl. the back-ported C++23 deleted nullptr_t ctor, iterators + reverse via restd::reverse_iterator, capacity, access with throwing at(), modifiers, copy, substr, the six compare() overloads, and all six find-family operations with four overloads each), the four C++11 view aliases + u8string_view (C++20), starts_with/ends_with (back-ported from C++20) and contains (back-ported from C++23), the comparison operators (six legacy relational on C++11-C++17 with a sv_identity non-deduced operand, operator== + operator<=> on C++20+), the operator\"\"sv literals in restd::literals::string_view_literals, and restd::hash specialisations for all five aliases. RESTD AHEAD OF STD: 6-year back-port of the C++17 surface to C++11; constexpr from C++14 (std reached full constexpr in C++17), with trivial observers and the sv literals constexpr from C++11. Compile-tested clean under -Wall -Wextra across C++11/14/17/20/23. THREE DEFERRED SYMBOLS tracked on Coverage Failures: operator<< (needs <ostream>), the C++20 contiguous-iterator/sentinel constructor (needs the contiguous_iterator concept), and the C++23 range constructor (scope deferral — ranges::data/size are shipped). DOCUMENTED DIVERGENCES: char_traits is the minimal string-view-supporting subset; operator<=> yields strong_ordering directly rather than consulting Traits::comparison_category; hash values are self-contained (polynomial roll) and not required to match any std::hash.",
+    "blockers": "—",
+    "est_min_cpp": "C++98 / C++11 / C++20"
+  },
+  {
+    "priority": 0,
+    "header": "<typeinfo>",
+    "summary": "SHIPPED 2026-06-04. Strategic re-export module (like <new>) — four files under typeinfo/. All 3 catalogued symbols: type_info, bad_cast, bad_typeid, each surfaced via an identity-preserving using-declaration from std and gated on D_ENV_CPP98_HAS_TYPEINFO (RTTI availability). These are compiler-and-runtime-provided RTTI types (typeid yields type_info; the dynamic_cast / typeid machinery throws bad_cast / bad_typeid) and cannot be reimplemented portably, so restd re-exports rather than defines them — restd::type_info IS std::type_info, so a language-level typeid result or dynamic_cast/typeid throw interoperates with the restd:: spelling in both directions. C++98 baseline across the board; nothing to back-port. type_info::hash_code() (C++11) and the C++23 constant-evaluation support for type_info's comparison/hash members ride along from the std type with no restd involvement. bad_cast is the canonical Tier-1 base that restd's own bad_any_cast / bad_expected_access / bad_variant_access inherit from. Compile-tested clean under -Wall -Wextra across C++98/11/14/17/20/23. On a -fno-rtti build the module expands to nothing, matching restd's policy of not exposing RTTI types when RTTI is off. Anchors the future <typeindex>, and the checked any_cast / bad_*_access exception chains already in tree.",
+    "blockers": "—",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 0,
+    "header": "<stdexcept>",
+    "summary": "SHIPPED 2026-06-05. The logic_error / runtime_error hierarchy + 7 derivatives (domain_error, invalid_argument, length_error, out_of_range, range_error, overflow_error, underflow_error) — all C++98, all re-exported from std via identity-preserving using-declarations (catch(std::logic_error&) catches a restd-thrown one and vice versa; every class catchable as restd::exception). Each carries a freestanding fallback gated on D_ENV_CPP98_HAS_STDEXCEPT (fixed message buffer, const char* ctor). No back-ports needed — clean 9/9 at C++98. Depends on restd <exception> (shipped).",
+    "blockers": "—",
+    "est_min_cpp": "C++98"
+  },
+  {
+    "priority": 0,
+    "header": "<typeindex>",
+    "summary": "SHIPPED 2026-06-05. type_index on C++11+ (1 granular header + umbrella): copyable/assignable wrapper over a const type_info*, operator== + hash_code() + name(); six explicit relational members on C++11-C++17 and operator<=> (returning the shipped restd::strong_ordering) with synthesised rewrites on C++20. Uses restd::type_info / std::type_info behind the D_ENV_CPP98_HAS_TYPEINFO RTTI gate; not constexpr. DEFERRED: hash<type_index>, blocked on restd::hash from <functional> (one-line forward once it ships).",
+    "blockers": "—",
+    "est_min_cpp": "C++11 / C++20"
+  },
+  {
+    "priority": 0,
+    "header": "<system_error>",
+    "summary": "SHIPPED 2026-06-05. The C++11 diagnostic-code facility, re-exported in-namespace (same family as <typeinfo>/<new>/<stdexcept>): error_category, error_code, error_condition, system_error (derives runtime_error), errc, the is_error_code_enum / is_error_condition_enum customisation-point traits, make_error_code / make_error_condition, generic_category / system_category — all identity-preserving using-declarations, so restd::error_code IS std::error_code and codes from std::filesystem / std::thread interoperate. Plus restd::hash<error_code> and hash<error_condition> shipped here (the latter constexpr-min C++11, 6 yrs ahead of std's C++17 hash<error_condition>). 11 re-exports + 2 hash. Depends on restd <exception> (shipped).",
+    "blockers": "—",
+    "est_min_cpp": "C++11"
+  },
+  {
+    "priority": 0,
+    "header": "<initializer_list>",
+    "summary": "SHIPPED 2026-06-05. The C++11 compiler-magic header: initializer_list<E> surfaced via identity-preserving using-declaration (the only type a brace-init-list materialises as — restd::initializer_list IS std::initializer_list), plus self-contained non-member begin/end that restd makes constexpr from C++11, one tier ahead of std's C++14. 3/3 at the C++11 floor; no C++98 path (the type is a C++11 language facility).",
+    "blockers": "—",
+    "est_min_cpp": "C++11"
+  },
+  {
     "priority": 3,
     "header": "<type_traits>",
     "summary": "C++20 layout-compat family (is_layout_compatible, is_pointer_interconvertible_base_of, is_pointer_interconvertible_with_class).",
@@ -49,20 +126,6 @@
     "est_min_cpp": "C++11"
   },
   {
-    "priority": 9,
-    "header": "<variant>",
-    "summary": "variant<Ts...>, monostate, bad_variant_access, visit, holds_alternative, get<I>/get<T>, variant_size, variant_alternative.",
-    "blockers": "Heaviest unimplemented module; requires careful constexpr work.",
-    "est_min_cpp": "C++11"
-  },
-  {
-    "priority": 10,
-    "header": "<expected>",
-    "summary": "expected<T,E>, unexpected<E>, bad_expected_access, in_place_t / unexpect_t tags. C++23.",
-    "blockers": "Builds on the in_place tags.",
-    "est_min_cpp": "C++11 (back-port of C++23 surface)"
-  },
-  {
     "priority": 11,
     "header": "<tuple>",
     "summary": "Full tuple implementation. operator<=> blocked on restd::compare; allocator-aware ctors blocked on restd::memory.",
@@ -75,27 +138,6 @@
     "summary": "Phase C6 — the only remaining work after Phases C1-C5 shipped 2026-05-17 (all 17 catalogued symbols delivered). C6 covers the floating-point special case in the strong_order / weak_order niebloids: per [cmp.alg], for `float`, `double`, `long double` inputs the niebloid must produce a deterministic total order even across NaN (treating NaN as ordered relative to all finite values, distinguishing +NaN from -NaN, distinguishing -0 from +0). The standard's algorithm operates on the bit pattern; implementations typically use bit_cast (C++20+) or memcpy. Deferred because the rest of the module is functionally complete without it — FP inputs currently route through path (c) of the niebloid and return their built-in partial_ordering, which fails to convert to strong/weak ordering for NaN (compile or runtime mismatch).",
     "blockers": "Per-platform IEEE-754 sign-and-bit-pattern manipulation, ideally via restd::bit_cast (not yet shipped) or std::memcpy.",
     "est_min_cpp": "C++20 (refinement)"
-  },
-  {
-    "priority": 14,
-    "header": "<array>",
-    "summary": "array<T,N> with the C++14 constexpr surface and C++17 deduction guides.",
-    "blockers": "—",
-    "est_min_cpp": "C++98 (interface), C++14 (constexpr)"
-  },
-  {
-    "priority": 15,
-    "header": "<string_view>",
-    "summary": "basic_string_view + char_traits enough to support it.",
-    "blockers": "—",
-    "est_min_cpp": "C++11 (back-port of C++17 surface)"
-  },
-  {
-    "priority": 16,
-    "header": "<span>",
-    "summary": "span<T,N>. Trivially constexpr.",
-    "blockers": "—",
-    "est_min_cpp": "C++11 (back-port of C++20 surface)"
   },
   {
     "priority": 17,
@@ -126,53 +168,11 @@
     "est_min_cpp": "C++20 (remaining) / C++23 (remaining) / C++26"
   },
   {
-    "priority": 21,
-    "header": "<new>",
-    "summary": "Placement new, std::nothrow, bad_alloc / bad_array_new_length, hardware_destructive_interference_size / hardware_constructive_interference_size (C++17), launder (C++17), align_val_t + over-aligned new (C++17). Foundational — many other modules need at least bad_alloc.",
-    "blockers": "Some are compiler-magic (launder, hardware_*_interference_size). Bad_alloc inheritance from <exception>.",
-    "est_min_cpp": "C++98 / C++17"
-  },
-  {
     "priority": 22,
     "header": "<exception>",
     "summary": "exception base class, exception_ptr, current_exception / rethrow_exception, make_exception_ptr, throw_with_nested, rethrow_if_nested, nested_exception, terminate / set_terminate / get_terminate, uncaught_exception(s). Foundational — almost every module's exception-throwing path needs this.",
     "blockers": "exception_ptr is opaque, needs platform-specific support; nested_exception needs RTTI.",
     "est_min_cpp": "C++98 / C++11 / C++17"
-  },
-  {
-    "priority": 23,
-    "header": "<stdexcept>",
-    "summary": "logic_error, runtime_error, and their concrete derivatives (domain_error, invalid_argument, length_error, out_of_range, range_error, overflow_error, underflow_error). All public-inheritance from std::exception. Tiny but pervasive.",
-    "blockers": "<exception>.",
-    "est_min_cpp": "C++98"
-  },
-  {
-    "priority": 24,
-    "header": "<typeinfo>",
-    "summary": "type_info, bad_cast, bad_typeid. Needs RTTI; std::type_info::operator== and ::name() are core. Anchor for <typeindex>, <any>, dynamic_cast.",
-    "blockers": "RTTI must be enabled (-fno-rtti would gate this out); type_info::operator== requires platform-specific name interning.",
-    "est_min_cpp": "C++98"
-  },
-  {
-    "priority": 25,
-    "header": "<typeindex>",
-    "summary": "type_index — a wrapper around type_info* providing operator< and hash<type_index>. Tiny once <typeinfo> is in place.",
-    "blockers": "<typeinfo>, <functional> for hash.",
-    "est_min_cpp": "C++11"
-  },
-  {
-    "priority": 26,
-    "header": "<system_error>",
-    "summary": "error_code, error_condition, error_category, errc enum, system_error exception, generic_category / system_category, make_error_code / make_error_condition. Foundational for <filesystem>, <future>, <thread>, networking.",
-    "blockers": "Platform errno-table mapping for system_category; <exception> for system_error base.",
-    "est_min_cpp": "C++11"
-  },
-  {
-    "priority": 27,
-    "header": "<initializer_list>",
-    "summary": "initializer_list<E>. Compiler-magic: the type the compiler binds to braced-init-list expressions. Trivial wrapper class with begin/end/size; the magic is in the compiler.",
-    "blockers": "Compiler support for the brace-init-list -> initializer_list deduction (C++11+).",
-    "est_min_cpp": "C++11"
   },
   {
     "priority": 28,
@@ -863,7 +863,7 @@
   {
     "priority": 9999,
     "header": "(meta)",
-    "summary": "REMINDER: deferred Master and Index sheets. Add when ~5+ headers are covered. Master concatenates every per-header sheet body with header rows reprinted between sections; Index lists every (symbol, header) pair flattened and sorted alphabetically by symbol. ALSO: in-tree stub status — internal::iter_value (<memory> Phase 5 stub) was retired in 2026-05-09, replaced by restd::iterator_traits across the 10 uninitialized memory algorithms. lexicographical_compare_three_way.hpp shipped as an empty placeholder pending <compare>. No other stubs currently in tree. SEPARATE: D_CONSTEXPR_CPP14 macro is now locally redefined in dozens of files across <iterator>, <numeric>, <utility>, and the bulk of <algorithm> (Phase 10) pending a global qualifier-macro-table entry. Not a stub — these are the canonical implementations — but the duplication is a growing refactor opportunity. ALGORITHM-SPECIFIC: <algorithm> has its own internal duplication tickets — private _sift_down_ helpers appear in 4 files (sort, partial_sort, partial_sort_copy, nth_element); private _median_of_3_/_lomuto_partition_/_insertion_sort_ in 2-3 files (sort, nth_element, stable_sort); private _lower_bound_/_upper_bound_ in stable_sort. Cleanup tickets: (a) refactor sort/partial_sort/partial_sort_copy/nth_element to call restd::make_heap+sort_heap; (b) refactor stable_sort to call restd::lower_bound/upper_bound (and ideally restd::inplace_merge, which is now the public source of truth for the no-buffer merge); (c) optional _detail/ convention for shared sort helpers.",
+    "summary": "REMINDER: deferred Master and Index sheets. Add when ~5+ headers are covered. Master concatenates every per-header sheet body with header rows reprinted between sections; Index lists every (symbol, header) pair flattened and sorted alphabetically by symbol. ALSO: in-tree stub status — internal::iter_value (<memory> Phase 5 stub) was retired in 2026-05-09, replaced by restd::iterator_traits across the 10 uninitialized memory algorithms. lexicographical_compare_three_way.hpp shipped as an empty placeholder pending <compare>. No other stubs currently in tree. SEPARATE: D_CONSTEXPR_CPP14 macro is now locally redefined in dozens of files across <iterator>, <numeric>, <utility>, <array>, and the bulk of <algorithm> (Phase 10) pending a global qualifier-macro-table entry. Not a stub — these are the canonical implementations — but the duplication is a growing refactor opportunity. ALGORITHM-SPECIFIC: <algorithm> has its own internal duplication tickets — private _sift_down_ helpers appear in 4 files (sort, partial_sort, partial_sort_copy, nth_element); private _median_of_3_/_lomuto_partition_/_insertion_sort_ in 2-3 files (sort, nth_element, stable_sort); private _lower_bound_/_upper_bound_ in stable_sort. Cleanup tickets: (a) refactor sort/partial_sort/partial_sort_copy/nth_element to call restd::make_heap+sort_heap; (b) refactor stable_sort to call restd::lower_bound/upper_bound (and ideally restd::inplace_merge, which is now the public source of truth for the no-buffer merge); (c) optional _detail/ convention for shared sort helpers.",
     "blockers": "—",
     "est_min_cpp": "—"
   }

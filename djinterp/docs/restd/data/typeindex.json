@@ -1,0 +1,58 @@
+{
+  "header": "<typeindex>",
+  "subtitle": "std::type_index — C++11's copyable, assignable wrapper around a std::type_info reference, so a type's identity can serve as a key in associative and unordered containers. restd ships the class on C++11+. It holds a const type_info* (no default ctor, matching std) and forwards everything to the wrapped type_info: operator== / before() for ordering, hash_code(), name(). There is no restd <typeinfo> re-export module, so type_index uses std::type_info directly behind the RTTI gate D_ENV_CPP98_HAS_TYPEINFO (the same gate any/bad_any_cast uses) — the class is absent where RTTI / <typeinfo> is unavailable, which matches std (type_index is meaningless without type_info). Tiered comparisons: the six relational operators ship as explicit members on C++11–C++17; on C++20 they are replaced by operator== plus operator<=> (returning restd::strong_ordering from the already-shipped restd::compare), with the compiler synthesising !=, <, <=, >, >= — the legacy four are gated out on C++20 to avoid redundant candidates. Not constexpr on any tier: type_info::before / hash_code / name are not constant expressions (true of std::type_index too). The std::hash<type_index> specialisation is deferred pending restd::hash from <functional>.",
+  "legend_blurb": "Per-symbol coverage of the C++ <typeindex> header (C++11). type_index ships on C++11+ (operator<=> on C++20+, using the shipped restd::compare); requires RTTI / <typeinfo>. The hash<type_index> specialisation is deferred pending restd::hash from <functional>.",
+  "symbols": [
+    {
+      "name": "type_index",
+      "group": "wrapper class",
+      "std_in": "C++11",
+      "restd_min": "C++11",
+      "constexpr_in_std": null,
+      "constexpr_in_restd": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Lives in type_index.hpp; whole-file gated on D_ENV_LANG_IS_CPP11_OR_HIGHER && D_ENV_CPP98_HAS_TYPEINFO. Stores a const std::type_info* (the referenced type_info has static storage duration). Implicit ctor from const type_info& (matches std: `type_index ti = typeid(T);`); no default ctor. Members: operator== (delegates to type_info::operator==); on C++11–C++17 the explicit relational set !=, <, >, <=, >= built on type_info::before(); hash_code() forwarding to type_info::hash_code(); name() forwarding to type_info::name(). Copyable/assignable where a bare type_info is not — the whole point of the wrapper. C++20: the legacy relational four are gated out and operator<=> (see separate row) plus the synthesised rewrites take over. Uses std::type_info directly (no restd <typeinfo> module exists); the RTTI gate mirrors any/bad_any_cast. Not constexpr (type_info methods are not constant expressions).",
+      "depends_on": [],
+      "failure_reason": "Cannot reach C++98. type_index::hash_code() forwards to std::type_info::hash_code(), which was added in C++11 — pre-C++11 type_info has no hash_code(), and hash_code() is core to the type's purpose (it is the key for hash<type_index>). The module is gated at C++11 for consistency (matching the roadmap floor). A reduced C++98 back-port — relational operators + name() with hash_code() synthesised from a name() string hash — is possible but was not pursued, and is moot while hash<type_index> remains blocked on <functional>."
+    },
+    {
+      "name": "type_index::operator<=>",
+      "group": "comparisons",
+      "std_in": "C++20",
+      "restd_min": "C++20",
+      "constexpr_in_std": null,
+      "constexpr_in_restd": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Member three-way comparison, gated on D_ENV_LANG_IS_CPP20_OR_HIGHER. Returns restd::strong_ordering (from the shipped restd::compare — no unmet dependency), computed from type_info::operator== and type_info::before(): equal when the types match, else less/greater per before(). The compiler rewrites <, <=, >, >= from this and != from operator==, so the explicit C++11–C++17 relational members are gated out on C++20. Not constexpr (before() is not a constant expression). Mirrors the array / tuple back-port: P1614 added <=> to type_index in C++20.",
+      "depends_on": [],
+      "failure_reason": "operator<=> is a C++20 language feature; cannot be back-ported. The six explicit relational members in type_index.hpp cover C++11–C++17. (Return type restd::strong_ordering is already available from restd::compare on C++11+, so the only ceiling is the language feature itself.)"
+    },
+    {
+      "name": "hash<type_index>",
+      "group": "hashing",
+      "std_in": "C++11",
+      "restd_min": null,
+      "constexpr_in_std": null,
+      "constexpr_in_restd": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "The std::hash specialisation that lets type_index key an unordered_map / unordered_set. Deferred: restd::hash (the primary template) ships with <functional>, which has not landed yet — the same blocker as hash<optional> and hash<variant>. Once it ships this is a one-line forward to type_index::hash_code().",
+      "depends_on": ["<functional>"],
+      "failure_reason": "NOT IMPLEMENTED — blocked on restd::hash from <functional> (not yet shipped). The type_index class itself is unaffected and fully shipped; only the std::hash specialisation waits on the hash primary template. Will be a small follow-up file forwarding to type_index::hash_code()."
+    }
+  ]
+}

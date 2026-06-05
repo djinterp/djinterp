@@ -1,0 +1,59 @@
+{
+  "header": "<initializer_list>",
+  "subtitle": "std::<initializer_list> — the C++11 header holding the compiler-magic initializer_list<E> type plus its two non-member range accessors. initializer_list<E> is the only type a brace-init-list ( { ... } ) is ever materialised as: the compiler synthesises it directly, so it cannot be reimplemented portably and restd surfaces it via an identity-preserving using-declaration (restd::initializer_list IS std::initializer_list — a braced list binds to either spelling and the two interoperate). The non-member begin / end are self-contained restd functions returning il.begin() / il.end(); std qualifies them constexpr only from C++14, but restd qualifies them constexpr from C++11 (initializer_list::begin()/end() are themselves constexpr in C++11) — a one-tier constexpr back-port. The whole module is gated on D_ENV_LANG_IS_CPP11_OR_HIGHER and expands to nothing on C++98/03; there is no C++98 path because the type itself is a C++11 language facility. No unmet restd dependencies.",
+  "legend_blurb": "Per-symbol coverage of the C++11 <initializer_list> header. initializer_list<E> is a compiler-magic type, re-exported from std with identity preserved; the non-member begin / end are self-contained and constexpr from C++11 — ahead of std's C++14. No C++98 path (the type is C++11). 3/3 shipped at the C++11 floor.",
+  "symbols": [
+    {
+      "name": "initializer_list<E>",
+      "group": "Class",
+      "std_in": "C++11",
+      "restd_min": "C++11",
+      "constexpr_in_std": null,
+      "constexpr_in_restd": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Identity-preserving using-declaration re-export of std::initializer_list. The compiler only ever materialises a brace-init-list as std::initializer_list, so the type is compiler-provided and cannot be reimplemented portably — restd::initializer_list IS std::initializer_list, and a braced list binds to either spelling. Its observers size()/begin()/end() are constexpr in C++11; that constexpr-ness rides along from the std type with no restd involvement, hence no separate constexpr claim here. Lives in initializer_list/initializer_list.hpp, gated on D_ENV_LANG_IS_CPP11_OR_HIGHER.",
+      "depends_on": [],
+      "failure_reason": "Cannot reach C++98. initializer_list is a C++11 type the compiler synthesises from brace-init-list expressions; the language has no equivalent before C++11, so no C++98 path exists. restd re-exports / builds on std::initializer_list from C++11 up.",
+      "reexport": true
+    },
+    {
+      "name": "begin (initializer_list)",
+      "group": "Non-member functions",
+      "std_in": "C++11",
+      "restd_min": "C++11",
+      "constexpr_in_std": "C++14",
+      "constexpr_in_restd": "C++11",
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Self-contained restd::begin returning il.begin(). std qualifies the non-member begin constexpr only from C++14; restd qualifies it constexpr from C++11, because initializer_list::begin() is itself constexpr in C++11 — a one-tier constexpr back-port (RESTD AHEAD OF STD on the constexpr axis). noexcept on every tier. Lives in initializer_list/begin.hpp.",
+      "depends_on": [],
+      "failure_reason": "Cannot reach C++98. initializer_list is a C++11 type the compiler synthesises from brace-init-list expressions; the language has no equivalent before C++11, so no C++98 path exists. restd re-exports / builds on std::initializer_list from C++11 up."
+    },
+    {
+      "name": "end (initializer_list)",
+      "group": "Non-member functions",
+      "std_in": "C++11",
+      "restd_min": "C++11",
+      "constexpr_in_std": "C++14",
+      "constexpr_in_restd": "C++11",
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Self-contained restd::end returning il.end(). Like begin, std makes the non-member end constexpr only from C++14 while restd qualifies it constexpr from C++11 (initializer_list::end() is constexpr in C++11) — a one-tier constexpr back-port. noexcept on every tier. Lives in initializer_list/end.hpp.",
+      "depends_on": [],
+      "failure_reason": "Cannot reach C++98. initializer_list is a C++11 type the compiler synthesises from brace-init-list expressions; the language has no equivalent before C++11, so no C++98 path exists. restd re-exports / builds on std::initializer_list from C++11 up."
+    }
+  ]
+}

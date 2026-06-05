@@ -317,6 +317,43 @@ For traits that need compiler magic:
 
 ---
 
+### Marking re-exports
+
+Some symbols **cannot be reimplemented as portable restd code** — they are
+provided by the language runtime, the C++ ABI, or the compiler itself, and
+restd surfaces them in-namespace via an identity-preserving re-export
+(`using std::X;` or a typedef alias) so that `restd::X` **is** `std::X`.
+Examples: `operator new` / placement `new`, `type_info`, `bad_cast` /
+`bad_typeid`, the `std::exception` and `std::logic_error` / `runtime_error`
+hierarchies, and the `exception_ptr` / nested-exception families. Re-export
+is the *correct* design here, not a shortcut: a distinct `restd::bad_cast`
+would not be caught by a language-emitted `throw`, and `typeid` could not
+bind to it.
+
+When a symbol is such a re-export, set **`"reexport": true`** in its
+coverage JSON (Phase 2). This is what feeds the workbook's **Re-exports**
+sheet.
+
+Keep three cases distinct:
+
+- **`reexport: true`** — restd contributes only the in-namespace alias; the
+  entity is runtime/ABI/compiler/language-provided. `restd::X` is `std::X`
+  (type identity preserved).
+- **`intrinsic_required: true`** — restd *owns* the symbol
+  (`restd::is_class` is its own trait), but its implementation needs a
+  compiler builtin. Set `reexport: false`.
+- **A back-port** (`restd_min < std_in`) — restd provides its own
+  implementation on tiers where std lacks the symbol (e.g. `get_terminate`,
+  `bad_array_new_length`, `uncaught_exceptions`). Set `reexport: false`,
+  even if the symbol is a thin `using`-declaration on its *upper* tiers;
+  the back-port is a genuine restd implementation.
+
+A `reexport` symbol's `restd_min` equals its `std_in` (restd adds nothing
+but the namespace alias), and its `notes` should say what it re-exports and
+why it cannot be reimplemented.
+
+---
+
 ## How to Implement a New Module
 
 ### Step-by-step
@@ -398,6 +435,13 @@ Add entries to:
 - `restd_modules.md` — the detailed module documentation
 - This file's "Current Status" section below
 
+> The coverage JSON + workbook regeneration (the data behind
+> `restd_coverage.xlsx`) is a separate, canonical workflow — see
+> `MODULE_WORKFLOW.md`, phases 2–3. The workbook is rebuilt with
+> `python3 scripts/restd/restd.py build`; restd's config lives in
+> `restd.py` (`RESTD_CONFIG`), and data sheets are discovered by
+> globbing `docs/restd/data/*.json`.
+
 ### Checklist for Every New Symbol
 
 - [ ] Lives in `restd::` (or appropriate sub-namespace like `restd::chrono::`)
@@ -406,6 +450,7 @@ Add entries to:
 - [ ] Includes the restd core header (for macros)
 - [ ] Uses `restd::` type traits, not `std::` type traits
 - [ ] Uses `D_CONSTEXPR`, `D_STATIC`, `D_INLINE` macros (not raw keywords)
+- [ ] `reexport: true` set if the symbol is a runtime/ABI/compiler/language re-export (see "Marking re-exports")
 - [ ] Uses `typedef` (not `using`) when C++98 support is needed
 - [ ] Uses `static const` (not `static constexpr`) for C++98 trait values
 - [ ] Move semantics gated on `D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES`
