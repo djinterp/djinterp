@@ -1174,5 +1174,5 @@ milestone. They appear on the workbook's *Coverage Failures* sheet as
 | `placeholders::_1` ... `placeholders::_N` | ships with `bind` |
 | `default_searcher`, `boyer_moore_searcher`, `boyer_moore_horspool_searcher` | `restd::algorithm` (`search` family) |
 
-The roadmap entry for `<functional>` (priority 6 in
-`coverage_data.py::ROADMAP_ENTRIES`) covers the next batch.
+The roadmap entry for `<functional>` in `docs/restd/data/_roadmap.json`
+covers the next batch.

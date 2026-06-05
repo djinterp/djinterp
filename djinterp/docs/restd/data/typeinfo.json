@@ -1,0 +1,58 @@
+{
+  "header": "<typeinfo>",
+  "subtitle": "std::<typeinfo> \u2014 the RTTI support header (type_info, bad_cast, bad_typeid). restd's role is pure strategic re-export, mirroring <new>: these three types are compiler-and-runtime-provided (the typeid operator yields type_info; the dynamic_cast / typeid machinery throws bad_cast / bad_typeid) and cannot be reimplemented portably, so restd surfaces them in-namespace via identity-preserving using-declarations so restd code (any, the bad_*_access exception chains, the future typeindex) can name restd::type_info / restd::bad_cast and stay in-namespace. All three are C++98 baseline; there is nothing to back-port. type_info::hash_code() (C++11) and the C++23 constant-evaluation support for type_info's comparison/hash members ride along from the std type with no restd involvement. The whole module is gated on D_ENV_CPP98_HAS_TYPEINFO (RTTI availability); on a -fno-rtti build it expands to nothing, matching restd's policy of not exposing RTTI types when RTTI is off.",
+  "legend_blurb": "Per-symbol coverage of the C++98 <typeinfo> header. Strategic re-export (like <new>): type_info, bad_cast, bad_typeid are runtime-provided RTTI types surfaced in-namespace via identity-preserving using-declarations, gated on D_ENV_CPP98_HAS_TYPEINFO. C++98 baseline \u2014 nothing to back-port; hash_code() (C++11) and C++23 constexpr comparisons ride along from std.",
+  "symbols": [
+    {
+      "name": "type_info",
+      "group": "Class",
+      "std_in": "C++98",
+      "restd_min": "C++98",
+      "constexpr_in_std": null,
+      "constexpr_in_restd": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Using-declaration re-export of std::type_info \u2014 the object the typeid operator yields. Lives in type_info.hpp, gated on D_ENV_CPP98_HAS_TYPEINFO. Type identity is preserved (restd::type_info IS std::type_info): a typeid result binds to either spelling and comparisons interoperate. The storage layout, construction, and the name-interning behind operator== are compiler-and-runtime-provided and cannot be reimplemented portably, so restd re-exports rather than defines. Members name(), before(), operator==/operator!=, and hash_code() (C++11) come from the std type; operator!= is synthesised from operator== on C++20+, and the comparison/hash members become usable in constant expressions on C++23 (P1328) \u2014 all inherited from std with no restd involvement, hence no constexpr claim here. Not copyable / not assignable, per std.",
+      "depends_on": [],
+      "failure_reason": null
+    },
+    {
+      "name": "bad_cast",
+      "group": "Exception",
+      "std_in": "C++98",
+      "restd_min": "C++98",
+      "constexpr_in_std": null,
+      "constexpr_in_restd": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Using-declaration re-export of std::bad_cast (derives from std::exception). Lives in bad_cast.hpp, gated on D_ENV_CPP98_HAS_TYPEINFO. Thrown by a failed reference dynamic_cast \u2014 the throw is emitted by the language runtime, so restd re-exports rather than reimplements; identity preservation means a language-level throw is caught by catch(const restd::bad_cast&) and vice versa. This is the canonical Tier-1 base that restd's own bad_any_cast / bad_expected_access / bad_variant_access inherit from when typeinfo is available.",
+      "depends_on": [],
+      "failure_reason": null
+    },
+    {
+      "name": "bad_typeid",
+      "group": "Exception",
+      "std_in": "C++98",
+      "restd_min": "C++98",
+      "constexpr_in_std": null,
+      "constexpr_in_restd": null,
+      "intrinsic_required": false,
+      "intrinsic_names": "",
+      "detection_macro": "",
+      "t_alias_in": null,
+      "v_var_in": null,
+      "deprecated_in": null,
+      "notes": "Using-declaration re-export of std::bad_typeid (derives from std::exception). Lives in bad_typeid.hpp, gated on D_ENV_CPP98_HAS_TYPEINFO. Thrown when typeid is applied to a dereferenced null pointer of polymorphic type; emitted by the language runtime, so restd re-exports rather than reimplements. Identity preserved with std::bad_typeid.",
+      "depends_on": [],
+      "failure_reason": null
+    }
+  ]
+}
