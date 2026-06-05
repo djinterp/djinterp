@@ -1,0 +1,85 @@
+/******************************************************************************
+* djinterp [restd]                                               string_view
+*
+* string_view umbrella header:
+*   Aggregates the granular per-symbol headers under
+* /inc/djinterp/restd/string_view/. Mirrors the standard <string_view>
+* convenience header. This umbrella adds no symbols of its own.
+*
+*   GRANULARITY:
+*   Every public symbol lives in its own .hpp file under this
+* directory. Users who need only one piece (say basic_string_view, or
+* just char_traits) may include that file directly.
+*
+*   PORTABILITY:
+*   The whole module requires C++11 (back-port of the C++17 std
+* surface); on C++98/03 this header expands to nothing. char_traits's
+* char / wchar_t paths are the one part that also compiles on C++98 —
+* include char_traits.hpp directly for that.
+*
+*
+* TABLE OF CONTENTS
+* =================
+* I.    CHAR TRAITS
+* II.   BASIC_STRING_VIEW
+* III.  TYPE ALIASES
+* IV.   COMPARISON OPERATORS
+* V.    HASH SUPPORT
+* VI.   LITERAL OPERATORS
+*
+*
+* path:      /inc/djinterp/restd/string_view/string_view
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_STRING_VIEW_
+#define DJINTERP_RESTD_STRING_VIEW_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+// =============================================================================
+// I.   CHAR TRAITS
+// =============================================================================
+
+#include "./char_traits.hpp"
+
+
+// =============================================================================
+// II.  BASIC_STRING_VIEW
+// =============================================================================
+
+#include "./basic_string_view.hpp"
+
+
+// =============================================================================
+// III. TYPE ALIASES
+// =============================================================================
+
+#include "./string_view_typedefs.hpp"
+
+
+// =============================================================================
+// IV.  COMPARISON OPERATORS
+// =============================================================================
+
+#include "./string_view_compare.hpp"
+
+
+// =============================================================================
+// V.   HASH SUPPORT
+// =============================================================================
+
+#include "./string_view_hash.hpp"
+
+
+// =============================================================================
+// VI.  LITERAL OPERATORS
+// =============================================================================
+
+#include "./string_view_literals.hpp"
+
+
+#endif  // DJINTERP_RESTD_STRING_VIEW_

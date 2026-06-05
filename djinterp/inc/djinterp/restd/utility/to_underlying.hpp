@@ -1,23 +1,26 @@
 /***********************************************************************
-* restd                                                  to_underlying.hpp
+* restd                                                 to_underlying.hpp
 *
-* to_underlying(_e):
-*   Returns _e cast to its underlying integer type. Eliminates the
-* repeated boilerplate `static_cast<typename underlying_type<E>::type>`
-* in code that needs to work with the integer view of an enum.
+* enum-to-underlying-type cast:
+*   Yields the underlying integral value of an enumeration. Equivalent
+* to static_cast<underlying_type<E>::type>(e), but spelled out so that
+* the cast is unambiguous in generic code.
 *
-* added in std C++23. restd back-ports unconditionally on C++11+
-* (where __underlying_type is available; the trait itself is gated).
+*   STANDARD STATUS:
+*   Introduced in C++23 (P1682R3). restd back-ports to C++11+ where the
+* underlying_type intrinsic is available (gated on
+* D_RESTD_HAS_UNDERLYING_TYPE).
 *
-* dependency: restd::underlying_type, which itself requires the
-* __underlying_type intrinsic. If absent (D_RESTD_HAS_UNDERLYING_TYPE
-* = 0), this header degrades to a no-op via the same gating that
-* protects underlying_type's consumers.
+*   GATING:
+*   When D_RESTD_HAS_UNDERLYING_TYPE is 0 (no compiler intrinsic), the
+* function is not defined at all. Callers should gate their use on
+* the same macro -- this matches the policy used by underlying_type
+* itself.
 *
 *
 * path:      /inc/restd/utility/to_underlying.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.05.09
+* author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/
 
 #ifndef RESTD_UTILITY_TO_UNDERLYING_
@@ -25,25 +28,33 @@
 
 #include "djinterp.hpp"
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER && D_RESTD_HAS_UNDERLYING_TYPE
+#include "../type_traits/underlying_type.hpp"
 
-    #include "../type_traits/underlying_type.hpp"
+#if D_RESTD_HAS_UNDERLYING_TYPE
 
+NS_RESTD
 
-namespace restd
-{
+// =============================================================================
+// TO_UNDERLYING
+// =============================================================================
 
+// to_underlying
+//   function: casts an enumeration value to its underlying integral
+//   representation. Single-statement; constexpr-eligible from C++11.
 template<typename _Enum>
-D_CONSTEXPR typename underlying_type<_Enum>::type
-to_underlying(_Enum _e) D_NOEXCEPT
+D_CONSTEXPR
+typename underlying_type<_Enum>::type
+to_underlying(_Enum _e) noexcept
 {
     return static_cast<typename underlying_type<_Enum>::type>(_e);
 }
 
+NS_END  // restd
 
-}  // namespace restd
+#endif  // D_RESTD_HAS_UNDERLYING_TYPE
 
-#endif  // C++11+ && D_RESTD_HAS_UNDERLYING_TYPE
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #endif  // RESTD_UTILITY_TO_UNDERLYING_

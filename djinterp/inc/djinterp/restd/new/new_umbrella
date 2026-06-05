@@ -1,0 +1,56 @@
+/******************************************************************************
+* djinterp [restd]                                                           new
+*
+* new umbrella header:
+*   Convenience header that #includes every granular module under
+* restd/new/.
+*
+*   restd's <new> implementation is mostly strategic re-export:
+* the actual operator new / operator delete machinery is runtime-
+* provided and CANNOT be reimplemented portably. What restd ships:
+*
+*     - Namespace-consistent aliases for the std types so other
+*       restd modules can write `throw restd::bad_alloc()` instead
+*       of crossing namespaces.
+*     - Targeted back-ports of the C++17 additions (launder,
+*       align_val_t, hardware_*_interference_size) to earlier tiers.
+*     - C++98 back-port of bad_array_new_length (added to std in
+*       C++11).
+*     - C++98 back-port of get_new_handler (added to std in C++11).
+*     - C++11+ back-port of destroying_delete_t (added in C++20).
+*
+*   Per-symbol headers:
+*     bad_alloc.hpp                       - re-export
+*     bad_array_new_length.hpp            - re-export + C++98 back-port
+*     nothrow.hpp                         - re-export nothrow_t + nothrow
+*     new_handler.hpp                     - re-export + C++98 back-port of get_new_handler
+*     align_val_t.hpp                     - C++17 back-port (enum class on C++11)
+*     launder.hpp                         - intrinsic-backed back-port
+*     hardware_interference_size.hpp      - C++17 back-port (portable defaults)
+*     destroying_delete.hpp               - C++20 back-port (gated C++11+)
+*
+*   Placement new is a language operator, not a function — `#include
+* <new>` directly gives you the operator overloads. restd does not
+* and cannot reimplement them; user code that needs placement new
+* should `#include <new>` directly.
+*
+*
+* path:      /inc/djinterp/restd/new
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.05.20
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_NEW_UMBRELLA_
+#define DJINTERP_RESTD_NEW_UMBRELLA_ 1
+
+#include "./new/bad_alloc.hpp"
+#include "./new/bad_array_new_length.hpp"
+#include "./new/nothrow.hpp"
+#include "./new/new_handler.hpp"
+#include "./new/align_val_t.hpp"
+#include "./new/launder.hpp"
+#include "./new/hardware_interference_size.hpp"
+#include "./new/destroying_delete.hpp"
+
+
+#endif  // DJINTERP_RESTD_NEW_UMBRELLA_

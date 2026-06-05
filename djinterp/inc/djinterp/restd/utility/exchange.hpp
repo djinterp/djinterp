@@ -1,26 +1,25 @@
 /***********************************************************************
-* restd                                                       exchange.hpp
+* restd                                                      exchange.hpp
 *
-* exchange(_obj, _new_val):
-*   Replaces _obj's value with _new_val and returns the previous
-* value of _obj. The return is move-constructed (or copy-constructed
-* on C++98/03), and the assignment uses perfect forwarding.
+* value-replacing utility:
+*   Provides restd::exchange, which replaces the value of an object
+* with a new one and returns the old value. Equivalent to:
 *
-*   Canonical idiom: implementing move ctors/op= cleanly.
-*     T(T&& other) noexcept
-*       : ptr(restd::exchange(other.ptr, nullptr))   // steal + null
-*     { }
+*     T old = std::move(obj);
+*     obj   = std::forward<U>(new_value);
+*     return old;
 *
-* tiered:
-*   C++14    available, no constexpr (return needs more than one
-*            statement under the C++11 constexpr rules)
-*   C++20+   constexpr (std made it so)
-*   restd    constexpr from C++14+ via D_CONSTEXPR_CPP14
+*   STANDARD STATUS:
+*   Added in C++14. Made constexpr in C++20 (P1132R7). restd provides
+* on C++11+ (without constexpr), C++14+ (with constexpr -- the body is
+* multi-statement, which requires C++14 relaxed constexpr).
+*
+*   Requires rvalue references; gated accordingly.
 *
 *
 * path:      /inc/restd/utility/exchange.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.05.09
+* author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/
 
 #ifndef RESTD_UTILITY_EXCHANGE_
@@ -28,40 +27,44 @@
 
 #include "djinterp.hpp"
 
-
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-    #include "../utility/move.hpp"
-    #include "../utility/forward.hpp"
+#include "../utility/move.hpp"
+#include "../utility/forward.hpp"
 
+NS_RESTD
 
-// D_CONSTEXPR_CPP14 -- constexpr on C++14+, empty on C++11. Slated
-// for the global qualifier-macro table; locally defined for now to
-// keep this file self-contained.
-#ifndef D_CONSTEXPR_CPP14
-    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
-        #define D_CONSTEXPR_CPP14 constexpr
-    #else
-        #define D_CONSTEXPR_CPP14
-    #endif
+// =============================================================================
+// EXCHANGE
+// =============================================================================
+
+#if D_ENV_LANG_IS_CPP14_OR_HIGHER
+
+    // exchange (C++14+: relaxed constexpr permits multi-statement body)
+    //   function: replaces obj's value with new_value and returns the
+    //   previous value.
+    template<typename _Type, typename _Other>
+    D_CONSTEXPR _Type exchange(_Type& _obj, _Other&& _new_value)
+    {
+        _Type _old = restd::move(_obj);
+        _obj = restd::forward<_Other>(_new_value);
+        return _old;
+    }
+
+#else  // C++11
+
+    // exchange (C++11: not constexpr -- multi-statement body)
+    template<typename _Type, typename _Other>
+    _Type exchange(_Type& _obj, _Other&& _new_value)
+    {
+        _Type _old = restd::move(_obj);
+        _obj = restd::forward<_Other>(_new_value);
+        return _old;
+    }
+
 #endif
 
-
-namespace restd
-{
-
-template<typename _T, typename _U = _T>
-D_CONSTEXPR_CPP14 _T exchange(_T& _obj, _U&& _new_val)
-{
-    // Save the old value (move if possible), assign the new, return
-    // the saved old.
-    _T _old = restd::move(_obj);
-    _obj = restd::forward<_U>(_new_val);
-    return _old;
-}
-
-
-}  // namespace restd
+NS_END  // restd
 
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 

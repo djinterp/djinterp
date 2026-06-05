@@ -1,0 +1,61 @@
+/******************************************************************************
+* djinterp [restd]                                                        variant
+*
+* variant umbrella header:
+*   Convenience header that #includes every granular module under
+* restd/variant/.
+*
+*   Per-symbol headers:
+*     monostate.hpp                       - unit alternative
+*     bad_variant_access.hpp              - exception
+*     variant_npos.hpp                    - valueless sentinel
+*     variant_size.hpp                    - trait
+*     variant_alternative.hpp             - trait
+*     variant.hpp                         - variant<Ts...>
+*     holds_alternative.hpp               - T-by-name query
+*     variant_get.hpp                     - get<I> + get<T> (8 overloads each)
+*     variant_get_if.hpp                  - get_if<I> + get_if<T>
+*     visit.hpp                           - single-variant visit
+*     variant_compare.hpp                 - ==  !=  <  <=  >  >=
+*     variant_swap.hpp                    - non-member swap
+*
+*   PORTABILITY:
+*   The entire module is gated on C++11+. No C++98 back-port path —
+* the design requires variadic templates, rvalue references,
+* defaulted/deleted special members, and union-with-non-trivial-
+* members.
+*
+*   NOT SHIPPED (deferred to a follow-up phase):
+*     - operator<=> (C++20 three-way comparison)
+*     - visit<R> (C++20 explicit return type)
+*     - Multi-variant visit(vis, v1, v2, ...) — recursive expansion
+*     - hash<variant<Ts...>> (blocked on <functional>)
+*     - Reference alternatives variant<T&, U> — rebinding semantics
+*     - Allocator-aware ctors
+*     - Conditional triviality of special member functions
+*     - Full constexpr surface
+*
+*
+* path:      /inc/djinterp/restd/variant
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.05.20
+******************************************************************************/
+
+#ifndef DJINTERP_RESTD_VARIANT_UMBRELLA_
+#define DJINTERP_RESTD_VARIANT_UMBRELLA_ 1
+
+#include "./variant/monostate.hpp"
+#include "./variant/bad_variant_access.hpp"
+#include "./variant/variant_npos.hpp"
+#include "./variant/variant_size.hpp"
+#include "./variant/variant_alternative.hpp"
+#include "./variant/variant.hpp"
+#include "./variant/holds_alternative.hpp"
+#include "./variant/variant_get.hpp"
+#include "./variant/variant_get_if.hpp"
+#include "./variant/visit.hpp"
+#include "./variant/variant_compare.hpp"
+#include "./variant/variant_swap.hpp"
+
+
+#endif  // DJINTERP_RESTD_VARIANT_UMBRELLA_
