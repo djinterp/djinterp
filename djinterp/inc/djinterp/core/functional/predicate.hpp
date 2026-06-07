@@ -23,7 +23,18 @@
 *       predicate_not(is_negative),
 *       predicate_and(is_small, is_prime));
 *
-* 
+*   DUAL-DOMAIN (compile-time + runtime): each combinator stores its
+* predicates by value (decayed) and its operator() is constexpr, forwarding to
+* the stored predicates without inspecting the operand domain.  With
+* carrier-callable predicate leaves (see core/meta/carrier.hpp) the AND/OR/XOR/
+* NOT/NAND/NOR combinators and the variadic all_of / any_of / none_of therefore
+* evaluate AT COMPILE TIME over NTTP value carriers and over type carriers,
+* yielding a constexpr bool, as well as running unchanged at runtime:
+*     predicate_and(is_even, is_positive)(val<10>)  -> true  (constexpr)
+*     predicate_not(is_pointer)(type_c<int>)        -> true  (constexpr)
+* predicate combinators stay carrier-agnostic; the carriers live at the call
+* site, so this header needs no dependency on carrier.hpp.
+*
 * path:      /inc/djinterp/core/functional/predicate.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19

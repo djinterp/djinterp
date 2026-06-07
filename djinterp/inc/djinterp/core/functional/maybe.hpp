@@ -85,6 +85,7 @@ VI.   FREE-FUNCTION HELPERS
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
+#include "../meta/kv_pair.hpp"   // kv_pair (the unfold step's (value, next) pairing)
 #include "./monad.hpp"
 
 
@@ -1113,7 +1114,7 @@ struct monad_traits<maybe<_Type>>
     // unit
     //   lifts a value into maybe. Equivalent to just().
     static
-    D_CONSTEXPR
+    D_CONSTEXPR20
     maybe<_Type>
     unit
     (
@@ -1126,8 +1127,12 @@ struct monad_traits<maybe<_Type>>
     // bind
     //   monadic bind. Threads the contained value through
     // _function (which must return a maybe of some type).
+    //   D_CONSTEXPR20 so the generic monad_bind / monad_map fold at
+    // compile time over carrier-holding maybe under C++20 (runtime on
+    // the C++17 floor, where maybe is not a literal type).
     template<typename _Function>
     static
+    D_CONSTEXPR20
     auto bind(
         const maybe<_Type>& _m,
         _Function        _function
@@ -1220,6 +1225,74 @@ collect(
     }
 
     return maybe<std::vector<inner_t>>(std::move(result));
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             X.    UNFOLD STEP RESULT  (some / none)                     ///
+///////////////////////////////////////////////////////////////////////////////
+//   The result of one pull from a pull-based source, expressed as the pure
+// unfold step  State -> step_result<Value, Next>  (see the UnfoldStep concept
+// in structural_traits.hpp and ROADMAP 10.4).  A step either yields a value
+// together with the next state (some) or signals exhaustion (none).
+//
+//   Reuses the framework's existing carriers of optionality and pairing rather
+// than introducing a new type: optionality is maybe<>, the (value, next_state)
+// pairing is kv_pair<>.  Under C++20 a step is a constant expression - maybe's
+// union storage and destructor are both constexpr there - so an unfold can be
+// materialized at compile time.  On the C++17 floor maybe has a non-trivial
+// destructor and is therefore NOT a literal type, so maybe (and hence some /
+// none) are runtime constructs; a C++17 compile-time unfold instead uses the
+// empty-type step form built in producer.hpp.  Value/Next are typically carriers
+// (val_t / type_t) for a compile-time unfold and ordinary objects at runtime -
+// because carriers put both a type and an NTTP in the object domain, a single
+// step may even MIX them (e.g. a kv_pair<type_t<T>, val_t<N>> state).
+//
+//   The driver that runs a step to a fixed point - lazily/infinitely at runtime
+// or to a finite materialization at compile time - lives with the source in
+// producer.hpp; this header supplies only the step-result shape it pulls on.
+
+// step_result
+//   type: the result of one unfold step - an optional (value, next_state)
+// pair.  Engaged means "a value plus the next state"; empty means the source
+// is exhausted.
+template<typename _Value,
+         typename _Next>
+using step_result = maybe<kv_pair<_Value, _Next>>;
+
+// some
+//   function: an unfold step that yields _value and advances to _next; builds
+// an engaged step_result holding kv_pair(_value, _next).  Constexpr under C++20
+// (engaged maybe); a runtime construct on the C++17 floor.
+template<typename _Value,
+         typename _Next>
+D_NODISCARD
+D_CONSTEXPR
+step_result<typename std::decay<_Value>::type,
+            typename std::decay<_Next>::type>
+some
+(
+    _Value&& _value,
+    _Next&&  _next
+)
+{
+    return just(make_kv(std::forward<_Value>(_value),
+                        std::forward<_Next>(_next)));
+}
+
+// none
+//   function: an unfold step that signals exhaustion.  The Value/Next types
+// are supplied explicitly (there is no value to deduce them from) so a step's
+// two branches share one step_result type.  Constexpr under C++20; a runtime
+// construct on the C++17 floor (maybe is not a literal type pre-C++20).
+template<typename _Value,
+         typename _Next>
+D_NODISCARD
+D_CONSTEXPR
+step_result<_Value, _Next>
+none()
+{
+    return nothing<kv_pair<_Value, _Next>>();
 }
 
 

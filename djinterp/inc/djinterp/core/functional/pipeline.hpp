@@ -23,7 +23,7 @@
 *       .map(extract_value)
 *       .fold(0, std::plus<int>{});
 *
-* path:      \inc\functional\pipeline.hpp
+* path:      /inc/djinterp/core/functional/pipeline.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/
@@ -40,13 +40,22 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "./djinterp.hpp"
-#include "./functional.hpp"
+#include "../djinterp.hpp"
 #include "./functional_traits.hpp"
 
 
 NS_DJINTERP
 
+
+//   DUAL DOMAIN (boundary).  pipeline holds intermediate results and runs its
+// map / filter / fold / take / ... stages over them: that materialization is a
+// runtime act.  COMPOSITION lifts - the pipeline object and its chained stages
+// are constexpr-constructible, so the chain's type is fixed during translation -
+// while the traversal that produces values runs later.  pipeline is the
+// value-domain RUNTIME face of a staged dataflow; its COMPILE-TIME counterpart
+// is the transducer chain folding reduce_ct / a value_list (see transducer.hpp,
+// reduce.hpp, producer.hpp).  Stage callables are constrained through
+// functional_traits (is_callable / callable_result_t / is_predicate).
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.    PIPELINE CLASS                                        ///
@@ -66,12 +75,14 @@ private:
     int                m_error_code;
 
     // private constructor for internal use
-    explicit function_pipeline(std::vector<_Type>&& _data,
-                        bool                 _has_error = false,
-                        int                  _error_code = 0)
-        : m_data(std::move(_data))
-        , m_has_error(_has_error)
-        , m_error_code(_error_code)
+    explicit function_pipeline(
+        std::vector<_Type>&& _data,
+        bool                 _has_error  = false,
+        int                  _error_code = 0
+    )
+        : m_data(std::move(_data)),
+          m_has_error(_has_error),
+          m_error_code(_error_code)
     {}
 
 public:
@@ -82,9 +93,9 @@ public:
 
     // default constructor (empty pipeline)
     function_pipeline()
-        : m_data()
-        , m_has_error(false)
-        , m_error_code(0)
+        : m_data(),
+          m_has_error(false),
+          m_error_code(0)
     {}
 
     // from (container)
@@ -163,8 +174,10 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline<_ResultType>
-    map(_Fn&& _fn) const
+    D_NODISCARD D_CONSTEXPR20 function_pipeline<_ResultType>
+    map(
+        _Fn&& _fn
+    ) const
     {
         if (m_has_error)
         {
@@ -189,7 +202,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline filter(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline filter(_Pred&& _pred) const
     {
         if (m_has_error)
         {
@@ -215,7 +230,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline filter_not(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline filter_not(_Pred&& _pred) const
     {
         return filter([&_pred](const _Type& _e)
         {
@@ -230,7 +247,9 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Acc&, const _Type&>::value
              >::type>
-    D_NODISCARD     _Acc
+    D_NODISCARD
+    D_CONSTEXPR20
+    _Acc
     fold(_Acc _init, _Fn&& _fn) const
     {
         if (m_has_error)
@@ -269,7 +288,9 @@ public:
 
     // take
     //   method: keeps only the first _n elements.
-    D_NODISCARD     function_pipeline take(std::size_t _n) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline take(std::size_t _n) const
     {
         if (m_has_error)
         {
@@ -286,7 +307,9 @@ public:
 
     // take_last
     //   method: keeps only the last _n elements.
-    D_NODISCARD     function_pipeline take_last(std::size_t _n) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline take_last(std::size_t _n) const
     {
         if (m_has_error)
         {
@@ -311,7 +334,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline take_while(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline take_while(_Pred&& _pred) const
     {
         if (m_has_error)
         {
@@ -335,7 +360,9 @@ public:
 
     // skip
     //   method: removes the first _n elements.
-    D_NODISCARD     function_pipeline skip(std::size_t _n) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline skip(std::size_t _n) const
     {
         if (m_has_error)
         {
@@ -359,7 +386,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline skip_while(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline skip_while(_Pred&& _pred) const
     {
         if (m_has_error)
         {
@@ -385,7 +414,9 @@ public:
 
     // slice
     //   method: takes elements in range [start, end) with given step.
-    D_NODISCARD     function_pipeline slice(std::size_t _start,
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline slice(std::size_t _start,
                      std::size_t _end,
                      std::size_t _step = 1) const
     {
@@ -408,7 +439,9 @@ public:
 
     // distinct
     //   method: removes duplicate elements using operator==.
-    D_NODISCARD     function_pipeline distinct() const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline distinct() const
     {
         if (m_has_error)
         {
@@ -445,7 +478,9 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Eq, const _Type&, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline distinct(_Eq&& _eq) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline distinct(_Eq&& _eq) const
     {
         if (m_has_error)
         {
@@ -478,7 +513,9 @@ public:
 
     // reversed
     //   method: returns a pipeline with elements in reverse order.
-    D_NODISCARD     function_pipeline reversed() const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline reversed() const
     {
         if (m_has_error)
         {
@@ -496,7 +533,9 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Compare, const _Type&, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline sorted(_Compare&& _cmp) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline sorted(_Compare&& _cmp) const
     {
         if (m_has_error)
         {
@@ -513,7 +552,9 @@ public:
 
     // sorted (default ordering)
     //   method: returns a pipeline sorted with operator<.
-    D_NODISCARD     function_pipeline sorted() const
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline sorted() const
     {
         return sorted([](const _Type& _a, const _Type& _b)
         {
@@ -531,7 +572,9 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    D_NODISCARD     function_pipeline<_ResultType>
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline<_ResultType>
     flat_map(_Fn&& _fn) const
     {
         if (m_has_error)
@@ -560,7 +603,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     std::pair<function_pipeline, function_pipeline>
+    D_NODISCARD
+    D_CONSTEXPR20
+    std::pair<function_pipeline, function_pipeline>
     partition_pipe(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -597,7 +642,9 @@ public:
              typename = typename std::enable_if<
                  is_callable<_KeyFn, const _Type&>::value
              >::type>
-    D_NODISCARD     std::map<_KeyType, std::vector<_Type>>
+    D_NODISCARD
+    D_CONSTEXPR20
+    std::map<_KeyType, std::vector<_Type>>
     group_by(_KeyFn&& _key_fn) const
     {
         std::map<_KeyType, std::vector<_Type>> result;
@@ -623,7 +670,9 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&, const _Other&>::value
              >::type>
-    D_NODISCARD     function_pipeline<_ResultType>
+    D_NODISCARD
+    D_CONSTEXPR20
+    function_pipeline<_ResultType>
     zip_with(const function_pipeline<_Other>& _other, _Fn&& _fn) const
     {
         if (m_has_error || _other.has_error())
@@ -655,14 +704,22 @@ public:
 
     // to_vector
     //   method: returns the pipeline data as a vector.
-    D_NODISCARD     std::vector<_Type> to_vector() const
+    //   NOTE: const overload is lvalue-ref-qualified (const &) so it
+    // can coexist with the rvalue (&&) overload; the original left it
+    // unqualified, which is ill-formed against a ref-qualified sibling.
+    // (fixed 2026-05-27)
+    D_NODISCARD
+    D_CONSTEXPR20
+    std::vector<_Type> to_vector() const &
     {
         return m_data;
     }
 
     // to_vector (move)
     //   method: moves the pipeline data out.
-    D_NODISCARD     std::vector<_Type> to_vector() &&
+    D_NODISCARD
+    D_CONSTEXPR20
+    std::vector<_Type> to_vector() &&
     {
         return std::move(m_data);
     }
@@ -674,7 +731,9 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&, const _Type&>::value
              >::type>
-    D_NODISCARD     _Type
+    D_NODISCARD
+    D_CONSTEXPR20
+    _Type
     reduce(_Fn&& _fn) const
     {
         _Type acc = m_data[0];
@@ -694,7 +753,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     bool any(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    bool any(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
 
@@ -715,7 +776,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     bool all(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    bool all(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
 
@@ -736,7 +799,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     bool none(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    bool none(_Pred&& _pred) const
     {
         return !any(std::forward<_Pred>(_pred));
     }
@@ -747,7 +812,9 @@ public:
              typename = typename std::enable_if<
                  is_predicate<_Pred, const _Type&>::value
              >::type>
-    D_NODISCARD     std::size_t count(_Pred&& _pred) const
+    D_NODISCARD
+    D_CONSTEXPR20
+    std::size_t count(_Pred&& _pred) const
     {
         if (m_has_error) { return 0; }
 
@@ -769,17 +836,29 @@ public:
     ///         iv.   ACCESSORS AND STATUS                                  ///
     ///////////////////////////////////////////////////////////////////////////
 
-    D_NODISCARD     std::size_t size() const { return m_data.size(); }
+    D_NODISCARD
+    D_CONSTEXPR20
+    std::size_t size() const { return m_data.size(); }
 
-    D_NODISCARD     bool empty() const { return m_data.empty(); }
+    D_NODISCARD
+    D_CONSTEXPR20
+    bool empty() const { return m_data.empty(); }
 
-    D_NODISCARD     bool has_error() const { return m_has_error; }
+    D_NODISCARD
+    D_CONSTEXPR20
+    bool has_error() const { return m_has_error; }
 
-    D_NODISCARD     int error_code() const { return m_error_code; }
+    D_NODISCARD
+    D_CONSTEXPR20
+    int error_code() const { return m_error_code; }
 
-    D_NODISCARD     const std::vector<_Type>& data() const { return m_data; }
+    D_NODISCARD
+    D_CONSTEXPR20
+    const std::vector<_Type>& data() const { return m_data; }
 
-    D_NODISCARD     const _Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
+    D_NODISCARD
+    D_CONSTEXPR20
+    const _Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
 
     // begin/end for range-for support
     typename std::vector<_Type>::const_iterator begin() const
@@ -818,6 +897,151 @@ pipeline_from(
 {
     return function_pipeline<_Type>::from(_data, _count);
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             III.  PIPELINE SFINAE STRUCTURAL TRAITS & CONCEPTS          ///
+///////////////////////////////////////////////////////////////////////////////
+//   Detection vocabulary for function_pipeline: whether a type is a pipeline,
+// what element type it carries, and whether a callable is a valid mapper /
+// predicate for a pipeline over a given element type. The mapper / predicate
+// traits are expressed in terms of the shared is_callable / is_predicate
+// detectors (const _Type& is exactly how the pipeline's own methods invoke
+// their callables). Each predicate reduces to a `static constexpr bool
+// value`; pipeline_value_type yields a `::type`. The C++20 concepts close the
+// section.
+
+NS_INTERNAL
+
+    // is_pipeline_helper
+    //   helper: primary is std::false_type; the function_pipeline<_T>
+    // partial specialization lifts it to std::true_type. Kept internal so
+    // the public is_pipeline can decay its argument before matching.
+    template<typename _Type>
+    struct is_pipeline_helper
+        : std::false_type
+    {
+    };
+
+    template<typename _T>
+    struct is_pipeline_helper<function_pipeline<_T>>
+        : std::true_type
+    {
+    };
+
+    // pipeline_decompose_helper
+    //   helper: primary exposes no members (soft failure for non-pipeline
+    // types); the function_pipeline<_T> specialization exposes the element
+    // type. function_pipeline does not publish a value_type alias, so the
+    // type is recovered here by decomposition.
+    template<typename _Type>
+    struct pipeline_decompose_helper
+    {
+    };
+
+    template<typename _T>
+    struct pipeline_decompose_helper<function_pipeline<_T>>
+    {
+        using value_type = _T;
+    };
+
+NS_END  // internal
+
+
+// is_pipeline
+//   trait: true if _Type is a function_pipeline<_U> specialization, after
+// stripping cv-qualifiers and references. False for every other type.
+template<typename _Type>
+struct is_pipeline
+    : internal::is_pipeline_helper<typename std::decay<_Type>::type>::type
+{
+};
+
+
+// pipeline_value_type
+//   trait: the element type _T of a function_pipeline<_T>. SFINAE-friendly:
+// has a `::type` only when _Pipeline is (a cv/ref-qualified) pipeline.
+template<typename _Pipeline>
+struct pipeline_value_type
+{
+    using type = typename internal::pipeline_decompose_helper<
+        typename std::decay<_Pipeline>::type>::value_type;
+};
+
+// pipeline_value_type_t
+//   alias: shorthand for pipeline_value_type<_Pipeline>::type.
+template<typename _Pipeline>
+using pipeline_value_type_t = typename pipeline_value_type<_Pipeline>::type;
+
+
+// is_pipeline_mapper
+//   trait: true if _Fn is callable as _Fn(const _Type&) -- the value-side
+// shape accepted by pipeline::map, flat_map, group_by, and for_each. The
+// return type is unconstrained.
+template<typename _Fn,
+         typename _Type>
+struct is_pipeline_mapper
+    : is_callable<_Fn, const _Type&>
+{
+};
+
+
+// is_pipeline_predicate
+//   trait: true if _Pred is callable as _Pred(const _Type&) with a
+// bool-convertible result -- the shape accepted by pipeline::filter,
+// take_while, skip_while, any, all, none, count, and partition_pipe.
+template<typename _Pred,
+         typename _Type>
+struct is_pipeline_predicate
+    : is_predicate<_Pred, const _Type&>
+{
+};
+
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+// is_pipeline_v
+//   variable: shorthand for is_pipeline<_Type>::value. Available only when
+// variable templates are supported (C++14+).
+template<typename _Type>
+static constexpr bool is_pipeline_v = is_pipeline<_Type>::value;
+
+// is_pipeline_mapper_v
+//   variable: shorthand for is_pipeline_mapper<_Fn, _Type>::value.
+template<typename _Fn,
+         typename _Type>
+static constexpr bool is_pipeline_mapper_v =
+    is_pipeline_mapper<_Fn, _Type>::value;
+
+// is_pipeline_predicate_v
+//   variable: shorthand for is_pipeline_predicate<_Pred, _Type>::value.
+template<typename _Pred,
+         typename _Type>
+static constexpr bool is_pipeline_predicate_v =
+    is_pipeline_predicate<_Pred, _Type>::value;
+#endif
+
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// pipeline_type
+//   concept: satisfied by any function_pipeline<_U> specialization (cv-ref
+// stripped). The C++20 parallel of is_pipeline.
+template<typename _Type>
+concept pipeline_type = is_pipeline<_Type>::value;
+
+// pipeline_mapper_for
+//   concept: satisfied when _Fn is a valid mapper over _Type. The C++20
+// parallel of is_pipeline_mapper.
+template<typename _Fn,
+         typename _Type>
+concept pipeline_mapper_for = is_pipeline_mapper<_Fn, _Type>::value;
+
+// pipeline_predicate_for
+//   concept: satisfied when _Pred is a valid predicate over _Type. The
+// C++20 parallel of is_pipeline_predicate.
+template<typename _Pred,
+         typename _Type>
+concept pipeline_predicate_for = is_pipeline_predicate<_Pred, _Type>::value;
+#endif
 
 
 NS_END  // djinterp

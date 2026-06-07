@@ -33,7 +33,19 @@
 *   five();                         // 5
 *   five(1, 2, "x");                // 5  (ignores all args)
 *
-* 
+*   DUAL-DOMAIN (compile-time + runtime): the curry helpers store the callable
+* and accumulated arguments by value (decayed) and every operator()/dispatch is
+* constexpr, forwarding without inspecting the operand domain.  With
+* carrier-callable functions (see core/meta/carrier.hpp) curry / curry_n / flip /
+* uncurry / always therefore FOLD AT COMPILE TIME over NTTP value carriers and
+* type carriers, as well as running unchanged at runtime:
+*     curry_n<2>(addv)(val<3>)(val<4>)()       -> val_t<7>      (constexpr)
+*     curry(pair_fn)(type_c<int>)(type_c<char>) -> type_t<pair<int,char>>
+* (auto-curry invokes on the final argument; the explicit curry_n terminal is
+* invoked with a trailing () or via its implicit conversion to the result type.)
+* The is_predicate family in Section II is the project's canonical predicate
+* detector, layered on is_invocable_r<bool, ...>.
+*
 * path:      /inc/djinterp/core/functional/curry.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
@@ -50,14 +62,22 @@ I.    INTERNAL MACHINERY
       5.  flip_helper                         (argument swap)
       6.  always_helper                       (constant function)
       7.  uncurry_helper                      (curried -> n-ary)
-II.   CURRY FACTORIES
+II.   PREDICATE TRAITS & CONCEPTS
+      1.  is_predicate                        (callable, bool-convertible)
+      2.  is_nullary_predicate                (arity-0 predicate)
+      3.  is_unary_predicate                  (arity-1 predicate)
+      4.  is_binary_predicate                 (arity-2 predicate)
+      5.  is_predicate_v / ..._v              (variable-template shorthands)
+      6.  predicate_for / nullary_predicate / unary_predicate /
+          binary_predicate                   (C++20 concept parallels)
+III.  CURRY FACTORIES
       1.  curry                               (auto-arity)
       2.  curry_n                             (fixed-arity, by template)
-III.  UNCURRYING
+IV.   UNCURRYING
       1.  uncurry                             (back to multi-arg form)
-IV.   ARGUMENT TRANSFORMATIONS
+V.    ARGUMENT TRANSFORMATIONS
       1.  flip                                (swap first two args)
-V.    CONSTANT-VALUED COMBINATORS
+VI.   CONSTANT-VALUED COMBINATORS
       1.  identity                            (returns its argument)
       2.  always (constant)                   (returns a fixed value)
       3.  never                               (always-false predicate)
@@ -73,7 +93,7 @@ V.    CONSTANT-VALUED COMBINATORS
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
-#include "./functional_traits.hpp"
+#include "../meta/type_traits.hpp"
 
 
 NS_DJINTERP
@@ -187,14 +207,38 @@ NS_INTERNAL
             , m_args(std::forward<_TupleFwd>(_args))
         {}
 
+        // Return-type metafunctions for operator(). std::conditional is
+        // eager -- it requires BOTH branch types to be well-formed -- so a
+        // direct conditional on apply_tuple(...) fails when the callable is
+        // not yet invocable with the given args (the invoke branch is still
+        // instantiated). These wrappers defer each branch behind ::type so
+        // only the selected one is evaluated. (fixed 2026-05-30)
+        template<typename... _New>
+        struct invoke_result_of
+        {
+            using type = decltype(internal::apply_tuple(
+                std::declval<const _Fn&>(),
+                std::tuple_cat(
+                    std::declval<const std::tuple<_Args...>&>(),
+                    std::forward_as_tuple(std::declval<_New>()...))));
+        };
+
+        template<typename... _New>
+        struct extend_result_of
+        {
+            using type = curry_helper<_Fn, _Args...,
+                                      typename std::decay<_New>::type...>;
+        };
+
         // operator() (one new argument)
         //   chooses between invocation and extension via tag dispatch.
         template<typename _Arg>
         D_CONSTEXPR
         auto operator()(_Arg&& _arg) const
-        -> decltype(dispatch(
-               std::forward<_Arg>(_arg),
-               typename is_invocable<_Fn, _Args..., _Arg>::type{}))
+        -> typename std::conditional<
+               is_invocable<_Fn, _Args..., _Arg>::value,
+               invoke_result_of<_Arg>,
+               extend_result_of<_Arg> >::type::type
         {
             return dispatch(
                 std::forward<_Arg>(_arg),
@@ -217,8 +261,6 @@ NS_INTERNAL
         // operator() (multiple new arguments)
         //   extension path: appends all new args at once, then either
         // invokes (if now callable) or returns the extended helper.
-        // This is the same behavior as repeated single-arg calls but
-        // is faster and produces cleaner error messages.
         template<typename _A0,
                  typename _A1,
                  typename... _Rest>
@@ -228,12 +270,10 @@ NS_INTERNAL
             _A1&&     _a1,
             _Rest&&...  _rest
         ) const
-        -> decltype(call_multi(
-               typename is_invocable<
-                   _Fn, _Args..., _A0, _A1, _Rest...>::type{},
-               std::forward<_A0>(_a0),
-               std::forward<_A1>(_a1),
-               std::forward<_Rest>(_rest)...))
+        -> typename std::conditional<
+               is_invocable<_Fn, _Args..., _A0, _A1, _Rest...>::value,
+               invoke_result_of<_A0, _A1, _Rest...>,
+               extend_result_of<_A0, _A1, _Rest...> >::type::type
         {
             return call_multi(
                 typename is_invocable<
@@ -375,6 +415,34 @@ NS_INTERNAL
                 std::tuple_cat(
                     m_args,
                     std::make_tuple(std::forward<_Arg>(_arg))));
+        }
+
+        // operator() (two or more arguments) -- implements the documented
+        // c(1, 2)(3) / c(1, 2, 3) forms the single-arg overload omitted.
+        // (added 2026-05-30)
+        template<typename _Arg0,
+                 typename _Arg1,
+                 typename... _More>
+        D_CONSTEXPR
+        curry_n_helper<_Remaining - 2 - sizeof...(_More),
+                       _Fn,
+                       _Args...,
+                       typename std::decay<_Arg0>::type,
+                       typename std::decay<_Arg1>::type,
+                       typename std::decay<_More>::type...>
+        operator()(_Arg0&& _a0, _Arg1&& _a1, _More&&... _more) const
+        {
+            return curry_n_helper<_Remaining - 2 - sizeof...(_More), _Fn,
+                       _Args...,
+                       typename std::decay<_Arg0>::type,
+                       typename std::decay<_Arg1>::type,
+                       typename std::decay<_More>::type...>(
+                m_fn,
+                std::tuple_cat(
+                    m_args,
+                    std::make_tuple(std::forward<_Arg0>(_a0),
+                                    std::forward<_Arg1>(_a1),
+                                    std::forward<_More>(_more)...)));
         }
 
     private:
@@ -580,7 +648,126 @@ NS_END  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             II.   CURRY FACTORIES                                       ///
+///             II.   PREDICATE TRAITS & CONCEPTS                           ///
+///////////////////////////////////////////////////////////////////////////////
+// Structural SFINAE traits -- and, under C++20, parallel concepts -- that
+// classify a callable by predicate shape.  A predicate is any callable whose
+// result is convertible to bool.  These are layered on the existing
+// is_invocable_r<bool, ...> facility so the whole callable-traits family shares
+// one source of truth for "is this callable, and does it answer true/false?".
+// (added 2026-05-31)
+
+// is_predicate
+//   trait: true when _Fn is invocable with _Args... and the invocation
+// result is convertible to bool.
+template<typename    _Fn,
+         typename... _Args>
+struct is_predicate
+{
+    static constexpr bool value =
+        is_invocable_r<bool, _Fn, _Args...>::value;
+};
+
+// is_nullary_predicate
+//   trait: true when _Fn is a predicate accepting no arguments.
+template<typename _Fn>
+struct is_nullary_predicate
+{
+    static constexpr bool value = is_predicate<_Fn>::value;
+};
+
+// is_unary_predicate
+//   trait: true when _Fn is a predicate accepting exactly one argument
+// of type _Arg.
+template<typename _Fn,
+         typename _Arg>
+struct is_unary_predicate
+{
+    static constexpr bool value = is_predicate<_Fn, _Arg>::value;
+};
+
+// is_binary_predicate
+//   trait: true when _Fn is a predicate accepting exactly two arguments
+// of types _A and _B (in that order).
+template<typename _Fn,
+         typename _A,
+         typename _B>
+struct is_binary_predicate
+{
+    static constexpr bool value = is_predicate<_Fn, _A, _B>::value;
+};
+
+
+// Variable-template shorthands are a C++14 feature; gate the *_v forms so the
+// header stays clean under -std=c++11 -pedantic.  Pre-C++14 callers use the
+// ::value form.
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+// is_predicate_v
+//   constant: shorthand for is_predicate<_Fn, _Args...>::value.
+template<typename    _Fn,
+         typename... _Args>
+static constexpr bool is_predicate_v = is_predicate<_Fn, _Args...>::value;
+
+// is_nullary_predicate_v
+//   constant: shorthand for is_nullary_predicate<_Fn>::value.
+template<typename _Fn>
+static constexpr bool is_nullary_predicate_v = is_nullary_predicate<_Fn>::value;
+
+// is_unary_predicate_v
+//   constant: shorthand for is_unary_predicate<_Fn, _Arg>::value.
+template<typename _Fn,
+         typename _Arg>
+static constexpr bool is_unary_predicate_v =
+    is_unary_predicate<_Fn, _Arg>::value;
+
+// is_binary_predicate_v
+//   constant: shorthand for is_binary_predicate<_Fn, _A, _B>::value.
+template<typename _Fn,
+         typename _A,
+         typename _B>
+static constexpr bool is_binary_predicate_v =
+    is_binary_predicate<_Fn, _A, _B>::value;
+
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+
+// Concept parallels mirror the structural traits one-for-one and are gated on
+// compiler support for the concepts language feature.
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+// predicate_for
+//   concept: satisfied when _Fn is callable with _Args... and the result is
+// convertible to bool.
+template<typename    _Fn,
+         typename... _Args>
+concept predicate_for = is_predicate<_Fn, _Args...>::value;
+
+// nullary_predicate
+//   concept: satisfied when _Fn is a predicate accepting no arguments.
+template<typename _Fn>
+concept nullary_predicate = predicate_for<_Fn>;
+
+// unary_predicate
+//   concept: satisfied when _Fn is a predicate accepting exactly one
+// argument of type _Arg.
+template<typename _Fn,
+         typename _Arg>
+concept unary_predicate = predicate_for<_Fn, _Arg>;
+
+// binary_predicate
+//   concept: satisfied when _Fn is a predicate accepting exactly two
+// arguments of types _A and _B (in that order).
+template<typename _Fn,
+         typename _A,
+         typename _B>
+concept binary_predicate = predicate_for<_Fn, _A, _B>;
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             III.  CURRY FACTORIES                                       ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // curry
@@ -626,7 +813,7 @@ curry_n
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             III.  UNCURRYING                                            ///
+///             IV.   UNCURRYING                                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // uncurry
@@ -648,7 +835,7 @@ uncurry
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             IV.   ARGUMENT TRANSFORMATIONS                              ///
+///             V.    ARGUMENT TRANSFORMATIONS                              ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // flip
@@ -670,14 +857,18 @@ flip
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             V.    CONSTANT-VALUED COMBINATORS                           ///
+///             VI.   CONSTANT-VALUED COMBINATORS                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
-    // identity_helper
+    // identity_fn_helper
     //   helper: invokable type that returns its argument unchanged,
     // preserving value category and constness.
-    struct identity_helper
+    //   NOTE: named identity_fn_helper rather than identity_helper to
+    // avoid an ODR clash with extractor.hpp's internal::identity_helper
+    // <_Source> (a different template) when both headers are used in the
+    // same translation unit. (renamed 2026-05-30)
+    struct identity_fn_helper
     {
         template<typename _Arg>
         D_CONSTEXPR
@@ -710,9 +901,9 @@ NS_END  // internal
 //   constant: function object that returns its argument unchanged.
 // Useful as a default transformer in higher-order code.
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    static constexpr internal::identity_helper identity{};
+    static constexpr internal::identity_fn_helper identity{};
 #else
-    static const internal::identity_helper identity = internal::identity_helper{};
+    static const internal::identity_fn_helper identity = internal::identity_fn_helper{};
 #endif
 
 

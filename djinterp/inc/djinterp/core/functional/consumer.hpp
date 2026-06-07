@@ -12,6 +12,10 @@
 * via std::function is opt-in (see boxed_consumer) for cases where a
 * concrete consumer type is required at compile time, e.g. for storage
 * in heterogeneous containers.
+*   The predicate SFINAE structural traits and C++20 concepts in
+* Section 0 describe the consumer vocabulary (consumer-ness, predicate-
+* ness, transformer-ness, boxability, and contramap result type) so the
+* combinators and downstream code can constrain and introspect on it.
 *
 * USAGE:
 *   // primitives
@@ -37,6 +41,7 @@
 /*
 TABLE OF CONTENTS
 =================
+0.     PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS
 I.     INTERNAL CONSUMER HELPER CLASSES
   1.     print_to_helper
   2.     write_to_helper
@@ -78,14 +83,320 @@ III.   TYPE ERASURE
 #include <functional>
 #include <iterator>
 #include <ostream>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
-#include "./functional_traits.hpp"
+
+
+// D_CONSTEXPR14
+//   macro: resolves to D_CONSTEXPR on C++14 or later, where relaxed
+// constexpr permits local variables, loops, and assignments within
+// constexpr function bodies.  On C++11, resolves to nothing, because
+// the single-return-statement constexpr rules forbid the assignment
+// and branch bodies used by several consumer helpers below.
+#ifndef D_CONSTEXPR14
+#  if D_ENV_LANG_IS_CPP14_OR_HIGHER
+#    define D_CONSTEXPR14 D_CONSTEXPR
+#  else
+#    define D_CONSTEXPR14
+#  endif
+#endif  // D_CONSTEXPR14
 
 
 NS_DJINTERP
+
+
+//   DUAL DOMAIN (boundary).  A consumer's purpose is a side effect - printing,
+// writing, counting through an out-parameter - which is inherently a RUNTIME
+// act and has no constant-evaluation analog.  What lifts to compile time is
+// COMPOSITION: the adapters below (filtered / mapped / tee / batched / take /
+// drop / conditional) are D_CONSTEXPR14-constructible, so a consumer pipeline
+// can be assembled in a constant expression, and the values threaded through it
+// may be carrier leaves (val_t / type_t) as readily as ordinary values - only
+// the terminal effect is deferred to run time.  A consumer is thus the
+// value-domain RUNTIME sink of the dataflow; there is deliberately no
+// type-level or compile-time "consumption", because a side effect cannot occur
+// during translation.
+
+///////////////////////////////////////////////////////////////////////////////
+///             0.    PREDICATE SFINAE STRUCTURAL TRAITS & CONCEPTS         ///
+///////////////////////////////////////////////////////////////////////////////
+//   Self-contained detection vocabulary for the consumer machinery.
+// Every predicate reduces to a `static constexpr bool value` (or, for
+// the type-yielding traits, a `::type`), built on the core ::void_t
+// SFINAE sink declared in djinterp.hpp.  A consumer is a callable of
+// shape `void(const T&)`; a predicate is a callable `const T& -> bool`;
+// a transformer is a callable `const T& -> non-void`.  The C++20
+// concept mirrors follow at the end of the section, gated on concept
+// support.
+
+NS_INTERNAL
+
+    // call_result_helper
+    //   trait: SFINAE result-type extractor for the call expression
+    // _Function(const _Arg&) (primary: no `type`, soft failure).
+    template<typename _AlwaysVoid,
+             typename _Function,
+             typename _Arg>
+    struct call_result_helper
+    {};
+
+    // call_result_helper (well-formed specialization)
+    //   trait: yields the result type of _Function(const _Arg&) when
+    // that call expression is well-formed.
+    template<typename _Function,
+             typename _Arg>
+    struct call_result_helper<
+        void_t<decltype(std::declval<const _Function&>()(
+            std::declval<const _Arg&>()))>,
+        _Function,
+        _Arg>
+    {
+        using type = decltype(std::declval<const _Function&>()(
+            std::declval<const _Arg&>()));
+    };
+
+    // is_callable_with_const_ref_helper
+    //   trait: detection sink for _Function(const _Arg&) (primary:
+    // false).
+    template<typename _AlwaysVoid,
+             typename _Function,
+             typename _Arg>
+    struct is_callable_with_const_ref_helper : std::false_type
+    {};
+
+    // is_callable_with_const_ref_helper (well-formed specialization)
+    //   trait: true when _Function(const _Arg&) is a valid call.
+    template<typename _Function,
+             typename _Arg>
+    struct is_callable_with_const_ref_helper<
+        void_t<decltype(std::declval<const _Function&>()(
+            std::declval<const _Arg&>()))>,
+        _Function,
+        _Arg> : std::true_type
+    {};
+
+    // is_consumer_result_helper
+    //   trait: void-result branch of is_consumer, selected by the
+    // _Callable flag.  Primary (false flag): not callable, so the
+    // result type is never named -- guarantees SFINAE-safety.
+    template<bool     _Callable,
+             typename _Consumer,
+             typename _Type>
+    struct is_consumer_result_helper : std::false_type
+    {};
+
+    // is_consumer_result_helper (callable branch)
+    //   trait: when callable, the value is whether the call result is
+    // void (the defining shape of a consumer sink).
+    template<typename _Consumer,
+             typename _Type>
+    struct is_consumer_result_helper<true, _Consumer, _Type>
+    {
+        static constexpr bool value =
+            std::is_void<
+                typename call_result_helper<void, _Consumer, _Type>::type
+            >::value;
+    };
+
+    // is_predicate_result_helper
+    //   trait: bool-convertible-result branch of is_predicate, selected
+    // by the _Callable flag.  Primary (false flag): not callable, so the
+    // result type is never named -- guarantees SFINAE-safety.
+    template<bool     _Callable,
+             typename _Predicate,
+             typename _Type>
+    struct is_predicate_result_helper : std::false_type
+    {};
+
+    // is_predicate_result_helper (callable branch)
+    //   trait: when callable, the value is whether the call result is
+    // convertible to bool.
+    template<typename _Predicate,
+             typename _Type>
+    struct is_predicate_result_helper<true, _Predicate, _Type>
+    {
+        static constexpr bool value =
+            std::is_convertible<
+                typename call_result_helper<void, _Predicate, _Type>::type,
+                bool
+            >::value;
+    };
+
+    // is_transformer_result_helper
+    //   trait: non-void-result branch of is_transformer, selected by the
+    // _Callable flag.  Primary (false flag): not callable, so the result
+    // type is never named -- guarantees SFINAE-safety.
+    template<bool     _Callable,
+             typename _Function,
+             typename _Type>
+    struct is_transformer_result_helper : std::false_type
+    {};
+
+    // is_transformer_result_helper (callable branch)
+    //   trait: when callable, the value is whether the call result is
+    // non-void.
+    template<typename _Function,
+             typename _Type>
+    struct is_transformer_result_helper<true, _Function, _Type>
+    {
+        static constexpr bool value =
+            !std::is_void<
+                typename call_result_helper<void, _Function, _Type>::type
+            >::value;
+    };
+
+NS_END  // internal
+
+// consumer_result
+//   trait: result type of invoking _Consumer with a `const _Type&`.
+// Has a `::type` member only when that call expression is well-formed,
+// making consumer_result_t SFINAE-friendly.
+template<typename _Consumer,
+         typename _Type>
+struct consumer_result
+{
+    using type =
+        typename internal::call_result_helper<void, _Consumer, _Type>::type;
+};
+
+// consumer_result_t
+//   type: convenience alias for consumer_result<...>::type.
+template<typename _Consumer,
+         typename _Type>
+using consumer_result_t = typename consumer_result<_Consumer, _Type>::type;
+
+// is_consumer
+//   trait: true when _Consumer is callable as `void(const _Type&)` --
+// i.e. accepts a `const _Type&` and returns void.  This is the defining
+// structural property of a consumer sink.
+template<typename _Consumer,
+         typename _Type>
+struct is_consumer
+    : internal::is_consumer_result_helper<
+          internal::is_callable_with_const_ref_helper<
+              void, _Consumer, _Type>::value,
+          _Consumer, _Type>
+{};
+
+// is_predicate
+//   trait: true when _Predicate is callable with a `const _Type&` and
+// the result is convertible to bool (the shape filtered / conditional
+// require).
+template<typename _Predicate,
+         typename _Type>
+struct is_predicate
+    : internal::is_predicate_result_helper<
+          internal::is_callable_with_const_ref_helper<
+              void, _Predicate, _Type>::value,
+          _Predicate, _Type>
+{};
+
+// is_transformer
+//   trait: true when _Function is callable with a `const _Type&` and
+// produces a non-void result (the shape mapped / contramap require).
+template<typename _Function,
+         typename _Type>
+struct is_transformer
+    : internal::is_transformer_result_helper<
+          internal::is_callable_with_const_ref_helper<
+              void, _Function, _Type>::value,
+          _Function, _Type>
+{};
+
+// is_boxable
+//   trait: true when _Consumer can be type-erased into a
+// boxed_consumer<_Type> -- i.e. it is convertible to
+// std::function<void(const _Type&)>.  Every value that satisfies
+// is_consumer<_Consumer, _Type> is boxable, but the check is stated in
+// terms of the std::function target so it also covers plain function
+// pointers and lambdas directly.
+template<typename _Consumer,
+         typename _Type>
+struct is_boxable
+    : std::is_convertible<_Consumer, std::function<void(const _Type&)>>
+{};
+
+// contramap_input
+//   trait: given a transformer _Function : A -> B and a downstream
+// input type _Input (an A), names the value type B that the mapped
+// consumer forwards to its inner consumer.  Alias of
+// consumer_result.  Present so callers can compute the inner
+// consumer's required element type from the transform.
+template<typename _Function,
+         typename _Input>
+struct contramap_input
+{
+    using type = consumer_result_t<_Function, _Input>;
+};
+
+// contramap_input_t
+//   type: convenience alias for contramap_input<...>::type.
+template<typename _Function,
+         typename _Input>
+using contramap_input_t = typename contramap_input<_Function, _Input>::type;
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+    // is_consumer_v
+    //   value: convenience alias for is_consumer<...>::value.
+    template<typename _Consumer,
+             typename _Type>
+    constexpr bool is_consumer_v = is_consumer<_Consumer, _Type>::value;
+
+    // is_predicate_v
+    //   value: convenience alias for is_predicate<...>::value.
+    template<typename _Predicate,
+             typename _Type>
+    constexpr bool is_predicate_v = is_predicate<_Predicate, _Type>::value;
+
+    // is_transformer_v
+    //   value: convenience alias for is_transformer<...>::value.
+    template<typename _Function,
+             typename _Type>
+    constexpr bool is_transformer_v = is_transformer<_Function, _Type>::value;
+
+    // is_boxable_v
+    //   value: convenience alias for is_boxable<...>::value.
+    template<typename _Consumer,
+             typename _Type>
+    constexpr bool is_boxable_v = is_boxable<_Consumer, _Type>::value;
+
+#endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+    // consumes
+    //   concept: satisfied when _Consumer is a consumer of _Type, i.e.
+    // callable as `void(const _Type&)`.
+    template<typename _Consumer,
+             typename _Type>
+    concept consumes = is_consumer<_Consumer, _Type>::value;
+
+    // predicate_for
+    //   concept: satisfied when _Predicate is a bool-returning callable
+    // over `const _Type&`.
+    template<typename _Predicate,
+             typename _Type>
+    concept predicate_for = is_predicate<_Predicate, _Type>::value;
+
+    // transformer_for
+    //   concept: satisfied when _Function maps a `const _Type&` to a
+    // non-void result.
+    template<typename _Function,
+             typename _Type>
+    concept transformer_for = is_transformer<_Function, _Type>::value;
+
+    // boxable_as
+    //   concept: satisfied when _Consumer can be erased into a
+    // boxed_consumer<_Type>.
+    template<typename _Consumer,
+             typename _Type>
+    concept boxable_as = is_boxable<_Consumer, _Type>::value;
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -188,6 +499,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void
         operator()(
             const _Value&
@@ -222,6 +534,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void
         operator()(
             const _Value& _value
@@ -261,6 +574,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void
         operator()(
             const _Value& _value
@@ -294,6 +608,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void
         operator()(
             const _Value& _value
@@ -361,6 +676,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void
         operator()(
             const _Value& _value
@@ -402,6 +718,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void
         operator()(
             const _Value& _value
@@ -441,6 +758,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void
         operator()(
             const _Value& _value
@@ -488,6 +806,7 @@ NS_INTERNAL
         {}
 
         template<typename _Value>
+        D_CONSTEXPR14
         void 
         operator()(
             const _Value& _value
@@ -583,6 +902,7 @@ namespace consumers
                 _stream,
                 std::forward<_Sep>(_separator));
     }
+
 
     // print_to (default separator)
     //   function: as print_to(stream, sep), with sep = '\n'.
