@@ -53,11 +53,11 @@ TABLE OF CONTENTS
 I.    VIEW BASE AND TRAITS
       1.  view_base                              (CRTP marker)
       2.  is_view<T>                             (SFINAE detector)
-      3.  is_pipeable_to_view<T>                 (container OR view)
+      3.  has_begin_end<T>                        (container-like detector)
 II.   FUNDAMENTAL VIEWS
       1.  ref_view<_Container>                   (non-owning wrap)
       2.  owning_view<_Container>                (by-value capture)
-      3.  iterator_pair_view<_It>                (raw iterator pair)
+      3.  iterator_pair_view<_Iterator>                (raw iterator pair)
 III.  SOURCE VIEWS (no input)
       1.  iota_view<_Int>                        (infinite numeric source)
       2.  repeat_view<_Type>                     (infinite same-value source)
@@ -99,6 +99,14 @@ VII.  TERMINAL OPERATORS
       7.  any_of(p), all_of(p), none_of(p)
       8.  find_if(p)
       9.  min_element(), max_element()
+VIII. VIEW SFINAE STRUCTURAL TRAITS & CONCEPTS
+      1.  view_value_type<V>                     (element-type extractor)
+      2.  is_pipeable_to_view<T>                 (view OR container)
+      3.  is_view_v / has_begin_end_v /
+          is_adapter_v / is_terminal_v /
+          is_pipeable_to_view_v                  (variable-template shorthands)
+      4.  view_type / view_adapter / view_terminal /
+          pipeable_to_view                       (C++20 concept parallels)
 */
 
 #ifndef DJINTERP_FUNCTIONAL_VIEW_
@@ -112,10 +120,21 @@ VII.  TERMINAL OPERATORS
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
-#include "./functional_traits.hpp"
 
 
 NS_DJINTERP
+
+//   DUAL DOMAIN (boundary).  A view is a lazy, iterator-based pipeline over a
+// runtime sequence; forcing it - iteration, to_vector(), count() - is a RUNTIME
+// act.  COMPOSITION lifts to compile time: the operator| chain that assembles a
+// view is built from D_CONSTEXPR-constructible adapter objects (see the ctors
+// throughout this file), so the pipeline shape is fixed during translation even
+// though the traversal that does the work runs later.  A view is therefore the
+// value-domain RUNTIME face of the dataflow.  The COMPILE-TIME face of the very
+// same map / filter / take vocabulary is the reduction substrate: reduce_ct and
+// the unfold_ct driver folding a value_list (see reduce.hpp and producer.hpp),
+// with transducers as the bridge that lets one transformation chain target
+// either face without being rewritten.
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.    VIEW BASE AND TRAITS                                  ///
@@ -127,8 +146,7 @@ NS_DJINTERP
 // Empty by design; views supply their own iterator interface.
 template<typename _Derived>
 struct view_base
-{
-};
+{};
 
 
 NS_INTERNAL
@@ -141,8 +159,8 @@ NS_INTERNAL
     struct is_view_helper
     {
     private:
-        template<typename _Type>
-        static std::true_type  test(const view_base<_Type>*);
+        template<typename _U>
+        static std::true_type  test(const view_base<_U>*);
         static std::false_type test(...);
 
     public:
@@ -177,10 +195,10 @@ NS_INTERNAL
     struct has_begin_end_helper
     {
     private:
-        template<typename _Type>
+        template<typename _U>
         static auto test(int) -> decltype(
-            std::begin(std::declval<_Type&>()),
-            std::end(std::declval<_Type&>()),
+            std::begin(std::declval<_U&>()),
+            std::end(std::declval<_U&>()),
             std::true_type{});
 
         template<typename>
@@ -222,21 +240,18 @@ public:
     using reference       = typename _Container::const_reference;
     using size_type       = typename _Container::size_type;
 
-    explicit D_CONSTEXPR
-    ref_view(
+    explicit D_CONSTEXPR ref_view(
         const _Container& _container
     ) noexcept
         : m_container(&_container)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         return m_container->begin();
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         return m_container->end();
     }
@@ -262,21 +277,20 @@ public:
     using size_type       = typename _Container::size_type;
 
     template<typename _ContainerFwd>
-    explicit D_CONSTEXPR
-    owning_view(
+    explicit D_CONSTEXPR owning_view(
         _ContainerFwd&& _container
     )
         : m_container(std::forward<_ContainerFwd>(_container))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return m_container.begin();
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return m_container.end();
     }
@@ -290,39 +304,37 @@ private:
 //   class: view defined by a pair of iterators (begin, end). Useful
 // for adapting arbitrary iterator ranges (e.g. from a third-party
 // container or a substring of a sequence) to the view machinery.
-template<typename _It>
-class iterator_pair_view : public view_base<iterator_pair_view<_It>>
+template<typename _Iterator>
+class iterator_pair_view : public view_base<iterator_pair_view<_Iterator>>
 {
 public:
-    using iterator       = _It;
-    using const_iterator = _It;
-    using value_type     = typename std::iterator_traits<_It>::value_type;
-    using reference      = typename std::iterator_traits<_It>::reference;
+    using iterator       = _Iterator;
+    using const_iterator = _Iterator;
+    using value_type     = typename std::iterator_traits<_Iterator>::value_type;
+    using reference      = typename std::iterator_traits<_Iterator>::reference;
 
     D_CONSTEXPR
     iterator_pair_view(
-        _It _first,
-        _It _last
+        _Iterator _first,
+        _Iterator _last
     )
-        : m_first(_first)
-        , m_last(_last)
+        : m_first(_first),
+          m_last(_last)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         return m_first;
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         return m_last;
     }
 
 private:
-    _It m_first;
-    _It m_last;
+    _Iterator m_first;
+    _Iterator m_last;
 };
 
 
@@ -348,42 +360,41 @@ NS_INTERNAL
 
         D_CONSTEXPR
         iota_iterator()
-            : m_value(_Int())
-            , m_end(_Int())
-            , m_has_end(false)
-            , m_is_end(true)
+            : m_value(_Int()),
+              m_end(_Int()),
+              m_has_end(false),
+              m_is_end(true)
         {}
 
-        D_CONSTEXPR
-        iota_iterator(
+        D_CONSTEXPR iota_iterator(
             _Int _value,
             bool _is_end
         )
-            : m_value(_value)
-            , m_end(_Int())
-            , m_has_end(false)
-            , m_is_end(_is_end)
+            : m_value(_value),
+              m_end(_Int()),
+              m_has_end(false),
+              m_is_end(_is_end)
         {}
 
-        D_CONSTEXPR
-        iota_iterator(
+        D_CONSTEXPR iota_iterator(
             _Int _value,
             _Int _end,
             bool _is_end
         )
-            : m_value(_value)
-            , m_end(_end)
-            , m_has_end(true)
-            , m_is_end(_is_end)
+            : m_value(_value),
+              m_end(_end),
+              m_has_end(true),
+              m_is_end(_is_end)
         {}
 
-        D_CONSTEXPR
-        _Int operator*() const
+        D_CONSTEXPR _Int
+        operator*() const
         {
             return m_value;
         }
 
-        iota_iterator& operator++()
+        iota_iterator&
+        operator++()
         {
             ++m_value;
 
@@ -395,7 +406,10 @@ NS_INTERNAL
             return *this;
         }
 
-        iota_iterator operator++(int)
+        iota_iterator
+        operator++(
+            int
+        )
         {
             iota_iterator tmp(*this);
             ++(*this);
@@ -403,8 +417,8 @@ NS_INTERNAL
             return tmp;
         }
 
-        D_CONSTEXPR
-        bool operator==(
+        D_CONSTEXPR bool
+        operator==(
             const iota_iterator& _other
         ) const
         {
@@ -412,8 +426,8 @@ NS_INTERNAL
                      ( m_is_end || (m_value == _other.m_value) ) );
         }
 
-        D_CONSTEXPR
-        bool operator!=(
+        D_CONSTEXPR bool
+        operator!=(
             const iota_iterator& _other
         ) const
         {
@@ -464,8 +478,7 @@ public:
         , m_has_end(false)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         if (m_has_end)
         {
@@ -475,8 +488,7 @@ public:
         return iterator(m_start, false);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         if (m_has_end)
         {
@@ -620,8 +632,7 @@ public:
         , m_has_bound(true)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         if (m_has_bound)
         {
@@ -631,8 +642,7 @@ public:
         return iterator(m_value, 0, false, false);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         return iterator(m_value, 0, m_has_bound, true);
     }
@@ -783,13 +793,11 @@ public:
         using pointer           = const _Type*;
         using reference         = const _Type&;
 
-        D_CONSTEXPR
+        // not D_CONSTEXPR: unreachable precondition-violation path that
+        // returns a reference to a function-local static, which is not
+        // permitted in a constexpr function before C++23. (fixed 2026-05-30)
         const _Type& operator*() const
         {
-            // never reachable: empty_view::begin() == empty_view::end()
-            // so dereferencing is a precondition violation. A static
-            // local sentinel is used to give the function a valid
-            // signature without triggering null-dereference warnings.
             static const _Type sentinel = _Type();
 
             return sentinel;
@@ -815,14 +823,12 @@ public:
 
     using const_iterator = iterator;
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         return iterator{};
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         return iterator{};
     }
@@ -848,34 +854,34 @@ public:
         using pointer           = const _Type*;
         using reference         = const _Type&;
 
-        D_CONSTEXPR
-        iterator()
-            : m_ptr(nullptr)
-            , m_is_end(true)
+        D_CONSTEXPR iterator()
+            : m_ptr(nullptr),
+              m_is_end(true)
         {}
 
-        D_CONSTEXPR
-        explicit iterator(
+        D_CONSTEXPR explicit iterator(
             const _Type* _ptr
         )
-            : m_ptr(_ptr)
-            , m_is_end(false)
+            : m_ptr(_ptr),
+              m_is_end(false)
         {}
 
-        D_CONSTEXPR
-        const _Type& operator*() const
+        D_CONSTEXPR const _Type&
+        operator*() const
         {
             return *m_ptr;
         }
 
-        iterator& operator++()
+        iterator&
+        operator++()
         {
             m_is_end = true;
 
             return *this;
         }
 
-        iterator operator++(int)
+        iterator 
+        operator++(int)
         {
             iterator tmp(*this);
             ++(*this);
@@ -883,16 +889,16 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR
-        bool operator==(
+        D_CONSTEXPR bool
+        operator==(
             const iterator& _other
         ) const
         {
             return (m_is_end == _other.m_is_end);
         }
 
-        D_CONSTEXPR
-        bool operator!=(
+        D_CONSTEXPR bool
+        operator!=(
             const iterator& _other
         ) const
         {
@@ -913,14 +919,14 @@ public:
         : m_value(std::move(_value))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return iterator(&m_value);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator{};
     }
@@ -949,39 +955,40 @@ public:
     {
     public:
         using inner_iterator    = typename _View::const_iterator;
-        using inner_reference   = typename std::iterator_traits<
-            inner_iterator>::reference;
+        using inner_reference   = typename std::iterator_traits<inner_iterator>::reference;
         using iterator_category = std::input_iterator_tag;
-        using value_type        = typename std::decay<decltype(
-            std::declval<const _Function&>()(
-                std::declval<inner_reference>()))>::type;
+        using value_type        = typename std::decay<decltype(std::declval<const _Function&>()(std::declval<inner_reference>()))>::type;
         using difference_type   = std::ptrdiff_t;
         using pointer           = void;
         using reference         = value_type;
 
         D_CONSTEXPR
         iterator(
-            inner_iterator   _it,
+            inner_iterator   _iterator,
             const _Function* _fn
         )
-            : m_it(_it)
-            , m_fn(_fn)
+            : m_it(_iterator),
+              m_fn(_fn)
         {}
 
-        D_CONSTEXPR
-        value_type operator*() const
+        D_CONSTEXPR value_type
+        operator*() const
         {
             return (*m_fn)(*m_it);
         }
 
-        iterator& operator++()
+        iterator&
+        operator++()
         {
             ++m_it;
 
             return *this;
         }
 
-        iterator operator++(int)
+        iterator 
+        operator++(
+            int
+        )
         {
             iterator tmp(*this);
             ++m_it;
@@ -989,16 +996,16 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR
-        bool operator==(
+        D_CONSTEXPR bool
+        operator==(
             const iterator& _other
         ) const
         {
             return (m_it == _other.m_it);
         }
 
-        D_CONSTEXPR
-        bool operator!=(
+        D_CONSTEXPR bool
+        operator!=(
             const iterator& _other
         ) const
         {
@@ -1016,23 +1023,22 @@ public:
 
     template<typename _VFwd,
              typename _FFwd>
-    D_CONSTEXPR
-    transform_view(
+    D_CONSTEXPR transform_view(
         _VFwd&& _view,
         _FFwd&& _function
     )
-        : m_view(std::forward<_VFwd>(_view))
-        , m_function(std::forward<_FFwd>(_function))
+        : m_view(std::forward<_VFwd>(_view)),
+          m_function(std::forward<_FFwd>(_function))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return iterator(m_view.begin(), &m_function);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator(m_view.end(), &m_function);
     }
@@ -1058,33 +1064,31 @@ public:
     public:
         using inner_iterator    = typename _View::const_iterator;
         using iterator_category = std::input_iterator_tag;
-        using value_type        = typename std::iterator_traits<
-            inner_iterator>::value_type;
+        using value_type        = typename std::iterator_traits<inner_iterator>::value_type;
         using difference_type   = std::ptrdiff_t;
-        using pointer           = typename std::iterator_traits<
-            inner_iterator>::pointer;
-        using reference         = typename std::iterator_traits<
-            inner_iterator>::reference;
+        using pointer           = typename std::iterator_traits<inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<inner_iterator>::reference;
 
         iterator(
-            inner_iterator    _it,
+            inner_iterator    _iterator,
             inner_iterator    _end,
-            const _Predicate* _pred
+            const _Predicate* _predicate
         )
-            : m_it(_it)
-            , m_end(_end)
-            , m_pred(_pred)
+            : m_it(_iterator),
+              m_end(_end),
+              m_predicate(_predicate)
         {
             advance_to_match();
         }
 
-        D_NODISCARD
-        reference operator*() const
+        D_NODISCARD reference
+        operator*() const
         {
             return *m_it;
         }
 
-        iterator& operator++()
+        iterator&
+        operator++()
         {
             ++m_it;
             advance_to_match();
@@ -1092,7 +1096,10 @@ public:
             return *this;
         }
 
-        iterator operator++(int)
+        iterator
+        operator++(
+            int
+        )
         {
             iterator tmp(*this);
             ++(*this);
@@ -1100,16 +1107,16 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR
-        bool operator==(
+        D_CONSTEXPR bool
+        operator==(
             const iterator& _other
         ) const
         {
             return (m_it == _other.m_it);
         }
 
-        D_CONSTEXPR
-        bool operator!=(
+        D_CONSTEXPR bool
+        operator!=(
             const iterator& _other
         ) const
         {
@@ -1121,9 +1128,11 @@ public:
         //   skip non-matching elements; called from the constructor
         // and from each ++ to maintain the invariant that *m_it
         // satisfies the predicate (or m_it == m_end).
-        void advance_to_match()
+        void
+        advance_to_match()
         {
-            while ((m_it != m_end) && !(*m_pred)(*m_it))
+            while ( (m_it != m_end) && 
+                    !(*m_predicate)(*m_it) )
             {
                 ++m_it;
             }
@@ -1133,7 +1142,7 @@ public:
 
         inner_iterator    m_it;
         inner_iterator    m_end;
-        const _Predicate* m_pred;
+        const _Predicate* m_predicate;
     };
 
     using const_iterator = iterator;
@@ -1142,23 +1151,22 @@ public:
 
     template<typename _VFwd,
              typename _PFwd>
-    D_CONSTEXPR
-    filter_view(
+    D_CONSTEXPR filter_view(
         _VFwd&& _view,
         _PFwd&& _predicate
     )
-        : m_view(std::forward<_VFwd>(_view))
-        , m_predicate(std::forward<_PFwd>(_predicate))
+        : m_view(std::forward<_VFwd>(_view)),
+          m_predicate(std::forward<_PFwd>(_predicate))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return iterator(m_view.begin(), m_view.end(), &m_predicate);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator(m_view.end(), m_view.end(), &m_predicate);
     }
@@ -1174,7 +1182,8 @@ private:
 // view. The iterator carries a remaining counter; when it reaches
 // zero, the iterator compares equal to end().
 template<typename _View>
-class take_view : public view_base<take_view<_View>>
+class take_view 
+    : public view_base<take_view<_View>>
 {
 public:
     class iterator
@@ -1182,27 +1191,24 @@ public:
     public:
         using inner_iterator    = typename _View::const_iterator;
         using iterator_category = std::input_iterator_tag;
-        using value_type        = typename std::iterator_traits<
-            inner_iterator>::value_type;
+        using value_type        = typename std::iterator_traits<inner_iterator>::value_type;
         using difference_type   = std::ptrdiff_t;
-        using pointer           = typename std::iterator_traits<
-            inner_iterator>::pointer;
-        using reference         = typename std::iterator_traits<
-            inner_iterator>::reference;
+        using pointer           = typename std::iterator_traits<inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<inner_iterator>::reference;
 
         D_CONSTEXPR
         iterator(
-            inner_iterator _it,
+            inner_iterator _iterator,
             inner_iterator _end,
             std::size_t    _remaining
         )
-            : m_it(_it)
-            , m_end(_end)
-            , m_remaining(_remaining)
+            : m_it(_iterator),
+              m_end(_end),
+              m_remaining(_remaining)
         {}
 
-        D_NODISCARD
-        reference operator*() const
+        D_NODISCARD reference
+        operator*() const
         {
             return *m_it;
         }
@@ -1218,7 +1224,9 @@ public:
             return *this;
         }
 
-        iterator operator++(int)
+        iterator operator++(
+            int
+        )
         {
             iterator tmp(*this);
             ++(*this);
@@ -1226,16 +1234,16 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR
-        bool operator==(
+        D_CONSTEXPR bool
+        operator==(
             const iterator& _other
         ) const
         {
             return ( ( (m_remaining == 0) || (m_it == m_end) )
-                  ?  ( (_other.m_remaining == 0)
-                       || (_other.m_it == _other.m_end) )
-                  :   ( (m_it == _other.m_it)
-                       && (m_remaining == _other.m_remaining) ) );
+                  ?  ( (_other.m_remaining == 0)  ||
+                          (_other.m_it == _other.m_end) )
+                  :   ( (m_it == _other.m_it)     &&
+                        (m_remaining == _other.m_remaining) ) );
         }
 
         D_CONSTEXPR
@@ -1257,23 +1265,22 @@ public:
     using reference      = typename iterator::reference;
 
     template<typename _VFwd>
-    D_CONSTEXPR
-    take_view(
+    D_CONSTEXPR take_view(
         _VFwd&&     _view,
         std::size_t _n
     )
-        : m_view(std::forward<_VFwd>(_view))
-        , m_n(_n)
+        : m_view(std::forward<_VFwd>(_view)),
+          m_n(_n)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return iterator(m_view.begin(), m_view.end(), m_n);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator(m_view.end(), m_view.end(), 0);
     }
@@ -1295,23 +1302,21 @@ class drop_view : public view_base<drop_view<_View>>
 public:
     using iterator       = typename _View::const_iterator;
     using const_iterator = iterator;
-    using value_type     = typename std::iterator_traits<
-        iterator>::value_type;
+    using value_type     = typename std::iterator_traits<iterator>::value_type;
     using reference      = typename std::iterator_traits<
         iterator>::reference;
 
     template<typename _VFwd>
-    D_CONSTEXPR
-    drop_view(
+    D_CONSTEXPR drop_view(
         _VFwd&&     _view,
         std::size_t _n
     )
-        : m_view(std::forward<_VFwd>(_view))
-        , m_n(_n)
+        : m_view(std::forward<_VFwd>(_view)),
+          m_n(_n)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         iterator it = m_view.begin();
         iterator e  = m_view.end();
@@ -1326,8 +1331,8 @@ public:
         return it;
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return m_view.end();
     }
@@ -1353,30 +1358,26 @@ public:
     public:
         using inner_iterator    = typename _View::const_iterator;
         using iterator_category = std::input_iterator_tag;
-        using value_type        = typename std::iterator_traits<
-            inner_iterator>::value_type;
+        using value_type        = typename std::iterator_traits<inner_iterator>::value_type;
         using difference_type   = std::ptrdiff_t;
-        using pointer           = typename std::iterator_traits<
-            inner_iterator>::pointer;
-        using reference         = typename std::iterator_traits<
-            inner_iterator>::reference;
+        using pointer           = typename std::iterator_traits<inner_iterator>::pointer;
+        using reference         = typename std::iterator_traits<inner_iterator>::reference;
 
         iterator(
-            inner_iterator    _it,
+            inner_iterator    _iterator,
             inner_iterator    _end,
-            const _Predicate* _pred,
+            const _Predicate* _predicate,
             bool              _is_end
         )
-            : m_it(_it)
-            , m_end(_end)
-            , m_pred(_pred)
-            , m_is_end(_is_end)
+            : m_it(_iterator),
+              m_end(_end),
+              m_predicate(_predicate),
+              m_is_end(_is_end)
         {
             recheck();
         }
 
-        D_NODISCARD
-        reference operator*() const
+        D_NODISCARD         reference operator*() const
         {
             return *m_it;
         }
@@ -1433,7 +1434,7 @@ public:
                 return;
             }
 
-            if (!(*m_pred)(*m_it))
+            if (!(*m_predicate)(*m_it))
             {
                 m_is_end = true;
             }
@@ -1443,7 +1444,7 @@ public:
 
         inner_iterator    m_it;
         inner_iterator    m_end;
-        const _Predicate* m_pred;
+        const _Predicate* m_predicate;
         bool              m_is_end;
     };
 
@@ -1458,12 +1459,12 @@ public:
         _VFwd&& _view,
         _PFwd&& _predicate
     )
-        : m_view(std::forward<_VFwd>(_view))
-        , m_predicate(std::forward<_PFwd>(_predicate))
+        : m_view(std::forward<_VFwd>(_view)),
+          m_predicate(std::forward<_PFwd>(_predicate))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return iterator(
             m_view.begin(),
@@ -1472,8 +1473,8 @@ public:
             false);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator(
             m_view.end(),
@@ -1500,10 +1501,8 @@ class drop_while_view
 public:
     using iterator       = typename _View::const_iterator;
     using const_iterator = iterator;
-    using value_type     = typename std::iterator_traits<
-        iterator>::value_type;
-    using reference      = typename std::iterator_traits<
-        iterator>::reference;
+    using value_type     = typename std::iterator_traits<iterator>::value_type;
+    using reference      = typename std::iterator_traits<iterator>::reference;
 
     template<typename _VFwd,
              typename _PFwd>
@@ -1512,12 +1511,12 @@ public:
         _VFwd&& _view,
         _PFwd&& _predicate
     )
-        : m_view(std::forward<_VFwd>(_view))
-        , m_predicate(std::forward<_PFwd>(_predicate))
+        : m_view(std::forward<_VFwd>(_view)),
+          m_predicate(std::forward<_PFwd>(_predicate))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         iterator it = m_view.begin();
         iterator e  = m_view.end();
@@ -1530,8 +1529,8 @@ public:
         return it;
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return m_view.end();
     }
@@ -1567,15 +1566,14 @@ public:
 
         D_CONSTEXPR
         iterator(
-            inner_iterator _it,
+            inner_iterator _iterator,
             std::size_t    _index
         )
-            : m_it(_it)
+            : m_it(_iterator)
             , m_index(_index)
         {}
 
-        D_NODISCARD
-        value_type operator*() const
+        D_NODISCARD         value_type operator*() const
         {
             return value_type(m_index, *m_it);
         }
@@ -1628,14 +1626,14 @@ public:
         : m_view(std::forward<_VFwd>(_view))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return iterator(m_view.begin(), 0);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator(m_view.end(), 0);
     }
@@ -1654,12 +1652,10 @@ template<typename _V1,
 class zip_view : public view_base<zip_view<_V1, _V2>>
 {
 public:
-    using inner_iterator_1  = typename _V1::const_iterator;
-    using inner_iterator_2  = typename _V2::const_iterator;
-    using inner_value_1     = typename std::iterator_traits<
-        inner_iterator_1>::value_type;
-    using inner_value_2     = typename std::iterator_traits<
-        inner_iterator_2>::value_type;
+    using inner_iterator_1 = typename _V1::const_iterator;
+    using inner_iterator_2 = typename _V2::const_iterator;
+    using inner_value_1    = typename std::iterator_traits<inner_iterator_1>::value_type;
+    using inner_value_2    = typename std::iterator_traits<inner_iterator_2>::value_type;
 
     class iterator
     {
@@ -1672,14 +1668,14 @@ public:
 
         D_CONSTEXPR
         iterator(
-            inner_iterator_1 _it1,
+            inner_iterator_1 _iterator1,
             inner_iterator_1 _end1,
-            inner_iterator_2 _it2,
+            inner_iterator_2 _iterator2,
             inner_iterator_2 _end2
         )
-            : m_it1(_it1),
+            : m_it1(_iterator1),
               m_end1(_end1),
-              m_it2(_it2),
+              m_it2(_iterator2),
               m_end2(_end2)
         {}
 
@@ -1710,8 +1706,8 @@ public:
         // equality compares true once *either* side is at end.
         // This lets a single end iterator stand in for both possible
         // exhaustion conditions.
-        D_CONSTEXPR
-        bool operator==(
+        D_CONSTEXPR bool
+        operator==(
             const iterator& _other
         ) const
         {
@@ -1720,8 +1716,8 @@ public:
                        (_other.m_it2 == _other.m_end2) ) );
         }
 
-        D_CONSTEXPR
-        bool operator!=(
+        D_CONSTEXPR bool
+        operator!=(
             const iterator& _other
         ) const
         {
@@ -1746,20 +1742,20 @@ public:
         _V1Fwd&& _v1,
         _V2Fwd&& _v2
     )
-        : m_v1(std::forward<_V1Fwd>(_v1))
-        , m_v2(std::forward<_V2Fwd>(_v2))
+        : m_v1(std::forward<_V1Fwd>(_v1)),
+          m_v2(std::forward<_V2Fwd>(_v2))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator
+    begin() const
     {
         return iterator(
             m_v1.begin(), m_v1.end(),
             m_v2.begin(), m_v2.end());
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator(
             m_v1.end(), m_v1.end(),
@@ -1797,18 +1793,18 @@ public:
 
         D_CONSTEXPR
         iterator(
-            inner_iterator_1 _it1,
+            inner_iterator_1 _iterator1,
             inner_iterator_1 _end1,
-            inner_iterator_2 _it2,
+            inner_iterator_2 _iterator2,
             inner_iterator_2 _end2,
             bool             _in_second
         )
-            : m_it1(_it1),
+            : m_it1(_iterator1),
               m_end1(_end1),
-              m_it2(_it2),
+              m_it2(_iterator2),
               m_end2(_end2),
               m_in_second( (_in_second) || 
-                           (_it1 == _end1))
+                           (_iterator1 == _end1))
         {}
 
         D_NODISCARD value_type
@@ -1850,8 +1846,8 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR
-        bool operator==(
+        D_CONSTEXPR bool
+        operator==(
             const iterator& _other
         ) const
         {
@@ -1907,8 +1903,7 @@ public:
           m_v2(std::forward<_V2Fwd>(_v2))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         return iterator(
             m_v1.begin(), m_v1.end(),
@@ -1916,8 +1911,7 @@ public:
             false);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         return iterator(
             m_v1.end(), m_v1.end(),
@@ -1929,7 +1923,6 @@ private:
     _V1 m_v1;
     _V2 m_v2;
 };
-
 
 // reverse_view
 //   class: lazy view that yields the elements of an inner view in
@@ -1956,17 +1949,16 @@ public:
 
         D_CONSTEXPR
         iterator(
-            inner_iterator _it,
+            inner_iterator _iterator,
             inner_iterator _begin,
             bool           _is_end
         )
-            : m_it(_it),
+            : m_it(_iterator),
              m_begin(_begin),
              m_is_end(_is_end)
         {}
 
-        D_NODISCARD
-        reference operator*() const
+        D_NODISCARD         reference operator*() const
         {
             inner_iterator prev = m_it;
             --prev;
@@ -2028,15 +2020,15 @@ public:
         : m_view(std::forward<_VFwd>(_view))
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD iterator 
+    begin() const
     {
         return iterator(m_view.end(), m_view.begin(),
                         m_view.begin() == m_view.end());
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD iterator 
+    end() const
     {
         return iterator(m_view.begin(), m_view.begin(), true);
     }
@@ -2068,11 +2060,11 @@ public:
         using reference         = value_type;
 
         iterator(
-            inner_iterator _it,
+            inner_iterator _iterator,
             inner_iterator _end,
             std::size_t    _chunk_size
         )
-            : m_it(_it)
+            : m_it(_iterator)
             , m_end(_end)
             , m_chunk_size(_chunk_size < 1 ? 1 : _chunk_size)
             , m_current()
@@ -2080,8 +2072,7 @@ public:
             load();
         }
 
-        D_NODISCARD
-        const value_type& operator*() const
+        D_NODISCARD         const value_type& operator*() const
         {
             return m_current;
         }
@@ -2110,8 +2101,8 @@ public:
                      (m_it == _other.m_it) );
         }
 
-        D_CONSTEXPR
-        bool operator!=(
+        D_CONSTEXPR bool 
+        operator!=(
             const iterator& _other
         ) const
         {
@@ -2158,14 +2149,12 @@ public:
         , m_chunk_size(_chunk_size)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         return iterator(m_view.begin(), m_view.end(), m_chunk_size);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         return iterator(m_view.end(), m_view.end(), m_chunk_size);
     }
@@ -2199,17 +2188,16 @@ public:
 
         D_CONSTEXPR
         iterator(
-            inner_iterator _it,
+            inner_iterator _iterator,
             inner_iterator _end,
             std::size_t    _stride
         )
-            : m_it(_it)
+            : m_it(_iterator)
             , m_end(_end)
             , m_stride(_stride < 1 ? 1 : _stride)
         {}
 
-        D_NODISCARD
-        reference operator*() const
+        D_NODISCARD         reference operator*() const
         {
             return *m_it;
         }
@@ -2270,14 +2258,12 @@ public:
         , m_stride(_stride)
     {}
 
-    D_NODISCARD
-    iterator begin() const
+    D_NODISCARD     iterator begin() const
     {
         return iterator(m_view.begin(), m_view.end(), m_stride);
     }
 
-    D_NODISCARD
-    iterator end() const
+    D_NODISCARD     iterator end() const
     {
         return iterator(m_view.end(), m_view.end(), m_stride);
     }
@@ -2621,9 +2607,9 @@ NS_INTERNAL
     struct is_adapter_helper
     {
     private:
-        template<typename _Type>
+        template<typename _U>
         static auto test(int) -> decltype(
-            std::declval<const _Type&>().apply(
+            std::declval<const _U&>().apply(
                 std::declval<single_view<int>>()),
             std::true_type{});
 
@@ -2638,11 +2624,36 @@ NS_END  // internal
 
 
 // is_adapter
-//   trait: true if _Type has an apply(view) method (i.e. is an
-// adapter factory's output). Constrains operator|.
+//   trait: true if _Type has an apply(view) method whose result is
+// itself a view. The apply-returns-a-view requirement is what
+// distinguishes an adapter from a terminal (which also has apply()
+// but returns a non-view); making them mutually exclusive is required
+// so that `view | to_vector()` is not ambiguous between the adapter
+// and terminal operator| overloads. (fixed 2026-05-30)
+NS_INTERNAL
+    template<typename _Type>
+    struct apply_result_is_view_helper
+    {
+    private:
+        template<typename _U>
+        static auto test(int) -> typename std::enable_if<
+            is_view<decltype(
+                std::declval<const _U&>().apply(
+                    std::declval<single_view<int>>()))>::value,
+            std::true_type>::type;
+
+        template<typename>
+        static std::false_type test(...);
+
+    public:
+        using type = decltype(test<_Type>(0));
+    };
+NS_END  // internal
+
 template<typename _Type>
 struct is_adapter
-    : internal::is_adapter_helper<typename std::decay<_Type>::type>::type
+    : internal::apply_result_is_view_helper<
+          typename std::decay<_Type>::type>::type
 {};
 
 
@@ -3214,9 +3225,9 @@ NS_INTERNAL
     struct is_terminal_helper
     {
     private:
-        template<typename _Type>
+        template<typename _U>
         static auto test(int) -> decltype(
-            std::declval<const _Type&>().apply(
+            std::declval<const _U&>().apply(
                 std::declval<single_view<int>>()),
             std::true_type{});
 
@@ -3231,16 +3242,59 @@ NS_END  // internal
 
 
 // is_terminal
-//   trait: detects terminal operator types (have an apply(view)
-// method). Because adapters also have apply(), we additionally
-// require the terminal to be in the terminal namespace; in
-// practice we let the operator| precedence select adapter vs
-// terminal at call site (terminals are invoked via the same
-// pipeline syntax).
+//   trait: detects terminal operator types. A terminal has an
+// apply(view) whose result is a non-view value (e.g. to_vector ->
+// std::vector). Defined as the exact complement of is_adapter so the
+// adapter and terminal operator| overloads never both match.
+// (fixed 2026-05-30)
 template<typename _Type>
 struct is_terminal
-    : internal::is_terminal_helper<typename std::decay<_Type>::type>::type
+    : std::integral_constant<bool,
+          internal::is_terminal_helper<
+              typename std::decay<_Type>::type>::type::value
+          && !is_adapter<_Type>::value>
 {};
+
+
+// operator| (view | terminal)  and  (container | terminal)
+//   drives a view (or a container, lifted to a ref_view) into a
+// terminal operator such as to_vector()/to<C>()/count(). These were
+// documented -- `(some_view) | to_vector()` -- but never implemented;
+// only the adapter pipe overloads existed, so terminals could not be
+// piped at all. Constrained on is_terminal, which is now the exact
+// complement of is_adapter, so there is no overlap with the adapter
+// overloads. (added 2026-05-30)
+template<typename _View,
+         typename _Terminal,
+         typename std::enable_if<
+             is_view<_View>::value && is_terminal<_Terminal>::value,
+             int>::type = 0>
+D_CONSTEXPR
+auto operator|(
+    _View&&     _view,
+    _Terminal&& _terminal
+) -> decltype(_terminal.apply(std::forward<_View>(_view)))
+{
+    return _terminal.apply(std::forward<_View>(_view));
+}
+
+template<typename _Container,
+         typename _Terminal,
+         typename std::enable_if<
+             ( has_begin_end<_Container>::value &&
+               !is_view<_Container>::value      &&
+               is_terminal<_Terminal>::value ),
+             int>::type = 0>
+D_CONSTEXPR
+auto operator|(
+    const _Container& _container,
+    _Terminal&&       _terminal
+) -> decltype(_terminal.apply(
+       ref_view<typename std::decay<_Container>::type>(_container)))
+{
+    return _terminal.apply(
+        ref_view<typename std::decay<_Container>::type>(_container));
+}
 
 
 // to_vector
@@ -3367,6 +3421,116 @@ none_of(
         typename std::decay<_Predicate>::type>(
             std::forward<_Predicate>(_predicate));
 }
+
+///////////////////////////////////////////////////////////////////////////////
+///             VIII. VIEW SFINAE STRUCTURAL TRAITS & CONCEPTS              ///
+///////////////////////////////////////////////////////////////////////////////
+//   Extensions to the detection vocabulary introduced piecewise above
+// (is_view / has_begin_end in section I, is_adapter / is_terminal alongside
+// the factories).  Gathered here, after every view, adapter, and terminal is
+// defined, so the value-type extractor and the C++20 concepts can see the
+// whole protocol.  Each predicate reduces to a `static constexpr bool value`;
+// view_value_type yields a `::type`.  The concepts close the section.
+
+NS_INTERNAL
+    // view_value_type_helper
+    //   helper: primary has no members (soft failure for non-views); the
+    // void_t-guarded specialization exposes _View::value_type when present.
+    template<typename _AlwaysVoid,
+             typename _View>
+    struct view_value_type_helper
+    {
+    };
+
+    template<typename _View>
+    struct view_value_type_helper<
+        void_t<typename _View::value_type>,
+        _View>
+    {
+        using type = typename _View::value_type;
+    };
+
+NS_END  // internal
+
+
+// view_value_type
+//   trait: the element type a view yields, i.e. _View::value_type.
+// SFINAE-friendly: has a `::type` only when _View exposes value_type
+// (every view in this header does; non-views resolve cleanly to no
+// member rather than a hard error).
+template<typename _View>
+struct view_value_type
+{
+    using type = typename internal::view_value_type_helper<
+        void, typename std::decay<_View>::type>::type;
+};
+
+// view_value_type_t
+//   alias: shorthand for view_value_type<_View>::type.
+template<typename _View>
+using view_value_type_t = typename view_value_type<_View>::type;
+
+
+// is_pipeable_to_view
+//   trait: true if _Type may appear on the left of operator| as a
+// pipeline source -- either it is already a view, or it is a
+// container-like type (has begin/end) that the pipeline implicitly
+// lifts to a ref_view. This is exactly the disjunction the operator|
+// overloads accept on the left-hand side.
+template<typename _Type>
+struct is_pipeable_to_view
+    : std::integral_constant<bool,
+          is_view<_Type>::value || has_begin_end<_Type>::value>
+{
+};
+
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+// variable-template shorthands. is_view_v is defined with is_view in
+// section I; the remaining detectors gain their _v forms here.
+template<typename _Type>
+static constexpr bool has_begin_end_v = has_begin_end<_Type>::value;
+
+template<typename _Type>
+static constexpr bool is_adapter_v = is_adapter<_Type>::value;
+
+template<typename _Type>
+static constexpr bool is_terminal_v = is_terminal<_Type>::value;
+
+template<typename _Type>
+static constexpr bool is_pipeable_to_view_v =
+    is_pipeable_to_view<_Type>::value;
+#endif
+
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// view_type
+//   concept: satisfied by any view (a type deriving from view_base).
+// The C++20 parallel of is_view. Named view_type to avoid colliding
+// with the views factory namespace and to mirror maybe_type /
+// result_type in the sibling modules.
+template<typename _Type>
+concept view_type = is_view<_Type>::value;
+
+// view_adapter
+//   concept: satisfied by a pipeline adapter -- a type whose apply(view)
+// yields another view. The C++20 parallel of is_adapter.
+template<typename _Type>
+concept view_adapter = is_adapter<_Type>::value;
+
+// view_terminal
+//   concept: satisfied by a terminal operator -- a type whose
+// apply(view) yields a non-view. The C++20 parallel of is_terminal.
+template<typename _Type>
+concept view_terminal = is_terminal<_Type>::value;
+
+// pipeable_to_view
+//   concept: satisfied by any valid pipeline source (a view or a
+// container-like type). The C++20 parallel of is_pipeable_to_view.
+template<typename _Type>
+concept pipeable_to_view = is_pipeable_to_view<_Type>::value;
+#endif
+
 
 NS_END  // djinterp
 

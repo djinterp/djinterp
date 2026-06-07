@@ -76,6 +76,7 @@ IV.   PIPELINE OPERATORS
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
+#include "../meta/type_traits.hpp"
 
 
 NS_DJINTERP
@@ -416,6 +417,15 @@ struct is_monad_combinator
 ///////////////////////////////////////////////////////////////////////////////
 ///             II.   GENERIC MONADIC OPERATIONS                            ///
 ///////////////////////////////////////////////////////////////////////////////
+//   DUAL DOMAIN.  The operations below are D_CONSTEXPR and delegate to
+// monad_traits<M>::{unit, bind}.  When a concrete monad marks those hooks
+// constexpr (maybe and result mark theirs D_CONSTEXPR20), these operations
+// fold at compile time under C++20 over a monad whose value is a carrier leaf
+// (val_t / type_t) - so the same monad_bind / monad_map expresses both a
+// value-domain runtime computation and a type- or value-level compile-time
+// one, with no separate type-level reimplementation.  On the C++17 floor the
+// monadic types maybe / result are not literal types, so the protocol runs at
+// runtime there.
 
 // monad_unit
 //   function: lifts a plain value into a monadic context. The
@@ -445,10 +455,8 @@ auto monad_unit
 //   The specific behavior is delegated to monad_traits<M>::bind.
 template<typename _Monad,
          typename _Function>
-D_NODISCARD
-D_CONSTEXPR
-auto monad_bind
-(
+D_NODISCARD D_CONSTEXPR auto 
+monad_bind(
     _Monad&&    _monad,
     _Function&& _function
 )

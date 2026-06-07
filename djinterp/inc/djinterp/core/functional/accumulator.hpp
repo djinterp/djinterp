@@ -88,6 +88,22 @@ IV.   TYPE ERASURE
 NS_DJINTERP
 
 
+//   DUAL DOMAIN.  An accumulator is a (state, step, finalize) fold over a value
+// stream.  Because it is parameterized on the step and finalize functor types
+// rather than erasing them through std::function (the 2026-05-27 refactor noted
+// above), an accumulator built from constexpr-capable functors runs in a
+// constant expression as readily as at run time - one fold description, two
+// execution domains.  step / run / finalize are D_CONSTEXPR14, so the
+// compile-time fold is available from C++14 over a constexpr-iterable input
+// (a raw array or iterator range, e.g. run(data, count)); the container
+// overload additionally needs C++17, where a std::array's iterators become
+// constexpr.
+//   Scope: like a transducer, an accumulator folds a HOMOGENEOUS value stream
+// (one state type) in either domain; the heterogeneous, type-or-value
+// compile-time fold is value_list / reduce_ct (see reduce.hpp).  combine(...)
+// drives several accumulators in lock-step over one pass and is constexpr on
+// the same terms.
+
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.    ACCUMULATOR PRIMITIVE                                 ///
 ///////////////////////////////////////////////////////////////////////////////

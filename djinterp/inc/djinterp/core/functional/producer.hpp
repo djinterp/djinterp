@@ -97,6 +97,8 @@ V.    PRODUCER TRAITS & CONCEPTS
 // djinterp
 #include "../djinterp.hpp"
 #include "./function_traits.hpp"
+#include "../meta/carrier.hpp"      // val_t / type_t leaves for the compile-time unfold
+#include "../meta/value_list.hpp"   // materialization target of the compile-time unfold
 
 
 NS_DJINTERP
@@ -1464,6 +1466,106 @@ struct producer_value_type
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+///////////////////////////////////////////////////////////////////////////////
+///             X.    COMPILE-TIME UNFOLD DRIVER                            ///
+///////////////////////////////////////////////////////////////////////////////
+//   The producers above are the RUNTIME source driver: a stateful pull source
+// whose unfold step has the shape  State -> producer_step<pair<Value, State>>
+// (see unfold_helper), materialized eagerly by producer_base::collect().  This
+// section adds the COMPILE-TIME driver: it runs a pure unfold step over carrier
+// states (val_t / type_t) to a fixed point during translation, materializing
+// the produced value carriers into a value_list - the same source description
+// drives both a runtime computation and a constant-evaluated one.
+//
+//   The compile-time step result is a DISTINCT type per case (some_t vs none_t)
+// rather than producer_step<...>: producer_step records exhaustion in a runtime
+// bool field, which a type-level driver cannot branch on, whereas some_t /
+// none_t put the decision in the type so template recursion can dispatch on it.
+// A step is an ordinary constexpr callable that returns one or the other, e.g.
+//
+//   template<auto _Limit>
+//   struct iota_step
+//   {
+//       template<auto _I>
+//       D_CONSTEXPR auto operator()(val_t<_I>) const
+//       {
+//           if constexpr (_I < _Limit) return some_t<val_t<_I>, val_t<_I + 1>>{};
+//           else                       return none_t{};
+//       }
+//   };
+//   using first_five = unfold_ct_t<iota_step<5>, val_t<0>>;  // value_list<0,1,2,3,4>
+
+// none_t
+//   compile-time unfold step result: the source is exhausted.
+struct none_t
+{};
+
+// some_t
+//   compile-time unfold step result: a value carrier _Value together with the
+// next state carrier _Next.  Distinct from none_t at the type level so the
+// driver can branch by type.
+template<typename _Value,
+         typename _Next>
+struct some_t
+{
+    using value = _Value;
+    using next  = _Next;
+};
+
+NS_INTERNAL
+
+    // unfold_ct_helper
+    //   metafunction: type-level recursion that drives a constexpr unfold _Step
+    // from a state to exhaustion, growing the accumulated value_list _Acc.
+    // Dispatched on the step's result type _StepResult (none_t or some_t<V,N>).
+    template<typename _Step,
+             typename _Acc,
+             typename _StepResult>
+    struct unfold_ct_helper;
+
+    // exhausted: the accumulated list is the result.
+    template<typename _Step,
+             typename _Acc>
+    struct unfold_ct_helper<_Step, _Acc, none_t>
+    {
+        using type = _Acc;
+    };
+
+    // yielded value carrier _Value with next state carrier _Next: append the
+    // value to the list and recurse on the next state.
+    template<typename _Step,
+             typename _Acc,
+             typename _Value,
+             typename _Next>
+    struct unfold_ct_helper<_Step, _Acc, some_t<_Value, _Next>>
+    {
+        using grown = decltype(
+            append(std::declval<_Acc>(), std::declval<_Value>()));
+
+        using type = typename unfold_ct_helper<
+            _Step,
+            grown,
+            decltype(std::declval<const _Step&>()(std::declval<_Next>()))
+        >::type;
+    };
+
+NS_END
+
+// unfold_ct_t
+//   type: the value_list produced by running constexpr unfold _Step from the
+// initial state carrier _Init to exhaustion at compile time.
+template<typename _Step,
+         typename _Init>
+using unfold_ct_t = typename internal::unfold_ct_helper<
+    _Step,
+    value_list<>,
+    decltype(std::declval<const _Step&>()(std::declval<_Init>()))
+>::type;
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
 NS_END  // djinterp
