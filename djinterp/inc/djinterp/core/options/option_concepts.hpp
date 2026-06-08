@@ -1,29 +1,37 @@
 /******************************************************************************
 * djinterp [options]                                        option_concepts.hpp
 *
-*   C++20 concept analogs of the option<> trait machinery in
+*   C++20 concept counterparts for the option<> trait machinery in
 * option_traits.hpp.
 *
-*   Concepts here are designed as a PARALLEL FACILITY to the traits, not
-* a layer on top.  Callers may freely use either:
-*     - requires clauses + concepts -> option_concepts.hpp
-*     - SFINAE + traits             -> option_traits.hpp
-*   Both speak about the same shapes.  The concept names mirror the
-* corresponding traits with a `_c` suffix for type-classifier concepts
-* and bare `has_*` for compositional ones.
+*   Naming: Capital-letter concepts (Option, UnaryOption, ArgsOption)
+* per project convention.  Concept names parallel the corresponding
+* traits without a suffix; the concept's shape mirrors the trait's
+* condition, in `requires` form.
+*
+*   The framework's concepts do NOT depend on the args carried by an
+* option<> - args are opaque to the subframework.  Custom option
+* types satisfy Option iff they are some `option<...>` instantiation,
+* full stop.  Users defining their own option-like types (e.g. a
+* hypothetical `valued_option`) must EITHER specialize is_option for
+* their type or provide a parallel concept under their own name.
+*
+*   Pre-2026.05.27 this header also exposed value-tag concepts
+* (value_tag_c, value_like_c, option_has_value_c, option_has_arg_c).
+* Those have been retired alongside the option_tag tag library.
 *
 *
-* path:      /inc/djinterp/core/options/option_concepts.hpp
+* path:      /inc/djinterp/core/option/option_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
+*                                                          revised: 2026.05.27
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    option detection concepts            (option_c, unary_option_c, ...)
-II.   value-tag concepts                   (value_tag_c, option_has_value_c)
-III.  arg-predicate composite concepts     (option_has_arg_c)
+I.    Option                      (option<> detection)
+II.   UnaryOption / ArgsOption    (composite: option with / without args)
 */
 
 #ifndef DJINTERP_OPTION_CONCEPTS_
@@ -51,88 +59,50 @@ NS_DJINTERP
 
 
 // ===========================================================================
-// I.   option detection concepts
+// I.   Option
 // ===========================================================================
 
-// option_c
-//   concept: satisfied iff _Type is some option<...> specialization.
-// Parallels is_option_v<_Type>.
+// Option
+//   concept: satisfied iff _Type is some option<...>
+// specialization.  Parallels is_option_v<_Type>.
 template<typename _Type>
-concept option_c = is_option_v<_Type>;
+concept Option = is_option_v<_Type>;
 
-// unary_option_c
-//   concept: satisfied iff _Type is a unary option (option<K> with no
-// args).  Composite over option_c and `::has_args == false`.
+
+// ===========================================================================
+// II.  UnaryOption / ArgsOption
+// ===========================================================================
+
+// UnaryOption
+//   concept: satisfied iff _Type is a unary option - option<K>
+// with no args.  Composite over Option + ::has_args == false.
+//
+//   Useful only as a SHAPE classifier (e.g. "this option carries
+// no extra storage").  Carries no semantic about the option's
+// role.
 template<typename _Type>
-concept unary_option_c =
-    option_c<_Type> &&
+concept UnaryOption =
+    Option<_Type> &&
     requires
     {
         requires (_Type::has_args == false);
     };
 
-// args_option_c
-//   concept: satisfied iff _Type is an option with at least one arg.
-// Complementary to unary_option_c.
+
+// ArgsOption
+//   concept: satisfied iff _Type is an option with at least one
+// arg.  Complementary to UnaryOption.
+//
+//   What the args MEAN is outside the framework's scope - this
+// concept reports only that there ARE args, not anything about
+// their shape.
 template<typename _Type>
-concept args_option_c =
-    option_c<_Type> &&
+concept ArgsOption =
+    Option<_Type> &&
     requires
     {
         requires (_Type::has_args == true);
         typename _Type::args_type;
-    };
-
-
-// ===========================================================================
-// II.  value-tag concepts
-// ===========================================================================
-
-// value_tag_c
-//   concept: satisfied iff _Type is an instantiation of the built-in
-// value<> tag.  Parallels is_value_v.
-template<typename _Type>
-concept value_tag_c = is_value_v<_Type>;
-
-// value_like_c
-//   concept: structural shape match for "any tag that carries a
-// value" - exposes ::value_type and ::the_value.  Useful when you
-// want polymorphism over value-carrying tags (actual<>, default_<>,
-// value<>, custom user tags) without nominal coupling to value<>.
-template<typename _Type>
-concept value_like_c = requires
-{
-    typename _Type::value_type;
-    { _Type::the_value } -> std::convertible_to<typename _Type::value_type>;
-};
-
-// option_has_value_c
-//   concept: satisfied iff _Opt is an option that carries a value<>
-// tag among its args.  Parallels option_has_value_v.
-template<typename _Opt>
-concept option_has_value_c =
-    option_c<_Opt> &&
-    requires
-    {
-        requires option_has_value_v<_Opt>;
-    };
-
-
-// ===========================================================================
-// III. arg-predicate composite concepts
-// ===========================================================================
-
-// option_has_arg_c
-//   concept: satisfied iff _Opt has some arg matching _Predicate.
-// Parameterized over the unary predicate template, parallel to
-// option_has_arg_v.
-template<typename                 _Opt,
-         template<typename> class _Predicate>
-concept option_has_arg_c =
-    option_c<_Opt> &&
-    requires
-    {
-        requires option_has_arg_v<_Opt, _Predicate>;
     };
 
 

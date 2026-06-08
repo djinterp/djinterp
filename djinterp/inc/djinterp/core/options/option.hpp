@@ -16,11 +16,9 @@
 *     option_traits.hpp     - find_arg, option_find_arg, value<>,
 *                             option_has_value, option_from_tuple, ...
 *     option_concepts.hpp   - concept analogs of the above
-*     option_tags.hpp       - shipped built-in tags: actual, default_,
-*                             verifier, description, opposes, ...
 *
 *
-* path:      /inc/djinterp/core/options/option.hpp
+* path:      /inc/djinterp/core/option/option.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.24
 ******************************************************************************/
@@ -96,8 +94,8 @@ struct option<_Key>
 // specialized than the primary template.  <_Key, _Args...> would be
 // identical to the primary's signature and rejected by the compiler
 // as a non-specialization.
-template<auto       _Key,
-         typename   _First,
+template<auto        _Key,
+         typename    _First,
          typename... _Rest>
 struct option<_Key, _First, _Rest...>
 {
