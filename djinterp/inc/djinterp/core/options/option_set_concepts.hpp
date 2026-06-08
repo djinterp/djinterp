@@ -17,7 +17,7 @@
 *         requires option_set_contains_c<MySet, my_enum::foo>
 *
 *
-* path:      /inc/djinterp/core/options/option_set_concepts.hpp
+* path:      /inc/djinterp/core/option/option_set_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
 ******************************************************************************/

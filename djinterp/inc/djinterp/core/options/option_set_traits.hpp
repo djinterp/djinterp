@@ -18,7 +18,7 @@
 *   Concept analogs in option_set_concepts.hpp.
 *
 *
-* path:      /inc/djinterp/core/options/option_set_traits.hpp
+* path:      /inc/djinterp/core/option/option_set_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
 ******************************************************************************/
@@ -53,8 +53,8 @@ NS_DJINTERP
 // ===========================================================================
 
 // is_option_set
-//   trait: true iff _T is some option_set<...> specialization.
-template<typename _T>
+//   trait: true iff _Type is some option_set<...> specialization.
+template<typename _Type>
 struct is_option_set : std::false_type
 {};
 
@@ -62,8 +62,8 @@ template<typename... _Options>
 struct is_option_set<option_set<_Options...>> : std::true_type
 {};
 
-template<typename _T>
-inline constexpr bool is_option_set_v = is_option_set<_T>::value;
+template<typename _Type>
+inline constexpr bool is_option_set_v = is_option_set<clean_t<_Type>>::value;
 
 
 // ===========================================================================

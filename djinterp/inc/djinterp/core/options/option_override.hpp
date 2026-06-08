@@ -38,7 +38,7 @@
 *     arg_union_delta       = with_on_both<keep_delta, merge_args_union>
 *
 *
-* path:      /inc/djinterp/core/options/option_override.hpp
+* path:      /inc/djinterp/core/option/option_override.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
 ******************************************************************************/
@@ -63,12 +63,11 @@ V.    ready-made policies (lifted + named)
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
-#include "../paradigm/override.hpp"
+#include "../meta/override.hpp"
 #include "./option.hpp"
 #include "./option_traits.hpp"
 #include "./option_set.hpp"
 #include "./option_set_traits.hpp"   // queries (contains, find) for the engine
-#include "./option_tags.hpp"
 
 
 NS_DJINTERP
@@ -318,15 +317,15 @@ NS_INTERNAL
 
 
     // append_if_kept
-    //   helper: appends _T to a std::tuple<...> unless _T is the
+    //   helper: appends _Type to a std::tuple<...> unless _Type is the
     // dropped sentinel.
     template<typename _Tup,
-             typename _T>
+             typename _Type>
     struct append_if_kept
     {
         using type = decltype(
             std::tuple_cat(std::declval<_Tup>(),
-                           std::declval<std::tuple<_T>>()));
+                           std::declval<std::tuple<_Type>>()));
     };
 
     template<typename _Tup>
@@ -470,7 +469,7 @@ private:
     using a_flat = typename option_set<_AOpts...>::flat_options_t;
     using b_flat = typename option_set<_BOpts...>::flat_options_t;
 
-    template<typename _T>
+    template<typename _Type>
     struct unpack_a;
 
     template<typename... _O>
@@ -482,7 +481,7 @@ private:
 
     using after_a = typename unpack_a<a_flat>::type;
 
-    template<typename _T>
+    template<typename _Type>
     struct unpack_b;
 
     template<typename... _O>

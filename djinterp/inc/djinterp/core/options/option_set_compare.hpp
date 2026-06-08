@@ -25,7 +25,7 @@
 * correctly.
 *
 *
-* path:      /inc/djinterp/core/options/option_set_compare.hpp
+* path:      /inc/djinterp/core/option/option_set_compare.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.25
 ******************************************************************************/
@@ -85,7 +85,7 @@ struct option_set_keys<option_set<_Options...>>
 private:
     using flat = typename option_set<_Options...>::flat_options_t;
 
-    template<typename _T>
+    template<typename _Type>
     struct apply;
 
     template<typename... _Opts>
@@ -263,7 +263,7 @@ struct extract_actual
 private:
     using tag_t = option_actual_tag_t<_Opt>;
 
-    template<typename _T>
+    template<typename _Type>
     struct apply
     {
         using type = value_absent;
@@ -291,7 +291,7 @@ struct extract_default
 private:
     using tag_t = option_default_tag_t<_Opt>;
 
-    template<typename _T>
+    template<typename _Type>
     struct apply
     {
         using type = value_absent;
