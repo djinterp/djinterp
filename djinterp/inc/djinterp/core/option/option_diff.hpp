@@ -14,7 +14,7 @@
 *
 *     PART A - COMPILE-TIME (traits).  Diffs computed entirely at the type
 *       level, yielding key_list<...> results and bool/size_t values.  Built
-*       on the public query traits (option_set_traits.hpp) and the congruity
+*       on the public query traits (now in option_set.hpp) and the congruity
 *       / extractor machinery (option_set_compare.hpp).  "Merge" is the
 *       policy-driven option_set_override engine (option_override.hpp);
 *       diff_merge_t lets a runtime-style merge_mode name a policy.
@@ -64,8 +64,7 @@ PART B - RUNTIME (functions over the option_set_map surface)
 // djinterp
 #include "../djinterp.hpp"
 #include "./option.hpp"
-#include "./option_set.hpp"
-#include "./option_set_traits.hpp"     // contains, find, is_option_set
+#include "./option_set.hpp"            // option_set<> + queries (contains, find, is_option_set)
 #include "./option_set_compare.hpp"    // key_list, keys, congruity, extractors
 #include "./option_override.hpp"       // option_set_override_t + policies
 

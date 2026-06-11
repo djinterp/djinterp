@@ -20,7 +20,7 @@
 *        of the framework when the built-in option<> is the type.
 *
 *     3. Custom option types - any user type satisfying the option
-*        contract from option_concepts.hpp - may follow the same
+*        contract from option.hpp - may follow the same
 *        naming convention (`make_my_option_t` / `make_my_option()`)
 *        without any per-type framework scaffolding.  No central
 *        customization point is required, because no central caller
