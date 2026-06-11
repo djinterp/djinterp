@@ -50,10 +50,8 @@ VI.   option_set_value_eq            (parameterized value equality)
 #include <type_traits>
 // djinterp
 #include "../djinterp.hpp"
-#include "./option.hpp"
-#include "./option_traits.hpp"
-#include "./option_set.hpp"
-#include "./option_set_traits.hpp"   // queries (contains, find, key_type)
+#include "./option.hpp"             // option<>, is_option_v
+#include "./option_set.hpp"         // option_set<> + queries (contains, find, key_type)
 #include "./option_tags.hpp"
 
 

@@ -26,14 +26,18 @@
 *                            static_asserts.
 *     - option_set         : the user-facing type.
 *
-*   Queries OVER an instantiated set (key_type, contains, find) live
-* in option_set_traits.hpp.  Concept analogs live in
-* option_set_concepts.hpp.
+*   Queries OVER an instantiated set (is_option_set, key_type, contains,
+* find) and their C++20 concept analogs now live in this header too
+* (folded in from the former option_set_traits.hpp / option_set_concepts.hpp).
+* The concepts - and the one constrained query that needs a requires-clause
+* (option_set_key_type) - compile only where the toolchain supports
+* concepts; the rest of the header remains usable down to its prior
+* standard level.
 *
-*   This header depends on option_traits.hpp (for is_option_v) and
-* util/lookup.hpp (for value_pack_unique).  It does NOT depend on
-* option_factory.hpp - it speaks only in terms of already-constructed
-* option<> instantiations.
+*   This header depends on option.hpp (for option<> and is_option_v) and
+* util/lookup (for value_pack_unique / contains_key / find_by_key).  It
+* does NOT depend on option_factory.hpp - it speaks only in terms of
+* already-constructed option<> instantiations.
 *
 *
 * path:      /inc/djinterp/core/option/option_set.hpp
@@ -47,7 +51,10 @@ TABLE OF CONTENTS
 I.    expand_option              (structural per-entry expansion)
 II.   flatten helpers            (tuple_cat at the type level)
 III.  set checks                 (all-options + uniformity + uniqueness)
-IV.   option_set
+IV.   option_set                 (type-level pack form)
+V.    runtime map + dispatch     (option_set<Key,Value> + public option_set)
+VI.   queries                    (is_option_set, key_type, contains, find)
+VII.  concepts                   (C++20 analogs)
 */
 
 #ifndef DJINTERP_OPTION_SET_
@@ -62,8 +69,8 @@ IV.   option_set
 // djinterp
 #include "../djinterp.hpp"
 #include "../util/lookup/lookup.hpp"    // value_pack_unique
-#include "./option.hpp"
-#include "./option_traits.hpp"          // is_option_v
+#include "../util/lookup.hpp"           // contains_key, find_by_key
+#include "./option.hpp"                 // option<>, is_option_v
 
 
 NS_DJINTERP
@@ -188,7 +195,7 @@ NS_INTERNAL
             "per is_option_v.  The previous structural "
             "'is_keyed' contract is no longer accepted.  Custom "
             "option-like types must satisfy is_option_v - see "
-            "option_traits.hpp.  Multi-expanders must produce a "
+            "option.hpp.  Multi-expanders must produce a "
             "std::tuple of option<>s (or an empty tuple for "
             "passthrough markers).");
 
@@ -451,6 +458,198 @@ struct option_set<_A, _B>
           internal::option_set_pack<_A, _B>
       >::type
 {};
+
+
+// ===========================================================================
+// VI.  queries
+// ===========================================================================
+//
+//   Trait machinery OVER an instantiated option_set<> (folded in from the
+// former option_set_traits.hpp).  The set-CONSTRUCTION machinery above
+// (expand_option, run_set_checks) is the contract option_set enforces;
+// these are for querying an already-built set.  Comparison / equality /
+// value-extraction traits remain in option_set_compare.hpp.
+
+// is_option_set
+//   trait: true iff _Type is some option_set<...> specialization.
+template<typename _Type>
+struct is_option_set : std::false_type
+{};
+
+template<typename... _Options>
+struct is_option_set<option_set<_Options...>> : std::true_type
+{};
+
+template<typename _Type>
+inline constexpr bool is_option_set_v = is_option_set<clean_t<_Type>>::value;
+
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// option_set_key_type
+//   trait: extracts the key_type of a non-empty option_set from the head
+// of its normalized option tuple.  Uses a constrained partial
+// specialization (requires-clause), so it is available only where the
+// toolchain supports concepts; the rest of this section is unconstrained.
+template<typename _Set>
+struct option_set_key_type;
+
+template<typename... _Options>
+    requires (option_set<_Options...>::size > 0)
+struct option_set_key_type<option_set<_Options...>>
+{
+private:
+    using head_option =
+        typename option_set<_Options...>::template option_at<0>;
+public:
+    using type = typename head_option::key_type;
+};
+
+template<typename _Set>
+using option_set_key_type_t = typename option_set_key_type<_Set>::type;
+#endif  // C++20 (constrained option_set_key_type)
+
+
+// option_set_contains
+//   trait: true iff the set has an option with key _Key.  Walks the
+// flat (post-expansion) tuple.
+template<typename _Set, auto _Key>
+struct option_set_contains;
+
+template<typename... _Options, auto _Key>
+struct option_set_contains<option_set<_Options...>, _Key>
+{
+private:
+    using flat = typename option_set<_Options...>::flat_options_t;
+
+    template<typename _Tuple>
+    struct apply;
+
+    template<typename... _Opts>
+    struct apply<std::tuple<_Opts...>>
+        : std::integral_constant<bool,
+            contains_key<_Key, _Opts...>::value>
+    {};
+
+public:
+    static constexpr bool value = apply<flat>::value;
+};
+
+template<typename _Set, auto _Key>
+inline constexpr bool option_set_contains_v =
+    option_set_contains<_Set, _Key>::value;
+
+
+// option_set_find
+//   trait: yields the option with key _Key, or lookup_not_found.
+template<typename _Set, auto _Key>
+struct option_set_find;
+
+template<typename... _Options, auto _Key>
+struct option_set_find<option_set<_Options...>, _Key>
+{
+private:
+    using flat = typename option_set<_Options...>::flat_options_t;
+
+    template<typename _Tuple>
+    struct apply;
+
+    template<typename... _Opts>
+    struct apply<std::tuple<_Opts...>>
+    {
+        using type  = find_by_key_t<_Key, _Opts...>;
+        static constexpr bool        found = find_by_key<_Key, _Opts...>::found;
+        static constexpr std::size_t index = find_by_key<_Key, _Opts...>::index;
+    };
+
+public:
+    using type = typename apply<flat>::type;
+
+    static constexpr bool        found = apply<flat>::found;
+    static constexpr std::size_t index = apply<flat>::index;
+};
+
+template<typename _Set, auto _Key>
+using option_set_find_t = typename option_set_find<_Set, _Key>::type;
+
+
+// ===========================================================================
+// VII. concepts   (C++20 analogs)
+// ===========================================================================
+//
+//   Concept analogs of the query machinery above (folded in from the
+// former option_set_concepts.hpp), compiled only where the toolchain
+// provides concepts.  Pre-C++20 they are simply absent and the traits
+// remain the portable path.
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+// keyed_c
+//   concept: satisfied iff _Type exposes the keyed shape - a nested
+// ::key_type alias and a static ::key member.  This is a standalone
+// shape check: the old loose is_keyed_v contract has been retired, and
+// option_set itself now requires the stricter is_option_v.  keyed_c
+// remains useful for constraining your own helpers against the bare key
+// shape.
+template<typename _Type>
+concept keyed_c = requires
+{
+    typename _Type::key_type;
+    _Type::key;
+};
+
+
+// option_set_c
+//   concept: satisfied iff _Type is some option_set<...> specialization.
+// Parallels is_option_set_v.
+template<typename _Type>
+concept option_set_c = is_option_set_v<_Type>;
+
+
+// option_set_contains_c
+//   concept: satisfied iff _Set is an option_set that contains the key
+// _Key.  Parameterized over the NTTP key for use in requires-clauses.
+// Parallels option_set_contains_v.
+//
+// Example:
+//   template<typename _Set>
+//     requires option_set_contains_c<_Set, cli::verbose>
+//   void enable_verbosity();
+template<typename _Set, auto _Key>
+concept option_set_contains_c =
+    option_set_c<_Set> &&
+    requires
+    {
+        requires option_set_contains_v<_Set, _Key>;
+    };
+
+
+// option_set_findable_c
+//   concept: satisfied iff _Set is an option_set and the find trait
+// reports `found` for _Key.  Functionally identical to
+// option_set_contains_c, but speaks in find vocabulary - useful where a
+// downstream constraint wants a paired find_t<> alias to be meaningful.
+template<typename _Set, auto _Key>
+concept option_set_findable_c =
+    option_set_c<_Set> &&
+    requires
+    {
+        requires option_set_find<_Set, _Key>::found;
+    };
+
+
+// option_set_nonempty_c
+//   concept: satisfied iff _Set is a non-empty option_set.  Pairs
+// naturally with option_set_key_type_t (which requires non-emptiness for
+// its single-key-type extraction).
+template<typename _Set>
+concept option_set_nonempty_c =
+    option_set_c<_Set> &&
+    requires
+    {
+        requires (_Set::size > 0);
+    };
+
+#endif  // C++20 concepts available
 
 
 NS_END  // djinterp

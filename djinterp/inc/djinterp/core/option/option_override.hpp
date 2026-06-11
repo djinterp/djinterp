@@ -64,10 +64,8 @@ V.    ready-made policies (lifted + named)
 // djinterp
 #include "../djinterp.hpp"
 #include "../meta/override.hpp"
-#include "./option.hpp"
-#include "./option_traits.hpp"
-#include "./option_set.hpp"
-#include "./option_set_traits.hpp"   // queries (contains, find) for the engine
+#include "./option.hpp"                 // option<>, is_option_v
+#include "./option_set.hpp"             // option_set<> + queries (contains, find)
 
 
 NS_DJINTERP
