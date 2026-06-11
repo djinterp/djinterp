@@ -1,0 +1,205 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+
+\title{Option Sets, Agreement, Conflict, Precedence, and Difference}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Definitions}
+
+Define:
+
+\begin{enumerate}[label=\arabic*.]
+    \item a \textbf{type} \(\tau\);
+    \item a \textbf{key} \(k\), a unique identifier with \(k : \tau\);
+    \item a \textbf{value} \(v\): an optional datum of arbitrary type that an option may carry;
+    \item an \textbf{option} \(o\): a key \(k(o)\) together with an optional value \(v(o)\). The key is mandatory; the value is not.
+    \item an \textbf{option set} \(O = \{o_1, o_2, \ldots, o_n\}\): a finite set of options in which the key is unique --- i.e. the key map \(k(\cdot)\) is injective on \(O\) (\(o_i \neq o_j \Rightarrow k(o_i) \neq k(o_j)\)).
+\end{enumerate}
+
+The \textbf{key set} of an option set is
+
+\[
+K(O) = \{\, k(o) \mid o \in O \,\}.
+\]
+
+Because keys are unique, \(k(\cdot)\) is a bijection between \(O\) and \(K(O)\). We write \(O[k]\) for the unique option carrying key \(k\):
+
+\[
+O[k] := \text{the unique } o \in O \text{ with } k(o) = k,
+\qquad k \in K(O).
+\]
+
+Two options are \textbf{identical} (\(o_1 = o_2\)) iff they have the same key and the same value:
+\(k(o_1) = k(o_2)\) and \(v(o_1) = v(o_2)\). (If an option carries several data rather than a single value, identity is componentwise over all of them.)
+
+\section{Comparing Option Sets}
+
+Two option sets are \textbf{equal} iff they contain the same options:
+
+\[
+O_1 = O_2
+\iff
+K(O_1) = K(O_2)
+\;\text{and}\;
+\forall k \in K(O_1),\; O_1[k] = O_2[k].
+\]
+
+By extensionality this is just mutual containment; equal cardinality follows as a consequence rather than a separate requirement.
+
+Two option sets are \textbf{in agreement} iff, for every key occurring in both, the corresponding options are identical:
+
+\[
+O_1 \sim O_2
+\Longleftrightarrow
+\forall k \in K(O_1) \cap K(O_2),\; O_1[k] = O_2[k].
+\]
+
+\textbf{Remark.} \(\sim\) is reflexive and symmetric but \emph{not} transitive: it is a tolerance (compatibility) relation, not an equivalence. Disjoint key sets agree vacuously, so \(O_1 \sim O_2\) and \(O_2 \sim O_3\) do not imply \(O_1 \sim O_3\). In particular, \(\sim\) does not partition option sets into equivalence classes and must not be used to group or deduplicate them.
+
+Two option sets are \textbf{in conflict} iff there is at least one shared key whose options are not identical:
+
+\[
+O_1 \not\sim O_2
+\Longleftrightarrow
+\exists k \in K(O_1) \cap K(O_2)\; \text{such that}\; O_1[k] \neq O_2[k].
+\]
+
+Conflict is exactly the negation of agreement, so the two are complementary.
+
+\textbf{Remark.} Conflict requires a \emph{shared} key. Options that differ but whose keys differ do not conflict: if \(K(O_1) \cap K(O_2) = \varnothing\) the sets are vacuously in agreement. For example, \(O_1 = \{(\mathsf{foo}, 42)\}\) and \(O_2 = \{(\mathsf{bar}, \mathsf{hello})\}\) are never in conflict.
+
+\subsection*{Union and intersection}
+
+The \textbf{intersection} keeps the options on which the two sets coincide:
+
+\[
+O_1 \cap O_2 := \{\, o \in O_1 \mid k(o) \in K(O_2) \;\wedge\; O_2[k(o)] = o \,\}.
+\]
+
+It is empty whenever the sets share no key (so for the example above, \(O_1 \cap O_2 = \varnothing\)).
+
+The ordinary \textbf{union}
+
+\[
+O_1 \cup O_2 := \{\, o \mid o \in O_1 \;\vee\; o \in O_2 \,\}
+\]
+
+is a valid option set \emph{iff} \(O_1 \sim O_2\); otherwise a shared key would carry two distinct options, violating uniqueness. When defined, \(K(O_1 \cup O_2) = K(O_1) \cup K(O_2)\). On disjoint sets the union always exists and coincides with the precedence-resolved union \(\oplus\) of \S3 in either order. In short, \(\cup\) is the agreement-restricted total of \(\oplus\); \(\oplus\) extends it to conflicting sets by electing a winner.
+
+\section{Precedence}
+
+\[
+O_2 \succ O_1
+\]
+
+means that \(O_2\) has precedence over \(O_1\).
+
+Define a \textbf{precedence-resolved union}:
+
+\[
+O_1 \oplus O_2.
+\]
+
+This may be read as:
+
+\begin{quote}
+\(O_1\) is overridden by \(O_2\).
+\end{quote}
+
+Equivalently:
+
+\begin{quote}
+Combine \(O_1\) and \(O_2\), giving precedence to \(O_2\).
+\end{quote}
+
+Formally:
+
+\[
+K(O_1 \oplus O_2) = K(O_1) \cup K(O_2),
+\]
+
+and:
+
+\[
+(O_1 \oplus O_2)[k]
+=
+\begin{cases}
+O_2[k], & k \in K(O_2), \\
+O_1[k], & k \in K(O_1) \setminus K(O_2).
+\end{cases}
+\]
+
+That says:
+
+\begin{itemize}
+    \item keep every option whose key appears in either set;
+    \item if only \(O_1\) has the key, use \(O_1\)'s option;
+    \item if \(O_2\) has the key, use \(O_2\)'s option;
+    \item therefore, when both sets share a key, \(O_2\) overrides \(O_1\).
+\end{itemize}
+
+\textbf{Proposition (commutativity \(\iff\) agreement).}
+\(O_1 \oplus O_2 = O_2 \oplus O_1\) if and only if \(O_1 \sim O_2\).
+
+\emph{Proof sketch.} Off the overlap each side is forced to the unique present option, so order is irrelevant there. On \(K(O_1) \cap K(O_2)\), \(O_1 \oplus O_2\) yields \(O_2[k]\) while \(O_2 \oplus O_1\) yields \(O_1[k]\); these agree for every shared \(k\) iff \(O_1[k] = O_2[k]\) throughout, i.e. iff \(O_1 \sim O_2\). \(\square\)
+
+\textbf{Remark.} \(\oplus\) is associative with identity \(\varnothing\), so \((\text{option sets}, \oplus, \varnothing)\) form a monoid --- non-commutative in general, by the proposition. A left fold \(O_{\mathrm{base}} \oplus O_1 \oplus \cdots \oplus O_n\) is therefore well-defined and order-consistent (``later wins'').
+
+\section{Difference}
+
+Fix a \textbf{value projection} \(\pi\) mapping an option to the carrier being compared,
+
+\[
+\pi(o) \in \{\, \bot \,\} \cup \{\text{values}\},
+\]
+
+where \(\bot\) denotes ``no value of the requested kind''. \(\pi\) selects \emph{which} aspect of an option is compared --- for instance its declared value, a default, or an effective ``value-or-default''. Carrier comparison is structural, with \(\bot \neq v\) for any value \(v\) and \(\bot = \bot\).
+
+Over the shared keys, the \textbf{changed set} under \(\pi\) is
+
+\[
+\operatorname{changed}_{\pi}(O_a, O_b)
+=
+\{\, k \in K(O_a) \cap K(O_b) \mid \pi(O_a[k]) \neq \pi(O_b[k]) \,\},
+\]
+
+and the key-set delta is
+
+\[
+\operatorname{added}(O_a, O_b)   = K(O_b) \setminus K(O_a),
+\qquad
+\operatorname{removed}(O_a, O_b) = K(O_a) \setminus K(O_b).
+\]
+
+The \textbf{full difference} is their union:
+
+\[
+\operatorname{diff}_{\pi}(O_a, O_b)
+=
+\operatorname{added} \,\cup\, \operatorname{changed}_{\pi} \,\cup\, \operatorname{removed}.
+\]
+
+\textbf{Relation to \S2.} \(\operatorname{changed}_{\pi}\) alone characterizes agreement \emph{under} \(\pi\): it is empty iff the two sets agree on their overlap (with \(\pi = \mathrm{id}\) this is exactly \(O_a \sim O_b\)). The full \(\operatorname{diff}_{\pi}\) is empty iff the sets are equal under \(\pi\) --- same keys, same carriers everywhere --- so equality, unlike agreement, additionally requires the added and removed parts to vanish.
+
+\textbf{Exemptions.} To ignore selected keys or options, filter the \emph{result} with a predicate \(\varepsilon\) rather than threading it through the comparison:
+
+\[
+\operatorname{diff}_{\pi,\varepsilon}(O_a, O_b)
+=
+\{\, k \in \operatorname{diff}_{\pi}(O_a, O_b) \mid \neg \varepsilon(k) \,\}
+\]
+
+(where \(\varepsilon\) may consult \(O_a[k]\) and \(O_b[k]\)). Keeping projection (\emph{what} is compared) and exemption (\emph{which} keys are reported) on separate axes leaves both independently composable; \(\varepsilon\) need not be part of the difference operator itself.
+
+\end{document}
