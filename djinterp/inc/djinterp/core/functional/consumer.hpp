@@ -909,8 +909,7 @@ namespace consumers
     template<typename _Stream>
     D_CONSTEXPR internal::print_to_helper<_Stream,
                                           char>
-    print_to
-    (
+    print_to(
         _Stream& _stream
     )
     {
@@ -925,8 +924,7 @@ namespace consumers
     // consumer.
     template<typename _Container>
     D_CONSTEXPR internal::write_to_helper<_Container>
-    write_to
-    (
+    write_to(
         _Container& _container
     )
     {
@@ -948,8 +946,7 @@ namespace consumers
     //   function: builds a consumer that increments _counter for each
     // input. The counter must outlive the consumer.
     inline internal::count_into_helper
-    count_into
-    (
+    count_into(
         std::size_t& _counter
     )
     {

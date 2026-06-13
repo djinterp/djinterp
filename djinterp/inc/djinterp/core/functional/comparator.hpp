@@ -15,7 +15,8 @@
 * types as the RHS of operator|. Both paths expose identical symbols
 * in djinterp. See the `cpp98 roadmap` workbook.
 *
-* path:      /inc/functional/comparator.hpp
+* 
+* path:      /inc/djinterp/core/functional/comparator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
 ******************************************************************************/
@@ -378,9 +379,7 @@ namespace comparators
     // the supplied type. The default ordering; equivalent to
     // std::less<_T>{} but expressed in the framework's style.
     template<typename _T>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::natural_helper<_T>
+    D_NODISCARD D_CONSTEXPR internal::natural_helper<_T>
     natural()
     {
         return internal::natural_helper<_T>{};
@@ -396,11 +395,8 @@ namespace comparators
     //   For pointer-to-data-member targets, prefer by_member,
     // which has better readability at call sites.
     template<typename _KeyFn>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::by_key_helper<typename std::decay<_KeyFn>::type>
-    by_key
-    (
+    D_NODISCARD D_CONSTEXPR internal::by_key_helper<typename std::decay<_KeyFn>::type>
+    by_key(
         _KeyFn&& _key_fn
     )
     {
@@ -420,17 +416,12 @@ namespace comparators
     //   Example: by_member(&Person::age)
     template<typename _Class,
              typename _Member>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::by_key_helper<internal::member_accessor<_Class, _Member>>
-    by_member
-    (
+    D_NODISCARD D_CONSTEXPR internal::by_key_helper<internal::member_accessor<_Class, _Member>>
+    by_member(
         _Member _Class::* _member_ptr
     )
     {
-        return internal::by_key_helper<
-            internal::member_accessor<_Class, _Member>>(
-                internal::member_accessor<_Class, _Member>(_member_ptr));
+        return internal::by_key_helper<internal::member_accessor<_Class, _Member>>(internal::member_accessor<_Class, _Member>(_member_ptr));
     }
 
 
@@ -440,17 +431,12 @@ namespace comparators
     // raw lambda comparator can be chained with the combinators
     // in this module (then, reversed, etc.).
     template<typename _Fn>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::by_function_helper<typename std::decay<_Fn>::type>
-    by_function
-    (
+    D_NODISCARD D_CONSTEXPR internal::by_function_helper<typename std::decay<_Fn>::type>
+    by_function(
         _Fn&& _fn
     )
     {
-        return internal::by_function_helper<
-            typename std::decay<_Fn>::type>(
-                std::forward<_Fn>(_fn));
+        return internal::by_function_helper<typename std::decay<_Fn>::type>(std::forward<_Fn>(_fn));
     }
 
 
@@ -460,11 +446,8 @@ namespace comparators
     // `cmp | reversed()` (no arguments) yields an adapter that
     // wraps its lhs.
     template<typename _Comparator>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::reversed_helper<typename std::decay<_Comparator>::type>
-    reversed
-    (
+    D_NODISCARD D_CONSTEXPR internal::reversed_helper<typename std::decay<_Comparator>::type>
+    reversed(
         _Comparator&& _comparator
     )
     {
@@ -493,12 +476,9 @@ namespace comparators
     // c1 | then(c2).
     template<typename _Primary,
              typename _Secondary>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::then_helper<typename std::decay<_Primary>::type,
+    D_NODISCARD D_CONSTEXPR internal::then_helper<typename std::decay<_Primary>::type,
                           typename std::decay<_Secondary>::type>
-    then
-    (
+    then(
         _Primary&&   _primary,
         _Secondary&& _secondary
     )
@@ -517,11 +497,8 @@ namespace comparators
     // operator| invokes its apply method with the primary on
     // the left-hand side.
     template<typename _Secondary>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::then_adapter<typename std::decay<_Secondary>::type>
-    then
-    (
+    D_NODISCARD D_CONSTEXPR internal::then_adapter<typename std::decay<_Secondary>::type>
+    then(
         _Secondary&& _secondary
     )
     {
@@ -542,12 +519,9 @@ namespace comparators
     //                              [](const Person& p) { return p.age; });
     template<typename _Comparator,
              typename _KeyFn>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::lifted_helper<typename std::decay<_Comparator>::type,
+    D_NODISCARD D_CONSTEXPR internal::lifted_helper<typename std::decay<_Comparator>::type,
                             typename std::decay<_KeyFn>::type>
-    lifted
-    (
+    lifted(
         _Comparator&& _comparator,
         _KeyFn&&      _key_fn
     )
@@ -747,11 +721,8 @@ namespace comparators
     //
     //   Example: equal_under(by_key(&Person::dept))(p1, p2)
     template<typename _Comparator>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::equal_under_helper<typename std::decay<_Comparator>::type>
-    equal_under
-    (
+    D_NODISCARD D_CONSTEXPR internal::equal_under_helper<typename std::decay<_Comparator>::type>
+    equal_under(
         _Comparator&& _comparator
     )
     {
@@ -767,12 +738,9 @@ namespace comparators
     // cmp(v, x).
     template<typename _Comparator,
              typename _Bound>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::less_than_helper<typename std::decay<_Comparator>::type,
+    D_NODISCARD D_CONSTEXPR internal::less_than_helper<typename std::decay<_Comparator>::type,
                                typename std::decay<_Bound>::type>
-    less_than
-    (
+    less_than(
         _Comparator&& _comparator,
         _Bound&&      _bound
     )
@@ -791,12 +759,9 @@ namespace comparators
     // iff cmp(x, v) (i.e. v is greater than x under cmp).
     template<typename _Comparator,
              typename _Bound>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::greater_than_helper<typename std::decay<_Comparator>::type,
+    D_NODISCARD D_CONSTEXPR internal::greater_than_helper<typename std::decay<_Comparator>::type,
                                   typename std::decay<_Bound>::type>
-    greater_than
-    (
+    greater_than(
         _Comparator&& _comparator,
         _Bound&&      _bound
     )

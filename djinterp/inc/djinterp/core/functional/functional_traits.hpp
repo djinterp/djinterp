@@ -45,14 +45,11 @@ II.   PREDICATE TRAIT
 III.  CONVENIENCE ALIASES                 (C++14 variable templates)
       1.  is_callable_v<F, Args...>      
       2.  is_predicate_v<P, Arg>         
-IV.   CONCEPTS                            (C++20)
-      1.  callable_c<F, Args...>         
-      2.  predicate_c<P, Arg>            
 */
 
 
-#ifndef DJINTERP_FUNCTIONAL_FUNCTIONAL_TRAITS_
-#define DJINTERP_FUNCTIONAL_FUNCTIONAL_TRAITS_ 1
+#ifndef DJINTERP_FUNCTIONAL_TRAITS_
+#define DJINTERP_FUNCTIONAL_TRAITS_ 1
 
 // std
 #include <type_traits>
@@ -72,7 +69,7 @@ NS_DJINTERP
 //   trait: true when a const-lvalue _Fn can be called on _Args. The
 // functional-module-facing name for function_traits.hpp's is_invocable_with;
 // it succeeds on generic lambdas and other templated operator() callables.
-template<typename _Fn,
+template<typename    _Fn,
          typename... _Args>
 struct is_callable
     : is_invocable_with<_Fn, _Args...>
@@ -82,7 +79,7 @@ struct is_callable
 //   alias: the type produced by calling a const-lvalue _Fn on _Args, or
 // internal::call_nonesuch (from function_traits.hpp) when that call is
 // ill-formed. Callers gate on is_callable before relying on the result.
-template<typename _Fn,
+template<typename    _Fn,
          typename... _Args>
 using callable_result_t = call_result_t<_Fn, _Args...>;
 
@@ -126,30 +123,7 @@ static D_CONSTEXPR bool is_predicate_v = is_predicate<_Pred, _Arg>::value;
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   CONCEPTS                                              ///
-///////////////////////////////////////////////////////////////////////////////
-//   Concept parallels of the traits above, following the _c naming used in
-// concepts.hpp.
-
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
-// callable_c
-//   concept: satisfied when a const-lvalue _Fn can be called on _Args.
-template<typename _Fn,
-         typename... _Args>
-concept callable_c = is_callable<_Fn, _Args...>::value;
-
-// predicate_c
-//   concept: satisfied when _Pred is a predicate over _Arg (callable, result
-// convertible to bool).
-template<typename _Pred,
-         typename _Arg>
-concept predicate_c = is_predicate<_Pred, _Arg>::value;
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_FUNCTIONAL_TRAITS_
+#endif  // DJINTERP_FUNCTIONAL_TRAITS_

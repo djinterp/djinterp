@@ -37,7 +37,8 @@
 * live at the call site.  The sole non-constexpr factory is memoize, whose
 * std::map result cache is inherently a runtime construct.
 *
-* path:      /inc/functional/compose.hpp
+* 
+* path:      /inc/djinterp/core/functional/compose.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.19
 ******************************************************************************/

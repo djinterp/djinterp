@@ -97,6 +97,8 @@ V.    PRODUCER TRAITS & CONCEPTS
 // djinterp
 #include "../djinterp.hpp"
 #include "./function_traits.hpp"
+#include "./functor.hpp"
+#include "./foldable.hpp"
 #include "../meta/carrier.hpp"      // val_t / type_t leaves for the compile-time unfold
 #include "../meta/value_list.hpp"   // materialization target of the compile-time unfold
 
@@ -882,8 +884,7 @@ NS_END  // internal
     D_CONSTEXPR
     internal::iterate_helper<typename std::decay<_Seed>::type,
                              typename std::decay<_Step>::type>
-    iterate
-    (
+    iterate(
         _Seed&& _seed,
         _Step&& _step
     )
@@ -909,8 +910,7 @@ NS_END  // internal
     internal::unfold_helper<typename std::decay<_State>::type,
                             typename std::decay<_Step>::type,
                             _Value>
-    unfold
-    (
+    unfold(
         _State&& _state,
         _Step&&  _step
     )
@@ -931,8 +931,7 @@ NS_END  // internal
     template<typename _Int>
     D_CONSTEXPR
     internal::range_helper<_Int>
-    range
-    (
+    range(
         _Int _start,
         _Int _end,
         _Int _step
@@ -947,8 +946,7 @@ NS_END  // internal
     template<typename _Int>
     D_CONSTEXPR
     internal::range_helper<_Int>
-    range
-    (
+    range(
         _Int _start,
         _Int _end
     )
@@ -963,8 +961,7 @@ NS_END  // internal
     template<typename _Int>
     D_CONSTEXPR
     internal::range_helper<_Int>
-    iota
-    (
+    iota(
         _Int _start,
         _Int _end
     )
@@ -979,8 +976,7 @@ NS_END  // internal
     template<typename _Value>
     D_CONSTEXPR
     internal::repeat_helper<typename std::decay<_Value>::type>
-    repeat
-    (
+    repeat(
         _Value&& _value
     )
     {
@@ -994,8 +990,7 @@ NS_END  // internal
     template<typename _Value>
     D_CONSTEXPR
     internal::repeat_n_helper<typename std::decay<_Value>::type>
-    repeat_n
-    (
+    repeat_n(
         _Value&&     _value,
         std::size_t  _n
     )
@@ -1012,8 +1007,7 @@ NS_END  // internal
     template<typename _Container>
     D_CONSTEXPR
     internal::cycle_helper<typename std::decay<_Container>::type>
-    cycle
-    (
+    cycle(
         _Container&& _container
     )
     {
@@ -1029,8 +1023,7 @@ NS_END  // internal
     template<typename _Function>
     D_CONSTEXPR
     internal::generate_helper<typename std::decay<_Function>::type>
-    generate
-    (
+    generate(
         _Function&& _function
     )
     {
@@ -1057,8 +1050,7 @@ NS_END  // internal
     template<typename _Value>
     D_CONSTEXPR
     internal::single_helper<typename std::decay<_Value>::type>
-    single
-    (
+    single(
         _Value&& _value
     )
     {
@@ -1074,8 +1066,7 @@ NS_END  // internal
     template<typename _Producer>
     D_CONSTEXPR
     internal::take_n_helper<typename std::decay<_Producer>::type>
-    take_n
-    (
+    take_n(
         _Producer&&  _producer,
         std::size_t  _n
     )
@@ -1092,8 +1083,7 @@ NS_END  // internal
     template<typename _Producer>
     D_CONSTEXPR
     internal::drop_n_helper<typename std::decay<_Producer>::type>
-    drop_n
-    (
+    drop_n(
         _Producer&&  _producer,
         std::size_t  _n
     )
@@ -1112,8 +1102,7 @@ NS_END  // internal
     D_CONSTEXPR
     internal::concat_helper<typename std::decay<_First>::type,
                             typename std::decay<_Second>::type>
-    concat
-    (
+    concat(
         _First&&  _first,
         _Second&& _second
     )
@@ -1134,8 +1123,7 @@ NS_END  // internal
     D_CONSTEXPR
     internal::interleave_helper<typename std::decay<_First>::type,
                                 typename std::decay<_Second>::type>
-    interleave
-    (
+    interleave(
         _First&&  _first,
         _Second&& _second
     )
@@ -1156,8 +1144,7 @@ NS_END  // internal
     D_CONSTEXPR
     internal::transform_helper<typename std::decay<_Producer>::type,
                                typename std::decay<_Function>::type>
-    transform
-    (
+    transform(
         _Producer&& _producer,
         _Function&& _function
     )
@@ -1179,8 +1166,7 @@ NS_END  // internal
     D_CONSTEXPR
     internal::filter_helper<typename std::decay<_Producer>::type,
                             typename std::decay<_Predicate>::type>
-    filter
-    (
+    filter(
         _Producer&&  _producer,
         _Predicate&& _predicate
     )
@@ -1240,8 +1226,7 @@ NS_END  // internal
     template<typename _Container>
     D_CONSTEXPR
     from_container_producer<typename std::decay<_Container>::type>
-    from_container
-    (
+    from_container(
         _Container&& _container
     )
     {
@@ -1566,6 +1551,107 @@ using unfold_ct_t = typename internal::unfold_ct_helper<
 >::type;
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             XI.   FUNCTOR INSTANCE                                      ///
+///////////////////////////////////////////////////////////////////////////////
+//   A producer is a Functor: the flat transform(producer, f) is its map. This
+// teaches the generic functor_map (functor.hpp) to drive a producer through
+// the one canonical name, so the same call that maps a maybe / result / view
+// also maps a producer. A producer's mapped type is
+// internal::transform_helper<P, F> -- it depends on the mapping function F, so
+// there is no single F<U> to rebind; the result type follows from the existing
+// transform and is deduced. Keyed on is_producer, mutually exclusive with the
+// monad bridge in functor.hpp (a producer is not a monad) and the view
+// instance.
+
+template<typename _Producer>
+struct functor_traits<
+    _Producer,
+    typename std::enable_if<is_producer<_Producer>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename producer_value_type<_Producer>::type;
+
+    // map
+    //   functorial map by delegating to the flat transform combinator (the
+    // existing per-type fmap for producers). Lazy: the wrapped producer is
+    // pulled only when the result producer is invoked.
+    template<typename _ProducerArg,
+             typename _Function>
+    static
+    D_CONSTEXPR
+    auto map(
+        _ProducerArg&& _producer,
+        _Function&&    _function
+    )
+    -> decltype(::djinterp::transform(
+           std::forward<_ProducerArg>(_producer),
+           std::forward<_Function>(_function)))
+    {
+        return ::djinterp::transform(
+            std::forward<_ProducerArg>(_producer),
+            std::forward<_Function>(_function));
+    }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             XII.  FOLDABLE INSTANCE                                     ///
+///////////////////////////////////////////////////////////////////////////////
+//   A producer is a Foldable: its elements are collapsed by pulling the source
+// to exhaustion and threading the reducer through them. This teaches the
+// generic fold_left (foldable.hpp) -- and therefore fold_to_vector,
+// fold_length, fold_any, fold_all, fold_right, ... -- to drive a producer
+// through the one canonical name. Keyed on is_producer so the single instance
+// covers every producer; mutually exclusive with the maybe / result / view
+// instances. The fold is non-destructive (a copy is pulled, leaving the
+// caller's producer untouched); an infinite producer must be bounded before
+// folding.
+
+template<typename _Producer>
+struct foldable_traits<
+    _Producer,
+    typename std::enable_if<is_producer<_Producer>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename producer_value_type<_Producer>::type;
+
+    // fold_left
+    //   strict left fold by pulling a copy of the producer to exhaustion; the
+    // accumulator is threaded by move so collecting folds stay O(n).
+    //   D_CONSTEXPR20 -- a producer is not a literal type before C++20, and
+    // the pull loop needs relaxed constexpr.
+    template<typename _Acc,
+             typename _Function>
+    static
+    D_CONSTEXPR20
+    _Acc fold_left(
+        const _Producer& _producer,
+        _Acc             _init,
+        _Function        _function
+    )
+    {
+        _Producer _cursor = _producer;
+
+        while (true)
+        {
+            producer_step<value_type> _step = _cursor();
+
+            if (!_step.has_value)
+            {
+                break;
+            }
+
+            _init = _function(std::move(_init), _step.value);
+        }
+
+        return _init;
+    }
+};
 
 
 NS_END  // djinterp

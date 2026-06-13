@@ -434,16 +434,14 @@ public:
         , m_status(m_elements.empty()
                    ? filter_result_status::empty
                    : filter_result_status::success)
-    {
-    }
+(}
 
     // error constructor
     explicit filter_result(filter_result_status _status,
                            std::string          _msg = "")
         : m_status(_status)
         , m_error_message(std::move(_msg))
-    {
-    }
+(}
 
     D_NODISCARD
     bool ok() const
