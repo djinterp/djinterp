@@ -88,6 +88,9 @@ VI.   FREE-FUNCTION HELPERS
 #include "../djinterp.hpp"
 #include "./monad.hpp"
 #include "./maybe.hpp"
+#include "./foldable.hpp"
+#include "./traversable.hpp"
+#include "./bifunctor.hpp"
 
 
 NS_DJINTERP
@@ -1194,8 +1197,7 @@ struct monad_traits<result<_Type, _Error>>
     // preserved by rebind; no error can be produced by unit
     // alone.
     static D_CONSTEXPR20 result<_Type, _Error>
-    unit
-    (
+    unit(
         _Type _value
     )
     {
@@ -1221,6 +1223,151 @@ struct monad_traits<result<_Type, _Error>>
         _function(std::declval<const _Type&>()))>::type
     {
         return _r.and_then(_function);
+    }
+};
+
+
+// foldable_traits<result<_Type, _Error>>
+//   specialization: makes result participate in the generic foldable
+// protocol over its success type _Type. An ok folds its one value; an err is
+// treated as empty (the error is not an element), so fold_left is the
+// identity on err -- consistent with map / bind, which propagate err
+// untouched. Keyed on is_result so the single instance covers every
+// result<T, E>.
+template<typename _Result>
+struct foldable_traits<
+    _Result,
+    typename std::enable_if<is_result<_Result>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename _Result::value_type;
+
+    // fold_left
+    //   threads _init through the success value when ok; identity on err.
+    //   D_CONSTEXPR20 so the generic folds fold at compile time over a
+    // carrier-holding result under C++20 (runtime on the C++17 floor, where
+    // result is not a literal type).
+    template<typename _Acc,
+             typename _Function>
+    static
+    D_CONSTEXPR20
+    _Acc fold_left(
+        const _Result& _r,
+        _Acc           _init,
+        _Function      _function
+    )
+    {
+        if (_r.is_ok())
+        {
+            return _function(std::move(_init), _r.value());
+        }
+
+        return _init;
+    }
+};
+
+
+NS_INTERNAL
+
+    // traversable_ok_helper
+    //   helper: wraps a bare value into an ok, used by result's traverse to
+    // turn F<B> into F<result<B,Error>> via functor_map. A named functor so it
+    // can appear in trailing return types on every floor.
+    template<typename _Value,
+             typename _Error>
+    struct traversable_ok_helper
+    {
+        D_CONSTEXPR20
+        result<_Value, _Error> operator()(
+            const _Value& _value
+        ) const
+        {
+            return ::djinterp::ok<_Value, _Error>(_value);
+        }
+    };
+
+NS_END  // internal
+
+
+// traversable_traits<result<_Type, _Error>>
+//   specialization: result is Traversable over its success side. Traversing an
+// ok runs the effect on its value and re-wraps the result in an ok inside the
+// effect (F<B> -> F<result<B,Error>>); traversing an err injects that same err
+// into the effect with pure -- the effect F being recovered from the type of
+// f's result, so the err branch is well-typed even though f is never called.
+// Keyed on is_result.
+template<typename _Result>
+struct traversable_traits<
+    _Result,
+    typename std::enable_if<is_result<_Result>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename _Result::value_type;
+    using error_type     = typename _Result::error_type;
+
+    // traverse
+    //   F<result<B,Error>> from a result<A,Error> and f : A -> F<B>.
+    template<typename _Function>
+    static
+    D_CONSTEXPR20
+    auto traverse(
+        const _Result& _r,
+        _Function      _function
+    )
+    -> decltype(::djinterp::functor_map(
+           _function(std::declval<const value_type&>()),
+           internal::traversable_ok_helper<
+               applicative_value_type_t<decltype(
+                   _function(std::declval<const value_type&>()))>,
+               error_type>()))
+    {
+        using effect_t = decltype(
+            _function(std::declval<const value_type&>()));      // F<B>
+        using inner_t  = applicative_value_type_t<effect_t>;     // B
+        using wrap_t   = internal::traversable_ok_helper<inner_t, error_type>;
+        using result_t = decltype(::djinterp::functor_map(
+            std::declval<effect_t>(), std::declval<wrap_t>()));  // F<result<B,Error>>
+
+        if (_r.is_ok())
+        {
+            return ::djinterp::functor_map(_function(_r.value()), wrap_t());
+        }
+
+        return ::djinterp::pure<result_t>(
+            ::djinterp::err<inner_t, error_type>(_r.error()));
+    }
+};
+
+
+// bifunctor_traits<result<_Type, _Error>>
+//   specialization: result is a Bifunctor over (success, error). bimap maps
+// the success side with f and the error side with g -- exactly map followed by
+// map_err -- so the one-sided map_first / map_second recover result's own map
+// and map_err. Keyed on is_result.
+template<typename _Result>
+struct bifunctor_traits<
+    _Result,
+    typename std::enable_if<is_result<_Result>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using first_type     = typename _Result::value_type;
+    using second_type    = typename _Result::error_type;
+
+    // bimap
+    //   result<f(T), g(E)> from result<T, E>.
+    template<typename _First,
+             typename _Second>
+    static
+    D_CONSTEXPR20
+    auto bimap(
+        const _Result& _r,
+        _First         _f,
+        _Second        _g
+    )
+    -> decltype(std::declval<const _Result&>().map(std::declval<_First&>())
+                    .map_err(std::declval<_Second&>()))
+    {
+        return _r.map(_f).map_err(_g);
     }
 };
 

@@ -87,6 +87,7 @@ VI.   FREE-FUNCTION HELPERS
 #include "../djinterp.hpp"
 #include "../meta/kv_pair.hpp"   // kv_pair (the unfold step's (value, next) pairing)
 #include "./monad.hpp"
+#include "./foldable.hpp"
 
 
 NS_DJINTERP
@@ -312,9 +313,7 @@ public:
 
     // has_value
     //   method: whether this maybe contains a value.
-    D_NODISCARD
-    D_CONSTEXPR
-    bool has_value() const noexcept
+    D_NODISCARD D_CONSTEXPR bool has_value() const noexcept
     {
         return m_has_value;
     }
@@ -322,9 +321,7 @@ public:
     // is_nothing
     //   method: the negation of has_value, for readability in
     // pattern-matching-style code.
-    D_NODISCARD
-    D_CONSTEXPR
-    bool is_nothing() const noexcept
+    D_NODISCARD D_CONSTEXPR bool is_nothing() const noexcept
     {
         return !m_has_value;
     }
@@ -735,14 +732,12 @@ NS_INTERNAL
     template<typename _Type>
     struct is_maybe_helper
         : std::false_type
-    {
-    };
+    {};
 
     template<typename _Type>
     struct is_maybe_helper<maybe<_Type>>
         : std::true_type
-    {
-    };
+    {};
 
 
     // is_maybe_predicate_helper
@@ -1116,8 +1111,7 @@ struct monad_traits<maybe<_Type>>
     static
     D_CONSTEXPR20
     maybe<_Type>
-    unit
-    (
+    unit(
         _Type _value
     )
     {
@@ -1141,6 +1135,44 @@ struct monad_traits<maybe<_Type>>
         _function(std::declval<const _Type&>()))>::type
     {
         return _m.and_then(_function);
+    }
+};
+
+
+// foldable_traits<maybe<_Type>>
+//   specialization: makes maybe participate in the generic foldable
+// protocol. A maybe folds over its zero-or-one carried value: fold_left
+// applies the reducer once when just, and is the identity when nothing.
+// Keyed on is_maybe so the single instance covers every maybe<T>.
+template<typename _Maybe>
+struct foldable_traits<
+    _Maybe,
+    typename std::enable_if<is_maybe<_Maybe>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename _Maybe::value_type;
+
+    // fold_left
+    //   threads _init through the (at most one) contained value.
+    //   D_CONSTEXPR20 so the generic folds fold at compile time over a
+    // carrier-holding maybe under C++20 (runtime on the C++17 floor, where
+    // maybe is not a literal type).
+    template<typename _Acc,
+             typename _Function>
+    static
+    D_CONSTEXPR20
+    _Acc fold_left(
+        const _Maybe& _m,
+        _Acc          _init,
+        _Function     _function
+    )
+    {
+        if (_m.has_value())
+        {
+            return _function(std::move(_init), _m.value());
+        }
+
+        return _init;
     }
 };
 

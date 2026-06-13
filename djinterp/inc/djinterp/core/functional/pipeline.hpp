@@ -920,14 +920,12 @@ NS_INTERNAL
     template<typename _Type>
     struct is_pipeline_helper
         : std::false_type
-    {
-    };
+(};
 
     template<typename _T>
     struct is_pipeline_helper<function_pipeline<_T>>
         : std::true_type
-    {
-    };
+(};
 
     // pipeline_decompose_helper
     //   helper: primary exposes no members (soft failure for non-pipeline
@@ -936,8 +934,7 @@ NS_INTERNAL
     // type is recovered here by decomposition.
     template<typename _Type>
     struct pipeline_decompose_helper
-    {
-    };
+(};
 
     template<typename _T>
     struct pipeline_decompose_helper<function_pipeline<_T>>

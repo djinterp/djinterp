@@ -714,8 +714,7 @@ NS_INTERNAL
     template<typename _Type>
     struct is_fn_builder_helper
         : std::false_type
-    {
-    };
+(};
 
     template<typename _InputType,
              typename _CurrentType,
@@ -723,8 +722,7 @@ NS_INTERNAL
     struct is_fn_builder_helper<
         fn_builder<_InputType, _CurrentType, _Chain> >
         : std::true_type
-    {
-    };
+(};
 
     // fn_builder_decompose_helper
     //   helper: primary exposes no members (soft failure for non-builders);
@@ -733,8 +731,7 @@ NS_INTERNAL
     // types are recovered here by decomposition.
     template<typename _Type>
     struct fn_builder_decompose_helper
-    {
-    };
+(};
 
     template<typename _InputType,
              typename _CurrentType,
@@ -751,16 +748,14 @@ NS_INTERNAL
     template<typename _Type>
     struct is_boxed_fn_builder_helper
         : std::false_type
-    {
-    };
+(};
 
     template<typename _InputType,
              typename _OutputType>
     struct is_boxed_fn_builder_helper<
         boxed_fn_builder<_InputType, _OutputType> >
         : std::true_type
-    {
-    };
+(};
 
 NS_END  // internal
 

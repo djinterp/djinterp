@@ -34,7 +34,7 @@
 *   auto m = filtered(max<int>(),
 *                     [](int x){ return x > 0; }).run(values);
 *
-* path:      /inc/functional/accumulator.hpp
+* path:      /inc/djinterp/core/functional/accumulator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
 ******************************************************************************/

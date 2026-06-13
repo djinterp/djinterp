@@ -118,8 +118,7 @@ NS_INTERNAL
              std::size_t... _Is>
     struct make_index_seq_helper
         : make_index_seq_helper<_N - 1, _N - 1, _Is...>
-    {
-    };
+(};
 
     // make_index_seq_helper base case
     //   helper: terminates the recursion at zero.
@@ -160,8 +159,7 @@ NS_INTERNAL
     template<typename _Fn,
              typename _Tuple>
     D_CONSTEXPR
-    auto apply_tuple
-    (
+    auto apply_tuple(
         _Fn&&    _fn,
         _Tuple&& _tuple
     )

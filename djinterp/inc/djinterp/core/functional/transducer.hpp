@@ -294,9 +294,7 @@ public:
     // is_done
     //   whether termination has been signalled. Drivers check
     // this after each step and stop iteration when true.
-    D_NODISCARD
-    D_CONSTEXPR
-    bool is_done() const noexcept
+    D_NODISCARD D_CONSTEXPR bool is_done() const noexcept
     {
         return m_done;
     }
@@ -794,11 +792,8 @@ namespace transducers
     // reducer, transforms each value via _function before
     // forwarding to the downstream.
     template<typename _Function>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::map_transducer_helper<typename std::decay<_Function>::type>
-    map
-    (
+    D_NODISCARD D_CONSTEXPR internal::map_transducer_helper<typename std::decay<_Function>::type>
+    map(
         _Function&& _function
     )
     {
@@ -812,11 +807,8 @@ namespace transducers
     //   function: builds a transducer that drops values for
     // which _predicate is false.
     template<typename _Predicate>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::filter_transducer_helper<typename std::decay<_Predicate>::type>
-    filter
-    (
+    D_NODISCARD D_CONSTEXPR internal::filter_transducer_helper<typename std::decay<_Predicate>::type>
+    filter(
         _Predicate&& _predicate
     )
     {
@@ -831,10 +823,7 @@ namespace transducers
     // which _predicate is true (i.e. keeps the complement).
     // Implemented as filter with a wrapped predicate.
     template<typename _Predicate>
-    D_NODISCARD
-    D_CONSTEXPR
-    auto filter_not
-    (
+    D_NODISCARD D_CONSTEXPR auto filter_not(
         _Predicate _predicate
     )
     {
@@ -848,11 +837,8 @@ namespace transducers
     // take
     //   function: builds a transducer that forwards at most _n
     // values and then signals termination.
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::take_transducer_helper
-    take
-    (
+    D_NODISCARD D_CONSTEXPR internal::take_transducer_helper
+    take(
         std::size_t _n
     )
     {
@@ -863,11 +849,8 @@ namespace transducers
     // drop
     //   function: builds a transducer that silently skips the
     // first _n values.
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::drop_transducer_helper
-    drop
-    (
+    D_NODISCARD D_CONSTEXPR internal::drop_transducer_helper
+    drop(
         std::size_t _n
     )
     {
@@ -880,11 +863,8 @@ namespace transducers
     // while _predicate holds, then signals termination at the
     // first failure.
     template<typename _Predicate>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::take_while_transducer_helper<typename std::decay<_Predicate>::type>
-    take_while
-    (
+    D_NODISCARD D_CONSTEXPR internal::take_while_transducer_helper<typename std::decay<_Predicate>::type>
+    take_while(
         _Predicate&& _predicate
     )
     {
@@ -898,11 +878,8 @@ namespace transducers
     //   function: builds a transducer that drops initial values
     // matching _predicate, then forwards every subsequent value.
     template<typename _Predicate>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::drop_while_transducer_helper<typename std::decay<_Predicate>::type>
-    drop_while
-    (
+    D_NODISCARD D_CONSTEXPR internal::drop_while_transducer_helper<typename std::decay<_Predicate>::type>
+    drop_while(
         _Predicate&& _predicate
     )
     {
@@ -923,9 +900,7 @@ namespace transducers
     // reducer with its own seen-set (held by shared_ptr inside
     // the closure).
     template<typename _Value>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::distinct_transducer_helper<_Value>
+    D_NODISCARD D_CONSTEXPR internal::distinct_transducer_helper<_Value>
     distinct()
     {
         return internal::distinct_transducer_helper<_Value>{};
@@ -937,11 +912,8 @@ namespace transducers
     // unchanged, first invoking _side_effect on it. Useful for
     // logging, counting, and other peek-style operations.
     template<typename _SideEffect>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::tap_transducer_helper<typename std::decay<_SideEffect>::type>
-    tap
-    (
+    D_NODISCARD D_CONSTEXPR internal::tap_transducer_helper<typename std::decay<_SideEffect>::type>
+    tap(
         _SideEffect&& _side_effect
     )
     {
@@ -957,11 +929,8 @@ namespace transducers
     // forwards each element of the container individually to
     // the downstream. The function must return an iterable.
     template<typename _Function>
-    D_NODISCARD
-    D_CONSTEXPR
-    internal::flat_map_transducer_helper<typename std::decay<_Function>::type>
-    flat_map
-    (
+    D_NODISCARD D_CONSTEXPR internal::flat_map_transducer_helper<typename std::decay<_Function>::type>
+    flat_map(
         _Function&& _function
     )
     {

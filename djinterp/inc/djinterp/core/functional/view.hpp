@@ -120,6 +120,8 @@ VIII. VIEW SFINAE STRUCTURAL TRAITS & CONCEPTS
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
+#include "./functor.hpp"
+#include "./foldable.hpp"
 
 
 NS_DJINTERP
@@ -3439,8 +3441,7 @@ NS_INTERNAL
     template<typename _AlwaysVoid,
              typename _View>
     struct view_value_type_helper
-    {
-    };
+    {};
 
     template<typename _View>
     struct view_value_type_helper<
@@ -3530,6 +3531,95 @@ concept view_terminal = is_terminal<_Type>::value;
 template<typename _Type>
 concept pipeable_to_view = is_pipeable_to_view<_Type>::value;
 #endif
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             VIII.  FUNCTOR INSTANCE                                     ///
+///////////////////////////////////////////////////////////////////////////////
+//   A view is a Functor: views::transform is its map. This teaches the generic
+// functor_map (functor.hpp) to drive a view through the one canonical name, so
+// the same call that maps a maybe / result / producer also maps a view. A
+// view's mapped type is transform_view<V, F> -- it depends on the mapping
+// function F, so there is no single F<U> to rebind; the result type is named
+// directly. Keyed on is_view, mutually exclusive with the monad bridge in
+// functor.hpp (a view is not a monad) and the producer instance.
+
+template<typename _View>
+struct functor_traits<
+    _View,
+    typename std::enable_if<is_view<_View>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename view_value_type<_View>::type;
+
+    // map
+    //   functorial map via transform_view (the engine behind
+    // views::transform). Lazy: no element is evaluated until the resulting
+    // view is iterated or forced by a terminal.
+    template<typename _ViewArg,
+             typename _Function>
+    static
+    D_CONSTEXPR
+    transform_view<typename std::decay<_ViewArg>::type,
+                   typename std::decay<_Function>::type>
+    map(
+        _ViewArg&&  _view,
+        _Function&& _function
+    )
+    {
+        return transform_view<
+            typename std::decay<_ViewArg>::type,
+            typename std::decay<_Function>::type>(
+                std::forward<_ViewArg>(_view),
+                std::forward<_Function>(_function));
+    }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///             IX.   FOLDABLE INSTANCE                                     ///
+///////////////////////////////////////////////////////////////////////////////
+//   A view is a Foldable: its elements are collapsed by iterating the lazy
+// pipeline once and threading the reducer through them. This teaches the
+// generic fold_left (foldable.hpp) -- and therefore fold_to_vector,
+// fold_length, fold_any, fold_all, fold_right, ... -- to drive a view through
+// the one canonical name. Keyed on is_view so the single instance covers every
+// view type; mutually exclusive with the maybe / result / producer instances
+// (a view is none of those). Forcing the fold is a runtime act, so an infinite
+// source must be bounded (take / take_while) before folding.
+
+template<typename _View>
+struct foldable_traits<
+    _View,
+    typename std::enable_if<is_view<_View>::value>::type>
+{
+    using is_specialized = std::true_type;
+    using value_type     = typename view_value_type<_View>::type;
+
+    // fold_left
+    //   strict left fold by iterating the view; the accumulator is threaded
+    // by move so collecting folds stay O(n). D_CONSTEXPR20 -- a view is not a
+    // literal type before C++20.
+    template<typename _Acc,
+             typename _Function>
+    static
+    D_CONSTEXPR20
+    _Acc fold_left(
+        const _View& _view,
+        _Acc         _init,
+        _Function    _function
+    )
+    {
+        for (auto _it = _view.begin(); _it != _view.end(); ++_it)
+        {
+            _init = _function(std::move(_init), *_it);
+        }
+
+        return _init;
+    }
+};
 
 
 NS_END  // djinterp
