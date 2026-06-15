@@ -80,13 +80,13 @@ V.    CONCEPTS  (C++20)
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"      // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t
-#include "./trait_detect.hpp"   // D_TYPE_TRAIT_VALUE_BOOL, _IS_SPECIALIZATION_OF
-#include "./type_traits.hpp"    // nonesuch, invoke_result_t
+#include "../../djinterp.hpp"      // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t
+#include "../../meta/trait_detect.hpp"   // D_TYPE_TRAIT_VALUE_BOOL, _IS_SPECIALIZATION_OF
+#include "../../meta/type_traits.hpp"    // nonesuch, invoke_result_t
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    #include "./concepts.hpp"
+    #include "../../meta/concepts.hpp"
 #endif
 
 
