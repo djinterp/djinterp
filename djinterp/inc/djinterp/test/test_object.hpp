@@ -1,55 +1,74 @@
 /******************************************************************************
-* djinterp [test]                                             test_object.hpp
+* djinterp [test]                                              test_object.hpp
 *
 *   Unified test object for the DTest framework.  A single flat struct
 * holding the per-instance state of one test element: type identity,
-* result, status, name, message, and optional per-instance option
-* overrides.
+* result, status, a deferred-callable handle, and a user-supplied
+* metadata container.
 *
 *   TYPE IDENTITY:
 *   Every test_object carries a test_type_id - a signed 32-bit integer
-* that identifies the kind of test it represents.  The type id is the
-* object's only link to the test_type registry held by the tree.
+* that identifies the kind of test it represents.  Resolution of that
+* id to a kind classification is handled outside test_object, via the
+* test_kind set wrapper held elsewhere (typically by the tree).
 *
-*   In isolation (no registry), the id acts as a numeric rank: a
-* child's id must be <= its parent's.  Unregistered objects are
-* treated as leaves with no default options.
+*   IDENTITY AND DEPTH (NOT STORED):
+*   A test_object carries neither a unique id nor a depth.  Both are
+* facts of a node's position within the owning tree, not properties of
+* the node itself: structural identity is the node's address (its path
+* from the root) and depth is that address's length.  The owning test
+* handler computes and tracks them during the tree walk; test_object is
+* ignorant of either.  This mirrors the formal definition, in which a
+* node is anonymous and its address - conferred by the owning queue -
+* is the identity that masking and reporting key on.
 *
-*   When the tree holds a test_type registry, a matching id resolves
-* to its test_kind, which supplies rank, leaf/interior classification,
-* and default options.  The test_object itself does not cache these
-* derived properties - they are resolved at query time through the
-* registry.
+*   METADATA CONTAINER:
+*   In the previous revision the test_object held two non-owning
+* pointers - a const char* name and a const dtest_option_set* options
+* pointer - inline.  Both have been removed.  In their place is a
+* user-supplied _MetadataContainer member that adheres to the
+* metadata_traits / metadata_concepts protocol:
+*     - metadata_container_type   nested alias
+*     - metadata_type             nested alias
+*     - metadata()                accessor returning the container
 *
-*   OPTIONS:
-*   A test_object may hold a non-owning pointer to a dtest_option_set
-* for per-instance option overrides.  When non-null, this set takes
-* precedence over the test_kind's defaults, which in turn take
-* precedence over the global defaults.  When null, the test_kind's
-* defaults (if any) apply directly.
+*   The user chooses whatever shape of metadata best fits their
+* suite: a flat string for names, a small struct holding name +
+* options, a flat_map keyed by string tag, a set of integer tags,
+* etc.  test_object stores it directly and exposes it through the
+* canonical metadata protocol.
 *
-*   NO BUILT-IN KINDS:
-*   This header defines no kind constants or kind-specific factory
-* functions.  The vocabulary of test classifications is entirely
-* user-defined.  See test_defaults.hpp for the framework's default
-* kind set and convenience factories.
+*   No assumptions about metadata content are baked in.  The
+* default `std::vector<std::int32_t>` is a generic placeholder;
+* callers that need name + options should substitute a metadata
+* container tailored to that shape.
 *
 *   TEST OBJECT PROTOCOL:
 *   test_object satisfies the test object protocol detected by
 * test_object_traits.hpp:
 *     - operator bool()    boolean conversion (result)
 *     - status()           status accessor
-*     - name()             name accessor (const char*)
-*     - message()          message accessor (const char*)
 *     - result()           raw result accessor
+*     - type_id()          test_type_id accessor
+*     - metadata()         metadata container accessor
+*
+*   Naming, messaging, and option access - if needed - live on the
+* metadata container the user supplied, not on test_object itself.
 *
 *   CONSTEXPR:
-*   All accessors and simple mutators are constexpr.  Evaluation
-* (which may fire events in a future extension) is D_TEST_CONSTEXPR
-* (constexpr on C++14+).
+*   Accessors and simple mutators are constexpr where the metadata
+* container permits.  Evaluation is D_TEST_CONSTEXPR (constexpr on
+* C++14+).
 *
 *   PORTABILITY:
 *   C++11 minimum.
+*
+*
+* TABLE OF CONTENTS
+* =================
+* I.    test object
+* II.   convenience aliases
+* III.  factory functions
 *
 *
 * path:      /inc/djinterp/test/test_object.hpp
@@ -57,25 +76,20 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.14
 ******************************************************************************/
 
-/*
-TABLE OF CONTENTS
-=================
-I.    test object
-II.   convenience alias
-III.  factory functions
-*/
-
 #ifndef DJINTERP_TEST_OBJECT_
 #define DJINTERP_TEST_OBJECT_ 1
 
 // std
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <type_traits>
+#include <utility>
+#include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
+#include "../core/meta/kv_pair.hpp"
 #include "./test_common.hpp"
-#include "./test_options.hpp"
 
 
 NS_DJINTERP
@@ -86,37 +100,161 @@ NS_TEST
 ///                I.   TEST OBJECT                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// test_object
-//   struct: unified test element.  Holds type identity,
-// result, status, name, message, unique id, depth cache,
-// and an optional per-instance options pointer.
+// test_metadata
+//   class: minimal runtime key/value metadata store for a test node -
+// a flat list of kv_pairs queried and updated by string key.  Just
+// enough to carry name / message strings on a test_object until the
+// fuller key-value metadata design lands.  It is the default metadata
+// container for test_object (and therefore for basic_test), so it must
+// be a complete type before the test_object template below.  Satisfies
+// test_object's container requirement: it exposes a `value_type` (the
+// row), from which test_object derives metadata_type.
 //
-// Structural classification (rank, leaf/interior) is NOT
-// stored here - it is resolved through the test_type
-// registry at the tree level.  In isolation, the
-// test_type_id itself acts as the rank.
+//   NOTE: lookup is a linear scan over the entry list comparing the
+// key strings directly; it deliberately never invokes kv_pair's
+// relational operators (which are presently ill-formed when
+// instantiated), constructing rows through the value constructor only.
+class test_metadata
+{
+public:
+    // value_type
+    //   type: one metadata row, a string key / string value pair.
+    using value_type = ::djinterp::kv_pair<std::string, std::string>;
+
+    test_metadata() = default;
+
+    // set
+    //   inserts or overwrites the value stored under _key.
+    void
+    set(
+        const std::string& _key,
+        const std::string& _value
+    )
+    {
+        std::size_t i;
+
+        for (i = 0; i < m_entries.size(); ++i)
+        {
+            if (m_entries[i].m_key == _key)
+            {
+                m_entries[i].m_value = _value;
+
+                return;
+            }
+        }
+
+        m_entries.push_back(value_type(_key, _value));
+
+        return;
+    }
+
+    // get
+    //   returns the value stored under _key, or an empty string if the
+    // key is absent.
+    std::string
+    get(
+        const std::string& _key
+    ) const
+    {
+        std::size_t i;
+
+        for (i = 0; i < m_entries.size(); ++i)
+        {
+            if (m_entries[i].m_key == _key)
+            {
+                return m_entries[i].m_value;
+            }
+        }
+
+        return std::string();
+    }
+
+    // contains
+    //   true iff an entry is stored under _key.
+    bool
+    contains(
+        const std::string& _key
+    ) const
+    {
+        std::size_t i;
+
+        for (i = 0; i < m_entries.size(); ++i)
+        {
+            if (m_entries[i].m_key == _key)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // size
+    //   number of stored entries.
+    std::size_t
+    size() const D_NOEXCEPT
+    {
+        return m_entries.size();
+    }
+
+private:
+    std::vector<value_type> m_entries;
+};
+
+
+// test_object
+//   struct: unified test element.  Holds type identity, result,
+// status, a deferred-callable handle, and a user-supplied metadata
+// container.
+//
+//   Naming, message, options, tags - any classification not
+// covered by the explicit members - live on the metadata
+// container the user picks via _MetadataContainer.
+//
+//   Structural classification (rank, leaf/interior) is NOT
+// stored here.  It is resolved through a test_kind set held by
+// the tree; in isolation, the test_type_id acts as the rank.
+//
+//   Structural POSITION (address, depth) is NOT stored here
+// either.  A node is anonymous: it carries no unique id and no
+// depth.  Identity is the node's address and depth is that
+// address's length, both conferred and tracked by the owning
+// test handler as it walks the tree.  test_object is ignorant
+// of either.
+//
+// Template parameters:
+//   _StatusType        - arithmetic type for status codes.
+//                        Default: std::uint8_t.
+//   _MetadataContainer - any type adhering to metadata_traits /
+//                        metadata_concepts.  Stored in-line and
+//                        exposed through metadata().
+//                        Default: test_metadata.
+//   _Options...        - tail option-policy pack (reserved for
+//                        per-instantiation policy mix-in).
 //
 // Usage:
 //   test_object<> t(42);
-//   t.set_name("basic assertion");
 //   t.evaluate(1 + 1 == 2);
+//   t.metadata().set("name", "my test");
 //   if (t.passed()) { ... }
-template<typename _StatusType = std::uint8_t,
-         typename _IdType     = std::uint32_t>
+template<typename    _StatusType        = std::uint8_t,
+         typename    _MetadataContainer = test_metadata,
+         typename... _Options>
 struct test_object
 {
     static_assert(std::is_arithmetic<_StatusType>::value,
                   "`_StatusType` must be an arithmetic type.");
-    static_assert(std::is_arithmetic<_IdType>::value,
-                  "`_IdType` must be an arithmetic type.");
 
-    // -----------------------------------------------------------------
     //  type aliases
-    // -----------------------------------------------------------------
-    using status_type     = _StatusType;
-    using id_type         = _IdType;
-    using size_type       = std::size_t;
-    using option_set_type = dtest_option_set;
+    using status_type             = _StatusType;
+
+    // metadata protocol exposure
+    //   These aliases satisfy metadata_traits and the
+    // metadata_concepts protocol: any consumer querying for
+    // metadata_container_type_t / metadata_type_t against a
+    // test_object instantiation will find them here.
+    using metadata_container_type = _MetadataContainer;
+    using metadata_type           = typename _MetadataContainer::value_type;
 
     // status constants
     static D_CONSTEXPR status_type status_passed  = static_cast<status_type>(0);
@@ -129,31 +267,26 @@ struct test_object
     //  construction
     // -----------------------------------------------------------------
 
-    // default: pending, type id 0, unnamed
-    D_CONSTEXPR test_object() D_NOEXCEPT
+    // default: pending, type id 0, default-constructed metadata
+    D_CONSTEXPR test_object() D_NOEXCEPT_IF(
+        std::is_nothrow_default_constructible<metadata_container_type>::value)
         : m_result(false),
           m_status(status_pending),
           m_type_id(0),
-          m_id(static_cast<id_type>(0)),
-          m_name(nullptr),
-          m_message(nullptr),
-          m_options(nullptr),
-          m_depth(0),
+          m_metadata(),
           m_callable_id(k_no_callable)
     {}
 
     // from type id
     D_CONSTEXPR explicit test_object(
         test_type_id _type_id
-    ) D_NOEXCEPT
+    ) D_NOEXCEPT_IF(
+        std::is_nothrow_default_constructible<
+            metadata_container_type>::value)
         : m_result(false),
           m_status(status_pending),
           m_type_id(_type_id),
-          m_id(static_cast<id_type>(0)),
-          m_name(nullptr),
-          m_message(nullptr),
-          m_options(nullptr),
-          m_depth(0),
+          m_metadata(),
           m_callable_id(k_no_callable)
     {}
 
@@ -161,71 +294,42 @@ struct test_object
     D_CONSTEXPR test_object(
         test_type_id _type_id,
         bool         _result
-    ) D_NOEXCEPT
+    ) D_NOEXCEPT_IF(std::is_nothrow_default_constructible<metadata_container_type>::value)
         : m_result(_result),
           m_status(_result ? status_passed : status_failed),
           m_type_id(_type_id),
-          m_id(static_cast<id_type>(0)),
-          m_name(nullptr),
-          m_message(nullptr),
-          m_options(nullptr),
-          m_depth(0),
+          m_metadata(),
           m_callable_id(k_no_callable)
     {}
 
-    // from type id, result, and name
+    // from type id, result, and metadata (copy)
     D_CONSTEXPR test_object(
-        test_type_id _type_id,
-        bool         _result,
-        const char*  _name
-    ) D_NOEXCEPT
+        test_type_id                   _type_id,
+        bool                           _result,
+        const metadata_container_type& _metadata
+    )
         : m_result(_result),
           m_status(_result ? status_passed : status_failed),
           m_type_id(_type_id),
-          m_id(static_cast<id_type>(0)),
-          m_name(_name),
-          m_message(nullptr),
-          m_options(nullptr),
-          m_depth(0),
+          m_metadata(_metadata),
           m_callable_id(k_no_callable)
     {}
 
-    // from type id, result, name, and message
+    // from type id, result, and metadata (move)
     D_CONSTEXPR test_object(
-        test_type_id _type_id,
-        bool         _result,
-        const char*  _name,
-        const char*  _message
-    ) D_NOEXCEPT
+        test_type_id              _type_id,
+        bool                      _result,
+        metadata_container_type&& _metadata
+    ) D_NOEXCEPT_IF(
+        std::is_nothrow_move_constructible<
+            metadata_container_type>::value)
         : m_result(_result),
           m_status(_result ? status_passed : status_failed),
           m_type_id(_type_id),
-          m_id(static_cast<id_type>(0)),
-          m_name(_name),
-          m_message(_message),
-          m_options(nullptr),
-          m_depth(0),
+          m_metadata(static_cast<metadata_container_type&&>(_metadata)),
           m_callable_id(k_no_callable)
     {}
 
-    // from type id, result, name, pass message, fail message
-    D_CONSTEXPR test_object(
-        test_type_id _type_id,
-        bool         _result,
-        const char*  _name,
-        const char*  _message_pass,
-        const char*  _message_fail
-    ) D_NOEXCEPT
-        : m_result(_result),
-          m_status(_result ? status_passed : status_failed),
-          m_type_id(_type_id),
-          m_id(static_cast<id_type>(0)),
-          m_name(_name),
-          m_message(_result ? _message_pass : _message_fail),
-          m_options(nullptr),
-          m_depth(0),
-          m_callable_id(k_no_callable)
-    {}
 
     // -----------------------------------------------------------------
     //  test object protocol
@@ -261,6 +365,7 @@ struct test_object
         return (m_status == status_failed);
     }
 
+
     // -----------------------------------------------------------------
     //  evaluation
     // -----------------------------------------------------------------
@@ -290,7 +395,7 @@ struct test_object
     }
 
     // set_status
-    D_CONSTEXPR void
+    D_TEST_CONSTEXPR void
     set_status(
         status_type _status
     ) D_NOEXCEPT
@@ -300,14 +405,16 @@ struct test_object
         return;
     }
 
+
     // -----------------------------------------------------------------
     //  type identity
     // -----------------------------------------------------------------
 
     // type_id
-    //   returns the test_type_id for this object.  When no
-    // test_type registry is present, this also serves as
-    // the numeric rank for tree ordering.
+    //   returns the test_type_id for this object.  In isolation
+    // this doubles as a numeric rank for tree ordering; when a
+    // test_kind set is attached to the tree the id resolves
+    // through it.
     D_CONSTEXPR test_type_id
     type_id() const D_NOEXCEPT
     {
@@ -315,7 +422,7 @@ struct test_object
     }
 
     // set_type_id
-    D_CONSTEXPR void
+    D_TEST_CONSTEXPR void
     set_type_id(
         test_type_id _type_id
     ) D_NOEXCEPT
@@ -325,111 +432,54 @@ struct test_object
         return;
     }
 
+
     // -----------------------------------------------------------------
-    //  naming and identity
+    //  metadata access (metadata_traits / metadata_concepts protocol)
     // -----------------------------------------------------------------
 
-    D_CONSTEXPR const char*
-    name() const D_NOEXCEPT
+    // metadata
+    //   returns a mutable reference to the metadata container.
+    // The container's shape is entirely user-controlled; this
+    // type makes no assumptions about its contents.
+    D_TEST_CONSTEXPR metadata_container_type&
+    metadata() D_NOEXCEPT
     {
-        return m_name;
+        return m_metadata;
     }
 
-    D_CONSTEXPR void
-    set_name(
-        const char* _name
-    ) D_NOEXCEPT
+    // metadata (const)
+    D_CONSTEXPR const metadata_container_type&
+    metadata() const D_NOEXCEPT
     {
-        m_name = _name;
+        return m_metadata;
+    }
+
+    // set_metadata
+    //   assigns a new metadata container by copy.
+    void
+    set_metadata(
+        const metadata_container_type& _metadata
+    )
+    {
+        m_metadata = _metadata;
 
         return;
     }
 
-    D_CONSTEXPR const char*
-    message() const D_NOEXCEPT
+    // set_metadata
+    //   assigns a new metadata container by move.
+    void
+    set_metadata(
+        metadata_container_type&& _metadata
+    ) D_NOEXCEPT_IF(
+        std::is_nothrow_move_assignable<
+            metadata_container_type>::value)
     {
-        return m_message;
-    }
-
-    D_CONSTEXPR void
-    set_message(
-        const char* _message
-    ) D_NOEXCEPT
-    {
-        m_message = _message;
+        m_metadata = static_cast<metadata_container_type&&>(_metadata);
 
         return;
     }
 
-    D_CONSTEXPR id_type
-    id() const D_NOEXCEPT
-    {
-        return m_id;
-    }
-
-    D_CONSTEXPR void
-    set_id(
-        id_type _id
-    ) D_NOEXCEPT
-    {
-        m_id = _id;
-
-        return;
-    }
-
-    // -----------------------------------------------------------------
-    //  options (per-instance overrides)
-    // -----------------------------------------------------------------
-
-    // options
-    //   returns the non-owning pointer to per-instance option
-    // overrides, or nullptr if no overrides are set.
-    D_CONSTEXPR const dtest_option_set*
-    options() const D_NOEXCEPT
-    {
-        return m_options;
-    }
-
-    // set_options
-    //   attaches or detaches per-instance option overrides.
-    // Pass nullptr to clear overrides.  The caller is
-    // responsible for the lifetime of the pointed-to set.
-    D_CONSTEXPR void
-    set_options(
-        const dtest_option_set* _options
-    ) D_NOEXCEPT
-    {
-        m_options = _options;
-
-        return;
-    }
-
-    // has_options
-    D_CONSTEXPR bool
-    has_options() const D_NOEXCEPT
-    {
-        return (m_options != nullptr);
-    }
-
-    // -----------------------------------------------------------------
-    //  depth (computed by tree, stored as external cache)
-    // -----------------------------------------------------------------
-
-    D_CONSTEXPR size_type
-    depth() const D_NOEXCEPT
-    {
-        return m_depth;
-    }
-
-    D_CONSTEXPR void
-    set_depth(
-        size_type _depth
-    ) D_NOEXCEPT
-    {
-        m_depth = _depth;
-
-        return;
-    }
 
     // -----------------------------------------------------------------
     //  deferred callable (opaque handle)
@@ -437,15 +487,12 @@ struct test_object
     //   When non-zero, this object refers to a closure stored
     // in a test_callable_table elsewhere.  The handler invokes
     // the closure on this object during the tree walk,
-    // immediately before firing per-test events; the closure
-    // mutates m_result / m_status / m_message / m_name as
-    // appropriate to reflect the test's outcome.
+    // immediately before firing per-test events.
     //
     //   When zero (the default, k_no_callable), this object is
     // treated as fully evaluated by data: the value already in
     // m_result / m_status is authoritative and no callable is
-    // invoked.  This preserves the behavior of every existing
-    // data-driven leaf.
+    // invoked.
 
     D_CONSTEXPR test_callable_id
     callable_id() const D_NOEXCEPT
@@ -469,6 +516,7 @@ struct test_object
         return;
     }
 
+
     // -----------------------------------------------------------------
     //  storage
     // -----------------------------------------------------------------
@@ -476,11 +524,7 @@ struct test_object
     bool                    m_result;
     status_type             m_status;
     test_type_id            m_type_id;
-    id_type                 m_id;
-    const char*             m_name;
-    const char*             m_message;
-    const dtest_option_set* m_options;
-    size_type               m_depth;
+    metadata_container_type m_metadata;
     test_callable_id        m_callable_id;
 };
 
@@ -488,22 +532,21 @@ struct test_object
 ///////////////////////////////////////////////////////////////////////////////
 ///                II.  CONVENIENCE ALIASES                                  ///
 ///////////////////////////////////////////////////////////////////////////////
+
 // basic_test
-//   type: default test object with uint8 status, uint16 rank,
-// uint32 id.
+//   type: default test object - uint8 status and the default
+// test_metadata key/value container carrying name / message strings.
+// Equivalent to test_object<>, so it stays the same type as any
+// test_object<uint8> signature elsewhere in the framework.
 using basic_test = test_object<>;
 
-// compact_test
-//   type: test object with minimal storage - uint8 status,
-// uint8 rank, uint16 id.
-using compact_test = test_object<std::uint8_t,
-                                 std::uint16_t>;
+// tagged_test
+//   type: test object using a plain integer-tag list as its metadata
+// container instead of the default key/value store - for suites that
+// classify nodes by numeric tag rather than by string key.
+using tagged_test = test_object<std::uint8_t,
+                                std::vector<std::int32_t>>;
 
-// wide_test
-//   type: test object with large id space - uint8 status,
-// uint16 rank, uint64 id.
-using wide_test = test_object<std::uint8_t,
-                              std::uint64_t>;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. FACTORY FUNCTIONS                                    ///
@@ -511,7 +554,7 @@ using wide_test = test_object<std::uint8_t,
 
 // make_test
 //   function: creates a basic_test from a type id and result.
-D_CONSTEXPR_INLINE basic_test
+D_INLINE basic_test
 make_test(
     test_type_id _type_id,
     bool         _result
@@ -520,52 +563,38 @@ make_test(
     return basic_test(_type_id, _result);
 }
 
-// make_named_test
-//   function: creates a named test from type id, result,
-// and name.
-D_CONSTEXPR_INLINE basic_test
-make_named_test(
-    test_type_id _type_id,
-    bool         _result,
-    const char*  _name
-) D_NOEXCEPT
-{
-    return basic_test(_type_id, _result, _name);
-}
-
-// make_test_with_message
-//   function: creates a basic_test with conditional messages.
-D_CONSTEXPR_INLINE basic_test
-make_test_with_message(
-    test_type_id _type_id,
-    bool         _result,
-    const char*  _name,
-    const char*  _message_pass,
-    const char*  _message_fail
-) D_NOEXCEPT
-{
-    return basic_test(
-        _type_id,
-        _result,
-        _name,
-        _message_pass,
-        _message_fail);
-}
-
 // make_interior
 //   function: creates a pending object of the given type.
-// The caller is responsible for ensuring _type_id
-// corresponds to an interior kind when a test_type
-// registry is present.
-D_CONSTEXPR_INLINE basic_test
+// The caller is responsible for ensuring _type_id corresponds
+// to an interior kind in their test_kind set.
+D_INLINE basic_test
 make_interior(
-    test_type_id _type_id,
-    const char*  _name
+    test_type_id _type_id
 ) D_NOEXCEPT
 {
     basic_test t(_type_id);
-    t.set_name(_name);
     t.set_status(basic_test::status_pending);
+
+    return t;
+}
+
+// make_interior (named)
+//   function: creates a pending object of the given type and stores
+// _name under the "name" metadata key.  Not D_NOEXCEPT: setting a
+// metadata entry may allocate.
+D_INLINE basic_test
+make_interior(
+    test_type_id _type_id,
+    const char*  _name
+)
+{
+    basic_test t(_type_id);
+    t.set_status(basic_test::status_pending);
+
+    if (_name != nullptr)
+    {
+        t.metadata().set("name", _name);
+    }
 
     return t;
 }
