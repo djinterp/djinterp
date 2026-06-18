@@ -1,73 +1,92 @@
 /******************************************************************************
-* djinterp [test]                                              test_tree.hpp
+* djinterp [test]                                                test_tree.hpp
 *
-*   Test tree overlay container.  Wraps any container satisfying the
-* n-ary tree protocol (as detected by nary_tree_traits.hpp) whose
-* elements conform to the test object protocol (as detected by
-* test_object_traits.hpp).
+*   The default, general-use test container.  test_tree is one concrete
+* implementation of the test_container contract (test_container.hpp);
+* using it is not compulsory - any user container meeting the minimum
+* contract is acceptable - but it is the framework reference and is
+* tuned to suit the common case.
 *
-*   RANK INVARIANT:
-*   By default, test_tree enforces the rank invariant: a child's
-* rank must be less than or equal to its parent's rank.  This
-* prevents structural violations (e.g. an assertion containing a
-* module).  The _ValidateRank template parameter controls this
-* at compile time - when false, rank checks are compiled out
-* entirely with zero overhead.
+*   SHAPE:
+*   test_tree pairs a set of test kinds with a forest of root
+*   test_objects:
+*       test_tree = { kinds ; <forest of root test_objects> }
+*   The forest is a single backing tree (default nary_tree<_Element>)
+* whose ROOT NODE is the implied conjunctive root of the formal model:
+* the sequential test roots (the queue) are its immediate children, and
+* the whole run succeeds iff every root succeeds.  The conjunctive root
+* is created on first use and is an ordinary node in the walk; the owning
+* handler derives its status from its children during evaluation.
 *
-*   OVERLAY DESIGN:
-*   test_tree does not own storage.  It delegates entirely to its
-* underlying container, adding a test-domain query surface on top:
-* pass/fail counting, status aggregation, subtree filtering, and
-* evaluation dispatch.  This places it on classification axis 9
-* as an overlay container with underlying_container_type exposed.
+*   KINDS AND RANK:
+*   The kinds are stored as any range of test_kind records (default
+* std::vector<test_kind>; a test_kind_set<C> works equally, since the
+* resolved-query free functions in test_kind.hpp accept either).  They
+* are metadata held alongside the tree, never nodes in it.  Insertion is
+* routed through those queries: append_child rejects a child under a
+* registered leaf parent, and otherwise enforces rank monotonicity via
+* can_be_child_of(kinds, child, parent).  Top-level roots (add_root) are
+* unconstrained - the conjunctive root admits any sequence.  The
+* _ValidateRank flag compiles the checks out entirely when false.
 *
-*   UNDERLYING REQUIREMENTS:
-*   The underlying container must be structurally recognized as an
-* n-ary tree by the trait system.  Any child-access model is
-* accepted: LCRS, container-children, edge-based, or hybrid.
-* The element type stored in the underlying container must satisfy
-* the test object protocol (boolean conversion + status accessor).
+*   RUN SURFACE:
+*   A sequential counting surface (count_passed / count_failed /
+* count_skipped / count_pending, all_passed, any_failed) aggregates node
+* status across the forest.  test_object carries no rank or identity of
+* its own - the kind set supplies rank/leaf classification, and the
+* handler supplies address and depth during the walk.
 *
-*   STRUCTURAL DETECTION:
-*   test_tree itself exposes the container protocol members needed
-* for the trait system to classify it: value_type, node_type,
-* depth_type, underlying_container_type, begin/end (forwarded),
-* size, root, children, parent.  The trait system will therefore
-* classify it as hierarchical, overlay, and iterable at whatever
-* level the underlying container supports.
+*   DESIGN:
+*   test_tree delegates all storage to its backing forest, adding the
+* kind metadata, the rank-checked build surface, and the run surface on
+* top.  It is templated so callers may vary the element type, the forest
+* storage, and the kind container, with sensible defaults.
+*
+*   This module supersedes the old test_tree overlay and folds in the
+* detection that previously lived in the retired test_tree_traits.hpp /
+* test_tree_concepts.hpp: only is_test_tree (recogniser for this class
+* template) remains, restated here as a trait and a C++20 concept.
 *
 *   PORTABILITY:
-*   C++11 minimum.  Uses D_TEST_CONSTEXPR for relaxed constexpr
-* paths on C++14+.  C++20 concepts are used when available;
-* pre-C++20 falls back to static_assert validation.
+*   C++11 minimum.  `_v` companions on C++14+.  Concepts on C++20.
 *
 *
 * TABLE OF CONTENTS
 * =================
-* I.    UNDERLYING PROTOCOL DETECTION
-* II.   TEST TREE
-* III.  SUBTREE COMBINATION
-* IV.   CONVENIENCE ALIASES
+* I.    TEST TREE
+* II.   TEST-TREE DETECTION
+* III.  CONVENIENCE ALIASES
 *
 *
 * path:      /inc/djinterp/test/test_tree.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.17
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_TREE_
 #define DJINTERP_TEST_TREE_ 1
 
+#ifndef __cplusplus
+    #error "test_tree.hpp requires C++ compilation"
+#endif
+
 // std
 #include <cstddef>
-#include <initializer_list>
 #include <type_traits>
 #include <utility>
+#include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/meta/type_traits.hpp"
+#include "../core/container/tree/nary/nary_tree.hpp"
 #include "./test_common.hpp"
-#include "./test_object_traits.hpp"
+#include "./test_kind.hpp"
+#include "./test_container.hpp"
+
+
+#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+    #error "test_tree.hpp requires C++11 or higher"
+#endif
 
 
 NS_DJINTERP
@@ -75,144 +94,62 @@ NS_TEST
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                I.   UNDERLYING PROTOCOL DETECTION                       ///
-///////////////////////////////////////////////////////////////////////////////
-
-NS_INTERNAL
-
-    // has_root_method
-    //   trait: true if _Type exposes root().
-    template<typename _Type,
-             typename = void>
-    struct has_root_method : std::false_type
-    {};
-
-    template<typename _Type>
-    struct has_root_method<_Type,
-        void_t<decltype(std::declval<_Type&>().root())>>
-        : std::true_type
-    {};
-
-    // has_size_accessor
-    //   trait: true if _Type exposes size().
-    template<typename _Type,
-             typename = void>
-    struct has_size_accessor : std::false_type
-    {};
-
-    template<typename _Type>
-    struct has_size_accessor<_Type,
-        void_t<decltype(std::declval<const _Type&>().size())>>
-        : std::true_type
-    {};
-
-    // has_empty_method
-    //   trait: true if _Type exposes empty().
-    template<typename _Type,
-             typename = void>
-    struct has_empty_method : std::false_type
-    {};
-
-    template<typename _Type>
-    struct has_empty_method<_Type,
-        void_t<decltype(std::declval<const _Type&>().empty())>>
-        : std::true_type
-    {};
-
-    // has_clear_method
-    //   trait: true if _Type exposes clear().
-    template<typename _Type,
-             typename = void>
-    struct has_clear_method : std::false_type
-    {};
-
-    template<typename _Type>
-    struct has_clear_method<_Type,
-        void_t<decltype(std::declval<_Type&>().clear())>>
-        : std::true_type
-    {};
-
-    // has_begin_end
-    //   trait: true if _Type exposes begin() and end().
-    template<typename _Type,
-             typename = void>
-    struct has_begin_end : std::false_type
-    {};
-
-    template<typename _Type>
-    struct has_begin_end<_Type,
-        void_t<decltype(std::declval<_Type&>().begin()),
-                  decltype(std::declval<_Type&>().end())>>
-        : std::true_type
-    {};
-
-    // has_rank_method
-    //   trait: true if _Type exposes rank().
-    template<typename _Type,
-             typename = void>
-    struct has_rank_method : std::false_type
-    {};
-
-    template<typename _Type>
-    struct has_rank_method<_Type,
-        void_t<decltype(std::declval<const _Type&>().rank())>>
-        : std::true_type
-    {};
-
-NS_END  // internal
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                II.  TEST TREE                                           ///
+///                I.   TEST TREE                                            ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // test_tree
-//   class: overlay container wrapping any n-ary tree whose
-// elements satisfy the test object protocol.  Delegates all
-// storage and structural operations to the underlying
-// container, adding test-domain queries and evaluation
-// dispatch.
-//
-//   _Element must satisfy the test object protocol: boolean
-// conversion and status() accessor.  _Underlying must expose
-// at minimum root() and size().
+//   class: the default, general-use test_container.  Pairs a set of
+// test kinds with a forest of root test_objects held in a backing tree
+// whose root node is the implied conjunctive root.  Delegates storage
+// to the backing, adding kind metadata, a rank-checked build surface,
+// and a run / counting surface.
 //
 // Template parameters:
-//   _Element:       the test object element type.
-//   _Underlying:    any n-ary tree container holding _Element
-//                   nodes.
-//   _ValidateRank:  compile-time flag.  When true (default),
-//                   add_child enforces the rank invariant
-//                   (child.rank <= parent.rank).  When false,
-//                   rank checks are compiled out entirely.
+//   _Element:       the test object element type (must satisfy the test
+//                   object protocol, is_test_evaluable).
+//   _Underlying:    the forest backing.  Must expose root(), size(),
+//                   append_child(node_type*, value_type), and begin()/
+//                   end().  Default: nary_tree<_Element>.
+//   _KindContainer: storage for the test kinds - any range of test_kind
+//                   records (a test_kind_set<C> also qualifies).
+//                   Default: std::vector<test_kind>.
+//   _ValidateRank:  compile-time flag.  When true (default), append_child
+//                   enforces the leaf / rank rules; when false they are
+//                   compiled out.
 //
 // Usage:
-//   using my_tree = test_tree<basic_test, some_nary_tree<basic_test>>;
-//   my_tree t;
-//   // ... populate via underlying() ...
-//   auto n = t.count_passed();
-//
-//   // disable rank validation:
-//   using loose_tree = test_tree<basic_test, some_nary_tree<basic_test>, false>;
+//   test_tree<basic_test> t;                 // default-backed
+//   auto* r = t.add_root(make_test(0, true));
+//   t.append_child(r, make_test(1, true));   // rank-checked
+//   bool ok = t.all_passed();
 template<typename _Element,
-         typename _Underlying,
-         bool     _ValidateRank = true>
+         typename _Underlying    = ::djinterp::nary_tree<_Element>,
+         typename _KindContainer = ::std::vector<test_kind>,
+         bool     _ValidateRank  = true>
 class test_tree
 {
     static_assert(
         is_test_evaluable<_Element>::value,
-        "`_Element` must be convertible to bool (test "
-        "object protocol).");
+        "`_Element` must satisfy the test object protocol "
+        "(is_test_evaluable).");
 
     static_assert(
-        internal::has_root_method<_Underlying>::value,
-        "`_Underlying` must expose root() (n-ary tree "
-        "protocol).");
+        has_root_method<_Underlying>::value,
+        "`_Underlying` must expose root() (forest backing).");
 
     static_assert(
-        internal::has_size_accessor<_Underlying>::value,
-        "`_Underlying` must expose size() (n-ary tree "
-        "protocol).");
+        has_size_accessor<_Underlying>::value,
+        "`_Underlying` must expose size() (forest backing).");
+
+    static_assert(
+        has_append_child_method<_Underlying>::value,
+        "`_Underlying` must expose append_child(node_type*, "
+        "value_type) (forest backing).");
+
+    static_assert(
+        has_begin_end<_Underlying>::value,
+        "`_Underlying` must expose begin()/end() for the run / "
+        "counting surface.");
 
 public:
     // -----------------------------------------------------------------
@@ -220,178 +157,220 @@ public:
     // -----------------------------------------------------------------
     using value_type                = _Element;
     using underlying_container_type = _Underlying;
+    using kind_container_type       = _KindContainer;
+    using node_type                 = typename _Underlying::node_type;
     using size_type                 = std::size_t;
-    using depth_type                = std::size_t;
 
-    // compile-time rank validation flag
+    // compile-time rank-validation flag
     static constexpr bool validate_rank = _ValidateRank;
+
 
     // -----------------------------------------------------------------
     //  construction
     // -----------------------------------------------------------------
 
     // test_tree
-    //   constructor: default.  Creates an empty overlay
-    // wrapping a default-constructed underlying container.
+    //   constructor: default.  Empty kind set, empty forest (the
+    // conjunctive root is created on first add_root).
     test_tree()
-        : m_underlying()
+        : m_kinds(),
+          m_forest()
     {}
 
     // test_tree
-    //   constructor: from underlying.  Takes ownership of
-    // an existing underlying container via move.
+    //   constructor: from a kind container (move).
     explicit test_tree(
-        _Underlying&& _tree
+        kind_container_type _kinds
     )
-        : m_underlying(static_cast<_Underlying&&>(_tree))
+        : m_kinds(static_cast<kind_container_type&&>(_kinds)),
+          m_forest()
     {}
 
     // test_tree
-    //   constructor: from underlying (copy).
-    explicit test_tree(
-            const _Underlying& _tree
-        )
-            : m_underlying(_tree)
+    //   constructor: from a kind container and a pre-built forest (move).
+    test_tree(
+        kind_container_type       _kinds,
+        underlying_container_type _forest
+    )
+        : m_kinds(static_cast<kind_container_type&&>(_kinds)),
+          m_forest(static_cast<underlying_container_type&&>(_forest))
     {}
+
+
+    // -----------------------------------------------------------------
+    //  kind access
+    // -----------------------------------------------------------------
+
+    // kinds
+    //   returns a mutable reference to the kind container.
+    kind_container_type&
+    kinds() D_NOEXCEPT
+    {
+        return m_kinds;
+    }
+
+    // kinds (const)
+    const kind_container_type&
+    kinds() const D_NOEXCEPT
+    {
+        return m_kinds;
+    }
+
 
     // -----------------------------------------------------------------
     //  underlying access
     // -----------------------------------------------------------------
 
     // underlying
-    //   returns a mutable reference to the underlying
-    // container for direct manipulation.
-    _Underlying&
+    //   returns a mutable reference to the backing forest.
+    underlying_container_type&
     underlying() D_NOEXCEPT
     {
-        return m_underlying;
+        return m_forest;
     }
 
     // underlying (const)
-    const _Underlying&
+    const underlying_container_type&
     underlying() const D_NOEXCEPT
     {
-        return m_underlying;
+        return m_forest;
     }
+
 
     // -----------------------------------------------------------------
     //  forwarded capacity
     // -----------------------------------------------------------------
 
     // size
-    //   returns the number of nodes in the underlying tree.
     size_type
     size() const D_NOEXCEPT
     {
-        return m_underlying.size();
+        return m_forest.size();
     }
 
     // empty
-    //   returns true if the underlying tree is empty.
     bool
     empty() const D_NOEXCEPT
     {
-        return (m_underlying.size() == 0);
+        return (m_forest.size() == 0);
     }
 
+
     // -----------------------------------------------------------------
-    //  forwarded root access
+    //  forwarded iteration (sequential walk of the forest)
+    // -----------------------------------------------------------------
+    //   Trailing return types deduce from `_Underlying`, which is in
+    // scope here, since members declared lower in the class are not yet
+    // visible in the trailing-return context.
+
+    auto
+    begin() -> decltype(std::declval<_Underlying&>().begin())
+    {
+        return m_forest.begin();
+    }
+
+    auto
+    end() -> decltype(std::declval<_Underlying&>().end())
+    {
+        return m_forest.end();
+    }
+
+    auto
+    begin() const -> decltype(std::declval<const _Underlying&>().begin())
+    {
+        return m_forest.begin();
+    }
+
+    auto
+    end() const -> decltype(std::declval<const _Underlying&>().end())
+    {
+        return m_forest.end();
+    }
+
+
+    // -----------------------------------------------------------------
+    //  forwarded root (the implied conjunctive root)
     // -----------------------------------------------------------------
 
-    // root
-    //   returns the root handle from the underlying tree.
-    //
-    //   Trailing return types are parsed BEFORE the class body
-    // is complete, so members declared later in the class
-    // (here, `m_underlying` at the bottom of the class) are
-    // not yet visible at this point.  An earlier form of this
-    // declaration used `decltype(m_underlying.root())`, which
-    // produced "use of undeclared identifier 'm_underlying'"
-    // under clang / MSVC.  We side-step the issue entirely by
-    // deducing the return type from the template parameter
-    // `_Underlying`, which IS in scope in the trailing-return
-    // context - the function body is unchanged.
     auto
     root() -> decltype(std::declval<_Underlying&>().root())
     {
-        return m_underlying.root();
+        return m_forest.root();
     }
 
-    // root (const)
     auto
     root() const -> decltype(std::declval<const _Underlying&>().root())
     {
-        return m_underlying.root();
+        return m_forest.root();
     }
+
 
     // -----------------------------------------------------------------
     //  forwarded clear
     // -----------------------------------------------------------------
 
-    // clear
-    //   clears the underlying tree.
     void
     clear()
     {
-        m_underlying.clear();
+        m_forest.clear();
 
         return;
     }
 
+
     // -----------------------------------------------------------------
-    //  rank-validated insertion
+    //  rank-checked build surface
     // -----------------------------------------------------------------
 
-    // validate_rank_invariant
-    //   returns true if _child may be added under _parent
-    // according to the rank invariant (child.rank <=
-    // parent.rank).  When _ValidateRank is false, always
-    // returns true - the check is compiled out entirely.
-    //
-    //   When the element type does not expose rank(), the
-    // check is also compiled out (no constraint to enforce).
-    template<typename _Parent,
-             typename _Child>
-    static D_CONSTEXPR bool
-    validate_rank_invariant(
-        const _Parent& _parent,
-        const _Child&  _child
-    ) D_NOEXCEPT
+    // add_root
+    //   appends _child as a new top-level test root - a child of the
+    // implied conjunctive root.  Top-level roots are unconstrained (the
+    // conjunctive root admits any sequence), so this is NOT rank-checked.
+    // Creates the conjunctive root on first use.  Returns the new node.
+    node_type*
+    add_root(
+        value_type _child
+    )
     {
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-        if constexpr ( (_ValidateRank) &&
-                       (internal::has_rank_method<_Parent>::value) &&
-                       (internal::has_rank_method<_Child>::value) )
-        {
-            return (_child.rank() <= _parent.rank());
-        }
-        else
-        {
-            (void)_parent;
-            (void)_child;
+        node_type* conjunctive = ensure_conjunctive_root();
 
-            return true;
-        }
-#else
-        return validate_rank_dispatch(
-            _parent,
-            _child,
-            std::integral_constant<bool,
-                ( _ValidateRank &&
-                  internal::has_rank_method<_Parent>::value &&
-                  internal::has_rank_method<_Child>::value )>{});
-#endif
+        return m_forest.append_child(conjunctive, _child);
     }
 
+    // append_child
+    //   appends _child under _parent within a tree, enforcing the
+    // structural rules through the kind set: a registered leaf parent
+    // admits no children, and otherwise the child's resolved rank must
+    // not exceed the parent's (can_be_child_of).  Returns nullptr if
+    // _parent is null or the insertion is rejected.  When _ValidateRank
+    // is false the checks are compiled out.
+    node_type*
+    append_child(
+        node_type* _parent,
+        value_type _child
+    )
+    {
+        if (_parent == nullptr)
+        {
+            return nullptr;
+        }
+
+        if (!rank_admits(_parent->data(), _child))
+        {
+            return nullptr;
+        }
+
+        return m_forest.append_child(_parent, _child);
+    }
+
+
     // -----------------------------------------------------------------
-    //  test-domain queries
+    //  run / counting surface
     // -----------------------------------------------------------------
 
     // count_by_status
-    //   traverses the underlying tree and counts elements
-    // whose status() matches _status.  Requires the
-    // underlying container to support pre-order iteration
-    // via for_each or begin/end.
+    //   walks the forest and counts elements whose status() matches
+    // _status (compared numerically, so any status representation works).
     template<typename _StatusType>
     size_type
     count_by_status(
@@ -400,364 +379,201 @@ public:
     {
         size_type count = 0;
 
-        count_by_status_impl(
-            _status,
-            count,
-            typename internal::has_begin_end<
-                const _Underlying>::type{});
-
-        return count;
-    }
-
-    // count_passed
-    //   returns the number of elements with status passed (0).
-    size_type
-    count_passed() const
-    {
-        return count_by_status(
-            static_cast<test_status>(0));
-    }
-
-    // count_failed
-    //   returns the number of elements with status failed (1).
-    size_type
-    count_failed() const
-    {
-        return count_by_status(
-            static_cast<test_status>(1));
-    }
-
-    // count_skipped
-    //   returns the number of elements with status skipped (2).
-    size_type
-    count_skipped() const
-    {
-        return count_by_status(
-            static_cast<test_status>(2));
-    }
-
-    // count_pending
-    //   returns the number of elements with status pending (3).
-    size_type
-    count_pending() const
-    {
-        return count_by_status(
-            static_cast<test_status>(3));
-    }
-
-    // all_passed
-    //   returns true if every element in the tree has status
-    // passed.  An empty tree returns true (vacuous truth).
-    bool
-    all_passed() const
-    {
-        return (count_failed() == 0 &&
-                count_pending() == 0 &&
-                count_by_status(
-                    static_cast<test_status>(4)) == 0);
-    }
-
-    // any_failed
-    //   returns true if at least one element has status
-    // failed or error.
-    bool
-    any_failed() const
-    {
-        return (count_failed() > 0 ||
-                count_by_status(
-                    static_cast<test_status>(4)) > 0);
-    }
-
-    // -----------------------------------------------------------------
-    //  subtree composition
-    // -----------------------------------------------------------------
-
-    // graft
-    //   Copies the entire structure of _src under _parent in this
-    // tree.  _src is unchanged; this tree gains a deep copy of
-    // every node in _src rooted as a child of _parent.
-    //   Useful for assembling a multi-module test session out of
-    // independently-built per-module subtrees: build each module's
-    // tree with its own builder function, then graft each one
-    // under a shared parent root in a master tree.
-    //   The underlying container must support append_child and the
-    // node protocol (data() / first_child() / next_sibling()) for
-    // walking the source.  Any other underlying that exposes these
-    // names will work too.
-    //
-    //   No-ops (returns nullptr) if either:
-    //     - _parent is null, or
-    //     - _src has no root (empty source tree).
-    //
-    //   Rank invariant: when _ValidateRank is true and both element
-    // types expose rank(), grafting honors the same parent-vs-child
-    // rank check as direct insertion.  The check is applied at the
-    // graft seam (parent vs. _src.root()); deeper rank relationships
-    // inside _src are presumed already valid because _src was
-    // assembled under the same invariant.
-    //
-    // Parameters:
-    //   _parent: pointer to the node in this tree under which _src's
-    //            structure will be cloned.  Must belong to this
-    //            tree's underlying container.
-    //   _src:    source subtree to clone.  Read-only.
-    //
-    // Returns:
-    //   pointer to the new node corresponding to _src's root in this
-    //   tree, or nullptr if no graft was performed.
-    template<typename _OtherUnderlying>
-    auto
-    graft(
-        decltype(std::declval<_Underlying&>().root())  _parent,
-        const test_tree<_Element, _OtherUnderlying>&   _src
-    )
-        -> decltype(std::declval<_Underlying&>().root())
-    {
-        return graft_impl(_parent, _src.underlying().root());
-    }
-
-    // append_subtree
-    //   Convenience wrapper: grafts _src under this tree's existing
-    // root.  Equivalent to `graft(this->root(), _src)`.
-    //
-    //   No-op (returns nullptr) if this tree has no root yet — call
-    // emplace_root on the underlying first, or use combine_subtrees
-    // (below) which constructs a fresh root from a label.
-    template<typename _OtherUnderlying>
-    auto
-    append_subtree(
-        const test_tree<_Element, _OtherUnderlying>& _src
-    )
-        -> decltype(std::declval<_Underlying&>().root())
-    {
-        return graft_impl(m_underlying.root(),
-                          _src.underlying().root());
-    }
-
-    // merge_into
-    //   Grafts every immediate child of _src's root under this
-    // tree's root.  Differs from append_subtree() in that the
-    // source's root node itself is dropped; only its descendants
-    // are transplanted.
-    //
-    //   Useful when _src already has a wrapping module-kind root
-    // and the caller wants its categories to appear directly under
-    // this tree's root rather than under another nested module.
-    //
-    //   No-op if either tree has no root.
-    template<typename _OtherUnderlying>
-    void
-    merge_into(
-        const test_tree<_Element, _OtherUnderlying>& _src
-    )
-    {
-        auto* dest_root = m_underlying.root();
-        auto* src_root  = _src.underlying().root();
-
-        if ((dest_root == nullptr) || (src_root == nullptr))
-        {
-            return;
-        }
-
-        for (auto* child = src_root->first_child();
-             child != nullptr;
-             child = child->next_sibling())
-        {
-            graft_impl(dest_root, child);
-        }
-
-        return;
-    }
-
-private:
-    // -----------------------------------------------------------------
-    //  internal: graft worker
-    // -----------------------------------------------------------------
-
-    // graft_impl
-    //   Recursive worker for graft / append_subtree / merge_into.
-    // Walks _src in pre-order and reconstructs the structure as a
-    // child-chain rooted at _parent in this tree's underlying
-    // container.
-    //
-    //   Templated on the source-node pointer type so the same
-    // worker accepts both this tree's own node types and those of
-    // a structurally-compatible foreign underlying.  Both must
-    // expose data() / first_child() / next_sibling().
-    template<typename _SrcNodePtr>
-    auto
-    graft_impl(
-        decltype(std::declval<_Underlying&>().root()) _parent,
-        _SrcNodePtr                                   _src
-    )
-        -> decltype(std::declval<_Underlying&>().root())
-    {
-        if ( (_parent == nullptr) ||
-             (_src    == nullptr) )
-        {
-            return nullptr;
-        }
-
-        // copy the source root's value as a child of _parent
-        auto* placed = m_underlying.append_child(_parent,
-                                                 _src->data());
-
-        // recurse over the source root's children
-        for (auto* child = _src->first_child();
-             child != nullptr;
-             child = child->next_sibling())
-        {
-            graft_impl(placed, child);
-        }
-
-        return placed;
-    }
-
-    // -----------------------------------------------------------------
-    //  internal: rank validation dispatch (pre-C++17)
-    // -----------------------------------------------------------------
-
-    // validate_rank_dispatch (enabled)
-    template<typename _Parent,
-             typename _Child>
-    static D_CONSTEXPR bool
-    validate_rank_dispatch(
-        const _Parent& _parent,
-        const _Child&  _child,
-        std::true_type
-    ) D_NOEXCEPT
-    {
-        return (_child.rank() <= _parent.rank());
-    }
-
-    // validate_rank_dispatch (disabled)
-    template<typename _Parent,
-             typename _Child>
-    static D_CONSTEXPR bool
-    validate_rank_dispatch(
-        const _Parent&,
-        const _Child&,
-        std::false_type
-    ) D_NOEXCEPT
-    {
-        return true;
-    }
-
-    // -----------------------------------------------------------------
-    //  internal: status counting with begin/end
-    // -----------------------------------------------------------------
-
-    // count_by_status_impl (iterable)
-    template<typename _StatusType>
-    void
-    count_by_status_impl(
-        _StatusType _status,
-        size_type&  _count,
-        std::true_type
-    ) const
-    {
-        for (auto it = m_underlying.begin();
-             it != m_underlying.end();
+        for (auto it = m_forest.begin();
+             it != m_forest.end();
              ++it)
         {
             if (static_cast<int>(it->status()) ==
                 static_cast<int>(_status))
             {
-                ++_count;
+                ++count;
             }
         }
 
-        return;
+        return count;
     }
 
-    // count_by_status_impl (non-iterable fallback)
-    //   when the underlying container does not expose
-    // begin/end, counting is not supported and returns 0.
-    template<typename _StatusType>
-    void
-    count_by_status_impl(
-        _StatusType,
-        size_type&,
+    // count_passed
+    size_type
+    count_passed() const
+    {
+        return count_by_status(test_status::passed);
+    }
+
+    // count_failed
+    size_type
+    count_failed() const
+    {
+        return count_by_status(test_status::failed);
+    }
+
+    // count_skipped
+    size_type
+    count_skipped() const
+    {
+        return count_by_status(test_status::skipped);
+    }
+
+    // count_pending
+    size_type
+    count_pending() const
+    {
+        return count_by_status(test_status::pending);
+    }
+
+    // all_passed
+    //   true iff no node is failed, pending, or error.
+    bool
+    all_passed() const
+    {
+        return ( (count_by_status(test_status::failed)  == 0) &&
+                 (count_by_status(test_status::pending) == 0) &&
+                 (count_by_status(test_status::error)   == 0) );
+    }
+
+    // any_failed
+    //   true iff at least one node is failed or error.
+    bool
+    any_failed() const
+    {
+        return ( (count_by_status(test_status::failed) > 0) ||
+                 (count_by_status(test_status::error)  > 0) );
+    }
+
+
+private:
+    // -----------------------------------------------------------------
+    //  internal: conjunctive root
+    // -----------------------------------------------------------------
+
+    // ensure_conjunctive_root
+    //   creates the implied conjunctive root (a default-constructed
+    // element) if the forest is empty, then returns it.
+    node_type*
+    ensure_conjunctive_root()
+    {
+        if (m_forest.root() == nullptr)
+        {
+            m_forest.emplace_root(value_type());
+        }
+
+        return m_forest.root();
+    }
+
+
+    // -----------------------------------------------------------------
+    //  internal: rank / leaf admission (dispatch on _ValidateRank)
+    // -----------------------------------------------------------------
+
+    // rank_admits
+    //   true iff _child may be attached under _parent.
+    bool
+    rank_admits(
+        const value_type& _parent,
+        const value_type& _child
+    ) const
+    {
+        return rank_admits_dispatch(
+            _parent,
+            _child,
+            std::integral_constant<bool, _ValidateRank>{});
+    }
+
+    // rank_admits_dispatch (validation enabled)
+    bool
+    rank_admits_dispatch(
+        const value_type& _parent,
+        const value_type& _child,
+        std::true_type
+    ) const
+    {
+        const test_kind* parent_kind =
+            find_kind(m_kinds, _parent.type_id());
+
+        // a registered leaf parent admits no children
+        if ( (parent_kind != nullptr) &&
+             (parent_kind->is_leaf) )
+        {
+            return false;
+        }
+
+        // otherwise enforce rank monotonicity
+        return can_be_child_of(
+            m_kinds,
+            _child.type_id(),
+            _parent.type_id());
+    }
+
+    // rank_admits_dispatch (validation disabled)
+    bool
+    rank_admits_dispatch(
+        const value_type&,
+        const value_type&,
         std::false_type
     ) const
     {
-        return;
+        return true;
     }
 
-    _Underlying m_underlying;
+
+    kind_container_type       m_kinds;
+    underlying_container_type m_forest;
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III. SUBTREE COMBINATION                                 ///
+///                II.  TEST-TREE DETECTION                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// combine_subtrees
-//   Free factory: builds a fresh test_tree whose root is a
-// freshly-constructed _RootValue and whose children are deep
-// copies of every subtree in _sources, grafted under the new
-// root in document order.
-//
-//   This is the high-level "many independent module trees -> one
-// suite tree" composition primitive.  Each entry in _sources is
-// expected to be a fully-built test_tree (typically returned by
-// a per-module make_*_subtree() builder).  The returned tree
-// owns its own storage, independent of any source.
-//
-// Usage:
-//
-//   array_test_tree suite = combine_subtrees<
-//       array_test_tree>(
-//           make_test_module("array suite"),
-//           {
-//               make_array_test_subtree(),
-//               make_threadsafe_array_test_subtree()
-//           });
-//
-//   handler.run(suite.underlying());
-//
-// Template parameters:
-//   _Tree       : the output test_tree type (concrete
-//                 instantiation expected; element + underlying
-//                 are deduced from it).
-//   _RootValue  : the type of the root node's value (typically
-//                 the same as _Tree::value_type, but accepting
-//                 any forwardable type widens convenience).
-//
-// Parameters:
-//   _root_value : value placed at the root of the returned
-//                 tree.  Forwarded into emplace_root.
-//   _sources    : initializer list of source subtrees to graft
-//                 (in order) under the new root.
-template<typename _Tree, 
-         typename _RootValue>
-_Tree
-combine_subtrees(
-    _RootValue&&                 _root_value,
-    std::initializer_list<_Tree> _sources
-)
-{
-    _Tree result;
+NS_INTERNAL
 
-    result.underlying().emplace_root(
-        std::forward<_RootValue>(_root_value));
+    // is_test_tree_instantiation
+    //   trait: detects whether a type is an instantiation of the
+    // test_tree class template.
+    template<typename _Type>
+    struct is_test_tree_instantiation : std::false_type
+    {};
 
-    for (const auto& src : _sources)
-    {
-        result.append_subtree(src);
-    }
+    template<typename    _Element,
+             typename    _Underlying,
+             typename    _KindContainer,
+             bool        _ValidateRank>
+    struct is_test_tree_instantiation<
+        test_tree<_Element, _Underlying, _KindContainer, _ValidateRank>>
+        : std::true_type
+    {};
 
-    return result;
-}
+NS_END  // internal
+
+// is_test_tree
+//   trait: true iff _Type is an instantiation of test_tree.
+template<typename _Type>
+struct is_test_tree
+    : internal::is_test_tree_instantiation<clean_t<_Type>>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(is_test_tree)
+
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+// test_tree_type
+//   concept: the type is an instantiation of test_tree; mirrors
+// is_test_tree.
+template<typename _Type>
+concept test_tree_type =
+    is_test_tree<clean_t<_Type>>::value;
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.  CONVENIENCE ALIASES                                 ///
+///                III. CONVENIENCE ALIASES                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// Convenience aliases are defined in test_defaults.hpp after
-// the concrete element types and underlying containers are
-// available.
+// Convenience aliases for concrete element / backing / kind-container
+// combinations are defined in test_defaults.hpp, once basic_test and the
+// framework's default kind set are available.
 
 
 NS_END  // test
