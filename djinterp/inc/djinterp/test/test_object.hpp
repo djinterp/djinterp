@@ -3,8 +3,7 @@
 *
 *   Unified test object for the DTest framework.  A single flat struct
 * holding the per-instance state of one test element: type identity,
-* result, status, a deferred-callable handle, and a user-supplied
-* metadata container.
+* result, status, and a user-supplied metadata container.
 *
 *   TYPE IDENTITY:
 *   Every test_object carries a test_type_id - a signed 32-bit integer
@@ -21,6 +20,19 @@
 * ignorant of either.  This mirrors the formal definition, in which a
 * node is anonymous and its address - conferred by the owning queue -
 * is the identity that masking and reporting key on.
+*
+*   DEFERRED-CALLABLE HANDLE:
+*   A test_object carries a test_callable_id - a 1-based index into an
+* out-of-line test_callable_table (test_callable.hpp) holding the node's
+* deferred boolean work as a `() -> bool` thunk.  The node stays flat,
+* trivially copyable, and constexpr-friendly precisely BECAUSE the closure
+* does not live inline: the node references a table row by id only.  The
+* reserved id k_no_callable (0) means "no deferred work" - such a node is
+* already fully described by its m_result / m_status.  The table's owner
+* (the builder in test_builder.hpp, or a handler) binds the thunk via the
+* table, stores the issued id on the node with set_callable_id(), and
+* later runs it with table.invoke(callable_id()) before writing the
+* verdict onto the node via evaluate().
 *
 *   METADATA CONTAINER:
 *   In the previous revision the test_object held two non-owning
@@ -50,6 +62,7 @@
 *     - status()           status accessor
 *     - result()           raw result accessor
 *     - type_id()          test_type_id accessor
+*     - callable_id()      deferred-callable id accessor
 *     - metadata()         metadata container accessor
 *
 *   Naming, messaging, and option access - if needed - live on the
@@ -204,8 +217,7 @@ private:
 
 // test_object
 //   struct: unified test element.  Holds type identity, result,
-// status, a deferred-callable handle, and a user-supplied metadata
-// container.
+// status, and a user-supplied metadata container.
 //
 //   Naming, message, options, tags - any classification not
 // covered by the explicit members - live on the metadata
@@ -221,6 +233,12 @@ private:
 // address's length, both conferred and tracked by the owning
 // test handler as it walks the tree.  test_object is ignorant
 // of either.
+//
+//   DEFERRED WORK: a test_object carries a test_callable_id
+// referencing its deferred thunk in an out-of-line
+// test_callable_table; k_no_callable means none.  The node
+// stores only the id, never the closure, so it stays flat and
+// trivially copyable.
 //
 // Template parameters:
 //   _StatusType        - arithmetic type for status codes.
@@ -273,8 +291,8 @@ struct test_object
         : m_result(false),
           m_status(status_pending),
           m_type_id(0),
-          m_metadata(),
-          m_callable_id(k_no_callable)
+          m_callable_id(k_no_callable),
+          m_metadata()
     {}
 
     // from type id
@@ -286,8 +304,8 @@ struct test_object
         : m_result(false),
           m_status(status_pending),
           m_type_id(_type_id),
-          m_metadata(),
-          m_callable_id(k_no_callable)
+          m_callable_id(k_no_callable),
+          m_metadata()
     {}
 
     // from type id and result
@@ -298,8 +316,8 @@ struct test_object
         : m_result(_result),
           m_status(_result ? status_passed : status_failed),
           m_type_id(_type_id),
-          m_metadata(),
-          m_callable_id(k_no_callable)
+          m_callable_id(k_no_callable),
+          m_metadata()
     {}
 
     // from type id, result, and metadata (copy)
@@ -311,8 +329,8 @@ struct test_object
         : m_result(_result),
           m_status(_result ? status_passed : status_failed),
           m_type_id(_type_id),
-          m_metadata(_metadata),
-          m_callable_id(k_no_callable)
+          m_callable_id(k_no_callable),
+          m_metadata(_metadata)
     {}
 
     // from type id, result, and metadata (move)
@@ -326,8 +344,8 @@ struct test_object
         : m_result(_result),
           m_status(_result ? status_passed : status_failed),
           m_type_id(_type_id),
-          m_metadata(static_cast<metadata_container_type&&>(_metadata)),
-          m_callable_id(k_no_callable)
+          m_callable_id(k_no_callable),
+          m_metadata(static_cast<metadata_container_type&&>(_metadata))
     {}
 
 
@@ -434,6 +452,44 @@ struct test_object
 
 
     // -----------------------------------------------------------------
+    //  deferred-callable handle
+    // -----------------------------------------------------------------
+
+    // callable_id
+    //   returns the id of this node's deferred thunk in the
+    // out-of-line test_callable_table, or k_no_callable when the
+    // node carries no deferred work.
+    D_CONSTEXPR test_callable_id
+    callable_id() const D_NOEXCEPT
+    {
+        return m_callable_id;
+    }
+
+    // has_callable
+    //   true iff this node references a deferred thunk (its id is
+    // not the k_no_callable sentinel).
+    D_CONSTEXPR bool
+    has_callable() const D_NOEXCEPT
+    {
+        return (m_callable_id != k_no_callable);
+    }
+
+    // set_callable_id
+    //   binds this node to a table row by id.  The id is the value
+    // issued by test_callable_table::add(); pass k_no_callable to
+    // detach the node from any deferred work.
+    D_TEST_CONSTEXPR void
+    set_callable_id(
+        test_callable_id _id
+    ) D_NOEXCEPT
+    {
+        m_callable_id = _id;
+
+        return;
+    }
+
+
+    // -----------------------------------------------------------------
     //  metadata access (metadata_traits / metadata_concepts protocol)
     // -----------------------------------------------------------------
 
@@ -482,50 +538,14 @@ struct test_object
 
 
     // -----------------------------------------------------------------
-    //  deferred callable (opaque handle)
-    // -----------------------------------------------------------------
-    //   When non-zero, this object refers to a closure stored
-    // in a test_callable_table elsewhere.  The handler invokes
-    // the closure on this object during the tree walk,
-    // immediately before firing per-test events.
-    //
-    //   When zero (the default, k_no_callable), this object is
-    // treated as fully evaluated by data: the value already in
-    // m_result / m_status is authoritative and no callable is
-    // invoked.
-
-    D_CONSTEXPR test_callable_id
-    callable_id() const D_NOEXCEPT
-    {
-        return m_callable_id;
-    }
-
-    D_CONSTEXPR bool
-    has_callable() const D_NOEXCEPT
-    {
-        return (m_callable_id != k_no_callable);
-    }
-
-    void
-    set_callable_id(
-        test_callable_id _id
-    ) D_NOEXCEPT
-    {
-        m_callable_id = _id;
-
-        return;
-    }
-
-
-    // -----------------------------------------------------------------
     //  storage
     // -----------------------------------------------------------------
 
     bool                    m_result;
     status_type             m_status;
     test_type_id            m_type_id;
-    metadata_container_type m_metadata;
     test_callable_id        m_callable_id;
+    metadata_container_type m_metadata;
 };
 
 

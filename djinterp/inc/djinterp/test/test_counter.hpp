@@ -4,15 +4,15 @@
 *   A nestable, bounded counter for test instrumentation with optional
 * event dispatch.  Wraps util::counter for value and bounds tracking,
 * adds owning and non-owning child management, and fires events through
-* an optional event_handler pointer.
+* an optional event_dispatcher pointer.
 *
-*   When an event_handler is attached, the counter fires tag-typed events
+*   When an event_dispatcher is attached, the counter fires tag-typed events
 * on increment, decrement, bound clamping, and reset.  When no handler
 * is attached, operations proceed with zero event overhead.
 *
 *   EVENT TAGS:
 *   Each test_counter instantiation defines nested event tag types
-* compatible with the djinterp event system (event_traits, event_handler):
+* compatible with the djinterp event system (event_traits, event_dispatcher):
 *     on_increment  - (value_type old, value_type new)
 *     on_decrement  - (value_type old, value_type new)
 *     on_limit      - (value_type clamped_value)
@@ -21,7 +21,7 @@
 *   NESTING:
 *   Children may be owned (stored by value, lifetime-bound) or observed
 * (external pointer, caller ensures lifetime).  add_child propagates
-* the parent's event_handler to the new child by default.
+* the parent's event_dispatcher to the new child by default.
 *
 *   PORTABILITY:
 *   Requires C++11 or later.  Uses env.h for version detection and
@@ -51,7 +51,7 @@
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/util/counter/counter.hpp"
-#include "../core/event/event_handler.hpp"
+#include "../core/event/event_dispatcher.hpp"
 
 
 NS_DJINTERP
@@ -67,7 +67,7 @@ NS_TEST
 // with optional event dispatch.
 //
 //   Wraps util::counter<_ValueType> for core value tracking.
-// Fires events through an optional event_handler pointer on
+// Fires events through an optional event_dispatcher pointer on
 // increment, decrement, bound clamping, and reset.
 //
 // Example:
@@ -76,10 +76,10 @@ NS_TEST
 //   c.increment(200);     // value: 100 (clamped), returns false
 //
 // Example (with events):
-//   event_handler eh;
+//   event_dispatcher eh;
 //   test_counter<int> c(0, 0, 100, &eh);
 //   eh.bind<test_counter<int>::on_increment>(
-//       [](event_context& ctx, int old_v, int new_v) { ... });
+//       [](int old_v, int new_v) { ... });
 //   c.increment(5);       // fires on_increment(0, 5)
 template<typename _ValueType = std::int64_t>
 class test_counter
@@ -154,7 +154,7 @@ public:
         value_type     _initial,
         value_type     _min     = std::numeric_limits<value_type>::lowest(),
         value_type     _max     = std::numeric_limits<value_type>::max(),
-        event_handler* _handler = nullptr
+        event_dispatcher* _handler = nullptr
     )
         : m_counter(_initial, _min, _max),
             m_handler(_handler),
@@ -320,7 +320,7 @@ public:
 
     // add_child
     //   constructs and appends an owned child counter.
-    // Inherits this counter's event_handler by default.
+    // Inherits this counter's event_dispatcher by default.
     // Returns a reference to the newly added child.
     self_type&
     add_child(
@@ -407,19 +407,19 @@ public:
     // -----------------------------------------------------------------
 
     // handler
-    //   returns the currently attached event_handler, or nullptr.
-    event_handler*
+    //   returns the currently attached event_dispatcher, or nullptr.
+    event_dispatcher*
     handler() const D_NOEXCEPT
     {
         return m_handler;
     }
 
     // set_handler
-    //   attaches or detaches an event_handler.  Pass nullptr to
+    //   attaches or detaches an event_dispatcher.  Pass nullptr to
     // disable event dispatch.
     void
     set_handler(
-        event_handler* _handler
+        event_dispatcher* _handler
     ) D_NOEXCEPT
     {
         m_handler = _handler;
@@ -452,7 +452,7 @@ private:
 
     //  storage
     base_type      m_counter;
-    event_handler* m_handler;
+    event_dispatcher* m_handler;
     children_type  m_children;
     observed_type  m_observed;
 };

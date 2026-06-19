@@ -52,6 +52,7 @@
 // djinterp
 #include "../core/djinterp.hpp"
 
+
 #ifndef D_KEYWORD_TESTING
     #define D_KEYWORD_TESTING   testing
 #endif  // D_KEYWORD_TESTING
@@ -70,15 +71,20 @@ NS_TEST
 ///////////////////////////////////////////////////////////////////////////////
 
 // test_type_id
-//   type: signed 32-bit identifier for test object types.
-// In isolation, the id doubles as a numeric rank for tree
-// insertion (child id <= parent id).  When a test_type
-// registry is present, the id resolves to a test_kind with
-// explicit rank, leaf/interior classification, and default
-// options.
+//   type: signed 32-bit identifier for the KIND of test a
+// test_object represents.
 //
-// Negative values are reserved for framework-internal
-// use.  User-defined types should use non-negative values.
+//   In isolation (no test_kind set) the id doubles as a
+// numeric rank: a child's id must be <= its parent's.  When a
+// test_kind set is attached to the tree, a matching id resolves
+// to its test_kind definition, which supplies rank,
+// leaf/interior classification, and default options.  See
+// test_kind.hpp for the resolved-query free functions.
+//
+//   This is the node's structural type identity; it is NOT a
+// per-instance unique id (a node carries neither a unique id
+// nor a depth - both are facts of position the owning tree
+// confers during the walk; see test_object.hpp).
 typedef std::int32_t test_type_id;
 
 
@@ -170,25 +176,6 @@ struct test_event
           message(_message)
     {}
 };
-
-
-// iii. event handler
-//////////////////////////////////////////
-
-// fn_test_event_handler
-//   typedef: function pointer type for the legacy
-// callback-style event handler slot stored in a
-// dtest_option_set under DTestOption::handler.  Kept as a
-// plain function-pointer typedef (rather than switched to
-// std::function) so the typedef can sit inside test_common.hpp
-// without dragging <functional> into the dependency graph.
-//
-// NEW CODE SHOULD PREFER the event_handler / test_handler
-// path from test_handler.hpp, which offers multi-subscriber
-// dispatch, typed payloads, and propagation control.  This
-// typedef remains for source compatibility with existing
-// option-based wiring (see test_options.hpp).
-typedef void (*fn_test_event_handler)(const test_event& _event);
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                IV.  CONSTEXPR SUPPORT MACROS                            ///

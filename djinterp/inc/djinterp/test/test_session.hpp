@@ -18,6 +18,20 @@
 *   - reporter/formatter attachment beyond the handler's
 *     own listener bundle
 *
+*   SUITE COMPOSITION (REMOVED):
+*   The previous compose / compose_and_run free functions grafted
+* several independent module subtrees under one fresh root via the
+* tree-level combine_subtrees() factory.  The refactored
+* test_tree.hpp no longer ships that factory (its overlay/graft
+* surface was dropped), so the compose helpers have been removed
+* rather than left dangling.  To assemble a multi-module suite,
+* populate session.tree() directly (a builder, or per-module
+* subtree factories appended through the tree's add_root /
+* append_child surface).  A standalone graft helper can be
+* reintroduced - most naturally as a free function alongside the
+* test_tree convenience aliases in test_defaults.hpp - once its
+* shape is settled.
+*
 *   SESSION STATE:
 *   A session transitions through a linear state machine:
 *     idle --> running --> paused --> running --> ... --> finished
@@ -50,7 +64,7 @@
 *
 * path:      /inc/djinterp/test/test_session.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.11
+* Samuel 'teer' Neal-Blim                       created: 2026.04.11
 ******************************************************************************/
 
 /*
@@ -58,7 +72,6 @@ TABLE OF CONTENTS
 =================
 I.    Session state
 II.   Test session
-III.  Suite composition
 */
 
 #ifndef DJINTERP_TEST_SESSION_
@@ -67,7 +80,6 @@ III.  Suite composition
 // std
 #include <cstddef>
 #include <chrono>
-#include <initializer_list>
 #include <utility>
 // djinterp
 #include "../core/djinterp.hpp"
@@ -114,12 +126,8 @@ enum class session_state
 //   test_session<basic_test, my_tree<basic_test>> session;
 //   default_test_handler                          handler;
 //
-//   // populate session.tree() directly, or compose from
-//   // multiple per-module subtrees:
-//   compose(session, make_test_module("my suite"),
-//           { make_module_a_subtree(),
-//             make_module_b_subtree() });
-//
+//   // populate session.tree() directly (e.g. via a builder or a
+//   // per-module subtree factory), then run it against a handler:
 //   session_verdict v = session.run(handler);
 //
 //   auto passed = session.passed().value();
@@ -273,8 +281,8 @@ public:
     //   Replaces this session's owned tree with _tree (by move),
     // then drives the run as run(_handler) does above.
     //   Convenient when a caller has built a subtree separately
-    // (e.g. via combine_subtrees) and wants the session to run
-    // it without first manually moving it into m_tree.
+    // and wants the session to run it without first manually
+    // moving it into m_tree.
     //
     //   No-op if the session is not idle.
     session_verdict
@@ -600,97 +608,6 @@ private:
     counter_type  m_errors;
     timer_type    m_timer;
 };
-
-
-// =========================================================================
-// III. SUITE COMPOSITION
-// =========================================================================
-
-// compose
-//   Free function: replaces _session's owned tree with a freshly
-// composed one whose root is a freshly-constructed _RootValue and
-// whose children are deep copies of every subtree in _sources,
-// grafted under the new root in document order.
-//
-//   This is the high-level "many independent module subtrees ->
-// one suite session" composition primitive: it wraps the tree-
-// level combine_subtrees() factory and assigns the result into
-// the session's owned tree.  After this call returns, the
-// session is idle and ready to run.
-//
-//   Useful for assembling a multi-module CI run from per-module
-// builders that each return an array_test_tree (or any other
-// concrete test_tree instantiation):
-//
-//     compose(session,
-//             make_test_module("array suite"),
-//             {
-//                 make_array_test_subtree(),
-//                 make_threadsafe_array_test_subtree()
-//             });
-//     verdict = session.run(handler);
-//
-// Template parameters:
-//   _Element     : test_tree element type (deduced from _session).
-//   _Underlying  : test_tree underlying container (deduced).
-//   _RootValue   : root node's value type (typically _Element).
-//
-// Parameters:
-//   _session    : the session to populate.  Must be idle; if not,
-//                 the existing tree is replaced and the session is
-//                 reset to idle.
-//   _root_value : value placed at the root of the composed tree.
-//   _sources    : initializer list of source subtrees to graft.
-template<typename _Element,
-         typename _Underlying,
-         typename _RootValue>
-void
-compose(
-    test_session<_Element, _Underlying>&                    _session,
-    _RootValue&&                                            _root_value,
-    std::initializer_list<test_tree<_Element, _Underlying>> _sources
-)
-{
-    using tree_type = test_tree<_Element, _Underlying>;
-
-    // ensure the session is idle and the prior tree is cleared
-    _session.reset();
-
-    tree_type composed = combine_subtrees<tree_type>(
-        std::forward<_RootValue>(_root_value),
-        _sources);
-
-    _session.tree() = static_cast<tree_type&&>(composed);
-
-    return;
-}
-
-
-// compose_and_run
-//   Free function: composes a multi-subtree session and
-// immediately runs it against _handler, returning the resulting
-// verdict.  Equivalent to compose(_session, _root_value,
-// _sources) followed by _session.run(_handler), but written as a
-// single call for the common one-shot "build, run, return
-// verdict" pattern that CI drivers and test-binary main()s
-// typically want.
-template<typename _Element,
-         typename _Underlying,
-         typename _RootValue>
-session_verdict
-compose_and_run(
-    test_session<_Element, _Underlying>&                    _session,
-    test_handler&                                           _handler,
-    _RootValue&&                                            _root_value,
-    std::initializer_list<test_tree<_Element, _Underlying>> _sources
-)
-{
-    compose(_session,
-            std::forward<_RootValue>(_root_value),
-            _sources);
-
-    return _session.run(_handler);
-}
 
 
 NS_END  // test

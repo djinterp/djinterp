@@ -3,16 +3,16 @@
 *
 *   A nestable timer for test instrumentation with optional event dispatch.
 * Wraps util::timer for elapsed-time tracking, adds owning and non-owning
-* child management, and fires events through an optional event_handler
+* child management, and fires events through an optional event_dispatcher
 * pointer.
 *
-*   When an event_handler is attached, the timer fires tag-typed events
+*   When an event_dispatcher is attached, the timer fires tag-typed events
 * on start, stop, expiry, and reset.  When no handler is attached,
 * operations proceed with zero event overhead.
 *
 *   EVENT TAGS:
 *   Each test_timer instantiation defines nested event tag types
-* compatible with the djinterp event system (event_traits, event_handler):
+* compatible with the djinterp event system (event_traits, event_dispatcher):
 *     on_start   - ()
 *     on_stop    - (rep_type elapsed_count)
 *     on_expire  - ()
@@ -21,7 +21,7 @@
 *   NESTING:
 *   Children may be owned (stored by value, lifetime-bound) or observed
 * (external pointer, caller ensures lifetime).  add_child propagates
-* the parent's event_handler to the new child by default.
+* the parent's event_dispatcher to the new child by default.
 *
 *   PORTABILITY:
 *   Requires C++11 or later.  Uses env.h for version detection and
@@ -44,7 +44,7 @@
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/util/timer/timer.hpp"
-#include "../core/event/event_handler.hpp"
+#include "../core/event/event_dispatcher.hpp"
 
 
 NS_DJINTERP
@@ -56,7 +56,7 @@ NS_TEST
 // optional event dispatch.
 //
 //   Wraps util::timer<_Clock, _Duration> for core time tracking.
-// Fires events through an optional event_handler pointer on
+// Fires events through an optional event_dispatcher pointer on
 // start, stop, expiry, and reset.
 //
 //   The timer tracks elapsed wall-clock time between start/stop
@@ -72,10 +72,10 @@ NS_TEST
 //   auto ns = t.elapsed().count();
 //
 // Example (with events and max limit):
-//   event_handler eh;
+//   event_dispatcher eh;
 //   test_timer<> t(std::chrono::seconds(30), &eh);
 //   eh.bind<test_timer<>::on_stop>(
-//       [](event_context& ctx, test_timer<>::rep_type ns) { ... });
+//       [](test_timer<>::rep_type ns) { ... });
 //   t.start();
 //   t.stop();  // fires on_stop with elapsed count
 template<typename _Clock    = std::chrono::steady_clock,
@@ -165,7 +165,7 @@ public:
     // from max duration and optional handler
     explicit test_timer(
         _Duration      _max,
-        event_handler* _handler = nullptr
+        event_dispatcher* _handler = nullptr
     )
         : m_timer(_max),
             m_handler(_handler),
@@ -175,7 +175,7 @@ public:
 
     // handler-only (no max limit)
     explicit test_timer(
-        event_handler* _handler
+        event_dispatcher* _handler
     )
         : m_timer(),
             m_handler(_handler),
@@ -326,7 +326,7 @@ public:
 
     // add_child (no max)
     //   constructs and appends an owned child timer with no
-    // maximum limit.  Inherits this timer's event_handler by
+    // maximum limit.  Inherits this timer's event_dispatcher by
     // default.  Returns a reference to the newly added child.
     self_type&
     add_child()
@@ -339,7 +339,7 @@ public:
     // add_child (with max)
     //   constructs and appends an owned child timer with a
     // maximum duration limit.  Inherits this timer's
-    // event_handler.
+    // event_dispatcher.
     self_type&
     add_child(
         _Duration _max
@@ -424,19 +424,19 @@ public:
     // -----------------------------------------------------------------
 
     // handler
-    //   returns the currently attached event_handler, or nullptr.
-    event_handler*
+    //   returns the currently attached event_dispatcher, or nullptr.
+    event_dispatcher*
     handler() const D_NOEXCEPT
     {
         return m_handler;
     }
 
     // set_handler
-    //   attaches or detaches an event_handler.  Pass nullptr to
+    //   attaches or detaches an event_dispatcher.  Pass nullptr to
     // disable event dispatch.
     void
     set_handler(
-        event_handler* _handler
+        event_dispatcher* _handler
     ) D_NOEXCEPT
     {
         m_handler = _handler;
@@ -472,7 +472,7 @@ private:
     // -----------------------------------------------------------------
 
     base_type      m_timer;
-    event_handler* m_handler;
+    event_dispatcher* m_handler;
     children_type  m_children;
     observed_type  m_observed;
 };
