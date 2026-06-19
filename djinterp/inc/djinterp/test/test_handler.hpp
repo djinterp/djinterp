@@ -1,45 +1,61 @@
 /******************************************************************************
-* djinterp [test]                                              test_handler.hpp
+* djinterp [test]                                             test_handler.hpp
 *
-*   DTest framework session root.  Composes a typed `event_handler` (from
+*   DTest framework session root.  Composes a typed `event_dispatcher` (from
 * the C++ event subsystem) with per-session result counters and a tree
 * walker, exposing a single facade through which every test lifecycle
 * observation flows.  Built-in lifecycle events and user-defined custom
 * events use the same registration and dispatch mechanism, so output
-* sinks, instrumentation, and ad-hoc assertions all bind to the handler
+* sinks, instrumentation, and ad-hoc assertions all bind to the dispatcher
 * the same way.
 *
 *   DESIGN:
-*   test_handler owns an `event_handler` and a small set of session
+*   test_handler owns an `event_dispatcher` and a small set of session
 * counters (passed / failed / skipped / errors / pending / total).  It
 * does NOT own a tree or options set; trees are passed by reference
 * into `run(...)`, options are looked up externally.  The handler MAY
 * hold a non-owning pointer to a `test_printer` - when set via
 * `set_printer(...)`, the handler installs a bundle of listeners on
-* its own `event_handler` that drive the printer; when cleared, the
+* its own `event_dispatcher` that drive the printer; when cleared, the
 * bundle is unbound.  The printer itself is a listener through and
 * through; this header just provides a one-line wiring API.
+*
+*   NODES ARE PRE-EVALUATED:
+*   As of the test_object refactor, a node carries no deferred-callable
+* handle: its result / status are authoritative, written by whatever
+* evaluated the test (a builder, an inline check, a subtree factory)
+* BEFORE the walk.  The handler therefore READS each node's status and
+* fires the matching lifecycle events; it does not reach into a side
+* table to produce that status.  The earlier set_callable_table(...)
+* wiring is gone - deferred work is composed on the authoring side and
+* its verdict written onto the node.
 *
 *   BUILT-IN LIFECYCLE EVENTS:
 *   The built-in event TAGS are declared in test_event.hpp under the
 * `djinterp::test::events::` sub-namespace.  This file includes that
-* header and references the tags by their qualified names.  The set
-* of fire sites and dispatch behaviour is unchanged from earlier
-* revisions; only the location of the declarations has moved.
+* header and references the tags by their qualified names.
 *
 *   CUSTOM EVENTS:
 *   Users declare custom events anywhere with `D_EVENT(name, ...)` or
-* `D_EVENT_EMPTY(name)` from event_traits.hpp.  No registration step
-* is required: the type IS the registration.  The handler binds and
-* fires custom events through exactly the same `on<E>()` and `fire<E>()`
+* `D_EVENT_EMPTY(name)` from event.hpp.  No registration step is
+* required: the type IS the registration.  The handler binds and fires
+* custom events through exactly the same `on<E>()` and `fire<E>()`
 * methods used for built-ins.
+*
+*   HANDLERS RETURN A VERDICT:
+*   In the refactored event subsystem a handler is a callable taking the
+* event's payload and returning `void` (always-pass) or a `verdict`; it
+* no longer mutates an event_context.  The dispatcher's bind() verifies
+* that contract at compile time.  fire<E>() returns the enriched
+* `dispatch_result` (count + final verdict); the count-returning facade
+* methods below surface only its `invoked` field.
 *
 *   USAGE EXAMPLE - printing a custom-event warning:
 *     D_EVENT_EMPTY(on_unreachable_path);
 *
 *     test_handler handler;
 *     handler.on<on_unreachable_path>(
-*         [](event_context& _ctx) D_NOEXCEPT
+*         []() D_NOEXCEPT
 *         {
 *             std::fputs("\xE2\x80\xBC THIS SHOULD NOT HAPPEN\n", stderr);
 *         });
@@ -63,9 +79,9 @@
 *   C++11 minimum.  All standard-version gating goes through the env.h
 * and env_cpp_features.h interface (D_ENV_LANG_IS_CPP11_OR_HIGHER,
 * D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES, etc.).  Concept-based
-* listener constraints are activated when D_ENV_CPP_FEATURE_LANG_CONCEPTS
+* handler constraints are activated when D_ENV_CPP_FEATURE_LANG_CONCEPTS
 * is non-zero; on older toolchains the same calls compile through the
-* event_handler's static_assert path.
+* event subsystem's static_assert path.
 *
 *
 * TABLE OF CONTENTS
@@ -85,14 +101,12 @@
 #ifndef DJINTERP_TEST_HANDLER_
 #define DJINTERP_TEST_HANDLER_ 1
 
-
 // =========================================================================
 // I.   INCLUDES AND PORTABILITY CHECKS
 // =========================================================================
-
-#ifndef __cplusplus
-    #error "test_handler.hpp can only be used in C++ compilation mode"
-#endif
+//#ifndef __cplusplus
+//    #error "test_handler.hpp can only be used in C++ compilation mode"
+//#endif
 
 
 // std
@@ -100,14 +114,12 @@
 #include <cstdio>
 #include <utility>
 #include <vector>
-// djinterp  --  pull the environment header chain FIRST so that the
-// feature-flag macros below are defined before we test them.
+// djinterp
 #include "../core/djinterp.hpp"
-#include "../core/event/event.hpp"
+#include "../core/event/events.hpp"
 #include "./test_common.hpp"
 #include "./test_event.hpp"
 #include "./test_object.hpp"
-#include "./test_callable_table.hpp"
 
 
 // feature gates
@@ -116,21 +128,21 @@
 // test_handler.hpp before djinterp.hpp; they are intentionally
 // placed after the include chain so the contract is "include this
 // header and it wires itself up."
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_handler.hpp requires C++11 or higher"
-#endif
-
-#if !D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
-    #error "test_handler.hpp requires variadic templates"
-#endif
-
-#if !D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-    #error "test_handler.hpp requires rvalue references"
-#endif
-
-#if !D_ENV_CPP_FEATURE_LANG_LAMBDAS
-    #error "test_handler.hpp requires lambda expressions"
-#endif
+//#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+//    #error "test_handler.hpp requires C++11 or higher"
+//#endif
+//
+//#if !D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+//    #error "test_handler.hpp requires variadic templates"
+//#endif
+//
+//#if !D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
+//    #error "test_handler.hpp requires rvalue references"
+//#endif
+//
+//#if !D_ENV_CPP_FEATURE_LANG_LAMBDAS
+//    #error "test_handler.hpp requires lambda expressions"
+//#endif
 
 
 NS_DJINTERP
@@ -261,7 +273,7 @@ struct session_result
 
 // test_handler
 //   class: session root for the DTest framework.  Owns one
-// event_handler and the per-session counters; provides a thin
+// event_dispatcher and the per-session counters; provides a thin
 // typed facade for binding listeners, firing built-in or custom
 // events, walking a tree of test_object-protocol elements, and
 // - when a printer is attached via set_printer - installing a
@@ -272,13 +284,13 @@ public:
     test_handler()
         : m_events(),
           m_result(),
+          m_sink(),
           m_printer(nullptr),
-          m_printer_listener_ids(),
-          m_callable_table(nullptr)
+          m_printer_listener_ids()
     {}
 
     // destructor unbinds any printer bundle still attached.  The
-    // event_handler's own destruction would tear listeners down
+    // event_dispatcher's own destruction would tear listeners down
     // anyway, but explicit unbinding keeps the bookkeeping
     // observable in the destruction order.
     //
@@ -295,11 +307,11 @@ public:
 
     // on
     //   binds a callable as a listener for _Event on this
-    // handler's event_handler.  Returns the listener_id for
+    // handler's event_dispatcher.  Returns the handler_id for
     // later enable / disable / unbind.
     template<typename _Event,
              typename _Callable>
-    listener_id on(
+    handler_id on(
         _Callable&& _fn
     )
     {
@@ -311,7 +323,7 @@ public:
     //   removes the listener identified by _id.  Returns
     // true if the listener was found and removed.
     bool off(
-        listener_id _id
+        handler_id _id
     )
     {
         return m_events.unbind(_id);
@@ -320,7 +332,7 @@ public:
     // enable
     //   re-enables a previously disabled listener.
     bool enable(
-        listener_id _id
+        handler_id _id
     )
     {
         return m_events.enable(_id);
@@ -330,7 +342,7 @@ public:
     //   suspends a listener without removing it.  Disabled
     // listeners are skipped during dispatch but remain bound.
     bool disable(
-        listener_id _id
+        handler_id _id
     )
     {
         return m_events.disable(_id);
@@ -340,7 +352,9 @@ public:
 
     // fire
     //   dispatches _Event immediately to every enabled
-    // listener.  Returns the number of listeners invoked.
+    // listener.  Returns the number of listeners invoked
+    // (the `invoked` field of the dispatcher's enriched
+    // dispatch_result).
     template<typename _Event,
              typename... _Args>
     std::size_t fire(
@@ -348,7 +362,7 @@ public:
     )
     {
         return m_events.fire<_Event>(
-            std::forward<_Args>(_args)...);
+            std::forward<_Args>(_args)...).invoked;
     }
 
     // queue
@@ -393,7 +407,7 @@ public:
     template<typename _Event>
     bool has_listeners_for() const
     {
-        return m_events.has_listeners_for<_Event>();
+        return m_events.has_handlers_for<_Event>();
     }
 
     // ---- printer wiring ----
@@ -401,7 +415,7 @@ public:
     //   The printer is a listener through and through.  set_printer
     // does the wiring on the user's behalf: it stores a non-owning
     // pointer to the printer and binds a bundle of listeners on
-    // this handler's event_handler whose bodies forward to the
+    // this handler's event_dispatcher whose bodies forward to the
     // printer's lifecycle methods.  clear_printer() unbinds the
     // bundle.  The handler does NOT take ownership of the printer.
     //
@@ -457,51 +471,6 @@ public:
         return m_printer;
     }
 
-    // ---- deferred-callable table ----
-
-    // set_callable_table
-    //   binds a callable table to this handler.  When a table
-    // is bound, the walk inspects each leaf node's callable_id
-    // and, if non-zero, looks up and invokes the corresponding
-    // closure on the node BEFORE firing per-leaf status events.
-    // The closure is expected to mutate the node's m_result /
-    // m_status / m_message fields to reflect the test's
-    // outcome.
-    //
-    //   The handler stores only a non-owning pointer; the
-    // table's lifetime must encompass every walk.
-    //
-    //   Passing nullptr unbinds the table.  When unbound, all
-    // leaf nodes are treated as fully-evaluated (the framework
-    // behavior prior to the introduction of test_callable_table).
-    void set_callable_table(
-        basic_callable_table* _table
-    ) D_NOEXCEPT
-    {
-        m_callable_table = _table;
-
-        return;
-    }
-
-    // clear_callable_table
-    //   unbinds the callable table.  Equivalent to
-    // set_callable_table(nullptr).  Idempotent.
-    void clear_callable_table() D_NOEXCEPT
-    {
-        m_callable_table = nullptr;
-
-        return;
-    }
-
-    // callable_table
-    //   returns the currently bound callable table, or nullptr
-    // if none is bound.
-    D_CONSTEXPR basic_callable_table*
-    callable_table() const D_NOEXCEPT
-    {
-        return m_callable_table;
-    }
-
     // ---- session lifecycle ----
 
     // start_session
@@ -539,7 +508,9 @@ public:
     //
     // _Iterable must expose begin() / end() yielding values
     // that satisfy the test_object protocol (status() and
-    // is_leaf() / type_id() accessors).
+    // type_id() accessors).  Each node's status is taken as
+    // authoritative; the walk fires events and tallies, it
+    // does not evaluate.
     template<typename _Iterable>
     void run(
         _Iterable& _nodes
@@ -636,17 +607,58 @@ public:
     // ---- component access ----
 
     // events
-    //   returns a reference to the underlying event_handler
+    //   returns a reference to the underlying event_dispatcher
     // for advanced use (direct table access, batch listener
     // operations, custom queue introspection).
-    event_handler& events() D_NOEXCEPT
+    event_dispatcher& events() D_NOEXCEPT
     {
         return m_events;
     }
 
-    const event_handler& events() const D_NOEXCEPT
+    const event_dispatcher& events() const D_NOEXCEPT
     {
         return m_events;
+    }
+
+    // ---- assertion sink ----
+
+    // sink
+    //   returns the per-session assertion sink (mutable).  This is
+    // the same vector that record_assertion appends to via
+    // push_assertion; callers can enumerate or clear it as needed.
+    std::vector<basic_test>& sink() D_NOEXCEPT
+    {
+        return m_sink;
+    }
+
+    // sink
+    //   const overload - read-only enumeration of recorded assertions.
+    const std::vector<basic_test>& sink() const D_NOEXCEPT
+    {
+        return m_sink;
+    }
+
+    // push_assertion
+    //   appends a basic_test node to the internal sink.  Called by
+    // record_assertion / record_status / run_unit_test in
+    // test_defaults.hpp; safe to call directly from custom recorders
+    // that want to drop a leaf into the report without touching the
+    // counter side of the handler.
+    void push_assertion(
+        const basic_test& _node
+    )
+    {
+        m_sink.push_back(_node);
+        return;
+    }
+
+    // clear_sink
+    //   wipes every recorded assertion.  Counters in m_result are
+    // unaffected; call reset_counters() to zero those.
+    void clear_sink() D_NOEXCEPT
+    {
+        m_sink.clear();
+        return;
     }
 
 protected:
@@ -662,7 +674,7 @@ protected:
     // test_printer.hpp - e.g. default_test_handler in
     // test_defaults.hpp - override this method to install the
     // lifecycle bundle and any additional value-tagged listeners.
-    //   Each bound listener_id MUST be appended to
+    //   Each bound handler_id MUST be appended to
     // m_printer_listener_ids so that uninstall_printer_listeners()
     // can unbind it on teardown or printer replacement.
     virtual void install_printer_listeners()
@@ -671,15 +683,15 @@ protected:
     }
 
     // uninstall_printer_listeners
-    //   unbinds every listener_id in m_printer_listener_ids
+    //   unbinds every handler_id in m_printer_listener_ids
     // and clears the vector.  Subclasses that override
     // install_printer_listeners() do NOT need to override
     // this method - the base implementation handles all
-    // listener_ids regardless of which subclass added them,
+    // handler_ids regardless of which subclass added them,
     // because every binding goes through the same vector.
     void uninstall_printer_listeners() D_NOEXCEPT
     {
-        for (listener_id id : m_printer_listener_ids)
+        for (handler_id id : m_printer_listener_ids)
         {
             m_events.unbind(id);
         }
@@ -696,45 +708,21 @@ private:
     // produce module_start / module_end pairs; leaf nodes
     // produce test_start / status-event / test_end triples.
     //
-    //   When a callable table is bound and the leaf node
-    // carries a non-zero callable_id, the handler looks up
-    // the closure and invokes it on the (mutable) node BEFORE
-    // dispatching the status-specific event - so the
-    // closure's writes to m_result / m_status / m_message
-    // become visible to every downstream listener.  The
-    // closure is invoked exactly once per leaf visit.
-    //
-    // The argument type is `basic_test&` (mutable) because
-    // the deferred-callable path must be able to write the
-    // node's result fields.  Listeners receive the post-
-    // mutation value via const pointer; they do NOT see
-    // the pre-callable state.  Walks without a bound table
-    // skip the dispatch path and behave exactly as before.
+    //   The node's status is authoritative: it was written by
+    // whatever evaluated the test before the walk.  The handler
+    // reads it, fires the matching status-specific event, and
+    // tallies it; it performs no evaluation of its own.  Walks
+    // therefore observe a const node.
     void visit_node(
-        basic_test& _node
+        const basic_test& _node
     )
     {
-        basic_test*       mut_ptr = &_node;
         const basic_test* obj_ptr = &_node;
         bool              is_leaf = node_is_leaf(_node);
 
         // dispatch interior-vs-leaf entry event
         if (is_leaf)
         {
-            // deferred-callable dispatch.  Invoked here -
-            // before on_test_start - so that any printer
-            // listener attached to on_test_start sees the
-            // post-mutation node.
-            if ( (m_callable_table != nullptr) &&
-                 _node.has_callable() )
-            {
-                test_callable_id id = _node.callable_id();
-                if (m_callable_table->contains(id))
-                {
-                    (*m_callable_table)[id](*mut_ptr);
-                }
-            }
-
             fire_if_listened<events::on_test_start>(obj_ptr);
         }
         else
@@ -826,7 +814,7 @@ private:
         _Args&&... _args
     )
     {
-        if (m_events.has_listeners_for<_Event>())
+        if (m_events.has_handlers_for<_Event>())
         {
             m_events.fire<_Event>(
                 std::forward<_Args>(_args)...);
@@ -887,7 +875,9 @@ private:
     //
     //   Custom test_handler subclasses or alternative walkers
     // that use a richer kind taxonomy may override this method
-    // (it is virtual) to plug in a registry-aware predicate.
+    // (it is virtual) to plug in a kind-set-aware predicate
+    // (e.g. resolving through is_leaf(kinds, id) from
+    // test_kind.hpp).
     virtual bool node_is_leaf(
         const basic_test& _node
     ) const D_NOEXCEPT
@@ -896,8 +886,9 @@ private:
     }
 
 
-    event_handler             m_events;
+    event_dispatcher          m_events;
     session_result            m_result;
+    std::vector<basic_test>   m_sink;
 
 protected:
     // m_printer is protected (not private) so subclasses that
@@ -905,13 +896,7 @@ protected:
     // building their listener bodies without going through a
     // virtual accessor on the hot path.
     test_printer*             m_printer;
-    std::vector<listener_id>  m_printer_listener_ids;
-
-    // m_callable_table holds a non-owning pointer to the
-    // table consulted during walks for deferred evaluation.
-    // protected so subclasses can read it on the hot path
-    // without indirecting through the public accessor.
-    basic_callable_table*     m_callable_table;
+    std::vector<handler_id>   m_printer_listener_ids;
 };
 
 
