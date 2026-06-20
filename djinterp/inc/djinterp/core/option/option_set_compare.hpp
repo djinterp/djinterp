@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                       option_set_compare.hpp
+* djinterp [option]                                     option_set_compare.hpp
 *
 *   Compile-time comparison/evaluation traits for option_set<>.  Three
 * layers of congruity, from weakest to strongest, plus a parameterized
@@ -52,7 +52,6 @@ VI.   option_set_value_eq            (parameterized value equality)
 #include "../djinterp.hpp"
 #include "./option.hpp"             // option<>, is_option_v
 #include "./option_set.hpp"         // option_set<> + queries (contains, find, key_type)
-#include "./option_tags.hpp"
 
 
 NS_DJINTERP

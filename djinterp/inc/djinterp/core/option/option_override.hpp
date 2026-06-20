@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [options]                                          option_override.hpp
+* djinterp [option]                                        option_override.hpp
 *
 *   Option-aware override engine plus option-specific policies built on top
-* of the abstract paradigm::override foundation.
+* of the abstract override foundation.
 *
 *   The engine `option_set_override` walks two flat option tuples (A: base,
 * B: delta) and emits a new option_set under a user-chosen policy:
@@ -13,13 +13,13 @@
 *     - for each option in B whose key is NOT in A:
 *         apply policy::on_delta_only<B_opt>
 *
-*   A policy may return `paradigm::dropped` to filter a position out of
+*   A policy may return `dropped` to filter a position out of
 * the result; otherwise it returns an option<>-shaped type that is
 * appended to the accumulator.
 *
 *   on_delta_only is invoked through a LAZY SFINAE wrapper: it is only
 * instantiated for keys that genuinely appear in B but not in A.  This is
-* what allows `paradigm::strict_subset` to hard-error on extension without
+* what allows `strict_subset` to hard-error on extension without
 * the concept probe firing the assert prematurely.
 *
 *   Option-aware merge metafns shipped here:
@@ -29,11 +29,10 @@
 *     merge_args_union<_B,_D>    - concatenated args (D first, then B);
 *                                  first-match find_arg semantics give
 *                                  "delta wins" without explicit dedupe.
-*
 *   Lifted policies for direct use:
-*     override_replace      = paradigm::keep_delta
-*     override_subset       = paradigm::drop_extras
-*     override_strict       = paradigm::strict_subset
+*     override_replace      = keep_delta
+*     override_subset       = drop_extras
+*     override_strict       = strict_subset
 *     value_only_delta      = with_on_both<keep_delta, merge_actual_only>
 *     arg_union_delta       = with_on_both<keep_delta, merge_args_union>
 *
@@ -69,7 +68,6 @@ V.    ready-made policies (lifted + named)
 
 
 NS_DJINTERP
-
 
 // ===========================================================================
 // I.   option (re)construction helpers
@@ -310,7 +308,7 @@ NS_INTERNAL
              typename _D>
     struct lazy_delta_only<true, _Policy, _D>
     {
-        using type = paradigm::dropped;
+        using type = dropped;
     };
 
 
@@ -327,7 +325,7 @@ NS_INTERNAL
     };
 
     template<typename _Tup>
-    struct append_if_kept<_Tup, paradigm::dropped>
+    struct append_if_kept<_Tup, dropped>
     {
         using type = _Tup;
     };
@@ -453,12 +451,12 @@ NS_END  // internal
 // is a hard error at the right moment.
 template<typename _A,
          typename _B,
-         paradigm::override_policy_c _Policy>
+         OverridePolicy _Policy>
 struct option_set_override;
 
 template<typename... _AOpts,
          typename... _BOpts,
-         paradigm::override_policy_c _Policy>
+         OverridePolicy _Policy>
 struct option_set_override<option_set<_AOpts...>,
                            option_set<_BOpts...>,
                            _Policy>
@@ -496,9 +494,9 @@ public:
         typename internal::tuple_to_option_set<merged_tuple>::type;
 };
 
-template<typename _A,
-         typename _B,
-         paradigm::override_policy_c _Policy>
+template<typename       _A,
+         typename       _B,
+         OverridePolicy _Policy>
 using option_set_override_t =
     typename option_set_override<_A, _B, _Policy>::type;
 
@@ -509,11 +507,11 @@ using option_set_override_t =
 
 // Direct re-exports of paradigm primitives at the option-aware level.
 // Names chosen to read well at call sites in the option vocabulary.
-using override_replace = paradigm::keep_delta;       // standard override
-using override_keep    = paradigm::keep_base;        // base wins, ignore delta
-using override_subset  = paradigm::drop_extras;      // delta must overlap
-using override_strict  = paradigm::strict_subset;    // delta extension = error
-using override_filter  = paradigm::drop_unmatched_base;  // keep only B's keys
+using override_replace = keep_delta;       // standard override
+using override_keep    = keep_base;        // base wins, ignore delta
+using override_subset  = drop_extras;      // delta must overlap
+using override_strict  = strict_subset;    // delta extension = error
+using override_filter  = drop_unmatched_base;  // keep only B's keys
 
 // value_only_delta
 //   policy: B contributes ONLY its actual<> value; base retains
@@ -521,23 +519,23 @@ using override_filter  = paradigm::drop_unmatched_base;  // keep only B's keys
 // dropped (the inherited on_delta_only from keep_delta is overridden
 // implicitly: keep_delta's on_delta_only = _D, which is what we want
 // for additive value-only merges where B carries a bare option
-// describing the new key fully).  Swap in `paradigm::drop_extras`
+// describing the new key fully).  Swap in `drop_extras`
 // as the base if you'd rather forbid extension.
 using value_only_delta =
-    paradigm::with_on_both<paradigm::keep_delta, merge_actual_only>;
+    with_on_both<keep_delta, merge_actual_only>;
 
 // value_only_strict
 //   policy: like value_only_delta, but extension keys are a hard
 // compile error.
 using value_only_strict =
-    paradigm::with_on_both<paradigm::strict_subset, merge_actual_only>;
+    with_on_both<strict_subset, merge_actual_only>;
 
 // arg_union_delta
 //   policy: union of args (D first, B second).  All B args are
 // preserved; D args win on any tag-role lookup via find_arg's
 // first-match semantics.
 using arg_union_delta =
-    paradigm::with_on_both<paradigm::keep_delta, merge_args_union>;
+    with_on_both<keep_delta, merge_args_union>;
 
 
 NS_END  // djinterp
