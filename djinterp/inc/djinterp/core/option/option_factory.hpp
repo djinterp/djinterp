@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                         option_factory.hpp
+* djinterp [option]                                         option_factory.hpp
 *
 *   Factories for assembling option<> values - both at the type level
 * (`make_option_t`) and at the value level (`make_option()`).  Plus
@@ -15,10 +15,8 @@
 *        typename-only.  `key_carrier<auto>` is the framework's
 *        canonical bridge; any user-defined type with the same shape
 *        (static constexpr `::value` member) works just as well.
-*
 *     2. Make-this-option call sites read consistently with the rest
 *        of the framework when the built-in option<> is the type.
-*
 *     3. Custom option types - any user type satisfying the option
 *        contract from option.hpp - may follow the same
 *        naming convention (`make_my_option_t` / `make_my_option()`)

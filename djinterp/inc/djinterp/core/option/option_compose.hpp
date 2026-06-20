@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                          option_compose.hpp
+* djinterp [option]                                         option_compose.hpp
 *
 *   Fluent idioms for defining an option SURFACE and folding it into an
 * option_set in ONE expression.  This is the "declare + add" sugar layer
@@ -39,7 +39,7 @@
 * "this option now holds for this key", overwriting any prior surface.
 *
 *
-* path:      /inc/djinterp/core/options/option_compose.hpp
+* path:      /inc/djinterp/core/option/option_compose.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.03
 ******************************************************************************/
@@ -58,7 +58,7 @@ IV.   compose_options             (build a set from empty in one statement)
 
 // djinterp
 #include "../djinterp.hpp"
-#include "../paradigm/override.hpp"     // override_policy_c
+#include "../paradigm/override.hpp"     // OverridePolicy
 #include "./option.hpp"
 #include "./option_set.hpp"
 #include "./option_override.hpp"        // option_set_override_t + policies
@@ -114,7 +114,7 @@ NS_END  // internal
 // Usage:
 //   using s2 = with_option_as_t<override_strict,
 //                               s1, window_opt::title, value<"Untitled">>;
-template<paradigm::override_policy_c _Policy,
+template<OverridePolicy _Policy,
          typename                    _Set,
          auto                        _Key,
          typename...                 _Args>
@@ -167,7 +167,7 @@ NS_INTERNAL
     // with_options_fold
     //   trait: left fold of _Deltas... into _Acc under _Policy.  Each
     // delta is normalized to a set, then merged via option_set_override.
-    template<paradigm::override_policy_c _Policy,
+    template<OverridePolicy _Policy,
              typename                    _Acc,
              typename...                 _Deltas>
     struct with_options_fold
@@ -175,7 +175,7 @@ NS_INTERNAL
         using type = _Acc;
     };
 
-    template<paradigm::override_policy_c _Policy,
+    template<OverridePolicy _Policy,
              typename                    _Acc,
              typename                    _Head,
              typename...                 _Tail>
@@ -196,7 +196,7 @@ NS_END  // internal
 //   trait: fold a pack of already-defined surfaces (and/or sub-sets) into
 // _Base, left to right, under an explicit _Policy.  Later entries win per
 // the policy's collision rule.  Yields a new option_set.
-template<paradigm::override_policy_c _Policy,
+template<OverridePolicy _Policy,
          typename                    _Base,
          typename...                 _Surfaces>
 using with_options_as_t =
@@ -222,7 +222,7 @@ using with_options_t = with_options_as_t<override_replace, _Base, _Surfaces...>;
 // compose_options_as_t
 //   trait: build an option_set from EMPTY by folding _Surfaces... under
 // an explicit _Policy.  The from-scratch counterpart to with_options_as_t.
-template<paradigm::override_policy_c _Policy,
+template<OverridePolicy _Policy,
          typename...                 _Surfaces>
 using compose_options_as_t = with_options_as_t<_Policy, option_set<>, _Surfaces...>;
 

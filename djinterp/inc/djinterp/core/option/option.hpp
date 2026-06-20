@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                                option.hpp
+* djinterp [option]                                                 option.hpp
 *
 *   The core option<> type, its detection trait, and the C++20 concept
 * analogs - everything that speaks about a SINGLE option<>, in one header.

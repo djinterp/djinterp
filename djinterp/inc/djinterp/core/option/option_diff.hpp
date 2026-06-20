@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                            option_diff.hpp
+* djinterp [option]                                            option_diff.hpp
 *
 *   Diff and merge utilities for option_set<>, expressible in BOTH of the
 * two shapes option_set itself dispatches over (see option_set.hpp):
@@ -33,7 +33,7 @@
 * surface; the compile-time half it always lacked is PART A.
 *
 *
-* path:      /inc/djinterp/core/options/option_diff.hpp
+* path:      /inc/djinterp/core/option/option_diff.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.12
 ******************************************************************************/
@@ -447,11 +447,9 @@ NS_END  // internal
 template<typename   _Base,
          typename   _Derived,
          merge_mode _Mode = merge_mode::overwrite>
-using diff_merge_t =
-    option_set_override_t<
-        _Base,
-        _Derived,
-        typename internal::merge_mode_policy<_Mode>::type>;
+using diff_merge_t = option_set_override_t<_Base,
+                                           _Derived,
+                           typename internal::merge_mode_policy<_Mode>::type>;
 
 
 // ###########################################################################
@@ -677,7 +675,6 @@ option_unchanged_keys(
 
     return result;
 }
-
 
 // option_diff_count
 //   function: number of keys that differ between _base and _derived

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                          option_builder.hpp
+* djinterp [option]                                         option_builder.hpp
 *
 *   The flat-schema-to-option_set pipeline.  Takes a flat typename pack
 * of key carriers + opaque args (with optional passthroughs sitting
@@ -57,7 +57,7 @@ III.  option_set_from_flat_t      (end-to-end pipeline alias)
 #include <type_traits>
 // djinterp
 #include "../djinterp.hpp"
-#include "../meta/dtuple_wrap_partition.hpp"
+#include "../meta/tuple_partition.hpp"
 #include "../meta/passthrough.hpp"
 #include "./option.hpp"
 #include "./option_set.hpp"

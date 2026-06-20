@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [options]                                            option_set.hpp
+* djinterp [option]                                             option_set.hpp
 *
 *   The option_set<> core type plus the structural machinery needed to
 * CONSTRUCT one safely.
@@ -68,18 +68,15 @@ VII.  concepts                   (C++20 analogs)
 #include <utility>
 // djinterp
 #include "../djinterp.hpp"
-#include "../util/lookup/lookup.hpp"    // value_pack_unique
-#include "../util/lookup.hpp"           // contains_key, find_by_key
+#include "../util/lookup/lookup.hpp"    // contains_key, find_by_key
 #include "./option.hpp"                 // option<>, is_option_v
 
 
 NS_DJINTERP
 
-
 // ===========================================================================
 // I.   expand_option
 // ===========================================================================
-
 // expand_option
 //   trait: yields std::tuple<...> for ONE user-supplied entry.
 //   Default specialization: an entry is its own expansion
@@ -188,8 +185,7 @@ NS_INTERNAL
              typename... _Rest>
     struct run_set_checks<std::tuple<_First, _Rest...>>
     {
-        static_assert(
-            are_all_options<_First, _Rest...>::value,
+        static_assert(are_all_options<_First, _Rest...>::value,
             "option_set: every entry (after expansion through "
             "::expanded_t) must be an option<...> instantiation "
             "per is_option_v.  The previous structural "
@@ -199,20 +195,14 @@ NS_INTERNAL
             "std::tuple of option<>s (or an empty tuple for "
             "passthrough markers).");
 
-        static_assert(
-            all_same_type<
-                typename _First::key_type,
-                typename _Rest::key_type...
-            >::value,
+        static_assert(all_same_type<typename _First::key_type,
+                                    typename _Rest::key_type...>::value,
             "option_set: all options (after expansion) must "
             "share the same key_type.  Use a single enum / "
             "class / scope for every key in the set.");
 
-        static_assert(
-            value_pack_unique<
-                _First::key,
-                _Rest::key...
-            >::value,
+        static_assert(value_pack_unique<_First::key,
+                                        _Rest::key...>::value,
             "option_set: all keys (after expansion) must be "
             "unique.  Multi-expanding entries (those exposing "
             "::expanded_t) emit ALL of their inner keys - any "
@@ -271,8 +261,6 @@ public:
 NS_END  // internal
 
 
-
-
 // ===========================================================================
 // V.   runtime key->value map  +  public option_set dispatch
 // ===========================================================================
@@ -303,8 +291,9 @@ NS_INTERNAL
     template<typename _Type>
     struct os_is_runtime_key
         : std::integral_constant<bool,
-            ( ( std::is_enum<_Type>::value || std::is_integral<_Type>::value ) &&
-              !is_option_v<_Type> )>
+            ( ( std::is_enum<_Type>::value || 
+                std::is_integral<_Type>::value ) &&
+              ( !is_option_v<_Type> ) )>
     {};
 
 
@@ -322,10 +311,20 @@ NS_INTERNAL
             _Key   key;
             _Value value;
 
-            entry() : key(), value() {}
-            entry(const _Key& _k, const _Value& _v) : key(_k), value(_v) {}
-            entry(const _Key& _k, _Value&& _v)
-                : key(_k), value(static_cast<_Value&&>(_v)) {}
+            entry() : key(), value() 
+            {}
+
+            entry(
+                const _Key&   _k, 
+                const _Value& _v
+            ) : key(_k), value(_v)
+            {}
+
+            entry(
+                const _Key& _k,
+                _Value&&    _v
+            ) : key(_k), value(static_cast<_Value&&>(_v)) 
+            {}
         };
 
         typedef _Key                                        key_type;
@@ -583,67 +582,66 @@ using option_set_find_t = typename option_set_find<_Set, _Key>::type;
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// keyed_c
+// Keyed
 //   concept: satisfied iff _Type exposes the keyed shape - a nested
 // ::key_type alias and a static ::key member.  This is a standalone
 // shape check: the old loose is_keyed_v contract has been retired, and
-// option_set itself now requires the stricter is_option_v.  keyed_c
+// option_set itself now requires the stricter is_option_v.  Keyed
 // remains useful for constraining your own helpers against the bare key
 // shape.
 template<typename _Type>
-concept keyed_c = requires
+concept Keyed = requires
 {
     typename _Type::key_type;
     _Type::key;
 };
 
-
-// option_set_c
+// OptionSet
 //   concept: satisfied iff _Type is some option_set<...> specialization.
 // Parallels is_option_set_v.
 template<typename _Type>
-concept option_set_c = is_option_set_v<_Type>;
+concept OptionSet = is_option_set_v<_Type>;
 
-
-// option_set_contains_c
+// OptionSetContains
 //   concept: satisfied iff _Set is an option_set that contains the key
 // _Key.  Parameterized over the NTTP key for use in requires-clauses.
 // Parallels option_set_contains_v.
 //
 // Example:
 //   template<typename _Set>
-//     requires option_set_contains_c<_Set, cli::verbose>
+//     requires OptionSetContains<_Set, cli::verbose>
 //   void enable_verbosity();
-template<typename _Set, auto _Key>
-concept option_set_contains_c =
-    option_set_c<_Set> &&
+template<typename _Set,
+         auto     _Key>
+concept OptionSetContains =
+    OptionSet<_Set> &&
     requires
     {
         requires option_set_contains_v<_Set, _Key>;
     };
 
 
-// option_set_findable_c
+// OptionSetFindable
 //   concept: satisfied iff _Set is an option_set and the find trait
 // reports `found` for _Key.  Functionally identical to
-// option_set_contains_c, but speaks in find vocabulary - useful where a
+// OptionSetContains, but speaks in find vocabulary - useful where a
 // downstream constraint wants a paired find_t<> alias to be meaningful.
-template<typename _Set, auto _Key>
-concept option_set_findable_c =
-    option_set_c<_Set> &&
+template<typename _Set, 
+         auto     _Key>
+concept OptionSetFindable =
+    OptionSet<_Set> &&
     requires
     {
         requires option_set_find<_Set, _Key>::found;
     };
 
 
-// option_set_nonempty_c
+// OptionSetNonEmpty
 //   concept: satisfied iff _Set is a non-empty option_set.  Pairs
 // naturally with option_set_key_type_t (which requires non-emptiness for
 // its single-key-type extraction).
 template<typename _Set>
-concept option_set_nonempty_c =
-    option_set_c<_Set> &&
+concept OptionSetNonEmpty = OptionSet<_Set> &&
     requires
     {
         requires (_Set::size > 0);
