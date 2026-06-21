@@ -11,9 +11,11 @@
 * test_type.hpp and test_object.hpp is intentionally kind-agnostic.
 *
 *   OPTION ENUMERATION:
-*   DTestOption enumerates the configurable parameters available
-* in a dtest_option_set.  Currently defines test_metadata; additional
-* option keys will be added as the framework grows.
+*   The test_option enumeration is owned by test_options.hpp (which
+* defines all five keys: max_failures, max_successes, handler,
+* verbose, metadata).  This header CONSUMES test_option::policy_metadata for
+* its per-kind default option sets and does not define the enum
+* itself.
 *
 *   TEST METADATA:
 *   Every built-in kind carries a default test_metadata option whose
@@ -33,8 +35,9 @@
 *   OPTION LIFETIME:
 *   make_default_test_type() creates kinds with nullptr default
 * options.  To wire up per-kind defaults, the caller creates
-* dtest_option_set instances via make_kind_options(), owns their
-* storage, and passes pointers into the test_kind entries.  This
+* test_option_set instances via make_kind_options() (test_option_set is
+* the runtime key->value map form of option_set), owns their storage,
+* and passes pointers into the test_kind entries.  This
 * keeps lifetime management explicit and avoids hidden statics.
 *
 *   PORTABILITY:
@@ -74,7 +77,6 @@
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../restd/any/any.hpp"
-#include "../core/options/option_pair.hpp"
 #include "../core/options/option_set.hpp"
 #include "./test_common.hpp"
 #include "./test_event.hpp"
@@ -258,25 +260,25 @@ make_default_test_type()
 ///////////////////////////////////////////////////////////////////////////////
 
 // make_kind_options
-//   function: constructs a dtest_option_set containing a
+//   function: constructs a test_option_set containing a
 // single test_metadata entry initialized to an empty sorted
 // vector.  The caller may populate the vector via
 // metadata_insert() after construction.
-inline dtest_option_set
+inline test_option_set
 make_kind_options()
 {
-    dtest_option_set opts;
+    test_option_set opts;
 
-    opts.insert(DTestOption::metadata, any(test_metadata_type{}));
+    opts.insert(test_option::policy_metadata, any(test_metadata_type{}));
 
     return opts;
 }
 
 // make_kind_options (with initial tags)
-//   function: constructs a dtest_option_set whose
+//   function: constructs a test_option_set whose
 // test_metadata vector is pre-populated with the given
 // tags.  Tags are sorted on construction.
-inline dtest_option_set
+inline test_option_set
 make_kind_options(
     test_metadata_type _tags
 )
@@ -289,9 +291,9 @@ make_kind_options(
                             _tags.end()),
                 _tags.end());
 
-    dtest_option_set opts;
+    test_option_set opts;
 
-    opts.insert(DTestOption::metadata,
+    opts.insert(test_option::policy_metadata,
                 any(static_cast<test_metadata_type&&>(_tags)));
 
     return opts;
@@ -303,62 +305,79 @@ make_kind_options(
 ///////////////////////////////////////////////////////////////////////////////
 
 // make_assert
-//   function: creates an assertion-level leaf test.
-D_CONSTEXPR_INLINE basic_test
+//   function: creates an assertion-level leaf test, storing the name
+// and pass/fail messages as metadata entries.  Not D_CONSTEXPR /
+// D_NOEXCEPT: populating the metadata container may allocate.
+D_INLINE basic_test
 make_assert(
     bool        _result,
     const char* _name         = nullptr,
     const char* _message_pass = nullptr,
     const char* _message_fail = nullptr
-) D_NOEXCEPT
+)
 {
-    return basic_test(
-        D_TEST_KIND_ASSERT,
-        _result,
-        _name,
-        _message_pass,
-        _message_fail);
+    basic_test t(D_TEST_KIND_ASSERT, _result);
+
+    if (_name != nullptr)
+    {
+        t.metadata().set("name", _name);
+    }
+    if (_message_pass != nullptr)
+    {
+        t.metadata().set("message_pass", _message_pass);
+    }
+    if (_message_fail != nullptr)
+    {
+        t.metadata().set("message_fail", _message_fail);
+    }
+
+    return t;
 }
 
 // make_test_fn
 //   function: creates a test_fn-level leaf test.
-D_CONSTEXPR_INLINE basic_test
+D_INLINE basic_test
 make_test_fn(
     bool        _result,
     const char* _name = nullptr
-) D_NOEXCEPT
+)
 {
-    return basic_test(D_TEST_KIND_TEST_FN,
-                      _result,
-                      _name);
+    basic_test t(D_TEST_KIND_TEST_FN, _result);
+
+    if (_name != nullptr)
+    {
+        t.metadata().set("name", _name);
+    }
+
+    return t;
 }
 
 // make_test_case
 //   function: creates a test-level interior node.
-D_CONSTEXPR_INLINE basic_test
+D_INLINE basic_test
 make_test_case(
     const char* _name
-) D_NOEXCEPT
+)
 {
     return make_interior(D_TEST_KIND_TEST, _name);
 }
 
 // make_test_block
 //   function: creates a test_block-level interior node.
-D_CONSTEXPR_INLINE basic_test
+D_INLINE basic_test
 make_test_block(
     const char* _name
-) D_NOEXCEPT
+)
 {
     return make_interior(D_TEST_KIND_TEST_BLOCK, _name);
 }
 
 // make_module
 //   function: creates a module-level interior node.
-D_CONSTEXPR_INLINE basic_test
+D_INLINE basic_test
 make_module(
     const char* _name
-) D_NOEXCEPT
+)
 {
     return make_interior(D_TEST_KIND_MODULE, _name);
 }
@@ -464,23 +483,21 @@ status_for(
 }
 
 // record_assertion
-//   helper: appends an assertion-level basic_test to the sink
-// AND advances the handler's counters via test_handler::record.
-// One source of truth for the "did this assertion pass?"
-// signal - both the printed leaf and the counter tally come
-// from the same expression.
-template<typename _Handler,
-         typename _Sink>
+//   helper: appends an assertion-level basic_test to the handler's
+// internal sink AND advances the handler's counters via
+// test_handler::record.  One source of truth for the "did this
+// assertion pass?" signal -- both the printed leaf and the counter
+// tally come from the same expression.
+template<typename _Handler>
 inline void
 record_assertion(
     _Handler&   _handler,
-    _Sink&      _sink,
     bool        _ok,
     const char* _name,
     const char* _msg_pass = nullptr,
     const char* _msg_fail = nullptr)
 {
-    _sink.push_back(make_assert(_ok, _name, _msg_pass, _msg_fail));
+    _handler.push_assertion(make_assert(_ok, _name, _msg_pass, _msg_fail));
     _handler.record(status_for(_ok));
     return;
 }
@@ -488,19 +505,18 @@ record_assertion(
 // record_status
 //   helper: variant for non-boolean outcomes (skip / error /
 // pending).  Appends a basic_test stamped with the requested
-// status and forwards to the handler's counter.
-template<typename _Handler,
-         typename _Sink>
+// status to the handler's internal sink and forwards to the
+// handler's counter.
+template<typename _Handler>
 inline void
 record_status(
     _Handler&   _handler,
-    _Sink&      _sink,
     test_status _status,
     const char* _name)
 {
     basic_test t = make_assert(false, _name);
     t.set_status(static_cast<basic_test::status_type>(_status));
-    _sink.push_back(t);
+    _handler.push_assertion(t);
     _handler.record(_status);
     return;
 }
@@ -541,20 +557,20 @@ struct unit_test_tally
 // fail/error counters across the call to decide whether the
 // unit test as a whole passed (delta zero) or failed (any new
 // failures or errors).  Records the unit test as a test_fn-kind
-// leaf in the sink for printer rendering and updates the tally.
+// leaf in the handler's sink for printer rendering and updates
+// the tally.
 //
 //   The functor runs ALL its `record_assertion` calls into the
-// same sink - this keeps individual assertion-level rows in
-// the output, while the wrapper adds a single roll-up entry per
-// unit test.  Together they mirror the C-side framework's
-// "Total Unit Tests / Total Assertions" split.
+// same handler -- which in turn pushes each leaf into the
+// handler's sink.  Together they mirror the C-side framework's
+// "Total Unit Tests / Total Assertions" split: each assertion
+// is a leaf row, the wrapper adds a single roll-up leaf per
+// unit test.
 template<typename _Handler,
-         typename _Sink,
          typename _Fn>
 inline void
 run_unit_test(
     _Handler&        _handler,
-    _Sink&           _sink,
     unit_test_tally& _tally,
     const char*      _name,
     _Fn&&            _body)
@@ -571,7 +587,7 @@ run_unit_test(
     // Append a test_fn-kind leaf so the printer (and any future
     // tree-shaped reporter) can show the unit-test row inline
     // with its assertion children.
-    _sink.push_back(make_test_fn(ok, _name));
+    _handler.push_assertion(make_test_fn(ok, _name));
 
     ++_tally.total;
     if (ok)
@@ -619,6 +635,72 @@ D_STATIC const char* const D_TEST_TPL_SECTION_FOOTER =
     "    Assertions: %asserts_passed%/%asserts_total% "
     "(%asserts_percent%)\n"
     "    Status:     %has_passed%\n";
+
+
+// ---------------------------------------------------------------------------
+//  test_runner module / section templates and live-progress formats
+//   These are consumed by test_runner.hpp (which includes this header):
+// the D_TEST_TPL_* strings are rendered through text_template with the
+// placeholders the runner binds; the D_TEST_FMT_PROGRESS_* strings are
+// printf format strings written straight to stdout for live progress.
+// Defaults below are intentionally plain - tune the wording later; the
+// %placeholder% set is what the runner binds, and any unbound token
+// simply renders empty.
+// ---------------------------------------------------------------------------
+
+// D_TEST_TPL_MODULE_BANNER
+//   template: rendered when a module begins. Binds: name / display_name,
+// description_short.
+D_STATIC const char* const D_TEST_TPL_MODULE_BANNER =
+    "--------------------------------------------"
+    "------------------------------------\n"
+    "  MODULE: %display_name%\n"
+    "  %description_short%\n"
+    "--------------------------------------------"
+    "------------------------------------\n";
+
+// D_TEST_TPL_MODULE_FOOTER
+//   template: rendered when a module ends. Binds: time_total, has_passed
+// (plus any assertion / test rollups the runner provides).
+D_STATIC const char* const D_TEST_TPL_MODULE_FOOTER =
+    "  --- Module Summary ---\n"
+    "    Time:   %time_total%\n"
+    "    Status: %has_passed%\n";
+
+// D_TEST_TPL_SECTION_BANNER
+//   template: rendered when a section begins. Binds: name.
+D_STATIC const char* const D_TEST_TPL_SECTION_BANNER =
+    "\n  --- %name% ---\n";
+
+// D_TEST_TPL_SECTION_RESULT
+//   template: rendered when a section ends. Binds: time_total,
+// has_passed (plus any per-section rollups the runner provides).
+D_STATIC const char* const D_TEST_TPL_SECTION_RESULT =
+    "  --- %name% Result ---\n"
+    "    Time:   %time_total%\n"
+    "    Status: %has_passed%\n";
+
+// D_TEST_FMT_PROGRESS_MODULE_BEGIN
+//   printf format: live module-start line. Args: const char* short name.
+D_STATIC const char* const D_TEST_FMT_PROGRESS_MODULE_BEGIN =
+    "  >> module: %s\n";
+
+// D_TEST_FMT_PROGRESS_MODULE_END
+//   printf format: live module-end line. Args: const char* short name,
+// int verdict, double seconds, size_t sections passed, size_t total.
+D_STATIC const char* const D_TEST_FMT_PROGRESS_MODULE_END =
+    "  << module: %s [verdict %d] %.3fs (%zu/%zu sections)\n";
+
+// D_TEST_FMT_PROGRESS_SECTION_BEGIN
+//   printf format: live section-start line. Args: const char* name.
+D_STATIC const char* const D_TEST_FMT_PROGRESS_SECTION_BEGIN =
+    "    -- section: %s\n";
+
+// D_TEST_FMT_PROGRESS_SECTION_END
+//   printf format: live section-end line. Args: const char* name,
+// int verdict, double seconds, size_t passed, size_t total.
+D_STATIC const char* const D_TEST_FMT_PROGRESS_SECTION_END =
+    "    -- section: %s [verdict %d] %.3fs (%zu/%zu checks)\n";
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -833,8 +915,8 @@ private:
 
                     _printer->print_node(
                         test_status::passed,
-                        std::string(_obj->name()    ? _obj->name()    : ""),
-                        std::string(_obj->message() ? _obj->message() : ""),
+                        _obj->metadata().get("name"),
+                        _obj->metadata().get("message_pass"),
                         _obj->depth(),
                         static_cast<std::size_t>(0));
 
@@ -855,8 +937,8 @@ private:
 
                     _printer->print_node(
                         test_status::failed,
-                        std::string(_obj->name()    ? _obj->name()    : ""),
-                        std::string(_obj->message() ? _obj->message() : ""),
+                        _obj->metadata().get("name"),
+                        _obj->metadata().get("message_fail"),
                         _obj->depth(),
                         static_cast<std::size_t>(0));
 
@@ -877,8 +959,8 @@ private:
 
                     _printer->print_node(
                         test_status::skipped,
-                        std::string(_obj->name()    ? _obj->name()    : ""),
-                        std::string(_obj->message() ? _obj->message() : ""),
+                        _obj->metadata().get("name"),
+                        _obj->metadata().get("message_pass"),
                         _obj->depth(),
                         static_cast<std::size_t>(0));
 
@@ -901,8 +983,8 @@ private:
 
                     _printer->print_node(
                         test_status::error,
-                        std::string(_obj->name() ? _obj->name() : ""),
-                        std::string(_msg         ? _msg         : ""),
+                        _obj->metadata().get("name"),
+                        std::string(_msg ? _msg : ""),
                         _obj->depth(),
                         static_cast<std::size_t>(0));
 

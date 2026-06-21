@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [test]                                          test_printer.hpp
+* djinterp [test]                                             test_printer.hpp
 *
 *   Template-backed printer for the test framework.  Walks a test tree
 * depth-first and renders each node through configurable text_template
@@ -7,15 +7,16 @@
 *
 *   DESIGN PRINCIPLE:
 *   Tree depth equates to indentation depth.  A node at depth 3 in the
-* test tree is rendered with 3 repetitions of the indent unit string.
-* This is the default behavior and requires no configuration.
+* test tree is rendered with 3 repetitions of the indent unit string,
+* exposed via the {indent} specifier.  This is the default behavior
+* and requires no configuration.
 *
 *   FOR-EACH:
 *   The printer walks any iterable container of test-protocol elements.
 * For each element, it binds per-node specifiers to the node template,
 * renders, and emits to the sink.  The walk accumulates counters for
 * the summary.  Users supply extraction functions for name, message,
-* depth, status, and optionally is_leaf / child_count.
+* depth, status, and optionally is_leaf / child_count / elapsed.
 *
 *   SYMBOLS:
 *   The {symbol} specifier (e.g. "[PASS]", "[FAIL]") is resolved by a
@@ -32,29 +33,54 @@
 *     per_depth  - resets to 1 each time depth changes
 *     leaves_only- numbers only leaf nodes; interior nodes get ""
 *
-*   TEMPLATE SECTIONS:
+*   LINE NUMBERING:
+*   The {line} specifier resolves to a global render-line counter
+* that increments by one for every node emission.  Line numbers
+* persist across header / section / footer boundaries within a
+* single walk and reset when reset_context() is called (which
+* every walk() invocation does as its first step).  When the node
+* format produces a single output line per render, {line} matches
+* the visible line number; when the format produces multiple lines
+* per render, {line} marks the first line of the rendered node.
+* 
+* ELAPSED TIME:
+*   Each rendered node may carry a wall-clock duration (in nanoseconds) 
+* supplied by an optional extraction function:
+*     _elapsed_fn(elem) -> std::int64_t   // nanoseconds
+*   When no elapsed extractor is provided, every node renders with
+* an elapsed value of 0.  The {elapsed} specifier is resolved by
+* a configurable elapsed_format function (default: human-readable,
+* auto-scaled unit).  Fixed-unit specifiers are also bound:
+*     {elapsed_ns} - integer nanoseconds
+*     {elapsed_us} - integer microseconds  (truncated)
+*     {elapsed_ms} - integer milliseconds  (truncated)
+*     {elapsed_s}  - decimal seconds       (two-place)
+* TEMPLATE SECTIONS:
 *   The printer owns six text_template instances, each with its own
 * format string.  All use "{" / "}" markers by default.
-*
 *     header          - rendered once before the walk
 *     section_header  - rendered at the start of each depth-0 group
 *     node            - rendered per-node during the walk
 *     section_footer  - rendered at the end of each depth-0 group
 *     summary         - rendered once after the walk
 *     footer          - rendered once at the very end
-*
-*   BUILT-IN NODE SPECIFIERS:
+* BUILT-IN NODE SPECIFIERS:
 *     {name}       - element name / description
 *     {status}     - status string ("passed", "failed", ...)
 *     {symbol}     - status symbol ("[PASS]", "[FAIL]", ...)
 *     {depth}      - depth in tree (0-based decimal)
 *     {indent}     - repeated indent unit for current depth
 *     {number}     - sequential number per numbering mode
+*     {line}       - global render-line counter (increments per node)
 *     {message}    - element message text
 *     {is_leaf}    - "true" or "false"
 *     {children}   - direct child count (decimal)
-*
-*   BUILT-IN SUMMARY SPECIFIERS:
+*     {elapsed}    - elapsed time, formatted (auto-scaled units)
+*     {elapsed_ns} - elapsed time, integer nanoseconds
+*     {elapsed_us} - elapsed time, integer microseconds (truncated)
+*     {elapsed_ms} - elapsed time, integer milliseconds (truncated)
+*     {elapsed_s}  - elapsed time, two-place decimal seconds
+* BUILT-IN SUMMARY SPECIFIERS:
 *     {total}      - total node count
 *     {passed}     - passed count
 *     {failed}     - failed count
@@ -68,19 +94,20 @@
 *   C++11 minimum.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    NUMBERING MODE
-* II.   INDENT STATE
-* III.  PRINT CONTEXT
-* IV.   DEFAULT FORMATS
-* V.    TEST PRINTER
-*
-*
 * path:      /inc/djinterp/test/test_printer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.11
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    NUMBERING MODE
+II.   INDENT STATE
+III.  PRINT CONTEXT
+IV.   DEFAULT FORMATS
+V.    TEST PRINTER
+*/
 
 #ifndef DJINTERP_TEST_PRINTER_
 #define DJINTERP_TEST_PRINTER_ 1
@@ -90,6 +117,7 @@
 #include <cstdio>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <string>
 #include <vector>
 // djinterp
@@ -266,22 +294,25 @@ private:
 //   struct: counters accumulated during a tree walk.
 struct print_context
 {
-    std::size_t total;
-    std::size_t passed;
-    std::size_t failed;
-    std::size_t skipped;
-    std::size_t pending;
-    std::size_t errors;
-    std::size_t leaf_number;
-    std::size_t global_number;
-    std::size_t last_depth;
+    std::size_t  total;
+    std::size_t  passed;
+    std::size_t  failed;
+    std::size_t  skipped;
+    std::size_t  pending;
+    std::size_t  errors;
+    std::size_t  leaf_number;
+    std::size_t  global_number;
+    std::size_t  last_depth;
+    std::size_t  line_counter;
+    std::int64_t elapsed_total_ns;
     std::vector<std::size_t> depth_counters;
 
     print_context()
         : total(0), passed(0), failed(0),
           skipped(0), pending(0), errors(0),
           leaf_number(0), global_number(0),
-          last_depth(0), depth_counters()
+          last_depth(0), line_counter(0),
+          elapsed_total_ns(0), depth_counters()
     {}
 
     void
@@ -389,6 +420,69 @@ struct print_context
 
         return std::string(buf);
     }
+
+    // int64_to_string
+    //   helper: portable decimal stringification of a signed
+    // 64-bit integer.  Casts through long long to satisfy the
+    // %lld printf format on every conforming C++11 toolchain.
+    static std::string
+    int64_to_string(
+        std::int64_t _v
+    )
+    {
+        char buf[32];
+
+        std::snprintf(buf, sizeof(buf), "%lld",
+                      static_cast<long long>(_v));
+
+        return std::string(buf);
+    }
+
+    // advance_line
+    //   helper: returns the line number assigned to the
+    // about-to-be-rendered node and advances the counter.
+    // The first node rendered receives line number 1.
+    std::size_t
+    advance_line() D_NOEXCEPT
+    {
+        ++line_counter;
+
+        return line_counter;
+    }
+
+    // accumulate_elapsed
+    //   helper: adds the supplied nanosecond count to the
+    // running elapsed total used by summary / footer
+    // template binding.  Saturating clamp at int64 max so
+    // pathological inputs cannot wrap.
+    void
+    accumulate_elapsed(
+        std::int64_t _ns
+    ) D_NOEXCEPT
+    {
+        // protect against overflow - clamp instead of wrapping
+        if ( (_ns > 0) &&
+             (elapsed_total_ns >
+                  ( (std::numeric_limits<std::int64_t>::max)() - _ns )) )
+        {
+            elapsed_total_ns = (std::numeric_limits<std::int64_t>::max)();
+
+            return;
+        }
+
+        if ( (_ns < 0) &&
+             (elapsed_total_ns <
+                  ( (std::numeric_limits<std::int64_t>::min)() - _ns )) )
+        {
+            elapsed_total_ns = (std::numeric_limits<std::int64_t>::min)();
+
+            return;
+        }
+
+        elapsed_total_ns += _ns;
+
+        return;
+    }
 };
 
 
@@ -411,6 +505,32 @@ static const char* const D_TEST_FMT_NODE_MINIMAL =
 static const char* const D_TEST_FMT_NODE_MESSAGE =
     "{indent}{symbol} {name} - {message}\n";
 
+// D_TEST_FMT_NODE_LINE_NUMBERED
+//   constant: line-numbered node format with depth-based indent.
+static const char* const D_TEST_FMT_NODE_LINE_NUMBERED =
+    "{line}: {indent}{symbol} {name}\n";
+
+// D_TEST_FMT_NODE_TIMED
+//   constant: depth-indented node format with elapsed time
+// suffixed in human-readable form (auto-scaled units).
+static const char* const D_TEST_FMT_NODE_TIMED =
+    "{indent}{symbol} {name} ({elapsed})\n";
+
+// D_TEST_FMT_NODE_LINE_TIMED
+//   constant: combines line numbering, depth-based indent, and
+// per-node elapsed time formatted via the configurable
+// elapsed-format function.
+static const char* const D_TEST_FMT_NODE_LINE_TIMED =
+    "{line}: {indent}{symbol} {name} ({elapsed})\n";
+
+// D_TEST_FMT_NODE_FULL
+//   constant: maximally-decorated node format with line number,
+// per-mode node number, depth indent, status, and elapsed time
+// in milliseconds.
+static const char* const D_TEST_FMT_NODE_FULL =
+    "{line}: {indent}{number}. {symbol} {name}"
+    " [{status}] ({elapsed_ms} ms)\n";
+
 static const char* const D_TEST_FMT_SUMMARY_DEFAULT =
     "\n{symbol} {passed}/{total} passed"
     ", {failed} failed"
@@ -423,6 +543,15 @@ static const char* const D_TEST_FMT_SUMMARY_FULL =
     "    Assertions Passed:    {passed}\n"
     "    Assertions Failed:    {failed}\n"
     "    Assertion Pass Rate:  {pass_rate}\n";
+
+// D_TEST_FMT_SUMMARY_TIMED
+//   constant: summary format that surfaces total elapsed time
+// across all rendered nodes alongside the standard counters.
+static const char* const D_TEST_FMT_SUMMARY_TIMED =
+    "\n{symbol} {passed}/{total} passed"
+    ", {failed} failed"
+    ", {skipped} skipped"
+    " ({pass_rate}) - total elapsed: {elapsed}\n";
 
 static const char* const D_TEST_FMT_HEADER_BANNER =
     "========================================"
@@ -456,22 +585,149 @@ static const char* const D_TEST_FMT_SECTION_FOOTER_RESULTS =
     "----------------------------------------\n";
 
 
+// default_elapsed_format
+//   function: human-readable formatter for a duration expressed
+// in nanoseconds.  Auto-scales to the largest unit that yields a
+// magnitude >= 1, choosing among ns, us, ms, and s.  Sub-microsecond
+// values render as integer nanoseconds; all larger units render
+// with two decimal places.
+//
+// Parameter(s):
+//   _ns: signed nanosecond count.  Negative values are formatted
+//        with a leading '-' and the same unit-selection logic.
+inline std::string
+default_elapsed_format(
+    std::int64_t _ns
+)
+{
+    char         buf[32];
+    bool         negative;
+    std::int64_t magnitude;
+
+    negative  = (_ns < 0);
+    magnitude = (negative) ? -_ns : _ns;
+
+    // sub-microsecond: render as integer ns
+    if (magnitude < 1000)
+    {
+        std::snprintf(buf,
+                      sizeof(buf),
+                      "%s%lld ns",
+                      (negative) ? "-" : "",
+                      static_cast<long long>(magnitude));
+
+        return std::string(buf);
+    }
+
+    // sub-millisecond: render as us with two decimals
+    if (magnitude < 1000000)
+    {
+        std::snprintf(buf,
+                      sizeof(buf),
+                      "%s%.2f us",
+                      (negative) ? "-" : "",
+                      (static_cast<double>(magnitude) / 1000.0));
+
+        return std::string(buf);
+    }
+
+    // sub-second: render as ms with two decimals
+    if (magnitude < 1000000000LL)
+    {
+        std::snprintf(buf,
+                      sizeof(buf),
+                      "%s%.2f ms",
+                      (negative) ? "-" : "",
+                      (static_cast<double>(magnitude) / 1000000.0));
+
+        return std::string(buf);
+    }
+
+    // seconds with two decimals
+    std::snprintf(buf,
+                  sizeof(buf),
+                  "%s%.2f s",
+                  (negative) ? "-" : "",
+                  (static_cast<double>(magnitude) / 1000000000.0));
+
+    return std::string(buf);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 ///                V.   TEST PRINTER                                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 using print_sink = std::function<void(const char*, std::size_t)>;
 
+
+// default extractor functors used by the simplified walk overloads
+// when the caller declines to supply their own.  These are stateless
+// types with templated call operators rather than C++14 generic
+// lambdas, so the file remains buildable on C++11 toolchains where
+// `auto` lambda parameters are unavailable.  Selection is controlled
+// by env.h: on C++14 and later, D_ENV_LANG_IS_CPP14_OR_HIGHER is 1,
+// but the functor path is used unconditionally because it is
+// behaviourally identical and avoids divergent implementations.
+NS_INTERNAL
+
+    // const_zero_size_extractor
+    //   trait: stateless extractor that ignores its argument and
+    // always returns std::size_t{0}.  Bound as the default depth
+    // extractor in the simplified walk overload.
+    struct const_zero_size_extractor
+    {
+        template<typename _Elem>
+        std::size_t operator()(const _Elem&) const D_NOEXCEPT
+        {
+            return 0;
+        }
+    };
+
+    // const_zero_int64_extractor
+    //   trait: stateless extractor that ignores its argument and
+    // always returns std::int64_t{0}.  Bound as the default elapsed
+    // extractor when the caller supplies no timing source.
+    struct const_zero_int64_extractor
+    {
+        template<typename _Elem>
+        std::int64_t operator()(const _Elem&) const D_NOEXCEPT
+        {
+            return 0;
+        }
+    };
+
+    // const_true_leaf_extractor
+    //   trait: stateless extractor that ignores its argument and
+    // always returns true.  Bound as the default leaf-flag
+    // extractor in the simplified walk overload (treats every
+    // element as a leaf node).
+    struct const_true_leaf_extractor
+    {
+        template<typename _Elem>
+        bool operator()(const _Elem&) const D_NOEXCEPT
+        {
+            return true;
+        }
+    };
+
+NS_END  // internal
+
+
 // test_printer
 //   class: template-backed tree printer with configurable
-// indentation, numbering, symbols, and six template sections.
+// indentation, numbering, line numbering, elapsed-time formatting,
+// symbols, and six template sections.
 class test_printer
 {
 public:
-    using symbol_fn_type  = std::function<std::string(test_status)>;
-    using status_fn_type  = std::function<std::string(test_status)>;
-    using filter_fn_type  = std::function<bool(test_status, std::size_t)>;
-    using binder_fn_type  = std::function<void(text_template&, std::size_t)>;
+    using symbol_fn_type         = std::function<std::string(test_status)>;
+    using status_fn_type         = std::function<std::string(test_status)>;
+    using filter_fn_type         = std::function<bool(test_status,
+                                                      std::size_t)>;
+    using binder_fn_type         = std::function<void(text_template&,
+                                                      std::size_t)>;
+    using elapsed_format_fn_type = std::function<std::string(std::int64_t)>;
 
     // -----------------------------------------------------------------
     //  construction
@@ -497,6 +753,7 @@ public:
           m_print_pending(true),
           m_symbol_fn(default_symbol),
           m_status_fn(default_status_string),
+          m_elapsed_format_fn(default_elapsed_format),
           m_filter(nullptr),
           m_node_binder(nullptr),
           m_context(),
@@ -637,6 +894,36 @@ public:
 
 
     // =================================================================
+    //  elapsed-time formatting
+    // =================================================================
+
+    // elapsed_format_function
+    //   accessor: returns the active formatter used to resolve the
+    // {elapsed} specifier.  Receives a signed nanosecond count and
+    // returns a display string.
+    const elapsed_format_fn_type&
+    elapsed_format_function() const D_NOEXCEPT
+    {
+        return m_elapsed_format_fn;
+    }
+
+    // set_elapsed_format_function
+    //   mutator: installs a custom formatter for the {elapsed}
+    // specifier.  Pass an empty std::function to fall back to
+    // default_elapsed_format on the next render.
+    void
+    set_elapsed_format_function(
+        elapsed_format_fn_type _fn
+    )
+    {
+        m_elapsed_format_fn =
+            static_cast<elapsed_format_fn_type&&>(_fn);
+
+        return;
+    }
+
+
+    // =================================================================
     //  filters
     // =================================================================
 
@@ -743,13 +1030,15 @@ public:
         const std::string& _name,
         const std::string& _message,
         std::size_t        _depth,
-        std::size_t        _number
+        std::size_t        _number,
+        std::int64_t       _elapsed_ns = 0
     ) const
     {
         render_node(
             _status, _name, _message,
             _depth, true, 0,
-            print_context::size_to_string(_number));
+            print_context::size_to_string(_number),
+            _elapsed_ns);
 
         return;
     }
@@ -761,14 +1050,86 @@ public:
 
     // walk
     //   iterates an iterable container, rendering each element
-    // through the node template with depth-driven indentation.
+    // through the node template with depth-driven indentation,
+    // line numbering, and per-node elapsed-time binding.
     //
     // Extraction functions:
-    //   _name_fn(elem)   -> string
-    //   _msg_fn(elem)    -> string
-    //   _depth_fn(elem)  -> size_t
-    //   _status_fn(elem) -> test_status
-    //   _leaf_fn(elem)   -> bool
+    //   _name_fn(elem)    -> string
+    //   _msg_fn(elem)     -> string
+    //   _depth_fn(elem)   -> size_t
+    //   _status_fn(elem)  -> test_status
+    //   _leaf_fn(elem)    -> bool
+    //   _elapsed_fn(elem) -> std::int64_t  (nanoseconds)
+    template<typename _Container,
+             typename _NameFn,
+             typename _MsgFn,
+             typename _DepthFn,
+             typename _StatusFn,
+             typename _LeafFn,
+             typename _ElapsedFn>
+    void
+    walk(
+        const _Container& _elements,
+        _NameFn&&         _name_fn,
+        _MsgFn&&          _msg_fn,
+        _DepthFn&&        _depth_fn,
+        _StatusFn&&       _status_fn,
+        _LeafFn&&         _leaf_fn,
+        _ElapsedFn&&      _elapsed_fn,
+        bool              _with_header  = false,
+        bool              _with_summary = true,
+        bool              _with_footer  = false
+    )
+    {
+        reset_context();
+
+        if (_with_header)
+        {
+            print_header();
+        }
+
+        // walk every element in arrival order, accumulating counters
+        // and rendering through the node template
+        for (const auto& elem : _elements)
+        {
+            test_status  s     = _status_fn(elem);
+            std::string  name  = _name_fn(elem);
+            std::string  msg   = _msg_fn(elem);
+            std::size_t  depth = _depth_fn(elem);
+            bool         leaf  = _leaf_fn(elem);
+            std::int64_t ns    =
+                static_cast<std::int64_t>(_elapsed_fn(elem));
+
+            m_context.accumulate(s);
+
+            std::string num = m_context.next_number(
+                m_numbering, depth, leaf);
+
+            if (!should_print(s, depth))
+            {
+                continue;
+            }
+
+            render_node(s, name, msg, depth, leaf, 0, num, ns);
+        }
+
+        if (_with_summary)
+        {
+            print_summary();
+        }
+
+        if (_with_footer)
+        {
+            print_footer();
+        }
+
+        return;
+    }
+
+    // walk (no elapsed extractor)
+    //   delegates to the elapsed-aware walk with a zero-elapsed
+    // extractor.  Preserves the pre-existing six-extractor API for
+    // callers that have not yet wired in timing.
     template<typename _Container,
              typename _NameFn,
              typename _MsgFn,
@@ -788,43 +1149,17 @@ public:
         bool              _with_footer  = false
     )
     {
-        reset_context();
-
-        if (_with_header)
-        {
-            print_header();
-        }
-
-        for (const auto& elem : _elements)
-        {
-            test_status s     = _status_fn(elem);
-            std::string name  = _name_fn(elem);
-            std::string msg   = _msg_fn(elem);
-            std::size_t depth = _depth_fn(elem);
-            bool        leaf  = _leaf_fn(elem);
-
-            m_context.accumulate(s);
-
-            std::string num = m_context.next_number(
-                m_numbering, depth, leaf);
-
-            if (!should_print(s, depth))
-            {
-                continue;
-            }
-
-            render_node(s, name, msg, depth, leaf, 0, num);
-        }
-
-        if (_with_summary)
-        {
-            print_summary();
-        }
-
-        if (_with_footer)
-        {
-            print_footer();
-        }
+        walk(
+            _elements,
+            static_cast<_NameFn&&>(_name_fn),
+            static_cast<_MsgFn&&>(_msg_fn),
+            static_cast<_DepthFn&&>(_depth_fn),
+            static_cast<_StatusFn&&>(_status_fn),
+            static_cast<_LeafFn&&>(_leaf_fn),
+            internal::const_zero_int64_extractor(),
+            _with_header,
+            _with_summary,
+            _with_footer);
 
         return;
     }
@@ -846,9 +1181,9 @@ public:
             _elements,
             static_cast<_NameFn&&>(_name_fn),
             static_cast<_MsgFn&&>(_msg_fn),
-            [](const auto&) -> std::size_t { return 0; },
+            internal::const_zero_size_extractor(),
             static_cast<_StatusFn&&>(_status_fn),
-            [](const auto&) -> bool { return true; });
+            internal::const_true_leaf_extractor());
 
         return;
     }
@@ -910,6 +1245,26 @@ private:
         }
     }
 
+    // format_seconds
+    //   helper: renders a nanosecond count as a two-place
+    // decimal seconds string (e.g. "1.23").  Used to bind the
+    // {elapsed_s} specifier without introducing dependency on
+    // <chrono>.  Sign is preserved.
+    static std::string
+    format_seconds(
+        std::int64_t _ns
+    )
+    {
+        char buf[32];
+
+        std::snprintf(buf,
+                      sizeof(buf),
+                      "%.2f",
+                      (static_cast<double>(_ns) / 1000000000.0));
+
+        return std::string(buf);
+    }
+
 
     // =================================================================
     //  internal: filter
@@ -961,7 +1316,8 @@ private:
         std::size_t        _depth,
         bool               _is_leaf,
         std::size_t        _child_count,
-        const std::string& _num_str
+        const std::string& _num_str,
+        std::int64_t       _elapsed_ns
     ) const
     {
         if (m_node_fmt.empty())
@@ -969,20 +1325,49 @@ private:
             return;
         }
 
+        // build the depth-driven indent string before binding so it
+        // stays bound to the depth this caller asked us to render
         m_indent.set_depth(_depth);
         std::string indent_str = m_indent.build();
 
+        // assign the rendering line number BEFORE emit so the format
+        // string sees the correct value for this node's first line
+        std::size_t line_no = m_context.advance_line();
+
+        // accumulate elapsed for the section / summary aggregates
+        m_context.accumulate_elapsed(_elapsed_ns);
+
+        // resolve the human-readable elapsed string, falling back to
+        // the built-in formatter if the user-supplied one is empty
+        std::string elapsed_str =
+            (m_elapsed_format_fn)
+                ? m_elapsed_format_fn(_elapsed_ns)
+                : default_elapsed_format(_elapsed_ns);
+
         m_node_tmpl.clear_bindings();
 
-        m_node_tmpl.bind("name",     _name);
-        m_node_tmpl.bind("status",   m_status_fn(_status));
-        m_node_tmpl.bind("symbol",   m_symbol_fn(_status));
-        m_node_tmpl.bind("depth",    print_context::size_to_string(_depth));
-        m_node_tmpl.bind("indent",   indent_str);
-        m_node_tmpl.bind("number",   _num_str);
-        m_node_tmpl.bind("message",  _message);
-        m_node_tmpl.bind("is_leaf",  _is_leaf ? "true" : "false");
-        m_node_tmpl.bind("children", print_context::size_to_string(_child_count));
+        m_node_tmpl.bind("name",       _name);
+        m_node_tmpl.bind("status",     m_status_fn(_status));
+        m_node_tmpl.bind("symbol",     m_symbol_fn(_status));
+        m_node_tmpl.bind("depth",
+                         print_context::size_to_string(_depth));
+        m_node_tmpl.bind("indent",     indent_str);
+        m_node_tmpl.bind("number",     _num_str);
+        m_node_tmpl.bind("line",
+                         print_context::size_to_string(line_no));
+        m_node_tmpl.bind("message",    _message);
+        m_node_tmpl.bind("is_leaf",    _is_leaf ? "true" : "false");
+        m_node_tmpl.bind("children",
+                         print_context::size_to_string(_child_count));
+        m_node_tmpl.bind("elapsed",    elapsed_str);
+        m_node_tmpl.bind("elapsed_ns",
+                         print_context::int64_to_string(_elapsed_ns));
+        m_node_tmpl.bind("elapsed_us",
+                         print_context::int64_to_string(_elapsed_ns / 1000LL));
+        m_node_tmpl.bind("elapsed_ms",
+                         print_context::int64_to_string(
+                             _elapsed_ns / 1000000LL));
+        m_node_tmpl.bind("elapsed_s",  format_seconds(_elapsed_ns));
 
         if (m_node_binder)
         {
@@ -999,30 +1384,66 @@ private:
     //  internal: bind context
     // =================================================================
 
-    static void
+    // bind_context_to
+    //   helper: populates the standard counter / aggregate
+    // specifiers shared by header, footer, section, and summary
+    // templates from a print_context snapshot.  This includes the
+    // total-elapsed and line-count aggregates so summaries can
+    // render the {elapsed} and {line} specifiers as suite-wide
+    // values rather than per-node.
+    void
     bind_context_to(
-        text_template& _tmpl,
+        text_template&       _tmpl,
         const print_context& _ctx
-    )
+    ) const
     {
-        _tmpl.bind("total",     print_context::size_to_string(_ctx.total));
-        _tmpl.bind("passed",    print_context::size_to_string(_ctx.passed));
-        _tmpl.bind("failed",    print_context::size_to_string(_ctx.failed));
-        _tmpl.bind("skipped",   print_context::size_to_string(_ctx.skipped));
-        _tmpl.bind("pending",   print_context::size_to_string(_ctx.pending));
-        _tmpl.bind("errors",    print_context::size_to_string(_ctx.errors));
-        _tmpl.bind("pass_rate", _ctx.pass_rate());
+        _tmpl.bind("total",
+                   print_context::size_to_string(_ctx.total));
+        _tmpl.bind("passed",
+                   print_context::size_to_string(_ctx.passed));
+        _tmpl.bind("failed",
+                   print_context::size_to_string(_ctx.failed));
+        _tmpl.bind("skipped",
+                   print_context::size_to_string(_ctx.skipped));
+        _tmpl.bind("pending",
+                   print_context::size_to_string(_ctx.pending));
+        _tmpl.bind("errors",
+                   print_context::size_to_string(_ctx.errors));
+        _tmpl.bind("pass_rate",  _ctx.pass_rate());
+        _tmpl.bind("line",
+                   print_context::size_to_string(_ctx.line_counter));
+
+        // elapsed-time aggregate: {elapsed} resolves through the
+        // configured formatter (or default), with fixed-unit
+        // companions for callers that need raw integers
+        std::string elapsed_str =
+            (m_elapsed_format_fn)
+                ? m_elapsed_format_fn(_ctx.elapsed_total_ns)
+                : default_elapsed_format(_ctx.elapsed_total_ns);
+
+        _tmpl.bind("elapsed",    elapsed_str);
+        _tmpl.bind("elapsed_ns",
+                   print_context::int64_to_string(
+                       _ctx.elapsed_total_ns));
+        _tmpl.bind("elapsed_us",
+                   print_context::int64_to_string(
+                       _ctx.elapsed_total_ns / 1000LL));
+        _tmpl.bind("elapsed_ms",
+                   print_context::int64_to_string(
+                       _ctx.elapsed_total_ns / 1000000LL));
+        _tmpl.bind("elapsed_s",
+                   format_seconds(_ctx.elapsed_total_ns));
 
         std::string sym =
-            (_ctx.failed > 0 || _ctx.errors > 0)
+            ( ((_ctx.failed > 0) || (_ctx.errors > 0))
                 ? default_symbol(test_status::failed)
-                : default_symbol(test_status::passed);
+                : default_symbol(test_status::passed) );
 
-        _tmpl.bind("symbol",      sym);
+        _tmpl.bind("symbol",     sym);
 
         _tmpl.bind("status_word",
-            (_ctx.failed > 0 || _ctx.errors > 0)
-                ? "FAILED" : "PASSED");
+            ( ((_ctx.failed > 0) || (_ctx.errors > 0))
+                ? "FAILED" : "PASSED" ));
 
         return;
     }
@@ -1072,10 +1493,11 @@ private:
     bool m_print_skipped;
     bool m_print_pending;
 
-    symbol_fn_type m_symbol_fn;
-    status_fn_type m_status_fn;
-    filter_fn_type m_filter;
-    binder_fn_type m_node_binder;
+    symbol_fn_type         m_symbol_fn;
+    status_fn_type         m_status_fn;
+    elapsed_format_fn_type m_elapsed_format_fn;
+    filter_fn_type         m_filter;
+    binder_fn_type         m_node_binder;
 
     mutable print_context m_context;
     print_sink            m_sink;
