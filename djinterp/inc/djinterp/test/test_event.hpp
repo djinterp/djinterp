@@ -1,315 +1,252 @@
 /******************************************************************************
-* djinterp [test]                                                test_event.hpp
+* djinterp [test]                                               test_event.hpp
 *
-*   Centralized test-event module for the DTest framework.  Hosts the
-* built-in lifecycle event tags (formerly in test_handler.hpp), the
-* templated `test_event<_IntType>` payload struct used for value-tagged
-* events, and small helpers that operate over both.
+*   The DTest event alphabet -- the set of event TAGS the test framework
+* dispatches over, declared against the formal event subsystem (event.hpp).
+* In that subsystem an event is not a class instance but a TYPE: a tag with a
+* nested `payload_type` (a std::tuple of value domains) and a `name()`.  The
+* type IS the registration, so there is no enrolment step and the alphabet is
+* open -- new summands are added simply by declaring new tags.
 *
-*   DESIGN:
-*   This header is the single source of truth for "what events does the
-* test framework dispatch?"  It does not own the dispatcher itself -
-* `event_handler` (from the C++ event subsystem) is the dispatcher and
-* `test_handler` is the session façade - but every event TAG that the
-* test framework defines lives in this module's `events::` sub-namespace,
-* alongside the templated payload struct used by value-tagged events.
+*   This header supplies two things:
+*     1. the BUILT-IN lifecycle tags, in the `djinterp::test::events`
+*        sub-namespace, that test_handler.hpp and test_builder.hpp fire as
+*        they walk a tree (session, module, test, status, and diagnostic
+*        events); and
+*     2. the D_TEST_EVENT family of macros, so a user can declare a CUSTOM
+*        test event -- one carrying the same node payload as the built-ins --
+*        in a single line, and bind / fire it through exactly the same
+*        handler API.
 *
-*   TWO EVENT FAMILIES:
-*   The framework has two distinct families of events:
+*   RELATION TO test_common.hpp:
+*   test_common.hpp carries a small, self-contained `test_event` STRUCT (an
+* {id, status, message} record) plus `test_event_id`; that is the framework's
+* lightweight, event-subsystem-free observation record and is unrelated to the
+* tags here.  This header instead names the formal event ALPHABET; the two
+* coexist (there is no `test_event` type declared in this file).
 *
-*     1. LIFECYCLE EVENTS - declared via D_EVENT, fired automatically
-*        by the test_handler walk.  Each carries a distinct payload
-*        signature appropriate to that lifecycle moment (a
-*        `const basic_test*`, a counter pair, etc.).  Listeners always
-*        run when bound; there is no value gating.
+*   PAYLOAD CONVENTION:
+*   Every node-scoped tag carries a single `const basic_test*` -- the visited
+* node, from which a handler reads status, type id, and metadata (name /
+* message).  A pointer payload is why this header only FORWARD-DECLARES
+* basic_test rather than including test_object.hpp: it deliberately sits below
+* test_object.hpp in the include chain (both test_handler.hpp and
+* test_builder.hpp include this header first), keeping the alphabet a light
+* leaf of the dependency graph.  test_object.hpp completes the type.
 *
-*     2. VALUE-TAGGED EVENTS - declared in test_defaults.hpp via D_EVENT
-*        with a `const test_event<_IntType>&` payload.  The carried
-*        struct has a single integer value field of the requested
-*        width, plus optional name and message strings.  Listeners may
-*        be gated by value threshold (see default_test_handler in
-*        test_defaults.hpp).
+*   HANDLERS RETURN A VERDICT:
+*   In the refactored event subsystem a handler is any callable accepting the
+* payload and returning `void` (always-pass) or a `verdict`; it does not
+* mutate a context.  Compatibility is checked at bind time.  These tags carry
+* no opinion about that -- a tag is only an identity and a payload shape.
 *
-*   `test_event<_IntType>` lives in the `events::` sub-namespace to
-* avoid colliding with the legacy non-templated `test::test_event`
-* declared in test_common.hpp (kept for source compatibility with the
-* old option-based callback wiring).  New code should always reach for
-* `events::test_event<...>`.
+*   USAGE -- binding a built-in lifecycle listener:
+*     handler.on<events::on_test_failed>(
+*         [](const basic_test* _n) D_NOEXCEPT
+*         {
+*             std::fprintf(stderr, "FAIL: %s\n",
+*                          _n->metadata().get("name"));
+*         });
 *
-*   PORTABILITY:
-*   C++11 minimum.  All standard-version gating goes through env.h and
-* env_cpp_features.h.  The templated payload uses only `static_assert`
-* and standard type traits available in C++11.
+*   USAGE -- declaring and firing a custom test event:
+*     namespace myproj { D_TEST_EVENT(on_flaky_retry); }   // node payload
+*     handler.on<myproj::on_flaky_retry>(
+*         [](const basic_test*) { ... });
+*     handler.fire<myproj::on_flaky_retry>(&node);
+*
+*   PORTABLE ACROSS:
+*   C++11, C++14, C++17, C++20, C++23, C++26.  The tags are plain types; the
+* event_traits / concept machinery they plug into degrades from concepts
+* (C++20+) to static_assert (C++11) inside event.hpp with no change here.
 *
 *
 * TABLE OF CONTENTS
 * =================
-* I.    PORTABILITY CHECKS
-* II.   LIFECYCLE EVENT TAGS
-* III.  VALUE-TAGGED EVENT PAYLOAD
-* IV.   PAYLOAD HELPERS
+* I.    NODE FORWARD DECLARATIONS
+* II.   BUILT-IN EVENT ALPHABET     (djinterp::test::events)
+* III.  CUSTOM EVENT DECLARATION    (D_TEST_EVENT family)
 *
 *
 * path:      /inc/djinterp/test/test_event.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.17
 ******************************************************************************/
 
 #ifndef DJINTERP_TEST_EVENT_
 #define DJINTERP_TEST_EVENT_ 1
 
-
-// =========================================================================
-// I.   INCLUDES AND PORTABILITY CHECKS
-// =========================================================================
-
-#ifndef __cplusplus
-    #error "test_event.hpp can only be used in C++ compilation mode"
-#endif
-
-
 // std
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
-// djinterp  --  pull the environment header chain FIRST so that the
-// feature-flag macros below are defined before we test them.
-#include "../core/djinterp.hpp"
-#include "../core/event/event.hpp"
-#include "./test_common.hpp"
-#include "./test_object.hpp"
-
-
-// feature gates
-//   the templated payload requires C++11's std::is_integral.  the
-// D_EVENT-based tags require variadic templates, which are also a
-// C++11 feature.  these checks mirror those in test_handler.hpp so
-// either header may be included independently.
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "test_event.hpp requires C++11 or higher"
-#endif
-
-#if !D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
-    #error "test_event.hpp requires variadic templates"
-#endif
+#include <tuple>
+// djinterp
+#include "../core/djinterp.hpp"      // NS_*, D_* qualifiers
+#include "../core/event/event.hpp"   // verdict, event_traits, D_EVENT[_EMPTY]
+#include "./test_common.hpp"         // test_status (status-change payload)
 
 
 NS_DJINTERP
 NS_TEST
 
 
-// events
-//   namespace: declarations for every test-framework event TAG
-// (lifecycle and value-tagged) and the templated payload struct
-// used by value-tagged events.  User-defined events live in the
-// user's own namespace; placing the framework's events here
-// avoids accidental collision and gives a single place to look
-// when wiring listeners.
-namespace events {
+// =========================================================================
+// I.   NODE FORWARD DECLARATIONS
+// =========================================================================
+
+// test_metadata
+//   forward declaration: the default per-node metadata container, completed
+// in test_object.hpp.  Named here only to spell the default argument of the
+// basic_test alias below.
+class test_metadata;
+
+// test_object
+//   forward declaration: the node template, completed in test_object.hpp.
+// Declared WITHOUT default arguments (test_object.hpp specifies them); the
+// node payloads below name only a pointer to a specialization, for which an
+// incomplete type suffices.  The parameter list mirrors the primary template
+// in test_object.hpp.
+template<typename    _StatusType,
+         typename    _MetadataContainer,
+         typename... _Options>
+struct test_object;
+
+// basic_test
+//   type: the default node instantiation (test_object<>), the element every
+// lifecycle tag carries by `const basic_test*`.  Spelled with explicit
+// arguments so it resolves before test_object.hpp's defaults are visible;
+// test_object.hpp re-aliases the same type, which is a legal redeclaration.
+using basic_test = test_object<std::uint8_t, test_metadata>;
 
 
 // =========================================================================
-// II.  LIFECYCLE EVENT TAGS
+// II.  BUILT-IN EVENT ALPHABET
 // =========================================================================
-//   These were formerly declared inline in test_handler.hpp.  They
-// have been moved here as part of the centralization that gives
-// test_event.hpp ownership of "what events does the framework
-// define?"  The semantics are unchanged.
-
-// on_session_start
-//   event: fired once at the beginning of a run, before any
-// node is visited.
-D_EVENT_EMPTY(on_session_start);
-
-// on_session_end
-//   event: fired once at the end of a run; carries the
-// accumulated pass and fail counters.
-D_EVENT(on_session_end,
-        std::size_t,    // _passed
-        std::size_t);   // _failed
-
-// on_module_start
-//   event: fired when the walker enters an interior node
-// identified as a module (rank-aware).
-D_EVENT(on_module_start,
-        const basic_test*);
-
-// on_module_end
-//   event: fired when the walker leaves a module node.
-D_EVENT(on_module_end,
-        const basic_test*);
-
-// on_test_start
-//   event: fired when the walker enters a leaf test node,
-// before the node's status is observed.
-D_EVENT(on_test_start,
-        const basic_test*);
-
-// on_test_end
-//   event: fired when the walker leaves a leaf test node,
-// after the corresponding status event has been dispatched.
-D_EVENT(on_test_end,
-        const basic_test*);
-
-// on_test_passed
-//   event: fired for a leaf test whose evaluation returned
-// test_status::passed.
-D_EVENT(on_test_passed,
-        const basic_test*);
-
-// on_test_failed
-//   event: fired for a leaf test whose evaluation returned
-// test_status::failed.
-D_EVENT(on_test_failed,
-        const basic_test*);
-
-// on_test_skipped
-//   event: fired for a leaf test whose evaluation was
-// intentionally bypassed (test_status::skipped).
-D_EVENT(on_test_skipped,
-        const basic_test*);
-
-// on_test_error
-//   event: fired for a leaf test whose evaluation could not
-// complete (test_status::error).  Carries an optional
-// human-readable diagnostic.
-D_EVENT(on_test_error,
-        const basic_test*,
-        const char*);
-
-// on_status_change
-//   event: fired whenever an observed status differs from
-// the prior status.  Useful for transition-driven sinks
-// (e.g. logging only the first failure of a run).
-D_EVENT(on_status_change,
-        const basic_test*,
-        test_status,    // _from
-        test_status);   // _to
-
-// on_listener_threw
-//   event: fired when a user listener escapes with an
-// exception during dispatch.  Carries the event name and
-// the exception's what() string.  Listeners for this event
-// MUST NOT throw.
-D_EVENT(on_listener_threw,
-        const char*,    // _event_name
-        const char*);   // _what
-
-
-// =========================================================================
-// III. VALUE-TAGGED EVENT PAYLOAD
-// =========================================================================
-
-// test_event
-//   struct: value-tagged event payload, parameterised on the
-// integer width of its `value` field.  Each `_IntType`
-// instantiation produces a distinct type whose `value` member
-// has the requested storage size and signedness.
 //
-// Usage:
-//   the templated payload is paired with a D_EVENT-declared
-// tag whose dispatch signature carries `const test_event<T>&`.
-// See test_defaults.hpp for the default-shipped tag bindings
-// and the threshold-filtered handler that consumes them.
-//
-//   constexpr-friendly: every member function is constexpr or
-// D_TEST_CONSTEXPR (constexpr on C++14+).  The struct itself
-// is trivially copyable, so passing it by value or by
-// reference are both acceptable patterns.
-template<typename _IntType>
-struct test_event
+//   The lifecycle tags fired by the framework's walkers (test_handler.hpp,
+// test_builder.hpp).  Each is declared with D_EVENT / D_EVENT_EMPTY from
+// event.hpp, so it carries a `payload_type` tuple and a `name()`; the payload
+// shapes below match the framework's fire sites exactly.  Listeners bind to a
+// tag with `handler.on<events::TAG>(callable)` and the framework dispatches
+// with the corresponding payload.
+
+namespace events
 {
-    static_assert(std::is_integral<_IntType>::value,
-                  "`_IntType` must be an integral type.");
 
-    // -----------------------------------------------------------------
-    //  type aliases
-    // -----------------------------------------------------------------
-    using value_type = _IntType;
+    // ---- session lifecycle ----
 
-    // -----------------------------------------------------------------
-    //  construction
-    // -----------------------------------------------------------------
+    // on_session_start
+    //   the run is beginning; counters have just been reset.  Empty payload.
+    D_EVENT_EMPTY(on_session_start);
 
-    // default
-    //   produces a zero-valued event with no name or message.
-    D_CONSTEXPR test_event() D_NOEXCEPT
-        : value(static_cast<value_type>(0)),
-          name(nullptr),
-          message(nullptr)
-    {}
-
-    // from value only
-    D_CONSTEXPR explicit test_event(
-        value_type _value
-    ) D_NOEXCEPT
-        : value(_value),
-          name(nullptr),
-          message(nullptr)
-    {}
-
-    // from value and name
-    D_CONSTEXPR test_event(
-        value_type  _value,
-        const char* _name
-    ) D_NOEXCEPT
-        : value(_value),
-          name(_name),
-          message(nullptr)
-    {}
-
-    // from value, name, and message
-    D_CONSTEXPR test_event(
-        value_type  _value,
-        const char* _name,
-        const char* _message
-    ) D_NOEXCEPT
-        : value(_value),
-          name(_name),
-          message(_message)
-    {}
-
-    // -----------------------------------------------------------------
-    //  storage
-    // -----------------------------------------------------------------
-
-    value_type  value;
-    const char* name;
-    const char* message;
-};
+    // on_session_end
+    //   the run has finished.  Payload: (passed_count, failed_count).
+    D_EVENT(on_session_end, std::size_t, std::size_t);
 
 
-// =========================================================================
-// IV.  PAYLOAD HELPERS
-// =========================================================================
+    // ---- module (interior node) lifecycle ----
 
-// make_test_event
-//   function: constructs a test_event<_IntType> with deduced
-// integer type.  Convenience for fire-site code that wants to
-// build a payload without naming the integer width twice.
-//
-// Usage:
-//   handler.fire<events::on_test_event_32>(
-//       events::make_test_event(static_cast<std::int32_t>(7),
-//                               "name",
-//                               "msg"));
-template<typename _IntType>
-D_CONSTEXPR_INLINE test_event<_IntType>
-make_test_event(
-    _IntType    _value,
-    const char* _name    = nullptr,
-    const char* _message = nullptr
-) D_NOEXCEPT
-{
-    return test_event<_IntType>(_value, _name, _message);
-}
+    // on_module_start
+    //   an interior node (module / block / test group) is being entered.
+    // Payload: the node.
+    D_EVENT(on_module_start, const basic_test*);
 
+    // on_module_end
+    //   an interior node has been fully visited.  Payload: the node.
+    D_EVENT(on_module_end, const basic_test*);
+
+
+    // ---- test (leaf node) lifecycle ----
+
+    // on_test_start
+    //   a leaf (assertion / test function) is being entered, before its
+    // status-specific event.  Payload: the node.
+    D_EVENT(on_test_start, const basic_test*);
+
+    // on_test_end
+    //   a leaf has been fully visited, after its status-specific event.
+    // Payload: the node.
+    D_EVENT(on_test_end, const basic_test*);
+
+
+    // ---- terminal status (leaf node) ----
+
+    // on_test_passed
+    //   a leaf resolved to test_status::passed.  Payload: the node.
+    D_EVENT(on_test_passed, const basic_test*);
+
+    // on_test_failed
+    //   a leaf resolved to test_status::failed.  Payload: the node.
+    D_EVENT(on_test_failed, const basic_test*);
+
+    // on_test_skipped
+    //   a leaf resolved to test_status::skipped.  Payload: the node.
+    D_EVENT(on_test_skipped, const basic_test*);
+
+    // on_test_error
+    //   a leaf resolved to test_status::error.  Payload: (node, message),
+    // where the message is an optional diagnostic string (may be null).
+    D_EVENT(on_test_error, const basic_test*, const char*);
+
+    // on_status_change
+    //   a leaf's status changed during evaluation (e.g. a deferred leaf was
+    // run).  Payload: (node, before, after).
+    D_EVENT(on_status_change, const basic_test*, test_status, test_status);
+
+
+    // ---- diagnostics ----
+
+    // on_listener_threw
+    //   a bound listener escaped with an exception during dispatch; the
+    // framework caught it and re-reported it here rather than aborting the
+    // run.  Payload: (event_name, what), both C-strings.  A handler for this
+    // event must not itself throw.
+    D_EVENT(on_listener_threw, const char*, const char*);
 
 }  // namespace events
 
 
 NS_END  // test
 NS_END  // djinterp
+
+
+// =========================================================================
+// III. CUSTOM EVENT DECLARATION
+// =========================================================================
+//
+//   Future users declare custom test events with the macros below (or, for a
+// fully arbitrary payload, with D_EVENT / D_EVENT_EMPTY from event.hpp
+// directly).  The type IS the registration: no enrolment call is needed, and
+// the new tag binds and fires through the same handler API as the built-ins.
+//
+//   These macros are namespace-agnostic -- they declare a tag in the current
+// scope and refer to the node type by its fully-qualified name -- so a custom
+// event may live in the user's own namespace, or in djinterp::test::events
+// alongside the built-ins.  Each expands to a struct, so a trailing semicolon
+// is supplied by the caller.
+
+// D_TEST_EVENT
+//   declares a custom test event carrying the visited node, matching the
+// built-in lifecycle shape.  Payload: (const basic_test*).
+// Usage:
+//   D_TEST_EVENT(on_flaky_retry);
+#define D_TEST_EVENT(_name)                                                   \
+    D_EVENT(_name, const ::djinterp::test::basic_test*)
+
+// D_TEST_EVENT_MSG
+//   declares a custom test event carrying the node plus a C-string message,
+// matching the on_test_error shape.  Payload: (const basic_test*, const char*).
+// Usage:
+//   D_TEST_EVENT_MSG(on_soft_warning);
+#define D_TEST_EVENT_MSG(_name)                                               \
+    D_EVENT(_name, const ::djinterp::test::basic_test*, const char*)
+
+// D_TEST_EVENT_X
+//   declares a custom test event carrying the node followed by caller-
+//   specified extra payload domains.  Payload: (const basic_test*, ...).
+// Usage:
+//   D_TEST_EVENT_X(on_retry, int /*attempt*/);
+#define D_TEST_EVENT_X(_name, ...)                                            \
+    D_EVENT(_name, const ::djinterp::test::basic_test*, __VA_ARGS__)
 
 
 #endif  // DJINTERP_TEST_EVENT_
