@@ -1,231 +1,247 @@
 /******************************************************************************
-* djinterp [color]                                                   color.hpp
+* djinterp [color]                                                    color.hpp
 *
-*   Master color module for the djinterp framework. Provides shared
-* channel types, clamping utilities, color model tag dispatch, and the
-* is_color_model detection trait. Individual color model headers and the
-* conversion layer are included at the bottom.
+*   Umbrella header for the djinterp color module (C++). Including this one
+* header brings in every color model wrapper, the conversion facade, the
+* shared C kernel, and the cross-model operations. It is the single entry
+* point most C++ users want.
 *
-* 
+*   Two forms of polymorphism are provided over the same kernel:
+*
+*     - Compile-time: the color_cast / color_convert template dispatch (from
+*       color_convert.hpp) selects conversions statically with no runtime
+*       cost and constexpr support where the math allows.
+*
+*     - Runtime: the abstract `color` base with `color_value<Model>` lets
+*       heterogeneous colors be stored and manipulated behind one interface,
+*       each delegating to the same kernel via color_cast.
+*
+*
 * path:      /inc/djinterp/util/color/color.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.12
+* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    SHARED TYPES & UTILITIES
-      -------------------------
-      i.    channel_t
-      ii.   clamp_channel
-      iii.  approx_equal
+I.    MODULE INCLUDES
 
-II.   COLOR MODEL TAGS
-      -----------------
-      a. color_model_tag
-      b. rgb_tag
-      c. cmyk_tag
-      d. hsl_tag
-      e. hsv_tag
-      f. ycbcr_tag
-      g. cie_lab_tag
+II.   CROSS-MODEL OPERATIONS (free functions)
+      --------------------------------------
+      a. adjust_saturation
+      b. adjust_brightness
+      c. rotate_hue
+      d. delta_e (cie_lab, cie_lab)
+      e. delta_e (rgb, rgb)
 
-III.  COLOR MODEL DETECTION
-      ----------------------
-      i.    has_model_tag_helper (internal)
-      ii.   is_color_model
-            a. is_color_model_v
-
-IV.   SUB-MODULE INCLUDES
-      ---------------------
-      a. color_rgb.hpp
-      b. color_cmyk.hpp
-      c. color_hsl.hpp
-      d. color_hsv.hpp
-      e. color_ycbcr.hpp
-      f. color_cie_lab.hpp
-      g. color_convert.hpp
+III.  RUNTIME POLYMORPHISM
+      --------------------
+      a. color                 (abstract base)
+      b. color_value<_Model>   (concrete holder)
+      c. make_color            (factory)
 */
 
-#ifndef DJINTERP_COLOR_
-#define DJINTERP_COLOR_ 1
+#ifndef DJINTERP_COLOR_HPP_
+#define DJINTERP_COLOR_HPP_ 1
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                     I.   MODULE INCLUDES                                ///
+///////////////////////////////////////////////////////////////////////////////
 
 #include "../../djinterp.hpp"
-#include "./color.hpp"
 
+#include "./color_common.hpp"
+#include "./color_rgb.hpp"
+#include "./color_cmyk.hpp"
+#include "./color_hsv.hpp"
+#include "./color_hsl.hpp"
+#include "./color_ycbcr.hpp"
+#include "./color_cie_lab.hpp"
+#include "./color_convert.hpp"
 
-///////////////////////////////////////////////////////////////////////////////
-///                I.   SHARED TYPES & UTILITIES                            ///
-///////////////////////////////////////////////////////////////////////////////
+#include "./color.h"
+
+#include <memory>
+
 
 NS_DJINTERP
-NS_COLOR
 
 
-// ================================================================
-//  channel_t
-// ================================================================
+///////////////////////////////////////////////////////////////////////////////
+///            II.   CROSS-MODEL OPERATIONS (free functions)                ///
+///////////////////////////////////////////////////////////////////////////////
 
-// channel_t
-//   type: underlying floating-point type for all color channel
-// values. Defaults to double; define D_COLOR_CHANNEL_TYPE
-// before inclusion to override.
-#ifndef D_COLOR_CHANNEL_TYPE
-    using channel_t = double;
-#else
-    using channel_t = D_COLOR_CHANNEL_TYPE;
-#endif
-
-
-// ================================================================
-//  clamp_channel
-// ================================================================
-
-// clamp_channel
-//   function: constrains a channel value to the closed
-// interval [_min, _max]. Fully constexpr-portable via
-// D_CONSTEXPR.
-template<typename _Type>
-D_CONSTEXPR_INLINE _Type
-clamp_channel(
-    _Type _value,
-    _Type _min,
-    _Type _max
+// adjust_saturation
+//   function: scales an rgb color's saturation in HSL space
+// (1.0 = unchanged, 0.0 = grayscale).
+D_CONSTEXPR_INLINE rgb
+adjust_saturation(
+    const rgb& _rgb,
+    channel_t  _amount
 )
 {
-    return (_value < _min) ? _min
-         : (_value > _max) ? _max
-         :                   _value;
+    return d_color_rgb_adjust_saturation(_rgb, _amount);
+}
+
+// adjust_brightness
+//   function: scales an rgb color's lightness in HSL space
+// (1.0 = unchanged, 0.0 = black).
+D_CONSTEXPR_INLINE rgb
+adjust_brightness(
+    const rgb& _rgb,
+    channel_t  _amount
+)
+{
+    return d_color_rgb_adjust_brightness(_rgb, _amount);
+}
+
+// rotate_hue
+//   function: rotates an rgb color's hue by signed degrees in HSL
+// space.
+D_CONSTEXPR_INLINE rgb
+rotate_hue(
+    const rgb& _rgb,
+    channel_t  _degrees
+)
+{
+    return d_color_rgb_rotate_hue(_rgb, _degrees);
+}
+
+// delta_e
+//   function: CIEDE2000 perceptual difference between two L*a*b*
+// colors (runtime).
+D_INLINE channel_t
+delta_e(
+    const cie_lab& _a,
+    const cie_lab& _b
+)
+{
+    return d_color_delta_e(_a, _b);
+}
+
+// delta_e
+//   function: CIEDE2000 perceptual difference between two rgb
+// colors, via L*a*b* (runtime).
+D_INLINE channel_t
+delta_e(
+    const rgb& _a,
+    const rgb& _b
+)
+{
+    return d_color_rgb_delta_e(_a, _b);
 }
 
 
-// ================================================================
-//  approx_equal
-// ================================================================
+///////////////////////////////////////////////////////////////////////////////
+///                  III.   RUNTIME POLYMORPHISM                            ///
+///////////////////////////////////////////////////////////////////////////////
 
-// approx_equal
-//   function: approximate floating-point equality within a
-// specified epsilon. Used for channel comparisons where exact
-// equality is inappropriate.
-template<typename _Type>
-D_CONSTEXPR_INLINE bool
-approx_equal(
-    _Type _a,
-    _Type _b,
-    _Type _epsilon
-)
+// color
+//   class: abstract base for type-erased colors. Concrete colors
+// of any model are handled uniformly through this interface; each
+// delegates to the shared kernel via color_cast.
+class color
 {
-    _Type diff = (_a > _b) ? (_a - _b) : (_b - _a);
+public:
+    // ~color
+    //   destructor: virtual for safe polymorphic deletion.
+    virtual ~color() = default;
 
-    return (diff <= _epsilon);
-}
+    // to_rgb
+    //   query: convert the held color to linear RGB.
+    virtual rgb
+    to_rgb() const = 0;
 
+    // clone
+    //   factory: deep copy of the held color.
+    virtual std::unique_ptr<color>
+    clone() const = 0;
 
-///////////////////////////////////////////////////////////////////////////////
-///                   II.   COLOR MODEL TAGS                                ///
-///////////////////////////////////////////////////////////////////////////////
-
-// color_model_tag
-//   struct: empty base tag for all color model tag types.
-// Serves as the root of the tag hierarchy for dispatch and
-// detection.
-struct color_model_tag
-{};
-
-// rgb_tag
-//   struct: tag type identifying the RGB color model.
-struct rgb_tag : color_model_tag
-{};
-
-// cmyk_tag
-//   struct: tag type identifying the CMYK color model.
-struct cmyk_tag : color_model_tag
-{};
-
-// hsl_tag
-//   struct: tag type identifying the HSL color model.
-struct hsl_tag : color_model_tag
-{};
-
-// hsv_tag
-//   struct: tag type identifying the HSV color model.
-struct hsv_tag : color_model_tag
-{};
-
-// ycbcr_tag
-//   struct: tag type identifying the YCbCr color model.
-struct ycbcr_tag : color_model_tag
-{};
-
-// cie_lab_tag
-//   struct: tag type identifying the CIE L*a*b* color model.
-struct cie_lab_tag : color_model_tag
-{};
-
-
-///////////////////////////////////////////////////////////////////////////////
-///                III.   COLOR MODEL DETECTION                             ///
-///////////////////////////////////////////////////////////////////////////////
-
-// is_color_model
-//   trait: detects whether _Type is a color model type by
-// checking for a nested `model_tag` alias.
-
-NS_INTERNAL
-
-    // has_model_tag_helper
-    //   trait: SFINAE helper; primary template (failure case).
-    template<typename _Type,
-             typename = void>
-    struct has_model_tag_helper
+    // to
+    //   query: convert the held color to any target model at
+    // runtime (routes through RGB).
+    template<typename _To>
+    _To
+    to() const
     {
-        D_STATIC_CONSTEXPR bool value = false;
-    };
-
-    // has_model_tag_helper (specialization)
-    //   trait: success case when _Type::model_tag exists.
-    template<typename _Type>
-    struct has_model_tag_helper<_Type,
-                               void_t<typename _Type::model_tag>>
-    {
-        D_STATIC_CONSTEXPR bool value = true;
-    };
-
-NS_END  // internal
-
-// is_color_model
-//   trait: true if _Type has a nested model_tag type.
-template<typename _Type>
-struct is_color_model
-{
-    D_STATIC_CONSTEXPR bool value =
-        internal::has_model_tag_helper<clean_t<_Type>>::value;
+        return color_cast<_To>(to_rgb());
+    }
 };
 
-// is_color_model_v
-//   constant: convenience accessor for
-// is_color_model<_Type>::value.
-template<typename _Type>
-D_STATIC_CONSTEXPR bool is_color_model_v =
-    is_color_model<_Type>::value;
+// color_value
+//   class: concrete color holder parameterized on its model.
+// Stores one value of _Model and implements the runtime interface
+// by forwarding to the compile-time conversion facade.
+template<typename _Model>
+class color_value : public color
+{
+public:
+    using value_type = _Model;
+
+    // color_value (default)
+    //   constructor: default-constructed model value.
+    color_value() = default;
+
+    // color_value (parameterized)
+    //   constructor: from an existing model value.
+    explicit color_value(
+        const _Model& _value
+    )
+        : m_value(_value)
+    {}
+
+    // to_rgb
+    //   query: convert the held value to linear RGB.
+    rgb
+    to_rgb() const override
+    {
+        return color_cast<rgb>(m_value);
+    }
+
+    // clone
+    //   factory: deep copy as a new color_value.
+    std::unique_ptr<color>
+    clone() const override
+    {
+        return std::unique_ptr<color>(new color_value<_Model>(m_value));
+    }
+
+    // value (const)
+    //   accessor: the held model value.
+    const _Model&
+    value() const
+    {
+        return m_value;
+    }
+
+    // value
+    //   accessor: mutable held model value.
+    _Model&
+    value()
+    {
+        return m_value;
+    }
+
+private:
+    _Model m_value;
+};
+
+// make_color
+//   function: constructs a type-erased color from any model value,
+// deducing the model type.
+template<typename _Model>
+std::unique_ptr<color>
+make_color(
+    const _Model& _value
+)
+{
+    return std::unique_ptr<color>(new color_value<_Model>(_value));
+}
 
 
-NS_END  // color
 NS_END  // djinterp
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                  IV.   SUB-MODULE INCLUDES                              ///
-///////////////////////////////////////////////////////////////////////////////
-
-#include "color_rgb.hpp"
-#include "color_cmyk.hpp"
-#include "color_hsl.hpp"
-#include "color_hsv.hpp"
-#include "color_ycbcr.hpp"
-#include "color_cie_lab.hpp"
-#include "color_convert.hpp"
-
-
-#endif  // DJINTERP_COLOR_
+#endif  // DJINTERP_COLOR_HPP_

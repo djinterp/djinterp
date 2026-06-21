@@ -1,148 +1,152 @@
 /******************************************************************************
-* djinterp [color]                                           color_cie_lab.hpp
+* djinterp [color]                                            color_cie_lab.hpp
 *
-*   CIE L*a*b* color model for the djinterp color module. Lightness (L)
-* is in [0, 100]; a* and b* are unbounded but practically fall within
-* approximately [-128, 127]. Uses the D65 standard illuminant as the
-* default white point.
-* 
-* 
+*   C++ ergonomic layer for the CIE XYZ and CIE L*a*b* color models. Both
+* wrappers derive from their shared-kernel PODs (color_lab.h) without adding
+* state. XYZ is the device-independent hub through which L*a*b* converts, so
+* the two types are grouped together here. Construction, comparison,
+* validation, and clamping forward to the C kernel; conversions are supplied
+* by the color_convert facade.
+*
+*
 * path:      /inc/djinterp/util/color/color_cie_lab.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.12
+* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    D65 WHITE POINT CONSTANTS
-      --------------------------
-      a. d65_x, d65_y, d65_z
+I.    cie_xyz
+      -------
+      a. model_tag, value_type, channels
+      b. constructors / converting constructor
+      c. operator==
+      d. is_valid / clamp
 
-II.   CIE XYZ INTERMEDIATE TYPE
-      --------------------------
-      i.    cie_xyz
-            a. x, y, z
-            b. cie_xyz()                (default constructor)
-            c. cie_xyz(_x, _y, _z)     (parameterized constructor)
-
-III.  CIE L*A*B* COLOR MODEL
-      ------------------------
-      i.    cie_lab
-            a. model_tag, value_type
-            b. channels: l, a, b
-            c. cie_lab()                    (default constructor)
-            d. cie_lab(_l, _a, _b)          (parameterized constructor)
-            e. operator==
+II.   cie_lab
+      -------
+      a. model_tag, value_type, channels
+      b. constructors / converting constructor
+      c. operator==
+      d. is_valid / clamp
 */
 
-#ifndef DJINTERP_COLOR_CIE_LAB_
-#define DJINTERP_COLOR_CIE_LAB_ 1
+#ifndef DJINTERP_COLOR_CIE_LAB_HPP_
+#define DJINTERP_COLOR_CIE_LAB_HPP_ 1
 
 #include "../../djinterp.hpp"
-#include "./color.hpp"
+#include "./color_common.hpp"
+#include "./color_lab.h"
 
 
 NS_DJINTERP
-NS_COLOR
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///              I.   D65 WHITE POINT CONSTANTS                             ///
-///////////////////////////////////////////////////////////////////////////////
-
-// d65_x
-//   constant: X tristimulus value of the CIE D65 standard
-// illuminant (2-degree observer).
-D_STATIC_CONSTEXPR channel_t d65_x = channel_t(0.95047);
-
-// d65_y
-//   constant: Y tristimulus value of the CIE D65 standard
-// illuminant (2-degree observer). Defined as 1.0 by
-// convention.
-D_STATIC_CONSTEXPR channel_t d65_y = channel_t(1.0);
-
-// d65_z
-//   constant: Z tristimulus value of the CIE D65 standard
-// illuminant (2-degree observer).
-D_STATIC_CONSTEXPR channel_t d65_z = channel_t(1.08883);
-
-
-///////////////////////////////////////////////////////////////////////////////
-///             II.   CIE XYZ INTERMEDIATE TYPE                             ///
+///                        I.   cie_xyz                                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // cie_xyz
-//   struct: CIE 1931 XYZ tristimulus values. Used as the
-// intermediate color space for conversions between RGB and
-// CIE L*a*b*. Not a full "color model" in the djinterp
-// sense (no model_tag); it is a conversion waypoint.
-struct cie_xyz
+//   struct: CIE 1931 XYZ color model. Wraps d_color_xyz with
+// constexpr construction and self-operations.
+struct cie_xyz : d_color_xyz
 {
+    using model_tag  = cie_xyz_tag;
     using value_type = channel_t;
 
-    value_type x;
-    value_type y;
-    value_type z;
-
     // cie_xyz (default)
-    //   constructor: initializes to the origin (black).
+    //   constructor: zeroed.
     D_CONSTEXPR cie_xyz()
-        : x(0), y(0), z(0)
+        : d_color_xyz{ value_type(0), value_type(0), value_type(0) }
     {}
 
     // cie_xyz (parameterized)
-    //   constructor: initializes from individual tristimulus
-    // values. No clamping; XYZ values are unbounded.
+    //   constructor: from raw tristimulus values.
     D_CONSTEXPR cie_xyz(
         value_type _x,
         value_type _y,
         value_type _z
     )
-        : x(_x), y(_y), z(_z)
+        : d_color_xyz{ _x, _y, _z }
     {}
+
+    // cie_xyz (converting)
+    //   constructor: wraps a kernel-produced POD result.
+    D_CONSTEXPR cie_xyz(
+        const d_color_xyz& _pod
+    )
+        : d_color_xyz(_pod)
+    {}
+
+    // operator==
+    //   compare: exact channel equality.
+    D_CONSTEXPR bool
+    operator==(
+        const cie_xyz& _other
+    ) const
+    {
+        return ( (x == _other.x) &&
+                 (y == _other.y) &&
+                 (z == _other.z) );
+    }
+
+    // is_valid
+    //   query: all tristimulus values non-negative.
+    D_CONSTEXPR_INLINE bool
+    is_valid() const
+    {
+        return d_color_xyz_is_valid(*this);
+    }
+
+    // clamp
+    //   transform: tristimulus values made non-negative.
+    D_CONSTEXPR_INLINE cie_xyz
+    clamp() const
+    {
+        return d_color_xyz_clamp(*this);
+    }
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///           III.   CIE L*A*B* COLOR MODEL                                ///
+///                        II.   cie_lab                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // cie_lab
-//   struct: represents a color in the CIE L*a*b* perceptual
-// color space. L* (lightness) is in [0, 100]; a* and b* are
-// nominally unbounded but typically within [-128, 127].
-struct cie_lab
+//   struct: CIE L*a*b* color model. Wraps d_color_lab with
+// constexpr construction and self-operations.
+struct cie_lab : d_color_lab
 {
     using model_tag  = cie_lab_tag;
     using value_type = channel_t;
 
-    value_type l;
-    value_type a;
-    value_type b;
-
     // cie_lab (default)
-    //   constructor: initializes to black (L*=0, a*=0, b*=0).
+    //   constructor: zeroed (black).
     D_CONSTEXPR cie_lab()
-        : l(0), a(0), b(0)
+        : d_color_lab{ value_type(0), value_type(0), value_type(0) }
     {}
 
     // cie_lab (parameterized)
-    //   constructor: initializes from individual L*a*b*
-    // values. L* is clamped to [0, 100]; a* and b* are
-    // unclamped.
+    //   constructor: from raw channels.
     D_CONSTEXPR cie_lab(
         value_type _l,
         value_type _a,
         value_type _b
     )
-        : l(clamp_channel(_l, value_type(0), value_type(100))),
-          a(_a),
-          b(_b)
+        : d_color_lab{ _l, _a, _b }
+    {}
+
+    // cie_lab (converting)
+    //   constructor: wraps a kernel-produced POD result.
+    D_CONSTEXPR cie_lab(
+        const d_color_lab& _pod
+    )
+        : d_color_lab(_pod)
     {}
 
     // operator==
-    //   function: constexpr equality comparison.
+    //   compare: exact channel equality.
     D_CONSTEXPR bool
     operator==(
         const cie_lab& _other
@@ -152,10 +156,26 @@ struct cie_lab
                  (a == _other.a) &&
                  (b == _other.b) );
     }
+
+    // is_valid
+    //   query: L* within [0, 100].
+    D_CONSTEXPR_INLINE bool
+    is_valid() const
+    {
+        return d_color_lab_is_valid(*this);
+    }
+
+    // clamp
+    //   transform: L* to [0, 100], a*/b* to [-128, 127].
+    D_CONSTEXPR_INLINE cie_lab
+    clamp() const
+    {
+        return d_color_lab_clamp(*this);
+    }
 };
 
 
-NS_END  // color
 NS_END  // djinterp
 
-#endif  // DJINTERP_COLOR_CIE_LAB_
+
+#endif  // DJINTERP_COLOR_CIE_LAB_HPP_
