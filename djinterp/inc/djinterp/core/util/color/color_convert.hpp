@@ -1,776 +1,370 @@
 /******************************************************************************
 * djinterp [color]                                          color_convert.hpp
 *
-*   Compile-time and runtime conversion between color models. Uses a
-* trait-based dispatch pattern where each source-to-destination pair is
-* a specialization of the internal color_convert_impl trait. New model
-* pairs can be added by providing additional specializations without
-* modifying existing code.
+*   C++ conversion facade for the djinterp color module. This is a thin
+* compile-time dispatch over the single C conversion kernel
+* (color_convert.h): each wrapper is sliced to its POD, the appropriate
+* d_color_convert_* routine is invoked, and the POD result is re-wrapped.
+* No color math is duplicated.
 *
-*   Conversions involving CIE L*a*b* route through CIE XYZ as an
-* intermediate space and require the non-constexpr functions cbrt/pow
-* from <cmath>. All other conversions are fully constexpr.
+*   RGB is the conversion hub. Same-type casts are identity; XYZ and LAB use
+* their direct kernel path; every other pair routes through linear RGB.
+* Conversions among RGB/HSL/HSV/CMYK/YCbCr are constexpr; any path touching
+* LAB (or XYZ produced from LAB) is runtime-only (transcendental math) but
+* uses the identical entry points.
 *
-* 
+*   Public surface:
+*     color_convert<To, From>::apply(from)   - explicit conversion
+*     color_cast<To>(from)                   - convenience wrapper
+*     is_convertible_color[_v]<From, To>     - trait
+*     color_model_type / convertible_color_type (C++20 concepts)
+*
+*
 * path:      /inc/djinterp/util/color/color_convert.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.12
+* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    CONVERSION INFRASTRUCTURE
-      --------------------------
-      i.    color_convert_impl (internal, primary template)
+I.    KERNEL DISPATCH HELPERS (internal)
+      --------------------------------
+      a. to_rgb            (per-model overloads)
+      b. rgb_to            (per-model re-wrap)
 
-II.   RGB <-> HSL CONVERSIONS
-      -------------------------
-      i.    color_convert_impl<rgb, hsl>
-      ii.   color_convert_impl<hsl, rgb>
+II.   CONVERSION IMPLEMENTATION (internal)
+      ---------------------------------
+      a. color_convert_impl              (primary: route via RGB)
+      b. color_convert_impl<_Type,_Type> (identity)
+      c. color_convert_impl<xyz, lab>    (direct)
+      d. color_convert_impl<lab, xyz>    (direct)
 
-III.  RGB <-> HSV CONVERSIONS
-      -------------------------
-      i.    color_convert_impl<rgb, hsv>
-      ii.   color_convert_impl<hsv, rgb>
+III.  PUBLIC INTERFACE
+      ----------------
+      a. color_convert
+      b. color_cast
 
-IV.   HSL <-> HSV CONVERSIONS
-      -------------------------
-      i.    color_convert_impl<hsl, hsv>
-      ii.   color_convert_impl<hsv, hsl>
+IV.   TRAITS
+      ------
+      a. color_convert_helper (internal)
+      b. is_convertible_color
+         a. is_convertible_color_v
 
-V.    RGB <-> CMYK CONVERSIONS
-      --------------------------
-      i.    color_convert_impl<rgb, cmyk>
-      ii.   color_convert_impl<cmyk, rgb>
-
-VI.   RGB <-> YCBCR CONVERSIONS (BT.601)
-      ------------------------------------
-      i.    color_convert_impl<rgb, ycbcr>
-      ii.   color_convert_impl<ycbcr, rgb>
-
-VII.  RGB <-> CIE XYZ <-> CIE LAB CONVERSIONS
-      ------------------------------------------
-      i.    linearize_srgb (internal)
-      ii.   delinearize_srgb (internal)
-      iii.  lab_f (internal)
-      iv.   lab_f_inv (internal)
-      v.    rgb_to_xyz (internal)
-      vi.   xyz_to_rgb (internal)
-      vii.  xyz_to_lab (internal)
-      viii. lab_to_xyz (internal)
-      ix.   color_convert_impl<rgb, cie_lab>
-      x.    color_convert_impl<cie_lab, rgb>
-
-VIII. PUBLIC INTERFACE
-      -----------------
-      i.    color_convert
-      ii.   color_cast
-      iii.  is_convertible_color
-            a. has_color_convert_helper (internal)
-            b. is_convertible_color
-            c. is_convertible_color_v
+V.    CONCEPTS (C++20)
+      ----------------
+      a. color_model_type
+      b. convertible_color_type
 */
 
-#ifndef DJINTERP_COLOR_CONVERT_
-#define DJINTERP_COLOR_CONVERT_ 1
+#ifndef DJINTERP_COLOR_CONVERT_HPP_
+#define DJINTERP_COLOR_CONVERT_HPP_ 1
 
 #include "../../djinterp.hpp"
-#include "./color.hpp"
-#include <cmath>
+#include "./color_common.hpp"
+#include "./color_convert.h"
+
+#include "./color_rgb.hpp"
+#include "./color_cmyk.hpp"
+#include "./color_hsv.hpp"
+#include "./color_hsl.hpp"
+#include "./color_ycbcr.hpp"
+#include "./color_cie_lab.hpp"
 
 
 NS_DJINTERP
-NS_COLOR
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             I.   CONVERSION INFRASTRUCTURE                              ///
+///             I.   KERNEL DISPATCH HELPERS (internal)                     ///
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
 
-    // color_convert_impl
-    //   trait: primary template for color model conversion.
-    // Must be specialized for each valid source-destination
-    // pair. Unspecialized instantiation is intentionally
-    // incomplete (will produce a compile error for unsupported
-    // conversions).
-    template<typename _From,
-             typename _To,
-             typename = void>
-    struct color_convert_impl;
-
-
-///////////////////////////////////////////////////////////////////////////////
-///           II.   RGB <-> HSL CONVERSIONS                                 ///
-///////////////////////////////////////////////////////////////////////////////
-
-    // color_convert_impl<rgb, hsl>
-    //   trait: converts RGB to HSL.
-    template<>
-    struct color_convert_impl<rgb, hsl>
-    {
-        D_STATIC_CONSTEXPR_INLINE hsl
-        apply(
-            const rgb& _src
-        )
-        {
-            channel_t max_c = _src.r;
-            channel_t min_c = _src.r;
-
-            if (_src.g > max_c) max_c = _src.g;
-            if (_src.b > max_c) max_c = _src.b;
-            if (_src.g < min_c) min_c = _src.g;
-            if (_src.b < min_c) min_c = _src.b;
-
-            channel_t delta = max_c - min_c;
-            channel_t l     = (max_c + min_c) / channel_t(2);
-            channel_t s     = channel_t(0);
-            channel_t h     = channel_t(0);
-
-            if (delta != channel_t(0))
-            {
-                s = (l > channel_t(0.5))
-                  ? delta / (channel_t(2) - max_c - min_c)
-                  : delta / (max_c + min_c);
-
-                if (max_c == _src.r)
-                {
-                    h = (_src.g - _src.b) / delta;
-                }
-                else if (max_c == _src.g)
-                {
-                    h = channel_t(2)
-                      + (_src.b - _src.r) / delta;
-                }
-                else
-                {
-                    h = channel_t(4)
-                      + (_src.r - _src.g) / delta;
-                }
-
-                h *= channel_t(60);
-
-                if (h < channel_t(0))
-                {
-                    h += channel_t(360);
-                }
-            }
-
-            return hsl(h, s, l, _src.a);
-        }
-    };
-
-    // color_convert_impl<hsl, rgb>
-    //   trait: converts HSL to RGB.
-    template<>
-    struct color_convert_impl<hsl, rgb>
-    {
-        D_STATIC_CONSTEXPR_INLINE channel_t
-        hue_to_rgb(
-            channel_t _p,
-            channel_t _q,
-            channel_t _t
-        )
-        {
-            if (_t < channel_t(0))   _t += channel_t(1);
-            if (_t > channel_t(1))   _t -= channel_t(1);
-
-            if (_t < channel_t(1) / channel_t(6))
-            {
-                return _p + (_q - _p) * channel_t(6) * _t;
-            }
-
-            if (_t < channel_t(1) / channel_t(2))
-            {
-                return _q;
-            }
-
-            if (_t < channel_t(2) / channel_t(3))
-            {
-                return _p + (_q - _p)
-                     * (channel_t(2) / channel_t(3) - _t)
-                     * channel_t(6);
-            }
-
-            return _p;
-        }
-
-        D_STATIC_CONSTEXPR_INLINE rgb
-        apply(
-            const hsl& _src
-        )
-        {
-            if (_src.s == channel_t(0))
-            {
-                return rgb(_src.l, _src.l, _src.l, _src.a);
-            }
-
-            channel_t q = (_src.l < channel_t(0.5))
-                ? _src.l * (channel_t(1) + _src.s)
-                : _src.l + _src.s
-                  - _src.l * _src.s;
-
-            channel_t p = channel_t(2) * _src.l - q;
-            channel_t h_norm = _src.h / channel_t(360);
-
-            return rgb(
-                hue_to_rgb(p, q,
-                           h_norm + channel_t(1) / channel_t(3)),
-                hue_to_rgb(p, q,
-                           h_norm),
-                hue_to_rgb(p, q,
-                           h_norm - channel_t(1) / channel_t(3)),
-                _src.a
-            );
-        }
-    };
-
-
-///////////////////////////////////////////////////////////////////////////////
-///          III.   RGB <-> HSV CONVERSIONS                                 ///
-///////////////////////////////////////////////////////////////////////////////
-
-    // color_convert_impl<rgb, hsv>
-    //   trait: converts RGB to HSV.
-    template<>
-    struct color_convert_impl<rgb, hsv>
-    {
-        D_STATIC_CONSTEXPR_INLINE hsv
-        apply(
-            const rgb& _src
-        )
-        {
-            channel_t max_c = _src.r;
-            channel_t min_c = _src.r;
-
-            if (_src.g > max_c) max_c = _src.g;
-            if (_src.b > max_c) max_c = _src.b;
-            if (_src.g < min_c) min_c = _src.g;
-            if (_src.b < min_c) min_c = _src.b;
-
-            channel_t delta = max_c - min_c;
-            channel_t v     = max_c;
-            channel_t s     = channel_t(0);
-            channel_t h     = channel_t(0);
-
-            if (max_c != channel_t(0))
-            {
-                s = delta / max_c;
-            }
-
-            if (delta != channel_t(0))
-            {
-                if (max_c == _src.r)
-                {
-                    h = (_src.g - _src.b) / delta;
-                }
-                else if (max_c == _src.g)
-                {
-                    h = channel_t(2)
-                      + (_src.b - _src.r) / delta;
-                }
-                else
-                {
-                    h = channel_t(4)
-                      + (_src.r - _src.g) / delta;
-                }
-
-                h *= channel_t(60);
-
-                if (h < channel_t(0))
-                {
-                    h += channel_t(360);
-                }
-            }
-
-            return hsv(h, s, v, _src.a);
-        }
-    };
-
-    // color_convert_impl<hsv, rgb>
-    //   trait: converts HSV to RGB.
-    template<>
-    struct color_convert_impl<hsv, rgb>
-    {
-        D_STATIC_CONSTEXPR_INLINE rgb
-        apply(
-            const hsv& _src
-        )
-        {
-            if (_src.s == channel_t(0))
-            {
-                return rgb(_src.v, _src.v, _src.v, _src.a);
-            }
-
-            channel_t hh = _src.h / channel_t(60);
-            int       i  = static_cast<int>(hh);
-            channel_t ff = hh - static_cast<channel_t>(i);
-
-            channel_t p = _src.v * (channel_t(1) - _src.s);
-            channel_t q = _src.v * (channel_t(1) - _src.s * ff);
-            channel_t t = _src.v
-                        * (channel_t(1)
-                           - _src.s * (channel_t(1) - ff));
-
-            switch (i % 6)
-            {
-                case 0:  return rgb(_src.v, t,      p,      _src.a);
-                case 1:  return rgb(q,      _src.v, p,      _src.a);
-                case 2:  return rgb(p,      _src.v, t,      _src.a);
-                case 3:  return rgb(p,      q,      _src.v, _src.a);
-                case 4:  return rgb(t,      p,      _src.v, _src.a);
-                default: return rgb(_src.v, p,      q,      _src.a);
-            }
-        }
-    };
-
-
-///////////////////////////////////////////////////////////////////////////////
-///           IV.   HSL <-> HSV CONVERSIONS                                 ///
-///////////////////////////////////////////////////////////////////////////////
-
-    // color_convert_impl<hsl, hsv>
-    //   trait: converts HSL to HSV via RGB intermediate.
-    template<>
-    struct color_convert_impl<hsl, hsv>
-    {
-        D_STATIC_CONSTEXPR_INLINE hsv
-        apply(
-            const hsl& _src
-        )
-        {
-            rgb intermediate = color_convert_impl<hsl, rgb>::apply(_src);
-
-            return color_convert_impl<rgb, hsv>::apply(intermediate);
-        }
-    };
-
-    // color_convert_impl<hsv, hsl>
-    //   trait: converts HSV to HSL via RGB intermediate.
-    template<>
-    struct color_convert_impl<hsv, hsl>
-    {
-        D_STATIC_CONSTEXPR_INLINE hsl
-        apply(
-            const hsv& _src
-        )
-        {
-            rgb intermediate = color_convert_impl<hsv, rgb>::apply(_src);
-
-            return color_convert_impl<rgb, hsl>::apply(intermediate);
-        }
-    };
-
-
-///////////////////////////////////////////////////////////////////////////////
-///            V.   RGB <-> CMYK CONVERSIONS                                ///
-///////////////////////////////////////////////////////////////////////////////
-
-    // color_convert_impl<rgb, cmyk>
-    //   trait: converts RGB to CMYK using the standard
-    // max-component key extraction.
-    template<>
-    struct color_convert_impl<rgb, cmyk>
-    {
-        D_STATIC_CONSTEXPR_INLINE cmyk
-        apply(
-            const rgb& _src
-        )
-        {
-            channel_t k = channel_t(1) - _src.r;
-
-            if ((channel_t(1) - _src.g) < k)
-            {
-                k = channel_t(1) - _src.g;
-            }
-
-            if ((channel_t(1) - _src.b) < k)
-            {
-                k = channel_t(1) - _src.b;
-            }
-
-            // pure black
-            if (k == channel_t(1))
-            {
-                return cmyk(channel_t(0),
-                            channel_t(0),
-                            channel_t(0),
-                            channel_t(1));
-            }
-
-            channel_t inv_k = channel_t(1) - k;
-
-            return cmyk(
-                (channel_t(1) - _src.r - k) / inv_k,
-                (channel_t(1) - _src.g - k) / inv_k,
-                (channel_t(1) - _src.b - k) / inv_k,
-                k
-            );
-        }
-    };
-
-    // color_convert_impl<cmyk, rgb>
-    //   trait: converts CMYK to RGB.
-    template<>
-    struct color_convert_impl<cmyk, rgb>
-    {
-        D_STATIC_CONSTEXPR_INLINE rgb
-        apply(
-            const cmyk& _src
-        )
-        {
-            channel_t inv_k = channel_t(1) - _src.k;
-
-            return rgb(
-                (channel_t(1) - _src.c) * inv_k,
-                (channel_t(1) - _src.m) * inv_k,
-                (channel_t(1) - _src.y) * inv_k
-            );
-        }
-    };
-
-
-///////////////////////////////////////////////////////////////////////////////
-///          VI.   RGB <-> YCBCR CONVERSIONS (BT.601)                       ///
-///////////////////////////////////////////////////////////////////////////////
-
-    // color_convert_impl<rgb, ycbcr>
-    //   trait: converts RGB to YCbCr using ITU-R BT.601
-    // coefficients.
-    template<>
-    struct color_convert_impl<rgb, ycbcr>
-    {
-        D_STATIC_CONSTEXPR_INLINE ycbcr
-        apply(
-            const rgb& _src
-        )
-        {
-            // BT.601 luma coefficients
-            D_CONSTEXPR channel_t kr = channel_t(0.299);
-            D_CONSTEXPR channel_t kg = channel_t(0.587);
-            D_CONSTEXPR channel_t kb = channel_t(0.114);
-
-            channel_t y_val = kr * _src.r
-                            + kg * _src.g
-                            + kb * _src.b;
-
-            channel_t cb = ((_src.b - y_val)
-                         / (channel_t(2) * (channel_t(1) - kb)));
-
-            channel_t cr = ((_src.r - y_val)
-                         / (channel_t(2) * (channel_t(1) - kr)));
-
-            return ycbcr(y_val, cb, cr);
-        }
-    };
-
-    // color_convert_impl<ycbcr, rgb>
-    //   trait: converts YCbCr to RGB using ITU-R BT.601
-    // coefficients.
-    template<>
-    struct color_convert_impl<ycbcr, rgb>
-    {
-        D_STATIC_CONSTEXPR_INLINE rgb
-        apply(
-            const ycbcr& _src
-        )
-        {
-            D_CONSTEXPR channel_t kr = channel_t(0.299);
-            D_CONSTEXPR channel_t kg = channel_t(0.587);
-            D_CONSTEXPR channel_t kb = channel_t(0.114);
-
-            channel_t r = _src.y
-                        + channel_t(2) * (channel_t(1) - kr)
-                        * _src.cr;
-
-            channel_t b = _src.y
-                        + channel_t(2) * (channel_t(1) - kb)
-                        * _src.cb;
-
-            channel_t g = (_src.y - kr * r - kb * b) / kg;
-
-            return rgb(r, g, b);
-        }
-    };
-
-
-///////////////////////////////////////////////////////////////////////////////
-///      VII.   RGB <-> CIE XYZ <-> CIE LAB CONVERSIONS                    ///
-///////////////////////////////////////////////////////////////////////////////
-
-    // linearize_srgb
-    //   function: applies the sRGB inverse companding function,
-    // converting a gamma-encoded channel to linear light.
-    // NOTE: std::pow is not constexpr in standard C++; this
-    // function is therefore not constexpr.
-    D_STATIC D_INLINE channel_t
-    linearize_srgb(
-        channel_t _c
+    // to_rgb
+    //   function: slices each color model wrapper to its POD and
+    // invokes the kernel conversion into linear RGB. One overload
+    // per model.
+    D_CONSTEXPR_INLINE rgb
+    to_rgb(
+        const rgb& _c
     )
     {
-        return (_c <= channel_t(0.04045))
-             ? _c / channel_t(12.92)
-             : std::pow((_c + channel_t(0.055))
-                        / channel_t(1.055),
-                        channel_t(2.4));
+        return _c;
     }
 
-    // delinearize_srgb
-    //   function: applies the sRGB companding function,
-    // converting a linear-light value to gamma-encoded sRGB.
-    D_STATIC D_INLINE channel_t
-    delinearize_srgb(
-        channel_t _c
+    D_CONSTEXPR_INLINE rgb
+    to_rgb(
+        const hsl& _c
     )
     {
-        return (_c <= channel_t(0.0031308))
-             ? _c * channel_t(12.92)
-             : channel_t(1.055)
-               * std::pow(_c,
-                          channel_t(1) / channel_t(2.4))
-               - channel_t(0.055);
+        return d_color_convert_hsl_to_rgb(_c);
     }
 
-    // lab_f
-    //   function: CIE L*a*b* forward transfer function.
-    D_STATIC D_INLINE channel_t
-    lab_f(
-        channel_t _t
+    D_CONSTEXPR_INLINE rgb
+    to_rgb(
+        const hsv& _c
     )
     {
-        D_CONSTEXPR channel_t delta  = channel_t(6)
-                                     / channel_t(29);
-        D_CONSTEXPR channel_t delta3 = delta * delta * delta;
-
-        return (_t > delta3)
-             ? std::cbrt(_t)
-             : _t / (channel_t(3) * delta * delta)
-               + channel_t(4) / channel_t(29);
+        return d_color_convert_hsv_to_rgb(_c);
     }
 
-    // lab_f_inv
-    //   function: CIE L*a*b* inverse transfer function.
-    D_STATIC D_INLINE channel_t
-    lab_f_inv(
-        channel_t _t
+    D_CONSTEXPR_INLINE rgb
+    to_rgb(
+        const cmyk& _c
     )
     {
-        D_CONSTEXPR channel_t delta = channel_t(6)
-                                    / channel_t(29);
-
-        return (_t > delta)
-             ? _t * _t * _t
-             : channel_t(3) * delta * delta
-               * (_t - channel_t(4) / channel_t(29));
+        return d_color_convert_cmyk_to_rgb(_c);
     }
 
-    // rgb_to_xyz
-    //   function: converts linear-light sRGB to CIE XYZ
-    // (D65 illuminant).
-    D_STATIC D_INLINE cie_xyz
-    rgb_to_xyz(
-        const rgb& _src
+    D_CONSTEXPR_INLINE rgb
+    to_rgb(
+        const ycbcr& _c
     )
     {
-        channel_t rl = linearize_srgb(_src.r);
-        channel_t gl = linearize_srgb(_src.g);
-        channel_t bl = linearize_srgb(_src.b);
-
-        // sRGB -> XYZ (D65) matrix (IEC 61966-2-1)
-        return cie_xyz(
-            channel_t(0.4124564) * rl
-          + channel_t(0.3575761) * gl
-          + channel_t(0.1804375) * bl,
-            channel_t(0.2126729) * rl
-          + channel_t(0.7151522) * gl
-          + channel_t(0.0721750) * bl,
-            channel_t(0.0193339) * rl
-          + channel_t(0.1191920) * gl
-          + channel_t(0.9503041) * bl
-        );
+        return d_color_convert_ycbcr_to_rgb(_c);
     }
 
-    // xyz_to_rgb
-    //   function: converts CIE XYZ (D65) to gamma-encoded
-    // sRGB.
-    D_STATIC D_INLINE rgb
-    xyz_to_rgb(
-        const cie_xyz& _src
+    D_CONSTEXPR_INLINE rgb
+    to_rgb(
+        const cie_xyz& _c
     )
     {
-        // XYZ -> sRGB (D65) matrix (inverse of above)
-        channel_t rl =  channel_t( 3.2404542) * _src.x
-                      + channel_t(-1.5371385) * _src.y
-                      + channel_t(-0.4985314) * _src.z;
-
-        channel_t gl =  channel_t(-0.9692660) * _src.x
-                      + channel_t( 1.8760108) * _src.y
-                      + channel_t( 0.0415560) * _src.z;
-
-        channel_t bl =  channel_t( 0.0556434) * _src.x
-                      + channel_t(-0.2040259) * _src.y
-                      + channel_t( 1.0572252) * _src.z;
-
-        return rgb(delinearize_srgb(rl),
-                   delinearize_srgb(gl),
-                   delinearize_srgb(bl));
+        return d_color_convert_xyz_to_rgb(_c);
     }
 
-    // xyz_to_lab
-    //   function: converts CIE XYZ to CIE L*a*b* relative
-    // to the D65 white point.
-    D_STATIC D_INLINE cie_lab
-    xyz_to_lab(
-        const cie_xyz& _src
+    D_INLINE rgb
+    to_rgb(
+        const cie_lab& _c
     )
     {
-        channel_t fx = lab_f(_src.x / d65_x);
-        channel_t fy = lab_f(_src.y / d65_y);
-        channel_t fz = lab_f(_src.z / d65_z);
-
-        return cie_lab(
-            channel_t(116) * fy - channel_t(16),
-            channel_t(500) * (fx - fy),
-            channel_t(200) * (fy - fz)
-        );
+        return d_color_convert_lab_to_rgb(_c);
     }
 
-    // lab_to_xyz
-    //   function: converts CIE L*a*b* to CIE XYZ relative
-    // to the D65 white point.
-    D_STATIC D_INLINE cie_xyz
-    lab_to_xyz(
-        const cie_lab& _src
-    )
-    {
-        channel_t fy = (_src.l + channel_t(16))
-                     / channel_t(116);
-        channel_t fx = _src.a / channel_t(500) + fy;
-        channel_t fz = fy - _src.b / channel_t(200);
 
-        return cie_xyz(d65_x * lab_f_inv(fx),
-                       d65_y * lab_f_inv(fy),
-                       d65_z * lab_f_inv(fz));
-    }
+    // rgb_to
+    //   trait: re-wraps a linear RGB into the requested target
+    // model via the kernel. No primary definition; one full
+    // specialization per model.
+    template<typename _To>
+    struct rgb_to;
 
-    // color_convert_impl<rgb, cie_lab>
-    //   trait: converts sRGB to CIE L*a*b* via XYZ
-    // intermediate.
     template<>
-    struct color_convert_impl<rgb, cie_lab>
+    struct rgb_to<rgb>
+    {
+        D_STATIC D_CONSTEXPR_INLINE rgb
+        apply(
+            const rgb& _c
+        )
+        {
+            return _c;
+        }
+    };
+
+    template<>
+    struct rgb_to<hsl>
+    {
+        D_STATIC D_CONSTEXPR_INLINE hsl
+        apply(
+            const rgb& _c
+        )
+        {
+            return d_color_convert_rgb_to_hsl(_c);
+        }
+    };
+
+    template<>
+    struct rgb_to<hsv>
+    {
+        D_STATIC D_CONSTEXPR_INLINE hsv
+        apply(
+            const rgb& _c
+        )
+        {
+            return d_color_convert_rgb_to_hsv(_c);
+        }
+    };
+
+    template<>
+    struct rgb_to<cmyk>
+    {
+        D_STATIC D_CONSTEXPR_INLINE cmyk
+        apply(
+            const rgb& _c
+        )
+        {
+            return d_color_convert_rgb_to_cmyk(_c);
+        }
+    };
+
+    template<>
+    struct rgb_to<ycbcr>
+    {
+        D_STATIC D_CONSTEXPR_INLINE ycbcr
+        apply(
+            const rgb& _c
+        )
+        {
+            return d_color_convert_rgb_to_ycbcr(_c);
+        }
+    };
+
+    template<>
+    struct rgb_to<cie_xyz>
+    {
+        D_STATIC D_CONSTEXPR_INLINE cie_xyz
+        apply(
+            const rgb& _c
+        )
+        {
+            return d_color_convert_rgb_to_xyz(_c);
+        }
+    };
+
+    template<>
+    struct rgb_to<cie_lab>
     {
         D_STATIC D_INLINE cie_lab
         apply(
-            const rgb& _src
+            const rgb& _c
         )
         {
-            return xyz_to_lab(rgb_to_xyz(_src));
+            return d_color_convert_rgb_to_lab(_c);
         }
     };
-
-    // color_convert_impl<cie_lab, rgb>
-    //   trait: converts CIE L*a*b* to sRGB via XYZ
-    // intermediate.
-    template<>
-    struct color_convert_impl<cie_lab, rgb>
-    {
-        D_STATIC D_INLINE rgb
-        apply(
-            const cie_lab& _src
-        )
-        {
-            return xyz_to_rgb(lab_to_xyz(_src));
-        }
-    };
-
 
 NS_END  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///               VIII.   PUBLIC INTERFACE                                   ///
+///            II.   CONVERSION IMPLEMENTATION (internal)                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// ================================================================
-//  color_convert
-// ================================================================
+NS_INTERNAL
+
+    // color_convert_impl
+    //   trait: primary template. Routes an arbitrary source model
+    // to an arbitrary target model through the linear RGB hub.
+    template<typename _From,
+             typename _To>
+    struct color_convert_impl
+    {
+        D_STATIC D_CONSTEXPR_INLINE _To
+        apply(
+            const _From& _from
+        )
+        {
+            return rgb_to<_To>::apply(to_rgb(_from));
+        }
+    };
+
+    // color_convert_impl (identity)
+    //   trait: same source and target model returns the input
+    // unchanged (no lossy round trip).
+    template<typename _Type>
+    struct color_convert_impl<_Type, _Type>
+    {
+        D_STATIC D_CONSTEXPR_INLINE _Type
+        apply(
+            const _Type& _from
+        )
+        {
+            return _from;
+        }
+    };
+
+    // color_convert_impl (XYZ -> LAB)
+    //   trait: direct kernel path, avoiding the RGB round trip.
+    template<>
+    struct color_convert_impl<cie_xyz, cie_lab>
+    {
+        D_STATIC D_INLINE cie_lab
+        apply(
+            const cie_xyz& _from
+        )
+        {
+            return d_color_convert_xyz_to_lab(_from);
+        }
+    };
+
+    // color_convert_impl (LAB -> XYZ)
+    //   trait: direct kernel path, avoiding the RGB round trip.
+    template<>
+    struct color_convert_impl<cie_lab, cie_xyz>
+    {
+        D_STATIC D_INLINE cie_xyz
+        apply(
+            const cie_lab& _from
+        )
+        {
+            return d_color_convert_lab_to_xyz(_from);
+        }
+    };
+
+NS_END  // internal
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                    III.   PUBLIC INTERFACE                              ///
+///////////////////////////////////////////////////////////////////////////////
 
 // color_convert
-//   trait: public interface for converting between color
-// models. Delegates to the appropriate internal
-// color_convert_impl specialization.
+//   trait: public conversion entry point. Strips qualifiers from
+// the operands and delegates to the internal implementation.
+// Parameterized target-first to read as color_convert<To, From>.
 template<typename _To,
          typename _From>
 struct color_convert
 {
-    D_STATIC_CONSTEXPR_INLINE _To
+    D_STATIC D_CONSTEXPR_INLINE _To
     apply(
-        const _From& _src
+        const _From& _from
     )
     {
-        return internal::color_convert_impl<
-            clean_t<_From>,
-            clean_t<_To>
-        >::apply(_src);
+        return internal::color_convert_impl<clean_t<_From>,
+                                            clean_t<_To>>::apply(_from);
     }
 };
 
-
-// ================================================================
-//  color_cast
-// ================================================================
-
 // color_cast
-//   function: convenience function template for color model
-// conversion.
-// Usage: auto my_hsl = color_cast<hsl>(my_rgb);
+//   function: convenience wrapper deducing the source type, e.g.
+// auto h = color_cast<hsl>(my_rgb).
 template<typename _To,
          typename _From>
 D_CONSTEXPR_INLINE _To
 color_cast(
-    const _From& _src
+    const _From& _from
 )
 {
-    return color_convert<_To, _From>::apply(_src);
+    return color_convert<_To, _From>::apply(_from);
 }
 
 
-// ================================================================
-//  is_convertible_color
-// ================================================================
-
-// is_convertible_color
-//   trait: detects whether a conversion from _From to _To is
-// defined.
+///////////////////////////////////////////////////////////////////////////////
+///                          IV.   TRAITS                                   ///
+///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
 
-    // has_color_convert_helper
-    //   trait: SFINAE detection for a valid apply() member
-    // in color_convert_impl (primary / failure case).
+    // color_convert_helper
+    //   trait: SFINAE detector; true when both operands are color
+    // models (and therefore inter-convertible through RGB).
     template<typename _From,
              typename _To,
              typename = void>
-    struct has_color_convert_helper
+    struct color_convert_helper
     {
         D_STATIC_CONSTEXPR bool value = false;
     };
 
-    // has_color_convert_helper (specialization)
-    //   trait: success case when apply() is well-formed.
+    // color_convert_helper (specialization)
+    //   trait: success case when both types expose model_tag.
     template<typename _From,
              typename _To>
-    struct has_color_convert_helper<
-        _From,
-        _To,
-        void_t<decltype(
-            color_convert_impl<_From, _To>::apply(
-                *static_cast<const _From*>(nullptr)
-            )
-        )>
-    >
+    struct color_convert_helper<_From,
+                                _To,
+                                void_t<typename clean_t<_From>::model_tag,
+                                       typename clean_t<_To>::model_tag>>
     {
         D_STATIC_CONSTEXPR bool value = true;
     };
@@ -778,17 +372,13 @@ NS_INTERNAL
 NS_END  // internal
 
 // is_convertible_color
-//   trait: true if a conversion path from _From to _To
-// exists.
+//   trait: true if a conversion from _From to _To is supported.
 template<typename _From,
          typename _To>
 struct is_convertible_color
 {
     D_STATIC_CONSTEXPR bool value =
-        internal::has_color_convert_helper<
-            clean_t<_From>,
-            clean_t<_To>
-        >::value;
+        internal::color_convert_helper<_From, _To>::value;
 };
 
 // is_convertible_color_v
@@ -800,30 +390,27 @@ D_STATIC_CONSTEXPR bool is_convertible_color_v =
     is_convertible_color<_From, _To>::value;
 
 
-// ================================================================
-//  C++20 concepts (conditional)
-// ================================================================
+///////////////////////////////////////////////////////////////////////////////
+///                      V.   CONCEPTS (C++20)                              ///
+///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // color_model_type
-//   concept: constrains types that are valid djinterp color
-// models (i.e. types with a nested model_tag).
-template<typename _T>
-concept color_model_type = is_color_model_v<_T>;
+//   concept: satisfied by any color model wrapper.
+template<typename _Type>
+concept color_model_type = is_color_model_v<_Type>;
 
 // convertible_color_type
-//   concept: constrains that a conversion from _From to _To
-// is defined.
+//   concept: satisfied when _From converts to _To.
 template<typename _From,
          typename _To>
-concept convertible_color_type =
-    is_convertible_color_v<_From, _To>;
+concept convertible_color_type = is_convertible_color_v<_From, _To>;
 
-#endif  // C++20
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // color
 NS_END  // djinterp
 
-#endif  // DJINTERP_COLOR_CONVERT_
+
+#endif  // DJINTERP_COLOR_CONVERT_HPP_

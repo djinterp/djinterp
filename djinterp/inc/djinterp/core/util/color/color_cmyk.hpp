@@ -1,100 +1,75 @@
 /******************************************************************************
-* djinterp [color]                                              color_cmyk.hpp
+* djinterp [color]                                               color_cmyk.hpp
 *
-*   CMYK color model for the djinterp color module. Channels c, m, y, k
-* are stored as normalized channel_t values in [0, 1]. Commonly used for
-* print-oriented color representation.
+*   C++ ergonomic layer for the CMYK color model. `cmyk` derives from the
+* shared-kernel POD (color_cmyk.h) without adding state, providing constexpr
+* construction, comparison, validation, and clamping that forward to the C
+* kernel. Conversions are supplied by the color_convert facade.
 *
-* 
+*
 * path:      /inc/djinterp/util/color/color_cmyk.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.12
+* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    CMYK COLOR MODEL
-      -----------------
-      i.    cmyk
-            a. model_tag, value_type
-            b. channels: c, m, y, k
-            c. cmyk()                       (default constructor)
-            d. cmyk(_c, _m, _y, _k)        (parameterized constructor)
-            e. from_percentage              (static factory)
-            f. operator==
+I.    cmyk
+      ----
+      a. model_tag, value_type, channels
+      b. constructors / converting constructor
+      c. operator==
+      d. is_valid / clamp
 */
 
-#ifndef DJINTERP_COLOR_CMYK_
-#define DJINTERP_COLOR_CMYK_ 1
+#ifndef DJINTERP_COLOR_CMYK_HPP_
+#define DJINTERP_COLOR_CMYK_HPP_ 1
 
-#include "color.hpp"
+#include "../../djinterp.hpp"
+#include "./color_common.hpp"
+#include "./color_cmyk.h"
 
 
 NS_DJINTERP
-NS_COLOR
 
-
-// ================================================================
-//  cmyk
-// ================================================================
 
 // cmyk
-//   struct: represents a color in the CMYK color model with
-// all channels normalized to [0, 1]. Does not carry alpha;
-// CMYK is a subtractive model typically used for print where
-// alpha compositing is uncommon.
-struct cmyk
+//   struct: CMYK color model. Wraps d_color_cmyk with constexpr
+// construction and self-operations.
+struct cmyk : d_color_cmyk
 {
     using model_tag  = cmyk_tag;
     using value_type = channel_t;
 
-    value_type c;
-    value_type m;
-    value_type y;
-    value_type k;
-
     // cmyk (default)
-    //   constructor: initializes to white (all channels zero,
-    // key zero).
+    //   constructor: zeroed (white).
     D_CONSTEXPR cmyk()
-        : c(0), m(0), y(0), k(0)
+        : d_color_cmyk{ value_type(0), value_type(0),
+                        value_type(0), value_type(0) }
     {}
 
     // cmyk (parameterized)
-    //   constructor: initializes from individual channel
-    // values, each clamped to [0, 1].
+    //   constructor: from raw channels.
     D_CONSTEXPR cmyk(
         value_type _c,
         value_type _m,
         value_type _y,
         value_type _k
     )
-        : c(clamp_channel(_c, value_type(0), value_type(1))),
-          m(clamp_channel(_m, value_type(0), value_type(1))),
-          y(clamp_channel(_y, value_type(0), value_type(1))),
-          k(clamp_channel(_k, value_type(0), value_type(1)))
+        : d_color_cmyk{ _c, _m, _y, _k }
     {}
 
-    // from_percentage
-    //   function: constructs a cmyk from percentage values
-    // [0, 100].
-    D_STATIC_CONSTEXPR_INLINE cmyk
-    from_percentage(
-        value_type _c,
-        value_type _m,
-        value_type _y,
-        value_type _k
+    // cmyk (converting)
+    //   constructor: wraps a kernel-produced POD result.
+    D_CONSTEXPR cmyk(
+        const d_color_cmyk& _pod
     )
-    {
-        return cmyk(_c / value_type(100),
-                    _m / value_type(100),
-                    _y / value_type(100),
-                    _k / value_type(100));
-    }
+        : d_color_cmyk(_pod)
+    {}
 
     // operator==
-    //   function: constexpr equality comparison.
+    //   compare: exact channel equality.
     D_CONSTEXPR bool
     operator==(
         const cmyk& _other
@@ -105,10 +80,26 @@ struct cmyk
                  (y == _other.y) &&
                  (k == _other.k) );
     }
+
+    // is_valid
+    //   query: all channels within [0, 1].
+    D_CONSTEXPR_INLINE bool
+    is_valid() const
+    {
+        return d_color_cmyk_is_valid(*this);
+    }
+
+    // clamp
+    //   transform: channels constrained to [0, 1].
+    D_CONSTEXPR_INLINE cmyk
+    clamp() const
+    {
+        return d_color_cmyk_clamp(*this);
+    }
 };
 
 
-NS_END  // color
 NS_END  // djinterp
 
-#endif  // DJINTERP_COLOR_CMYK_
+
+#endif  // DJINTERP_COLOR_CMYK_HPP_

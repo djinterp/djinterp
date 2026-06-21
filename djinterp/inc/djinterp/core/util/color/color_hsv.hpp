@@ -1,83 +1,74 @@
 /******************************************************************************
-* djinterp [color]                                               color_hsv.hpp
+* djinterp [color]                                                color_hsv.hpp
 *
-*   HSV (Hue, Saturation, Value) color model for the djinterp color
-* module. Hue is stored in degrees [0, 360), saturation and value
-* in [0, 1], with optional alpha.
+*   C++ ergonomic layer for the HSV color model. `hsv` derives from the
+* shared-kernel POD (color_hsv.h) without adding state, providing constexpr
+* construction, comparison, validation, and canonicalizing clamp that
+* forward to the C kernel. Conversions are supplied by the color_convert
+* facade.
 *
-* 
+*
 * path:      /inc/djinterp/util/color/color_hsv.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.12
+* author(s): Sam 'teer' Neal-Blim                             date: 2026.06.20
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    HSV COLOR MODEL
-      ----------------
-      i.    hsv
-            a. model_tag, value_type
-            b. channels: h, s, v, a
-            c. hsv()                    (default constructor)
-            d. hsv(_h, _s, _v, _a)     (parameterized constructor)
-            e. operator==
+I.    hsv
+      ---
+      a. model_tag, value_type, channels
+      b. constructors / converting constructor
+      c. operator==
+      d. is_valid / clamp
 */
 
-#ifndef DJINTERP_COLOR_HSV_
-#define DJINTERP_COLOR_HSV_ 1
+#ifndef DJINTERP_COLOR_HSV_HPP_
+#define DJINTERP_COLOR_HSV_HPP_ 1
 
 #include "../../djinterp.hpp"
-#include "./color.hpp"
+#include "./color_common.hpp"
+#include "./color_hsv.h"
 
 
 NS_DJINTERP
-NS_COLOR
 
-
-// ================================================================
-//  hsv
-// ================================================================
 
 // hsv
-//   struct: represents a color in the HSV color model. Hue is
-// in degrees [0, 360); saturation and value are normalized to
-// [0, 1]. Carries optional alpha in [0, 1].
-struct hsv
+//   struct: HSV color model. Wraps d_color_hsv with constexpr
+// construction and self-operations.
+struct hsv : d_color_hsv
 {
     using model_tag  = hsv_tag;
     using value_type = channel_t;
 
-    value_type h;
-    value_type s;
-    value_type v;
-    value_type a;
-
     // hsv (default)
-    //   constructor: initializes to opaque black (h=0, s=0,
-    // v=0, a=1).
+    //   constructor: zeroed (black).
     D_CONSTEXPR hsv()
-        : h(0), s(0), v(0), a(1)
+        : d_color_hsv{ value_type(0), value_type(0), value_type(0) }
     {}
 
     // hsv (parameterized)
-    //   constructor: initializes from individual channel
-    // values. Hue is normalized to [0, 360); saturation,
-    // value, and alpha are clamped to [0, 1].
+    //   constructor: from raw channels.
     D_CONSTEXPR hsv(
         value_type _h,
         value_type _s,
-        value_type _v,
-        value_type _a = 1
+        value_type _v
     )
-        : h(internal::normalize_hue(_h)),
-          s(clamp_channel(_s, value_type(0), value_type(1))),
-          v(clamp_channel(_v, value_type(0), value_type(1))),
-          a(clamp_channel(_a, value_type(0), value_type(1)))
+        : d_color_hsv{ _h, _s, _v }
+    {}
+
+    // hsv (converting)
+    //   constructor: wraps a kernel-produced POD result.
+    D_CONSTEXPR hsv(
+        const d_color_hsv& _pod
+    )
+        : d_color_hsv(_pod)
     {}
 
     // operator==
-    //   function: constexpr equality comparison.
+    //   compare: exact channel equality.
     D_CONSTEXPR bool
     operator==(
         const hsv& _other
@@ -85,13 +76,28 @@ struct hsv
     {
         return ( (h == _other.h) &&
                  (s == _other.s) &&
-                 (v == _other.v) &&
-                 (a == _other.a) );
+                 (v == _other.v) );
+    }
+
+    // is_valid
+    //   query: h in [0, 360), s and v in [0, 1].
+    D_CONSTEXPR_INLINE bool
+    is_valid() const
+    {
+        return d_color_hsv_is_valid(*this);
+    }
+
+    // clamp
+    //   transform: wrap hue, clamp s and v to [0, 1].
+    D_CONSTEXPR_INLINE hsv
+    clamp() const
+    {
+        return d_color_hsv_clamp(*this);
     }
 };
 
 
-NS_END  // color
 NS_END  // djinterp
 
-#endif  // DJINTERP_COLOR_HSV_
+
+#endif  // DJINTERP_COLOR_HSV_HPP_
