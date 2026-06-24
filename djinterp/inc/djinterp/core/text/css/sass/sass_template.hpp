@@ -69,8 +69,9 @@ VI.   FREE HELPERS / FACTORIES
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../css/css_template.hpp"
+#include "./sass.hpp"               // foundation + folded traits/concepts
 
 
 NS_DJINTERP
@@ -182,26 +183,26 @@ public:
     // from the underlying CSS rule kind plus the at-keyword
     // string, so the same backend node can be classified by
     // either layer.
-    sass_rule_kind
+    ::djinterp::sass::sass_rule_kind
     sass_rule_kind() const
     {
         if (!this->valid())
         {
-            return sass_rule_kind::unknown;
+            return ::djinterp::sass::sass_rule_kind::unknown;
         }
         // variable declaration: a CSS declaration whose
         // property name begins with `$`.
         if ( (this->rule_kind() == ::djinterp::css::css_rule_kind::declaration_block) &&
              is_sass_variable_name(this->backend_handle()->property.c_str()) )
         {
-            return sass_rule_kind::variable_declaration;
+            return ::djinterp::sass::sass_rule_kind::variable_declaration;
         }
         // style rule whose selector begins with `%` is a
         // placeholder.
         if ( (this->rule_kind() == ::djinterp::css::css_rule_kind::style_rule) &&
              is_sass_placeholder_name(this->selector().c_str()) )
         {
-            return sass_rule_kind::placeholder_rule;
+            return ::djinterp::sass::sass_rule_kind::placeholder_rule;
         }
         // at-rules: classify by keyword.
         if (this->is_at_rule())
@@ -210,12 +211,12 @@ public:
                 sass_at_rule_kind_from_name(
                     this->at_keyword().c_str()));
         }
-        return sass_rule_kind::unknown;
+        return ::djinterp::sass::sass_rule_kind::unknown;
     }
 
     // get_sass_rule_kind
     //   function: getter-form alias.
-    enum sass_rule_kind
+    ::djinterp::sass::sass_rule_kind
     get_sass_rule_kind() const
     {
         return this->sass_rule_kind();
@@ -223,67 +224,67 @@ public:
 
     // sass_at_rule_kind
     //   function: returns the Sass-specific at-rule kind.
-    enum sass_at_rule_kind
+    ::djinterp::sass::sass_at_rule_kind
     sass_at_rule_kind() const
     {
         if (!this->valid())
         {
-            return sass_at_rule_kind::unknown;
+            return ::djinterp::sass::sass_at_rule_kind::unknown;
         }
         return sass_at_rule_kind_from_name(this->at_keyword().c_str());
     }
 
     bool is_variable_declaration() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::variable_declaration );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::variable_declaration );
     }
     bool is_mixin_declaration() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::mixin_declaration );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::mixin_declaration );
     }
     bool is_function_declaration() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::function_declaration );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::function_declaration );
     }
     bool is_include_statement() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::include_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::include_statement );
     }
     bool is_extend_statement() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::extend_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::extend_statement );
     }
     bool is_if_statement() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::if_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::if_statement );
     }
     bool is_each_statement() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::each_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::each_statement );
     }
     bool is_for_statement() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::for_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::for_statement );
     }
     bool is_while_statement() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::while_statement );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::while_statement );
     }
     bool is_use_rule() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::use_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::use_rule );
     }
     bool is_forward_rule() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::forward_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::forward_rule );
     }
     bool is_at_root_rule() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::at_root_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::at_root_rule );
     }
     bool is_placeholder_rule() const
     {
-        return ( this->sass_rule_kind() == sass_rule_kind::placeholder_rule );
+        return ( this->sass_rule_kind() == ::djinterp::sass::sass_rule_kind::placeholder_rule );
     }
 
 
@@ -773,7 +774,7 @@ public:
 
     explicit
     sass_stylesheet(
-        sass_syntax     _syntax
+        ::djinterp::sass::sass_syntax     _syntax
     )
     :   base_type()
     {
@@ -786,18 +787,18 @@ public:
     // sass_syntax
     //   function: returns the Sass surface syntax. Derived
     // from the CSS `syntax_mode` field.
-    enum sass_syntax
+    ::djinterp::sass::sass_syntax
     sass_syntax() const
     {
         const auto m = this->syntax_mode();
         return ( m == ::djinterp::css::css_syntax_mode::sass )
-                ? sass_syntax::indented
+                ? ::djinterp::sass::sass_syntax::indented
              : ( m == ::djinterp::css::css_syntax_mode::scss )
-                ? sass_syntax::scss
-             :    sass_syntax::unspecified;
+                ? ::djinterp::sass::sass_syntax::scss
+             :    ::djinterp::sass::sass_syntax::unspecified;
     }
 
-    enum sass_syntax
+    ::djinterp::sass::sass_syntax
     get_sass_syntax() const
     {
         return this->sass_syntax();
@@ -806,15 +807,15 @@ public:
     // set_sass_syntax
     void
     set_sass_syntax(
-        enum sass_syntax    _syntax
+        ::djinterp::sass::sass_syntax    _syntax
     )
     {
         switch (_syntax)
         {
-            case sass_syntax::indented:
+            case ::djinterp::sass::sass_syntax::indented:
                 this->set_syntax_mode(::djinterp::css::css_syntax_mode::sass);
                 break;
-            case sass_syntax::scss:
+            case ::djinterp::sass::sass_syntax::scss:
                 this->set_syntax_mode(::djinterp::css::css_syntax_mode::scss);
                 break;
             default:
@@ -827,10 +828,10 @@ public:
     //   function: returns the configured dialect. Default
     // backend reports `dart_sass`; adapter backends can
     // override.
-    enum sass_dialect
+    ::djinterp::sass::sass_dialect
     sass_dialect() const
     {
-        return sass_dialect::dart_sass;
+        return ::djinterp::sass::sass_dialect::dart_sass;
     }
 
 
@@ -879,6 +880,36 @@ public:
         const_cast<typename base_type::stylesheet_type&>(
             this->backend_stylesheet()).root->children.push_back(std::move(n));
         return rule_facade(raw);
+    }
+
+    // add_color_variable
+    //   function: appends `$name: <css-color>;` from any native
+    // color model (rgb, rgba, cmyk, hsl, ...), via the css bridge.
+    template <typename _Color>
+    rule_facade
+    add_color_variable(
+        const sass_string_t&    _name,
+        const _Color&           _c,
+        bool                    _default = false
+    )
+    {
+        return this->add_variable(
+            _name, ::djinterp::css::to_css_color(_c), _default);
+    }
+
+    // add_font_variable
+    //   function: appends `$name: <css-font-shorthand>;` from a
+    // native djinterp::font, via the css bridge.
+    template <unsigned _Feat, typename _ColorT>
+    rule_facade
+    add_font_variable(
+        const sass_string_t&                    _name,
+        const ::djinterp::font<_Feat, _ColorT>& _f,
+        bool                                    _default = false
+    )
+    {
+        return this->add_variable(
+            _name, ::djinterp::css::to_css_font(_f), _default);
     }
 
     // add_mixin
@@ -1160,7 +1191,7 @@ struct sass_default_backend
 template<typename _Backend>
 inline sass_stylesheet<_Backend>
 make_sass_stylesheet(
-    sass_syntax     _syntax = sass_syntax::scss
+    ::djinterp::sass::sass_syntax     _syntax = ::djinterp::sass::sass_syntax::scss
 )
 {
     return sass_stylesheet<_Backend>(_syntax);
