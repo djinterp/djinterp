@@ -72,8 +72,9 @@ TABLE OF CONTENTS
 #include <utility>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../meta/trait_detect.hpp"
 #include "../../meta/type_traits.hpp"
-#include "../../math/interval/interval_traits.hpp"
+#include "../../../math/interval/interval.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "./bounded_container_traits.hpp"
 #include "./iterable_container_traits.hpp"
@@ -315,9 +316,11 @@ NS_INTERNAL
     {};
 
     template<typename _Type>
-    struct has_constexpr_min_size_helper<_Type, std::enable_if_t<
-        std::is_default_constructible_v<_Type> &&
-        has_min_size_accessor_v<_Type>>>
+    struct has_constexpr_min_size_helper<_Type, 
+        std::enable_if_t<
+        ( std::is_default_constructible_v<_Type> &&
+          has_min_size_accessor_v<_Type> )
+    >
     {
     private:
         template<typename _U>
@@ -907,7 +910,7 @@ inline constexpr bool is_unordered_container_v =
 // transitively).  An earlier revision of this header carried a
 // duplicate definition here; it has been removed to eliminate the
 // resulting one-definition-rule conflict.  Use the iterator_traits.hpp
-// version directly — the snapshot in section XVII below references it
+// version directly - the snapshot in section XVII below references it
 // by its public name, no aliasing or forwarding required.
 
 
@@ -950,7 +953,7 @@ template<typename _Type>
 struct allows_duplicates
 {
     static constexpr bool value =
-        !enforces_uniqueness_v<clean_t<_Type>>;
+        !enforces_uniqueness_v<_Type>;
 };
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES

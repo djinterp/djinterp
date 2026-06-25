@@ -18,7 +18,7 @@
 *     stable:   yes
 *
 *
-* path:      /inc/core/util/sort/bubble_sort.hpp
+* path:      /inc/djinterp/core/util/sort/bubble_sort.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
 ******************************************************************************/
@@ -26,11 +26,12 @@
 #ifndef DJINTERP_UTILITY_SORT_BUBBLE_
 #define DJINTERP_UTILITY_SORT_BUBBLE_ 1
 
+// djinterp
 #include "../../djinterp.hpp"
-#include "./sort.hpp"
+#include "./sort_common.hpp"
 
 
-NS_SORT
+NS_DJINTERP
 
 // implementation
 NS_INTERNAL
@@ -174,7 +175,7 @@ void bubble_sort_ordered(_RandomIterator _first,
     return;
 }
 
-NS_END  // namespace sort
+NS_END  // djinterp
 
 
 #endif  // DJINTERP_UTILITY_SORT_BUBBLE_

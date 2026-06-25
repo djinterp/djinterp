@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                           container_compare_traits.hpp
+* djinterp [container]                            container_compare_traits.hpp
 *
 * Container comparison traits for the djinterp framework.
 *   Provides compile-time detection of comparison capabilities at three
@@ -29,7 +29,7 @@
 * path:      /inc/djinterp/core/container/traits/
 *                container_compare_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.24
 ******************************************************************************/
 
 /*

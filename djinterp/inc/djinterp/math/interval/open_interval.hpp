@@ -16,14 +16,13 @@
 *   - static constexpr bool is_left_open  = true
 *   - static constexpr bool is_right_open = true
 *
-* 
-* path:      /inc/djinterp/math/interval/open_interval.hpp
+* path:      /inc/math/open_interval.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2024.04.23
+* author(s): Samuel 'teer' Neal-Blim                       date: 2024.04.23
 ******************************************************************************/
 
-#ifndef DJINTERP_MATH_INTERVAL_OPEN_
-#define DJINTERP_MATH_INTERVAL_OPEN_ 1
+#ifndef DJINTERP_MATH_OPEN_INTERVAL_
+#define DJINTERP_MATH_OPEN_INTERVAL_ 1
 
 // std
 #include <cstddef>
@@ -34,7 +33,6 @@
 #include <type_traits>
 // djinterp
 #include "../../core/djinterp.hpp"
-#include "../math.hpp"
 
 
 NS_DJINTERP
@@ -377,7 +375,7 @@ struct runtime_open_interval
         const runtime_open_interval& _other
     ) const noexcept
     {
-        return !( (m_upper       <= _other._Lower) ||
+        return !( (m_upper       <= _Lower) ||
                   (_Lower        >= _other.m_upper) );
     }
 
@@ -569,4 +567,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_INTERVAL_OPEN_
+#endif  // DJINTERP_MATH_OPEN_INTERVAL_

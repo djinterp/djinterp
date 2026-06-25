@@ -19,7 +19,7 @@
 *     stable:   no
 *
 * 
-* path:      /inc/core/util/sort/selection_sort.hpp
+* path:      /inc/djinterp/core/util/sort/selection_sort.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
 ******************************************************************************/
@@ -27,16 +27,14 @@
 #ifndef DJINTERP_UTILITY_SORT_SELECTION_
 #define DJINTERP_UTILITY_SORT_SELECTION_ 1
 
+// djinterp
 #include "../../djinterp.hpp"
-#include "./sort.hpp"
+#include "./sort_common.hpp"
 
 
-NS_SORT
+NS_DJINTERP
 
-///////////////////////////////////////////////////////////////////////////////
-///                    II.  IMPLEMENTATION                                  ///
-///////////////////////////////////////////////////////////////////////////////
-
+// implementation
 NS_INTERNAL
 
     // selection_sort_apply
@@ -174,7 +172,7 @@ void selection_sort_ordered(_RandomIterator _first,
 }
 
 
-NS_END  // namespace sort
+NS_END  // djinterp
 
 
 #endif  // DJINTERP_UTILITY_SORT_SELECTION_

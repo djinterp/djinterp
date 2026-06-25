@@ -39,6 +39,7 @@ VII.  C++20 Concepts (feature-gated)
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
+#include "../../meta/trait_detect.hpp"
 #include "../../meta/type_traits.hpp"
 
 
@@ -52,12 +53,12 @@ NS_DJINTERP
 // has_ownership_policy
 //   trait: true if _Type exposes an `ownership_policy` alias.
 D_TYPE_TRAIT_TRUE(has_ownership_policy,
-                  typename _Type::ownership_policy)
+                  typename clean_t<_Type>::ownership_policy)
 
 // has_entry_storage_type
 //   trait: true if _Type exposes an `entry_storage` alias.
 D_TYPE_TRAIT_TRUE(has_entry_storage_type,
-                  typename _Type::entry_storage)
+                  typename clean_t<_Type>::entry_storage)
 
 // has_entry_owns_constant
 //   trait: true if _Type exposes `entry_owns` as a static bool.
@@ -69,7 +70,7 @@ struct has_entry_owns_constant : std::false_type
 template<typename _Type>
 struct has_entry_owns_constant<_Type,
     std::enable_if_t<std::is_same<
-        decltype(_Type::entry_owns),
+        decltype(clean_t<_Type>::entry_owns),
         const bool>::value>>
     : std::true_type
 {};
@@ -98,9 +99,9 @@ D_TYPE_TRAIT_TRUE(has_entry_point_method,
 D_TYPE_TRAIT_TRUE(has_root_method,
     decltype(std::declval<const _Type&>().root()))
 
-// has_has_root_method
+// has_root_member_method
 //   trait: true if _Type has a has_root() method.
-D_TYPE_TRAIT_TRUE(has_has_root_method,
+D_TYPE_TRAIT_TRUE(has_root_member_method,
     decltype(std::declval<const _Type&>().has_root()))
 
 // has_head_method
@@ -129,8 +130,8 @@ template<typename _Type>
 struct has_any_entry_point
 {
     static constexpr bool value =
-        ( has_entry_point_method<_Type>::value ||
-          has_root_method<_Type>::value        ||
+        ( has_entry_point_method<_Type>::value  ||
+          has_root_method<_Type>::value         ||
           has_head_method<_Type>::value );
 };
 
@@ -148,7 +149,7 @@ struct has_any_entry_point
 // has_node_type
 //   trait: true if _Type has a nested `node_type` alias.
 D_TYPE_TRAIT_TRUE(has_node_type,
-    typename _Type::node_type)
+    typename clean_t<_Type>::node_type)
 
 NS_INTERNAL
     // node_type_helper
@@ -163,7 +164,7 @@ NS_INTERNAL
     template<typename _Type>
     struct node_type_helper<_Type, true>
     {
-        using type = typename _Type::node_type;
+        using type = typename clean_t<_Type>::node_type;
     };
 
 NS_END  // internal
@@ -207,7 +208,7 @@ NS_INTERNAL
     template<typename _Type>
     struct ownership_model_impl<_Type, true>
     {
-        using policy = typename _Type::ownership_policy;
+        using policy = typename clean_t<_Type>::ownership_policy;
 
         static constexpr DOwnershipModel value =
             std::is_same<policy,
@@ -255,7 +256,7 @@ template<typename _Type>
 struct is_owning_container<_Type,
     std::enable_if_t<
         has_ownership_policy<_Type>::value &&
-        _Type::ownership_policy::owns
+        clean_t<_Type>::ownership_policy::owns
     >>
     : std::true_type
 {};
