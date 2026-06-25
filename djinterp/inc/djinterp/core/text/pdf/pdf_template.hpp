@@ -77,12 +77,14 @@
 #include <cstddef>
 #include <functional>
 #include <string>
+#include <ostream>
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
 #include "../text/text_template.hpp"
 #include "./pdf.hpp"
 #include "./pdf_template_traits.hpp"
+#include "./pdf_printer.hpp"          // unified sink-based PDF output
 
 
 NS_DJINTERP
@@ -645,6 +647,17 @@ public:
         return doc.to_bytes();
     }
 
+    // to_stream
+    //   serialises with the built-in backend and writes the PDF
+    // bytes to _os through pdf_printer's stream sink.
+    void
+    to_stream(
+        std::ostream& _os
+    ) const
+    {
+        pdf_to_stream(_os, *this);
+    }
+
     // render_pdf (custom backend)
     //   renders into a fresh document driving a caller-supplied
     // backend, then returns the serialized bytes.
@@ -661,17 +674,18 @@ public:
     }
 
     // save_pdf
-    //   renders with the built-in backend and writes to _path.
+    //   renders with the built-in backend and writes to _path,
+    // routing the serialized bytes through pdf_printer's file sink.
     bool
     save_pdf(
         const char* _path
     ) const
     {
-        pdf_document doc;
+        pdf_file_printer _printer(_path);
 
-        render_to_pdf(doc);
+        _printer.print(*this);          // serialises via render_pdf()
 
-        return doc.save(_path);
+        return _printer.good();
     }
 
     // save_pdf (custom backend)
