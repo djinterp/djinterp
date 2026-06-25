@@ -58,7 +58,7 @@ IV.   compose_options             (build a set from empty in one statement)
 
 // djinterp
 #include "../djinterp.hpp"
-#include "../paradigm/override.hpp"     // OverridePolicy
+#include "../meta/override.hpp"         // OverridePolicy
 #include "./option.hpp"
 #include "./option_set.hpp"
 #include "./option_override.hpp"        // option_set_override_t + policies

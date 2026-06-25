@@ -23,7 +23,7 @@
 * detection (e.g. "can _Type accept THIS specific option_set?"), see
 * the target-level traits in option_set_traits.hpp sections XII-XVI.
 *   All detection is purely structural SFINAE.  The option_set_traits
-* from djinterp:: are reused for entry-level and container-level
+* from  are reused for entry-level and container-level
 * option_set detection.
 *
 * DEPENDENCIES:
@@ -166,14 +166,14 @@ NS_END  // internal
 //   type trait: true if the container itself satisfies the
 // option_set contract (keyed lookup + iteration +
 // key_type alias).
-// Delegates to djinterp::is_option_set from
+// Delegates to is_option_set from
 // option_set_traits.hpp.
 template<typename _Type>
 struct is_option_set_container
 {
     using clean_type = clean_t<_Type>;
 
-    static constexpr bool value = djinterp::is_option_set<clean_type>::value;
+    static constexpr bool value = is_option_set<clean_type>::value;
 };
 
 template<typename _Type>
@@ -182,14 +182,14 @@ inline constexpr bool is_option_set_container_v = is_option_set_container<_Type>
 // has_option_entry_elements
 //   type trait: true if the container's value_type satisfies
 // the option entry contract (.key + .value).
-// Delegates to djinterp::is_option_entry.
+// Delegates to is_option_entry.
 template<typename _Type>
 struct has_option_entry_elements
 {
     using clean_type = clean_t<_Type>;
     using element_type  = internal::opt_safe_value_type_t<clean_type>;
 
-    static constexpr bool value = djinterp::is_option_entry<element_type>::value;
+    static constexpr bool value = is_option_entry<element_type>::value;
 };
 
 template<typename _Type>
@@ -204,7 +204,7 @@ struct has_named_option_elements
     using clean_type = clean_t<_Type>;
     using element_type = internal::opt_safe_value_type_t<clean_type>;
 
-    static constexpr bool value = djinterp::is_named_option<element_type>::value;
+    static constexpr bool value = is_named_option<element_type>::value;
 };
 
 template<typename _Type>
@@ -219,7 +219,7 @@ struct has_documented_option_elements
     using clean_type   = clean_t<_Type>;
     using element_type = internal::opt_safe_value_type_t<clean_type>;
 
-    static constexpr bool value = djinterp::is_documented_option<element_type>::value;
+    static constexpr bool value = is_documented_option<element_type>::value;
 };
 
 template<typename _Type>
@@ -234,7 +234,7 @@ struct has_constrained_option_elements
     using clean_type   = clean_t<_Type>;
     using element_type = internal::opt_safe_value_type_t<clean_type>;
 
-    static constexpr bool value = djinterp::is_constrained_option<element_type>::value;
+    static constexpr bool value = is_constrained_option<element_type>::value;
 };
 
 template<typename _Type>
@@ -249,7 +249,7 @@ struct has_env_mapped_option_elements
     using clean_type = clean_t<_Type>;
     using element_type = internal::opt_safe_value_type_t<clean_type>;
 
-    static constexpr bool value = djinterp::is_env_mapped_option<element_type>::value;
+    static constexpr bool value = is_env_mapped_option<element_type>::value;
 };
 
 template<typename _Type>
@@ -458,7 +458,7 @@ NS_INTERNAL
                     : has_parse_config_method_v<clean_type>
                         ? option_parse_strategy::native_config
                         : ( is_option_set_container_v<clean_type> &&
-                            djinterp::has_key_type_alias<clean_type>::value )
+                            has_key_type_alias<clean_type>::value )
                                 ? option_parse_strategy::generic_kv
                                 : option_parse_strategy::unsupported;
     };

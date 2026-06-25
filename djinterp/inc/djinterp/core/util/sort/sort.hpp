@@ -1,222 +1,66 @@
 /******************************************************************************
-* djinterp [util]                                                     sort.hpp
+* djinterp [utility]                                                  sort.hpp
 *
-* djinterp portable sorting algorithm framework
-*   Provides core types, convenience aliases, and comparator infrastructure
-* shared by all sorting algorithm headers.  Individual algorithm
-* implementations (e.g. insertion_sort.hpp, merge_sort.hpp) include this
-* header and expose their own named entry-point functions.
+*   djinterp portable sorting -- umbrella header.
+* This is the single include that brings in the sort subsystem and its
+* integration with the functional layer.  It re-exports:
 *
-*   The header is designed to compile cleanly from C++98 through C++23 by
-* gating modern features behind the project's D_ENV_* detection macros.
+*     - sort_common.hpp    : the shared core, which now pulls in the
+*                            functional comparator algebra (natural, by_key,
+*                            by_member, reversed, then, lifted) and the six
+*                            algorithm headers' shared primitives.
+*     - sort_dispatch.hpp  : the algorithm-agnostic dispatch facility -- the
+*                            sorter type and the sort<tag>(...) / sort(algo, ...)
+*                            entry points, every one of which accepts any model
+*                            of is_comparator (so the whole comparator algebra
+*                            drops straight in).
+*     - sort_monoid.hpp    : sorted_run<T, Compare>, the merge monoid -- the
+*                            sort subsystem's seat in the typeclass algebra.
+*                            Two sorted runs combine (mappend) by merging, the
+*                            empty run is the identity (mempty), and mconcat
+*                            over a Foldable of singleton runs is a merge sort.
+*
+*   The view/dataflow bridge (sort_view.hpp) is deliberately NOT re-exported
+* here.  It couples the sort subsystem to the (large) view subsystem, so it is
+* left as an explicit opt-in: include sort_view.hpp directly to drain a lazy
+* view pipeline into a sorted vector via `... | sorted_by(comp)`.
+*
+*   THE THREE SEAMS, in one place:
+*     1. consume   -- sort takes the functional comparator algebra as its
+*                     ordering argument                       (sort_common +
+*                                                              sort_dispatch).
+*     2. participate -- sort registers as a Semigroup / Monoid via sorted_run,
+*                       so the algebra's mappend / mconcat / fold_monoid
+*                       operate on it                          (sort_monoid).
+*     3. connect   -- sort plugs into the lazy view pipeline as a terminal
+*                     (opt-in)                                 (sort_view).
+*
+*   Everything here past the dispatch facility requires C++11 or later; the
+* umbrella include itself is valid in every supported language mode (in older
+* modes it contributes the C++98-clean parts of sort_common and the algorithm
+* headers).
+*
+*   overview:
+*     -- sort_common.hpp     (core types + comparator algebra)
+*     -- sort_dispatch.hpp   (sorter + sort() entry points)
+*     -- sort_monoid.hpp     (sorted_run merge monoid)
+*     [opt-in] sort_view.hpp (lazy-pipeline sort terminal)
 *
 *
-* path:      /inc/core/util/sort/sort.hpp
+* path:      /inc/djinterp/core/util/sort/sort.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
+* author(s): Sam 'teer' Neal-Blim                          created: 2026.03.22
 ******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_
-#define DJINTERP_UTILITY_SORT_ 1
+#ifndef DJINTERP_UTILITY_SORT_FACADE_
+#define DJINTERP_UTILITY_SORT_FACADE_ 1
 
-#include <stddef.h>
-#include "../../djinterp.hpp"
+// djinterp -- the integrated sort surface
+#include "./sort_common.hpp"     // core types + functional comparator algebra
+#include "./sort_dispatch.hpp"   // algorithm-agnostic dispatch facility
+#include "./sort_monoid.hpp"     // sorted_run merge monoid (typeclass algebra)
 
+//   sort_view.hpp (the lazy-pipeline sort terminal) is intentionally omitted;
+// include it explicitly when bridging into the view subsystem.
 
-#if D_ENV_CPP98_HAS_FUNCTIONAL
-    #include <functional>
-#endif
-
-#if D_ENV_CPP98_HAS_ITERATOR
-    #include <iterator>
-#endif
-
-#if D_ENV_CPP98_HAS_UTILITY
-    #include <utility>
-#endif
-
-#if D_ENV_CPP98_HAS_ALGORITHM
-    #include <algorithm>
-#endif
-
-// C++11: type_traits for SFINAE
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include <type_traits>
-#endif
-
-
-#define D_KEYWORD_SORT  sort
-
-#define NS_SORT         D_NAMESPACE(D_KEYWORD_SORT)
-
-
-NS_SORT  // namespace sort
-
-// sort_order
-//   enum: specifies the ordering direction of a sort operation.
-enum sort_order
-{
-    DSortOrderAscending  = 0,
-    DSortOrderDescending = 1
-};
-
-
-// default comparators
-
-// less
-//   struct: default ascending comparator.  Returns true when _a precedes _b
-// in strict weak ordering.  Mirrors std::less but is always available.
-template<typename _Type>
-struct less
-{
-    bool operator()(const _Type& _a,
-                    const _Type& _b) const
-    {
-        return (_a < _b);
-    }
-};
-
-// greater
-//   struct: default descending comparator.  Returns true when _a follows _b
-// in strict weak ordering.
-template<typename _Type>
-struct greater
-{
-    bool operator()(const _Type& _a,
-                    const _Type& _b) const
-    {
-        return (_a > _b);
-    }
-};
-
-// order_comparator - wraps a comparator with a sort-order flip
-
-NS_INTERNAL
-
-    // order_comparator
-    //   struct: adapts a comparator to honour a runtime sort_order by
-    // optionally reversing the comparison sense.
-    template<typename _Compare>
-    struct order_comparator
-    {
-    private:
-        _Compare   m_comp;
-        sort_order m_order;
-
-    public:
-        order_comparator(_Compare   _comp,
-                         sort_order _order)
-            : m_comp(_comp)
-            , m_order(_order)
-        {
-        }
-
-        template<typename _A,
-                 typename _B>
-        bool operator()(const _A& _a,
-                        const _B& _b) const
-        {
-            if (m_order == DSortOrderDescending)
-            {
-                return m_comp(_b, _a);
-            }
-
-            return m_comp(_a, _b);
-        }
-    };
-
-NS_END  // internal
-
-// comparator traits  (>C++11)
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-NS_INTERNAL
-
-    // is_comparator_helper
-    //   trait: SFINAE helper that detects whether _Comp(_a, _b) is
-    // well-formed and yields a boolean-convertible result.
-    template<typename _Comp,
-             typename _Type,
-             typename = void>
-    struct is_comparator_helper
-    {
-        static const bool value = false;
-    };
-
-    // is_comparator_helper  (success case)
-    //   trait: partial specialisation when _Comp is callable with two
-    // const _Type& arguments and the result converts to bool.
-    template<typename _Comp,
-             typename _Type>
-    struct is_comparator_helper
-        <
-            _Comp,
-            _Type,
-            typename std::enable_if
-                <
-                    std::is_convertible
-                    <
-                        decltype(
-                            std::declval<_Comp>()(
-                                std::declval<const _Type&>(),
-                                std::declval<const _Type&>())),
-                        bool
-                    >::value
-                >::type
-        >
-    {
-        static const bool value = true;
-    };
-
-NS_END  // internal
-
-// is_comparator
-//   trait: determines whether _Comp models a strict-weak-ordering
-// comparator over _Type.
-template<typename _Comp,
-         typename _Type>
-struct is_comparator
-{
-    static const bool value =
-        internal::is_comparator_helper<_Comp, _Type>::value;
-};
-
-// is_comparator_v
-//   alias: convenience variable template (C++14+).
-#if D_ENV_LANG_IS_CPP14_OR_HIGHER
-template<typename _Comp,
-         typename _Type>
-constexpr bool is_comparator_v = is_comparator<_Comp, _Type>::value;
-#endif  // C++14
-
-#endif  // C++11
-
-
-// convenience aliases
-
-// default_comparator
-//   type: the default strict-weak-ordering comparator for a given
-// element type.  Produces ascending order.
-template<typename _Type>
-struct default_comparator
-{
-    typedef less<_Type> type;
-};
-
-// For C++11+ we can use a proper alias template; for C++98 users
-// must write default_comparator<T>::type.
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
-// default_comparator_t
-//   type: alias template shorthand.
-template<typename _Type>
-using default_comparator_t = typename default_comparator<_Type>::type;
-
-#endif  // C++11
-
-
-NS_END
-
-
-#endif  // DJINTERP_UTILITY_SORT_
+#endif  // DJINTERP_UTILITY_SORT_FACADE_

@@ -1,8 +1,8 @@
 /******************************************************************************
 * djinterp [utility]                                        insertion_sort.hpp
 *
-*   insertion sort algorithm implementation.
-* Provides insertion_sort() entry-point functions and compile-time traits.
+* insertion sort algorithm implementation.
+*   Provides insertion_sort() entry-point functions and compile-time traits.
 * insertion sort: in-place, iterative, stable, comparison-based O(n) best case,
 * O(n^2) average and worst case algorithm. The algorithm progressively takes
 * the next unsorted element and shifts larger elements in the sorted portion
@@ -18,7 +18,7 @@
 *     stable:   yes
 *
 *
-* path:      /inc/core/util/sort/insertion_sort.hpp
+* path:      /inc/djinterp/core/util/sort/insertion_sort.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
 ******************************************************************************/
@@ -26,10 +26,13 @@
 #ifndef DJINTERP_UTILITY_SORT_INSERTION_
 #define DJINTERP_UTILITY_SORT_INSERTION_ 1
 
+// djinterp
 #include "../../djinterp.hpp"
-#include "./sort.hpp"
+#include "./sort_common.hpp"
 
-NS_SORT
+
+NS_DJINTERP
+
 
 // implementation
 NS_INTERNAL
@@ -49,9 +52,12 @@ NS_INTERNAL
     // executes, yielding O(n) best-case performance.
     template<typename _RandomIterator,
              typename _Comparator>
-    void insertion_sort_apply(_RandomIterator _first,
-                              _RandomIterator _last,
-                              _Comparator     _comparator)
+    void 
+    insertion_sort_apply(
+        _RandomIterator _first,
+        _RandomIterator _last,
+        _Comparator     _comparator
+    )
     {
         // nothing to sort for empty or single-element ranges
         if (_first == _last)
@@ -113,10 +119,13 @@ NS_INTERNAL
     template<typename _RandomIterator,
              typename _Comparator,
              typename _ValueType>
-    void insertion_sort_apply_98(_RandomIterator _first,
-                                _RandomIterator  _last,
-                                _Comparator      _comparator,
-                                _ValueType*)
+    void 
+    insertion_sort_apply_98(
+        _RandomIterator _first,
+        _RandomIterator  _last,
+        _Comparator      _comparator,
+        _ValueType*
+    )
     {
         // nothing to sort for empty or single-element ranges
         if (_first == _last)
@@ -178,9 +187,12 @@ NS_END  // internal
 // the comparator _comparator.
 template<typename _RandomIterator,
          typename _Comparator>
-void insertion_sort(_RandomIterator _first,
-                    _RandomIterator _last,
-                    _Comparator  _comparator)
+void 
+insertion_sort(
+    _RandomIterator _first,
+    _RandomIterator _last,
+    _Comparator     _comparator
+)
 {
     internal::insertion_sort_apply(_first,
                                    _last,
@@ -199,10 +211,13 @@ void insertion_sort(_RandomIterator _first,
 template<typename _RandomIterator,
          typename _Comparator,
          typename _ValueType>
-void insertion_sort(_RandomIterator _first,
-                    _RandomIterator _last,
-                    _Comparator     _comparator,
-                    _ValueType*     _value_type_hint)
+void 
+insertion_sort(
+    _RandomIterator _first,
+    _RandomIterator _last,
+    _Comparator     _comparator,
+    _ValueType*     _value_type_hint
+)
 {
     internal::insertion_sort_apply_98(_first,
                                       _last,
@@ -223,8 +238,11 @@ void insertion_sort(_RandomIterator _first,
 //   function: sorts the range [_first, _last) using insertion sort with
 // the default ascending comparator.
 template<typename _RandomIterator>
-void insertion_sort(_RandomIterator _first,
-                    _RandomIterator _last)
+void 
+insertion_sort(
+    _RandomIterator _first,
+    _RandomIterator _last
+)
 {
     typedef typename std::iterator_traits<_RandomIterator>::value_type
         value_type;
@@ -248,10 +266,13 @@ void insertion_sort(_RandomIterator _first,
 // adapting _comparator to the requested _order.
 template<typename _RandomIterator,
          typename _Comparator>
-void insertion_sort_ordered(_RandomIterator _first,
-                            _RandomIterator _last,
-                            _Comparator     _comparator,
-                            bool            _ascending)
+void 
+insertion_sort_ordered(
+    _RandomIterator _first,
+    _RandomIterator _last,
+    _Comparator     _comparator,
+    bool            _ascending
+)
 {
     internal::order_comparator<_Comparator> wrapped(_comparator, _ascending);
 
@@ -271,11 +292,14 @@ void insertion_sort_ordered(_RandomIterator _first,
 template<typename _RandomIterator,
          typename _Comparator,
          typename _ValueType>
-void insertion_sort_ordered(_RandomIterator _first,
-                            _RandomIterator _last,
-                            _Comparator     _comparator,
-                            bool            _ascending,
-                            _ValueType*     _value_type_hint)
+void 
+insertion_sort_ordered(
+    _RandomIterator _first,
+    _RandomIterator _last,
+    _Comparator     _comparator,
+    bool            _ascending,
+    _ValueType*     _value_type_hint
+)
 {
     internal::order_comparator<_Comparator> wrapped(_comparator, _ascending);
 
@@ -290,7 +314,7 @@ void insertion_sort_ordered(_RandomIterator _first,
 #endif  // C++11
 
 
-NS_END  // namespace sort
+NS_END  // djinterp
 
 
 #endif  // DJINTERP_UTILITY_SORT_INSERTION_
