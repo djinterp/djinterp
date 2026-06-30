@@ -49,6 +49,8 @@
 #include <type_traits>
 // djinterp
 #include "../djinterp.hpp"
+#include "./trait_detect.hpp"   // D_VOID_T, D_TYPE_TRAIT_* detection macros
+#include "./pack_element.hpp"   // pack_element, pack_element_t (re-exported)
 
 
 // =============================================================================
@@ -63,7 +65,7 @@
 //   0.2  Detection idiom : nonesuch, detector, detected_or, detected_or_t,
 //                          detected_t, is_detected, is_detected_convertible,
 //                          is_detected_exact (+ _v variants).
-//   0.3  Detection macros: D_VOID_T plus the D_TRAIT_* family. These macros
+//   0.3  Detection macros: D_VOID_T plus the D_TYPE_TRAIT_* family. These macros
 //                          are pure shorthand - they expand to code that
 //                          uses the idiom (via void_t), they never
 //                          reimplement the SFINAE pattern.
@@ -232,279 +234,22 @@ NS_END  // djinterp
 
 
 // -----------------------------------------------------------------------------
-// 0.3  Detection macros
+// 0.3  Detection macros  ->  trait_detect.hpp
 // -----------------------------------------------------------------------------
-// Convenience shorthands for the detection idiom. Each macro below expands
-// to a trait that uses `void_t<DETECTION_EXPR>` (i.e., the detection idiom
-// pattern) - none of them reimplement SFINAE machinery from scratch.
-//
-// Macros sit at file scope (intentionally - the C++ preprocessor has no
-// concept of namespaces), but the traits they emit are intended to be
-// instantiated inside whatever namespace the macro is invoked in (typically
-// the djinterp namespace below).
-//
-// Family overview:
-//   - D_VOID_T                     : portable spelling of void_t.
-//   - D_TRAIT_VALUE_BOOL           : emits the `_v` variable-template alias.
-//   - D_TRAIT_TYPE_ALIAS           : emits the `_t` type-alias companion.
-//   - D_TRAIT_IS_DETECTED_AS       : parameterized core; emits a SFINAE trait
-//                                    whose success-case base class is given
-//                                    explicitly. Used by the others below.
-//   - D_TRAIT_IS_DETECTED          : one-line shorthand for the bread-and-
-//                                    butter SFINAE detection pattern; true if
-//                                    each DETECTION_EXPR is well-formed, else
-//                                    false. Variadic - pass any number of
-//                                    void_t expressions to AND together.
-//                                    (Renamed from D_TYPE_TRAIT_DETECTED.)
-//   - D_TRAIT_IS_DETECTED_FROM     : like D_TRAIT_IS_DETECTED, but inherits
-//                                    from BASE_TRAIT<_Type> on success rather
-//                                    than std::true_type. (Renamed from
-//                                    D_TYPE_TRAIT_NEW.)
-//   - D_TRAIT_DETECT_METHOD,
-//     D_TRAIT_DETECT_METHOD_ARGS,
-//     D_TRAIT_DETECT_BINARY_OP,
-//     D_TRAIT_DETECT_UNARY_OP      : decltype-expression generators meant to
-//                                    be passed as DETECTION_EXPR.
-//   - D_TRAIT_HAS_METHOD,
-//     D_TRAIT_HAS_METHOD_ARGS,
-//     D_TRAIT_HAS_METHOD_TYPED,
-//     D_TRAIT_HAS_METHOD_CONVERTIBLE,
-//     D_TRAIT_HAS_BINARY_OP,
-//     D_TRAIT_HAS_UNARY_OP,
-//     D_TRAIT_HAS_TYPE,
-//     D_TRAIT_HAS_STATIC_MEMBER    : member-detection trait shortcuts built
-//                                    from the above.
-//   - D_TRAIT_IS_SPECIALIZATION_OF_AS,
-//     D_TRAIT_IS_SPECIALIZATION_OF : partial-specialization-based "is this a
-//                                    foo<...>?" traits - distinct family from
-//                                    the SFINAE detection idiom above.
-
-// D_VOID_T
-//   macro: portable void_t for use in SFINAE contexts. Resolves to
-// std::void_t in C++17+, djinterp::void_t otherwise.
-#if D_ENV_LANG_IS_CPP17_OR_HIGHER
-    #define D_VOID_T  std::void_t
-#elif D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #define D_VOID_T  djinterp::void_t
-#endif
-
-// D_TRAIT_VALUE_BOOL
-//   macro: emits an `inline constexpr bool` variable-template alias
-// `TRAIT_NAME_v` for the unary trait `TRAIT_NAME`.
-#define D_TRAIT_VALUE_BOOL(TRAIT_NAME)                                        \
-template<typename _Type>                                                      \
-inline constexpr bool TRAIT_NAME##_v = TRAIT_NAME<_Type>::value;
-
-// D_TRAIT_IS_DETECTED_AS
-//   macro: parameterized core of the detection-trait family. Emits the
-// primary template (std::false_type) plus the well-formed partial
-// specialization, whose base class is `INHERIT_EXPR` (an arbitrary type
-// expression that may mention `_Type`). Does NOT emit the `_v` alias -
-// callers (or the shorthand macros below) add it via D_TRAIT_VALUE_BOOL.
-#define D_TRAIT_IS_DETECTED_AS(TRAIT_NAME, DETECTION_EXPR, INHERIT_EXPR)      \
-    template<typename _Type,                                                  \
-            typename = void>                                                  \
-    struct TRAIT_NAME : std::false_type                                       \
-    {};                                                                       \
-                                                                              \
-    template<typename _Type>                                                  \
-    struct TRAIT_NAME<_Type, D_VOID_T<DETECTION_EXPR>> : INHERIT_EXPR         \
-    {};
-
-// D_TRAIT_IS_DETECTED
-//   macro: one-line shorthand for the bread-and-butter SFINAE trait pattern.
-// Emits `TRAIT_NAME<_Type>` (inheriting std::true_type when every detection
-// expression in `...` is well-formed for _Type, std::false_type otherwise)
-// plus the `TRAIT_NAME_v` variable template. Variadic: pass one expression
-// for a simple check, or several to require all of them to be well-formed
-// (the AND-shape of the SFINAE `void_t<...>` idiom). Renamed from
-// D_TYPE_TRAIT_DETECTED - the new name mirrors the standard
-// `is_detected<_Op, _Args...>` from the detection-idiom proposal and makes
-// the semantics obvious at the call site.
-#define D_TRAIT_IS_DETECTED(TRAIT_NAME, ...)                                  \
-    template<typename _Type,                                                  \
-             typename = void>                                                 \
-    struct TRAIT_NAME : std::false_type                                       \
-    {};                                                                       \
-                                                                              \
-    template<typename _Type>                                                  \
-    struct TRAIT_NAME<_Type, D_VOID_T<__VA_ARGS__>> : std::true_type          \
-    {};                                                                       \
-                                                                              \
-    D_TRAIT_VALUE_BOOL(TRAIT_NAME)
-
-// D_TRAIT_IS_DETECTED_FROM
-//   macro: like D_TRAIT_IS_DETECTED, but inherits from `BASE_TRAIT<_Type>`
-// on success instead of std::true_type. Useful when the trait needs to
-// delegate further checks to another unary trait. Renamed from
-// D_TYPE_TRAIT_NEW.
-#define D_TRAIT_IS_DETECTED_FROM(TRAIT_NAME, DETECTION_EXPR, BASE_TRAIT)      \
-D_TRAIT_IS_DETECTED_AS(TRAIT_NAME, DETECTION_EXPR, BASE_TRAIT<_Type>)         \
-D_TRAIT_VALUE_BOOL(TRAIT_NAME)
-
-// D_TRAIT_DETECT_METHOD
-//   macro: yields a decltype-expression that detects a call to
-// `_Type::METHOD_NAME(_Type::value_type{})`. Intended to be passed as the
-// DETECTION_EXPR argument to one of the D_TRAIT_IS_DETECTED* macros.
-#define D_TRAIT_DETECT_METHOD(METHOD_NAME)                                    \
-decltype(std::declval<_Type&>().METHOD_NAME(                                  \
-    std::declval<typename _Type::value_type>()))
-
-// D_TRAIT_DETECT_METHOD_ARGS
-//   macro: yields a decltype-expression that detects a call to
-// `_Type::METHOD_NAME(...)` with arguments of the variadic types supplied.
-// Intended to be passed as the DETECTION_EXPR argument to one of the
-// D_TRAIT_IS_DETECTED* macros.
-#define D_TRAIT_DETECT_METHOD_ARGS(METHOD_NAME, ...)                          \
-decltype(std::declval<_Type&>().METHOD_NAME(std::declval<__VA_ARGS__>()))
-
-// D_TRAIT_HAS_METHOD
-//   macro: trait that detects whether `_Type` has a method `METHOD_NAME`
-// callable with a single argument of type `_Type::value_type`. Sugar for
-// `D_TRAIT_IS_DETECTED(..., D_TRAIT_DETECT_METHOD(METHOD_NAME))`.
-#define D_TRAIT_HAS_METHOD(TRAIT_NAME, METHOD_NAME)                           \
-D_TRAIT_IS_DETECTED(TRAIT_NAME, D_TRAIT_DETECT_METHOD(METHOD_NAME))
-
-// D_TRAIT_HAS_METHOD_ARGS
-//   macro: trait that detects whether `_Type` has a method `METHOD_NAME`
-// callable with arguments of the variadic types supplied.
-#define D_TRAIT_HAS_METHOD_ARGS(TRAIT_NAME, METHOD_NAME, ...)                 \
-    D_TRAIT_IS_DETECTED(TRAIT_NAME,                                           \
-        D_TRAIT_DETECT_METHOD_ARGS(METHOD_NAME, __VA_ARGS__))
-
-// D_TRAIT_HAS_METHOD_TYPED
-//   macro: trait that detects whether `_Type` has a method `METHOD_NAME`
-// callable with the given argument types AND whose return type is exactly
-// `RETURN_TYPE`. Built on D_TRAIT_IS_DETECTED_AS by inheriting from
-// `std::is_same<call-result, RETURN_TYPE>` in the success case.
-#define D_TRAIT_HAS_METHOD_TYPED(TRAIT_NAME, METHOD_NAME, RETURN_TYPE, ...)   \
-    D_TRAIT_IS_DETECTED_AS(TRAIT_NAME,                                        \
-        D_TRAIT_DETECT_METHOD_ARGS(METHOD_NAME, __VA_ARGS__),                 \
-        std::is_same<D_TRAIT_DETECT_METHOD_ARGS(METHOD_NAME, __VA_ARGS__),    \
-                        RETURN_TYPE>)                                         \
-    D_TRAIT_VALUE_BOOL(TRAIT_NAME)
-
-// D_TRAIT_HAS_METHOD_CONVERTIBLE
-//   macro: like D_TRAIT_HAS_METHOD_TYPED, but checks that the call's return
-// type is *convertible to* RETURN_TYPE rather than exactly RETURN_TYPE. Useful
-// for traits that should accept covariant or implicitly-convertible returns
-// (e.g. a `size()` that returns `unsigned` where you want it `size_t`).
-#define D_TRAIT_HAS_METHOD_CONVERTIBLE(TRAIT_NAME,                            \
-                                       METHOD_NAME,                           \
-                                       RETURN_TYPE,                           \
-                                       ...)                                   \
-    D_TRAIT_IS_DETECTED_AS(TRAIT_NAME,                                        \
-        D_TRAIT_DETECT_METHOD_ARGS(METHOD_NAME, __VA_ARGS__),                 \
-        std::is_convertible<                                                  \
-            D_TRAIT_DETECT_METHOD_ARGS(METHOD_NAME, __VA_ARGS__),             \
-            RETURN_TYPE>)                                                     \
-    D_TRAIT_VALUE_BOOL(TRAIT_NAME)
-
-// D_TRAIT_HAS_TYPE
-//   macro: trait that detects whether `_Type` has a nested type alias named
-// `TYPE_NAME` (i.e., `typename _Type::TYPE_NAME` is well-formed). Sugar for
-// the most common single-line SFINAE pattern.
-#define D_TRAIT_HAS_TYPE(TRAIT_NAME, TYPE_NAME)                               \
-    D_TRAIT_IS_DETECTED(TRAIT_NAME, typename _Type::TYPE_NAME)
-
-// D_TRAIT_HAS_STATIC_MEMBER
-//   macro: trait that detects whether `_Type` has an accessible static data
-// member or constexpr named `MEMBER_NAME` (i.e., `decltype(_Type::MEMBER_NAME)`
-// is well-formed). Note: this only validates that the name exists at class
-// scope; it does NOT constrain the member's type. For type-constrained checks,
-// combine with the multi-expression form of D_TRAIT_IS_DETECTED.
-#define D_TRAIT_HAS_STATIC_MEMBER(TRAIT_NAME,                                 \
-                                  MEMBER_NAME)                                \
-    D_TRAIT_IS_DETECTED(TRAIT_NAME, decltype(_Type::MEMBER_NAME))
-
-// D_TRAIT_DETECT_BINARY_OP
-//   macro: yields a decltype-expression that detects a binary operator
-// invocation `_Type{} OP _Type{}`. Intended to be passed as the DETECTION_EXPR
-// argument to one of the D_TRAIT_IS_DETECTED* macros. Operands are `const
-// _Type&` so the trait accepts immutable operands and won't be defeated by
-// `const`-qualified types.
-#define D_TRAIT_DETECT_BINARY_OP(OP)                                          \
-    decltype(std::declval<const _Type&>() OP std::declval<const _Type&>())
-
-// D_TRAIT_HAS_BINARY_OP
-//   macro: trait that detects whether `_Type` supports binary operator `OP`
-// between two instances of itself. Sugar for
-// `D_TRAIT_IS_DETECTED(..., D_TRAIT_DETECT_BINARY_OP(OP))`.
-#define D_TRAIT_HAS_BINARY_OP(TRAIT_NAME,                                     \
-                              OP)                                             \
-    D_TRAIT_IS_DETECTED(TRAIT_NAME,                                           \
-                        D_TRAIT_DETECT_BINARY_OP(OP))
-
-// D_TRAIT_DETECT_UNARY_OP
-//   macro: yields a decltype-expression that detects a unary operator
-// invocation `OP _Type{}`. Intended to be passed as the DETECTION_EXPR
-// argument to one of the D_TRAIT_IS_DETECTED* macros.
-#define D_TRAIT_DETECT_UNARY_OP(OP)                                           \
-    decltype(OP std::declval<_Type&>())
-
-// D_TRAIT_HAS_UNARY_OP
-//   macro: trait that detects whether `_Type` supports unary operator `OP`
-// (prefix form: `-x`, `*x`, `!x`, `++x`, etc.).
-#define D_TRAIT_HAS_UNARY_OP(TRAIT_NAME,                                      \
-                             OP)                                              \
-    D_TRAIT_IS_DETECTED(TRAIT_NAME,                                           \
-                        D_TRAIT_DETECT_UNARY_OP(OP))
-
-// D_TRAIT_TYPE_ALIAS
-//   macro: emits a `TRAIT_NAME_t` alias template for the unary trait
-// `TRAIT_NAME`, defined as `typename TRAIT_NAME<_Type>::type`. The `::type`
-// counterpart to D_TRAIT_VALUE_BOOL - together they cover the standard
-// `_t` / `_v` companion pair for any unary trait exposing both a `::type`
-// member and a `::value` member.
-#define D_TRAIT_TYPE_ALIAS(TRAIT_NAME)                                        \
-    template<typename _Type>                                                  \
-    using TRAIT_NAME##_t = typename TRAIT_NAME<_Type>::type;
-
-// D_TRAIT_IS_SPECIALIZATION_OF_AS
-//   macro: parameterized core for the "is_X<Y>" partial-specialization
-// pattern. Emits the primary template (inheriting std::false_type) and a
-// partial specialization on `TEMPLATE_NAME<_Types...>` whose base class is
-// `INHERIT_EXPR` (which may reference the deduced pack `_Types...`). Distinct
-// from the D_TRAIT_IS_DETECTED family because it dispatches via partial
-// specialization on a known class template rather than via SFINAE on an
-// expression - useful for detecting "is this a foo<...>?" without an
-// expression to substitute.
-//
-//   Limitation: TEMPLATE_NAME must be a class template whose parameters are
-// all `typename`-kind (e.g. std::tuple, std::vector with default allocator
-// elided). Templates with non-type or template-template parameters (e.g.
-// std::array<T, N>) cannot be matched by this macro.
-#define D_TRAIT_IS_SPECIALIZATION_OF_AS(TRAIT_NAME,                           \
-                                        TEMPLATE_NAME,                        \
-                                        INHERIT_EXPR)                         \
-    template<typename _Type>                                                  \
-    struct TRAIT_NAME : std::false_type                                       \
-    {};                                                                       \
-                                                                              \
-    template<typename... _Types>                                              \
-    struct TRAIT_NAME<TEMPLATE_NAME<_Types...>> : INHERIT_EXPR                \
-    {};
-
-// D_TRAIT_IS_SPECIALIZATION_OF
-//   macro: one-line shorthand for the bread-and-butter "is this a
-// TEMPLATE_NAME<...>?" partial-specialization trait. Inherits from
-// std::true_type in the matching specialization and emits a `_v` alias.
-// Sugar over D_TRAIT_IS_SPECIALIZATION_OF_AS the same way D_TRAIT_IS_DETECTED
-// is sugar over D_TRAIT_IS_DETECTED_AS.
-#define D_TRAIT_IS_SPECIALIZATION_OF(TRAIT_NAME,                              \
-                                     TEMPLATE_NAME)                           \
-    D_TRAIT_IS_SPECIALIZATION_OF_AS(TRAIT_NAME,                               \
-                                    TEMPLATE_NAME,                            \
-                                    std::true_type)                           \
-    D_TRAIT_VALUE_BOOL(TRAIT_NAME)
+//   The D_VOID_T selector and the D_TYPE_TRAIT_* detection-trait macro family
+// (formerly the D_TRAIT_* macros that lived here) now live in trait_detect.hpp,
+// included above.  The detection idiom in 0.2 and the call sites in section III
+// use them from there.  Only the HAS_METHOD_OF_TYPE enable_if family - a
+// different shape (it yields enable_if expressions, not trait definitions) -
+// remains below, pending a future fold into the D_TYPE_TRAIT_* family.
 
 // -----------------------------------------------------------------------------
 // HAS_METHOD_OF_TYPE family (enable_if expressions, not trait generators)
 // -----------------------------------------------------------------------------
-// These are a different shape from the D_TRAIT_* family - they expand to
+// These are a different shape from the D_TYPE_TRAIT_* family - they expand to
 // `std::enable_if_t<...>` (or a bool value) rather than to a struct
 // definition. They are kept here for now to consolidate all SFINAE machinery
-// in one section; consider folding them into the D_TRAIT_* family in a
+// in one section; consider folding them into the D_TYPE_TRAIT_* family in a
 // follow-up pass.
 
 // HAS_METHOD_OF_TYPE
@@ -1223,7 +968,7 @@ using first_arg_t = typename first_arg<_Types...>::type;
 // is_tuple
 //   trait: evaluates to `std::true_type` if `_Type` is a `std::tuple`,
 // otherwise `std::false_type`.
-D_TRAIT_IS_SPECIALIZATION_OF(is_tuple, std::tuple)
+D_TYPE_TRAIT_IS_SPECIALIZATION_OF(is_tuple, std::tuple)
 
 // -------------------------------------------------------------------------
 // is_single_tuple_arg
@@ -1463,7 +1208,7 @@ inline constexpr bool exclusive_disjunction_v = exclusive_disjunction<_Bs...>::v
 //   4. move assignment operator
 //   5. destructor
 // are all defined.
-D_TRAIT_IS_DETECTED(follows_rule_of_five,
+D_TYPE_TRAIT_TRUE(follows_rule_of_five,
     // copy constructor
     decltype(_Type(std::declval<const _Type&>())),
     // move constructor
@@ -1488,7 +1233,7 @@ D_TRAIT_IS_DETECTED(follows_rule_of_five,
 //   2. copy assignment operator
 //   3. destructor
 // are all defined.
-D_TRAIT_IS_DETECTED(follows_rule_of_three,
+D_TYPE_TRAIT_TRUE(follows_rule_of_three,
     // copy constructor exists
     decltype(_Type(std::declval<const _Type&>())),
     // copy assignment exists and returns reference
@@ -1509,7 +1254,7 @@ D_TRAIT_IS_DETECTED(follows_rule_of_three,
 //   4. move assignment operator
 //   5. destructor
 // are trivially implemented by the compiler.
-D_TRAIT_IS_DETECTED(follows_rule_of_zero,
+D_TYPE_TRAIT_TRUE(follows_rule_of_zero,
     // trivial copy constructor
     std::enable_if_t<std::is_trivially_copy_constructible<_Type>::value>,
     // trivial move constructor  
@@ -1528,7 +1273,7 @@ D_TRAIT_IS_DETECTED(follows_rule_of_zero,
 // has_max_size
 //   trait: determines if a type has both a `size_type` alias, and a
 // `max_size` constexpr corresponding to that particular type.
-D_TRAIT_IS_DETECTED(has_max_size,
+D_TYPE_TRAIT_TRUE(has_max_size,
     typename _Type::size_type,
     decltype(_Type::max_size),
     std::enable_if_t<std::is_same<
@@ -1542,7 +1287,7 @@ D_TRAIT_IS_DETECTED(has_max_size,
 
 // has_nested_template_type
 //   trait: determines if a type has a nested template alias named `type`.
-D_TRAIT_IS_DETECTED(has_nested_template_type,
+D_TYPE_TRAIT_TRUE(has_nested_template_type,
     typename _Type::template type<int>)
 
 // -------------------------------------------------------------------------
@@ -1552,7 +1297,7 @@ D_TRAIT_IS_DETECTED(has_nested_template_type,
 // has_variadic_constructor
 //   trait: determines if a type has a constructor that accepts variadic 
 // arguments (specifically, can be constructed from itself).
-D_TRAIT_IS_DETECTED(has_variadic_constructor,
+D_TYPE_TRAIT_TRUE(has_variadic_constructor,
     decltype(_Type(std::declval<_Type>())))
 
 // -------------------------------------------------------------------------
@@ -1562,7 +1307,7 @@ D_TRAIT_IS_DETECTED(has_variadic_constructor,
 // is_allocator
 //   trait: determines if a type satisfies the Allocator requirements by
 // checking for value_type, allocate(), and deallocate() members.
-D_TRAIT_IS_DETECTED(is_allocator,
+D_TYPE_TRAIT_TRUE(is_allocator,
     typename std::allocator_traits<_Type>::value_type,
     decltype(std::allocator_traits<_Type>::allocate(
         std::declval<_Type>(), std::size_t{})),
@@ -1649,7 +1394,6 @@ struct is_single_arg<_Type> : std::true_type
 //   variable template: value of is_single_arg<_Types...>.
 template<typename... _Types>
 inline constexpr bool is_single_arg_v = is_single_arg<_Types...>::value;
-
 // -------------------------------------------------------------------------
 // is_single_type_arg
 // -------------------------------------------------------------------------
@@ -1728,7 +1472,7 @@ inline constexpr bool is_template_v = is_template<_Type>::value;
 //   trait: evaluates whether type `_Type` contains a `value_type` member 
 // type alias that is itself a base of `_Type`. Useful for dealing with 
 // polymorphic and composite-patterned class templates.
-D_TRAIT_IS_DETECTED(is_template_parameter_base_of,
+D_TYPE_TRAIT_TRUE(is_template_parameter_base_of,
     typename _Type::value_type, 
     std::enable_if_t<std::is_base_of<typename _Type::value_type, _Type>::value>)
 
@@ -1771,49 +1515,12 @@ template<typename _Type>
 inline constexpr bool is_valid_size_type_v = is_valid_size_type<_Type>::value;
 
 // ===========================================================================
-// X.   Indexed pack access  (pack_element)
+// X.   Indexed pack access  (pack_element)  ->  pack_element.hpp
 // ===========================================================================
-//   Direct positional access into a typename parameter pack, without
-// routing through std::tuple.  This is the primitive that pack-walking
-// utilities (binary search, sorted lookup, get-like access) should
-// build on, so the "recurse over the index, peel one head per step"
-// pattern lives in exactly one place.
-//
-//   Relationship to tuple_type_at (dtuple.hpp): tuple_type_at is the
-// TUPLE-facing accessor - it normalizes its input via to_tuple_t (so
-// it accepts either a pack or a single std::tuple) and additionally
-// exposes a runtime `value(tuple)` getter.  pack_element is the
-// leaner PACK-facing core: no tuple normalization, no runtime getter,
-// just the type at an index.  tuple_type_at may be expressed in terms
-// of pack_element; pack_element never depends on tuple_type_at.
-
-// pack_element
-//   trait: the _Index-th type in the pack (0-based).  Out-of-range
-// _Index is a hard error (the recursion runs off the end of the pack
-// and fails to match the base case) - callers that may pass an
-// invalid index should guard it (see pack_element_or in the bsearch
-// module, or precede the access with a bounds check).
-template<std::size_t  _Index,
-         typename     _Head,
-         typename...  _Tail>
-struct pack_element
-{
-    using type = typename pack_element<_Index - 1, _Tail...>::type;
-};
-
-// base case: index 0 -> the current head
-template<typename    _Head,
-         typename... _Tail>
-struct pack_element<0, _Head, _Tail...>
-{
-    using type = _Head;
-};
-
-// pack_element_t
-//   alias: shorthand for pack_element<...>::type.
-template<std::size_t _Index,
-         typename... _Pack>
-using pack_element_t = typename pack_element<_Index, _Pack...>::type;
+//   pack_element / pack_element_t now live in pack_element.hpp (included
+// above) so consumers that need only positional pack access - bsearch.hpp in
+// particular - depend on that leaf rather than on all of type_traits.hpp.
+// type_traits.hpp re-exports them by including that header.
 
 
 NS_END  // djinterp
