@@ -49,8 +49,8 @@
 #include <vector>
 // djinterp  -- framework header FIRST (event_table.hpp requires it), then the
 // header under test.
-#include "djinterp/core/djinterp.hpp"
-#include "djinterp/core/event/event_table.hpp"
+#include <djinterp/core/djinterp.hpp>
+#include <djinterp/core/event/event_table.hpp>
 
 
 NS_DJINTERP
