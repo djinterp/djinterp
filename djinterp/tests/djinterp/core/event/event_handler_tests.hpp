@@ -43,7 +43,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "djinterp/core/event/event_handler.hpp"
+#include <djinterp/core/event/event_handler.hpp>
 
 
 NS_DJINTERP
