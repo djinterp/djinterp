@@ -49,16 +49,16 @@
 #ifndef DJINTERP_CONTAINER_POOL_TRAITS_
 #define DJINTERP_CONTAINER_POOL_TRAITS_ 1
 
+// std
 #include <cstddef>
 #include <type_traits>
+// djinterp
 #include "../djinterp.hpp"
 #include "../type_traits.hpp"
 #include "./pool.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
 
 // =============================================================================
@@ -429,8 +429,6 @@ struct pool_allocator_class
 };
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 

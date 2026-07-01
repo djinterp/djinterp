@@ -25,10 +25,12 @@
 * author(s): OpenAI ChatGPT                                   date: 2026.04.01
 ******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_POOL_CONCEPTS_
-#define DJINTERP_CONTAINER_POOL_CONCEPTS_ 1
+#ifndef DJINTERP_MEMORY_POOL_CONCEPTS_
+#define DJINTERP_MEMORY_POOL_CONCEPTS_ 1
 
+// std
 #include <type_traits>
+// djinterp
 #include "pool_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
@@ -37,8 +39,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
-NS_TRAITS
 
 // =============================================================================
 // I.   Pool Resource Concepts
@@ -270,9 +270,7 @@ concept generational_pool_allocator =
           pool_resource_type_t<clean_t<_Type>>> );
 
 
-NS_END  // traits
-NS_END  // container
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_CONTAINER_POOL_CONCEPTS_
+#endif  // DJINTERP_MEMORY_POOL_CONCEPTS_
