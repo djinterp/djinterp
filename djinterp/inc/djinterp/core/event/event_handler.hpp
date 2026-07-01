@@ -1,420 +1,520 @@
 /******************************************************************************
-* djinterp [event]                                          event_handler.hpp
+* djinterp [event]                                                 handler.hpp
 *
-* Event handler:
-*   Unified facade for the event system, composing a listener_registry and
-* an event_queue into a single interface. Provides immediate dispatch
-* (fire), deferred dispatch (queue / process), and listener management
-* (bind / unbind / enable / disable).
+* The handler -- a step with a verdict:
+*   A handler is the single primitive of the event layer: given the (ambient)
+* state and an occurrence's payload, it yields a verdict in P = {pass,
+* consume}. This header provides the opaque handler_id handle, compile-time
+* introspection of callable/handler compatibility (handler_traits), the
+* sequencing monoid (seq with unit skip and left zero consume), and the
+* invocation-normalization helpers the registry uses to drive type-erased
+* handlers.
+*
+*   This header absorbs the former event_listener_traits.hpp and
+* event_listener_concepts.hpp. The most significant change from the
+* pre-refactor "listener" model is that a handler now *returns* its verdict
+* rather than mutating a context object: the signature is verdict(payload...)
+* (a void-returning callable is accepted and treated as an always-pass
+* handler, since the monoid unit skip yields pass).
+*
+* FORMAL CORRESPONDENCE ("Definition of an Event"):
+*   handler  h : S x A_e -> S x P   -- a callable verdict(payload...); state S
+*                                     is ambient (captured), the verdict is
+*                                     returned (see handler_traits).
+*   sequencing  h1 ; h2             -- seq(h1, h2)
+*   unit        skip(s,a)=(s,pass)  -- skip() / skip_t
+*   left zero   consume             -- a handler returning verdict::consume
+*                                     short-circuits the remainder.
 *
 * COMPONENTS:
-*   djinterp::dispatch_result   - enriched return from fire operations
-*   djinterp::event_queue       - FIFO deferred event dispatch
-*   djinterp::event_handler     - unified facade
+*   djinterp::handler_id                       - opaque handler handle
+*   djinterp::handler_traits<_Callable,_Event> - compatibility introspection
+*   djinterp::skip_t / djinterp::skip()        - the monoid unit
+*   djinterp::seq(h1, h2)                       - handler sequencing
+*   djinterp::is_handler / handler_for ...      (C++20 concepts)
 *
 * INTERNAL COMPONENTS:
-*   djinterp::internal::erased_event - type-erased queued event slot
-*
-* DESIGN:
-*   - event_queue captures event arguments by value (via shared_ptr to
-*     tuple) at enqueue time and replays through listener_registry at
-*     process time. Type information is preserved in the replay closure.
-*   - event_handler delegates all storage and listener lifecycle to
-*     listener_registry, which in turn delegates to event_table.
-*   - Exposes component accessors (listeners(), events(), table()) for
-*     advanced use cases like stats, iteration, and direct table access.
+*   djinterp::internal::invoke_normalized   - call a handler, void -> pass
+*   djinterp::internal::apply_handler       - unpack a payload tuple and call
+*   djinterp::internal::handler_invoke_result / handler_nothrow_helper
+*   djinterp::internal::seq_handler         - the sequenced-handler functor
 *
 * FEATURE DEPENDENCIES:
-*   D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES  - move semantics
 *   D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES - parameter packs
 *   D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES    - using aliases
-*   D_ENV_CPP_FEATURE_LANG_LAMBDAS            - lambda callbacks
+*   D_ENV_CPP_FEATURE_LANG_CONCEPTS           - concept constraints (C++20)
 *
 * PORTABLE ACROSS:
 *   C++11, C++14, C++17, C++20, C++23, C++26
 *
-* path:      /inc/djinterp/core/event/event_handler.hpp
+* 
+* path:      /inc/djinterp/core/event/handler.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.12
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.11
 ******************************************************************************/
 
-#ifndef DJINTERP_EVENT_HANDLER_
-#define DJINTERP_EVENT_HANDLER_ 1
+#ifndef DJINTERP_EVENT_HANDLER_PRIMITIVE_
+#define DJINTERP_EVENT_HANDLER_PRIMITIVE_ 1
 
 // require the C++ framework header
-#ifndef DJINTERP_
-    #error "event_handler.hpp requires djinterp.h to be included first"
-#endif
+//#ifndef DJINTERP_
+//    #error "handler.hpp requires djinterp.h to be included first"
+//#endif
+//
+//#ifndef __cplusplus
+//    #error "handler.hpp can only be used in C++ compilation mode"
+//#endif
+//
+//#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
+//    #error "handler.hpp requires C++11 or higher"
+//#endif
 
-#ifndef __cplusplus
-    #error "event_handler.hpp can only be used in C++ compilation mode"
-#endif
-
-#if !D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #error "event_handler.hpp requires C++11 or higher"
-#endif
-
+// std
 #include <cstddef>
-#include <deque>
-#include <functional>
-#include <memory>
+#include <cstdint>
 #include <tuple>
-
-#include "event_listener.hpp"
+#include <type_traits>
+#include <utility>
+// djinterp
+#include "../djinterp.hpp"
+#include "./event_common.hpp"
 
 
 NS_DJINTERP
 
 
 // =========================================================================
-// I.   DISPATCH RESULT
+// I.   HANDLER IDENTIFICATION
 // =========================================================================
 
-// dispatch_result
-//   struct: enriched return type for fire operations, providing
-// both the count of invoked listeners and whether the event was
-// consumed by one of them.
-struct dispatch_result
+// handler_id
+//   struct: opaque handle returned from registry bind(), used for unbind(),
+// enable(), and disable() operations (the named letter ell of the registry
+// word). The value 0 is reserved as an invalid/null sentinel.
+struct handler_id
 {
-    std::size_t listeners_invoked;
-    bool        consumed;
+    std::uint64_t value;
+
+    bool operator==(const handler_id& _other) const
+    {
+        return (value == _other.value);
+    };
+
+    bool operator!=(const handler_id& _other) const
+    {
+        return (value != _other.value);
+    };
+
+    // is_valid
+    //   returns true if this id refers to a real handler (non-zero).
+    bool is_valid() const
+    {
+        return (value != 0);
+    };
+
+    // null
+    //   returns an invalid handler_id sentinel.
+    static handler_id null()
+    {
+        handler_id id;
+        id.value = 0;
+
+        return id;
+    };
 };
 
 
 // =========================================================================
-// II.  EVENT QUEUE
+// II.  HANDLER INVOCATION (verdict normalization)
 // =========================================================================
 
 NS_INTERNAL
 
-    // erased_event
-    //   struct: type-erased event storage for queuing. Captures the
-    // event's type key and a callable that replays the dispatch
-    // through a listener_registry. The replay callable is constructed
-    // at enqueue time when the event type is still known, preserving
-    // type information across the type-erased queue boundary.
-    struct erased_event
+    // invoke_normalized (void-returning overload)
+    //   function: invokes a void-returning handler and reports the unit
+    // verdict pass. This is the adapter that lets a plain void(payload...)
+    // callable serve as an always-pass handler.
+    template<typename _H,
+             typename... _A>
+    typename std::enable_if<
+        std::is_void<decltype(std::declval<_H&>()(std::declval<_A>()...))>::value,
+        verdict>::type
+    invoke_normalized(_H&     _h,
+                      _A&&... _a)
     {
-        std::size_t                             type_key;
-        std::function<void(listener_registry&)> replay;
+        _h(std::forward<_A>(_a)...);
+
+        return verdict::pass;
+    }
+
+    // invoke_normalized (verdict-returning overload)
+    //   function: invokes a verdict-returning handler and forwards its
+    // verdict unchanged.
+    template<typename _H,
+             typename... _A>
+    typename std::enable_if<
+        !std::is_void<
+            decltype(std::declval<_H&>()(std::declval<_A>()...))
+        >::value,
+        verdict>::type
+    invoke_normalized(_H&     _h,
+                      _A&&... _a)
+    {
+        return _h(std::forward<_A>(_a)...);
+    }
+
+    // apply_handler
+    //   function: unpacks a payload tuple and invokes the handler with its
+    // elements, normalizing the result to a verdict. Used by the registry's
+    // type-erased dispatch closure.
+    template<typename _H,
+             typename _Tuple,
+             std::size_t... _I>
+    verdict apply_handler(_H&             _h,
+                          _Tuple&         _payload,
+                          index_sequence<_I...>)
+    {
+        return invoke_normalized(_h, std::get<_I>(_payload)...);
+    }
+
+NS_END  // internal
+
+
+// =========================================================================
+// III. HANDLER COMPATIBILITY DETECTION
+// =========================================================================
+
+NS_INTERNAL
+
+    // handler_invoke_result
+    //   trait: detects whether _Callable is invocable with the payload's
+    // value domains and, if so, extracts the result type.
+    // primary template: not invocable (SFINAE failure case).
+    template<typename _Void,
+             typename _Callable,
+             typename _Payload>
+    struct handler_invoke_result
+    {
+        using type = void;
+        static constexpr bool value = false;
+    };
+
+    // handler_invoke_result (success specialization)
+    //   trait: well-formed when the callable accepts the payload elements.
+    template<typename _Callable,
+             typename... _Args>
+    struct handler_invoke_result<
+        decltype(static_cast<void>(
+            std::declval<_Callable&>()(std::declval<_Args>()...)
+        )),
+        _Callable,
+        std::tuple<_Args...>>
+    {
+        using type = decltype(
+            std::declval<_Callable&>()(std::declval<_Args>()...));
+        static constexpr bool value = true;
+    };
+
+    // handler_nothrow_helper
+    //   trait: detects whether invoking _Callable with the payload's value
+    // domains is noexcept.
+    // primary template: not noexcept (SFINAE failure or throwing).
+    template<typename _Void,
+             typename _Callable,
+             typename _Payload>
+    struct handler_nothrow_helper
+    {
+        static constexpr bool value = false;
+    };
+
+    // handler_nothrow_helper (success specialization)
+    //   trait: evaluates noexcept for the payload invocation.
+    template<typename _Callable,
+             typename... _Args>
+    struct handler_nothrow_helper<
+        typename std::enable_if<
+            noexcept(
+                std::declval<_Callable&>()(std::declval<_Args>()...))
+        >::type,
+        _Callable,
+        std::tuple<_Args...>>
+    {
+        static constexpr bool value = true;
     };
 
 NS_END  // internal
 
-// event_queue
-//   class: stores pending events for deferred processing. Events are
-// queued in FIFO order and replayed through a listener_registry.
-// Arguments are captured by value at enqueue time via a shared_ptr
-// to a tuple, ensuring they remain valid for deferred dispatch.
-class event_queue
+
+// =========================================================================
+// IV.  HANDLER TRAITS
+// =========================================================================
+
+// handler_traits
+//   trait: compile-time introspection for a callable's suitability as a
+// handler of a given event type. A compatible handler is invocable with the
+// event's payload value domains and returns either void (always-pass) or a
+// verdict.
+// requires: _Event must satisfy event_traits requirements.
+//
+// provides:
+//   is_invocable     - true if _Callable(payload...) is well-formed
+//   is_compatible    - is_invocable and the result is void or verdict
+//   is_nothrow       - true if the invocation is noexcept
+//   expected_arity   - number of payload value domains of the event
+//   return_type      - the callable's return type (void if not invocable)
+//   returns_void     - true if the callable returns void (always-pass)
+//   returns_verdict  - true if the callable returns a verdict
+template<typename _Callable,
+         typename _Event>
+struct handler_traits
 {
+private:
+    using event_t    = event_traits<clean_t<_Event>>;
+    using payload_t  = typename event_t::payload_type;
+    using callable_t = clean_t<_Callable>;
+    using invoke_t   =
+        internal::handler_invoke_result<void, callable_t, payload_t>;
+
 public:
-    event_queue()
+    // expected_arity
+    //   constant: number of payload value domains the handler must accept.
+    static constexpr std::size_t expected_arity = event_t::arity;
+
+    // is_invocable
+    //   constant: true if _Callable can be invoked with the payload's
+    // value domains.
+    static constexpr bool is_invocable = invoke_t::value;
+
+    // return_type
+    //   type: the return type of the payload invocation (void if the
+    // callable is not invocable with the payload).
+    using return_type = typename invoke_t::type;
+
+    // returns_void
+    //   constant: true if the callable returns void. Only meaningful when
+    // is_compatible is true; a void return denotes an always-pass handler.
+    static constexpr bool returns_void =
+        std::is_void<return_type>::value;
+
+    // returns_verdict
+    //   constant: true if the callable returns a verdict.
+    static constexpr bool returns_verdict =
+        std::is_same<return_type, verdict>::value;
+
+    // is_compatible
+    //   constant: true if _Callable is invocable with the payload and its
+    // result is interpretable as a verdict (void or verdict).
+    static constexpr bool is_compatible =
+        ( is_invocable &&
+          ( returns_void || returns_verdict ) );
+
+    // is_nothrow
+    //   constant: true if the handler invocation is noexcept. Only
+    // meaningful when is_compatible is true.
+    static constexpr bool is_nothrow =
+        internal::handler_nothrow_helper<void, callable_t, payload_t>::value;
+};
+
+
+// =========================================================================
+// V.   THE HANDLER MONOID (seq, skip)
+// =========================================================================
+// (H_e, seq, skip) is a monoid: seq is associative, skip is a two-sided
+// unit, and any unconditionally consuming handler is a left zero. The
+// registry's dispatch (registry.hpp) is the fold of seq over the effective
+// word; these combinators make the monoid first-class for composition and
+// for testing its laws.
+
+// skip_t
+//   struct: the unit handler. Ignores the payload and always yields
+// verdict::pass. Folding a handler word is invariant under inserting or
+// removing skip -- the algebraic reason masking a handler is well-defined.
+struct skip_t
+{
+    template<typename... _Args>
+    verdict operator()(_Args&&...) const
     {
+        return verdict::pass;
     };
+};
 
-    // enqueue
-    //   queues an event with its arguments for later dispatch.
-    // arguments are captured by value; the event type information
-    // is preserved in the replay closure.
-    template<typename _Event,
-             typename... _Args>
-    void enqueue(_Args&&... _args)
+// skip
+//   function: returns the monoid unit skip_t.
+inline skip_t skip()
+{
+    return skip_t{};
+}
+
+NS_INTERNAL
+
+    // seq_handler
+    //   struct: the sequenced composition of two handlers. Runs the first;
+    // if it consumes, the second is skipped and consume is returned;
+    // otherwise the second runs and its verdict is returned. Arguments are
+    // passed as lvalues to both stages (never moved) so the shared payload
+    // survives the first invocation.
+    template<typename _H1,
+             typename _H2>
+    struct seq_handler
     {
-        using traits    = event_traits<_Event>;
-        using args_type = typename traits::args_type;
+        _H1 first;
+        _H2 second;
 
-        // capture arguments by value for deferred dispatch
-        auto captured_args = std::make_shared<args_type>(
-            std::forward<_Args>(_args)...);
+        template<typename... _Args>
+        verdict operator()(_Args&&... _args)
+        {
+            verdict v = invoke_normalized(first, _args...);
 
-        internal::erased_event ev;
-        ev.type_key = internal::type_id_value<_Event>();
-        ev.replay   =
-            [captured_args](listener_registry& _reg)
+            // left zero: consume cuts off the remainder of the word
+            if (consumed(v))
             {
-                apply_dispatch<_Event>(
-                    _reg, *captured_args,
-                    internal::make_index_sequence<
-                        std::tuple_size<args_type>::value>{});
-            };
+                return v;
+            }
 
-        m_queue.push_back(std::move(ev));
+            return invoke_normalized(second, _args...);
+        };
     };
 
-    // process
-    //   dispatches up to _max_events queued events through the
-    // provided registry. Events are dispatched in FIFO order.
-    // returns: number of events dispatched.
-    std::size_t process(listener_registry& _registry,
-                        std::size_t        _max_events)
-    {
-        std::size_t count = 0;
+NS_END  // internal
 
-        while ( (!m_queue.empty()) &&
-                (count < _max_events) )
-        {
-            auto ev = std::move(m_queue.front());
-            m_queue.pop_front();
-
-            ev.replay(_registry);
-            ++count;
-        }
-
-        return count;
-    };
-
-    // process_all
-    //   dispatches all queued events through the provided registry.
-    // returns: number of events dispatched.
-    std::size_t process_all(listener_registry& _registry)
-    {
-        std::size_t count = m_queue.size();
-
-        while (!m_queue.empty())
-        {
-            auto ev = std::move(m_queue.front());
-            m_queue.pop_front();
-
-            ev.replay(_registry);
-        }
-
-        return count;
-    };
-
-    // pending
-    //   returns the number of queued events.
-    std::size_t pending() const
-    {
-        return m_queue.size();
-    };
-
-    // empty
-    //   returns true if no events are queued.
-    bool empty() const
-    {
-        return m_queue.empty();
-    };
-
-    // clear
-    //   discards all queued events without dispatching them.
-    void clear()
-    {
-        m_queue.clear();
-    };
-
-private:
-    // apply_dispatch
-    //   unpacks a tuple and forwards its elements to
-    // registry.dispatch<_Event>(args...).
-    template<typename    _Event,
-             typename    _ArgsTuple,
-             std::size_t... _I>
-    static void apply_dispatch(listener_registry&          _reg,
-                               _ArgsTuple&                 _args,
-                               internal::index_sequence<_I...>)
-    {
-        _reg.dispatch<_Event>(std::get<_I>(_args)...);
-    };
-
-    std::deque<internal::erased_event> m_queue;
-};
-
-
-// =========================================================================
-// III. EVENT HANDLER (UNIFIED FACADE)
-// =========================================================================
-
-// event_handler
-//   class: single-threaded event handler composing a listener_registry
-// and an event_queue. Provides the primary user-facing API for the
-// event system.
-class event_handler
+// seq
+//   function: sequences two handlers into one (h1 ; h2), realizing the
+// monoid operation. With skip as unit and consume as left zero, repeated
+// seq folds a whole handler word into a single handler.
+template<typename _H1,
+         typename _H2>
+internal::seq_handler<clean_t<_H1>, clean_t<_H2>>
+seq(_H1&& _h1,
+    _H2&& _h2)
 {
-public:
-    event_handler()
-    {
-    };
+    return internal::seq_handler<clean_t<_H1>, clean_t<_H2>>{
+        clean_t<_H1>(std::forward<_H1>(_h1)),
+        clean_t<_H2>(std::forward<_H2>(_h2))};
+}
 
-    // ---- listener management ----
 
-    // bind
-    //   registers a callable as a listener for _Event.
-    // the callable must accept (event_context&, Args...) where
-    // Args... matches _Event::args_type.
-    // returns: a listener_id handle.
-    template<typename _Event,
-             typename _Callable>
-    listener_id bind(_Callable&& _fn)
-    {
-        return m_listeners.bind<_Event>(
-            std::forward<_Callable>(_fn));
-    };
+// =========================================================================
+// VI.  CONCEPT CONSTRAINTS (C++20+)
+// =========================================================================
 
-    // unbind
-    //   removes a listener by id.
-    // returns: true if the listener was found and removed.
-    bool unbind(listener_id _id)
-    {
-        return m_listeners.unbind(_id);
-    };
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-    // enable
-    //   enables a previously disabled listener.
-    // returns: true if the listener was found and enabled.
-    bool enable(listener_id _id)
-    {
-        return m_listeners.enable(_id);
-    };
+// ---- core handler concepts ----
 
-    // disable
-    //   disables a listener without removing it.
-    // returns: true if the listener was found and disabled.
-    bool disable(listener_id _id)
-    {
-        return m_listeners.disable(_id);
-    };
+// is_handler
+//   concept: constrains callables that can serve as a handler for a given
+// event type (invocable with the payload, returning void or verdict).
+template<typename _Callable,
+         typename _Event>
+concept is_handler =
+    is_event<clean_t<_Event>> &&
+    handler_traits<clean_t<_Callable>, clean_t<_Event>>::is_compatible;
 
-    // is_enabled
-    //   queries whether the listener is currently enabled.
-    bool is_enabled(listener_id _id) const
-    {
-        return m_listeners.is_enabled(_id);
-    };
+// is_nothrow_handler
+//   concept: constrains noexcept-compatible handlers for an event type.
+template<typename _Callable,
+         typename _Event>
+concept is_nothrow_handler =
+    is_handler<_Callable, _Event> &&
+    handler_traits<clean_t<_Callable>, clean_t<_Event>>::is_nothrow;
 
-    // contains
-    //   queries whether a listener with the given id exists.
-    bool contains(listener_id _id) const
-    {
-        return m_listeners.contains(_id);
-    };
+// handler_for
+//   concept: readable spelling of is_handler.
+template<typename _Callable,
+         typename _Event>
+concept handler_for =
+    is_handler<_Callable, _Event>;
 
-    // ---- immediate dispatch ----
+// nothrow_handler_for
+//   concept: readable spelling of is_nothrow_handler.
+template<typename _Callable,
+         typename _Event>
+concept nothrow_handler_for =
+    is_nothrow_handler<_Callable, _Event>;
 
-    // fire
-    //   immediately dispatches _Event to all enabled listeners.
-    // returns: number of listeners invoked.
-    template<typename _Event,
-             typename... _Args>
-    std::size_t fire(_Args&&... _args)
-    {
-        return m_listeners.dispatch<_Event>(
-            std::forward<_Args>(_args)...);
-    };
+// throwing_handler_for
+//   concept: constrains compatible handlers whose invocation is not
+// statically known to be noexcept.
+template<typename _Callable,
+         typename _Event>
+concept throwing_handler_for =
+    handler_for<_Callable, _Event> &&
+    !handler_traits<clean_t<_Callable>, clean_t<_Event>>::is_nothrow;
 
-    // ---- deferred dispatch ----
 
-    // queue
-    //   enqueues an event for later processing.
-    template<typename _Event,
-             typename... _Args>
-    void queue(_Args&&... _args)
-    {
-        m_queue.enqueue<_Event>(
-            std::forward<_Args>(_args)...);
-    };
+// ---- return-type handler concepts ----
 
-    // process
-    //   dispatches up to _max_events queued events.
-    // returns: number of events dispatched.
-    std::size_t process(std::size_t _max_events)
-    {
-        return m_queue.process(m_listeners, _max_events);
-    };
+// void_handler_for
+//   concept: constrains handlers returning void (always-pass handlers).
+template<typename _Callable,
+         typename _Event>
+concept void_handler_for =
+    handler_for<_Callable, _Event> &&
+    handler_traits<clean_t<_Callable>, clean_t<_Event>>::returns_void;
 
-    // process_all
-    //   dispatches all queued events.
-    // returns: number of events dispatched.
-    std::size_t process_all()
-    {
-        return m_queue.process_all(m_listeners);
-    };
+// verdict_handler_for
+//   concept: constrains handlers returning an explicit verdict.
+template<typename _Callable,
+         typename _Event>
+concept verdict_handler_for =
+    handler_for<_Callable, _Event> &&
+    handler_traits<clean_t<_Callable>, clean_t<_Event>>::returns_verdict;
 
-    // ---- query functions ----
 
-    // listener_count
-    //   returns total number of registered listeners.
-    std::size_t listener_count() const
-    {
-        return m_listeners.listener_count();
-    };
+// ---- event-arity handler concepts ----
 
-    // enabled_count
-    //   returns number of enabled listeners.
-    std::size_t enabled_count() const
-    {
-        return m_listeners.enabled_count();
-    };
+// handler_for_event_of_arity
+//   concept: constrains handlers for an event carrying exactly _Arity
+// payload value domains.
+template<typename _Callable,
+         typename _Event,
+         std::size_t _Arity>
+concept handler_for_event_of_arity =
+    handler_for<_Callable, _Event> &&
+    (handler_traits<clean_t<_Callable>, clean_t<_Event>>::expected_arity ==
+     _Arity);
 
-    // pending_events
-    //   returns number of queued events.
-    std::size_t pending_events() const
-    {
-        return m_queue.pending();
-    };
+// nullary_handler_for
+//   concept: constrains handlers for empty events.
+template<typename _Callable,
+         typename _Event>
+concept nullary_handler_for =
+    handler_for_event_of_arity<_Callable, _Event, 0>;
 
-    // listener_count_for
-    //   returns number of listeners for a specific event type.
-    template<typename _Event>
-    std::size_t listener_count_for() const
-    {
-        return m_listeners.listener_count_for<_Event>();
-    };
+// unary_handler_for
+//   concept: constrains handlers for unary events.
+template<typename _Callable,
+         typename _Event>
+concept unary_handler_for =
+    handler_for_event_of_arity<_Callable, _Event, 1>;
 
-    // has_listeners_for
-    //   returns true if at least one listener is registered for
-    // the given event type.
-    template<typename _Event>
-    bool has_listeners_for() const
-    {
-        return m_listeners.has_listeners_for<_Event>();
-    };
+// binary_handler_for
+//   concept: constrains handlers for binary events.
+template<typename _Callable,
+         typename _Event>
+concept binary_handler_for =
+    handler_for_event_of_arity<_Callable, _Event, 2>;
 
-    // ---- access to components ----
+// ternary_handler_for
+//   concept: constrains handlers for ternary events.
+template<typename _Callable,
+         typename _Event>
+concept ternary_handler_for =
+    handler_for_event_of_arity<_Callable, _Event, 3>;
 
-    // listeners
-    //   returns a reference to the underlying listener_registry.
-    listener_registry& listeners()
-    {
-        return m_listeners;
-    };
+// variadic_handler_for
+//   concept: constrains handlers for events carrying four or more payload
+// value domains.
+template<typename _Callable,
+         typename _Event>
+concept variadic_handler_for =
+    handler_for<_Callable, _Event> &&
+    (handler_traits<clean_t<_Callable>, clean_t<_Event>>::expected_arity > 3);
 
-    const listener_registry& listeners() const
-    {
-        return m_listeners;
-    };
-
-    // events
-    //   returns a reference to the underlying event_queue.
-    event_queue& events()
-    {
-        return m_queue;
-    };
-
-    const event_queue& events() const
-    {
-        return m_queue;
-    };
-
-    // table
-    //   returns a reference to the underlying event_table.
-    event_table& table()
-    {
-        return m_listeners.table();
-    };
-
-    const event_table& table() const
-    {
-        return m_listeners.table();
-    };
-
-private:
-    listener_registry m_listeners;
-    event_queue       m_queue;
-};
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_EVENT_HANDLER_
+#endif  // DJINTERP_EVENT_HANDLER_PRIMITIVE_
