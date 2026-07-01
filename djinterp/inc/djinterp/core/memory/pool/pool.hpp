@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                               pool.hpp
+* djinterp [memory]                                                   pool.hpp
 *
 * Memory pool resource for the djinterp container framework.
 *   A pool is a block-structured, fixed-slot-size memory resource that
@@ -50,14 +50,15 @@
 * VIII. Default Aliases
 *
 *
-* path:      /inc/container/pool/pool.hpp
+* path:      /inc/djinterp/core/memory/pool/pool.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.03.30
 ******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_POOL_
-#define DJINTERP_CONTAINER_POOL_ 1
+#ifndef DJINTERP_MEMORY_POOL_
+#define DJINTERP_MEMORY_POOL_ 1
 
+// std
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -66,12 +67,12 @@
 #include <new>
 #include <type_traits>
 #include <utility>
+// djinterp
 #include "../djinterp.hpp"
 #include "../buffer.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
 // =============================================================================
@@ -1192,8 +1193,7 @@ using flat_pool_resource =
                   exponential_growth_policy>;
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_CONTAINER_POOL_
+#endif  // DJINTERP_MEMORY_POOL_

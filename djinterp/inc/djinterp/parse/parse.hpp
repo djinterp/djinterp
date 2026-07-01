@@ -1,38 +1,67 @@
 /******************************************************************************
-* djinterp [core]                                                   parse.hpp
+* djinterp [parse]                                                   parse.hpp
 *
-* Common parsing primitives:
-*   This header defines the foundational types, enumerations, and result
-* wrappers shared by all parser modules within the djinterp framework.
-* It is intentionally agnostic to the nature of the input being parsed
-* (text, binary, or otherwise).
+* Common primitives of the parsing subframework.
+*   Per the formal definition in ch-parsing.tex, a parser is a function
 *
-* Contents:
-*   - parse_status       enum class for parse outcome classification
-*   - parse_error        lightweight error descriptor
-*   - parse_result       discriminated success/failure wrapper
-*   - parse_state        generic cursor/progress tracker
+*       P A = Σ* → maybe⟨A × Σ*⟩          (the maybe arm)
+*           = Σ* → result⟨A × Σ*, E⟩      (the result arm, with typed E)
 *
+* and the parsing subframework's job is to carry that function value-
+* semantically and to expose it as an instance of the four protocols of
+* the functional companion (Functor, Applicative, Alternative, Monad).
+* This header carries only the support types that face into the parser:
 *
-* path:      /inc/parse/parse.hpp
-* link:      TBA
+*   parse_state<E>    the surface stream Σ*, threaded by reference as the
+*                     operational counterpart of the formal residual.  The
+*                     parser receives the state, may advance `offset`, and
+*                     returns the produced value; on Alternative failure
+*                     the offset is restored by `alt` so the caller sees
+*                     the formal `match-or-restore` semantics.
+*
+*   parse_error       the error type E in the `result` arm.  Value-
+*                     semantic, copyable without lifetime caveats.
+*
+*   parse_result<T>   a thin refinement of result<T,
+*                     parse_error>: it IS a result and inherits the
+*                     monadic surface (map, and_then, or_else, match,
+*                     value_or, operator|, the protocol specialisations
+*                     in result.hpp).  The legacy ok()/value()/error()/
+*                     make_ok()/make_error() face is preserved so the
+*                     formal definition's `maybe⟨A × Σ*⟩` reads cleanly
+*                     at the call site.
+*
+*   parseable / parse_traits     minor (token) ↔ major (aggregate) mapping
+*   parse_status                 integral outcome classifier + codes
+*
+*   The parser carrier itself lives in parser/parser.hpp.  Combinators
+* over it (Functor/Applicative/Alternative/Monad), atomic parsers, and
+* the compose-parse prism live alongside it under parser/.  The grammar
+* tuple (N, Σ, P, S) and the polynomial functor F whose initial algebra
+* μF is the parsable carrier live in grammar/.
+*
+* path:      /inc/djinterp/parse/parse.hpp
+* link(s):   ch-parsing.tex
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.01.11
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_
 #define DJINTERP_PARSE_ 1
 
+// std
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <type_traits>
+#include <utility>
+// djinterp
 #include "../core/djinterp.hpp"
+#include "../core/functional/result.hpp"
 
 
 // D_KEYWORD_PARSE
-//   keyword: resolves to `parse`.
-// Used to specify that a unit of code pertains to the parsing
-// subsystem.
+//   keyword: resolves to `parse`.  Marks a unit of code as part of the
+// parsing subsystem.
 #define D_KEYWORD_PARSE             parse
 
 // NS_PARSE
@@ -42,6 +71,11 @@
 
 NS_DJINTERP
 NS_PARSE
+
+
+// ================================================================
+//  I.   parseable  /  parse_traits
+// ================================================================
 
 // parseable
 //   trait: associates a minor (token) type with a major (parsed
@@ -61,41 +95,36 @@ template<typename _Type,
 struct is_parseable : std::false_type
 {};
 
-// is_parseable (SFINAE specialization)
+// is_parseable (SFINAE specialisation)
 //   trait: true when _Type exposes nested minor and major aliases.
 template<typename _Type>
-struct is_parseable<_Type, std::void_t<
-    typename _Type::minor,
-    typename _Type::major>
+struct is_parseable<
+    _Type,
+    void_t<typename _Type::minor,
+           typename _Type::major>
 > : std::true_type
 {};
 
 // is_parseable<std::string>
-//   trait: std::string is parseable (chars -> strings).
+//   trait: std::string is parseable (chars → strings).
 template<>
 struct is_parseable<std::string, void> : std::true_type
 {};
 
 // is_parseable<const char*>
-//   trait: const char* is parseable (chars -> C-strings).
+//   trait: const char* is parseable (chars → C-strings).
 template<>
 struct is_parseable<const char*, void> : std::true_type
 {};
 
 // is_parseable<char*>
-//   trait: char* is parseable (chars -> C-strings).
+//   trait: char* is parseable (chars → C-strings).
 template<>
 struct is_parseable<char*, void> : std::true_type
 {};
 
-// parseable<char, std::string>
-//   trait: char is the minor type for std::string aggregation.
-template<>
-struct parseable<char, std::string>
-{};
-
 // parse_traits
-//   trait: maps a parseable type to its minor/major pair.
+//   trait: primary template — maps a parseable type to its minor/major pair.
 template<typename _Type>
 struct parse_traits;
 
@@ -119,346 +148,294 @@ struct parse_traits<char*> : parseable<char, char*>
 
 
 // ================================================================
-//  parse_status
+//  II.  parse_status
 // ================================================================
 
 // parse_status
 //   typedef: classifies the outcome of a parse operation.
 typedef std::int32_t parse_status;
 
+// DParseStatus*
+//   constants: standard parse status codes.  Derived parsers may
+// define additional codes above DParseStatusUserBase.
+D_CONSTEXPR parse_status DParseStatusSuccess    =  0;
+D_CONSTEXPR parse_status DParseStatusFailure    =  1;
+D_CONSTEXPR parse_status DParseStatusEndOfInput =  2;
+D_CONSTEXPR parse_status DParseStatusOverflow   =  3;
+D_CONSTEXPR parse_status DParseStatusMalformed  =  4;
+D_CONSTEXPR parse_status DParseStatusUserBase   = 64;
+
 
 // ================================================================
-//  parse_error
+//  III. parse_error
 // ================================================================
 
 // parse_error
-//   struct: lightweight descriptor carrying information about a
-// parse failure, including the offset at which it occurred, a
-// status code, and an optional human-readable message.
-struct parse_error
+//   class: value-semantic descriptor of a parse failure — the input
+// offset at which it occurred, a status code, and a human-readable
+// message.  The message is an owning std::string so a parse_error
+// can be safely copied without lifetime caveats; this is the E in
+// the formal `result⟨A × Σ*, E⟩` arm of the parser carrier.
+class parse_error
 {
 public:
-    parse_error();
+    parse_error()
+        : m_status (DParseStatusFailure),
+          m_offset (0),
+          m_message()
+    {}
 
-    parse_error
-    (
+    parse_error(
+        parse_status       _status,
+        std::size_t        _offset,
+        const std::string& _message = std::string()
+    )
+        : m_status (_status),
+          m_offset (_offset),
+          m_message(_message)
+    {}
+
+    parse_error(
         parse_status _status,
         std::size_t  _offset,
-        const char*  _message = nullptr
-    );
+        const char*  _message
+    )
+        : m_status (_status),
+          m_offset (_offset),
+          m_message(_message ? _message : "")
+    {}
 
-    parse_error(const parse_error& _other);
+    // status
+    //   method: the status code classifying the failure.
+    D_NODISCARD
+    parse_status status() const
+    {
+        return m_status;
+    }
 
-    parse_error& operator=(const parse_error& _other);
+    // offset
+    //   method: the input offset at which the failure occurred.
+    D_NODISCARD
+    std::size_t offset() const
+    {
+        return m_offset;
+    }
 
-    parse_status    status()  const;
-    std::size_t     offset()  const;
-    const char*     message() const;
+    // message
+    //   method: the human-readable description of the failure.
+    D_NODISCARD
+    const std::string& message() const
+    {
+        return m_message;
+    }
 
 private:
-    parse_status    m_status;
-    std::size_t     m_offset;
-    const char*     m_message;
+    parse_status m_status;
+    std::size_t  m_offset;
+    std::string  m_message;
 };
 
-
-// ================================================================
-//  parse_message
-// ================================================================
-
-// parse_message
-//   struct: variadic, tuple-like container for composing
-// heterogeneous parse diagnostic values.
-template<typename... _Types>
-struct parse_message
-{};
-
-// parse_message (recursive case)
-//   struct: stores the head value and inherits the remaining
-// fields from the tail pack.
-template<typename    _Type,
-         typename... _Types>
-struct parse_message<_Type, _Types...> : parse_message<_Types...>
+// operator== (parse_error)
+//   function: two errors are equal iff status, offset, and message
+// all match.  Enables parse_result equality (result<T, E> requires
+// == on E).
+inline bool
+operator==(
+    const parse_error& _a,
+    const parse_error& _b
+)
 {
-    _Type m_value;
+    return ( (_a.status()  == _b.status())  &&
+             (_a.offset()  == _b.offset())  &&
+             (_a.message() == _b.message()) );
+}
 
-    parse_message
-    (
-        _Type     _value,
-        _Types... _rest
-    ) : parse_message<_Types...>(_rest...),
-        m_value(_value)
-    {
-    }
-};
-
-NS_INTERNAL
-
-    // parse_message_field
-    //   trait: recursive accessor for parse_message elements by
-    // index.
-    template<size_t      _Index,
-             typename    _Type,
-             typename... _Types>
-    struct parse_message_field
-    {
-        static auto& get(parse_message<_Type, _Types...>& _value)
-        {
-            return parse_message_field<
-                _Index - 1, _Types...
-            >::get(
-                static_cast<parse_message<_Types...>&>(_value)
-            );
-        }
-    };
-
-    // parse_message_field<0, ...>
-    //   trait: base case — returns the head element.
-    template<typename    _Type,
-             typename... _Types>
-    struct parse_message_field<0, _Type, _Types...>
-    {
-        static _Type& get(parse_message<_Type, _Types...>& _msg)
-        {
-            return _msg.m_value;
-        }
-    };
-
-NS_END  // internal
-
-// get
-//   extracts the element at _Index from a parse_message.
-template<size_t      _Index,
-         typename... _Types>
-auto&
-get(parse_message<_Types...>& _t)
+// operator!= (parse_error)
+//   function: negation of operator==.
+inline bool
+operator!=(
+    const parse_error& _a,
+    const parse_error& _b
+)
 {
-    return internal::parse_message_field<
-        _Index, _Types...
-    >::get(_t);
+    return (!(_a == _b));
 }
 
 
 // ================================================================
-//  parse_result
+//  IV.  parse_result
 // ================================================================
 
-NS_INTERNAL
-
-    // parse_result_storage
-    //   trait: internal storage helper for parse_result.  Holds
-    // the value in an aligned buffer to avoid requiring default
-    // constructibility from _ValueType.
-    template<typename _ValueType>
-    struct parse_result_storage
-    {
-    private:
-        using storage_type = typename std::aligned_storage<
-            sizeof(_ValueType),
-            alignof(_ValueType)
-        >::type;
-
-    protected:
-        storage_type    m_storage;
-        bool            m_has_value;
-
-        parse_result_storage()
-            : m_has_value(false)
-        {
-        }
-
-        // value_ptr
-        //   returns a pointer to the stored value.
-        _ValueType* value_ptr()
-        {
-            return reinterpret_cast<_ValueType*>(
-                &m_storage
-            );
-        }
-
-        // value_ptr (const)
-        //   returns a const pointer to the stored value.
-        const _ValueType* value_ptr() const
-        {
-            return reinterpret_cast<const _ValueType*>(
-                &m_storage
-            );
-        }
-    };
-
-NS_END  // internal
-
 // parse_result
-//   struct: a discriminated result type carrying either a parsed
-// value of type _ValueType on success, or a parse_error on
-// failure.  Does not require _ValueType to be default-
-// constructible.
+//   class: the outcome of a fallible parse — a value of type
+// _ValueType (success) or a parse_error (failure).  A refinement of
+// result<_ValueType, parse_error>: it IS a result and
+// inherits the whole monadic surface (map, and_then, or_else,
+// match, value_or, operator|, plus the functor / monad protocol
+// specialisations defined in result.hpp).  This is the C++ shape
+// of the formal `result⟨A × Σ*, E⟩` arm of the parser carrier; the
+// `× Σ*` part is threaded through the parse_state reference the
+// parser is given rather than packed into the return.
+//
+//   The compact legacy face is preserved so call sites read as the
+// formal definition does:
+//
+//     parse_result(value)         implicit success construction
+//     parse_result(error)         implicit failure construction
+//     .ok()                       success predicate
+//     .value()                    contained value
+//     .error()                    contained error
+//     parse_result::make_ok(v)    success factory
+//     parse_result::make_error(.) failure factory from fields
+//
+//   The inherited result<>::ok() returning maybe<T> is shadowed
+// here by the boolean predicate the parse vocabulary wants; the
+// inherited form is reachable via to_maybe on the base.
 template<typename _ValueType>
-struct parse_result : private internal::parse_result_storage<_ValueType>
+class parse_result
+    : public result<_ValueType, parse_error>
 {
 private:
-    using base_type = internal::parse_result_storage<_ValueType>;
+    using base_type = result<_ValueType, parse_error>;
 
 public:
     using value_type = _ValueType;
     using error_type = parse_error;
 
-    // parse_result (success)
-    //   constructs a successful result holding a copy of the
-    // value.
-    explicit parse_result
-    (
+    parse_result(
         const _ValueType& _value
-    ) : base_type(),
-        m_error()
-    {
-        new (this->value_ptr()) _ValueType(_value);
+    )
+        : base_type(
+              internal::ok_tag(
+                  internal::ok_tag::construct_tag()),
+              _value)
+    {}
 
-        this->m_has_value = true;
-    }
-
-    // parse_result (error)
-    //   constructs a failed result holding the given error.
-    explicit parse_result
-    (
-        const parse_error& _error
-    ) : base_type(),
-        m_error(_error)
-    {
-    }
-
-    // parse_result (move — value)
-    //   constructs a successful result by moving the value.
-    explicit parse_result
-    (
+    parse_result(
         _ValueType&& _value
-    ) : base_type(),
-        m_error()
-    {
-        new (this->value_ptr()) _ValueType(
-            static_cast<_ValueType&&>(_value)
-        );
+    )
+        : base_type(
+              internal::ok_tag(
+                  internal::ok_tag::construct_tag()),
+              static_cast<_ValueType&&>(_value))
+    {}
 
-        this->m_has_value = true;
-    }
+    parse_result(
+        const parse_error& _error
+    )
+        : base_type(
+              internal::err_tag(
+                  internal::err_tag::construct_tag()),
+              _error)
+    {}
 
-    // ~parse_result
-    //   destructor: destroys the held value if present.
-    ~parse_result()
-    {
-        if (this->m_has_value)
-        {
-            this->value_ptr()->~_ValueType();
-        }
-    }
+    parse_result(
+        parse_error&& _error
+    )
+        : base_type(
+              internal::err_tag(
+                  internal::err_tag::construct_tag()),
+              static_cast<parse_error&&>(_error))
+    {}
 
-    // parse_result (copy)
-    //   copy constructor.
-    parse_result
-    (
-        const parse_result& _other
-    ) : base_type(),
-        m_error(_other.m_error)
-    {
-        if (_other.m_has_value)
-        {
-            new (this->value_ptr()) _ValueType(
-                *_other.value_ptr()
-            );
+    parse_result(
+        const base_type& _base
+    )
+        : base_type(_base)
+    {}
 
-            this->m_has_value = true;
-        }
-    }
-
-    // parse_result (move)
-    //   move constructor.
-    parse_result
-    (
-        parse_result&& _other
-    ) : base_type(),
-        m_error(_other.m_error)
-    {
-        if (_other.m_has_value)
-        {
-            new (this->value_ptr()) _ValueType(
-                static_cast<_ValueType&&>(*_other.value_ptr())
-            );
-
-            this->m_has_value = true;
-        }
-    }
+    parse_result(
+        base_type&& _base
+    )
+        : base_type(static_cast<base_type&&>(_base))
+    {}
 
     // ok
-    //   returns true if the result holds a value.
-    bool
-    ok() const
+    //   method: returns true on success.  Shadows the inherited
+    // result::ok() (which returns maybe<T>) with the boolean
+    // predicate the parse vocabulary expects.
+    D_NODISCARD
+    bool ok() const
     {
-        return this->m_has_value;
+        return this->is_ok();
     }
 
     // value
-    //   returns a reference to the held value.
+    //   method: returns a reference to the contained value.
     //   Precondition: ok() == true.
-    _ValueType&
-    value()
+    D_NODISCARD
+    const _ValueType& value() const
     {
-        return *this->value_ptr();
+        return base_type::value();
     }
 
-    // value (const)
-    //   returns a const reference to the held value.
-    //   Precondition: ok() == true.
-    const _ValueType&
-    value() const
+    D_NODISCARD
+    _ValueType& value()
     {
-        return *this->value_ptr();
+        return base_type::value();
     }
 
     // error
-    //   returns the held error descriptor.
-    const parse_error&
-    error() const
+    //   method: returns the contained error descriptor.
+    //   Precondition: ok() == false.
+    D_NODISCARD
+    const parse_error& error() const
     {
-        return m_error;
+        return base_type::error();
     }
 
     // make_ok
     //   factory: creates a successful parse_result.
-    D_STATIC parse_result
-    make_ok(const _ValueType& _value)
+    D_NODISCARD
+    static parse_result
+    make_ok(
+        const _ValueType& _value
+    )
     {
         return parse_result(_value);
     }
 
     // make_error
-    //   factory: creates a failed parse_result.
-    D_STATIC parse_result
-    make_error
-    (
-        parse_status _status,
-        std::size_t  _offset,
-        const char*  _message = nullptr
+    //   factory: creates a failed parse_result from raw fields.
+    D_NODISCARD
+    static parse_result
+    make_error(
+        parse_status       _status,
+        std::size_t        _offset,
+        const std::string& _message = std::string()
     )
     {
-        return parse_result(
-            parse_error(_status, _offset, _message)
-        );
+        return parse_result(parse_error(_status, _offset, _message));
     }
 
-private:
-    error_type m_error;
+    D_NODISCARD
+    static parse_result
+    make_error(
+        parse_status _status,
+        std::size_t  _offset,
+        const char*  _message
+    )
+    {
+        return parse_result(parse_error(_status, _offset, _message));
+    }
 };
 
 
 // ================================================================
-//  parse_state
+//  V.   parse_state
 // ================================================================
 
 // parse_state
-//   struct: tracks the position and remaining extent of a parse
-// operation over an input of element type _ElementType.  Agnostic
-// to the nature of the underlying data — works equally for
-// character streams, byte buffers, token sequences, etc.
+//   struct: the surface stream Σ* the parser consumes.  Tracks the
+// position and remaining extent of a parse over an input of element
+// type _ElementType.  Threaded by reference through the parser
+// function as the operational counterpart of the formal residual:
+// a successful parse advances `offset`; Alternative's `alt`
+// combinator saves and restores `offset` so failures don't leak
+// consumed input to the next branch.
+//
+//   Agnostic to the nature of the data — character streams, byte
+// buffers, token sequences all instantiate it.
 template<typename _ElementType>
 struct parse_state
 {
@@ -468,28 +445,26 @@ struct parse_state
     std::size_t         length;
     std::size_t         offset;
 
-    parse_state
-    () : data   (nullptr),
-         length (0),
-         offset (0)
-    {
-    }
+    parse_state()
+        : data   (nullptr),
+          length (0),
+          offset (0)
+    {}
 
-    parse_state
-    (
+    parse_state(
         const _ElementType* _data,
         std::size_t         _length,
         std::size_t         _offset = 0
-    ) : data   (_data),
-        length (_length),
-        offset (_offset)
-    {
-    }
+    )
+        : data   (_data),
+          length (_length),
+          offset (_offset)
+    {}
 
     // remaining
-    //   returns the number of elements still available.
-    std::size_t
-    remaining() const
+    //   method: the number of elements still available.
+    D_NODISCARD
+    std::size_t remaining() const
     {
         return (offset < length)
                     ? (length - offset)
@@ -497,18 +472,17 @@ struct parse_state
     }
 
     // at_end
-    //   returns true when no input remains.
-    bool
-    at_end() const
+    //   method: true when no input remains.
+    D_NODISCARD
+    bool at_end() const
     {
         return (offset >= length);
     }
 
     // current
-    //   returns a pointer to the current element, or nullptr
-    // if at the end.
-    const _ElementType*
-    current() const
+    //   method: a pointer to the current element, or null at end.
+    D_NODISCARD
+    const _ElementType* current() const
     {
         return at_end()
                     ? nullptr
@@ -516,11 +490,9 @@ struct parse_state
     }
 
     // advance
-    //   moves the offset forward by _count elements, clamped
+    //   method: moves the offset forward by _count elements, clamped
     // to the end of the input.
-    void
-    advance
-    (
+    void advance(
         std::size_t _count = 1
     )
     {
@@ -537,6 +509,7 @@ struct parse_state
 
 
 NS_END  // parse
+NS_END  // djinterp
 
 
 #endif  // DJINTERP_PARSE_

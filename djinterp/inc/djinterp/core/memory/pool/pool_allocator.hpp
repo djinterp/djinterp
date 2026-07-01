@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                     pool_allocator.hpp
+* djinterp [memory]                                         pool_allocator.hpp
 *
 * STL-conforming allocator backed by a pool_resource.
 *   pool_allocator<T> satisfies the C++ named requirements for Allocator
@@ -35,25 +35,26 @@
 * III.  Convenience Aliases
 *
 *
-* path:      /inc/container/pool/pool_allocator.hpp
+* path:      /inc/djinterp/core/memory/pool/pool_allocator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2025.03.30
 ******************************************************************************/
 
-#ifndef DJINTERP_CONTAINER_POOL_ALLOCATOR_
-#define DJINTERP_CONTAINER_POOL_ALLOCATOR_ 1
+#ifndef DJINTERP_MEMORY_POOL_ALLOCATOR_
+#define DJINTERP_MEMORY_POOL_ALLOCATOR_ 1
 
+// std
 #include <cstddef>
 #include <limits>
 #include <memory>
 #include <new>
 #include <type_traits>
+// djinterp
 #include "../djinterp.hpp"
 #include "./pool.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
 // =============================================================================
@@ -396,8 +397,7 @@ using monotonic_pool_allocator =
                    exponential_growth_policy>;
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_CONTAINER_POOL_ALLOCATOR_
+#endif  // DJINTERP_MEMORY_POOL_ALLOCATOR_

@@ -1,736 +1,686 @@
 /******************************************************************************
-* djinterp [scan]                                                 scanner.hpp
+* djinterp [parse]                                          scanner/scanner.hpp
 *
-* Generic scanner framework:
-*   This header defines the CRTP base from which all concrete scanners
-* derive.  It establishes the minimum structural interface every scanner
-* must expose and provides the largest common subset of functionality
-* shared by all derived scanners:
+* Scanner CRTP base + scan status/diagnostic + traits + concepts merged.
+*   A scanner is the producer side of the parsing pipeline: it takes
+* a unit of work (a file path, an in-memory buffer, a token stream)
+* and emits items (lexemes, records, characters, tokens) that the
+* parser carrier P A in parser/parser.hpp consumes.  Per ch-parsing
+* the scanner sits upstream of Σ*; its output is what populates the
+* parse_state the parser threads.
 *
-*     - file_tree-driven walk with pluggable node-selection predicate
-*     - duplicate-file protection via a scanned-files set
-*     - cumulative statistics (files visited / scanned / failed, items
-*       discovered, diagnostics emitted)
-*     - cross-cutting callbacks for file lifecycle and diagnostics
-*     - reset of all accumulated state
+*   STRUCTURE.  scanner_base<_Derived, _Input> is a CRTP base
+* delegating do_scan_file to the derived implementation.  Each unit
+* of work is one input_type value (commonly std::string for paths,
+* but any addressable handle works).  Items are accumulated in the
+* derived's storage and exposed via results(); diagnostics about
+* failed reads land in the base's per-session diagnostic list.
 *
-*   Input discovery is delegated to fs::file_tree.  Extension matching,
-* glob matching, exclusion patterns, hidden-file skipping, and recursion
-* control are predicate concerns handled by the file_tree_filter layer —
-* the scanner itself is agnostic to selection policy and simply visits
-* every node the caller hands it.
+*   The content axis (what to do with a successfully-opened unit's
+* bytes) and the discovery axis (where the units come from) layer on
+* top of this base — text_scanner.hpp gives one content layer
+* (read-as-text, hand to do_scan_text); file_scanner.hpp adds
+* directory walking; the two are deliberately orthogonal.
 *
-*   Item-type-specific concerns (callback for discovered items, storage
-* of extracted items, aggregation into a result_type) belong to the
-* derived scanner, which is templated-on-item_type and therefore cannot
-* be stored generically in the base.
+*   ERROR BRIDGING.  The scan_diagnostic produced by emit_file_failed
+* carries a parse_error from parse.hpp rather than reinventing one,
+* so a parse failure occurring during scanning flows end-to-end as a
+* single error type.  This matches the consolidation note in
+* parse.hpp's preamble.
 *
-*   The base enforces its contract purely through SFINAE and static
-* assertions — no virtual functions, no tag types.  A conforming
-* derived scanner must provide:
-*   - `input_type`    typedef  — the type of a single scan unit
-*                                (typically `std::string` for a path)
-*   - `item_type`     typedef  — the type of a discovered element
-*   - `result_type`   typedef  — the aggregate result container
-*   - `std::size_t    do_scan_file(const input_type&);`
-*   - `void           do_reset();`
+*   This header consolidates what were three separate files —
+* scanner.hpp (the base), scanner_traits.hpp (the SFINAE surface),
+* and scanner_concepts.hpp (the C++20 face) — into one primary
+* module.
 *
+* CONTENTS
+*   I.    scan_status                       outcome classifier + codes
+*   II.   scan_diagnostic                   per-failure descriptor
+*   III.  scanner_stats                     per-session aggregates
+*   IV.   scanner_base<_Derived, _Input>    CRTP base
+*   V.    has_do_scan_file_method /         method-shape detectors
+*         has_do_reset_method   /
+*         has_scan_file_method  /
+*         has_scan_directory_method /
+*         has_results_method
+*   VI.   is_scanner / is_file_scanner      identity traits
+*   VII.  scanners_share_input /            compatibility traits
+*         scanners_share_items
+*   VIII. SFINAE-safe extractors
+*           scanner_input_type /
+*           scanner_item_type  /
+*           scanner_result_type
+*   IX.   C++20 concepts mirroring the traits
 *
-* path:      /inc/cpp/scan/scanner.hpp
-* link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.04.17
+* path:      /inc/djinterp/parse/scanner/scanner.hpp
+* link(s):   ch-parsing.tex
+* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
 ******************************************************************************/
 
-#ifndef DJINTERP_SCANNER_
-#define DJINTERP_SCANNER_ 1
+#ifndef DJINTERP_PARSE_SCANNER_
+#define DJINTERP_PARSE_SCANNER_ 1
 
+// std
 #include <cstddef>
 #include <cstdint>
-#include <functional>
-#include <set>
 #include <string>
 #include <type_traits>
-#include "../../djinterp/core/djinterp.hpp"
-#include "../fs/file_tree.hpp"
-#include "./scanner_traits.hpp"
+#include <utility>
+#include <vector>
+// djinterp
+#include "../../core/djinterp.hpp"
+#include "../../core/meta/member_traits.hpp"
+#include "../parse.hpp"
 
 
 NS_DJINTERP
 NS_PARSE
 
+
 // ================================================================
-//  scan_status
+//  I.   scan_status
 // ================================================================
 
 // scan_status
-//   typedef: classifies the outcome of a scan operation.
+//   typedef: classifies the outcome of a scan operation.  Distinct
+// from parse_status — scanners report read- and discovery-side
+// outcomes, parsers report grammar-side outcomes — even though both
+// share the integral underpinning.
 typedef std::int32_t scan_status;
 
 // DScanStatus*
-//   constants: standard scan status codes.  Derived scanners
-// may define additional codes above DScanStatusUserBase.
-constexpr scan_status DScanStatusSuccess        =  0;
-constexpr scan_status DScanStatusFileNotFound   =  1;
-constexpr scan_status DScanStatusPermission     =  2;
-constexpr scan_status DScanStatusReadFailure    =  3;
-constexpr scan_status DScanStatusParseFailure   =  4;
-constexpr scan_status DScanStatusSkipped        =  5;
-constexpr scan_status DScanStatusAborted        =  6;
-constexpr scan_status DScanStatusUserBase       = 64;
+//   constants: standard scan status codes.  Derived scanners may
+// define additional codes above DScanStatusUserBase.
+D_CONSTEXPR scan_status DScanStatusSuccess        =  0;
+D_CONSTEXPR scan_status DScanStatusFailure        =  1;
+D_CONSTEXPR scan_status DScanStatusReadFailure    =  2;
+D_CONSTEXPR scan_status DScanStatusOpenFailure    =  3;
+D_CONSTEXPR scan_status DScanStatusEncodingError  =  4;
+D_CONSTEXPR scan_status DScanStatusParseFailure   =  5;
+D_CONSTEXPR scan_status DScanStatusUserBase       = 64;
 
 
 // ================================================================
-//  scan_diagnostic
+//  II.  scan_diagnostic
 // ================================================================
 
 // scan_diagnostic
-//   struct: descriptor for a diagnostic (note, warning, error,
-// or fatal) emitted during a scan.  Item-type agnostic, so it
-// lives in the generic scanner base.
+//   struct: a per-failure descriptor carrying the input handle that
+// triggered the failure, an outcome status, and a parse_error with
+// the human-readable detail (offset, message).  The parse_error
+// embedding gives end-to-end continuity with downstream parser
+// failures, which return the same error type.
+//
+//   _Input is the scanner's input_type — usually std::string for
+// path-driven scanners, but any addressable handle works.
+template<typename _Input>
 struct scan_diagnostic
 {
-    // severity_kind
-    //   constants: severity levels for a diagnostic.  Values
-    // increase with severity; code downstream may treat anything
-    // at or above `severity_error` as fatal.
-    enum severity_kind : std::uint8_t
-    {
-        severity_note    = 0,
-        severity_warning = 1,
-        severity_error   = 2,
-        severity_fatal   = 3
-    };
+    using input_type = _Input;
 
-    std::string     file;
-    std::uint32_t   line;
-    std::uint32_t   column;
-    std::uint8_t    severity;
-    scan_status     status;
-    std::string     message;
+    input_type   input;
+    scan_status  status;
+    parse_error  error;
 
     scan_diagnostic()
-        : file    ()
-        , line    (0)
-        , column  (0)
-        , severity(severity_note)
-        , status  (DScanStatusSuccess)
-        , message ()
+        : input (),
+          status(DScanStatusFailure),
+          error ()
     {}
 
-    scan_diagnostic(const std::string& _file,
-                    std::uint32_t      _line,
-                    std::uint32_t      _column,
-                    std::uint8_t       _severity,
-                    scan_status        _status,
-                    const std::string& _message)
-        : file    (_file)
-        , line    (_line)
-        , column  (_column)
-        , severity(_severity)
-        , status  (_status)
-        , message (_message)
+    scan_diagnostic(
+        const input_type&   _input,
+        scan_status         _status,
+        const parse_error&  _error
+    )
+        : input (_input),
+          status(_status),
+          error (_error)
     {}
 };
 
 
 // ================================================================
-//  scanner_config
-// ================================================================
-
-// scanner_config
-//   struct: scan-semantics configuration shared by all
-// scanners.  Filesystem-walk configuration (extensions,
-// recursion, hidden-file handling) is no longer here — it
-// lives in the predicate passed to scan_tree.
-struct scanner_config
-{
-    // abort_on_error
-    //   field: if true, a failed file aborts the entire scan.
-    // Otherwise the scan continues and the failure is counted.
-    bool                        abort_on_error;
-
-    // max_file_size_bytes
-    //   field: skip files larger than this.  0 = unlimited.
-    // Checked at the scan_tree level against the file_entry's
-    // recorded size before do_scan_file is invoked.
-    std::size_t                 max_file_size_bytes;
-
-    scanner_config()
-        : abort_on_error     (false)
-        , max_file_size_bytes(0)
-    {}
-};
-
-
-// ================================================================
-//  scanner_stats
+//  III. scanner_stats
 // ================================================================
 
 // scanner_stats
-//   struct: cumulative counters tracked by the scanner base.
-// Derived scanners may bump additional counters but these are
-// always maintained.
+//   struct: per-session aggregate counts.  Updated by the base as
+// scan_file is invoked.  bytes_read is the canonical input volume
+// accumulator and is incremented by content-axis layers like
+// text_scanner.
 struct scanner_stats
 {
-    std::size_t     files_visited;
-    std::size_t     files_scanned;
-    std::size_t     files_skipped;
-    std::size_t     files_failed;
-    std::size_t     items_discovered;
-    std::size_t     diagnostics_emitted;
-    std::size_t     bytes_read;
+    std::size_t units_scanned;
+    std::size_t units_succeeded;
+    std::size_t units_failed;
+    std::size_t bytes_read;
+    std::size_t items_emitted;
 
     scanner_stats()
-        : files_visited      (0)
-        , files_scanned      (0)
-        , files_skipped      (0)
-        , files_failed       (0)
-        , items_discovered   (0)
-        , diagnostics_emitted(0)
-        , bytes_read         (0)
+        : units_scanned  (0),
+          units_succeeded(0),
+          units_failed   (0),
+          bytes_read     (0),
+          items_emitted  (0)
     {}
-
-    // reset
-    //   zeros all counters.
-    void reset()
-    {
-        files_visited       = 0;
-        files_scanned       = 0;
-        files_skipped       = 0;
-        files_failed        = 0;
-        items_discovered    = 0;
-        diagnostics_emitted = 0;
-        bytes_read          = 0;
-
-        return;
-    }
 };
 
 
 // ================================================================
-//  scanner_callbacks_common
-// ================================================================
-
-// scanner_callbacks_common
-//   struct: the item-type-agnostic subset of scanner callbacks.
-// These callbacks do not depend on the derived scanner's
-// item_type and so can be stored in the CRTP base.
-//
-//   Each callback is optional; a default-constructed struct is
-// a no-op across the board.
-struct scanner_callbacks_common
-{
-    // on_file_begin
-    //   predicate: invoked before a file is scanned.  Returning
-    // false causes the file to be skipped (counted in
-    // files_skipped).
-    std::function<bool(const std::string& /*_path*/)>
-        on_file_begin;
-
-    // on_file_complete
-    //   invoked after a file is scanned, with the number of
-    // items discovered in that file.
-    std::function<void(const std::string& /*_path*/,
-                       std::size_t        /*_count*/)>
-        on_file_complete;
-
-    // on_file_failed
-    //   invoked when a file's scan fails.  The status carries
-    // the reason.
-    std::function<void(const std::string& /*_path*/,
-                       scan_status        /*_status*/,
-                       const std::string& /*_message*/)>
-        on_file_failed;
-
-    // on_diagnostic
-    //   invoked when any diagnostic is emitted.
-    std::function<void(const scan_diagnostic& /*_diag*/)>
-        on_diagnostic;
-};
-
-
-// ================================================================
-//  scanner_callbacks
-// ================================================================
-
-// scanner_callbacks
-//   struct: item-type-aware callback bundle.  Inherits the
-// common callbacks and adds per-item reporting.  Used by
-// derived scanners that want a single struct covering all
-// hook points.
-template<typename _ItemType>
-struct scanner_callbacks : public scanner_callbacks_common
-{
-    using item_type = _ItemType;
-
-    // on_item_discovered
-    //   predicate: invoked per discovered item.  Returning false
-    // causes the item to be excluded from the scanner's
-    // aggregate result_type.
-    std::function<bool(const _ItemType& /*_item*/)>
-        on_item_discovered;
-};
-
-
-// ================================================================
-//  scanner_base
+//  IV.  scanner_base
 // ================================================================
 
 // scanner_base
-//   class: CRTP base for file-tree-driven scanners.  Provides
-// the common machinery — duplicate protection, callback
-// dispatch, statistics tracking — and exposes the public scan
-// entry points.  Input discovery is supplied by the caller in
-// the form of an fs::file_tree plus an optional node-selection
-// predicate.
+//   class: the CRTP base for every scanner.  The contract a derived
+// scanner _Derived must satisfy is
 //
-//   Item-specific callbacks and storage live in the derived
-// class (they cannot be held in the base because _Derived's
-// nested types are incomplete during base instantiation).
+//     using input_type   = ...           the unit of work (e.g. path)
+//     using item_type    = ...           the per-scan element produced
+//     using result_type  = ...           the per-session accumulation
+//     std::size_t do_scan_file(const input_type&);
+//     void        do_reset();
+//     const result_type& results() const;
 //
-//   _Derived must expose:
-//     - `using input_type  = ...;`  (scanned unit)
-//     - `using item_type   = ...;`  (discovered element type)
-//     - `using result_type = ...;`  (aggregate result)
-//     - `std::size_t do_scan_file(const input_type&);`
-//     - `void        do_reset();`
-template<typename _Derived>
+// — do_scan_file processes one unit, returning the number of items
+// emitted; do_reset clears any per-session state; results() exposes
+// the accumulated collection.  The base layers on top of these the
+// session-wide statistics, diagnostic emission, and the convenience
+// scan_files batch entry.
+//
+//   The header does NOT add directory traversal — that lives in
+// file_scanner.hpp where the discovery axis can be composed with
+// the content axis (e.g. text_scanner) without tangling them.
+template<typename _Derived,
+         typename _Input>
 class scanner_base
 {
-private:
-    using derived_type = _Derived;
-
-    // self
-    //   returns a reference to the derived instance.
-    derived_type& self()
-    {
-        return static_cast<derived_type&>(*this);
-    }
-
-    // self (const)
-    //   returns a const reference to the derived instance.
-    const derived_type& self() const
-    {
-        return static_cast<const derived_type&>(*this);
-    }
+public:
+    using input_type      = _Input;
+    using diagnostic_type = scan_diagnostic<_Input>;
 
 protected:
-    scanner_config              m_config;
-    scanner_stats               m_stats;
-    scanner_callbacks_common    m_callbacks;
-    std::set<std::string>       m_scanned_files;
-    bool                        m_aborted;
-
     scanner_base()
-        : m_config       ()
-        , m_stats        ()
-        , m_callbacks    ()
-        , m_scanned_files()
-        , m_aborted      (false)
+        : m_stats      (),
+          m_diagnostics()
     {}
-
 
     ~scanner_base()
     {}
 
-
-    // --------------------------------------------------------
-    //  protected helpers (for derived classes)
-    // --------------------------------------------------------
-
-    // increment_items
-    //   called by derived when it has admitted an item into its
-    // result set.  Increments the cumulative item counter.
-    void increment_items(std::size_t _count = 1)
-    {
-        m_stats.items_discovered += _count;
-
-        return;
-    }
-
-    // emit_diagnostic
-    //   dispatches a diagnostic through the common callback,
-    // incrementing the diagnostics counter.  Derived scanners
-    // call this when they want to report a non-fatal issue.
-    void emit_diagnostic(const scan_diagnostic& _diag)
-    {
-        m_stats.diagnostics_emitted += 1;
-
-        if (m_callbacks.on_diagnostic)
-        {
-            m_callbacks.on_diagnostic(_diag);
-        }
-
-        return;
-    }
-
-    // emit_file_failed
-    //   dispatches a file-failure through the common callback
-    // and increments files_failed.  Honors abort_on_error by
-    // setting m_aborted which halts further scanning.
-    void emit_file_failed(const std::string& _path,
-                          scan_status        _status,
-                          const std::string& _message)
-    {
-        m_stats.files_failed += 1;
-
-        if (m_callbacks.on_file_failed)
-        {
-            m_callbacks.on_file_failed(_path, _status, _message);
-        }
-
-        if (m_config.abort_on_error)
-        {
-            m_aborted = true;
-        }
-
-        return;
-    }
-
 public:
-    // --------------------------------------------------------
-    //  configuration
-    // --------------------------------------------------------
-
-    // config
-    //   returns the current generic scanner config.
-    const scanner_config& config() const
+    // scan_file
+    //   method: processes one input unit by delegating to the
+    // derived's do_scan_file.  Returns the number of items the
+    // derived reported, and updates the session statistics.
+    std::size_t
+    scan_file(
+        const input_type& _input
+    )
     {
-        return m_config;
+        std::size_t produced;
+
+        m_stats.units_scanned += 1;
+
+        produced = static_cast<_Derived&>(*this)
+                       .do_scan_file(_input);
+
+        if (produced > 0)
+        {
+            m_stats.units_succeeded += 1;
+            m_stats.items_emitted   += produced;
+        }
+
+        return produced;
     }
 
-    // set_config
-    //   replaces the current generic scanner config.
-    void set_config(const scanner_config& _config)
+    // scan_files
+    //   method: convenience batch over an iterable range of input
+    // units.  Returns the total number of items emitted across the
+    // batch.
+    template<typename _Range>
+    std::size_t
+    scan_files(
+        const _Range& _inputs
+    )
     {
-        m_config = _config;
+        std::size_t total = 0;
+
+        for (typename _Range::const_iterator it = _inputs.begin();
+             it != _inputs.end();
+             ++it)
+        {
+            total += scan_file(*it);
+        }
+
+        return total;
+    }
+
+    // reset
+    //   method: clears per-session state.  The base resets its
+    // stats and diagnostics and forwards to the derived's
+    // do_reset for any user-side state.
+    void
+    reset()
+    {
+        m_stats = scanner_stats();
+        m_diagnostics.clear();
+
+        static_cast<_Derived&>(*this).do_reset();
 
         return;
     }
-
-    // set_abort_on_error
-    //   enables or disables the abort-on-error policy.
-    void set_abort_on_error(bool _abort)
-    {
-        m_config.abort_on_error = _abort;
-
-        return;
-    }
-
-    // set_max_file_size
-    //   sets the maximum file size in bytes (0 = unlimited).
-    void set_max_file_size(std::size_t _bytes)
-    {
-        m_config.max_file_size_bytes = _bytes;
-
-        return;
-    }
-
-    // --------------------------------------------------------
-    //  callbacks (common / non-item)
-    // --------------------------------------------------------
-
-    // set_callbacks_common
-    //   installs the item-type-agnostic callbacks.
-    void set_callbacks_common(const scanner_callbacks_common& _cb)
-    {
-        m_callbacks = _cb;
-
-        return;
-    }
-
-    // callbacks_common
-    //   returns the current common callbacks.
-    const scanner_callbacks_common& callbacks_common() const
-    {
-        return m_callbacks;
-    }
-
-    // --------------------------------------------------------
-    //  statistics and state query
-    // --------------------------------------------------------
 
     // stats
-    //   returns the cumulative statistics block.
-    const scanner_stats& stats() const
+    //   accessor: the per-session aggregate counts.
+    D_NODISCARD
+    const scanner_stats&
+    stats() const D_NOEXCEPT
     {
         return m_stats;
     }
 
-    // total_files_scanned
-    //   convenience accessor.
-    std::size_t total_files_scanned() const
+    // diagnostics
+    //   accessor: the per-failure diagnostic list.
+    D_NODISCARD
+    const std::vector<diagnostic_type>&
+    diagnostics() const D_NOEXCEPT
     {
-        return m_stats.files_scanned;
+        return m_diagnostics;
     }
 
-    // total_items_discovered
-    //   convenience accessor.
-    std::size_t total_items_discovered() const
-    {
-        return m_stats.items_discovered;
-    }
-
-    // scanned_files
-    //   returns the set of file paths that have been scanned.
-    const std::set<std::string>& scanned_files() const
-    {
-        return m_scanned_files;
-    }
-
-    // has_scanned
-    //   returns true if _path has already been scanned.
-    bool has_scanned(const std::string& _path) const
-    {
-        return (m_scanned_files.find(_path) !=
-                m_scanned_files.end());
-    }
-
-    // aborted
-    //   returns true if a scan has been halted by abort_on_error.
-    bool aborted() const
-    {
-        return m_aborted;
-    }
-
-    // --------------------------------------------------------
-    //  scan entry points
-    // --------------------------------------------------------
-
-    // scan_file
-    //   invokes the derived scanner on a single file.  Tracks
-    // statistics, dispatches lifecycle callbacks, and protects
-    // against duplicate scans.
-    //
-    //   Returns the number of items discovered in _path, or 0
-    // if the file was skipped or failed.
-    std::size_t
-    scan_file
-    (
-        const typename derived_type::input_type& _path
-    )
-    {
-        // Deferred structural checks: validate the derived
-        // scanner only on first use of scan_file.
-        static_assert(
-            traits::has_input_type<derived_type>::value,
-            "Scanner must define a public `input_type` typedef.");
-
-        static_assert(
-            traits::has_item_type<derived_type>::value,
-            "Scanner must define a public `item_type` typedef.");
-
-        static_assert(
-            traits::has_result_type<derived_type>::value,
-            "Scanner must define a public `result_type` typedef.");
-
-        static_assert(
-            traits::has_do_scan_file_method<derived_type>::value,
-            "Scanner must define a public `do_scan_file` member "
-            "function accepting const input_type& and returning "
-            "a size_t-convertible value.");
-
-        static_assert(
-            traits::has_do_reset_method<derived_type>::value,
-            "Scanner must define a public `do_reset` member function.");
-
-        m_stats.files_visited += 1;
-
-        if (m_aborted)
-        {
-            m_stats.files_skipped += 1;
-            return 0;
-        }
-
-        if (has_scanned(_path))
-        {
-            m_stats.files_skipped += 1;
-            return 0;
-        }
-
-        if (m_callbacks.on_file_begin &&
-            !m_callbacks.on_file_begin(_path))
-        {
-            m_stats.files_skipped += 1;
-            return 0;
-        }
-
-        // Mark as scanned up-front so derived failures don't
-        // cause re-entry on retry loops.
-        m_scanned_files.insert(_path);
-
-        std::size_t count = self().do_scan_file(_path);
-
-        m_stats.files_scanned    += 1;
-        m_stats.items_discovered += count;
-
-        if (m_callbacks.on_file_complete)
-        {
-            m_callbacks.on_file_complete(_path, count);
-        }
-
-        return count;
-    }
-
-    // scan_files
-    //   iterates a container of input_type paths, invoking
-    // scan_file on each.  Honors the aborted flag.
-    //
-    //   Returns the total number of items discovered.
-    template<typename _Container>
-    std::size_t
-    scan_files
-    (
-        const _Container& _paths
-    )
-    {
-        std::size_t total = 0;
-
-        for (const auto& path : _paths)
-        {
-            if (m_aborted)
-            {
-                break;
-            }
-
-            total += scan_file(path);
-        }
-
-        return total;
-    }
-
-    // scan_tree
-    //   walks _tree from _root in depth-first order, invoking
-    // scan_file on every regular-file node for which _pred
-    // returns true.  _pred must be callable as
-    // `bool(fs::node_id)`.
-    //
-    //   Only valid when the derived scanner's input_type is
-    // std::string — the tree produces paths.  The max-file-size
-    // policy is enforced here against each file_entry's
-    // recorded size before do_scan_file is invoked.
-    //
-    //   Returns the total number of items discovered across
-    // admitted files.
-    template<typename _Predicate>
-    std::size_t
-    scan_tree
-    (
-        const fs::file_tree& _tree,
-        fs::node_id          _root,
-        const _Predicate&    _pred
-    )
-    {
-        static_assert(
-            std::is_same<
-                typename derived_type::input_type,
-                std::string
-            >::value,
-            "scan_tree requires the derived scanner's input_type "
-            "to be std::string.");
-
-        std::size_t total = 0;
-
-        _tree.visit_depth_first(
-            _root,
-            [&](fs::node_id _id, std::size_t /*_depth*/) -> void
-            {
-                if (m_aborted)
-                {
-                    return;
-                }
-
-                const fs::file_entry& entry = _tree[_id].data;
-
-                // scanners only consume regular files; directories,
-                // symlinks, and unknown entries are passed over.
-                if (entry.type != fs::file_type_regular)
-                {
-                    return;
-                }
-
-                // honor the max-file-size policy at the walk level
-                // so the derived do_scan_file never sees oversized
-                // files.
-                if (m_config.max_file_size_bytes > 0 &&
-                    entry.size > m_config.max_file_size_bytes)
-                {
-                    m_stats.files_skipped += 1;
-                    return;
-                }
-
-                if (!_pred(_id))
-                {
-                    return;
-                }
-
-                total += scan_file(_tree.full_path(_id));
-            }
-        );
-
-        return total;
-    }
-
-    // scan_tree (no-filter overload)
-    //   scans every regular file reachable from _root.
-    std::size_t
-    scan_tree
-    (
-        const fs::file_tree& _tree,
-        fs::node_id          _root = 0
-    )
-    {
-        return scan_tree(
-            _tree,
-            _root,
-            [](fs::node_id) -> bool { return true; }
-        );
-    }
-
-    // scan_directory
-    //   convenience: builds a temporary file_tree from _dir and
-    // scans every regular file it contains.  For callers that
-    // do not need a persistent file_tree artifact; those who
-    // do should call fs::file_tree::scan + scan_tree directly.
-    std::size_t
-    scan_directory
-    (
-        const std::string& _dir
-    )
-    {
-        fs::file_tree ft;
-
-        fs::node_id root = ft.scan(_dir);
-
-        if (root == fs::null_node)
-        {
-            return 0;
-        }
-
-        return scan_tree(ft, root);
-    }
-
-    // reset
-    //   clears all accumulated state (scanned files set,
-    // statistics, abort flag) and delegates to the derived
-    // do_reset.  The configuration is preserved; use
-    // `set_config(scanner_config())` to reset that too.
+protected:
+    // emit_file_failed
+    //   method: records a per-input failure.  The diagnostic
+    // carries a parse_error so a downstream parse failure can be
+    // surfaced with full offset/message detail in the same shape.
     void
-    reset()
+    emit_file_failed(
+        const input_type&  _input,
+        scan_status        _status,
+        const std::string& _message
+    )
     {
-        m_stats.reset();
-        m_scanned_files.clear();
-        m_aborted = false;
+        m_diagnostics.push_back(
+            diagnostic_type(
+                _input,
+                _status,
+                parse_error(
+                    DParseStatusFailure,
+                    0,
+                    _message)));
 
-        self().do_reset();
+        m_stats.units_failed += 1;
 
         return;
     }
+
+    // emit_file_failed (parse_error overload)
+    //   method: convenience overload taking a full parse_error so
+    // a downstream parse failure can flow through unchanged.
+    void
+    emit_file_failed(
+        const input_type&  _input,
+        scan_status        _status,
+        const parse_error& _error
+    )
+    {
+        m_diagnostics.push_back(
+            diagnostic_type(_input, _status, _error));
+
+        m_stats.units_failed += 1;
+
+        return;
+    }
+
+    scanner_stats                m_stats;
+    std::vector<diagnostic_type> m_diagnostics;
 };
+
+
+// ================================================================
+//  V.   method-shape detectors
+// ================================================================
+
+NS_INTERNAL
+
+    // has_do_scan_file_method_helper
+    //   trait: detects a `do_scan_file(const input_type&)` member.
+    template<typename _T,
+             typename = void>
+    struct has_do_scan_file_method_helper : std::false_type
+    {};
+
+    template<typename _T>
+    struct has_do_scan_file_method_helper<_T,
+        void_t<decltype(
+            std::declval<_T&>().do_scan_file(
+                std::declval<
+                    const typename clean_t<_T>::input_type&>()))>
+    > : std::true_type
+    {};
+
+    // has_do_reset_method_helper
+    //   trait: detects a `do_reset()` member.
+    template<typename _T,
+             typename = void>
+    struct has_do_reset_method_helper : std::false_type
+    {};
+
+    template<typename _T>
+    struct has_do_reset_method_helper<_T,
+        void_t<decltype(std::declval<_T&>().do_reset())>
+    > : std::true_type
+    {};
+
+    // has_scan_file_method_helper
+    //   trait: detects a `scan_file(const input_type&)` member.
+    template<typename _T,
+             typename = void>
+    struct has_scan_file_method_helper : std::false_type
+    {};
+
+    template<typename _T>
+    struct has_scan_file_method_helper<_T,
+        void_t<decltype(
+            std::declval<_T&>().scan_file(
+                std::declval<
+                    const typename clean_t<_T>::input_type&>()))>
+    > : std::true_type
+    {};
+
+    // has_scan_directory_method_helper
+    //   trait: detects a `scan_directory(const std::string&)`
+    // member (typically added by file_scanner.hpp).
+    template<typename _T,
+             typename = void>
+    struct has_scan_directory_method_helper : std::false_type
+    {};
+
+    template<typename _T>
+    struct has_scan_directory_method_helper<_T,
+        void_t<decltype(
+            std::declval<_T&>().scan_directory(
+                std::declval<const std::string&>()))>
+    > : std::true_type
+    {};
+
+    // has_results_method_helper
+    //   trait: detects a `results()` member.
+    template<typename _T,
+             typename = void>
+    struct has_results_method_helper : std::false_type
+    {};
+
+    template<typename _T>
+    struct has_results_method_helper<_T,
+        void_t<decltype(std::declval<const _T&>().results())>
+    > : std::true_type
+    {};
+
+NS_END  // internal
+
+// has_do_scan_file_method
+template<typename _T>
+struct has_do_scan_file_method
+    : internal::has_do_scan_file_method_helper<_T>
+{};
+
+// has_do_reset_method
+template<typename _T>
+struct has_do_reset_method
+    : internal::has_do_reset_method_helper<_T>
+{};
+
+// has_scan_file_method
+template<typename _T>
+struct has_scan_file_method
+    : internal::has_scan_file_method_helper<_T>
+{};
+
+// has_scan_directory_method
+template<typename _T>
+struct has_scan_directory_method
+    : internal::has_scan_directory_method_helper<_T>
+{};
+
+// has_results_method
+template<typename _T>
+struct has_results_method
+    : internal::has_results_method_helper<_T>
+{};
+
+
+// ================================================================
+//  VI.  is_scanner  /  is_file_scanner
+// ================================================================
+
+NS_INTERNAL
+
+    // is_scanner_helper
+    //   trait: primary template (failure case).
+    template<typename _T,
+             typename = void>
+    struct is_scanner_helper : std::false_type
+    {};
+
+    // is_scanner_helper (success case)
+    //   trait: succeeds when _T exposes input_type, item_type,
+    // result_type, and a callable do_scan_file taking
+    // input_type& and returning a size.
+    template<typename _T>
+    struct is_scanner_helper<_T,
+        void_t<
+            typename clean_t<_T>::input_type,
+            typename clean_t<_T>::item_type,
+            typename clean_t<_T>::result_type,
+            decltype(
+                std::declval<_T&>().do_scan_file(
+                    std::declval<
+                        const typename clean_t<_T>::input_type&>()))>
+    > : std::true_type
+    {};
+
+    // is_file_scanner_helper
+    //   trait: primary template (failure case).
+    template<typename _T,
+             bool     _IsScanner = is_scanner_helper<_T>::value,
+             typename             = void>
+    struct is_file_scanner_helper : std::false_type
+    {};
+
+    // is_file_scanner_helper (success case)
+    //   trait: a scanner whose input_type is std::string.
+    template<typename _T>
+    struct is_file_scanner_helper<_T,
+        true,
+        typename std::enable_if<
+            std::is_same<typename clean_t<_T>::input_type,
+                         std::string>::value>::type
+    > : std::true_type
+    {};
+
+NS_END  // internal
+
+// is_scanner
+//   trait: full structural check for scanner conformance.
+template<typename _T>
+struct is_scanner : internal::is_scanner_helper<_T>
+{};
+
+// is_file_scanner
+//   trait: a structurally conforming scanner whose input_type is
+// std::string — the path-driven scanner case.
+template<typename _T>
+struct is_file_scanner : internal::is_file_scanner_helper<_T>
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    static constexpr bool is_scanner_v = is_scanner<_T>::value;
+
+    template<typename _T>
+    static constexpr bool is_file_scanner_v =
+        is_file_scanner<_T>::value;
+#endif
+
+
+// ================================================================
+//  VII. compatibility traits
+// ================================================================
+
+NS_INTERNAL
+
+    // scanners_share_input_helper
+    template<typename _A,
+             typename _B,
+             bool     _BothScanners = ( is_scanner<_A>::value &&
+                                        is_scanner<_B>::value ),
+             typename = void>
+    struct scanners_share_input_helper : std::false_type
+    {};
+
+    template<typename _A,
+             typename _B>
+    struct scanners_share_input_helper<_A, _B,
+        true,
+        typename std::enable_if<
+            std::is_same<
+                typename clean_t<_A>::input_type,
+                typename clean_t<_B>::input_type>::value>::type
+    > : std::true_type
+    {};
+
+    // scanners_share_items_helper
+    template<typename _A,
+             typename _B,
+             bool     _BothScanners = ( is_scanner<_A>::value &&
+                                        is_scanner<_B>::value ),
+             typename = void>
+    struct scanners_share_items_helper : std::false_type
+    {};
+
+    template<typename _A,
+             typename _B>
+    struct scanners_share_items_helper<_A, _B,
+        true,
+        typename std::enable_if<
+            std::is_same<
+                typename clean_t<_A>::item_type,
+                typename clean_t<_B>::item_type>::value>::type
+    > : std::true_type
+    {};
+
+NS_END  // internal
+
+// scanners_share_input
+//   trait: two scanners share the same input_type and are therefore
+// batch-compatible (can process the same input list).
+template<typename _A,
+         typename _B>
+struct scanners_share_input
+    : internal::scanners_share_input_helper<_A, _B>
+{};
+
+// scanners_share_items
+//   trait: two scanners share the same item_type and are therefore
+// merge-compatible (their output streams can be concatenated).
+template<typename _A,
+         typename _B>
+struct scanners_share_items
+    : internal::scanners_share_items_helper<_A, _B>
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _A,
+             typename _B>
+    static constexpr bool scanners_share_input_v =
+        scanners_share_input<_A, _B>::value;
+
+    template<typename _A,
+             typename _B>
+    static constexpr bool scanners_share_items_v =
+        scanners_share_items<_A, _B>::value;
+#endif
+
+
+// ================================================================
+//  VIII. SFINAE-safe extractors
+// ================================================================
+
+// scanner_input_type / scanner_input_type_t
+//   trait/type: SFINAE-safe extraction of a scanner's input_type;
+// yields `void` when absent.
+D_DEFINE_MEMBER_TYPE_OR(scanner_input_type, input_type, void)
+
+// scanner_item_type / scanner_item_type_t
+//   trait/type: SFINAE-safe extraction of a scanner's item_type.
+D_DEFINE_MEMBER_TYPE_OR(scanner_item_type, item_type, void)
+
+// scanner_result_type / scanner_result_type_t
+//   trait/type: SFINAE-safe extraction of a scanner's result_type.
+D_DEFINE_MEMBER_TYPE_OR(scanner_result_type, result_type, void)
+
+
+// ================================================================
+//  IX.  C++20 concepts
+// ================================================================
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+    // scanner_surface
+    //   concept: a type exposing input_type, item_type, and
+    // result_type.
+    template<typename _T>
+    concept scanner_surface =
+        ( has_input_type<_T>::value  &&
+          has_item_type<_T>::value   &&
+          has_result_type<_T>::value );
+
+    // scanner_concept
+    //   concept: structurally conforming scanner.
+    template<typename _T>
+    concept scanner_concept = is_scanner<_T>::value;
+
+    // file_scanner_concept
+    //   concept: a scanner whose input_type is std::string.
+    template<typename _T>
+    concept file_scanner_concept = is_file_scanner<_T>::value;
+
+    // stateful_scanner_concept
+    //   concept: a scanner with reset and results access.
+    template<typename _T>
+    concept stateful_scanner_concept =
+        ( scanner_concept<_T>           &&
+          has_do_reset_method<_T>::value &&
+          has_results_method<_T>::value );
+
+    // directory_scanner_concept
+    //   concept: a scanner supporting directory traversal.
+    template<typename _T>
+    concept directory_scanner_concept =
+        ( scanner_concept<_T> &&
+          has_scan_directory_method<_T>::value );
+
+    // scanners_batch_compatible
+    //   concept: a scanner pair sharing input_type.
+    template<typename _A,
+             typename _B>
+    concept scanners_batch_compatible =
+        scanners_share_input<_A, _B>::value;
+
+    // scanners_merge_compatible
+    //   concept: a scanner pair sharing item_type.
+    template<typename _A,
+             typename _B>
+    concept scanners_merge_compatible =
+        scanners_share_items<_A, _B>::value;
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // parse
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_SCANNER_
+#endif  // DJINTERP_PARSE_SCANNER_
