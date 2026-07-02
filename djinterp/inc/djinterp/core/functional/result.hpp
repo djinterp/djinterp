@@ -144,7 +144,7 @@ public:
     result() = delete;
 
     // constructor (ok, copy)
-    D_CONSTEXPR20 result(
+    D_CONSTEXPR result(
         internal::ok_tag,
         const _Type& _value
     )
@@ -154,7 +154,7 @@ public:
     }
 
     // constructor (ok, move)
-    D_CONSTEXPR20 result(
+    D_CONSTEXPR result(
         internal::ok_tag,
         _Type&& _value
     )
@@ -164,7 +164,7 @@ public:
     }
 
     // constructor (err, copy)
-    D_CONSTEXPR20 result(
+    D_CONSTEXPR result(
         internal::err_tag,
         const _Error& _error
     )
@@ -174,7 +174,7 @@ public:
     }
 
     // constructor (err, move)
-    D_CONSTEXPR20 result(
+    D_CONSTEXPR result(
         internal::err_tag,
         _Error&& _error
     )
@@ -184,7 +184,7 @@ public:
     }
 
     // constructor (copy)
-    D_CONSTEXPR20 result(
+    D_CONSTEXPR result(
         const result& _other
     )
         : m_is_ok(_other.m_is_ok)
@@ -200,7 +200,7 @@ public:
     }
 
     // constructor (move)
-    D_CONSTEXPR20 result(
+    D_CONSTEXPR result(
         result&& _other
     ) noexcept(std::is_nothrow_move_constructible<_Type>::value &&
                std::is_nothrow_move_constructible<_Error>::value)
@@ -217,14 +217,14 @@ public:
     }
 
     // destructor
-    D_CONSTEXPR20
+    D_CONSTEXPR
     ~result()
     {
         destroy_active();
     }
 
     // assignment (copy)
-    D_CONSTEXPR20 result& 
+    D_CONSTEXPR result& 
     operator=(
         const result& _other
     )
@@ -267,7 +267,7 @@ public:
     }
 
     // assignment (move)
-    D_CONSTEXPR20 result& 
+    D_CONSTEXPR result& 
     operator=(
         result&& _other
     ) noexcept(std::is_nothrow_move_assignable<_Type>::value     &&
@@ -330,21 +330,21 @@ public:
     //   method: returns the contained value. Behavior is
     // undefined when is_err(); use value_or or unwrap for safe
     // access.
-    D_NODISCARD D_CONSTEXPR20 const 
+    D_NODISCARD D_CONSTEXPR const 
     _Type& value() const&
     {
         return *value_pointer();
     }
 
     // value (mutable)
-    D_NODISCARD D_CONSTEXPR20 _Type& 
+    D_NODISCARD D_CONSTEXPR _Type& 
     value() &
     {
         return *value_pointer();
     }
 
     // value (rvalue)
-    D_NODISCARD D_CONSTEXPR20 _Type&& 
+    D_NODISCARD D_CONSTEXPR _Type&& 
     value() &&
     {
         return std::move(*value_pointer());
@@ -353,14 +353,14 @@ public:
     // error (const)
     //   method: returns the contained error. Behavior is
     // undefined when is_ok().
-    D_NODISCARD D_CONSTEXPR20 const _Error& 
+    D_NODISCARD D_CONSTEXPR const _Error& 
     error() const&
     {
         return *error_pointer();
     }
 
     // error (mutable)
-    D_NODISCARD D_CONSTEXPR20 _Error& 
+    D_NODISCARD D_CONSTEXPR _Error& 
     error() &
     {
         return *error_pointer();
@@ -371,7 +371,7 @@ public:
     // _default. _default is evaluated unconditionally; for
     // expensive defaults use or_else with a lambda.
     template<typename _U>
-    D_NODISCARD D_CONSTEXPR20 _Type
+    D_NODISCARD D_CONSTEXPR _Type
     value_or(
         _U&& _default
     ) const&
@@ -405,7 +405,7 @@ public:
     // the result; if err, propagates the error unchanged into the
     // new result type.
     template<typename _Function>
-    D_NODISCARD D_CONSTEXPR20 auto
+    D_NODISCARD D_CONSTEXPR auto
     map(
         _Function _function
     ) const
@@ -433,7 +433,7 @@ public:
     // case is propagated unchanged. Useful for converting between
     // error type hierarchies.
     template<typename _Function>
-    D_NODISCARD D_CONSTEXPR20 auto 
+    D_NODISCARD D_CONSTEXPR auto 
     map_err(
         _Function _function
     ) const
@@ -461,7 +461,7 @@ public:
     // return a result whose error type matches this one; on err,
     // _function is not invoked and the error propagates.
     template<typename _Function>
-    D_NODISCARD D_CONSTEXPR20 auto 
+    D_NODISCARD D_CONSTEXPR auto 
     and_then(
         _Function _function
     ) const
@@ -487,7 +487,7 @@ public:
     // recovery function may return a result of the same shape
     // (offering an alternative ok value, or a different err).
     template<typename _Function>
-    D_NODISCARD D_CONSTEXPR20 auto 
+    D_NODISCARD D_CONSTEXPR auto 
     or_else(
         _Function _function
     ) const
@@ -513,7 +513,7 @@ public:
     // callables must return the same type.
     template<typename _OnOk,
              typename _OnErr>
-    D_NODISCARD D_CONSTEXPR20 auto 
+    D_NODISCARD D_CONSTEXPR auto 
     match(
         _OnOk  _on_ok,
         _OnErr _on_err
@@ -578,8 +578,8 @@ private:
         _Type             m_value;
         _Error            m_error;
 
-        D_CONSTEXPR20 storage_t() noexcept : m_empty() {}
-        D_CONSTEXPR20 ~storage_t() {}
+        D_CONSTEXPR storage_t() noexcept : m_empty() {}
+        D_CONSTEXPR ~storage_t() {}
     };
 
     storage_t m_union;
@@ -588,7 +588,7 @@ private:
     //   construct the active branch in place. Caller is responsible for
     // setting m_is_ok consistently.
     template<typename... _Args>
-    D_CONSTEXPR20 void 
+    D_CONSTEXPR void 
     construct_value(
         _Args&&... _args
     )
@@ -600,7 +600,7 @@ private:
     }
 
     template<typename... _Args>
-    D_CONSTEXPR20 void 
+    D_CONSTEXPR void 
     construct_error(
         _Args&&... _args
     )
@@ -613,7 +613,7 @@ private:
 
     // destroy_active
     //   destroys whichever branch is currently live.
-    D_CONSTEXPR20 void 
+    D_CONSTEXPR void 
     destroy_active() noexcept
     {
         if (m_is_ok)
@@ -629,25 +629,25 @@ private:
     }
 
     // typed pointers to the active union members
-    D_CONSTEXPR20 const _Type* 
+    D_CONSTEXPR const _Type* 
     value_pointer() const noexcept
     {
         return std::addressof(m_union.m_value);
     }
 
-    D_CONSTEXPR20 _Type* 
+    D_CONSTEXPR _Type* 
     value_pointer() noexcept
     {
         return std::addressof(m_union.m_value);
     }
 
-    D_CONSTEXPR20 const _Error* 
+    D_CONSTEXPR const _Error* 
     error_pointer() const noexcept
     {
         return std::addressof(m_union.m_error);
     }
 
-    D_CONSTEXPR20 _Error*
+    D_CONSTEXPR _Error*
     error_pointer() noexcept
     {
         return std::addressof(m_union.m_error);
@@ -1196,7 +1196,7 @@ struct monad_traits<result<_Type, _Error>>
     //   lifts a value into result as an ok. The error type is
     // preserved by rebind; no error can be produced by unit
     // alone.
-    static D_CONSTEXPR20 result<_Type, _Error>
+    static D_CONSTEXPR result<_Type, _Error>
     unit(
         _Type _value
     )
@@ -1210,11 +1210,11 @@ struct monad_traits<result<_Type, _Error>>
     //   monadic bind on the success side. Threads the value
     // through _function (which must return a result with the
     // same _Error); err propagates unchanged.
-    //   D_CONSTEXPR20 so the generic monad_bind / monad_map fold at
+    //   D_CONSTEXPR so the generic monad_bind / monad_map fold at
     // compile time over a carrier-holding result under C++20 (runtime
     // on the C++17 floor, where result is not a literal type).
     template<typename _Function>
-    static D_CONSTEXPR20 auto 
+    static D_CONSTEXPR auto 
     bind(
         const result<_Type, _Error>& _r,
         _Function             _function
@@ -1244,13 +1244,13 @@ struct foldable_traits<
 
     // fold_left
     //   threads _init through the success value when ok; identity on err.
-    //   D_CONSTEXPR20 so the generic folds fold at compile time over a
+    //   D_CONSTEXPR so the generic folds fold at compile time over a
     // carrier-holding result under C++20 (runtime on the C++17 floor, where
     // result is not a literal type).
     template<typename _Acc,
              typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Acc fold_left(
         const _Result& _r,
         _Acc           _init,
@@ -1277,7 +1277,7 @@ NS_INTERNAL
              typename _Error>
     struct traversable_ok_helper
     {
-        D_CONSTEXPR20
+        D_CONSTEXPR
         result<_Value, _Error> operator()(
             const _Value& _value
         ) const
@@ -1309,7 +1309,7 @@ struct traversable_traits<
     //   F<result<B,Error>> from a result<A,Error> and f : A -> F<B>.
     template<typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     auto traverse(
         const _Result& _r,
         _Function      _function
@@ -1358,7 +1358,7 @@ struct bifunctor_traits<
     template<typename _First,
              typename _Second>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     auto bimap(
         const _Result& _r,
         _First         _f,

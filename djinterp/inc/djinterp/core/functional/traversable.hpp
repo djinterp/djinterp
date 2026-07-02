@@ -197,7 +197,7 @@ NS_INTERNAL
     template<typename _Value>
     struct traversable_append_helper
     {
-        D_CONSTEXPR20
+        D_CONSTEXPR
         std::vector<_Value> operator()(
             std::vector<_Value> _acc,
             const _Value&       _element
@@ -244,7 +244,7 @@ struct traversable_traits<std::vector<_Type>, void>
     //   F<std::vector<B>> from a std::vector<A> and f : A -> F<B>.
     template<typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     typename monad_rebind<
         decltype(std::declval<_Function&>()(std::declval<const _Type&>())),
         std::vector<applicative_value_type_t<decltype(

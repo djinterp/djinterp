@@ -880,250 +880,242 @@ NS_END  // internal
 ///             II.   CONSUMER FACTORIES                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace consumers
+// print_to
+//   function: builds a consumer that writes each value to the
+// given output stream, followed by _sep. _sep defaults to '\n'.
+template<typename _Stream,
+            typename _Sep>
+D_CONSTEXPR
+internal::print_to_helper<_Stream,
+                            typename std::decay<_Sep>::type>
+print_to(
+    _Stream& _stream,
+    _Sep&&   _separator
+)
 {
-
-    // print_to
-    //   function: builds a consumer that writes each value to the
-    // given output stream, followed by _sep. _sep defaults to '\n'.
-    template<typename _Stream,
-             typename _Sep>
-    D_CONSTEXPR
-    internal::print_to_helper<_Stream,
-                              typename std::decay<_Sep>::type>
-    print_to(
-        _Stream& _stream,
-        _Sep&&   _separator
-    )
-    {
-        return internal::print_to_helper<
-            _Stream, 
-            typename std::decay<_Sep>::type>(
-                _stream,
-                std::forward<_Sep>(_separator));
-    }
+    return internal::print_to_helper<
+        _Stream, 
+        typename std::decay<_Sep>::type>(
+            _stream,
+            std::forward<_Sep>(_separator));
+}
 
 
-    // print_to (default separator)
-    //   function: as print_to(stream, sep), with sep = '\n'.
-    template<typename _Stream>
-    D_CONSTEXPR internal::print_to_helper<_Stream,
-                                          char>
-    print_to(
-        _Stream& _stream
-    )
-    {
-        return internal::print_to_helper<_Stream,
-                                         char>(_stream, '\n');
-    }
+// print_to (default separator)
+//   function: as print_to(stream, sep), with sep = '\n'.
+template<typename _Stream>
+D_CONSTEXPR internal::print_to_helper<_Stream,
+                                        char>
+print_to(
+    _Stream& _stream
+)
+{
+    return internal::print_to_helper<_Stream,
+                                        char>(_stream, '\n');
+}
 
 
-    // write_to
-    //   function: builds a consumer that appends each input to the
-    // given container via push_back. The container must outlive the
-    // consumer.
-    template<typename _Container>
-    D_CONSTEXPR internal::write_to_helper<_Container>
-    write_to(
-        _Container& _container
-    )
-    {
-        return internal::write_to_helper<_Container>(_container);
-    }
+// write_to
+//   function: builds a consumer that appends each input to the
+// given container via push_back. The container must outlive the
+// consumer.
+template<typename _Container>
+D_CONSTEXPR internal::write_to_helper<_Container>
+write_to(
+    _Container& _container
+)
+{
+    return internal::write_to_helper<_Container>(_container);
+}
 
 
-    // discard
-    //   function: builds a consumer that drops every input. Useful as
-    // a default sink in branching constructs (conditional, fallback).
-    D_CONSTEXPR inline internal::discard_helper
-    discard()
-    {
-        return internal::discard_helper{};
-    }
+// discard
+//   function: builds a consumer that drops every input. Useful as
+// a default sink in branching constructs (conditional, fallback).
+D_CONSTEXPR inline internal::discard_helper
+discard()
+{
+    return internal::discard_helper{};
+}
 
 
-    // count_into
-    //   function: builds a consumer that increments _counter for each
-    // input. The counter must outlive the consumer.
-    inline internal::count_into_helper
-    count_into(
-        std::size_t& _counter
-    )
-    {
-        return internal::count_into_helper(_counter);
-    }
+// count_into
+//   function: builds a consumer that increments _counter for each
+// input. The counter must outlive the consumer.
+inline internal::count_into_helper
+count_into(
+    std::size_t& _counter
+)
+{
+    return internal::count_into_helper(_counter);
+}
 
 
-    // filtered
-    //   function: wraps a consumer with a predicate gate. Only inputs
-    // for which _predicate returns true are passed through.
-    template<typename _Consumer,
-             typename _Predicate>
-    D_CONSTEXPR internal::filtered_consumer_helper<
-                    typename std::decay<_Consumer>::type,
-                    typename std::decay<_Predicate>::type
-    >
-    filtered(
-        _Consumer&&  _consumer,
-        _Predicate&& _predicate
-    )
-    {
-        return internal::filtered_consumer_helper<
-            typename std::decay<_Consumer>::type,
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Consumer>(_consumer),
-                std::forward<_Predicate>(_predicate));
-    }
+// filtered
+//   function: wraps a consumer with a predicate gate. Only inputs
+// for which _predicate returns true are passed through.
+template<typename _Consumer,
+            typename _Predicate>
+D_CONSTEXPR internal::filtered_consumer_helper<
+                typename std::decay<_Consumer>::type,
+                typename std::decay<_Predicate>::type
+>
+filtered(
+    _Consumer&&  _consumer,
+    _Predicate&& _predicate
+)
+{
+    return internal::filtered_consumer_helper<
+        typename std::decay<_Consumer>::type,
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Consumer>(_consumer),
+            std::forward<_Predicate>(_predicate));
+}
 
 
-    // mapped
-    //   function: wraps a consumer<B> with a transform f : A -> B,
-    // producing a consumer<A>. This is the contramap operation.
-    template<typename _Consumer,
-             typename _Function>
-    D_CONSTEXPR internal::mapped_consumer_helper<
-                    typename std::decay<_Consumer>::type,
-                    typename std::decay<_Function>::type
-    >
-    mapped(
-        _Consumer&& _consumer,
-        _Function&& _function
-    )
-    {
-        return internal::mapped_consumer_helper<
-            typename std::decay<_Consumer>::type,
-            typename std::decay<_Function>::type>(
-                std::forward<_Consumer>(_consumer),
-                std::forward<_Function>(_function));
-    }
+// mapped
+//   function: wraps a consumer<B> with a transform f : A -> B,
+// producing a consumer<A>. This is the contramap operation.
+template<typename _Consumer,
+            typename _Function>
+D_CONSTEXPR internal::mapped_consumer_helper<
+                typename std::decay<_Consumer>::type,
+                typename std::decay<_Function>::type
+>
+mapped(
+    _Consumer&& _consumer,
+    _Function&& _function
+)
+{
+    return internal::mapped_consumer_helper<
+        typename std::decay<_Consumer>::type,
+        typename std::decay<_Function>::type>(
+            std::forward<_Consumer>(_consumer),
+            std::forward<_Function>(_function));
+}
 
 
-    // tee
-    //   function: variadic broadcast. Returns a consumer that invokes
-    // each of its inner consumers in order for every received value.
-    // tee(c) degenerates to c; tee() is ill-formed (use discard()).
-    template<typename... _Consumers>
-    D_CONSTEXPR internal::tee_consumer_helper<
-        typename std::decay<_Consumers>::type...
-    >
-    tee(
-        _Consumers&&... _consumers
-    )
-    {
-        return internal::tee_consumer_helper<
-            typename std::decay<_Consumers>::type...>(
-                std::forward<_Consumers>(_consumers)...);
-    }
+// tee
+//   function: variadic broadcast. Returns a consumer that invokes
+// each of its inner consumers in order for every received value.
+// tee(c) degenerates to c; tee() is ill-formed (use discard()).
+template<typename... _Consumers>
+D_CONSTEXPR internal::tee_consumer_helper<
+    typename std::decay<_Consumers>::type...
+>
+tee(
+    _Consumers&&... _consumers
+)
+{
+    return internal::tee_consumer_helper<
+        typename std::decay<_Consumers>::type...>(
+            std::forward<_Consumers>(_consumers)...);
+}
 
 
-    // batched
-    //   function: wraps a consumer so that it fires only every _stride
-    // inputs. The wrapped consumer sees only those values that fall on
-    // a stride boundary; intermediate values are dropped.
-    template<typename _Consumer>
-    D_CONSTEXPR internal::batched_consumer_helper<
-        typename std::decay<_Consumer>::type
-    >
-    batched(
-        _Consumer&& _consumer,
-        std::size_t _stride
-    )
-    {
-        return internal::batched_consumer_helper<
-            typename std::decay<_Consumer>::type>(
-                std::forward<_Consumer>(_consumer), _stride);
-    }
+// batched
+//   function: wraps a consumer so that it fires only every _stride
+// inputs. The wrapped consumer sees only those values that fall on
+// a stride boundary; intermediate values are dropped.
+template<typename _Consumer>
+D_CONSTEXPR internal::batched_consumer_helper<
+    typename std::decay<_Consumer>::type
+>
+batched(
+    _Consumer&& _consumer,
+    std::size_t _stride
+)
+{
+    return internal::batched_consumer_helper<
+        typename std::decay<_Consumer>::type>(
+            std::forward<_Consumer>(_consumer), _stride);
+}
 
 
-    // take
-    //   function: wraps a consumer to fire on at most the first _n
-    // inputs; all subsequent inputs are silently dropped.
-    template<typename _Consumer>
-    D_CONSTEXPR
-    internal::take_consumer_helper<
-        typename std::decay<_Consumer>::type
-    >
-    take(
-        _Consumer&& _consumer,
-        std::size_t _n
-    )
-    {
-        return internal::take_consumer_helper<
-            typename std::decay<_Consumer>::type>(
-                std::forward<_Consumer>(_consumer), _n);
-    }
+// take
+//   function: wraps a consumer to fire on at most the first _n
+// inputs; all subsequent inputs are silently dropped.
+template<typename _Consumer>
+D_CONSTEXPR
+internal::take_consumer_helper<
+    typename std::decay<_Consumer>::type
+>
+take(
+    _Consumer&& _consumer,
+    std::size_t _n
+)
+{
+    return internal::take_consumer_helper<
+        typename std::decay<_Consumer>::type>(
+            std::forward<_Consumer>(_consumer), _n);
+}
 
 
-    // drop
-    //   function: wraps a consumer to silently drop the first _n
-    // inputs and fire on all subsequent inputs.
-    template<typename _Consumer>
-    D_CONSTEXPR internal::drop_consumer_helper<
-        typename std::decay<_Consumer>::type
-    >
-    drop(
-        _Consumer&& _consumer,
-        std::size_t _n
-    )
-    {
-        return internal::drop_consumer_helper<
-            typename std::decay<_Consumer>::type>(
-                std::forward<_Consumer>(_consumer), _n);
-    }
+// drop
+//   function: wraps a consumer to silently drop the first _n
+// inputs and fire on all subsequent inputs.
+template<typename _Consumer>
+D_CONSTEXPR internal::drop_consumer_helper<
+    typename std::decay<_Consumer>::type
+>
+drop(
+    _Consumer&& _consumer,
+    std::size_t _n
+)
+{
+    return internal::drop_consumer_helper<
+        typename std::decay<_Consumer>::type>(
+            std::forward<_Consumer>(_consumer), _n);
+}
 
 
-    // conditional
-    //   function: returns a consumer that routes each input to
-    // _if_true (when _predicate(input) is true) or _if_false
-    // (otherwise). The predicate is evaluated exactly once per input.
-    template<typename _Predicate,
-             typename _IfTrue,
-             typename _IfFalse>
-    D_CONSTEXPR internal::conditional_consumer_helper<
-                   typename std::decay<_Predicate>::type,
-                   typename std::decay<_IfTrue>::type,
-                   typename std::decay<_IfFalse>::type
-    >
-    conditional(
-        _Predicate&& _predicate,
-        _IfTrue&&    _if_true,
-        _IfFalse&&   _if_false
-    )
-    {
-        return internal::conditional_consumer_helper<
-            typename std::decay<_Predicate>::type,
-            typename std::decay<_IfTrue>::type,
-            typename std::decay<_IfFalse>::type>(
-                std::forward<_Predicate>(_predicate),
-                std::forward<_IfTrue>(_if_true),
-                std::forward<_IfFalse>(_if_false));
-    }
+// conditional
+//   function: returns a consumer that routes each input to
+// _if_true (when _predicate(input) is true) or _if_false
+// (otherwise). The predicate is evaluated exactly once per input.
+template<typename _Predicate,
+         typename _IfTrue,
+         typename _IfFalse>
+D_CONSTEXPR internal::conditional_consumer_helper<
+                typename std::decay<_Predicate>::type,
+                typename std::decay<_IfTrue>::type,
+                typename std::decay<_IfFalse>::type>
+conditional(
+    _Predicate&& _predicate,
+    _IfTrue&&    _if_true,
+    _IfFalse&&   _if_false
+)
+{
+    return internal::conditional_consumer_helper<
+        typename std::decay<_Predicate>::type,
+        typename std::decay<_IfTrue>::type,
+        typename std::decay<_IfFalse>::type>(
+            std::forward<_Predicate>(_predicate),
+            std::forward<_IfTrue>(_if_true),
+            std::forward<_IfFalse>(_if_false));
+}
 
 
-    // fallback
-    //   function: returns a consumer that invokes _primary; if it
-    // throws, the exception is caught and _secondary is invoked
-    // instead. Exceptions from _secondary still propagate.
-    template<typename _Primary,
-             typename _Secondary>
-    D_CONSTEXPR internal::fallback_consumer_helper<
+// fallback
+//   function: returns a consumer that invokes _primary; if it
+// throws, the exception is caught and _secondary is invoked
+// instead. Exceptions from _secondary still propagate.
+template<typename _Primary,
+         typename _Secondary>
+D_CONSTEXPR internal::fallback_consumer_helper<
+                typename std::decay<_Primary>::type,
+                typename std::decay<_Secondary>::type>
+fallback(
+    _Primary&&   _primary,
+    _Secondary&& _secondary
+)
+{
+    return internal::fallback_consumer_helper<
         typename std::decay<_Primary>::type,
-        typename std::decay<_Secondary>::type
-    >
-    fallback(
-        _Primary&&   _primary,
-        _Secondary&& _secondary
-    )
-    {
-        return internal::fallback_consumer_helper<
-            typename std::decay<_Primary>::type,
-            typename std::decay<_Secondary>::type>(
-                std::forward<_Primary>(_primary),
-                std::forward<_Secondary>(_secondary));
-    }
-
-}   // namespace consumers
-
+        typename std::decay<_Secondary>::type>(
+            std::forward<_Primary>(_primary),
+            std::forward<_Secondary>(_secondary));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             III.  TYPE ERASURE                                          ///

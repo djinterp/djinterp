@@ -148,7 +148,7 @@ public:
     {}
 
     // constructor (value, copy)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe(
         const _Type& _value
     )
@@ -158,7 +158,7 @@ public:
     }
 
     // constructor (value, move)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe(
         _Type&& _value
     )
@@ -168,7 +168,7 @@ public:
     }
 
     // constructor (copy)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe(
         const maybe& _other
     )
@@ -181,7 +181,7 @@ public:
     }
 
     // constructor (move)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe(
         maybe&& _other
     ) noexcept(std::is_nothrow_move_constructible<_Type>::value)
@@ -194,14 +194,14 @@ public:
     }
 
     // destructor
-    D_CONSTEXPR20
+    D_CONSTEXPR
     ~maybe()
     {
         reset();
     }
 
     // assignment (copy)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe& operator=(
         const maybe& _other
     )
@@ -232,7 +232,7 @@ public:
     }
 
     // assignment (move)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe& operator=(
         maybe&& _other
     ) noexcept(std::is_nothrow_move_assignable<_Type>::value &&
@@ -264,7 +264,7 @@ public:
     }
 
     // assignment (nothing)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe& operator=(
         nothing_t
     ) noexcept
@@ -275,7 +275,7 @@ public:
     }
 
     // assignment (value)
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe& operator=(
         const _Type& _value
     )
@@ -293,7 +293,7 @@ public:
         return *this;
     }
 
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe& operator=(
         _Type&& _value
     )
@@ -331,7 +331,7 @@ public:
     // Behavior is undefined when has_value() is false; use
     // value_or, expect, or match for safe access.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     const _Type& value() const&
     {
         return *pointer();
@@ -339,7 +339,7 @@ public:
 
     // value (mutable)
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Type& value() &
     {
         return *pointer();
@@ -347,7 +347,7 @@ public:
 
     // value (rvalue)
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Type&& value() &&
     {
         return std::move(*pointer());
@@ -359,7 +359,7 @@ public:
     // expensive defaults, use or_else with a lambda.
     template<typename _U>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Type value_or(
         _U&& _default
     ) const&
@@ -391,7 +391,7 @@ public:
     // reset
     //   method: destroys the contained value, if any, leaving the
     // maybe in the nothing state.
-    D_CONSTEXPR20
+    D_CONSTEXPR
     void reset() noexcept
     {
         if (m_has_value)
@@ -407,7 +407,7 @@ public:
     //   method: constructs a new value in place from the given
     // arguments. Destroys any existing value first.
     template<typename... _Args>
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Type& emplace(
         _Args&&... _args
     )
@@ -425,7 +425,7 @@ public:
     // empty maybe of the mapped type.
     template<typename _Function>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     auto map(
         _Function _function
     ) const
@@ -449,7 +449,7 @@ public:
     // maybe of the result type is returned.
     template<typename _Function>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     auto and_then(
         _Function _function
     ) const
@@ -474,7 +474,7 @@ public:
     // fall back to that" chains.
     template<typename _Function>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe or_else(
         _Function _function
     ) const
@@ -493,7 +493,7 @@ public:
     // and and_then for conditional pipelines.
     template<typename _Predicate>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe filter(
         _Predicate _predicate
     ) const
@@ -513,7 +513,7 @@ public:
     template<typename _OnJust,
              typename _OnNothing>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     auto match(
         _OnJust    _on_just,
         _OnNothing _on_nothing
@@ -557,11 +557,11 @@ private:
 
         // trivial ctor leaves m_empty active; maybe constructs m_value
         // on demand via construct_value().
-        D_CONSTEXPR20 storage_t() noexcept : m_empty() {}
+        D_CONSTEXPR storage_t() noexcept : m_empty() {}
 
         // non-trivial members mean the union cannot auto-generate these;
         // maybe drives lifetime explicitly, so they are empty.
-        D_CONSTEXPR20 ~storage_t() {}
+        D_CONSTEXPR ~storage_t() {}
     };
 
     storage_t m_union;
@@ -570,7 +570,7 @@ private:
     //   constructs the inner value in place from forwarded args using
     // std::construct_at (constexpr in C++20).
     template<typename... _Args>
-    D_CONSTEXPR20
+    D_CONSTEXPR
     void construct_value(
         _Args&&... _args
     )
@@ -584,13 +584,13 @@ private:
     // pointer (const) / (mutable)
     //   typed pointer to the active union value. Behavior is undefined
     // unless m_has_value is true.
-    D_CONSTEXPR20
+    D_CONSTEXPR
     const _Type* pointer() const noexcept
     {
         return std::addressof(m_union.m_value);
     }
 
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Type* pointer() noexcept
     {
         return std::addressof(m_union.m_value);
@@ -598,7 +598,7 @@ private:
 
     // destroy_value
     //   destroys the active value via std::destroy_at (constexpr C++20).
-    D_CONSTEXPR20
+    D_CONSTEXPR
     void destroy_value() noexcept
     {
         std::destroy_at(std::addressof(m_union.m_value));
@@ -1109,7 +1109,7 @@ struct monad_traits<maybe<_Type>>
     // unit
     //   lifts a value into maybe. Equivalent to just().
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     maybe<_Type>
     unit(
         _Type _value
@@ -1121,12 +1121,12 @@ struct monad_traits<maybe<_Type>>
     // bind
     //   monadic bind. Threads the contained value through
     // _function (which must return a maybe of some type).
-    //   D_CONSTEXPR20 so the generic monad_bind / monad_map fold at
+    //   D_CONSTEXPR so the generic monad_bind / monad_map fold at
     // compile time over carrier-holding maybe under C++20 (runtime on
     // the C++17 floor, where maybe is not a literal type).
     template<typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     auto bind(
         const maybe<_Type>& _m,
         _Function        _function
@@ -1154,13 +1154,13 @@ struct foldable_traits<
 
     // fold_left
     //   threads _init through the (at most one) contained value.
-    //   D_CONSTEXPR20 so the generic folds fold at compile time over a
+    //   D_CONSTEXPR so the generic folds fold at compile time over a
     // carrier-holding maybe under C++20 (runtime on the C++17 floor, where
     // maybe is not a literal type).
     template<typename _Acc,
              typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Acc fold_left(
         const _Maybe& _m,
         _Acc          _init,

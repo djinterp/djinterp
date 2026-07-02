@@ -761,8 +761,7 @@ NS_END  // internal
 // all_of(p1, p2, p3)(x) = p1(x) && p2(x) && p3(x)
 template<typename _First,
          typename... _Rest>
-D_CONSTEXPR
-typename internal::all_of_fold<_First, _Rest...>::type
+D_CONSTEXPR typename internal::all_of_fold<_First, _Rest...>::type
 all_of(_First&& _first, _Rest&&... _rest)
 {
     return internal::all_of_fold<_First, _Rest...>::apply(
@@ -1091,18 +1090,17 @@ struct is_predicate
 // abbreviated function templates. Available only on C++20 and later.
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-
     // predicate_combinator
     //   concept: satisfied by any combinator this header builds.
     template<typename _Type>
-    concept predicate_combinator = is_predicate_combinator<_Type>::value;
+    concept PredicateCombinator = is_predicate_combinator<_Type>::value;
 
     // predicate
     //   concept: satisfied by a callable invocable with _Args... whose
     // result is contextually convertible to bool.
     template<typename _Predicate,
              typename... _Args>
-    concept predicate = is_predicate<_Predicate, _Args...>::value;
+    concept Predicate = is_predicate<_Predicate, _Args...>::value;
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 

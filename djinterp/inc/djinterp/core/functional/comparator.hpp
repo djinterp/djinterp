@@ -21,8 +21,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_COMPARATOR_HPP_
-#define DJINTERP_FUNCTIONAL_COMPARATOR_HPP_ 1
+#ifndef DJINTERP_FUNCTIONAL_COMPARATOR_
+#define DJINTERP_FUNCTIONAL_COMPARATOR_ 1
 
 // std
 #include <utility>
@@ -371,170 +371,164 @@ NS_END  // internal
 ///             III.  FACTORIES                                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace comparators
+// natural
+//   function: builds a comparator that uses operator< on
+// the supplied type. The default ordering; equivalent to
+// std::less<_T>{} but expressed in the framework's style.
+template<typename _T>
+D_NODISCARD D_CONSTEXPR internal::natural_helper<_T>
+natural()
 {
-
-    // natural
-    //   function: builds a comparator that uses operator< on
-    // the supplied type. The default ordering; equivalent to
-    // std::less<_T>{} but expressed in the framework's style.
-    template<typename _T>
-    D_NODISCARD D_CONSTEXPR internal::natural_helper<_T>
-    natural()
-    {
-        return internal::natural_helper<_T>{};
-    }
+    return internal::natural_helper<_T>{};
+}
 
 
-    // by_key
-    //   function: builds a comparator that extracts a key from
-    // each argument via _key_fn and compares the keys with
-    // operator<. _key_fn may be a free function, lambda, or
-    // member function pointer.
-    //
-    //   For pointer-to-data-member targets, prefer by_member,
-    // which has better readability at call sites.
-    template<typename _KeyFn>
-    D_NODISCARD D_CONSTEXPR internal::by_key_helper<typename std::decay<_KeyFn>::type>
-    by_key(
-        _KeyFn&& _key_fn
-    )
-    {
-        return internal::by_key_helper<
-            typename std::decay<_KeyFn>::type>(
-                std::forward<_KeyFn>(_key_fn));
-    }
+// by_key
+//   function: builds a comparator that extracts a key from
+// each argument via _key_fn and compares the keys with
+// operator<. _key_fn may be a free function, lambda, or
+// member function pointer.
+//
+//   For pointer-to-data-member targets, prefer by_member,
+// which has better readability at call sites.
+template<typename _KeyFn>
+D_NODISCARD D_CONSTEXPR internal::by_key_helper<typename std::decay<_KeyFn>::type>
+by_key(
+    _KeyFn&& _key_fn
+)
+{
+    return internal::by_key_helper<
+        typename std::decay<_KeyFn>::type>(
+            std::forward<_KeyFn>(_key_fn));
+}
 
 
-    // by_member
-    //   function: builds a comparator that compares two objects
-    // by a data-member pointer. Equivalent to by_key with a
-    // closure that reads the member, but reads more naturally
-    // at call sites and avoids the C++11 lambda-in-return-type
-    // limitation (lambdas in unevaluated contexts are C++20).
-    //
-    //   Example: by_member(&Person::age)
-    template<typename _Class,
-             typename _Member>
-    D_NODISCARD D_CONSTEXPR internal::by_key_helper<internal::member_accessor<_Class, _Member>>
-    by_member(
-        _Member _Class::* _member_ptr
-    )
-    {
-        return internal::by_key_helper<internal::member_accessor<_Class, _Member>>(internal::member_accessor<_Class, _Member>(_member_ptr));
-    }
+// by_member
+//   function: builds a comparator that compares two objects
+// by a data-member pointer. Equivalent to by_key with a
+// closure that reads the member, but reads more naturally
+// at call sites and avoids the C++11 lambda-in-return-type
+// limitation (lambdas in unevaluated contexts are C++20).
+//
+//   Example: by_member(&Person::age)
+template<typename _Class,
+            typename _Member>
+D_NODISCARD D_CONSTEXPR internal::by_key_helper<internal::member_accessor<_Class, _Member>>
+by_member(
+    _Member _Class::* _member_ptr
+)
+{
+    return internal::by_key_helper<internal::member_accessor<_Class, _Member>>(internal::member_accessor<_Class, _Member>(_member_ptr));
+}
 
 
-    // by_function
-    //   function: builds a comparator from an arbitrary binary
-    // callable returning bool. Useful as an adapter so that a
-    // raw lambda comparator can be chained with the combinators
-    // in this module (then, reversed, etc.).
-    template<typename _Fn>
-    D_NODISCARD D_CONSTEXPR internal::by_function_helper<typename std::decay<_Fn>::type>
-    by_function(
-        _Fn&& _fn
-    )
-    {
-        return internal::by_function_helper<typename std::decay<_Fn>::type>(std::forward<_Fn>(_fn));
-    }
+// by_function
+//   function: builds a comparator from an arbitrary binary
+// callable returning bool. Useful as an adapter so that a
+// raw lambda comparator can be chained with the combinators
+// in this module (then, reversed, etc.).
+template<typename _Fn>
+D_NODISCARD D_CONSTEXPR internal::by_function_helper<typename std::decay<_Fn>::type>
+by_function(
+    _Fn&& _fn
+)
+{
+    return internal::by_function_helper<typename std::decay<_Fn>::type>(std::forward<_Fn>(_fn));
+}
 
 
-    // reversed
-    //   function: wraps a comparator to produce the inverse
-    // ordering. May also be invoked as a pipeline RHS:
-    // `cmp | reversed()` (no arguments) yields an adapter that
-    // wraps its lhs.
-    template<typename _Comparator>
-    D_NODISCARD D_CONSTEXPR internal::reversed_helper<typename std::decay<_Comparator>::type>
-    reversed(
-        _Comparator&& _comparator
-    )
-    {
-        return internal::reversed_helper<
-            typename std::decay<_Comparator>::type>(
-                std::forward<_Comparator>(_comparator));
-    }
+// reversed
+//   function: wraps a comparator to produce the inverse
+// ordering. May also be invoked as a pipeline RHS:
+// `cmp | reversed()` (no arguments) yields an adapter that
+// wraps its lhs.
+template<typename _Comparator>
+D_NODISCARD D_CONSTEXPR internal::reversed_helper<typename std::decay<_Comparator>::type>
+reversed(
+    _Comparator&& _comparator
+)
+{
+    return internal::reversed_helper<
+        typename std::decay<_Comparator>::type>(
+            std::forward<_Comparator>(_comparator));
+}
 
 
-    // reversed (no-arg, adapter form)
-    //   function: builds a pipeline adapter so `cmp | reversed()`
-    // wraps cmp in a reversed_helper. Overload resolution picks
-    // this form when no comparator is supplied.
-    inline
-    internal::reversed_adapter
-    reversed()
-    {
-        return internal::reversed_adapter{};
-    }
+// reversed (no-arg, adapter form)
+//   function: builds a pipeline adapter so `cmp | reversed()`
+// wraps cmp in a reversed_helper. Overload resolution picks
+// this form when no comparator is supplied.
+inline
+internal::reversed_adapter
+reversed()
+{
+    return internal::reversed_adapter{};
+}
 
 
-    // then
-    //   function: builds a tie-breaker chain. then(c1, c2)
-    // returns a comparator that compares with c1; when c1
-    // reports equivalence, falls back to c2. Pipeline form:
-    // c1 | then(c2).
-    template<typename _Primary,
-             typename _Secondary>
-    D_NODISCARD D_CONSTEXPR internal::then_helper<typename std::decay<_Primary>::type,
-                          typename std::decay<_Secondary>::type>
-    then(
-        _Primary&&   _primary,
-        _Secondary&& _secondary
-    )
-    {
-        return internal::then_helper<
-            typename std::decay<_Primary>::type,
-            typename std::decay<_Secondary>::type>(
-                std::forward<_Primary>(_primary),
-                std::forward<_Secondary>(_secondary));
-    }
+// then
+//   function: builds a tie-breaker chain. then(c1, c2)
+// returns a comparator that compares with c1; when c1
+// reports equivalence, falls back to c2. Pipeline form:
+// c1 | then(c2).
+template<typename _Primary,
+            typename _Secondary>
+D_NODISCARD D_CONSTEXPR internal::then_helper<typename std::decay<_Primary>::type,
+                        typename std::decay<_Secondary>::type>
+then(
+    _Primary&&   _primary,
+    _Secondary&& _secondary
+)
+{
+    return internal::then_helper<
+        typename std::decay<_Primary>::type,
+        typename std::decay<_Secondary>::type>(
+            std::forward<_Primary>(_primary),
+            std::forward<_Secondary>(_secondary));
+}
 
 
-    // then (single-arg, adapter form)
-    //   function: builds a pipeline adapter so `c1 | then(c2)`
-    // produces a then_helper. The adapter holds the secondary;
-    // operator| invokes its apply method with the primary on
-    // the left-hand side.
-    template<typename _Secondary>
-    D_NODISCARD D_CONSTEXPR internal::then_adapter<typename std::decay<_Secondary>::type>
-    then(
-        _Secondary&& _secondary
-    )
-    {
-        return internal::then_adapter<
-            typename std::decay<_Secondary>::type>(
-                std::forward<_Secondary>(_secondary));
-    }
+// then (single-arg, adapter form)
+//   function: builds a pipeline adapter so `c1 | then(c2)`
+// produces a then_helper. The adapter holds the secondary;
+// operator| invokes its apply method with the primary on
+// the left-hand side.
+template<typename _Secondary>
+D_NODISCARD D_CONSTEXPR internal::then_adapter<typename std::decay<_Secondary>::type>
+then(
+    _Secondary&& _secondary
+)
+{
+    return internal::then_adapter<
+        typename std::decay<_Secondary>::type>(
+            std::forward<_Secondary>(_secondary));
+}
 
 
-    // lifted
-    //   function: composes a comparator with a key function,
-    // producing a comparator that operates on a different type.
-    // Equivalent to by_key with the comparison delegated to
-    // _comparator rather than operator<.
-    //
-    //   Example:
-    //     auto people_cmp = lifted(natural<int>(),
-    //                              [](const Person& p) { return p.age; });
-    template<typename _Comparator,
-             typename _KeyFn>
-    D_NODISCARD D_CONSTEXPR internal::lifted_helper<typename std::decay<_Comparator>::type,
-                            typename std::decay<_KeyFn>::type>
-    lifted(
-        _Comparator&& _comparator,
-        _KeyFn&&      _key_fn
-    )
-    {
-        return internal::lifted_helper<
-            typename std::decay<_Comparator>::type,
-            typename std::decay<_KeyFn>::type>(
-                std::forward<_Comparator>(_comparator),
-                std::forward<_KeyFn>(_key_fn));
-    }
-
-}   // namespace comparators
-
+// lifted
+//   function: composes a comparator with a key function,
+// producing a comparator that operates on a different type.
+// Equivalent to by_key with the comparison delegated to
+// _comparator rather than operator<.
+//
+//   Example:
+//     auto people_cmp = lifted(natural<int>(),
+//                              [](const Person& p) { return p.age; });
+template<typename _Comparator,
+            typename _KeyFn>
+D_NODISCARD D_CONSTEXPR internal::lifted_helper<typename std::decay<_Comparator>::type,
+                        typename std::decay<_KeyFn>::type>
+lifted(
+    _Comparator&& _comparator,
+    _KeyFn&&      _key_fn
+)
+{
+    return internal::lifted_helper<
+        typename std::decay<_Comparator>::type,
+        typename std::decay<_KeyFn>::type>(
+            std::forward<_Comparator>(_comparator),
+            std::forward<_KeyFn>(_key_fn));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             IV.   PIPELINE OPERATORS                                    ///
@@ -689,8 +683,8 @@ NS_INTERNAL
             _CFwd&& _comparator,
             _BFwd&& _bound
         )
-            : m_comparator(std::forward<_CFwd>(_comparator))
-            , m_bound(std::forward<_BFwd>(_bound))
+            : m_comparator(std::forward<_CFwd>(_comparator))б
+              m_bound(std::forward<_BFwd>(_bound))
         {}
 
         template<typename _V>
@@ -710,71 +704,64 @@ NS_INTERNAL
 NS_END  // internal
 
 
-namespace comparators
+// equal_under
+//   function: derives an equality predicate from a
+// comparator. Returns a callable (a, b) -> bool that is
+// true iff a and b are equivalent under _comparator (i.e.
+// neither is less than the other).
+//
+//   Example: equal_under(by_key(&Person::dept))(p1, p2)
+template<typename _Comparator>
+D_NODISCARD D_CONSTEXPR internal::equal_under_helper<typename std::decay<_Comparator>::type>
+equal_under(
+    _Comparator&& _comparator
+)
 {
+    return internal::equal_under_helper<
+        typename std::decay<_Comparator>::type>(
+            std::forward<_Comparator>(_comparator));
+}
 
-    // equal_under
-    //   function: derives an equality predicate from a
-    // comparator. Returns a callable (a, b) -> bool that is
-    // true iff a and b are equivalent under _comparator (i.e.
-    // neither is less than the other).
-    //
-    //   Example: equal_under(by_key(&Person::dept))(p1, p2)
-    template<typename _Comparator>
-    D_NODISCARD D_CONSTEXPR internal::equal_under_helper<typename std::decay<_Comparator>::type>
-    equal_under(
-        _Comparator&& _comparator
-    )
-    {
-        return internal::equal_under_helper<
-            typename std::decay<_Comparator>::type>(
-                std::forward<_Comparator>(_comparator));
-    }
-
-
-    // less_than
-    //   function: builds a unary predicate by binding the second
-    // argument of a comparator. less_than(cmp, x)(v) is true iff
-    // cmp(v, x).
-    template<typename _Comparator,
-             typename _Bound>
-    D_NODISCARD D_CONSTEXPR internal::less_than_helper<typename std::decay<_Comparator>::type,
-                               typename std::decay<_Bound>::type>
-    less_than(
-        _Comparator&& _comparator,
-        _Bound&&      _bound
-    )
-    {
-        return internal::less_than_helper<
-            typename std::decay<_Comparator>::type,
-            typename std::decay<_Bound>::type>(
-                std::forward<_Comparator>(_comparator),
-                std::forward<_Bound>(_bound));
-    }
+// less_than
+//   function: builds a unary predicate by binding the second
+// argument of a comparator. less_than(cmp, x)(v) is true iff
+// cmp(v, x).
+template<typename _Comparator,
+         typename _Bound>
+D_NODISCARD D_CONSTEXPR internal::less_than_helper<typename std::decay<_Comparator>::type,
+                            typename std::decay<_Bound>::type>
+less_than(
+    _Comparator&& _comparator,
+    _Bound&&      _bound
+)
+{
+    return internal::less_than_helper<
+        typename std::decay<_Comparator>::type,
+        typename std::decay<_Bound>::type>(
+            std::forward<_Comparator>(_comparator),
+            std::forward<_Bound>(_bound));
+}
 
 
-    // greater_than
-    //   function: builds a unary predicate by binding the first
-    // argument of a comparator. greater_than(cmp, x)(v) is true
-    // iff cmp(x, v) (i.e. v is greater than x under cmp).
-    template<typename _Comparator,
-             typename _Bound>
-    D_NODISCARD D_CONSTEXPR internal::greater_than_helper<typename std::decay<_Comparator>::type,
-                                  typename std::decay<_Bound>::type>
-    greater_than(
-        _Comparator&& _comparator,
-        _Bound&&      _bound
-    )
-    {
-        return internal::greater_than_helper<
-            typename std::decay<_Comparator>::type,
-            typename std::decay<_Bound>::type>(
-                std::forward<_Comparator>(_comparator),
-                std::forward<_Bound>(_bound));
-    }
-
-}   // namespace comparators
-
+// greater_than
+//   function: builds a unary predicate by binding the first
+// argument of a comparator. greater_than(cmp, x)(v) is true
+// iff cmp(x, v) (i.e. v is greater than x under cmp).
+template<typename _Comparator,
+            typename _Bound>
+D_NODISCARD D_CONSTEXPR internal::greater_than_helper<typename std::decay<_Comparator>::type,
+                                typename std::decay<_Bound>::type>
+greater_than(
+    _Comparator&& _comparator,
+    _Bound&&      _bound
+)
+{
+    return internal::greater_than_helper<
+        typename std::decay<_Comparator>::type,
+        typename std::decay<_Bound>::type>(
+            std::forward<_Comparator>(_comparator),
+            std::forward<_Bound>(_bound));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             VI.   STRUCTURAL TRAITS & CONCEPTS                          ///
@@ -1318,126 +1305,121 @@ NS_END  // internal
 ///             IV.   FACTORIES                                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace comparators
+// natural
+template<typename _T>
+internal::natural_helper<_T>
+natural()
 {
-
-    // natural
-    template<typename _T>
-    internal::natural_helper<_T>
-    natural()
-    {
-        return internal::natural_helper<_T>();
-    }
+    return internal::natural_helper<_T>();
+}
 
 
-    // by_key
-    template<typename _KeyFn>
-    internal::by_key_helper<_KeyFn>
-    by_key(
-        const _KeyFn& _key_fn
-    )
-    {
-        return internal::by_key_helper<_KeyFn>(_key_fn);
-    }
+// by_key
+template<typename _KeyFn>
+internal::by_key_helper<_KeyFn>
+by_key(
+    const _KeyFn& _key_fn
+)
+{
+    return internal::by_key_helper<_KeyFn>(_key_fn);
+}
 
 
-    // by_member
-    //   function: builds a comparator that compares two objects
-    // by a pointer-to-data-member. Reads more naturally at the
-    // call site than spelling the equivalent by_key with a
-    // hand-written accessor functor.
-    template<typename _Class,
-             typename _Member>
-    internal::by_key_helper<internal::member_accessor<_Class, _Member> >
-    by_member(
-        _Member _Class::* _member_ptr
-    )
-    {
-        return internal::by_key_helper<
-            internal::member_accessor<_Class, _Member> >(
-                internal::member_accessor<_Class, _Member>(_member_ptr));
-    }
+// by_member
+//   function: builds a comparator that compares two objects
+// by a pointer-to-data-member. Reads more naturally at the
+// call site than spelling the equivalent by_key with a
+// hand-written accessor functor.
+template<typename _Class,
+            typename _Member>
+internal::by_key_helper<internal::member_accessor<_Class, _Member> >
+by_member(
+    _Member _Class::* _member_ptr
+)
+{
+    return internal::by_key_helper<
+        internal::member_accessor<_Class, _Member> >(
+            internal::member_accessor<_Class, _Member>(_member_ptr));
+}
 
 
-    // by_function
-    //   function: builds a comparator from an arbitrary binary
-    // callable returning bool.
-    template<typename _Fn>
-    internal::by_function_helper<_Fn>
-    by_function(
-        const _Fn& _fn
-    )
-    {
-        return internal::by_function_helper<_Fn>(_fn);
-    }
+// by_function
+//   function: builds a comparator from an arbitrary binary
+// callable returning bool.
+template<typename _Fn>
+internal::by_function_helper<_Fn>
+by_function(
+    const _Fn& _fn
+)
+{
+    return internal::by_function_helper<_Fn>(_fn);
+}
 
 
-    // reversed
-    //   function: wraps a comparator to produce the inverse
-    // ordering.
-    template<typename _Comparator>
-    internal::reversed_helper<_Comparator>
-    reversed(
-        const _Comparator& _comparator
-    )
-    {
-        return internal::reversed_helper<_Comparator>(_comparator);
-    }
+// reversed
+//   function: wraps a comparator to produce the inverse
+// ordering.
+template<typename _Comparator>
+internal::reversed_helper<_Comparator>
+reversed(
+    const _Comparator& _comparator
+)
+{
+    return internal::reversed_helper<_Comparator>(_comparator);
+}
 
 
-    // reversed (no-arg, adapter form)
-    //   function: pipeline adapter; `cmp | reversed()` wraps cmp.
-    inline
-    internal::reversed_adapter
-    reversed()
-    {
-        return internal::reversed_adapter();
-    }
+// reversed (no-arg, adapter form)
+//   function: pipeline adapter; `cmp | reversed()` wraps cmp.
+inline
+internal::reversed_adapter
+reversed()
+{
+    return internal::reversed_adapter();
+}
 
 
-    // then
-    //   function: builds a tie-breaker chain.
-    template<typename _Primary,
-             typename _Secondary>
-    internal::then_helper<_Primary, _Secondary>
-    then(
-        const _Primary&   _primary,
-        const _Secondary& _secondary
-    )
-    {
-        return internal::then_helper<_Primary, _Secondary>(_primary,
-                                                           _secondary);
-    }
+// then
+//   function: builds a tie-breaker chain.
+template<typename _Primary,
+            typename _Secondary>
+internal::then_helper<_Primary, _Secondary>
+then(
+    const _Primary&   _primary,
+    const _Secondary& _secondary
+)
+{
+    return internal::then_helper<_Primary, _Secondary>(_primary,
+                                                        _secondary);
+}
 
 
-    // then (single-arg, adapter form)
-    //   function: pipeline adapter; `c1 | then(c2)` yields a
-    // then_helper(c1, c2).
-    template<typename _Secondary>
-    internal::then_adapter<_Secondary>
-    then(
-        const _Secondary& _secondary
-    )
-    {
-        return internal::then_adapter<_Secondary>(_secondary);
-    }
+// then (single-arg, adapter form)
+//   function: pipeline adapter; `c1 | then(c2)` yields a
+// then_helper(c1, c2).
+template<typename _Secondary>
+internal::then_adapter<_Secondary>
+then(
+    const _Secondary& _secondary
+)
+{
+    return internal::then_adapter<_Secondary>(_secondary);
+}
 
 
-    // lifted
-    //   function: composes a comparator with a key function.
-    template<typename _Comparator,
-             typename _KeyFn>
-    internal::lifted_helper<_Comparator, _KeyFn>
-    lifted(
-        const _Comparator& _comparator,
-        const _KeyFn&      _key_fn
-    )
-    {
-        return internal::lifted_helper<_Comparator, _KeyFn>(_comparator,
-                                                            _key_fn);
-    }
-
-}   // namespace comparators
+// lifted
+//   function: composes a comparator with a key function.
+template<typename _Comparator,
+            typename _KeyFn>
+internal::lifted_helper<_Comparator, _KeyFn>
+lifted(
+    const _Comparator& _comparator,
+    const _KeyFn&      _key_fn
+)
+{
+    return internal::lifted_helper<_Comparator, _KeyFn>(_comparator,
+                                                        _key_fn);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1574,48 +1556,43 @@ NS_INTERNAL
 NS_END  // internal
 
 
-namespace comparators
+// equal_under
+template<typename _Comparator>
+internal::equal_under_helper<_Comparator>
+equal_under(
+    const _Comparator& _comparator
+)
 {
-
-    // equal_under
-    template<typename _Comparator>
-    internal::equal_under_helper<_Comparator>
-    equal_under(
-        const _Comparator& _comparator
-    )
-    {
-        return internal::equal_under_helper<_Comparator>(_comparator);
-    }
+    return internal::equal_under_helper<_Comparator>(_comparator);
+}
 
 
-    // less_than
-    template<typename _Comparator,
-             typename _Bound>
-    internal::less_than_helper<_Comparator, _Bound>
-    less_than(
-        const _Comparator& _comparator,
-        const _Bound&      _bound
-    )
-    {
-        return internal::less_than_helper<_Comparator, _Bound>(_comparator,
-                                                               _bound);
-    }
+// less_than
+template<typename _Comparator,
+            typename _Bound>
+internal::less_than_helper<_Comparator, _Bound>
+less_than(
+    const _Comparator& _comparator,
+    const _Bound&      _bound
+)
+{
+    return internal::less_than_helper<_Comparator, _Bound>(_comparator,
+                                                            _bound);
+}
 
 
-    // greater_than
-    template<typename _Comparator,
-             typename _Bound>
-    internal::greater_than_helper<_Comparator, _Bound>
-    greater_than(
-        const _Comparator& _comparator,
-        const _Bound&      _bound
-    )
-    {
-        return internal::greater_than_helper<_Comparator, _Bound>(_comparator,
-                                                                  _bound);
-    }
-
-}   // namespace comparators
+// greater_than
+template<typename _Comparator,
+            typename _Bound>
+internal::greater_than_helper<_Comparator, _Bound>
+greater_than(
+    const _Comparator& _comparator,
+    const _Bound&      _bound
+)
+{
+    return internal::greater_than_helper<_Comparator, _Bound>(_comparator,
+                                                                _bound);
+}
 
 
 NS_END  // djinterp
@@ -1624,4 +1601,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_FUNCTIONAL_COMPARATOR_HPP_
+#endif  // DJINTERP_FUNCTIONAL_COMPARATOR_
