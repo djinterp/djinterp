@@ -107,7 +107,6 @@ V.    STRUCTURAL TRAITS & CONCEPTS
 // djinterp
 #include "../djinterp.hpp"
 #include "./functional_traits.hpp"
-#include "./function_traits.hpp"
 
 
 // transducer.hpp requires C++14 (generic lambdas and return type
@@ -784,162 +783,157 @@ NS_INTERNAL
 NS_END  // internal
 
 
-namespace transducers
+// map
+//   function: builds a transducer that, in the resulting
+// reducer, transforms each value via _function before
+// forwarding to the downstream.
+template<typename _Function>
+D_NODISCARD D_CONSTEXPR internal::map_transducer_helper<typename std::decay<_Function>::type>
+map(
+    _Function&& _function
+)
 {
-
-    // map
-    //   function: builds a transducer that, in the resulting
-    // reducer, transforms each value via _function before
-    // forwarding to the downstream.
-    template<typename _Function>
-    D_NODISCARD D_CONSTEXPR internal::map_transducer_helper<typename std::decay<_Function>::type>
-    map(
-        _Function&& _function
-    )
-    {
-        return internal::map_transducer_helper<
-            typename std::decay<_Function>::type>(
-                std::forward<_Function>(_function));
-    }
+    return internal::map_transducer_helper<
+        typename std::decay<_Function>::type>(
+            std::forward<_Function>(_function));
+}
 
 
-    // filter
-    //   function: builds a transducer that drops values for
-    // which _predicate is false.
-    template<typename _Predicate>
-    D_NODISCARD D_CONSTEXPR internal::filter_transducer_helper<typename std::decay<_Predicate>::type>
-    filter(
-        _Predicate&& _predicate
-    )
-    {
-        return internal::filter_transducer_helper<
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Predicate>(_predicate));
-    }
+// filter
+//   function: builds a transducer that drops values for
+// which _predicate is false.
+template<typename _Predicate>
+D_NODISCARD D_CONSTEXPR internal::filter_transducer_helper<typename std::decay<_Predicate>::type>
+filter(
+    _Predicate&& _predicate
+)
+{
+    return internal::filter_transducer_helper<
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Predicate>(_predicate));
+}
 
 
-    // filter_not
-    //   function: builds a transducer that drops values for
-    // which _predicate is true (i.e. keeps the complement).
-    // Implemented as filter with a wrapped predicate.
-    template<typename _Predicate>
-    D_NODISCARD D_CONSTEXPR auto filter_not(
-        _Predicate _predicate
-    )
-    {
-        return filter(
-            [_predicate](const auto& _v) {
-                return !_predicate(_v);
-            });
-    }
+// filter_not
+//   function: builds a transducer that drops values for
+// which _predicate is true (i.e. keeps the complement).
+// Implemented as filter with a wrapped predicate.
+template<typename _Predicate>
+D_NODISCARD D_CONSTEXPR auto filter_not(
+    _Predicate _predicate
+)
+{
+    return filter(
+        [_predicate](const auto& _v) {
+            return !_predicate(_v);
+        });
+}
 
 
-    // take
-    //   function: builds a transducer that forwards at most _n
-    // values and then signals termination.
-    D_NODISCARD D_CONSTEXPR internal::take_transducer_helper
-    take(
-        std::size_t _n
-    )
-    {
-        return internal::take_transducer_helper(_n);
-    }
+// take
+//   function: builds a transducer that forwards at most _n
+// values and then signals termination.
+D_NODISCARD D_CONSTEXPR internal::take_transducer_helper
+take(
+    std::size_t _n
+)
+{
+    return internal::take_transducer_helper(_n);
+}
 
 
-    // drop
-    //   function: builds a transducer that silently skips the
-    // first _n values.
-    D_NODISCARD D_CONSTEXPR internal::drop_transducer_helper
-    drop(
-        std::size_t _n
-    )
-    {
-        return internal::drop_transducer_helper(_n);
-    }
+// drop
+//   function: builds a transducer that silently skips the
+// first _n values.
+D_NODISCARD D_CONSTEXPR internal::drop_transducer_helper
+drop(
+    std::size_t _n
+)
+{
+    return internal::drop_transducer_helper(_n);
+}
 
 
-    // take_while
-    //   function: builds a transducer that forwards values
-    // while _predicate holds, then signals termination at the
-    // first failure.
-    template<typename _Predicate>
-    D_NODISCARD D_CONSTEXPR internal::take_while_transducer_helper<typename std::decay<_Predicate>::type>
-    take_while(
-        _Predicate&& _predicate
-    )
-    {
-        return internal::take_while_transducer_helper<
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Predicate>(_predicate));
-    }
+// take_while
+//   function: builds a transducer that forwards values
+// while _predicate holds, then signals termination at the
+// first failure.
+template<typename _Predicate>
+D_NODISCARD D_CONSTEXPR internal::take_while_transducer_helper<typename std::decay<_Predicate>::type>
+take_while(
+    _Predicate&& _predicate
+)
+{
+    return internal::take_while_transducer_helper<
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Predicate>(_predicate));
+}
 
 
-    // drop_while
-    //   function: builds a transducer that drops initial values
-    // matching _predicate, then forwards every subsequent value.
-    template<typename _Predicate>
-    D_NODISCARD D_CONSTEXPR internal::drop_while_transducer_helper<typename std::decay<_Predicate>::type>
-    drop_while(
-        _Predicate&& _predicate
-    )
-    {
-        return internal::drop_while_transducer_helper<
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Predicate>(_predicate));
-    }
+// drop_while
+//   function: builds a transducer that drops initial values
+// matching _predicate, then forwards every subsequent value.
+template<typename _Predicate>
+D_NODISCARD D_CONSTEXPR internal::drop_while_transducer_helper<typename std::decay<_Predicate>::type>
+drop_while(
+    _Predicate&& _predicate
+)
+{
+    return internal::drop_while_transducer_helper<
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Predicate>(_predicate));
+}
 
 
-    // distinct
-    //   function: builds a transducer that forwards each value
-    // only the first time it is seen (across the lifetime of
-    // the resulting reducer). The value type must be supplied
-    // explicitly because it is not deducible from no arguments;
-    // it must also support operator==.
-    //
-    //   Each call to distinct<T>() produces an independent
-    // reducer with its own seen-set (held by shared_ptr inside
-    // the closure).
-    template<typename _Value>
-    D_NODISCARD D_CONSTEXPR internal::distinct_transducer_helper<_Value>
-    distinct()
-    {
-        return internal::distinct_transducer_helper<_Value>{};
-    }
+// distinct
+//   function: builds a transducer that forwards each value
+// only the first time it is seen (across the lifetime of
+// the resulting reducer). The value type must be supplied
+// explicitly because it is not deducible from no arguments;
+// it must also support operator==.
+//
+//   Each call to distinct<T>() produces an independent
+// reducer with its own seen-set (held by shared_ptr inside
+// the closure).
+template<typename _Value>
+D_NODISCARD D_CONSTEXPR internal::distinct_transducer_helper<_Value>
+distinct()
+{
+    return internal::distinct_transducer_helper<_Value>{};
+}
 
 
-    // tap
-    //   function: builds a transducer that forwards every value
-    // unchanged, first invoking _side_effect on it. Useful for
-    // logging, counting, and other peek-style operations.
-    template<typename _SideEffect>
-    D_NODISCARD D_CONSTEXPR internal::tap_transducer_helper<typename std::decay<_SideEffect>::type>
-    tap(
-        _SideEffect&& _side_effect
-    )
-    {
-        return internal::tap_transducer_helper<
-            typename std::decay<_SideEffect>::type>(
-                std::forward<_SideEffect>(_side_effect));
-    }
+// tap
+//   function: builds a transducer that forwards every value
+// unchanged, first invoking _side_effect on it. Useful for
+// logging, counting, and other peek-style operations.
+template<typename _SideEffect>
+D_NODISCARD D_CONSTEXPR internal::tap_transducer_helper<typename std::decay<_SideEffect>::type>
+tap(
+    _SideEffect&& _side_effect
+)
+{
+    return internal::tap_transducer_helper<
+        typename std::decay<_SideEffect>::type>(
+            std::forward<_SideEffect>(_side_effect));
+}
 
 
-    // flat_map
-    //   function: builds a transducer that, for each input
-    // value, invokes _function to produce a container and
-    // forwards each element of the container individually to
-    // the downstream. The function must return an iterable.
-    template<typename _Function>
-    D_NODISCARD D_CONSTEXPR internal::flat_map_transducer_helper<typename std::decay<_Function>::type>
-    flat_map(
-        _Function&& _function
-    )
-    {
-        return internal::flat_map_transducer_helper<
-            typename std::decay<_Function>::type>(
-                std::forward<_Function>(_function));
-    }
-
-}   // namespace transducers
+// flat_map
+//   function: builds a transducer that, for each input
+// value, invokes _function to produce a container and
+// forwards each element of the container individually to
+// the downstream. The function must return an iterable.
+template<typename _Function>
+D_NODISCARD D_CONSTEXPR internal::flat_map_transducer_helper<typename std::decay<_Function>::type>
+flat_map(
+    _Function&& _function
+)
+{
+    return internal::flat_map_transducer_helper<
+        typename std::decay<_Function>::type>(
+            std::forward<_Function>(_function));
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////

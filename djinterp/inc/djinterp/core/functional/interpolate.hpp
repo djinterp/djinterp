@@ -26,7 +26,7 @@
 *                  (VALUE-level nesting, distinct from the scanner's flat
 *                  no-nested-braces syntax; see VI).
 *     sink      -- HOW output is assembled: literal(run) + value(resolved).
-*                  string_sink appends into a buffer; a byte sink encodes; a
+*                  interp_string_sink appends into a buffer; a byte sink encodes; a
 *                  consumer/accumulator can stand in.  Runtime vs constexpr is a
 *                  sink choice (a fixed-capacity / caller-provided buffer for
 *                  constexpr, std::basic_string for runtime).
@@ -74,7 +74,7 @@ III.  RESOLUTION & RESOLVERS
       vii. factories: bindings / lookup / chain / when
 
 IV.   SINKS
-      i.   string_sink               -- append into a basic_string buffer
+      i.   interp_string_sink               -- append into a basic_string buffer
 
 V.    THE ENGINE
       i.   interpolate_into          -- the fold: scanner -> resolver -> sink
@@ -109,11 +109,11 @@ IX.   CONCEPTS  (C++20)
 #include <memory>            // std::shared_ptr (prepared-template cache)
 #include <vector>            // std::vector (default piece cache)
 // djinterp
-#include "../../djinterp.hpp"      // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t
+#include "../djinterp.hpp"      // NS_*, D_CONSTEXPR, D_NODISCARD, clean_t
 
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    #include "../concepts.hpp"
+    #include "../meta/concepts.hpp"
 #endif
 
 
@@ -134,7 +134,7 @@ NS_DJINTERP
 enum class piece_kind
 {
     literal,
-    key,
+    key
 };
 
 // piece
@@ -513,8 +513,8 @@ private:
 //   class: a scanner that REPLAYS a pre-scanned sequence of pieces instead of
 // re-deriving it from the template text.  A template's scan is independent of
 // the resolver and yields the same pieces every render, so a template rendered
-// repeatedly can be scanned ONCE (see prepare / .prepare, section VIII) and its
-// pieces replayed -- turning per-render cost into lookups + emits with no
+// repeatedly can be scanned ONCE (see prepare / .prepare, section VIII) and 
+// its pieces replayed -- turning per-render cost into lookups + emits with no
 // re-scan.  The pieces hold views into the original template, so that template
 // must outlive the cache.  _Cache is any forward-iterable sequence of
 // piece<_Type> (std::vector by default).
@@ -728,7 +728,6 @@ private:
     _Fn m_fn;
 };
 
-
 // chain_resolver
 //   class: try _A, then _B -- the first hit wins, a miss falls through.  The
 // fall-through is the resolution's lazy `or_else`: _B's lookup is evaluated
@@ -767,7 +766,6 @@ private:
     _A m_a;
     _B m_b;
 };
-
 
 // when_resolver
 //   class: gate a resolver on a key predicate.  Keys satisfying _Pred are
@@ -871,18 +869,18 @@ when(
 // shape is uniform here: a growable buffer, a fixed-capacity constexpr buffer,
 // a byte encoder (for binary), or a wrapped consumer/accumulator.
 
-// string_sink
+// interp_string_sink
 //   class: appends each emitted span into a caller-owned basic_string -- no
 // result allocation of its own (the buffer is the caller's to size and reuse).
 template<typename _Type = char>
-class string_sink
+class interp_string_sink
 {
 public:
     using char_type   = _Type;
     using view_type   = std::basic_string_view<_Type>;
     using string_type = std::basic_string<_Type>;
 
-    D_CONSTEXPR explicit string_sink(
+    D_CONSTEXPR explicit interp_string_sink(
         string_type& _out
     )
         : m_out(_out)
@@ -1038,7 +1036,7 @@ private:
 
         // re-scan the value; each nested key resolves one level deeper
         string_type        _out;
-        string_sink<_Type> _sink(_out);
+        interp_string_sink<_Type> _sink(_out);
         interpolate_into(
             _sink,
             _Scanner(_value),
@@ -1182,7 +1180,7 @@ public:
     {
         string_type _out;
         _out.reserve(m_template.size());
-        string_sink<_Type> _sink(_out);
+        interp_string_sink<_Type> _sink(_out);
         interpolate_into(_sink, _Scanner(m_template), m_resolver);
 
         return _out;
@@ -1397,7 +1395,7 @@ public:
     {
         string_type _out;
         _out.reserve(m_template.size());
-        string_sink<_Type> _sink(_out);
+        interp_string_sink<_Type> _sink(_out);
         interpolate_into(_sink, replay_scanner<_Type, _Cache>(*m_cache), m_resolver);
 
         return _out;
@@ -1429,7 +1427,7 @@ public:
     {
         string_type _out;
         _out.reserve(m_template.size());
-        string_sink<_Type> _sink(_out);
+        interp_string_sink<_Type> _sink(_out);
         interpolate_into(_sink, replay_scanner<_Type, _Cache>(*m_cache), _resolver);
 
         return _out;

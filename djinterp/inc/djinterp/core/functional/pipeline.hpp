@@ -174,7 +174,7 @@ public:
              typename = typename std::enable_if<
                  is_callable<_Fn, const _Type&>::value
              >::type>
-    D_NODISCARD D_CONSTEXPR20 function_pipeline<_ResultType>
+    D_NODISCARD D_CONSTEXPR function_pipeline<_ResultType>
     map(
         _Fn&& _fn
     ) const
@@ -203,7 +203,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline filter(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -231,7 +231,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline filter_not(_Pred&& _pred) const
     {
         return filter([&_pred](const _Type& _e)
@@ -248,7 +248,7 @@ public:
                  is_callable<_Fn, const _Acc&, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Acc
     fold(_Acc _init, _Fn&& _fn) const
     {
@@ -289,7 +289,7 @@ public:
     // take
     //   method: keeps only the first _n elements.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline take(std::size_t _n) const
     {
         if (m_has_error)
@@ -308,7 +308,7 @@ public:
     // take_last
     //   method: keeps only the last _n elements.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline take_last(std::size_t _n) const
     {
         if (m_has_error)
@@ -335,7 +335,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline take_while(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -361,7 +361,7 @@ public:
     // skip
     //   method: removes the first _n elements.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline skip(std::size_t _n) const
     {
         if (m_has_error)
@@ -387,7 +387,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline skip_while(_Pred&& _pred) const
     {
         if (m_has_error)
@@ -415,7 +415,7 @@ public:
     // slice
     //   method: takes elements in range [start, end) with given step.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline slice(std::size_t _start,
                      std::size_t _end,
                      std::size_t _step = 1) const
@@ -440,7 +440,7 @@ public:
     // distinct
     //   method: removes duplicate elements using operator==.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline distinct() const
     {
         if (m_has_error)
@@ -479,7 +479,7 @@ public:
                  is_callable<_Eq, const _Type&, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline distinct(_Eq&& _eq) const
     {
         if (m_has_error)
@@ -514,7 +514,7 @@ public:
     // reversed
     //   method: returns a pipeline with elements in reverse order.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline reversed() const
     {
         if (m_has_error)
@@ -534,7 +534,7 @@ public:
                  is_callable<_Compare, const _Type&, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline sorted(_Compare&& _cmp) const
     {
         if (m_has_error)
@@ -553,7 +553,7 @@ public:
     // sorted (default ordering)
     //   method: returns a pipeline sorted with operator<.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline sorted() const
     {
         return sorted([](const _Type& _a, const _Type& _b)
@@ -573,7 +573,7 @@ public:
                  is_callable<_Fn, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline<_ResultType>
     flat_map(_Fn&& _fn) const
     {
@@ -604,7 +604,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     std::pair<function_pipeline, function_pipeline>
     partition_pipe(_Pred&& _pred) const
     {
@@ -643,7 +643,7 @@ public:
                  is_callable<_KeyFn, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     std::map<_KeyType, std::vector<_Type>>
     group_by(_KeyFn&& _key_fn) const
     {
@@ -671,7 +671,7 @@ public:
                  is_callable<_Fn, const _Type&, const _Other&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     function_pipeline<_ResultType>
     zip_with(const function_pipeline<_Other>& _other, _Fn&& _fn) const
     {
@@ -709,7 +709,7 @@ public:
     // unqualified, which is ill-formed against a ref-qualified sibling.
     // (fixed 2026-05-27)
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     std::vector<_Type> to_vector() const &
     {
         return m_data;
@@ -718,7 +718,7 @@ public:
     // to_vector (move)
     //   method: moves the pipeline data out.
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     std::vector<_Type> to_vector() &&
     {
         return std::move(m_data);
@@ -732,7 +732,7 @@ public:
                  is_callable<_Fn, const _Type&, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Type
     reduce(_Fn&& _fn) const
     {
@@ -754,7 +754,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     bool any(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
@@ -777,7 +777,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     bool all(_Pred&& _pred) const
     {
         if (m_has_error) { return false; }
@@ -800,7 +800,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     bool none(_Pred&& _pred) const
     {
         return !any(std::forward<_Pred>(_pred));
@@ -813,7 +813,7 @@ public:
                  is_predicate<_Pred, const _Type&>::value
              >::type>
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     std::size_t count(_Pred&& _pred) const
     {
         if (m_has_error) { return 0; }
@@ -837,27 +837,27 @@ public:
     ///////////////////////////////////////////////////////////////////////////
 
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     std::size_t size() const { return m_data.size(); }
 
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     bool empty() const { return m_data.empty(); }
 
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     bool has_error() const { return m_has_error; }
 
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     int error_code() const { return m_error_code; }
 
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     const std::vector<_Type>& data() const { return m_data; }
 
     D_NODISCARD
-    D_CONSTEXPR20
+    D_CONSTEXPR
     const _Type& operator[](std::size_t _idx) const { return m_data[_idx]; }
 
     // begin/end for range-for support

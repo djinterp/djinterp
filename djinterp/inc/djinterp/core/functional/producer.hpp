@@ -1623,12 +1623,12 @@ struct foldable_traits<
     // fold_left
     //   strict left fold by pulling a copy of the producer to exhaustion; the
     // accumulator is threaded by move so collecting folds stay O(n).
-    //   D_CONSTEXPR20 -- a producer is not a literal type before C++20, and
+    //   D_CONSTEXPR -- a producer is not a literal type before C++20, and
     // the pull loop needs relaxed constexpr.
     template<typename _Acc,
              typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Acc fold_left(
         const _Producer& _producer,
         _Acc             _init,

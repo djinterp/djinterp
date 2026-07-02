@@ -209,12 +209,12 @@ struct foldable_traits<std::vector<_Type>, void>
 
     // fold_left
     //   strict left fold over the vector's elements; the accumulator is
-    // threaded by move so collecting folds stay O(n). D_CONSTEXPR20 --
+    // threaded by move so collecting folds stay O(n). D_CONSTEXPR --
     // std::vector is a literal type only from C++20.
     template<typename _Acc,
              typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Acc fold_left(
         const std::vector<_Type>& _xs,
         _Acc                      _init,
@@ -240,7 +240,7 @@ struct foldable_traits<std::vector<_Type>, void>
 // C++20 it folds at compile time over a foldable whose elements live in a
 // constant expression, and runs at runtime otherwise -- the same conditional-
 // constexpr behavior as monad_map / functor_map. The materializing folds
-// (fold_right, fold_to_vector) build a std::vector and so are D_CONSTEXPR20
+// (fold_right, fold_to_vector) build a std::vector and so are D_CONSTEXPR
 // (std::vector is a literal type only from C++20). Every operation past
 // fold_left is derived from it; none is a per-type obligation.
 
@@ -337,12 +337,12 @@ NS_END  // internal
 // _Acc) -> _Acc, associating to the right. Implemented by materializing the
 // elements (via fold_to_vector) and folding the buffer in reverse, so it is
 // well-defined for any finite foldable; an infinite view / producer must be
-// bounded first. D_CONSTEXPR20 because it builds a std::vector.
+// bounded first. D_CONSTEXPR because it builds a std::vector.
 template<typename _Foldable,
          typename _Acc,
          typename _Function>
 D_NODISCARD
-D_CONSTEXPR20
+D_CONSTEXPR
 typename std::decay<_Acc>::type
 fold_right
 (
@@ -410,10 +410,10 @@ fold_map
 //   function: collects the elements of a foldable into a std::vector, in fold
 // (left-to-right) order. The materialized counterpart of the lazy views /
 // producers, and the bridge any foldable can use to reach the eager helpers.
-// D_CONSTEXPR20 because it builds a std::vector.
+// D_CONSTEXPR because it builds a std::vector.
 template<typename _Foldable>
 D_NODISCARD
-D_CONSTEXPR20
+D_CONSTEXPR
 std::vector<foldable_value_type_t<_Foldable>>
 fold_to_vector
 (

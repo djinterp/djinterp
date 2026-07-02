@@ -24,19 +24,19 @@
 *   std::vector<int> v = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 *
 *   auto result = v
-*               | views::filter([](int x) { return x % 2 == 0; })
-*               | views::transform([](int x) { return x * x; })
-*               | views::take(3)
+*               | filter([](int x) { return x % 2 == 0; })
+*               | transform([](int x) { return x * x; })
+*               | take(3)
 *               | to_vector();
 *   // result == { 4, 16, 36 }
 *
 *   // infinite source + bounded sink
-*   auto fibs = views::iota(0)
-*             | views::take(20)
+*   auto fibs = iota(0)
+*             | take(20)
 *             | to_vector();
 *
 *   // enumerate
-*   for (auto&& p : v | views::enumerate())
+*   for (auto&& p : v | enumerate())
 *   {
 *       std::cout << p.first << ": " << p.second << '\n';
 *   }
@@ -2659,276 +2659,271 @@ struct is_adapter
 {};
 
 
-namespace views
+// transform
+//   function: adapter factory for transform_view. Returns an
+// adapter that, when piped onto a view, yields a lazy view of
+// _fn(x) for each x in the input.
+template<typename _Function>
+D_CONSTEXPR
+internal::transform_adapter<typename std::decay<_Function>::type>
+transform(
+    _Function&& _function
+)
 {
-
-    // transform
-    //   function: adapter factory for transform_view. Returns an
-    // adapter that, when piped onto a view, yields a lazy view of
-    // _fn(x) for each x in the input.
-    template<typename _Function>
-    D_CONSTEXPR
-    internal::transform_adapter<typename std::decay<_Function>::type>
-    transform(
-        _Function&& _function
-    )
-    {
-        return internal::transform_adapter<
-            typename std::decay<_Function>::type>(
-                std::forward<_Function>(_function));
-    }
+    return internal::transform_adapter<
+        typename std::decay<_Function>::type>(
+            std::forward<_Function>(_function));
+}
 
 
-    // filter
-    //   function: adapter factory for filter_view. The resulting
-    // view yields only inputs satisfying _predicate.
-    template<typename _Predicate>
-    D_CONSTEXPR
-    internal::filter_adapter<typename std::decay<_Predicate>::type>
-    filter(
-        _Predicate&& _predicate
-    )
-    {
-        return internal::filter_adapter<
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Predicate>(_predicate));
-    }
+// filter
+//   function: adapter factory for filter_view. The resulting
+// view yields only inputs satisfying _predicate.
+template<typename _Predicate>
+D_CONSTEXPR
+internal::filter_adapter<typename std::decay<_Predicate>::type>
+filter(
+    _Predicate&& _predicate
+)
+{
+    return internal::filter_adapter<
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Predicate>(_predicate));
+}
 
 
-    // take
-    //   function: adapter factory for take_view. The resulting view
-    // yields at most _n elements from the input.
-    inline
-    internal::take_adapter
-    take(
-        std::size_t _n
-    )
-    {
-        return internal::take_adapter(_n);
-    }
+// take
+//   function: adapter factory for take_view. The resulting view
+// yields at most _n elements from the input.
+inline
+internal::take_adapter
+take(
+    std::size_t _n
+)
+{
+    return internal::take_adapter(_n);
+}
 
 
-    // drop
-    //   function: adapter factory for drop_view. The resulting view
-    // skips the first _n elements of the input.
-    inline
-    internal::drop_adapter
-    drop(
-        std::size_t _n
-    )
-    {
-        return internal::drop_adapter(_n);
-    }
+// drop
+//   function: adapter factory for drop_view. The resulting view
+// skips the first _n elements of the input.
+inline
+internal::drop_adapter
+drop(
+    std::size_t _n
+)
+{
+    return internal::drop_adapter(_n);
+}
 
 
-    // take_while
-    //   function: adapter factory for take_while_view.
-    template<typename _Predicate>
-    D_CONSTEXPR
-    internal::take_while_adapter<typename std::decay<_Predicate>::type>
-    take_while(
-        _Predicate&& _predicate
-    )
-    {
-        return internal::take_while_adapter<
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Predicate>(_predicate));
-    }
+// take_while
+//   function: adapter factory for take_while_view.
+template<typename _Predicate>
+D_CONSTEXPR
+internal::take_while_adapter<typename std::decay<_Predicate>::type>
+take_while(
+    _Predicate&& _predicate
+)
+{
+    return internal::take_while_adapter<
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Predicate>(_predicate));
+}
 
 
-    // drop_while
-    //   function: adapter factory for drop_while_view.
-    template<typename _Predicate>
-    D_CONSTEXPR
-    internal::drop_while_adapter<typename std::decay<_Predicate>::type>
-    drop_while(
-        _Predicate&& _predicate
-    )
-    {
-        return internal::drop_while_adapter<
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Predicate>(_predicate));
-    }
+// drop_while
+//   function: adapter factory for drop_while_view.
+template<typename _Predicate>
+D_CONSTEXPR
+internal::drop_while_adapter<typename std::decay<_Predicate>::type>
+drop_while(
+    _Predicate&& _predicate
+)
+{
+    return internal::drop_while_adapter<
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Predicate>(_predicate));
+}
 
 
-    // enumerate
-    //   function: adapter factory for enumerate_view. Pairs every
-    // element with its zero-based index.
-    inline
-    internal::enumerate_adapter
-    enumerate()
-    {
-        return internal::enumerate_adapter{};
-    }
+// enumerate
+//   function: adapter factory for enumerate_view. Pairs every
+// element with its zero-based index.
+inline
+internal::enumerate_adapter
+enumerate()
+{
+    return internal::enumerate_adapter{};
+}
 
 
-    // zip
-    //   function: adapter factory for zip_view. Pairs elements of
-    // the LHS view with elements of _other in lockstep.
-    template<typename _Other>
-    D_CONSTEXPR
-    internal::zip_adapter<typename std::decay<_Other>::type>
-    zip(
-        _Other&& _other
-    )
-    {
-        return internal::zip_adapter<
-            typename std::decay<_Other>::type>(
-                std::forward<_Other>(_other));
-    }
+// zip
+//   function: adapter factory for zip_view. Pairs elements of
+// the LHS view with elements of _other in lockstep.
+template<typename _Other>
+D_CONSTEXPR
+internal::zip_adapter<typename std::decay<_Other>::type>
+zip(
+    _Other&& _other
+)
+{
+    return internal::zip_adapter<
+        typename std::decay<_Other>::type>(
+            std::forward<_Other>(_other));
+}
 
 
-    // concat
-    //   function: adapter factory for concat_view. Yields all of
-    // the LHS view, then all of _other.
-    template<typename _Other>
-    D_CONSTEXPR
-    internal::concat_adapter<typename std::decay<_Other>::type>
-    concat(
-        _Other&& _other
-    )
-    {
-        return internal::concat_adapter<
-            typename std::decay<_Other>::type>(
-                std::forward<_Other>(_other));
-    }
+// concat
+//   function: adapter factory for concat_view. Yields all of
+// the LHS view, then all of _other.
+template<typename _Other>
+D_CONSTEXPR
+internal::concat_adapter<typename std::decay<_Other>::type>
+concat(
+    _Other&& _other
+)
+{
+    return internal::concat_adapter<
+        typename std::decay<_Other>::type>(
+            std::forward<_Other>(_other));
+}
 
 
-    // reverse
-    //   function: adapter factory for reverse_view. Requires the
-    // LHS view's iterator to be bidirectional.
-    inline
-    internal::reverse_adapter
-    reverse()
-    {
-        return internal::reverse_adapter{};
-    }
+// reverse
+//   function: adapter factory for reverse_view. Requires the
+// LHS view's iterator to be bidirectional.
+inline
+internal::reverse_adapter
+reverse()
+{
+    return internal::reverse_adapter{};
+}
 
 
-    // chunk
-    //   function: adapter factory for chunk_view. Groups elements
-    // into vectors of size _n; the final group may be shorter.
-    inline
-    internal::chunk_adapter
-    chunk(
-        std::size_t _n
-    )
-    {
-        return internal::chunk_adapter(_n);
-    }
+// chunk
+//   function: adapter factory for chunk_view. Groups elements
+// into vectors of size _n; the final group may be shorter.
+inline
+internal::chunk_adapter
+chunk(
+    std::size_t _n
+)
+{
+    return internal::chunk_adapter(_n);
+}
 
 
-    // stride
-    //   function: adapter factory for stride_view. Yields every
-    // _n-th element, starting with the first.
-    inline
-    internal::stride_adapter
-    stride(
-        std::size_t _n
-    )
-    {
-        return internal::stride_adapter(_n);
-    }
+// stride
+//   function: adapter factory for stride_view. Yields every
+// _n-th element, starting with the first.
+inline
+internal::stride_adapter
+stride(
+    std::size_t _n
+)
+{
+    return internal::stride_adapter(_n);
+}
 
 
-    // iota (bounded)
-    //   function: builds an iota_view over [_start, _end).
-    template<typename _Int>
-    D_CONSTEXPR
-    iota_view<_Int>
-    iota(
-        _Int _start,
-        _Int _end
-    )
-    {
-        return iota_view<_Int>(_start, _end);
-    }
+// iota (bounded)
+//   function: builds an iota_view over [_start, _end).
+template<typename _Int>
+D_CONSTEXPR
+iota_view<_Int>
+iota(
+    _Int _start,
+    _Int _end
+)
+{
+    return iota_view<_Int>(_start, _end);
+}
 
 
-    // iota (unbounded)
-    //   function: builds an infinite iota_view starting at _start.
-    // Pair with take or take_while to bound.
-    template<typename _Int>
-    D_CONSTEXPR
-    iota_view<_Int>
-    iota(
-        _Int _start
-    )
-    {
-        return iota_view<_Int>(_start);
-    }
+// iota (unbounded)
+//   function: builds an infinite iota_view starting at _start.
+// Pair with take or take_while to bound.
+template<typename _Int>
+D_CONSTEXPR
+iota_view<_Int>
+iota(
+    _Int _start
+)
+{
+    return iota_view<_Int>(_start);
+}
 
 
-    // repeat (unbounded)
-    //   function: builds an infinite view yielding _value forever.
-    template<typename _Type>
-    D_CONSTEXPR
-    repeat_view<typename std::decay<_Type>::type>
-    repeat(
-        _Type&& _value
-    )
-    {
-        return repeat_view<typename std::decay<_Type>::type>(
-            std::forward<_Type>(_value));
-    }
+// repeat (unbounded)
+//   function: builds an infinite view yielding _value forever.
+template<typename _Type>
+D_CONSTEXPR
+repeat_view<typename std::decay<_Type>::type>
+repeat(
+    _Type&& _value
+)
+{
+    return repeat_view<typename std::decay<_Type>::type>(
+        std::forward<_Type>(_value));
+}
 
 
-    // repeat_n
-    //   function: builds a view that yields _value exactly _n times.
-    template<typename _Type>
-    D_CONSTEXPR
-    repeat_view<typename std::decay<_Type>::type>
-    repeat_n(
-        _Type&&         _value,
-        std::size_t  _n
-    )
-    {
-        return repeat_view<typename std::decay<_Type>::type>(
-            std::forward<_Type>(_value), _n);
-    }
+// repeat_n
+//   function: builds a view that yields _value exactly _n times.
+template<typename _Type>
+D_CONSTEXPR
+repeat_view<typename std::decay<_Type>::type>
+repeat_n(
+    _Type&&         _value,
+    std::size_t  _n
+)
+{
+    return repeat_view<typename std::decay<_Type>::type>(
+        std::forward<_Type>(_value), _n);
+}
 
 
-    // generate
-    //   function: builds an infinite view that, on each advance,
-    // invokes _fn to produce the next value. Useful for random,
-    // time-based, or external-state sources.
-    template<typename _F>
-    D_CONSTEXPR
-    generate_view<typename std::decay<_F>::type>
-    generate(
-        _F&& _fn
-    )
-    {
-        return generate_view<typename std::decay<_F>::type>(
-            std::forward<_F>(_fn));
-    }
+// generate
+//   function: builds an infinite view that, on each advance,
+// invokes _fn to produce the next value. Useful for random,
+// time-based, or external-state sources.
+template<typename _F>
+D_CONSTEXPR
+generate_view<typename std::decay<_F>::type>
+generate(
+    _F&& _fn
+)
+{
+    return generate_view<typename std::decay<_F>::type>(
+        std::forward<_F>(_fn));
+}
 
 
-    // empty
-    //   function: builds an empty_view of the given type.
-    template<typename _Type>
-    D_CONSTEXPR
-    empty_view<_Type>
-    empty()
-    {
-        return empty_view<_Type>{};
-    }
+// empty
+//   function: builds an empty_view of the given type.
+template<typename _Type>
+D_CONSTEXPR
+empty_view<_Type>
+empty()
+{
+    return empty_view<_Type>{};
+}
 
 
-    // single
-    //   function: builds a single_view containing one element.
-    template<typename _Type>
-    D_CONSTEXPR
-    single_view<typename std::decay<_Type>::type>
-    single(
-        _Type&& _value
-    )
-    {
-        return single_view<typename std::decay<_Type>::type>(
-            std::forward<_Type>(_value));
-    }
-
-}   // namespace views
+// single
+//   function: builds a single_view containing one element.
+template<typename _Type>
+D_CONSTEXPR
+single_view<typename std::decay<_Type>::type>
+single(
+    _Type&& _value
+)
+{
+    return single_view<typename std::decay<_Type>::type>(
+        std::forward<_Type>(_value));
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3397,8 +3392,7 @@ any_of(
 // element of the view satisfies _predicate. Vacuously true for
 // empty views.
 template<typename _Predicate>
-D_CONSTEXPR
-internal::all_of_terminal<typename std::decay<_Predicate>::type>
+D_CONSTEXPR internal::all_of_terminal<typename std::decay<_Predicate>::type>
 all_of(
     _Predicate&& _predicate
 )
@@ -3538,7 +3532,7 @@ concept pipeable_to_view = is_pipeable_to_view<_Type>::value;
 ///////////////////////////////////////////////////////////////////////////////
 ///             VIII.  FUNCTOR INSTANCE                                     ///
 ///////////////////////////////////////////////////////////////////////////////
-//   A view is a Functor: views::transform is its map. This teaches the generic
+//   A view is a Functor: transform is its map. This teaches the generic
 // functor_map (functor.hpp) to drive a view through the one canonical name, so
 // the same call that maps a maybe / result / producer also maps a view. A
 // view's mapped type is transform_view<V, F> -- it depends on the mapping
@@ -3556,7 +3550,7 @@ struct functor_traits<
 
     // map
     //   functorial map via transform_view (the engine behind
-    // views::transform). Lazy: no element is evaluated until the resulting
+    // transform). Lazy: no element is evaluated until the resulting
     // view is iterated or forced by a terminal.
     template<typename _ViewArg,
              typename _Function>
@@ -3600,12 +3594,12 @@ struct foldable_traits<
 
     // fold_left
     //   strict left fold by iterating the view; the accumulator is threaded
-    // by move so collecting folds stay O(n). D_CONSTEXPR20 -- a view is not a
+    // by move so collecting folds stay O(n). D_CONSTEXPR -- a view is not a
     // literal type before C++20.
     template<typename _Acc,
              typename _Function>
     static
-    D_CONSTEXPR20
+    D_CONSTEXPR
     _Acc fold_left(
         const _View& _view,
         _Acc         _init,

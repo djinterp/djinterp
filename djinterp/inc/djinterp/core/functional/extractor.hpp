@@ -732,302 +732,296 @@ NS_END  // internal
 ///             II.   FACTORIES                                             ///
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace extractors
+// identity
+//   function: returns an extractor that yields its source
+// unchanged. The dual of constant. Useful as a no-op slot in
+// higher-order constructions (e.g. fanout(identity<T>(), e)
+// for "the source itself plus a derived feature").
+template<typename _Source>
+D_NODISCARD D_CONSTEXPR internal::identity_helper<_Source>
+identity()
 {
-
-    // identity
-    //   function: returns an extractor that yields its source
-    // unchanged. The dual of constant. Useful as a no-op slot in
-    // higher-order constructions (e.g. fanout(identity<T>(), e)
-    // for "the source itself plus a derived feature").
-    template<typename _Source>
-    D_NODISCARD D_CONSTEXPR internal::identity_helper<_Source>
-    identity()
-    {
-        return internal::identity_helper<_Source>{};
-    }
+    return internal::identity_helper<_Source>{};
+}
 
 
-    // constant
-    //   function: returns an extractor that ignores its source
-    // and always yields the supplied value. The source type is
-    // erased; the same constant extractor can be applied to any
-    // input.
-    template<typename _Target>
-    D_NODISCARD D_CONSTEXPR internal::constant_helper<typename std::decay<_Target>::type>
-    constant(
-        _Target&& _value
-    )
-    {
-        return internal::constant_helper<typename std::decay<_Target>::type>(std::forward<_Target>(_value));
-    }
+// constant
+//   function: returns an extractor that ignores its source
+// and always yields the supplied value. The source type is
+// erased; the same constant extractor can be applied to any
+// input.
+template<typename _Target>
+D_NODISCARD D_CONSTEXPR internal::constant_helper<typename std::decay<_Target>::type>
+constant(
+    _Target&& _value
+)
+{
+    return internal::constant_helper<typename std::decay<_Target>::type>(std::forward<_Target>(_value));
+}
 
 
-    // from_function
-    //   function: lifts an arbitrary unary callable into an
-    // extractor so that it participates in the pipeline operators
-    // and combinators below. The callable is stored by value
-    // (decayed), preserving constexpr-ability.
-    template<typename _Fn>
-    D_NODISCARD D_CONSTEXPR internal::function_helper<typename std::decay<_Fn>::type>
-    from_function(
-        _Fn&& _fn
-    )
-    {
-        return internal::function_helper<typename std::decay<_Fn>::type>(std::forward<_Fn>(_fn));
-    }
+// from_function
+//   function: lifts an arbitrary unary callable into an
+// extractor so that it participates in the pipeline operators
+// and combinators below. The callable is stored by value
+// (decayed), preserving constexpr-ability.
+template<typename _Fn>
+D_NODISCARD D_CONSTEXPR internal::function_helper<typename std::decay<_Fn>::type>
+from_function(
+    _Fn&& _fn
+)
+{
+    return internal::function_helper<typename std::decay<_Fn>::type>(std::forward<_Fn>(_fn));
+}
 
 
-    // from_member
-    //   function: returns an extractor that reads the supplied
-    // pointer-to-data-member from any object of the owning class.
-    //
-    //   Example: extractors::from_member(&person::age)
-    template<typename _Class,
-             typename _Member>
-    D_NODISCARD D_CONSTEXPR internal::member_helper<_Class, _Member>
-    from_member(
-        _Member _Class::* _member_ptr
-    )
-    {
-        return internal::member_helper<_Class, _Member>(_member_ptr);
-    }
+// from_member
+//   function: returns an extractor that reads the supplied
+// pointer-to-data-member from any object of the owning class.
+//
+//   Example: extractors::from_member(&person::age)
+template<typename _Class,
+            typename _Member>
+D_NODISCARD D_CONSTEXPR internal::member_helper<_Class, _Member>
+from_member(
+    _Member _Class::* _member_ptr
+)
+{
+    return internal::member_helper<_Class, _Member>(_member_ptr);
+}
 
 
-    // from_index
-    //   function: returns an extractor that reads the _N-th
-    // element of a std::tuple / std::pair / std::array via
-    // std::get<_N>. Index is supplied as a non-type template
-    // parameter so the result type can be computed at compile
-    // time.
-    template<std::size_t _N>
-    D_NODISCARD D_CONSTEXPR internal::index_helper<_N>
-    from_index()
-    {
-        return internal::index_helper<_N>{};
-    }
+// from_index
+//   function: returns an extractor that reads the _N-th
+// element of a std::tuple / std::pair / std::array via
+// std::get<_N>. Index is supplied as a non-type template
+// parameter so the result type can be computed at compile
+// time.
+template<std::size_t _N>
+D_NODISCARD D_CONSTEXPR internal::index_helper<_N>
+from_index()
+{
+    return internal::index_helper<_N>{};
+}
 
 
-    // then_extract
-    //   function: composes two extractors so that the outer is
-    // applied to the result of the inner. Equivalent in effect
-    // to mapped, but the name reads more naturally when both
-    // stages are first-class extractors rather than a post-
-    // transformation function.
-    template<typename _Inner,
-             typename _Outer>
-    D_NODISCARD D_CONSTEXPR internal::composed_helper<typename std::decay<_Inner>::type,
-                              typename std::decay<_Outer>::type>
-    then_extract(
-        _Inner&& _inner,
-        _Outer&& _outer
-    )
-    {
-        return internal::composed_helper<
-            typename std::decay<_Inner>::type,
-            typename std::decay<_Outer>::type>(
-                std::forward<_Inner>(_inner),
-                std::forward<_Outer>(_outer));
-    }
+// then_extract
+//   function: composes two extractors so that the outer is
+// applied to the result of the inner. Equivalent in effect
+// to mapped, but the name reads more naturally when both
+// stages are first-class extractors rather than a post-
+// transformation function.
+template<typename _Inner,
+            typename _Outer>
+D_NODISCARD D_CONSTEXPR internal::composed_helper<typename std::decay<_Inner>::type,
+                            typename std::decay<_Outer>::type>
+then_extract(
+    _Inner&& _inner,
+    _Outer&& _outer
+)
+{
+    return internal::composed_helper<
+        typename std::decay<_Inner>::type,
+        typename std::decay<_Outer>::type>(
+            std::forward<_Inner>(_inner),
+            std::forward<_Outer>(_outer));
+}
 
 
-    // then_extract (single-arg, adapter form)
-    //   function: builds a pipeline adapter so that
-    // `inner | then_extract(outer)` composes the two. Overload
-    // resolution picks this form when no inner is supplied.
-    template<typename _Outer>
-    D_NODISCARD D_CONSTEXPR internal::then_extract_adapter<typename std::decay<_Outer>::type>
-    then_extract(
-        _Outer&& _outer
-    )
-    {
-        return internal::then_extract_adapter<
-            typename std::decay<_Outer>::type>(
-                std::forward<_Outer>(_outer));
-    }
+// then_extract (single-arg, adapter form)
+//   function: builds a pipeline adapter so that
+// `inner | then_extract(outer)` composes the two. Overload
+// resolution picks this form when no inner is supplied.
+template<typename _Outer>
+D_NODISCARD D_CONSTEXPR internal::then_extract_adapter<typename std::decay<_Outer>::type>
+then_extract(
+    _Outer&& _outer
+)
+{
+    return internal::then_extract_adapter<
+        typename std::decay<_Outer>::type>(
+            std::forward<_Outer>(_outer));
+}
 
 
-    // fanout (binary)
-    //   function: builds an extractor that applies two extractors
-    // to the same source and yields a std::tuple<T1, T2>.
-    template<typename _E1,
-             typename _E2>
-    D_NODISCARD D_CONSTEXPR internal::fanout2_helper<typename std::decay<_E1>::type,
-                             typename std::decay<_E2>::type>
-    fanout(
-        _E1&& _e1,
-        _E2&& _e2
-    )
-    {
-        return internal::fanout2_helper<
-            typename std::decay<_E1>::type,
-            typename std::decay<_E2>::type>(
-                std::forward<_E1>(_e1),
-                std::forward<_E2>(_e2));
-    }
+// fanout (binary)
+//   function: builds an extractor that applies two extractors
+// to the same source and yields a std::tuple<T1, T2>.
+template<typename _E1,
+            typename _E2>
+D_NODISCARD D_CONSTEXPR internal::fanout2_helper<typename std::decay<_E1>::type,
+                            typename std::decay<_E2>::type>
+fanout(
+    _E1&& _e1,
+    _E2&& _e2
+)
+{
+    return internal::fanout2_helper<
+        typename std::decay<_E1>::type,
+        typename std::decay<_E2>::type>(
+            std::forward<_E1>(_e1),
+            std::forward<_E2>(_e2));
+}
 
 
-    // fanout (ternary)
-    //   function: three-way fan-out yielding
-    // std::tuple<T1, T2, T3>. Wider arities can be assembled by
-    // nesting; the tuples will nest accordingly.
-    template<typename _E1,
-             typename _E2,
-             typename _E3>
-    D_NODISCARD D_CONSTEXPR internal::fanout3_helper<typename std::decay<_E1>::type,
-                             typename std::decay<_E2>::type,
-                             typename std::decay<_E3>::type>
-    fanout(
-        _E1&& _e1,
-        _E2&& _e2,
-        _E3&& _e3
-    )
-    {
-        return internal::fanout3_helper<
-            typename std::decay<_E1>::type,
-            typename std::decay<_E2>::type,
-            typename std::decay<_E3>::type>(
-                std::forward<_E1>(_e1),
-                std::forward<_E2>(_e2),
-                std::forward<_E3>(_e3));
-    }
+// fanout (ternary)
+//   function: three-way fan-out yielding
+// std::tuple<T1, T2, T3>. Wider arities can be assembled by
+// nesting; the tuples will nest accordingly.
+template<typename _E1,
+            typename _E2,
+            typename _E3>
+D_NODISCARD D_CONSTEXPR internal::fanout3_helper<typename std::decay<_E1>::type,
+                            typename std::decay<_E2>::type,
+                            typename std::decay<_E3>::type>
+fanout(
+    _E1&& _e1,
+    _E2&& _e2,
+    _E3&& _e3
+)
+{
+    return internal::fanout3_helper<
+        typename std::decay<_E1>::type,
+        typename std::decay<_E2>::type,
+        typename std::decay<_E3>::type>(
+            std::forward<_E1>(_e1),
+            std::forward<_E2>(_e2),
+            std::forward<_E3>(_e3));
+}
 
 
-    // mapped
-    //   function: returns an extractor that applies _fn to the
-    // output of _e. Same effect as then_extract; the name choice
-    // is stylistic. `mapped` reads better when the second stage
-    // is a plain lambda; `then_extract` reads better when both
-    // stages are first-class extractors.
-    template<typename _Extractor,
-             typename _Fn>
-    D_NODISCARD D_CONSTEXPR internal::mapped_helper<typename std::decay<_Extractor>::type,
-                            typename std::decay<_Fn>::type>
-    mapped(
-        _Extractor&& _e,
-        _Fn&&        _fn
-    )
-    {
-        return internal::mapped_helper<
-            typename std::decay<_Extractor>::type,
-            typename std::decay<_Fn>::type>(
-                std::forward<_Extractor>(_e),
-                std::forward<_Fn>(_fn));
-    }
+// mapped
+//   function: returns an extractor that applies _fn to the
+// output of _e. Same effect as then_extract; the name choice
+// is stylistic. `mapped` reads better when the second stage
+// is a plain lambda; `then_extract` reads better when both
+// stages are first-class extractors.
+template<typename _Extractor,
+            typename _Fn>
+D_NODISCARD D_CONSTEXPR internal::mapped_helper<typename std::decay<_Extractor>::type,
+                        typename std::decay<_Fn>::type>
+mapped(
+    _Extractor&& _e,
+    _Fn&&        _fn
+)
+{
+    return internal::mapped_helper<
+        typename std::decay<_Extractor>::type,
+        typename std::decay<_Fn>::type>(
+            std::forward<_Extractor>(_e),
+            std::forward<_Fn>(_fn));
+}
 
 
-    // mapped (single-arg, adapter form)
-    //   function: pipeline form for `e | mapped(f)`.
-    template<typename _Fn>
-    D_NODISCARD D_CONSTEXPR internal::mapped_adapter<typename std::decay<_Fn>::type>
-    mapped(
-        _Fn&& _fn
-    )
-    {
-        return internal::mapped_adapter<
-            typename std::decay<_Fn>::type>(
-                std::forward<_Fn>(_fn));
-    }
+// mapped (single-arg, adapter form)
+//   function: pipeline form for `e | mapped(f)`.
+template<typename _Fn>
+D_NODISCARD D_CONSTEXPR internal::mapped_adapter<typename std::decay<_Fn>::type>
+mapped(
+    _Fn&& _fn
+)
+{
+    return internal::mapped_adapter<
+        typename std::decay<_Fn>::type>(
+            std::forward<_Fn>(_fn));
+}
 
 
-    // filtered
-    //   function: turns a total extractor into a partial one
-    // gated by a predicate on the extracted value. The returned
-    // extractor produces maybe<T>; nothing is returned when the
-    // predicate is false.
-    template<typename _Extractor,
-             typename _Predicate>
-    D_NODISCARD D_CONSTEXPR internal::filtered_helper<typename std::decay<_Extractor>::type,
-                              typename std::decay<_Predicate>::type>
-    filtered(
-        _Extractor&& _e,
-        _Predicate&& _pred
-    )
-    {
-        return internal::filtered_helper<
-            typename std::decay<_Extractor>::type,
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Extractor>(_e),
-                std::forward<_Predicate>(_pred));
-    }
+// filtered
+//   function: turns a total extractor into a partial one
+// gated by a predicate on the extracted value. The returned
+// extractor produces maybe<T>; nothing is returned when the
+// predicate is false.
+template<typename _Extractor,
+            typename _Predicate>
+D_NODISCARD D_CONSTEXPR internal::filtered_helper<typename std::decay<_Extractor>::type,
+                            typename std::decay<_Predicate>::type>
+filtered(
+    _Extractor&& _e,
+    _Predicate&& _pred
+)
+{
+    return internal::filtered_helper<
+        typename std::decay<_Extractor>::type,
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Extractor>(_e),
+            std::forward<_Predicate>(_pred));
+}
 
 
-    // filtered (single-arg, adapter form)
-    //   function: pipeline form for `e | filtered(p)`.
-    template<typename _Predicate>
-    D_NODISCARD D_CONSTEXPR internal::filtered_adapter<typename std::decay<_Predicate>::type>
-    filtered(
-        _Predicate&& _pred
-    )
-    {
-        return internal::filtered_adapter<
-            typename std::decay<_Predicate>::type>(
-                std::forward<_Predicate>(_pred));
-    }
+// filtered (single-arg, adapter form)
+//   function: pipeline form for `e | filtered(p)`.
+template<typename _Predicate>
+D_NODISCARD D_CONSTEXPR internal::filtered_adapter<typename std::decay<_Predicate>::type>
+filtered(
+    _Predicate&& _pred
+)
+{
+    return internal::filtered_adapter<
+        typename std::decay<_Predicate>::type>(
+            std::forward<_Predicate>(_pred));
+}
 
 
-    // guarded
-    //   function: like filtered, but the predicate runs against
-    // the SOURCE before extraction rather than against the
-    // extracted value. Useful when the extractor itself is only
-    // safe to invoke on sources passing the guard.
-    template<typename _Extractor,
-             typename _Guard>
-    D_NODISCARD D_CONSTEXPR internal::guarded_helper<typename std::decay<_Extractor>::type,
-                             typename std::decay<_Guard>::type>
-    guarded(
-        _Extractor&& _e,
-        _Guard&&     _guard
-    )
-    {
-        return internal::guarded_helper<
-            typename std::decay<_Extractor>::type,
-            typename std::decay<_Guard>::type>(
-                std::forward<_Extractor>(_e),
-                std::forward<_Guard>(_guard));
-    }
+// guarded
+//   function: like filtered, but the predicate runs against
+// the SOURCE before extraction rather than against the
+// extracted value. Useful when the extractor itself is only
+// safe to invoke on sources passing the guard.
+template<typename _Extractor,
+            typename _Guard>
+D_NODISCARD D_CONSTEXPR internal::guarded_helper<typename std::decay<_Extractor>::type,
+                            typename std::decay<_Guard>::type>
+guarded(
+    _Extractor&& _e,
+    _Guard&&     _guard
+)
+{
+    return internal::guarded_helper<
+        typename std::decay<_Extractor>::type,
+        typename std::decay<_Guard>::type>(
+            std::forward<_Extractor>(_e),
+            std::forward<_Guard>(_guard));
+}
 
 
-    // defaulted
-    //   function: converts a maybe-returning extractor into a
-    // total extractor by substituting a stored default whenever
-    // the inner returns nothing. Inverse of filtered/guarded.
-    template<typename _Extractor,
-             typename _Default>
-    D_NODISCARD D_CONSTEXPR internal::defaulted_helper<typename std::decay<_Extractor>::type,
-                               typename std::decay<_Default>::type>
-    defaulted(
-        _Extractor&& _e,
-        _Default&&   _default
-    )
-    {
-        return internal::defaulted_helper<
-            typename std::decay<_Extractor>::type,
-            typename std::decay<_Default>::type>(
-                std::forward<_Extractor>(_e),
-                std::forward<_Default>(_default));
-    }
+// defaulted
+//   function: converts a maybe-returning extractor into a
+// total extractor by substituting a stored default whenever
+// the inner returns nothing. Inverse of filtered/guarded.
+template<typename _Extractor,
+            typename _Default>
+D_NODISCARD D_CONSTEXPR internal::defaulted_helper<typename std::decay<_Extractor>::type,
+                            typename std::decay<_Default>::type>
+defaulted(
+    _Extractor&& _e,
+    _Default&&   _default
+)
+{
+    return internal::defaulted_helper<
+        typename std::decay<_Extractor>::type,
+        typename std::decay<_Default>::type>(
+            std::forward<_Extractor>(_e),
+            std::forward<_Default>(_default));
+}
 
 
-    // try_extract
-    //   function: wraps an extractor so that any exception thrown
-    // during extraction is captured as nothing. Not D_CONSTEXPR
-    // because exception handling is forbidden in constant
-    // evaluation pre-C++26.
-    template<typename _Extractor>
-    D_NODISCARD
-    internal::try_helper<typename std::decay<_Extractor>::type>
-    try_extract(
-        _Extractor&& _e
-    )
-    {
-        return internal::try_helper<
-            typename std::decay<_Extractor>::type>(
-                std::forward<_Extractor>(_e));
-    }
-
-}   // namespace extractors
-
+// try_extract
+//   function: wraps an extractor so that any exception thrown
+// during extraction is captured as nothing. Not D_CONSTEXPR
+// because exception handling is forbidden in constant
+// evaluation pre-C++26.
+template<typename _Extractor>
+D_NODISCARD
+internal::try_helper<typename std::decay<_Extractor>::type>
+try_extract(
+    _Extractor&& _e
+)
+{
+    return internal::try_helper<
+        typename std::decay<_Extractor>::type>(
+            std::forward<_Extractor>(_e));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///             III.  PIPELINE OPERATORS                                    ///

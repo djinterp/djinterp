@@ -419,7 +419,7 @@ struct is_monad_combinator
 ///////////////////////////////////////////////////////////////////////////////
 //   DUAL DOMAIN.  The operations below are D_CONSTEXPR and delegate to
 // monad_traits<M>::{unit, bind}.  When a concrete monad marks those hooks
-// constexpr (maybe and result mark theirs D_CONSTEXPR20), these operations
+// constexpr (maybe and result mark theirs D_CONSTEXPR), these operations
 // fold at compile time under C++20 over a monad whose value is a carrier leaf
 // (val_t / type_t) - so the same monad_bind / monad_map expresses both a
 // value-domain runtime computation and a type- or value-level compile-time
