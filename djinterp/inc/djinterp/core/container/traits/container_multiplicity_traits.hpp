@@ -1,55 +1,42 @@
 /******************************************************************************
-* djinterp [container]                       container_multiplicity_traits.hpp
+* djinterp [container]                        container_multiplicity_traits.hpp
 *
-* SFINAE structural traits for the multiplicity axis.
-*   Multiplicity describes how many copies of an equivalent
-* element a container is permitted to hold.  The axis admits four
-* canonical positions:
-*     none              - cannot be classified (no signal)
-*     unique            - at most one copy per equivalent element
-*     bounded_multi     - up to N copies, where 1 < N < SIZE_MAX
-*     unbounded_multi   - unrestricted duplicates
-*   The basic protocol (interval, legacy min/max accessors,
-* enforces_uniqueness via key_type/mapped_type) lives in
-* container_traits.hpp.  This header EXTENDS that protocol with:
-*     1. Structural insert-return-type detection.  The standard
-*        library encodes multiplicity in the return type of
-*        single-argument `insert(value)`:
-*          unique-keyed -> std::pair<iterator, bool>
-*          multi-keyed  -> iterator
-*        This signal correctly handles std::map and
-* std::unordered_map (which the key_type/mapped_type heuristic in
-* container_traits.hpp misses).
-*     2. Opt-in member constant `max_multiplicity` for bounded-N
-*        containers - the lightest declaration of "allows up to N
-*        duplicates" available without a customization point.
-*     3. Resolved values: container_multiplicity_kind enum, max_multiplicity_v
-*        size extractor, and an aggregate snapshot.
-*   Detection priority for the size extractor:
-*     1. multiplicity_interval upper bound
-*           (existing protocol, container_traits.hpp)
-*     2. multiplicity_max() accessor
-*           (existing protocol, container_traits.hpp)
-*     3. T::max_multiplicity static constexpr member
-*           (introduced here)
-*     4. structural insert-return-type
-*           (introduced here)
-*     5. enforces_uniqueness fallback (key_type without
-*        mapped_type) -> 1
-*           (existing protocol, used as last resort)
-*     6. otherwise -> 0 (unknown)
-*   The trait operates on `clean_t<_Type>` (cv-ref stripped) and
-* produces compile-time bool / size_t values.
+*   SFINAE structural traits for the MULTIPLICITY axis - the per-class occurrence
+* bound a container imposes (the spec, Multiplicity; vocabulary in
+* meta/multiplicity.hpp).  The verdict combines a duplicate-EQUIVALENCE signal
+* with a UNIQUENESS signal, falling back to the comparator-less default.
+*
+*   DETECTION.
+*     1. key_type          the equivalence-E tell - a keyed / associative
+*                          container carries a duplicate-equivalence.  Absent, the
+*                          container is comparator-less: identity default, the
+*                          SEQUENCE kind (m = inf, copies by position).
+*     2. unique insert     among keyed containers, the single-element insert
+*                          returns a pair<iterator,bool> for UNIQUE semantics (the
+*                          bool reports whether it was inserted) and a plain
+*                          iterator for MULTISET semantics.  Probing `.second` on
+*                          the insert result splits set/map (unique, m = 1) from
+*                          multiset/multimap (m = inf).
+*     3. interval bounds   static lower_bound / upper_bound mark a closed-interval
+*                          carrier, whose values are distinct by construction -
+*                          UNIQUE (m = 1), matching the spec's interval row.
+*     4. opt-in bound      a static `multiplicity` constant states the numeric m
+*                          directly, the authoritative override - the way to
+*                          express a BOUNDED multiset (1 < m < inf), which has no
+*                          structural tell.
+*
+*   The opt-in bound wins where present; otherwise an interval is unique, a
+* comparator-less container is a sequence, and a keyed container is unique or an
+* unbounded multiset by its insert signature.  The axis is orthogonal to the
+* other intrinsic axes.
+*
 *   PORTABILITY:
-*   C++17 baseline (`if constexpr` used in the priority chain).
-* All `_v` and `_t` aliases gated on
-* D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES where applicable.
+*   C++11 baseline; `_v` companions degrade with the language as the rest do.
 *
 *
-* path:      /inc/djinterp/core/container/traits/
-*                container_multiplicity_traits.hpp
+* path:      /inc/djinterp/core/container/traits/container_multiplicity_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
 ******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_MULTIPLICITY_TRAITS_
@@ -57,334 +44,201 @@
 
 // std
 #include <cstddef>
-#include <limits>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
-#include "../container_traits.hpp"
+#include "../../djinterp.hpp"           // clean_t, NS_*, feature macros
+#include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_* detection macros, D_VOID_T
+#include "../../meta/multiplicity.hpp"  // multiplicity_kind + bounds vocabulary
+#include "./container_traits.hpp"       // multiplicity_kind + bounds vocabulary
 
 
 NS_DJINTERP
 
 
 // ===========================================================================
-// 1.  Multiplicity Kind Enumeration
+// I.   Structural signals
 // ===========================================================================
 
-// container_multiplicity_kind
-//   enum: classifies the maximum permitted multiplicity.
-enum class container_multiplicity_kind
-{
-    // unknown / not classifiable
-    none,
-    // at most one copy per equivalent element
-    unique,
-    // up to N copies, with 1 < N < SIZE_MAX
-    bounded_multi,
-    // unrestricted duplicates
-    unbounded_multi
-};
+// is_countable_container
+//   trait: the container guard for this axis - a value_type (the class type) AND
+// a const-callable size().
+D_TYPE_TRAIT_TRUE(is_countable_container,
+    typename clean_t<_Type>::value_type,
+    decltype(std::declval<const clean_t<_Type>&>().size()))
 
-// ===========================================================================
-// 2.  SFINAE method / value detection
-// ===========================================================================
-// New atomic signals introduced by this header.  Each detector
-// is named with a `_signal` suffix, matching the convention
-// established in mutable_container_traits.hpp.
+// has_interval_bounds_signal
+//   trait: detects static `lower_bound` AND `upper_bound` - a closed-interval
+// carrier (distinct values -> unique multiplicity).
+D_TYPE_TRAIT_TRUE(has_interval_bounds_signal,
+    decltype(clean_t<_Type>::lower_bound),
+    decltype(clean_t<_Type>::upper_bound))
 
-// has_unique_insert_signal
-//   trait: detects associative-style `insert(v)` returning
-// std::pair<iterator, bool>.  This is the canonical structural
-// signal for unique-keyed containers - std::set, std::map,
-// std::unordered_set, std::unordered_map - and is strictly
-// stronger than the key_type/mapped_type heuristic in
-// container_traits.hpp.
+// has_unique_insert
+//   trait: detects that the single-element insert returns a type with a `.second`
+// (a pair<iterator,bool>) - the mark of UNIQUE associative semantics.  A multiset
+// returns a plain iterator (no `.second`); a sequence has no value-only insert at
+// all.  Both leave this false.
 template<typename _Type,
          typename = void>
-struct has_unique_insert_signal : std::false_type
+struct has_unique_insert : std::false_type
 {};
 
 template<typename _Type>
-struct has_unique_insert_signal<_Type, void_t<
-    typename _Type::iterator,
-    typename _Type::value_type,
-    decltype(std::declval<_Type&>().insert(
-        std::declval<typename _Type::value_type>()))
->> : std::is_same<
-        decltype(std::declval<_Type&>().insert(
-            std::declval<typename _Type::value_type>())),
-        std::pair<typename _Type::iterator, bool>>
+struct has_unique_insert<_Type,
+    D_VOID_T<decltype(
+        std::declval<clean_t<_Type>&>().insert(
+            std::declval<const typename clean_t<_Type>::value_type&>()).second )>>
+    : std::true_type
 {};
 
-// has_multi_insert_signal
-//   trait: detects associative-style `insert(v)` returning a bare
-// iterator.  Multi-keyed containers (std::multiset,
-// std::multimap, std::unordered_multi*) collapse the pair.
-//   Excludes types whose insert returns
-// std::pair<iterator, bool> to remain disjoint from
-// has_unique_insert_signal even on pathological return-type
-// aliases.
-template<typename _Type,
-         typename = void>
-struct has_multi_insert_signal : std::false_type
-{};
+D_TYPE_TRAIT_VALUE_BOOL(has_unique_insert)
 
-template<typename _Type>
-struct has_multi_insert_signal<_Type, void_t<
-    typename _Type::iterator,
-    typename _Type::value_type,
-    decltype(std::declval<_Type&>().insert(
-        std::declval<typename _Type::value_type>()))
->> : std::integral_constant<bool,
-        std::is_same<
-            decltype(std::declval<_Type&>().insert(
-                std::declval<typename _Type::value_type>())),
-            typename _Type::iterator>::value
-        && !has_unique_insert_signal<_Type>::value>
-{};
-
-// has_max_multiplicity_constant
-//   trait: detects an opt-in `max_multiplicity` static constexpr
-// member of integral type.  This is the lightest customization
-// available for non-STL containers expressing bounded-N
-// multiplicity:
-//
-//     template<typename _T, std::size_t _N>
-//     class bounded_multiset
-//     {
-//     public:
-//         static constexpr std::size_t max_multiplicity = _N;
-//         /* ... */
-//     };
-//
-//   The constant is a structural declaration; no tag types or
-// out-of-line specializations required.
-template<typename _Type,
-         typename = void>
-struct has_max_multiplicity_constant : std::false_type
-{};
-
-template<typename _Type>
-struct has_max_multiplicity_constant<_Type, void_t<
-    decltype(_Type::max_multiplicity),
-    typename std::enable_if<
-        std::is_integral<typename std::remove_cv<
-            decltype(_Type::max_multiplicity)>::type>::value
-    >::type
->> : std::true_type
-{};
-
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr bool has_unique_insert_signal_v =
-        has_unique_insert_signal<_Type>::value;
-    template<typename _Type>
-    inline constexpr bool has_multi_insert_signal_v =
-        has_multi_insert_signal<_Type>::value;
-    template<typename _Type>
-    inline constexpr bool has_max_multiplicity_constant_v =
-        has_max_multiplicity_constant<_Type>::value;
-#endif
-
-// ===========================================================================
-// 3.  max_multiplicity extractor (priority chain)
-// ===========================================================================
-//
-//   Resolves the maximum number of equivalent elements _Type may
-// hold.  Priority chain (first match wins):
-//
-//     1. multiplicity_interval upper bound
-//     2. multiplicity_max() accessor
-//     3. T::max_multiplicity static constexpr member
-//     4. structural insert-return-type
-//        (unique -> 1, multi -> SIZE_MAX)
-//     5. enforces_uniqueness fallback -> 1
-//     6. otherwise -> 0 (unknown)
-//
-//   A return value of 0 is the sentinel for "no signal" and maps
-// to container_multiplicity_kind::none in the classifier below.
 
 NS_INTERNAL
 
-    // multiplicity_interval upper-bound extractor.
-    //   Hidden behind SFINAE so it only instantiates when the
-    // interval protocol is available; otherwise yields 0.
+    // multiplicity_member_helper
+    //   helper: read the opt-in static `multiplicity` bound, reporting presence
+    // separately so an absent member is distinguishable from a declared inf.
     template<typename _Type,
-             bool _HasInterval =
-                 has_valid_multiplicity_interval_v<_Type>>
-    struct interval_max_helper
+             typename = void>
+    struct multiplicity_member_helper
     {
-        static constexpr std::size_t value = 0;
+        static constexpr bool        present = false;
+        static constexpr std::size_t value   = unbounded_multiplicity;
     };
 
     template<typename _Type>
-    struct interval_max_helper<_Type, true>
+    struct multiplicity_member_helper<_Type,
+        D_VOID_T<decltype(clean_t<_Type>::multiplicity)>>
     {
-    private:
-        using interval_t = multiplicity_interval_of_t<_Type>;
-    public:
-        // interval types in djinterp::math expose a static
-        // constexpr `max_value` (or equivalent); we resolve it
-        // through the interval_traits helpers.  If that helper
-        // is unavailable, the fallback path covers the type
-        // through the structural signals below.
-        static constexpr std::size_t value =
-            static_cast<std::size_t>(interval_t::upper_bound);
-    };
-
-    // accessor-based upper bound.
-    //   Honored only at non-constexpr resolution sites; the
-    // type-level extractor below uses the static constant /
-    // structural paths.  This helper is provided for symmetry
-    // with the runtime accessor in the snapshot struct.
-    template<typename _Type,
-             bool _HasAccessor =
-                 has_multiplicity_max_accessor_v<_Type>>
-    struct accessor_max_helper
-    {
-        static constexpr bool present = false;
-    };
-
-    template<typename _Type>
-    struct accessor_max_helper<_Type, true>
-    {
-        static constexpr bool present = true;
-        // value not constexpr-resolvable from a type alone;
-        // the snapshot exposes a `multiplicity_max_runtime()`
-        // helper that calls the accessor on a live instance.
-    };
-
-    // resolved compile-time max.
-    template<typename _Type>
-    struct resolve_max_helper
-    {
-    private:
-        using clean_type = clean_t<_Type>;
-
-        static constexpr std::size_t from_interval =
-            interval_max_helper<clean_type>::value;
-        static constexpr bool has_interval =
-            has_valid_multiplicity_interval_v<clean_type>;
-        static constexpr bool has_constant =
-            has_max_multiplicity_constant<clean_type>::value;
-        static constexpr bool has_unique_struct =
-            has_unique_insert_signal<clean_type>::value;
-        static constexpr bool has_multi_struct =
-            has_multi_insert_signal<clean_type>::value;
-        static constexpr bool has_unique_legacy =
-            enforces_uniqueness_v<clean_type>;
-
-    public:
-        static constexpr std::size_t value =
-            // priority 1: interval upper bound
-            has_interval
-                ? from_interval
-            // priority 3: opt-in static constant
-            //   (priority 2, the runtime accessor, cannot be
-            //   resolved purely from the type; see snapshot.)
-            : has_constant
-                ? static_cast<std::size_t>(
-                      clean_type::max_multiplicity)
-            // priority 4a: structural unique
-            : has_unique_struct
-                ? std::size_t{1}
-            // priority 4b: structural multi
-            : has_multi_struct
-                ? std::numeric_limits<std::size_t>::max()
-            // priority 5: legacy uniqueness fallback
-            : has_unique_legacy
-                ? std::size_t{1}
-            // priority 6: unknown
-            : std::size_t{0};
+        static constexpr bool        present = true;
+        static constexpr std::size_t value   =
+            static_cast<std::size_t>(clean_t<_Type>::multiplicity);
     };
 
 NS_END  // internal
 
-
-// max_multiplicity
-//   trait: yields the resolved compile-time upper bound on the
-// number of equivalent elements _Type may hold.  Returns 0 when
-// no structural signal is available.
+// has_multiplicity_bound
+//   trait: detects the opt-in static `multiplicity` constant.
 template<typename _Type>
-struct max_multiplicity
-{
-    static constexpr std::size_t value =
-        internal::resolve_max_helper<_Type>::value;
-};
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr std::size_t max_multiplicity_v =
-        max_multiplicity<_Type>::value;
-#endif
-
-
-// ===========================================================================
-// 4.  multiplicity_kind classifier
-// ===========================================================================
-
-// multiplicity_kind
-//   trait: classifies _Type into a container_multiplicity_kind position
-// based on max_multiplicity_v.
-template<typename _Type>
-struct multiplicity_kind
-{
-private:
-    static constexpr std::size_t mx =
-        max_multiplicity_v<clean_t<_Type>>;
-    static constexpr std::size_t sz_max =
-        std::numeric_limits<std::size_t>::max();
-
-public:
-    static constexpr container_multiplicity_kind value =
-        ( mx == 0 )
-            ? container_multiplicity_kind::none
-            : ( mx == 1 )
-                ? container_multiplicity_kind::unique
-                : ( mx == sz_max )
-                    ? container_multiplicity_kind::unbounded_multi
-                    : container_multiplicity_kind::bounded_multi;
-};
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr container_multiplicity_kind multiplicity_kind_v =
-        multiplicity_kind<_Type>::value;
-#endif
-
-
-// is_bounded_multi_container
-//   trait: convenience predicate for the new bounded-N kind
-// position.  Disjoint from is_unique_container_v (in
-// container_traits.hpp) and from allows_duplicates_v in the
-// unbounded sense.
-template<typename _Type>
-struct is_bounded_multi_container
+struct has_multiplicity_bound
     : std::integral_constant<bool,
-        multiplicity_kind<_Type>::value ==
-            container_multiplicity_kind::bounded_multi>
+          internal::multiplicity_member_helper<clean_t<_Type>>::present>
 {};
 
+D_TYPE_TRAIT_VALUE_BOOL(has_multiplicity_bound)
+
+
+// ===========================================================================
+// II.  Verdict
+// ===========================================================================
+
+// multiplicity_kind_of
+//   trait: the container's multiplicity kind.  Precedence: a non-container is
+// unknown; an opt-in bound is authoritative; an interval is unique; a comparator-
+// less container is a sequence; a keyed container is unique or an unbounded
+// multiset by its insert signature.
+template<typename _Type>
+struct multiplicity_kind_of
+{
+private:
+    using clean_type = clean_t<_Type>;
+
+public:
+    static constexpr multiplicity_kind value =
+        ( !is_countable_container<clean_type>::value )
+              ? multiplicity_kind::unknown
+      : (  internal::multiplicity_member_helper<clean_type>::present )
+              ? make_multiplicity_kind(
+                    true, internal::multiplicity_member_helper<clean_type>::value )
+      : (  has_interval_bounds_signal<clean_type>::value )
+              ? multiplicity_kind::unique
+      : ( !has_key_type<clean_type>::value )
+              ? multiplicity_kind::sequence
+      : (  has_unique_insert<clean_type>::value )
+              ? multiplicity_kind::unique
+      :         multiplicity_kind::unbounded_multiset;
+
+    using type = std::integral_constant<multiplicity_kind, value>;
+};
+
+template<typename _Type>
+using multiplicity_kind_of_t = typename multiplicity_kind_of<_Type>::type;
+
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename _Type>
-    inline constexpr bool is_bounded_multi_container_v =
-        is_bounded_multi_container<_Type>::value;
+    inline constexpr multiplicity_kind multiplicity_kind_of_v =
+        multiplicity_kind_of<_Type>::value;
+#elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr multiplicity_kind multiplicity_kind_of_v =
+        multiplicity_kind_of<_Type>::value;
+#endif
+
+// multiplicity_bound_of
+//   trait: the numeric bound m.  An opt-in member is reported verbatim; otherwise
+// it follows from the kind (unique -> 1, sequence / unbounded_multiset -> inf).
+template<typename _Type>
+struct multiplicity_bound_of
+{
+private:
+    using clean_type = clean_t<_Type>;
+
+public:
+    static constexpr std::size_t value =
+        ( internal::multiplicity_member_helper<clean_type>::present )
+              ? internal::multiplicity_member_helper<clean_type>::value
+              : multiplicity_bound_of_kind(
+                    multiplicity_kind_of<clean_type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr std::size_t multiplicity_bound_of_v =
+        multiplicity_bound_of<_Type>::value;
 #endif
 
 
 // ===========================================================================
-// 5.  Aggregate snapshot
+// III. Classification predicates
 // ===========================================================================
 
-// multiplicity_container_class
-//   struct: complete classification of _Type along the
-// multiplicity axis.  Aggregates both the existing protocol
-// (re-exported from container_traits.hpp) and the new structural
-// signals introduced here, so callers querying the snapshot get
-// a single point of truth.
+// is_sequence_container
+//   trait: true for the comparator-less kind (identity default, m = inf).
+template<typename _Type>
+struct is_sequence_container
+    : std::integral_constant<bool,
+          is_sequence_kind(multiplicity_kind_of<clean_t<_Type>>::value)>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(is_sequence_container)
+
+// is_unique_container
+//   trait: true for set semantics (m = 1).
+template<typename _Type>
+struct is_unique_container
+    : std::integral_constant<bool,
+          is_unique_kind(multiplicity_kind_of<clean_t<_Type>>::value)>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(is_unique_container)
+
+// is_multiset_container
+//   trait: true for either multiset kind (a genuine equivalence, m > 1).
+template<typename _Type>
+struct is_multiset_container
+    : std::integral_constant<bool,
+          is_multiset_kind(multiplicity_kind_of<clean_t<_Type>>::value)>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(is_multiset_container)
+
+
+// ===========================================================================
+// IV.  Aggregate snapshot
+// ===========================================================================
+
 template<typename _Type>
 struct multiplicity_container_class
 {
@@ -392,43 +246,31 @@ private:
     using clean_type = clean_t<_Type>;
 
 public:
-    // ---- existing protocol (container_traits.hpp) ----
-    static constexpr bool enforces_uniqueness =
-        enforces_uniqueness_v<clean_type>;
-    static constexpr bool allows_duplicates =
-        allows_duplicates_v<clean_type>;
-    static constexpr bool has_bounded_multiplicity =
-        has_bounded_multiplicity_v<clean_type>;
-    static constexpr bool has_multiplicity_interval =
-        has_valid_multiplicity_interval_v<clean_type>;
-    static constexpr bool has_multiplicity_min_accessor =
-        has_multiplicity_min_accessor_v<clean_type>;
-    static constexpr bool has_multiplicity_max_accessor =
-        has_multiplicity_max_accessor_v<clean_type>;
+    // signals
+    static constexpr bool has_equivalence =
+        has_key_type<clean_type>::value;
+    static constexpr bool unique_insert =
+        has_unique_insert<clean_type>::value;
+    static constexpr bool interval_domain =
+        has_interval_bounds_signal<clean_type>::value;
+    static constexpr bool opt_in_bound =
+        has_multiplicity_bound<clean_type>::value;
 
-    // ---- new structural signals (this header) ----
-    static constexpr bool has_unique_insert =
-        has_unique_insert_signal<clean_type>::value;
-    static constexpr bool has_multi_insert =
-        has_multi_insert_signal<clean_type>::value;
-    static constexpr bool has_max_constant =
-        has_max_multiplicity_constant<clean_type>::value;
+    // verdict
+    static constexpr multiplicity_kind kind =
+        multiplicity_kind_of<clean_type>::value;
+    static constexpr std::size_t       bound =
+        multiplicity_bound_of<clean_type>::value;
+    static constexpr const char*       kind_name =
+        multiplicity_kind_name(kind);
 
-    // ---- resolved values ----
-    static constexpr std::size_t max_multiplicity =
-        max_multiplicity_v<clean_type>;
-    static constexpr container_multiplicity_kind kind =
-        multiplicity_kind_v<clean_type>;
-
-    // ---- kind predicates ----
+    // shorthands
+    static constexpr bool is_sequence =
+        is_sequence_kind(kind);
     static constexpr bool is_unique =
-        ( kind == container_multiplicity_kind::unique );
-    static constexpr bool is_bounded_multi =
-        ( kind == container_multiplicity_kind::bounded_multi );
-    static constexpr bool is_unbounded_multi =
-        ( kind == container_multiplicity_kind::unbounded_multi );
-    static constexpr bool is_unknown =
-        ( kind == container_multiplicity_kind::none );
+        is_unique_kind(kind);
+    static constexpr bool is_multiset =
+        is_multiset_kind(kind);
 };
 
 

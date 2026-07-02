@@ -1,449 +1,435 @@
 /******************************************************************************
 * djinterp [container]                             container_filter_traits.hpp
 *
-* djinterp container filter traits
-*   Bridges the container classification system (container_traits.hpp) with
-* the functional filtering infrastructure (filterable_traits.hpp,
-* filter.hpp) to provide compile-time detection of which filter operations
-* a container can support and what invariants filtering preserves.
-*   All detection is structural SFINAE.  No tag types are required.
+*   The Filterability axis: whether a container may be FILTERED - reduced to the
+* sub-container of elements satisfying a predicate - and what of its anatomy
+* survives.  Filterability is the composite intrinsic axis: it holds where a READ
+* capability (iterability, to visit and test) and a BUILD capability (mutability,
+* to gather the survivors) align over a predicate on the element type.
 *
-* DEPENDENCIES:
-*   container_traits.hpp      - container classification
-*   filterable_traits.hpp     - filterable detection primitives
-*   functional_traits.hpp     - callable/predicate detection
+*   A type is FILTERABLE when selection is closed on it - the result is again of
+* its type, which needs both read and build.  A type that can be read and tested
+* but not grown is a FILTER SOURCE only: it feeds a selection whose result is
+* built in another type.  The STRATEGY names the strongest realization the type's
+* iterability grants (native, indexed, bidirectional, forward, external); the
+* STAGE names when a selection may run (compile-time, as a functional selection,
+* or runtime).
+*
+*   The weight of the axis is PRESERVATION.  Because selection removes elements
+* without reordering or transforming survivors, it preserves the whole anatomy of
+* the survivors save one bound: arrangement (order, structure) and sortedness
+* carry over, multiplicity can only fall so uniqueness is kept, and the capacity
+* CEILING holds since the result is no larger.  What it does not preserve is a
+* capacity FLOOR - the constant-false predicate empties the container - the single
+* invariant selection can break.
+*
+*   These preservation traits are read of a container: because selection keeps the
+* survivors' arrangement, the result is ordered / sorted / unique exactly when the
+* source is (the trait reports that surviving status), the ceiling always holds,
+* and a floor never does.
+*
+*   PORTABILITY:
+*   C++11 baseline; `_v` companions degrade with the language, as elsewhere.
 *
 *
 * path:      /inc/djinterp/core/container/traits/container_filter_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.23
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
 ******************************************************************************/
-
-/*
-TABLE OF CONTENTS
-=================
-1.    filterability detection
-2.    native filter detection
-3.    filter strategy classification
-4.    invariant preservation
-5.    result type deduction
-6.    combined classification
-*/
 
 #ifndef DJINTERP_CONTAINER_FILTER_TRAITS_
 #define DJINTERP_CONTAINER_FILTER_TRAITS_ 1
 
 // std
-#include <cstddef>
 #include <type_traits>
+#include <utility>
 #include <vector>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
-#include "./container_traits.hpp"
+#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
+#include "../../meta/trait_detect.hpp"              // D_VOID_T, D_TYPE_TRAIT_VALUE_BOOL
+#include "../../meta/lifetime.hpp"                  // is_compile_time
+#include "./constexpr_container_traits.hpp"         // container_lifetime (filter stage)
+#include "./iterable_container_traits.hpp"          // is_iterable_container (read)
+#include "./element_relation_traits.hpp"            // element_type_of_t (value_type)
+#include "./iterator_category_traits.hpp"           // data accessor + iterator category
+#include "./container_multiplicity_traits.hpp"      // is_unique_container (uniqueness)
+#include "./bounded_container_traits.hpp"           // is_bounded_container (capacity)
+#include "../ordered_container.hpp"                 // is_ordered_container (order)
+#include "../sorted_container.hpp"                  // is_sorted_container (sortedness)
 
 
 NS_DJINTERP
 
 
-///////////////////////////////////////////////////////////////////////////////
-// 1.   filterability detection
-///////////////////////////////////////////////////////////////////////////////
+// ===========================================================================
+// I.   Capability detection
+// ===========================================================================
 
-// A container is filterable when it satisfies three structural
-// requirements:
-//   1. Iterable: begin()/end() are well-formed.
-//   2. Typed: exposes a value_type alias.
-//   3. Output-capable: supports push_() or iterator-based
-//      insert(), enabling construction of a filtered result.
-//
-// A container may be filter-input-only when it is iterable and
-// typed but lacks output methods.  Such containers can be
-// filtered into a different output container (e.g.
-// std::vector).
+NS_INTERNAL
 
-// is_container_filterable
-//   type trait: true if container supports complete filter
-// round-trip (read elements, apply predicate, build result of
-// the same type).
-template<typename _Type>
-struct is_container_filterable
-{
-    using clean_type = clean_t<_Type>;
+    // has_value_type_helper
+    //   helper: whether a container exposes a value_type (a void element type
+    // from element_type_of means there is none).
+    template<typename _Container>
+    struct has_value_type_helper
+        : std::integral_constant<bool,
+              !std::is_void<element_type_of_t<_Container>>::value>
+    {};
 
-    static constexpr bool value =
-        ( is_iterable_container_v<clean_type> &&
-          has_value_type_v<clean_type>        &&
-          ( has_push__v<clean_type>       ||
-            has_insert_v<clean_type> ) );
-};
+    // has_push_back_helper / has_insert_value_helper
+    //   helper: the BUILD capability - the container can grow by an element, by
+    // sequence push_back or associative insert.
+    template<typename _Container, typename = void>
+    struct has_push_back_helper : std::false_type {};
+    template<typename _Container>
+    struct has_push_back_helper<_Container,
+        D_VOID_T<decltype(std::declval<_Container&>().push_back(
+            std::declval<typename _Container::value_type>()))>>
+        : std::true_type {};
 
-template<typename _Type>
-inline constexpr bool is_container_filterable_v = is_container_filterable<_Type>::value;
+    template<typename _Container, typename = void>
+    struct has_insert_value_helper : std::false_type {};
+    template<typename _Container>
+    struct has_insert_value_helper<_Container,
+        D_VOID_T<decltype(std::declval<_Container&>().insert(
+            std::declval<typename _Container::value_type>()))>>
+        : std::true_type {};
 
-// is_filter_input_only
-//   type trait: true if container can serve as filter input
-// but cannot receive filtered output (no push_/insert).
-// Filtering such containers requires an explicit output
-// container type.
-template<typename _Type>
-struct is_filter_input_only
-{
-    using clean_type = clean_t<_Type>;
+    // build_capable_helper
+    //   helper: the container can receive survivors (push_back or insert).
+    template<typename _Container>
+    struct build_capable_helper
+        : std::integral_constant<bool,
+                has_push_back_helper<_Container>::value
+             || has_insert_value_helper<_Container>::value>
+    {};
 
-    static constexpr bool value =
-        ( is_iterable_container_v<clean_type>  &&
-          has_value_type_v<clean_type>         &&
-          !has_push__v<clean_type>         &&
-          !has_insert_v<clean_type> );
-};
+    // native_filter_helper
+    //   helper: the container exposes its own filter(predicate) primitive, taking
+    // a bool(const value_type&) test.
+    template<typename _Container, typename = void>
+    struct native_filter_helper : std::false_type {};
+    template<typename _Container>
+    struct native_filter_helper<_Container,
+        D_VOID_T<decltype(std::declval<const _Container&>().filter(
+            std::declval<bool(*)(const typename _Container::value_type&)>()))>>
+        : std::true_type {};
 
-template<typename _Type>
-inline constexpr bool is_filter_input_only_v = is_filter_input_only<_Type>::value;
+NS_END  // internal
 
 // is_filter_source
-//   type trait: true if container can supply elements to a
-// filter operation (either filterable or input-only).
+//   trait: the container can supply elements to a selection - it is iterable and
+// typed (the READ capability), whether or not it can build a result.
 template<typename _Type>
 struct is_filter_source
-{
-    using clean_type = clean_t<_Type>;
+    : std::integral_constant<bool,
+            is_iterable_container<clean_t<_Type>>::value
+         && internal::has_value_type_helper<clean_t<_Type>>::value>
+{};
 
-    static constexpr bool value =
-        ( is_iterable_container_v<clean_type> &&
-          has_value_type_v<clean_type> );
-};
+D_TYPE_TRAIT_VALUE_BOOL(is_filter_source)
 
+// is_container_filterable
+//   trait: selection is closed on the container - it can be read AND can gather
+// the survivors into a container of its own type (read plus build).
 template<typename _Type>
-inline constexpr bool is_filter_source_v = is_filter_source<_Type>::value;
+struct is_container_filterable
+    : std::integral_constant<bool,
+            is_filter_source<clean_t<_Type>>::value
+         && internal::build_capable_helper<clean_t<_Type>>::value>
+{};
 
+D_TYPE_TRAIT_VALUE_BOOL(is_container_filterable)
 
-///////////////////////////////////////////////////////////////////////////////
-// 2.  native filter detection
-///////////////////////////////////////////////////////////////////////////////
-// A container may provide its own .filter() member that is
-// more efficient than the generic iterator-based path.
-// Detection checks for a .filter(predicate) signature where
-// predicate is bool(const value_type&).
+// is_filter_input_only
+//   trait: the container can feed a selection but not receive its result - a
+// source without the build capability, so filtering it needs an external target.
+template<typename _Type>
+struct is_filter_input_only
+    : std::integral_constant<bool,
+            is_filter_source<clean_t<_Type>>::value
+         && !internal::build_capable_helper<clean_t<_Type>>::value>
+{};
 
-NS_INTERNAL
-    // native_filter_expr
-    //   helper: expression alias detecting a .filter() member
-    // accepting a function pointer predicate.
-    template<typename _Type>
-    using native_filter_expr = decltype(
-        std::declval<const _Type&>().filter(
-            std::declval<
-                bool(*)(const typename _Type::value_type&)
-            >()));
-
-    // native_filter_check
-    //   helper: SFINAE check for native .filter().
-    template<typename _Type,
-             typename = void>
-    struct native_filter_check : std::false_type
-    {};
-
-    template<typename _Type>
-    struct native_filter_check<
-        _Type,
-        std::void_t<native_filter_expr<_Type>>>
-        : std::true_type
-    {};
-
-NS_END  // internal
+D_TYPE_TRAIT_VALUE_BOOL(is_filter_input_only)
 
 // has_native_filter
-//   type trait: true if container has a .filter(predicate)
-// member function.
+//   trait: the container exposes a filter(predicate) member of its own.
 template<typename _Type>
 struct has_native_filter
-{
-    using clean_type = clean_t<_Type>;
+    : internal::native_filter_helper<clean_t<_Type>>
+{};
 
-    static constexpr bool value = internal::native_filter_check<clean_type>::value;
-};
-
-template<typename _Type>
-inline constexpr bool has_native_filter_v = has_native_filter<_Type>::value;
+D_TYPE_TRAIT_VALUE_BOOL(has_native_filter)
 
 
-///////////////////////////////////////////////////////////////////////////////
-// 3. filter strategy classification
-///////////////////////////////////////////////////////////////////////////////
-// Determines the most efficient filtering approach based on
-// container capabilities:
-//
-//   native:        container has .filter() - delegate to it.
-//   random_access: container supports operator[] - use
-//                  index-based filtering.
-//   bidirectional: container supports bidirectional iteration
-//                  - use iterator-based filtering.
-//   forward:       container supports only forward iteration
-//                  - use single-pass filtering.
-//   external:      container is input-only - filter into an
-//                  external output container.
+// ===========================================================================
+// II.  Strategy (the realization)
+// ===========================================================================
 
 // filter_strategy
-//   enum: compile-time filter strategy tags.
+//   enum: the strongest selection realization a type's iterability grants.  All
+// compute the same result; the strategy is realization, not meaning.
 enum class filter_strategy
 {
-    native,
-    random_access,
-    bidirectional,
-    forward_only,
-    external,
-    unsupported
+    native,         // the type's own filter() primitive
+    indexed,        // contiguous store: index-based selection
+    bidirectional,  // bidirectional iteration
+    forward,        // single-pass forward iteration
+    external,       // a source only: gather into a separate result
+    unsupported     // not even a source
 };
 
-NS_INTERNAL
-    template<typename _Type, 
-             typename = void>
-    struct filter_strategy_helper
-    {
-        static constexpr filter_strategy value = filter_strategy::unsupported;
-    };
-
-    // native: highest priority
-    template<typename _Type>
-    struct filter_strategy_helper<
-        _Type,
-        std::enable_if_t<
-            has_native_filter<_Type>::value
-        >
-    >
-    {
-        static constexpr filter_strategy value = filter_strategy::native;
-    };
-
-    // random_access: operator[] + size + output capable
-    template<typename _Type>
-    struct filter_strategy_helper<
-        _Type,
-        std::enable_if_t<
-            !has_native_filter<_Type>::value       &&
-            is_container_filterable<_Type>::value  &&
-            has_data_accessor_v<_Type>
-        >
-    >
-    {
-        static constexpr filter_strategy value = filter_strategy::random_access;
-    };
-
-    // bidirectional: rbegin/rend available
-    template<typename _Type>
-    struct filter_strategy_helper<_Type,
-        std::enable_if_t<
-            !has_native_filter<_Type>::value       &&
-            is_container_filterable<_Type>::value  &&
-            !has_data_accessor_v<_Type>            &&
-            has_reverse_iteration_v<_Type>>>
-    {
-        static constexpr filter_strategy value = filter_strategy::bidirectional;
-    };
-
-    // forward only: iterable + output capable, no reverse
-    template<typename _Type>
-    struct filter_strategy_helper<_Type,
-        std::enable_if_t<
-            !has_native_filter<_Type>::value       &&
-            is_container_filterable<_Type>::value  &&
-            !has_data_accessor_v<_Type>            &&
-            !has_reverse_iteration_v<_Type>
-        >
-    >
-    {
-        static constexpr filter_strategy value = filter_strategy::forward_only;
-    };
-
-    // external: input-only, no output methods
-    template<typename _Type>
-    struct filter_strategy_helper<_Type,
-        std::enable_if_t<!has_native_filter<_Type>::value &&
-                         is_filter_input_only<_Type>::value>
-    >
-    {
-        static constexpr filter_strategy value = filter_strategy::external;
-    };
-
-NS_END  // internal
+// filter_strategy_name
+//   function: a stable spelling, for diagnostics and agent-facing summaries.
+constexpr const char*
+filter_strategy_name(filter_strategy _s) noexcept
+{
+    return ( _s == filter_strategy::native        ? "native"
+           : _s == filter_strategy::indexed        ? "indexed"
+           : _s == filter_strategy::bidirectional  ? "bidirectional"
+           : _s == filter_strategy::forward        ? "forward"
+           : _s == filter_strategy::external       ? "external"
+           :                                         "unsupported" );
+}
 
 // container_filter_strategy
-//   type trait: determines the most efficient filter strategy
-// for the given container type.
+//   trait: the selection strategy for a container - native first, then a source-
+// only container filters externally, and a filterable one by the strongest
+// category its iterator grants (indexed, bidirectional, forward).
 template<typename _Type>
 struct container_filter_strategy
 {
+private:
     using clean_type = clean_t<_Type>;
 
-    static constexpr filter_strategy value = internal::filter_strategy_helper<clean_type>::value;
+public:
+    static constexpr filter_strategy value =
+        ( !is_filter_source<clean_type>::value )
+              ? filter_strategy::unsupported
+      : ( has_native_filter<clean_type>::value )
+              ? filter_strategy::native
+      : ( !is_container_filterable<clean_type>::value )
+              ? filter_strategy::external
+      : ( has_data_accessor<clean_type>::value
+       && is_random_access_iterable<clean_type>::value )
+              ? filter_strategy::indexed
+      : ( is_bidirectional_iterable<clean_type>::value )
+              ? filter_strategy::bidirectional
+      :         filter_strategy::forward;
 };
 
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    template<typename _Type>
+    inline constexpr filter_strategy container_filter_strategy_v =
+        container_filter_strategy<_Type>::value;
+#elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr filter_strategy container_filter_strategy_v =
+        container_filter_strategy<_Type>::value;
+#endif
+
+
+// ===========================================================================
+// III. Stage (when a selection may run)
+// ===========================================================================
+
+// filter_stage
+//   enum: the stage at which a container admits selection.  Compile-time
+// selection is a functional selection over a statically-iterable source; runtime
+// selection runs during execution; none, where the type is not even a source.
+enum class filter_stage
+{
+    none,
+    runtime,
+    compile_time
+};
+
+// filter_stage_name
+constexpr const char*
+filter_stage_name(filter_stage _s) noexcept
+{
+    return ( _s == filter_stage::none         ? "none"
+           : _s == filter_stage::runtime       ? "runtime"
+           :                                     "compile_time" );
+}
+
+// filter_stage_of
+//   trait: the stage a container can be selected at - compile-time when its
+// data are compile-staged (a functional selection, the predicate assumed
+// statically evaluable), else runtime; none for a non-source.
 template<typename _Type>
-inline constexpr filter_strategy container_filter_strategy_v = container_filter_strategy<_Type>::value;
+struct filter_stage_of
+{
+private:
+    using clean_type = clean_t<_Type>;
 
-// convenience predicates on strategy
-template<typename _Type>
-inline constexpr bool is_natively_filterable_v =
-    ( container_filter_strategy_v<_Type> ==
-      filter_strategy::native );
+public:
+    static constexpr filter_stage value =
+        ( !is_filter_source<clean_type>::value )
+              ? filter_stage::none
+      : ( is_compile_time(container_lifetime<clean_type>::value) )
+              ? filter_stage::compile_time
+      :         filter_stage::runtime;
+};
 
-template<typename _Type>
-inline constexpr bool is_random_access_filterable_v =
-    ( container_filter_strategy_v<_Type> ==
-      filter_strategy::random_access );
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    template<typename _Type>
+    inline constexpr filter_stage filter_stage_of_v =
+        filter_stage_of<_Type>::value;
+#elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr filter_stage filter_stage_of_v =
+        filter_stage_of<_Type>::value;
+#endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-// 4.  invariant preservation
-///////////////////////////////////////////////////////////////////////////////
-// These traits describe which container invariants survive a
-// filter operation.  Filtering selects a subset of elements
-// without reordering, so:
-//   - Ordered containers remain ordered.
-//   - Sorted containers remain sorted.
-//   - Unique containers remain unique.
-//   - Bounded containers lose their lower bound (the result
-//     may have fewer elements).
+// ===========================================================================
+// IV.  Preservation (the weight of the axis)
+// ===========================================================================
 
 // filter_preserves_order
-//   type trait: true if filtering this container produces a
-// result that maintains the original element ordering.
+//   trait: selection keeps the survivors' arrangement, so the result is ordered
+// exactly when the source is.
 template<typename _Type>
 struct filter_preserves_order
-{
-    using clean_type = clean_t<_Type>;
+    : is_ordered_container<clean_t<_Type>>
+{};
 
-    static constexpr bool value = is_ordered_container_v<clean_type>;
-};
-
-template<typename _Type>
-inline constexpr bool filter_preserves_order_v = filter_preserves_order<_Type>::value;
+D_TYPE_TRAIT_VALUE_BOOL(filter_preserves_order)
 
 // filter_preserves_sortedness
-//   type trait: true if filtering this container produces a
-// result that maintains the sorted invariant.
-// A subset of a sorted sequence is still sorted.
+//   trait: a sub-enumeration of a monotone enumeration is monotone, so the
+// result is sorted exactly when the source is.
 template<typename _Type>
 struct filter_preserves_sortedness
-{
-    using clean_type = clean_t<_Type>;
+    : is_sorted_container<clean_t<_Type>>
+{};
 
-    static constexpr bool value = is_sorted_container_v<clean_type>;
-};
-
-template<typename _Type>
-inline constexpr bool filter_preserves_sortedness_v = filter_preserves_sortedness<_Type>::value;
+D_TYPE_TRAIT_VALUE_BOOL(filter_preserves_sortedness)
 
 // filter_preserves_uniqueness
-//   type trait: true if filtering this container produces a
-// result that maintains element uniqueness.
-// A subset of a unique set is still unique.
+//   trait: multiplicity can only fall under selection, so uniqueness is kept -
+// the result is unique exactly when the source is.
 template<typename _Type>
 struct filter_preserves_uniqueness
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value = enforces_uniqueness_v<clean_type>;
-};
-
-template<typename _Type>
-inline constexpr bool filter_preserves_uniqueness_v = filter_preserves_uniqueness<_Type>::value;
-
-// filter_preserves_upper_bound
-//   type trait: always true - the result size cannot exceed
-// the source size.
-template<typename _Type>
-struct filter_preserves_upper_bound : std::true_type
+    : is_unique_container<clean_t<_Type>>
 {};
 
+D_TYPE_TRAIT_VALUE_BOOL(filter_preserves_uniqueness)
+
+// filter_preserves_capacity_ceiling
+//   trait: the result is no larger than the source, so a capacity ceiling always
+// survives selection - unconditionally true.
 template<typename _Type>
-inline constexpr bool filter_preserves_upper_bound_v = true;
+struct filter_preserves_capacity_ceiling : std::true_type {};
 
-// filter_preserves_lower_bound
-//   type trait: always false - filtering can remove elements
-// below any minimum size constraint.
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    template<typename _Type>
+    inline constexpr bool filter_preserves_capacity_ceiling_v = true;
+#elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool filter_preserves_capacity_ceiling_v = true;
+#endif
+
+// filter_preserves_capacity_floor
+//   trait: the constant-false predicate empties the container, so no positive
+// lower bound on size survives - unconditionally false.  The single asymmetry.
 template<typename _Type>
-struct filter_preserves_lower_bound : std::false_type
-{};
+struct filter_preserves_capacity_floor : std::false_type {};
 
-template<typename _Type>
-inline constexpr bool filter_preserves_lower_bound_v = false;
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+    template<typename _Type>
+    inline constexpr bool filter_preserves_capacity_floor_v = false;
+#elif D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool filter_preserves_capacity_floor_v = false;
+#endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-// 5.   result type deduction
-///////////////////////////////////////////////////////////////////////////////
-// Determines the output type of a filter operation.
-//   - For containers with push_: result is same type.
-//   - For set-like containers with insert: result is same
-//     type.
-//   - For input-only containers: result is
-//     std::vector<value_type>.
+// ===========================================================================
+// V.   Result type
+// ===========================================================================
 
 NS_INTERNAL
+
     // filter_result_type_helper
-    //   helper: deduces filter result container type.
-    template<typename _Type,
-             bool = is_container_filterable<_Type>::value,
-             bool = is_filter_input_only<_Type>::value>
+    //   helper: the container a selection builds.  A filterable type selects into
+    // its own type; a source-only type into a std::vector of its value_type.
+    template<typename _Container,
+             bool _Filterable = is_container_filterable<_Container>::value,
+             bool _InputOnly  = is_filter_input_only<_Container>::value>
     struct filter_result_type_helper
     {
         using type = void;
     };
 
-    // full round-trip: same container type
-    template<typename _Type>
-    struct filter_result_type_helper<_Type, true, false>
+    template<typename _Container>
+    struct filter_result_type_helper<_Container, true, false>
     {
-        using type = _Type;
+        using type = _Container;
     };
 
-    // input-only: fall  to std::vector<value_type>
-    template<typename _Type>
-    struct filter_result_type_helper<_Type, false, true>
+    template<typename _Container>
+    struct filter_result_type_helper<_Container, false, true>
     {
-        using type = std::vector<typename _Type::value_type>;
+        using type = std::vector<typename _Container::value_type>;
     };
 
 NS_END  // internal
 
 // filter_result_type
-//   type trait: deduces the output container type for a
-// filter operation on _Type.
+//   trait: the output container type of a selection over _Type.
 template<typename _Type>
 struct filter_result_type
 {
-    using type = typename internal::filter_result_type_helper<clean_t<_Type>>::type;
+    using type =
+        typename internal::filter_result_type_helper<clean_t<_Type>>::type;
 };
 
 template<typename _Type>
 using filter_result_type_t = typename filter_result_type<_Type>::type;
 
 
-///////////////////////////////////////////////////////////////////////////////
-// 6.  combined classification
-///////////////////////////////////////////////////////////////////////////////
+// ===========================================================================
+// VI.  Combined classification
+// ===========================================================================
 
 // container_filter_class
-//   struct: complete filter classification of a container
-// type.  All members are static constexpr.
+//   trait: the assembled Filterability of a container - its capability, strategy,
+// stage, and the invariants a selection preserves.
 template<typename _Type>
 struct container_filter_class
 {
-    // filterability
-    static constexpr bool is_filterable         = is_container_filterable_v<_Type>;
-    static constexpr bool is_input_only         = is_filter_input_only_v<_Type>;
-    static constexpr bool is_source             = is_filter_source_v<_Type>;
-    static constexpr bool has_native            = has_native_filter_v<_Type>;
-    // strategy                                 
-    static constexpr filter_strategy strategy   = container_filter_strategy_v<_Type>;
-    // invariant preservation
-    static constexpr bool preserves_order       = filter_preserves_order_v<_Type>;
-    static constexpr bool preserves_sortedness  = filter_preserves_sortedness_v<_Type>;
-    static constexpr bool preserves_uniqueness  = filter_preserves_uniqueness_v<_Type>;
-    static constexpr bool preserves_upper_bound = filter_preserves_upper_bound_v<_Type>;
-    static constexpr bool preserves_lower_bound = filter_preserves_lower_bound_v<_Type>;
+private:
+    using clean_type = clean_t<_Type>;
+
+public:
+    // capability
+    static constexpr bool is_filterable =
+        is_container_filterable<clean_type>::value;
+    static constexpr bool is_source =
+        is_filter_source<clean_type>::value;
+    static constexpr bool is_input_only =
+        is_filter_input_only<clean_type>::value;
+    static constexpr bool has_native =
+        has_native_filter<clean_type>::value;
+
+    // realization
+    static constexpr filter_strategy strategy =
+        container_filter_strategy<clean_type>::value;
+    static constexpr filter_stage stage =
+        filter_stage_of<clean_type>::value;
+
+    // preservation
+    static constexpr bool preserves_order =
+        filter_preserves_order<clean_type>::value;
+    static constexpr bool preserves_sortedness =
+        filter_preserves_sortedness<clean_type>::value;
+    static constexpr bool preserves_uniqueness =
+        filter_preserves_uniqueness<clean_type>::value;
+    static constexpr bool preserves_capacity_ceiling = true;
+    static constexpr bool preserves_capacity_floor   = false;
 };
 
 

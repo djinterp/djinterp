@@ -113,15 +113,14 @@ D_TYPE_TRAIT_TRUE(has_min_size_accessor,
 D_TYPE_TRAIT_TRUE(has_capacity_accessor,
     decltype(std::declval<const _Type&>().capacity()))
 
+// has_data_accessor
+//   trait: detects a data() accessor - the mark of contiguous storage.
 D_TYPE_TRAIT_TRUE(has_data_accessor,
-    decltype(std::declval<const _Type&>().data()))
+    decltype(std::declval<const clean_t<_Type>&>().data()))
 
 // --- type members ---
 D_TYPE_TRAIT_TRUE(has_allocator_type,
     typename _Type::allocator_type)
-
-D_TYPE_TRAIT_TRUE(has_key_type,
-    typename _Type::key_type)
 
 D_TYPE_TRAIT_TRUE(has_mapped_type,
     typename _Type::mapped_type)
@@ -320,7 +319,7 @@ NS_INTERNAL
         std::enable_if_t<
         ( std::is_default_constructible_v<_Type> &&
           has_min_size_accessor_v<_Type> )
-    >
+    >>
     {
     private:
         template<typename _U>
@@ -722,7 +721,7 @@ inline constexpr bool is_unbounded_v =
 
 #endif
 
-// is_bounded
+// is_interval_bounded
 //   type trait: true if container has any size constraint
 // (lower or upper).  Convenience aggregate used by
 // container_class so callers don't need to OR the two
@@ -736,8 +735,13 @@ inline constexpr bool is_unbounded_v =
 // above.  Both produce the same answer for canonical STL
 // containers; the local version is preferred where the
 // surrounding code is already using interval-aware bounds.
+//
+//   NOTE: named `is_interval_bounded` (not `is_bounded`) to avoid
+// colliding with the generic two-parameter meta-trait
+// `djinterp::is_bounded<_Type, _Trait>` in meta/type_traits.hpp,
+// which this header includes.
 template<typename _Type>
-struct is_bounded
+struct is_interval_bounded
 {
     using clean_type = clean_t<_Type>;
 
@@ -748,8 +752,8 @@ struct is_bounded
 
 #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
     template<typename _Type>
-    inline constexpr bool is_bounded_v =
-        is_bounded<_Type>::value;
+    inline constexpr bool is_interval_bounded_v =
+        is_interval_bounded<_Type>::value;
 
 #endif
 // ===========================================================================
@@ -1207,7 +1211,7 @@ struct container_class
     static constexpr bool is_unbounded          = is_unbounded_v<_Type>;
     static constexpr bool is_lower_bounded      = is_lower_bounded_v<_Type>;
     static constexpr bool is_upper_bounded      = is_upper_bounded_v<_Type>;    
-    static constexpr bool is_bounded            = is_bounded_v<_Type>;
+    static constexpr bool is_bounded            = is_interval_bounded_v<_Type>;
     static constexpr bool has_size_interval     = has_valid_size_interval_v<_Type>;
     // storage classification                   
     static constexpr bool is_static_storage     = is_static_storage_v<_Type>;
