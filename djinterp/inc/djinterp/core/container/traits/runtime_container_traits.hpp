@@ -1,23 +1,32 @@
 /******************************************************************************
 * djinterp [container]                            runtime_container_traits.hpp
 *
-* SFINAE structural traits for runtime-only containers.
-*   A container is "runtime-only" when its query surface cannot
-* be exercised in a constant expression context - e.g. heap-
-* allocated dynamic storage, classes with virtual functions, or
-* containers whose accessors are not declared constexpr.
-*   This module is the structural complement to
-* constexpr_container_traits.hpp:
-*     is_runtime_container_v<T>
-*       == is_container_v<T> && !is_constexpr_container_v<T>
-*   Detection signals:
-*     1. The type "looks like a container" (has size() accessor).
-*     2. is_constexpr_container reports false.
-*     3. (Stronger signals) presence of heap-storage indicators
-*        - has_allocator_alias, has_reserve_method.
+*   Structural traits for the RUNTIME end of a container's Lifetime axis.  A
+* container is "runtime-only" when its value cannot be settled in a constant
+* expression - heap-backed dynamic storage, virtual functions, or accessors not
+* declared constexpr - so its defining data come into being only as the program
+* runs.  This module is the structural complement of
+* constexpr_container_traits.hpp and shares its container_lifetime verdict:
+*       is_runtime_container<T>
+*         == "looks like a container" AND container_lifetime<T> is runtime-only
+*   i.e. the container shape is present but the compile-time bit is absent.
+*
+*   DETECTION signals:
+*     1. the type "looks like a container" - exposes a size() accessor;
+*     2. its container_lifetime carries no compile-time bit (DYNAMIC lifetime);
+*     3. (stronger) heap-storage indicators - an allocator_type alias, or a
+*        reserve(size_type) member - which actively REQUIRE runtime storage.
+*
+*   LIFETIME vs STORAGE:
+*   "Runtime-only" here is a Lifetime statement (WHEN the data are fixed), not a
+* Storage one (WHERE the cells live); the two axes are linked but distinct, and
+* the only entailment runs from inline storage to a compile-time-expressible
+* size.  requires_runtime_storage isolates the genuine storage signals.
 *
 *   PORTABILITY:
-*   C++11 baseline.
+*   C++11 baseline.  Every `_v` companion is emitted through the canonical
+* trait_detect macros (inline variable on C++17+, variable template on C++14,
+* absent on C++11 - the `::value` member is always present).
 *
 *
 * path:      /inc/djinterp/core/container/traits/runtime_container_traits.hpp
@@ -33,80 +42,37 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
-#include "../../env/cpp/env_cpp_features.h"
-#include "./constexpr_container_traits.hpp"  // is_constexpr_container
+#include "../../djinterp.hpp"               // clean_t, NS_*, D_ENV_*
+#include "../../meta/trait_detect.hpp"      // D_TYPE_TRAIT_* macros
+#include "../../meta/lifetime.hpp"          // lifetime, is_runtime_only
+#include "./constexpr_container_traits.hpp" // container_lifetime
 
 
 NS_DJINTERP
 
 
 // ===========================================================================
-// I.   SFINAE method detection
+// I.   Structural signals
 // ===========================================================================
+//   All probes strip cv-ref via clean_t so the answer agrees for T, const T,
+// T&.
 
 // has_size_accessor_signal
-//   trait: structural detection of any size() accessor (constexpr
-// or not).  Used as the "is a container" signal here.
-template<typename _Type,
-         typename = void>
-struct has_size_accessor_signal : std::false_type
-{};
-
-template<typename _Type>
-struct has_size_accessor_signal<_Type, void_t<
-    decltype(std::declval<const _Type&>().size())
->> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr bool has_size_accessor_signal_v =
-        has_size_accessor_signal<_Type>::value;
-#endif
-
+//   trait: structural detection of any size() accessor (constexpr or not).
+// The "is a container" signal for this module.
+D_TYPE_TRAIT_TRUE(has_size_accessor_signal,
+    decltype(std::declval<const clean_t<_Type>&>().size()))
 
 // has_allocator_alias
-//   trait: detects an `allocator_type` member alias, a strong
-// signal of heap-backed dynamic storage.
-template<typename _Type,
-         typename = void>
-struct has_allocator_alias : std::false_type
-{};
-
-template<typename _Type>
-struct has_allocator_alias<_Type, void_t<
-    typename _Type::allocator_type
->> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr bool has_allocator_alias_v =
-        has_allocator_alias<_Type>::value;
-#endif
-
+//   trait: detects an `allocator_type` member alias - a strong signal of
+// heap-backed dynamic storage.
+D_TYPE_TRAIT_HAS_TYPE(has_allocator_alias, allocator_type)
 
 // has_reserve_method_signal
-//   trait: detects `reserve(size_type)`, present on growable
-// runtime containers.
-template<typename _Type,
-         typename = void>
-struct has_reserve_method_signal : std::false_type
-{};
-
-template<typename _Type>
-struct has_reserve_method_signal<_Type, void_t<
-    decltype(std::declval<_Type&>().reserve(std::size_t{}))
->> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr bool has_reserve_method_signal_v =
-        has_reserve_method_signal<_Type>::value;
-#endif
+//   trait: detects `reserve(size_type)`, present on growable runtime
+// containers.
+D_TYPE_TRAIT_TRUE(has_reserve_method_signal,
+    decltype(std::declval<clean_t<_Type>&>().reserve(std::declval<std::size_t>())))
 
 
 // ===========================================================================
@@ -114,8 +80,8 @@ struct has_reserve_method_signal<_Type, void_t<
 // ===========================================================================
 
 // is_runtime_container
-//   trait: true if _Type is a container that is NOT constexpr-
-// capable.
+//   trait: true iff _Type is container-shaped yet NOT constexpr-capable - its
+// container_lifetime is the runtime stage exclusively (a DYNAMIC lifetime).
 template<typename _Type>
 struct is_runtime_container
 {
@@ -125,19 +91,14 @@ private:
 public:
     static constexpr bool value =
         (    has_size_accessor_signal<clean_type>::value
-          && !is_constexpr_container<clean_type>::value );
+          && is_runtime_only(container_lifetime<clean_type>::value) );
 };
 
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr bool is_runtime_container_v =
-        is_runtime_container<_Type>::value;
-#endif
-
+D_TYPE_TRAIT_VALUE_BOOL(is_runtime_container)
 
 // requires_runtime_storage
-//   trait: stronger signal - the container actively requires
-// runtime-only storage (heap allocator and/or growable capacity).
+//   trait: stronger signal - the container actively requires runtime-only
+// storage (a heap allocator and/or growable capacity).
 template<typename _Type>
 struct requires_runtime_storage
 {
@@ -150,17 +111,16 @@ public:
           || has_reserve_method_signal<clean_type>::value );
 };
 
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-    template<typename _Type>
-    inline constexpr bool requires_runtime_storage_v =
-        requires_runtime_storage<_Type>::value;
-#endif
+D_TYPE_TRAIT_VALUE_BOOL(requires_runtime_storage)
 
 
 // ===========================================================================
 // III. Aggregate snapshot
 // ===========================================================================
 
+// runtime_container_class
+//   struct: a one-stop summary of the runtime signals and the resulting
+// Lifetime verdict, for diagnostics and agent-facing reports.
 template<typename _Type>
 struct runtime_container_class
 {
@@ -176,6 +136,8 @@ public:
         requires_runtime_storage<clean_type>::value;
     static constexpr bool has_allocator =
         has_allocator_alias<clean_type>::value;
+    static constexpr lifetime life =
+        container_lifetime<clean_type>::value;
 };
 
 
