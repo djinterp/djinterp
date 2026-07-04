@@ -5,13 +5,13 @@
 *   This header provides templated path traversal and construction for
 * any container that supports indexed access to elements which have a
 * hierarchical (parent/child) relationship.  The container itself need
-* not be a tree — it could be a flat array, a vector, or an arena —
+* not be a tree - it could be a flat array, a vector, or an arena -
 * as long as an accessor policy can extract parent, first_child,
 * next_sibling, and component from each element.
 *
 *   Paths are sequences of typed components.  A component can be any
 * type that supports equality comparison: a string view, an integer,
-* a bitset, a key — anything.  The policy defines the component type
+* a bitset, a key - anything.  The policy defines the component type
 * and how to extract it from a node.
 *
 *   The accessor policy is an object with const member functions.
@@ -20,11 +20,11 @@
 *
 *   The header is organized in two layers:
 *
-*   Generic layer — works with any component type via operator==.
+*   Generic layer - works with any component type via operator==.
 *     resolve, collect, depth, ancestors, ancestor_chain, lca,
 *     relative, is_ancestor.
 *
-*   String layer — convenience for component_view-based policies.
+*   String layer - convenience for component_view-based policies.
 *     resolve (const char*), build, relative_string.
 *
 * Contents:
@@ -34,11 +34,11 @@
 *
 *   Generic operations:
 *     - container_path_resolve  resolve a component sequence to a node
-*     - container_path_collect  collect the component chain root→node
+*     - container_path_collect  collect the component chain root-->node
 *     - container_path_depth    compute depth by walking parents
 *     - container_path_lca      lowest common ancestor
-*     - container_path_ancestors        parent→root chain
-*     - container_path_ancestor_chain   root→node chain
+*     - container_path_ancestors        parent-->root chain
+*     - container_path_ancestor_chain   root-->node chain
 *     - container_path_relative         relative path between nodes
 *     - container_path_is_ancestor      ancestry test
 *
@@ -66,7 +66,6 @@
 
 
 NS_DJINTERP
-NS_CONTAINER
 
 
 // ================================================================
@@ -77,9 +76,9 @@ NS_CONTAINER
 // type _Index, and component type _Component must provide these
 // type aliases:
 //
-//   container_type  — the container being navigated
-//   index_type      — the element address type
-//   component_type  — the path component type
+//   container_type  - the container being navigated
+//   index_type      - the element address type
+//   component_type  - the path component type
 //
 // and these const member functions:
 //
@@ -149,8 +148,8 @@ struct component_view
 // a number of upward steps from the source followed by a
 // downward component sequence to the destination.
 //
-//   up_count = 0, components empty   → same node
-//   up_count = 2, components = {e,f} → ../../e/f
+//   up_count = 0, components empty   --> same node
+//   up_count = 2, components = {e,f} --> ../../e/f
 //
 // This representation is component-type-agnostic: it works
 // with string paths, integer keys, bit patterns, etc.
@@ -629,7 +628,7 @@ container_path_resolve
 {
     _Index current = _root;
 
-    auto splits = djinterp::path::path_split(
+    auto splits = djinterp::path_split(
         _path, _path_len);
 
     // resolve each split component.
@@ -703,7 +702,7 @@ container_path_build
     const _Policy&    _policy,
     const _Container& _container,
     _Index            _id,
-    char              _sep = djinterp::path::path_separator
+    char              _sep = djinterp::path_separator
 )
 {
     auto chain = container_path_collect(
@@ -742,7 +741,7 @@ container_path_relative_string
     const _Container& _container,
     _Index            _from,
     _Index            _to,
-    char              _sep = djinterp::path::path_separator
+    char              _sep = djinterp::path_separator
 )
 {
     auto addr = container_path_relative(
@@ -784,7 +783,6 @@ container_path_relative_string
 }
 
 
-NS_END  // container
 NS_END  // djinterp
 
 

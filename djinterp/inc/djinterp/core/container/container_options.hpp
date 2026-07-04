@@ -1,477 +1,295 @@
 /******************************************************************************
 * djinterp [container]                                   container_options.hpp
 *
-* Compile-time container configuration via bitmask flags.
-*   Provides a single `container_option` flags enumeration covering the
-* mutability, ordering, and storage axes common to all containers.  All
-* extraction, validation, and default-resolution logic is constexpr; after
-* template instantiation every flag test compiles down to nothing.
+* Universal per-axis option keys, enums, and canonical aliases for
+*   container configuration.
 *
-* STRING MAPPING:
-*   A constexpr `string_kv` table and lookup functions allow CLI tools to
-* resolve human-readable option names (e.g. "immutable", "ordered") into
-* flag bits at compile time or at negligible runtime cost.
+*   This header is the foundation for every container module's options
+* surface.  Each universal classification axis from the framework's
+* twelve-axis taxonomy that is *configurable* (rather than detection-
+* only) gets a triplet:
 *
-* DESIGN INVARIANTS:
-*   - Within each axis at most one bit may be set; setting two bits in the
-*     same axis is a static_assert failure in any container that consumes
-*     the flags.
-*   - When no bit is set for an axis the container applies its own default
-*     (typically writable + unordered; storage inferred from capacity).
-*   - All functions in this header are constexpr and free of side effects.
+*     1. an enum naming the valid positions on that axis,
+*     2. an empty tag struct that serves as the option_list key, and
+*     3. a `container_opt_<axis>` alias that wraps a value of the enum
+*        into a fully-formed `option<key, integral_constant<...>>`.
+*
+*   The nine axes covered here are: lifetime, ordering, bounds,
+* multiplicity, structure, storage, thread_safety, backing, and
+* iterability.  Detection-only axes (binary, database, text) are not
+* exposed as configuration options because they are not selected by
+* the user; they are observed from the container's structure.
+*
+*   This header also exports the `options_container_base` alias,
+* which every container in the framework inherits to gain the
+* with_options surface (::options_type, ::option_count,
+* ::has_option_v<>, ::option_t<>).  It is a thin alias for
+* `with_options_pack<_Options...>`.
+*
+* HOW IT IS USED:
+*   Container modules consume an arbitrary user pack of options by
+* normalizing it through `normalize_options_t<...>` and then querying
+* per-axis keys with `option_list_lookup_t<list, key, default>`.  Each
+* axis defaults to the position designated in the howto guide
+* (typically the cheapest / most-permissive value).  Axes that do not
+* apply to a given container are silently ignored - no static_assert
+* fires when a user passes `container_opt_thread_safety<...>` to a
+* container that has no lock policy hook.
+*
+* SCOPE:
+*   This header is intentionally CLI-agnostic.  String resolution,
+* parsing, name tables, and any other human-facing translation are
+* the responsibility of the (forthcoming) CLI axis.  Nothing in this
+* header knows or cares that an enumerator might one day appear as
+* user-typed text - the values here are pure compile-time tokens.
+*
+* DEPENDENCIES:
+*   djinterp.hpp           - NS_*
+*   options/options.hpp    - option<...> for the canonical aliases
+*   options/with_options.hpp - with_options_pack<...> for the
+*                              options_container_base alias
 *
 *
-* path:      /inc/container/container_options.hpp
+* path:      /inc/djinterp/core/container/container_options.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.10
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.05
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    Per-Axis Configuration Enums
+      1. container_lifetime
+      2. container_ordering
+      3. container_bounds
+      4. container_multiplicity
+      5. container_structure
+      6. container_storage_kind
+      7. container_thread_safety
+      8. container_backing
+      9. container_iterability
+II.   Per-Axis Option Keys
+III.  Canonical-Form Option Aliases
+IV.   Type-Carrying Keys
+      1. lock_policy_key  /  container_opt_lock_policy
+V.    options_container_base
+*/
 
 #ifndef DJINTERP_CONTAINER_OPTIONS_
 #define DJINTERP_CONTAINER_OPTIONS_ 1
 
-#include <cstddef>
+// std
 #include <type_traits>
+// djinterp
+#include "../../core/djinterp.hpp"
+#include "../options/option.hpp"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        I.    FLAGS ENUMERATION                                          ///
-///////////////////////////////////////////////////////////////////////////////
+NS_DJINTERP
 
-// container_option
-//   enum: bitmask flags selecting container behavior along three
-// orthogonal axes.  Flags are combined with bitwise OR.
-//
-// mutability axis  (bits 0 - 2)
-//   writable     — full read/write access after construction.
-//   immutable    — read-only after construction.
-//   compile_time — constexpr-only; requires fixed capacity.
-//
-// ordering axis   (bits 3 - 4)
-//   ordered      — elements maintained in sorted order.
-//   unordered    — insertion-order; no ordering invariant.
-//
-// storage axis    (bits 5 - 6)
-//   fixed_size   — stack-allocated; capacity is a template param.
-//   dynamic_size — heap-allocated; grows as needed.
-enum class container_option : unsigned
+
+// ===========================================================================
+// I.   Per-Axis Configuration Enums
+// ===========================================================================
+
+// container_lifetime
+enum class container_lifetime
 {
-    none         = 0x00,
-
-    writable     = 0x01,
-    immutable    = 0x02,
-    compile_time = 0x04,
-
-    ordered      = 0x08,
-    unordered    = 0x10,
-
-    fixed_size   = 0x20,
-    dynamic_size = 0x40
+    constexpr_storage,
+    immutable,
+    mutable_storage
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-///        II.   CONSTEXPR BITWISE OPERATORS                               ///
-///////////////////////////////////////////////////////////////////////////////
-
-// operator|
-//   function: combines two option flags.
-inline constexpr container_option
-operator|(container_option _lhs, container_option _rhs) noexcept
+// container_ordering
+enum class container_ordering
 {
-    return static_cast<container_option>(
-        static_cast<unsigned>(_lhs) |
-        static_cast<unsigned>(_rhs));
-}
-
-// operator&
-//   function: intersects two option flags.
-inline constexpr container_option
-operator&(container_option _lhs, container_option _rhs) noexcept
-{
-    return static_cast<container_option>(
-        static_cast<unsigned>(_lhs) &
-        static_cast<unsigned>(_rhs));
-}
-
-// operator^
-//   function: XORs two option flags.
-inline constexpr container_option
-operator^(container_option _lhs, container_option _rhs) noexcept
-{
-    return static_cast<container_option>(
-        static_cast<unsigned>(_lhs) ^
-        static_cast<unsigned>(_rhs));
-}
-
-// operator~
-//   function: inverts option flags.
-inline constexpr container_option
-operator~(container_option _flags) noexcept
-{
-    return static_cast<container_option>(
-        ~static_cast<unsigned>(_flags));
-}
-
-// operator|=
-//   function: compound OR assignment.
-inline constexpr container_option&
-operator|=(container_option& _lhs, container_option _rhs) noexcept
-{
-    _lhs = _lhs | _rhs;
-
-    return _lhs;
-}
-
-// operator&=
-//   function: compound AND assignment.
-inline constexpr container_option&
-operator&=(container_option& _lhs, container_option _rhs) noexcept
-{
-    _lhs = _lhs & _rhs;
-
-    return _lhs;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-///        III.  AXIS MASKS AND EXTRACTION                                  ///
-///////////////////////////////////////////////////////////////////////////////
-
-// D_CONTAINER_OPT_MUTABILITY_MASK
-//   constant: bitmask covering the mutability axis (bits 0-2).
-#define D_CONTAINER_OPT_MUTABILITY_MASK  0x07u
-
-// D_CONTAINER_OPT_ORDERING_MASK
-//   constant: bitmask covering the ordering axis (bits 3-4).
-#define D_CONTAINER_OPT_ORDERING_MASK    0x18u
-
-// D_CONTAINER_OPT_STORAGE_MASK
-//   constant: bitmask covering the storage axis (bits 5-6).
-#define D_CONTAINER_OPT_STORAGE_MASK     0x60u
-
-// container_option_has
-//   function: returns true if _flags contains every bit in _test.
-inline constexpr bool
-container_option_has
-(
-    container_option _flags,
-    container_option _test
-) noexcept
-{
-    return ((_flags & _test) == _test);
-}
-
-// container_option_mutability
-//   function: extracts the mutability bits from a flag set.
-inline constexpr container_option
-container_option_mutability(container_option _flags) noexcept
-{
-    return static_cast<container_option>(
-        static_cast<unsigned>(_flags) &
-        D_CONTAINER_OPT_MUTABILITY_MASK);
-}
-
-// container_option_ordering
-//   function: extracts the ordering bits from a flag set.
-inline constexpr container_option
-container_option_ordering(container_option _flags) noexcept
-{
-    return static_cast<container_option>(
-        static_cast<unsigned>(_flags) &
-        D_CONTAINER_OPT_ORDERING_MASK);
-}
-
-// container_option_storage
-//   function: extracts the storage bits from a flag set.
-inline constexpr container_option
-container_option_storage(container_option _flags) noexcept
-{
-    return static_cast<container_option>(
-        static_cast<unsigned>(_flags) &
-        D_CONTAINER_OPT_STORAGE_MASK);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-///        IV.   AXIS VALIDATION                                           ///
-///////////////////////////////////////////////////////////////////////////////
-
-namespace internal {
-
-    // popcount_constexpr
-    //   function: compile-time population count.
-    inline constexpr unsigned
-    popcount_constexpr(unsigned _v) noexcept
-    {
-        unsigned count = 0;
-
-        while (_v)
-        {
-            count += (_v & 1u);
-            _v >>= 1u;
-        }
-
-        return count;
-    }
-
-} // namespace internal
-
-// container_option_axis_valid
-//   function: returns true if at most one bit is set within
-// each axis.  Containers should static_assert on this.
-inline constexpr bool
-container_option_axis_valid(container_option _flags) noexcept
-{
-    unsigned m = static_cast<unsigned>(
-                     container_option_mutability(_flags));
-    unsigned o = static_cast<unsigned>(
-                     container_option_ordering(_flags));
-    unsigned s = static_cast<unsigned>(
-                     container_option_storage(_flags));
-
-    return ( (internal::popcount_constexpr(m) <= 1) &&
-             (internal::popcount_constexpr(o) <= 1) &&
-             (internal::popcount_constexpr(s) <= 1) );
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-///        V.    DEFAULT RESOLUTION                                         ///
-///////////////////////////////////////////////////////////////////////////////
-
-// container_option_resolve
-//   function: fills unset axes with sensible defaults.
-//     mutability  →  writable
-//     ordering    →  unordered
-//     storage     →  fixed_size if _capacity > 0, else dynamic_size
-// The result always has exactly one bit per axis.
-inline constexpr container_option
-container_option_resolve
-(
-    container_option _flags,
-    std::size_t      _capacity
-) noexcept
-{
-    container_option m = container_option_mutability(_flags);
-    container_option o = container_option_ordering(_flags);
-    container_option s = container_option_storage(_flags);
-
-    if (m == container_option::none)
-    {
-        m = container_option::writable;
-    }
-
-    if (o == container_option::none)
-    {
-        o = container_option::unordered;
-    }
-
-    if (s == container_option::none)
-    {
-        s = (_capacity > 0)
-            ? container_option::fixed_size
-            : container_option::dynamic_size;
-    }
-
-    return (m | o | s);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-///        VI.   STRING-TO-VALUE MAPPING (string_kv)                        ///
-///////////////////////////////////////////////////////////////////////////////
-
-// string_kv
-//   struct: compile-time association of a name string with an
-// enum value.  Used for CLI resolution.
-template<typename _Enum>
-struct string_kv
-{
-    const char* name;
-    _Enum       value;
+    unordered,
+    ordered,
+    sorted
 };
 
-namespace internal {
 
-    // constexpr_str_eq
-    //   function: constexpr character-by-character string
-    // comparison.
-    inline constexpr bool
-    constexpr_str_eq
-    (
-        const char* _a,
-        const char* _b
-    ) noexcept
-    {
-        while ( (*_a) &&
-                (*_b) )
-        {
-            if (*_a != *_b)
-            {
-                return false;
-            }
-
-            ++_a;
-            ++_b;
-        }
-
-        return (*_a == *_b);
-    }
-
-} // namespace internal
-
-// string_kv_lookup
-//   function: searches a constexpr string_kv table for _name.
-// Writes the corresponding value to _out and returns true on
-// match; returns false if _name is not found.  Fully constexpr.
-template<typename    _Enum,
-         std::size_t _N>
-inline constexpr bool
-string_kv_lookup
-(
-    const string_kv<_Enum> (&_table)[_N],
-    const char*               _name,
-    _Enum&                    _out
-) noexcept
+// container_bounds
+enum class container_bounds
 {
-    for (std::size_t i = 0; i < _N; ++i)
-    {
-        if (internal::constexpr_str_eq(_table[i].name, _name))
-        {
-            _out = _table[i].value;
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// string_kv_reverse
-//   function: searches a constexpr string_kv table for _value.
-// Returns the corresponding name, or nullptr if not found.
-template<typename    _Enum,
-         std::size_t _N>
-inline constexpr const char*
-string_kv_reverse
-(
-    const string_kv<_Enum> (&_table)[_N],
-    _Enum                    _value
-) noexcept
-{
-    for (std::size_t i = 0; i < _N; ++i)
-    {
-        if (_table[i].value == _value)
-        {
-            return _table[i].name;
-        }
-    }
-
-    return nullptr;
-}
-
-// string_kv_combine
-//   function: resolves a null-terminated array of option name
-// strings into a combined flag set by OR-ing each match.
-// Returns false and writes container_option::none if any name
-// is unrecognized.
-template<typename    _Enum,
-         std::size_t _N>
-inline constexpr bool
-string_kv_combine
-(
-    const string_kv<_Enum> (&_table)[_N],
-    const char* const*       _names,
-    std::size_t              _name_count,
-    _Enum&                   _out
-) noexcept
-{
-    _out = static_cast<_Enum>(0);
-
-    for (std::size_t i = 0; i < _name_count; ++i)
-    {
-        _Enum tmp{};
-
-        if (!string_kv_lookup(_table, _names[i], tmp))
-        {
-            _out = static_cast<_Enum>(0);
-
-            return false;
-        }
-
-        _out = static_cast<_Enum>(
-            static_cast<unsigned>(_out) |
-            static_cast<unsigned>(tmp));
-    }
-
-    return true;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-///        VII.  CONTAINER OPTION STRING TABLE                              ///
-///////////////////////////////////////////////////////////////////////////////
-
-// D_CONTAINER_OPTION_TABLE
-//   constant: constexpr string_kv table mapping CLI names to
-// container_option flag bits.
-static constexpr string_kv<container_option>
-D_CONTAINER_OPTION_TABLE[] =
-{
-    { "writable",     container_option::writable     },
-    { "immutable",    container_option::immutable     },
-    { "compile_time", container_option::compile_time  },
-    { "ordered",      container_option::ordered       },
-    { "unordered",    container_option::unordered     },
-    { "fixed",        container_option::fixed_size    },
-    { "dynamic",      container_option::dynamic_size  }
+    unbounded,
+    bounded
 };
 
-// D_CONTAINER_OPTION_TABLE_SIZE
-//   constant: number of entries in the option table.
-static constexpr std::size_t D_CONTAINER_OPTION_TABLE_SIZE =
-    sizeof(D_CONTAINER_OPTION_TABLE) /
-    sizeof(D_CONTAINER_OPTION_TABLE[0]);
 
-// container_option_from_string
-//   function: resolves a single CLI option name to a flag bit.
-inline constexpr bool
-container_option_from_string
-(
-    const char*       _name,
-    container_option& _out
-) noexcept
+// container_multiplicity
+enum class container_multiplicity
 {
-    return string_kv_lookup(D_CONTAINER_OPTION_TABLE,
-                            _name,
-                            _out);
-}
+    multi,
+    unique
+};
 
-// container_option_to_string
-//   function: returns the CLI name for a single flag bit,
-// or nullptr if the value is not a single recognized flag.
-inline constexpr const char*
-container_option_to_string(container_option _flag) noexcept
-{
-    return string_kv_reverse(D_CONTAINER_OPTION_TABLE, _flag);
-}
 
-// container_options_from_strings
-//   function: resolves an array of CLI option names into a
-// combined flag set.
-inline constexpr bool
-container_options_from_strings
-(
-    const char* const* _names,
-    std::size_t        _count,
-    container_option&  _out
-) noexcept
+// container_structure
+enum class container_structure
 {
-    return string_kv_combine(D_CONTAINER_OPTION_TABLE,
-                             _names,
-                             _count,
-                             _out);
-}
+    flat,
+    hierarchical
+};
+
+
+// container_storage_kind
+enum class container_storage_kind
+{
+    static_storage,
+    dynamic_storage,
+    small_buffer,
+    external
+};
+
+
+// container_thread_safety
+enum class container_thread_safety
+{
+    none,
+    atomic_only,
+    exclusive,
+    shared,
+    timed,
+    shared_timed
+};
+
+
+// container_backing
+enum class container_backing
+{
+    fundamental,
+    overlay
+};
+
+
+// container_iterability
+enum class container_iterability
+{
+    iterable,
+    non_iterable
+};
+
+
+// ===========================================================================
+// II.  Per-Axis Option Keys
+// ===========================================================================
+
+struct container_lifetime_key      {};
+struct container_ordering_key      {};
+struct container_bounds_key        {};
+struct container_multiplicity_key  {};
+struct container_structure_key     {};
+struct container_storage_kind_key  {};
+struct container_thread_safety_key {};
+struct container_backing_key       {};
+struct container_iterability_key   {};
+
+
+// ===========================================================================
+// III. Canonical-Form Option Aliases
+// ===========================================================================
+
+template<container_lifetime _V>
+using container_opt_lifetime = option<
+    container_lifetime_key,
+    std::integral_constant<container_lifetime, _V>>;
+
+template<container_ordering _V>
+using container_opt_ordering = option<
+    container_ordering_key,
+    std::integral_constant<container_ordering, _V>>;
+
+template<container_bounds _V>
+using container_opt_bounds = option<
+    container_bounds_key,
+    std::integral_constant<container_bounds, _V>>;
+
+template<container_multiplicity _V>
+using container_opt_multiplicity = option<
+    container_multiplicity_key,
+    std::integral_constant<container_multiplicity, _V>>;
+
+template<container_structure _V>
+using container_opt_structure = option<
+    container_structure_key,
+    std::integral_constant<container_structure, _V>>;
+
+template<container_storage_kind _V>
+using container_opt_storage_kind = option<
+    container_storage_kind_key,
+    std::integral_constant<container_storage_kind, _V>>;
+
+template<container_thread_safety _V>
+using container_opt_thread_safety = option<
+    container_thread_safety_key,
+    std::integral_constant<container_thread_safety, _V>>;
+
+template<container_backing _V>
+using container_opt_backing = option<
+    container_backing_key,
+    std::integral_constant<container_backing, _V>>;
+
+template<container_iterability _V>
+using container_opt_iterability = option<
+    container_iterability_key,
+    std::integral_constant<container_iterability, _V>>;
+
+
+// ===========================================================================
+// IV.  Type-Carrying Keys
+// ===========================================================================
+
+// lock_policy_key
+//   tag: option key identifying the lock policy class for
+// containers that consume one (e.g. threadsafe_array, cow_array).
+// The associated value type is the policy class itself.  This key
+// complements `container_thread_safety_key` (enum-valued): the
+// enum names a category, the class delivers the implementation.
+// When both keys appear in the same pack, the lock_policy_key
+// wins because it pins down the exact type.
+struct lock_policy_key
+{};
+
+// container_opt_lock_policy
+//   alias: `option<lock_policy_key, _Policy>` for the lock-policy
+// axis.  The value position is a class, not an integral_constant.
+template<typename _Policy>
+using container_opt_lock_policy = option<lock_policy_key, _Policy>;
+
+
+// ===========================================================================
+// V.   options_container_base
+// ===========================================================================
+
+// options_container_base
+//   alias: the canonical base mixin every container in the
+// framework inherits to gain the with_options surface
+// (`::options_type`, `::option_count`, `::has_option_v<>`,
+// `::option_t<>`).
+//
+//   This is a thin pass-through to `with_options_pack<_Options...>`
+// - the alias exists so that container modules can document
+// their inheritance with a name that says "this is the
+// options-container contract" rather than the more generic
+// "this is the with-options mixin pack form".
+//
+//   Containers consume the surface by inheriting publicly:
+//
+//     template<typename... _Options>
+//     class my_container
+//         : public options_container_base<_Options...>
+//     {
+//         using contract_base = options_container_base<_Options...>;
+//         // ::options_type, ::option_count, ::has_option_v<>,
+//         // ::option_t<> now visible to clients.
+//     };
+template<typename... _Options>
+using options_container_base = with_options_pack<_Options...>;
+
+
+NS_END  // djinterp
 
 
 #endif  // DJINTERP_CONTAINER_OPTIONS_

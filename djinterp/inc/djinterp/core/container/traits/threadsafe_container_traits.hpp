@@ -23,9 +23,21 @@
 *     TimedLockable    - try_lock_for(duration)        (C++11)
 *   All detection is purely structural SFINAE.
 *
+*   LAYERING (monograph "Concurrency").  This is the MECHANISM layer: it
+* answers HOW a container synchronizes and distils that into a
+* thread_safety_level (a lock-policy taxonomy).  The formal concurrency
+* AXIS - is a container linearizable, and with what (progress, arity,
+* iteration, reclamation) signature - is the SEMANTICS layer's remit and
+* lives in concurrency_strategy_traits.hpp, which is built ON TOP of this
+* file.  The one formal coordinate the mechanism can supply by itself is the
+* progress grade of the lock discipline; section VI.b bridges to it
+* (lock_progress_of).  Everything else is deliberately left upstream so the
+* two layers do not restate each other.
+*
 * DEPENDENCIES:
-*   container_traits.hpp    - container classification
-*   threadsafe.hpp          - lock policies, thread_safety_level
+*   container_traits.hpp            - container classification
+*   threadsafe.hpp                  - lock policies, thread_safety_level
+*   concurrency_strategy_tags.hpp   - concurrency_progress (bridge, VI.b)
 *
 *
 * path:      /inc/djinterp/core/container/traits/
@@ -43,6 +55,7 @@ III.    direct locking detection
 IV.     atomic state detection
 V.      mutex type extraction
 VI.     thread safety level deduction
+VI.b    monograph progress bridge
 VII.    convenience predicates
 VIII.   combined classification
 */
@@ -59,6 +72,7 @@ VIII.   combined classification
 #include "../../djinterp.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../../sync/threadsafe.hpp"
+#include "../../sync/concurrency_strategy_tags.hpp"  // concurrency_progress (monograph bridge)
 #include "./container_traits.hpp"
 
 
@@ -75,13 +89,13 @@ NS_DJINTERP
 // has_lock_policy_type
 //   type trait: true if the container exposes a
 // lock_policy_type alias.
-D_TYPE_TRAIT_TRUE(has_lock_policy_type,
+D_TYPE_TRAIT_DETECTED(has_lock_policy_type,
                   typename _Type::lock_policy_type)
 
 // has_mutex_type_alias
 //   type trait: true if the container (or its policy)
 // exposes a mutex_type alias.
-D_TYPE_TRAIT_TRUE(has_mutex_type_alias,
+D_TYPE_TRAIT_DETECTED(has_mutex_type_alias,
                   typename _Type::mutex_type)
 
 NS_INTERNAL
@@ -95,7 +109,7 @@ NS_INTERNAL
 
     template<typename _Predicate>
     struct policy_has_mutex_type<_Predicate,
-        std::void_t<typename _Predicate::mutex_type>>
+        void_t<typename _Predicate::mutex_type>>
         : std::true_type
     {};
 
@@ -106,7 +120,7 @@ NS_INTERNAL
     {};
 
     template<typename _Predicate>
-    struct policy_has_read_lock<_Predicate, std::void_t<typename _Predicate::read_lock_type>>
+    struct policy_has_read_lock<_Predicate, void_t<typename _Predicate::read_lock_type>>
         : std::true_type
     {};
 
@@ -117,7 +131,7 @@ NS_INTERNAL
 
     template<typename _Predicate>
     struct policy_has_write_lock<_Predicate,
-        std::void_t<typename _Predicate::write_lock_type>>
+        void_t<typename _Predicate::write_lock_type>>
         : std::true_type
     {};
 
@@ -128,7 +142,7 @@ NS_INTERNAL
 
     template<typename _Predicate>
     struct policy_has_is_threadsafe<_Predicate,
-        std::void_t<decltype(_Predicate::is_threadsafe)>>
+        void_t<decltype(_Predicate::is_threadsafe)>>
         : std::true_type
     {};
 
@@ -139,7 +153,7 @@ NS_INTERNAL
 
     template<typename _Predicate>
     struct policy_has_level<_Predicate,
-        std::void_t<decltype(_Predicate::level)>>
+        void_t<decltype(_Predicate::level)>>
         : std::true_type
     {};
 
@@ -150,7 +164,7 @@ NS_INTERNAL
 
     template<typename _Predicate>
     struct policy_has_supports_shared<_Predicate,
-        std::void_t<decltype(_Predicate::supports_shared)>>
+        void_t<decltype(_Predicate::supports_shared)>>
         : std::true_type
     {};
 
@@ -161,7 +175,7 @@ NS_INTERNAL
 
     template<typename _Predicate>
     struct policy_has_supports_timed<_Predicate,
-        std::void_t<decltype(_Predicate::supports_timed)>>
+        void_t<decltype(_Predicate::supports_timed)>>
         : std::true_type
     {};
 
@@ -189,15 +203,13 @@ NS_INTERNAL
     };
 
     template<typename _Type>
-    struct safe_lock_policy<_Type,
-        std::void_t<typename _Type::lock_policy_type>>
+    struct safe_lock_policy<_Type, void_t<typename _Type::lock_policy_type>>
     {
         using type = typename _Type::lock_policy_type;
     };
 
     template<typename _Type>
-    using safe_lock_policy_t =
-        typename safe_lock_policy<_Type>::type;
+    using safe_lock_policy_t = typename safe_lock_policy<_Type>::type;
 
 NS_END  // internal
 
@@ -312,35 +324,35 @@ inline constexpr bool policy_supports_timed_v =
 
 // has_lock_method
 //   type trait: true if _Type exposes a .lock() method.
-D_TYPE_TRAIT_TRUE(has_lock_method,
+D_TYPE_TRAIT_DETECTED(has_lock_method,
     decltype(std::declval<_Type&>().lock()))
 
 // has_unlock_method
 //   type trait: true if _Type exposes a .unlock() method.
-D_TYPE_TRAIT_TRUE(has_unlock_method,
+D_TYPE_TRAIT_DETECTED(has_unlock_method,
     decltype(std::declval<_Type&>().unlock()))
 
 // has_try_lock_method
 //   type trait: true if _Type exposes a .try_lock() method.
-D_TYPE_TRAIT_TRUE(has_try_lock_method,
+D_TYPE_TRAIT_DETECTED(has_try_lock_method,
     decltype(std::declval<_Type&>().try_lock()))
 
 // has_lock_shared_method
 //   type trait: true if _Type exposes a .lock_shared()
 // method.
-D_TYPE_TRAIT_TRUE(has_lock_shared_method,
+D_TYPE_TRAIT_DETECTED(has_lock_shared_method,
     decltype(std::declval<_Type&>().lock_shared()))
 
 // has_unlock_shared_method
 //   type trait: true if _Type exposes a .unlock_shared()
 // method.
-D_TYPE_TRAIT_TRUE(has_unlock_shared_method,
+D_TYPE_TRAIT_DETECTED(has_unlock_shared_method,
     decltype(std::declval<_Type&>().unlock_shared()))
 
 // has_try_lock_shared_method
 //   type trait: true if _Type exposes a .try_lock_shared()
 // method.
-D_TYPE_TRAIT_TRUE(has_try_lock_shared_method,
+D_TYPE_TRAIT_DETECTED(has_try_lock_shared_method,
     decltype(std::declval<_Type&>().try_lock_shared()))
 
 NS_INTERNAL
@@ -354,7 +366,7 @@ NS_INTERNAL
 
     template<typename _Type>
     struct has_try_lock_for_helper<_Type,
-        std::void_t<decltype(std::declval<_Type&>().try_lock_for(
+        void_t<decltype(std::declval<_Type&>().try_lock_for(
             std::declval<std::chrono::nanoseconds>()))>>
         : std::true_type
     {};
@@ -494,10 +506,10 @@ inline constexpr bool is_directly_timed_lockable_v =
 //   type trait: true if the container exposes a
 // .get_mutex() or .mutex() method returning a reference
 // to its internal mutex.
-D_TYPE_TRAIT_TRUE(has_get_mutex_method,
+D_TYPE_TRAIT_DETECTED(has_get_mutex_method,
     decltype(std::declval<_Type&>().mutex()))
 
-D_TYPE_TRAIT_TRUE(has_get_mutex_accessor,
+D_TYPE_TRAIT_DETECTED(has_get_mutex_accessor,
     decltype(std::declval<_Type&>().get_mutex()))
 
 
@@ -511,19 +523,19 @@ D_TYPE_TRAIT_TRUE(has_get_mutex_accessor,
 //   type trait: true if the container exposes an
 // atomic_size_type alias or uses std::atomic<size_t>
 // for its size member.
-D_TYPE_TRAIT_TRUE(has_atomic_size_type,
+D_TYPE_TRAIT_DETECTED(has_atomic_size_type,
                   typename _Type::atomic_size_type)
 
 // has_atomic_version
 //   type trait: true if the container exposes a version
 // stamp via std::atomic for ABA-safe operations.
-D_TYPE_TRAIT_TRUE(has_atomic_version_type,
+D_TYPE_TRAIT_DETECTED(has_atomic_version_type,
                   typename _Type::atomic_version_type)
 
 // has_version_method
 //   type trait: true if the container has a .version()
 // const method returning a version stamp.
-D_TYPE_TRAIT_TRUE(has_version_method,
+D_TYPE_TRAIT_DETECTED(has_version_method,
                   decltype(std::declval<const _Type&>().version()))
 
 
@@ -664,6 +676,77 @@ inline constexpr thread_safety_level
 
 
 // ===========================================================================
+// VI.b Monograph Progress Bridge
+// ===========================================================================
+//   This file is the MECHANISM layer: it detects HOW a container
+// synchronizes (lock policy, lockable requirements, mutex, atomic state) and
+// distils it into thread_safety_level.  That level is a lock-policy taxonomy,
+// not one of the monograph's concurrency coordinates.  The single bridge to
+// the formal vocabulary that the mechanism alone can supply is the PROGRESS
+// grade of the lock discipline:
+//
+//     none          -> sequential   (safe only under a single agent)
+//     atomic_only   -> lock_free     (lock-free metadata; no held lock)
+//     exclusive     -> blocking      (an agent waits on a held lock)
+//     timed         -> blocking
+//     shared        -> blocking      (readers concurrent - see
+//     shared_timed  -> blocking       supports_concurrent_reads - but a
+//                                     writer still blocks)
+//
+//   The rest of the monograph signature - ARITY, ITERATION overlap-
+// semantics, and the RECLAMATION obligation - is NOT derivable from the lock
+// mechanism (a lock-free or immutable container carries level `none` yet is
+// concurrent), so it is deliberately left to the strategy layer,
+// concurrency_strategy_traits.hpp, which maps a strategy to a full
+// concurrency_signature.  Keeping the bridge this thin is what prevents the
+// two layers from duplicating each other.
+//   The reader-side arity refinement the mechanism DOES know
+// (shared -> concurrent readers) is already exposed as
+// supports_concurrent_reads below.
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+
+NS_INTERNAL
+
+    // lock_progress_impl
+    //   helper: maps a container's deduced thread_safety_level to the
+    // progress grade of its lock discipline.
+    template<typename _Type>
+    struct lock_progress_impl
+    {
+        static constexpr thread_safety_level lvl =
+            container_thread_safety_level_v<clean_t<_Type>>;
+
+        static constexpr concurrency_progress value =
+            ( lvl == thread_safety_level::none )
+                ? concurrency_progress::sequential
+            : ( lvl == thread_safety_level::atomic_only )
+                ? concurrency_progress::lock_free
+                : concurrency_progress::blocking;
+    };
+
+NS_END  // internal
+
+// lock_progress_of
+//   type trait: the monograph progress grade (sequential / lock_free /
+// blocking) that a container's LOCK discipline provides.  This is the only
+// concurrency-axis coordinate the mechanism layer can supply on its own;
+// arity, iteration, and reclamation come from the strategy layer.
+template<typename _Type>
+struct lock_progress_of
+{
+    static constexpr concurrency_progress value =
+        internal::lock_progress_impl<_Type>::value;
+};
+
+template<typename _Type>
+inline constexpr concurrency_progress lock_progress_of_v =
+    lock_progress_of<_Type>::value;
+
+#endif  // C++11
+
+
+// ===========================================================================
 // VII. Convenience Predicates
 // ===========================================================================
 
@@ -796,6 +879,13 @@ struct container_threadsafe_class
     // deduced level
     static constexpr thread_safety_level level =
         container_thread_safety_level_v<_Type>;
+
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+    // monograph progress bridge (the lock discipline's progress grade;
+    // arity / iteration / reclamation are the strategy layer's remit)
+    static constexpr concurrency_progress lock_progress =
+        lock_progress_of_v<_Type>;
+#endif  // C++11
 
     // aggregate
     static constexpr bool is_threadsafe =

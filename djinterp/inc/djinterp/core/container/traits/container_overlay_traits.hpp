@@ -137,7 +137,7 @@ D_TYPE_TRAIT_TRUE(is_keyed_container,
 
 NS_INTERNAL
 
-    // sorted_invariant_helper
+    // overlay_sorted_invariant_helper
     //   helper: the sorted restriction sigma (sequence-level) is opt-in - a
     // container asserts sorted order as part of its IDENTITY via a static
     // `sorted_invariant` constant.  It is NOT inferred from associativity, whose
@@ -145,13 +145,13 @@ NS_INTERNAL
     // then the hook reads the opt-in and otherwise reports false (order-blind).
     template<typename _Type,
              typename = void>
-    struct sorted_invariant_helper
+    struct overlay_sorted_invariant_helper
     {
         static constexpr bool value = false;
     };
 
     template<typename _Type>
-    struct sorted_invariant_helper<_Type,
+    struct overlay_sorted_invariant_helper<_Type,
         D_VOID_T<decltype(clean_t<_Type>::sorted_invariant)>>
     {
         static constexpr bool value =
@@ -252,7 +252,7 @@ public:
     static constexpr bool keyed =
         is_keyed_container<clean_type>::value;
     static constexpr bool sorted =
-        internal::sorted_invariant_helper<clean_type>::value;
+        internal::overlay_sorted_invariant_helper<clean_type>::value;
     static constexpr bool capacity_bounded =
         is_bounded_container<clean_type>::value;
     static constexpr bool domain_bounded =

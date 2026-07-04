@@ -1,41 +1,56 @@
 /******************************************************************************
-* djinterp [container]                              sorted_container_traits.hpp
+* djinterp [container]                                     sorted_container.hpp
 *
-*   The SORTEDNESS axis, container-side traits: does a container's TYPE promise
-* its elements are kept in order (is_sorted_container), on what monotonicity
-* footing (sortedness: unsorted / monotone / strictly-sorted), and may a holder
-* therefore rely on ordered enumeration (admits_sorted_enumeration).  These are
-* the compile-time CLASSIFIERS of the sortedness axis; the instance-level check
-* that walks a particular object's elements (is_sorted_range) is an OPERATION and
-* lives in container/sorted_container.hpp, which includes this header.
+*   The SORTEDNESS axis (the spec, Sortedness), layered on the Order axis.
+* Sortedness presupposes positions: a container is SORTED with respect to a
+* comparator iff it is ordered and, along its positions, comp(e_i, e_{i+1}) is
+* non-descending; it is UNSORTED iff ordered but not in the comparator's order
+* (it still has an order, just not that one).  For an UNORDERED container
+* positional sortedness is NOT APPLICABLE - it has no positions to be sorted -
+* yet a comparator-equipped one (a set, a map) admits a unique MONOTONE
+* ENUMERATION, "sorted by construction" as an invariant of how it enumerates
+* rather than a checkable property of stored positions.
 *
-*   Sortedness sits just above the order axis: a sorted container is an ordered
-* one whose order is a maintained key invariant, so is_ordered_container /
-* is_unordered_container are sourced from ordered_container_traits.hpp rather than
-* re-derived here.  A type opts in through a `sorted_invariant` marker (honoured
-* first); otherwise the standard sorted associatives are recognised structurally.
+*   At the type level the axis reads:
+*     non_container    - not an (iterable) container;
+*     unordered        - unordered, no comparator: positional sortedness N/A, no
+*                        monotone enumeration (a hash-ordered set / map);
+*     monotone         - unordered but comparator-equipped: sorted-by-construction
+*                        enumeration (an ordered set / map / multiset / multimap);
+*     order_dependent  - ordered: sortedness is a property of the INSTANCE, not of
+*                        the type (a plain sequence may or may not be sorted); and
+*     sorted           - ordered AND guaranteed in comparator order - a closed
+*                        interval (arithmetic, monotone by construction) or a
+*                        sequence that asserts a sorted invariant (opt-in).
+*
+*   For an order_dependent container the property is checkable at runtime, which
+* is what is_sorted_range performs; for a monotone or sorted type, enumeration
+* yields comparator order with no check needed.  A comparator is detected as a
+* key_compare alias; a sorted sequence opts in through a static `sorted_invariant`
+* constant; and interval bounds mark the arithmetic sorted case.
 *
 *   PORTABILITY:
-*   C++11 baseline.  Each `_v` companion is emitted through the trait_detect
-* macros (inline variable on C++17+, variable template on C++14, absent on C++11).
+*   C++11 baseline; `_v` companions degrade with the language as the rest do.
 *
 *
-* path:      /inc/djinterp/core/container/traits/sorted_container_traits.hpp
+* path:      /inc/djinterp/core/container/sorted_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.01
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
 ******************************************************************************/
 
-#ifndef DJINTERP_SORTED_CONTAINER_TRAITS_
-#define DJINTERP_SORTED_CONTAINER_TRAITS_ 1
+#ifndef DJINTERP_CONTAINER_SORTED_
+#define DJINTERP_CONTAINER_SORTED_ 1
 
 // std
+#include <algorithm>
 #include <cstddef>
+#include <iterator>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"                 // clean_t, NS_*, D_ENV_* feature macros
-#include "../../meta/trait_detect.hpp"        // D_TYPE_TRAIT_* detection macros
-#include "./ordered_container_traits.hpp"     // is_ordered_container, is_unordered_container
+#include "../djinterp.hpp"              // clean_t, NS_*, feature macros
+#include "../meta/trait_detect.hpp"     // D_TYPE_TRAIT_* detection macros, D_VOID_T
+#include "./ordered_container.hpp"      // is_ordered_container, is_unordered_container (Order axis)
 
 
 NS_DJINTERP
@@ -180,23 +195,6 @@ struct is_sorted_container
 
 D_TYPE_TRAIT_VALUE_BOOL(is_sorted_container)
 
-// is_unsorted_container
-//   trait: the complement of is_sorted_container over containers - a container
-// whose positions are NOT guaranteed in comparator order.  It is gated on being
-// an (iterable) container so a non-container reports false rather than a vacuous
-// true, mirroring the is_ordered / is_unordered complementary pair; the excluded
-// non_container state is what distinguishes this from a bare !is_sorted_container.
-// The three container states unordered, monotone, and order_dependent are all
-// unsorted (only the sorted-by-construction sorted state is not).
-template<typename _Type>
-struct is_unsorted_container
-    : std::integral_constant<bool,
-             sortedness_of<clean_t<_Type>>::value != sortedness::non_container
-          && sortedness_of<clean_t<_Type>>::value != sortedness::sorted>
-{};
-
-D_TYPE_TRAIT_VALUE_BOOL(is_unsorted_container)
-
 // is_monotone_container
 //   trait: true iff the type is a comparator-equipped unordered container - it
 // has no positions, but its enumeration is sorted by construction.
@@ -220,6 +218,44 @@ struct admits_sorted_enumeration
 {};
 
 D_TYPE_TRAIT_VALUE_BOOL(admits_sorted_enumeration)
+
+
+// ===========================================================================
+// IV.  Instance-level sortedness (the checkable property)
+// ===========================================================================
+
+// is_sorted_range
+//   function: for an ORDERED container - whose sortedness is a property of the
+// instance - reports whether THIS container's elements are in non-descending
+// order along their positions.  (For a monotone or sorted type no check is
+// needed; enumeration is already in comparator order.)
+template<typename _Container>
+typename std::enable_if<
+    is_ordered_container<_Container>::value,
+    bool
+>::type
+is_sorted_range(
+    const _Container& _container
+)
+{
+    return std::is_sorted(std::begin(_container), std::end(_container));
+}
+
+// is_sorted_range (custom comparator)
+//   function: as above, against a supplied comparator.
+template<typename _Container,
+         typename _Compare>
+typename std::enable_if<
+    is_ordered_container<_Container>::value,
+    bool
+>::type
+is_sorted_range(
+    const _Container& _container,
+    _Compare          _cmp
+)
+{
+    return std::is_sorted(std::begin(_container), std::end(_container), _cmp);
+}
 
 
 // ===========================================================================
@@ -257,4 +293,4 @@ public:
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_SORTED_CONTAINER_TRAITS_
+#endif  // DJINTERP_CONTAINER_SORTED_

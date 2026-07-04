@@ -53,14 +53,14 @@
 // std
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
-#include "../../meta/lifetime.hpp"                  // lifetime, is_compile_time
-#include "../../meta/storage.hpp"                   // storage_duration, storage_of
-#include "../../meta/multiplicity.hpp"              // multiplicity_kind
-#include "./constexpr_container_traits.hpp"         // container_lifetime
-#include "./iterable_container_traits.hpp"          // is_iterable_container, iteration_mode_of
-#include "./container_overlay_traits.hpp"           // overlay_of, overlay_subsumes
-#include "../structure/hierarchical_container_traits.hpp" // is_hierarchical_container
+#include "../../djinterp.hpp"                  // clean_t, NS_*, feature macros
+#include "../../meta/lifetime.hpp"             // lifetime, is_compile_time
+#include "../../meta/storage.hpp"              // storage_duration, storage_of
+#include "../../meta/multiplicity.hpp"         // multiplicity_kind
+#include "./constexpr_container_traits.hpp"    // container_lifetime
+#include "./iterable_container_traits.hpp"     // is_iterable_container, iteration_mode_of
+#include "./container_overlay_traits.hpp"      // overlay_of, overlay_subsumes
+#include "./hierarchical_container_traits.hpp" // is_hierarchical_container
 
 
 NS_DJINTERP

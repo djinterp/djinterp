@@ -54,8 +54,8 @@
 // djinterp
 #include "../../djinterp.hpp"            // clean_t, NS_*, D_VOID_T-via-trait_detect, feature macros
 #include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_* detection macros, D_VOID_T
-#include "./hierarchical.hpp"            // hierarchical tag (structure_category opt-in)
-#include "./flat.hpp"                    // flat tag (structure_category opt-in)
+#include "../../meta/hierarchical.hpp"            // hierarchical tag (structure_category opt-in)
+#include "../../meta/flat.hpp"                    // flat tag (structure_category opt-in)
 
 
 NS_DJINTERP
