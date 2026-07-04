@@ -60,7 +60,7 @@
 *
 * path:      /inc/djinterp/core/container/threadsafe_container.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.29
+* Samuel 'teer' Neal-Blim                       created: 2026.03.29
 ******************************************************************************/
 
 /*
@@ -217,6 +217,60 @@ public:
     supports_timed() noexcept
     {
         return _Policy::is_timed;
+    }
+
+    // --- monograph concurrency signature (lock realisation) ---
+    //
+    //   The lock strategy witnesses linearizability by MUTUAL EXCLUSION:
+    // every operation acquires one shared lock for its whole extent, so its
+    // operations execute as a totally ordered sequence of disjoint critical
+    // sections.  The linearization point may be placed anywhere inside each
+    // critical section, and the realised execution simply IS sequential on
+    // the lock.  This fixes the container's coordinates on the monograph's
+    // access axis; the queries below report them (see
+    // concurrency_strategy_traits.hpp for the enum-typed forms).
+
+    // is_blocking
+    //   progress grade: a real lock is BLOCKING - an agent waits while
+    // another holds the lock.  The null policy degenerates to the
+    // sequential, single-agent case (no blocking, no concurrency).
+    static constexpr bool
+    is_blocking() noexcept
+    {
+        return _Policy::is_threadsafe;
+    }
+
+    // permits_concurrent_readers
+    //   arity: the interface is MWMR, but execution is serial - at most one
+    // agent acts at a time, readers included - UNLESS a reader-writer
+    // (shared) policy grants concurrent readers (the SWMR/region case).
+    static constexpr bool
+    permits_concurrent_readers() noexcept
+    {
+        return _Policy::is_shared;
+    }
+
+    // offers_snapshot_iteration
+    //   iteration overlap-semantics: SNAPSHOT.  A traversal that holds the
+    // lock for its extent sees one frozen value (see locked_range);
+    // snapshot_view copies under the lock to give the same guarantee without
+    // holding the lock during iteration.  Either way a reader excludes
+    // writers from the value it observes.
+    static constexpr bool
+    offers_snapshot_iteration() noexcept
+    {
+        return true;
+    }
+
+    // has_individual_reclamation
+    //   reclamation duty: INDIVIDUAL.  No agent touches a cell outside the
+    // lock, so freeing on erase (under the lock) is sound - the concurrent
+    // soundness condition (no agent can still reach the cell) holds
+    // trivially, and no deferred safe-reclamation discipline is needed.
+    static constexpr bool
+    has_individual_reclamation() noexcept
+    {
+        return true;
     }
 
 private:
@@ -526,6 +580,15 @@ struct atomic_state
 // its read, then validates that the version hasn't changed.
 // If it has changed, the read is retried.
 //
+// This is the SEQLOCK realisation of the monograph's axis:
+// a reader brackets a lock-free read between two reads of a
+// version counter, retrying if it changed.  It yields a
+// wait-free-in-the-common-case, write-contention-free
+// SNAPSHOT of a read-mostly container at the cost of reader
+// retries (a reader retries while a writer is in progress);
+// here the retry budget is bounded and falls back to a real
+// read lock for a guaranteed-safe read.
+//
 // This is a building block - concrete containers wrap this
 // in type-specific read operations.
 
@@ -580,13 +643,23 @@ optimistic_read(
 // =============================================================================
 // V.   CAS Retry Infrastructure
 // =============================================================================
-// Templates for building lock-free container operations
-// that use compare-and-exchange loops.
+// Templates for building LOCK-FREE container operations
+// that use compare-and-exchange loops.  This is the
+// atomic / lock-free realisation of the monograph's
+// concurrency axis: the linearization point is the instant
+// of the successful atomic, and a failed attempt means
+// SOME competitor succeeded, so the system never stalls
+// (lock-free progress; wait-free for suitable
+// constructions).  Readers traversing unlocked are
+// weakly-consistent, and - because references may be held
+// outside any lock - a lock-free structure over separately
+// allocated nodes owes a safe-reclamation discipline
+// (hazard pointers or RCU, from the sync module).
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // exponential_off
-//   class: s off exponentially between CAS retries.
+//   class: backs off exponentially between CAS retries.
 // Starts at _initial_spins, doubles up to _max_spins,
 // then yields.  Zero allocation, zero overhead when not
 // spinning.
@@ -660,31 +733,32 @@ private:
 // cas_loop
 //   function: generic CAS retry loop.  Calls _update_fn
 // with the current value to produce the desired value,
-// then attempts CAS.  Retries with off on failure.
+// then attempts CAS.  Retries with exponential backoff on
+// failure.
 // Returns true if the CAS succeeded, false if
 // _max_attempts was reached.
 //
 // _target:      atomic variable to update
 // _update_fn:   callable (T current) -> T desired
 // _max_attempts: 0 = unlimited
-template<typename _T,
+template<typename _Type,
          typename _Fn>
 bool
 cas_loop(
-    std::atomic<_T>& _target,
+    std::atomic<_Type>& _target,
     _Fn              _update_fn,
     unsigned         _max_attempts = 0)
 {
     exponential_off off;
 
-    _T current = _target.load(
+    _Type current = _target.load(
         std::memory_order_acquire);
 
     unsigned attempt = 0;
 
     while (true)
     {
-        _T desired = _update_fn(current);
+        _Type desired = _update_fn(current);
 
         if (_target.compare_exchange_weak(
                 current, desired,
@@ -716,6 +790,13 @@ cas_loop(
 // then allows iteration over the copy without holding any
 // lock.  Safe for containers where iteration must not
 // block writers.
+//
+// This realises SNAPSHOT iteration semantics (monograph):
+// the reader observes one frozen value for the whole
+// traversal.  Unlike locked_range it holds the lock only
+// for the duration of the copy, so writers are excluded
+// only briefly rather than for the whole iteration - the
+// value is frozen by COPY rather than by exclusion.
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -792,6 +873,14 @@ private:
 // operations, ensuring they appear atomic to other
 // threads.  Works on all C++ versions.
 //
+// This is the mutual-exclusion route to a MULTI-POSITION
+// transition (monograph): a compound of operations that
+// commits as one linearizable step - the structural
+// transition that no single compare-and-exchange expresses.
+// Under the lock the whole batch shares one critical
+// section, so its linearization point is a single instant
+// between the guard's construction and destruction.
+//
 // Usage:
 //   {
 //       batch_guard<Policy> batch(container.mutex());
@@ -846,9 +935,16 @@ private:
 // the lifetime of the iteration range.  The lock is
 // released when the locked_range goes out of scope.
 //
+// This also realises SNAPSHOT iteration semantics
+// (monograph), but by EXCLUSION rather than by copy: the
+// traversal sees a frozen value because it holds the lock
+// for its whole extent, which necessarily excludes all
+// writers for that duration.
+//
 // WARNING: holding a read lock for the entire iteration
 // can block writers.  For long iterations, prefer
-// snapshot_view instead.
+// snapshot_view instead (snapshot by copy - writers are
+// excluded only during the copy).
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 

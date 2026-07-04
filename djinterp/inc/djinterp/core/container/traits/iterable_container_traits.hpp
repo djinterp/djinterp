@@ -19,8 +19,9 @@
 *            changes WHICH values sit at existing positions; it does NOT subsume
 *            structural insertion or erasure, which is the Mutability axis.
 *
-*   This header owns the runtime base (iterable vs non-iterable) and the MODE
-* sub-axis.  The STAGE sub-axis - compile-time iterability - is classified by
+*   This header owns the runtime base (iterable vs non-iterable), the MODE
+* sub-axis, and the operational iterator-CATEGORY layer (section IV).  The STAGE
+* sub-axis - compile-time iterability - is classified by
 * constexpr_iterator_traits.hpp (whose is_constexpr_iterable answers it); the two
 * compose into the four traversal kinds {compile-time, runtime} x {const,
 * non-const}.  This split keeps the stage detection, which needs the iterator
@@ -37,12 +38,21 @@
 * finer per-coordinate mutability (a map's value) being a distinction the formal
 * model notes but a single structural probe does not separate.
 *
-*   RELATION TO iterator_traits.hpp:
-*   That header's is_iterable detects traversability through std::begin/std::end
-* (free or member, and so true even for C arrays) and classifies the iterator
-* CATEGORY (input..contiguous); this header's is_iterable_container detects a
-* member begin/end pair and classifies the access MODE.  Unifying the two
-* iterability views is a later step; they do not clash.
+*   OPERATIONAL CATEGORY:
+*   Beyond the formal axis, section IV classifies a container's iterator by std
+* CATEGORY - forward, bidirectional, or random-access - together with contiguity
+* (a data() accessor).  This is NOT a formal iterability sub-axis (the model's are
+* stage and mode); it is an operational bridge to the standard iterator taxonomy,
+* taken through std::iterator_traits so a pointer iterator (as std::array yields)
+* resolves to random-access, and gated on iterability so the category is never
+* read from a non-iterator.  It exists so operations may dispatch on backing shape
+* - the sequential-layout classification and the filter strategy both consume it.
+*
+*   RELATION TO ITERATOR-LEVEL TRAITS:
+*   The category traits here are CONTAINER-level - they read the category of a
+* container's begin() iterator.  Traits over an iterator TYPE itself
+* (is_forward_iterator<It> and the like) are a separate, iterator-level concern
+* and do not live here.
 *
 *   PORTABILITY:
 *   C++11 baseline; the `_v` companions the D_TYPE_TRAIT_* engine emits degrade
@@ -52,7 +62,7 @@
 * path:      /inc/djinterp/core/container/traits/iterable_container_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.25
-*                                                          revised: 2026.06.29
+*                                                          revised: 2026.07.02
 ******************************************************************************/
 
 #ifndef DJINTERP_ITERABLE_CONTAINER_TRAITS_
@@ -60,10 +70,11 @@
 
 // std
 #include <cstddef>
+#include <iterator>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"           // clean_t, NS_*, D_ENV_* feature macros
+#include "../../djinterp.hpp"            // clean_t, NS_*, D_ENV_* feature macros
 #include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_* detection macros
 
 
@@ -279,7 +290,7 @@ D_TYPE_TRAIT_VALUE_BOOL(is_mutable_iterable_container)
 
 
 // ===========================================================================
-// IV.  Aggregate snapshot
+// V.   Aggregate snapshot
 // ===========================================================================
 
 template<typename _Type>

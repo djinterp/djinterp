@@ -436,9 +436,9 @@ struct shared_owning_policy
 // single entry point into the node graph, a size counter, and an
 // allocator.  Derived containers add topology-specific semantics:
 //
-//   tree_container  → root(), has_root()
-//   list_container  → head(), tail()
-//   graph_container → entries(), entry_count()
+//   tree_container  -> root(), has_root()
+//   list_container  -> head(), tail()
+//   graph_container -> entries(), entry_count()
 //
 //   node_container itself exposes entry_point() / has_entry() as the
 // topology-neutral interface.  Derived types alias these to their
@@ -468,8 +468,8 @@ public:
     using depth_type       = std::size_t;
     using reference        = value_type&;
     using const_reference  = const value_type&;
-    using pointer          = typename allocator_traits::pointer;
-    using const_pointer    = typename allocator_traits::const_pointer;
+    //using pointer          = typename allocator_pointer;
+    //using const_pointer    = typename allocator_const_pointer;
 
     // Root storage type determined by ownership policy
     using entry_storage = typename _OwnershipPolicy::
@@ -518,7 +518,7 @@ public:
         : m_entry(_OwnershipPolicy::clone(_other.m_entry)),
           m_size(_other.m_size),
           m_allocator(
-              allocator_traits::select_on_container_copy_construction(
+              allocator_select_on_container_copy_construction(
                   _other.m_allocator))
     {}
 
@@ -560,8 +560,7 @@ public:
             m_entry = _OwnershipPolicy::clone(_other.m_entry);
             m_size  = _other.m_size;
 
-            if constexpr (
-                allocator_traits::propagate_on_container_copy_assignment::value)
+            if constexpr (allocator_traits::propagate_on_container_copy_assignment::value)
             {
                 m_allocator = _other.m_allocator;
             }
@@ -584,8 +583,7 @@ public:
 
             m_size = _other.m_size;
 
-            if constexpr (
-                allocator_traits::propagate_on_container_move_assignment::value)
+            if constexpr (allocator_traits::propagate_on_container_move_assignment::value)
             {
                 m_allocator = static_cast<allocator_type&&>(
                     _other.m_allocator);
@@ -785,8 +783,7 @@ public:
         djinterp::constexpr_swap(m_entry, _other.m_entry);
         djinterp::constexpr_swap(m_size, _other.m_size);
 
-        if constexpr (
-            allocator_traits::propagate_on_container_swap::value)
+        if constexpr (allocator_traits::propagate_on_container_swap::value)
         {
             djinterp::constexpr_swap(m_allocator,
                                       _other.m_allocator);

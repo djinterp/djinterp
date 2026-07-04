@@ -62,7 +62,7 @@
 #include "./container_comparison_traits.hpp"        // profile: native level, refinement
 #include "./element_relation_traits.hpp"            // elements_same / elements_convertible
 #include "./bounded_container_traits.hpp"           // is_bounded_container (capacity)
-#include "../ordered_container.hpp"                 // sequential_layout_of (backing proxy)
+#include "./ordered_container_traits.hpp"                 // sequential_layout_of (backing proxy)
 
 
 NS_DJINTERP

@@ -49,9 +49,8 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"           // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"            // clean_t, NS_*, feature macros
 #include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_* detection macros
-#include "./container_traits.hpp"       // D_TYPE_TRAIT_* detection macros
 
 
 NS_DJINTERP
@@ -102,6 +101,11 @@ D_TYPE_TRAIT_TRUE(has_reserve_signal,
 D_TYPE_TRAIT_TRUE(has_max_size_signal,
     decltype(std::declval<const clean_t<_Type>&>().max_size()))
 
+// has_size_signal
+//   trait: detects a size() accessor - the "looks like a container" guard.
+D_TYPE_TRAIT_TRUE(has_size_signal,
+    decltype(std::declval<const clean_t<_Type>&>().size()))
+
 
 // ===========================================================================
 // II.  Capacity classification
@@ -114,13 +118,16 @@ D_TYPE_TRAIT_TRUE(has_max_size_signal,
 template<typename _Type>
 struct is_bounded_container
 {
+private:
+    using clean_type = clean_t<_Type>;
+
 public:
     static constexpr bool value =
-        ( has_fixed_extent_signal<_Type>::value  ||
-          has_tuple_size_signal<_Type>::value    ||
-          has_static_bounds_signal<_Type>::value ||
-          (  has_capacity_signal<_Type>::value &&
-            !has_reserve_signal<_Type>::value ) );
+        (    has_fixed_extent_signal<clean_type>::value
+          || has_tuple_size_signal<clean_type>::value
+          || has_static_bounds_signal<clean_type>::value
+          || (    has_capacity_signal<clean_type>::value
+               && !has_reserve_signal<clean_type>::value ) );
 };
 
 D_TYPE_TRAIT_VALUE_BOOL(is_bounded_container)
@@ -131,10 +138,13 @@ D_TYPE_TRAIT_VALUE_BOOL(is_bounded_container)
 template<typename _Type>
 struct is_unbounded_container
 {
+private:
+    using clean_type = clean_t<_Type>;
+
 public:
     static constexpr bool value =
-        (  has_size_signal<_Type>::value &&
-          !is_bounded_container<_Type>::value );
+        (    has_size_signal<clean_type>::value
+          && !is_bounded_container<clean_type>::value );
 };
 
 D_TYPE_TRAIT_VALUE_BOOL(is_unbounded_container)

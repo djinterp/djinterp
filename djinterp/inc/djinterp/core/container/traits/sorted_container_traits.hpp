@@ -180,6 +180,23 @@ struct is_sorted_container
 
 D_TYPE_TRAIT_VALUE_BOOL(is_sorted_container)
 
+// is_unsorted_container
+//   trait: the complement of is_sorted_container over containers - a container
+// whose positions are NOT guaranteed in comparator order.  It is gated on being
+// an (iterable) container so a non-container reports false rather than a vacuous
+// true, mirroring the is_ordered / is_unordered complementary pair; the excluded
+// non_container state is what distinguishes this from a bare !is_sorted_container.
+// The three container states unordered, monotone, and order_dependent are all
+// unsorted (only the sorted-by-construction sorted state is not).
+template<typename _Type>
+struct is_unsorted_container
+    : std::integral_constant<bool,
+             sortedness_of<clean_t<_Type>>::value != sortedness::non_container
+          && sortedness_of<clean_t<_Type>>::value != sortedness::sorted>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(is_unsorted_container)
+
 // is_monotone_container
 //   trait: true iff the type is a comparator-equipped unordered container - it
 // has no positions, but its enumeration is sorted by construction.

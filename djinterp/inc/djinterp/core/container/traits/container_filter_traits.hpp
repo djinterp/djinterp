@@ -51,11 +51,11 @@
 #include "./constexpr_container_traits.hpp"         // container_lifetime (filter stage)
 #include "./iterable_container_traits.hpp"          // is_iterable_container (read)
 #include "./element_relation_traits.hpp"            // element_type_of_t (value_type)
-#include "./iterator_category_traits.hpp"           // data accessor + iterator category
 #include "./container_multiplicity_traits.hpp"      // is_unique_container (uniqueness)
 #include "./bounded_container_traits.hpp"           // is_bounded_container (capacity)
-#include "../ordered_container.hpp"                 // is_ordered_container (order)
-#include "../sorted_container.hpp"                  // is_sorted_container (sortedness)
+#include "./ordered_container_traits.hpp"                 // is_ordered_container (order)
+#include "./sorted_container_traits.hpp"                  // is_sorted_container (sortedness)
+#include "./iterator_category_traits.hpp"           // is_*_iterable, iterator_category_of (moved here)
 
 
 NS_DJINTERP

@@ -4,12 +4,23 @@
 * Node Container Traits:
 *   Compile-time SFINAE-based structural detection for node-based
 * containers.  Detects ownership model, entry point form, node type
-* extraction, and classifies the container's ownership strategy.
+* extraction, and classifies the container's ownership strategy and
+* graph shape.
+*
+*   Following the monograph, a node container is a set of nodes together
+* with a SET OF ROOTS rho (entry references); its carrier is reach(rho),
+* the nodes reachable by following edges from the roots.  The shape of a
+* container is read from how it exposes those roots:
+*
+*     tree   single root, acyclic, unique walk (no sharing) ... root()
+*     list   a degenerate path                              ... head()/tail()
+*     graph  an entry SET rho (sharing: DAG or general graph)... entries()
 *
 *   These traits operate on any type that structurally resembles a
 * node_container - no base class check is performed.  A type is
 * recognized as a node container if it exposes the structural
-* minimum: node_type alias + entry_point() or root() or head().
+* minimum: a node_type alias AND at least one entry reference --
+* entry_point(), root(), head(), or the entry set entries().
 *
 *
 * path:      /inc/djinterp/core/container/traits/node_container_traits.hpp
@@ -85,9 +96,12 @@ struct has_entry_owns_constant<_Type,
 // ===========================================================================
 // II.  Entry Point Detection
 // ===========================================================================
-//   Detects what kind of entry point(s) a node container exposes.
-// A container may have root() (trees), head() (lists), or the
-// generic entry_point() from node_container.
+//   Detects what kind of entry reference(s) -- the roots rho -- a node
+// container exposes.  A container may have root() (trees), head()/tail()
+// (lists), an entries() SET (graphs), or the generic entry_point() from
+// node_container.  The set-valued entries()/entry_count() form is the
+// direct realisation of the monograph's set of roots rho, which trees and
+// lists specialise to a single distinguished entry.
 
 // has_entry_point_method
 //   trait: true if _Type has an entry_point() method.
@@ -114,6 +128,18 @@ D_TYPE_TRAIT_TRUE(has_head_method,
 D_TYPE_TRAIT_TRUE(has_tail_method,
     decltype(std::declval<const _Type&>().tail()))
 
+// has_entries_method
+//   trait: true if _Type has an entries() method -- the entry SET rho of a
+// graph-shaped container (the graph_container interface).
+D_TYPE_TRAIT_TRUE(has_entries_method,
+    decltype(std::declval<const _Type&>().entries()))
+
+// has_entry_count_method
+//   trait: true if _Type has an entry_count() method -- the cardinality of
+// the entry set rho.
+D_TYPE_TRAIT_TRUE(has_entry_count_method,
+    decltype(std::declval<const _Type&>().entry_count()))
+
 // has_has_entry_method
 //   trait: true if _Type has a has_entry() method.
 D_TYPE_TRAIT_TRUE(has_has_entry_method,
@@ -125,14 +151,16 @@ D_TYPE_TRAIT_TRUE(has_release_entry_method,
     decltype(std::declval<_Type&>().release_entry()))
 
 // has_any_entry_point
-//   trait: true if _Type exposes any kind of entry point.
+//   trait: true if _Type exposes any kind of entry reference -- a single
+// distinguished entry (entry_point/root/head) or an entry set (entries).
 template<typename _Type>
 struct has_any_entry_point
 {
     static constexpr bool value =
         ( has_entry_point_method<_Type>::value  ||
           has_root_method<_Type>::value         ||
-          has_head_method<_Type>::value );
+          has_head_method<_Type>::value         ||
+          has_entries_method<_Type>::value );
 };
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -189,10 +217,21 @@ enum class DOwnershipModel : std::uint8_t
     unknown    = 3      // has ownership_policy but unrecognized
 };
 
-NS_INTERNAL
 
-    // Forward declarations of the policy types for identity checks.
-    // These must match the types defined in node_container.hpp.
+// ownership policy tags
+//   Forward declarations of the policy types used by the
+// ownership identity checks below.  Their definitions live in
+// node_container.hpp; they are forward-declared here so this
+// header stays standalone (no include dependency on the
+// container itself).  std::is_same needs only the names, not
+// the complete types.  These MUST name the same djinterp-scope
+// types defined in node_container.hpp.
+struct unique_owning_policy;
+struct shared_owning_policy;
+struct non_owning_policy;
+
+
+NS_INTERNAL
 
     // ownership_model_impl
     //   trait: classifies the ownership model by matching the
@@ -284,7 +323,9 @@ struct is_unique_owning_container
 #endif
 
 // is_shared_owning_container
-//   trait: true if _Type uses shared_owning_policy.
+//   trait: true if _Type uses shared_owning_policy.  A shared entry set is
+// what admits sharing in the monograph's sense (a node reached by several
+// references), i.e. a DAG or general graph rather than a tree.
 template<typename _Type>
 struct is_shared_owning_container
 {
@@ -306,7 +347,8 @@ struct is_shared_owning_container
 
 // is_node_container
 //   trait: true if _Type structurally resembles a node-based container.
-// Requires: node_type alias AND at least one entry point method.
+// Requires: node_type alias AND at least one entry reference (a single
+// entry or an entry set).
 template<typename _Type>
 struct is_node_container
 {
@@ -322,7 +364,9 @@ struct is_node_container
 #endif
 
 // is_tree_shaped_container
-//   trait: true if _Type is a node container with a root entry point.
+//   trait: true if _Type is a node container with a single root entry.
+// Structural proxy for the monograph's tree (single root, acyclic, unique
+// walk -- hence unshared).
 template<typename _Type>
 struct is_tree_shaped_container
 {
@@ -369,6 +413,25 @@ struct is_doubly_linked_container
         is_doubly_linked_container<_Type>::value;
 #endif
 
+// is_graph_shaped_container
+//   trait: true if _Type is a node container exposing an entry SET via
+// entries().  Structural proxy for the monograph's shared cases (DAG or
+// general graph), where the roots rho form a set rather than a single
+// distinguished entry.
+template<typename _Type>
+struct is_graph_shaped_container
+{
+    static constexpr bool value =
+        ( is_node_container<_Type>::value &&
+          has_entries_method<_Type>::value );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    constexpr bool is_graph_shaped_container_v =
+        is_graph_shaped_container<_Type>::value;
+#endif
+
 
 // ===========================================================================
 // VI.  Combined Classification
@@ -381,7 +444,7 @@ enum class DNodeContainerShape : std::uint8_t
     unknown   = 0,
     tree      = 1,      // single root entry
     list      = 2,      // head (+ optional tail) entry
-    graph     = 3,      // entry set
+    graph     = 3,      // entry set rho
     generic   = 4       // has entry_point() but no specific shape
 };
 
@@ -396,6 +459,9 @@ NS_INTERNAL
 
             : is_list_shaped_container<_Type>::value
                 ? DNodeContainerShape::list
+
+            : is_graph_shaped_container<_Type>::value
+                ? DNodeContainerShape::graph
 
             : is_node_container<_Type>::value
                 ? DNodeContainerShape::generic
@@ -437,6 +503,8 @@ struct node_container_class
         is_list_shaped_container<_Type>::value;
     static constexpr bool is_doubly_linked =
         is_doubly_linked_container<_Type>::value;
+    static constexpr bool is_graph_shaped =
+        is_graph_shaped_container<_Type>::value;
 
     // ownership
     static constexpr bool has_ownership =
@@ -459,6 +527,10 @@ struct node_container_class
         has_head_method<_Type>::value;
     static constexpr bool has_tail =
         has_tail_method<_Type>::value;
+    static constexpr bool has_entries =
+        has_entries_method<_Type>::value;
+    static constexpr bool has_entry_count =
+        has_entry_count_method<_Type>::value;
     static constexpr bool has_release =
         has_release_entry_method<_Type>::value;
 

@@ -47,10 +47,9 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"           // clean_t, NS_*, feature macros
+#include "../../djinterp.hpp"            // clean_t, NS_*, feature macros
 #include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_* detection macros, D_VOID_T
-#include "../../meta/multiplicity.hpp"  // multiplicity_kind + bounds vocabulary
-#include "./container_traits.hpp"       // multiplicity_kind + bounds vocabulary
+#include "../../meta/multiplicity.hpp"   // multiplicity_kind + bounds vocabulary
 
 
 NS_DJINTERP
@@ -66,6 +65,11 @@ NS_DJINTERP
 D_TYPE_TRAIT_TRUE(is_countable_container,
     typename clean_t<_Type>::value_type,
     decltype(std::declval<const clean_t<_Type>&>().size()))
+
+// has_key_type
+//   trait: detects a `key_type` alias - the duplicate-equivalence tell of a
+// keyed / associative container.
+D_TYPE_TRAIT_HAS_TYPE(has_key_type, key_type)
 
 // has_interval_bounds_signal
 //   trait: detects static `lower_bound` AND `upper_bound` - a closed-interval
