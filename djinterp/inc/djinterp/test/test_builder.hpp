@@ -119,7 +119,8 @@
 #include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
-#include "../core/event/events.hpp"
+#include "../core/event/event_common.hpp"
+#include "../core/event/event_dispatcher.hpp"
 #include "./test_common.hpp"
 #include "./test_object.hpp"
 #include "./test_kind.hpp"
@@ -725,7 +726,7 @@ public:
         _Callable&& _handler
     )
     {
-        m_events.bind<events::on_test_passed>(
+        m_events.bind<on_test_passed>(
             std::forward<_Callable>(_handler));
 
         return *this;
@@ -737,7 +738,7 @@ public:
         _Callable&& _handler
     )
     {
-        m_events.bind<events::on_test_failed>(
+        m_events.bind<on_test_failed>(
             std::forward<_Callable>(_handler));
 
         return *this;
@@ -749,7 +750,7 @@ public:
         _Callable&& _handler
     )
     {
-        m_events.bind<events::on_test_skipped>(
+        m_events.bind<on_test_skipped>(
             std::forward<_Callable>(_handler));
 
         return *this;
@@ -761,7 +762,7 @@ public:
         _Callable&& _handler
     )
     {
-        m_events.bind<events::on_test_error>(
+        m_events.bind<on_test_error>(
             std::forward<_Callable>(_handler));
 
         return *this;
@@ -881,7 +882,7 @@ public:
         std::size_t passed = 0;
         std::size_t failed = 0;
 
-        safe_fire<events::on_session_start>();
+        safe_fire<on_session_start>();
 
         for (auto it = m_tree.begin(); it != m_tree.end(); ++it)
         {
@@ -889,7 +890,7 @@ public:
 
             if (is_interior_node(node))
             {
-                safe_fire<events::on_module_start>(&node);
+                safe_fire<on_module_start>(&node);
             }
             else if (is_test_node(node))
             {
@@ -897,7 +898,7 @@ public:
             }
         }
 
-        safe_fire<events::on_session_end>(passed, failed);
+        safe_fire<on_session_end>(passed, failed);
 
         return summarize();
     }
@@ -1221,7 +1222,7 @@ private:
         std::size_t& _failed
     )
     {
-        safe_fire<events::on_test_start>(&_node);
+        safe_fire<on_test_start>(&_node);
 
         test_status before = static_cast<test_status>(_node.status());
 
@@ -1236,12 +1237,12 @@ private:
 
         if (after != before)
         {
-            safe_fire<events::on_status_change>(&_node, before, after);
+            safe_fire<on_status_change>(&_node, before, after);
         }
 
         dispatch_status_event(_node, after, _passed, _failed);
 
-        safe_fire<events::on_test_end>(&_node);
+        safe_fire<on_test_end>(&_node);
 
         return;
     }
@@ -1261,17 +1262,17 @@ private:
         switch (_status)
         {
             case test_status::passed:
-                safe_fire<events::on_test_passed>(&_node);
+                safe_fire<on_test_passed>(&_node);
                 ++_passed;
                 break;
 
             case test_status::failed:
-                safe_fire<events::on_test_failed>(&_node);
+                safe_fire<on_test_failed>(&_node);
                 ++_failed;
                 break;
 
             case test_status::skipped:
-                safe_fire<events::on_test_skipped>(&_node);
+                safe_fire<on_test_skipped>(&_node);
                 break;
 
             case test_status::error:
@@ -1280,7 +1281,7 @@ private:
                 // const char* payload cannot dangle inside a handler.
                 std::string message = _node.metadata().get("error");
 
-                safe_fire<events::on_test_error>(
+                safe_fire<on_test_error>(
                     &_node,
                     message.empty() ? nullptr : message.c_str());
                 break;
@@ -1333,7 +1334,7 @@ private:
     {
         try
         {
-            m_events.fire<events::on_listener_threw>(_event_name, _what);
+            m_events.fire<on_listener_threw>(_event_name, _what);
         }
         catch (...)
         {

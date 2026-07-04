@@ -41,7 +41,7 @@
 * no opinion about that -- a tag is only an identity and a payload shape.
 *
 *   USAGE -- binding a built-in lifecycle listener:
-*     handler.on<events::on_test_failed>(
+*     handler.on<on_test_failed>(
 *         [](const basic_test* _n) D_NOEXCEPT
 *         {
 *             std::fprintf(stderr, "FAIL: %s\n",
@@ -81,7 +81,7 @@
 #include <tuple>
 // djinterp
 #include "../core/djinterp.hpp"      // NS_*, D_* qualifiers
-#include "../core/event/event.hpp"   // verdict, event_traits, D_EVENT[_EMPTY]
+#include "../core/event/event_common.hpp"   // verdict, event_traits, D_EVENT[_EMPTY]
 #include "./test_common.hpp"         // test_status (status-change payload)
 
 
@@ -126,83 +126,79 @@ using basic_test = test_object<std::uint8_t, test_metadata>;
 // test_builder.hpp).  Each is declared with D_EVENT / D_EVENT_EMPTY from
 // event.hpp, so it carries a `payload_type` tuple and a `name()`; the payload
 // shapes below match the framework's fire sites exactly.  Listeners bind to a
-// tag with `handler.on<events::TAG>(callable)` and the framework dispatches
+// tag with `handler.on<TAG>(callable)` and the framework dispatches
 // with the corresponding payload.
 
-namespace events
-{
+// ---- session lifecycle ----
 
-    // ---- session lifecycle ----
+// on_session_start
+//   the run is beginning; counters have just been reset.  Empty payload.
+D_EVENT_EMPTY(on_session_start);
 
-    // on_session_start
-    //   the run is beginning; counters have just been reset.  Empty payload.
-    D_EVENT_EMPTY(on_session_start);
-
-    // on_session_end
-    //   the run has finished.  Payload: (passed_count, failed_count).
-    D_EVENT(on_session_end, std::size_t, std::size_t);
+// on_session_end
+//   the run has finished.  Payload: (passed_count, failed_count).
+D_EVENT(on_session_end, std::size_t, std::size_t);
 
 
-    // ---- module (interior node) lifecycle ----
+// ---- module (interior node) lifecycle ----
 
-    // on_module_start
-    //   an interior node (module / block / test group) is being entered.
-    // Payload: the node.
-    D_EVENT(on_module_start, const basic_test*);
+// on_module_start
+//   an interior node (module / block / test group) is being entered.
+// Payload: the node.
+D_EVENT(on_module_start, const basic_test*);
 
-    // on_module_end
-    //   an interior node has been fully visited.  Payload: the node.
-    D_EVENT(on_module_end, const basic_test*);
-
-
-    // ---- test (leaf node) lifecycle ----
-
-    // on_test_start
-    //   a leaf (assertion / test function) is being entered, before its
-    // status-specific event.  Payload: the node.
-    D_EVENT(on_test_start, const basic_test*);
-
-    // on_test_end
-    //   a leaf has been fully visited, after its status-specific event.
-    // Payload: the node.
-    D_EVENT(on_test_end, const basic_test*);
+// on_module_end
+//   an interior node has been fully visited.  Payload: the node.
+D_EVENT(on_module_end, const basic_test*);
 
 
-    // ---- terminal status (leaf node) ----
+// ---- test (leaf node) lifecycle ----
 
-    // on_test_passed
-    //   a leaf resolved to test_status::passed.  Payload: the node.
-    D_EVENT(on_test_passed, const basic_test*);
+// on_test_start
+//   a leaf (assertion / test function) is being entered, before its
+// status-specific event.  Payload: the node.
+D_EVENT(on_test_start, const basic_test*);
 
-    // on_test_failed
-    //   a leaf resolved to test_status::failed.  Payload: the node.
-    D_EVENT(on_test_failed, const basic_test*);
-
-    // on_test_skipped
-    //   a leaf resolved to test_status::skipped.  Payload: the node.
-    D_EVENT(on_test_skipped, const basic_test*);
-
-    // on_test_error
-    //   a leaf resolved to test_status::error.  Payload: (node, message),
-    // where the message is an optional diagnostic string (may be null).
-    D_EVENT(on_test_error, const basic_test*, const char*);
-
-    // on_status_change
-    //   a leaf's status changed during evaluation (e.g. a deferred leaf was
-    // run).  Payload: (node, before, after).
-    D_EVENT(on_status_change, const basic_test*, test_status, test_status);
+// on_test_end
+//   a leaf has been fully visited, after its status-specific event.
+// Payload: the node.
+D_EVENT(on_test_end, const basic_test*);
 
 
-    // ---- diagnostics ----
+// ---- terminal status (leaf node) ----
 
-    // on_listener_threw
-    //   a bound listener escaped with an exception during dispatch; the
-    // framework caught it and re-reported it here rather than aborting the
-    // run.  Payload: (event_name, what), both C-strings.  A handler for this
-    // event must not itself throw.
-    D_EVENT(on_listener_threw, const char*, const char*);
+// on_test_passed
+//   a leaf resolved to test_status::passed.  Payload: the node.
+D_EVENT(on_test_passed, const basic_test*);
 
-}  // namespace events
+// on_test_failed
+//   a leaf resolved to test_status::failed.  Payload: the node.
+D_EVENT(on_test_failed, const basic_test*);
+
+// on_test_skipped
+//   a leaf resolved to test_status::skipped.  Payload: the node.
+D_EVENT(on_test_skipped, const basic_test*);
+
+// on_test_error
+//   a leaf resolved to test_status::error.  Payload: (node, message),
+// where the message is an optional diagnostic string (may be null).
+D_EVENT(on_test_error, const basic_test*, const char*);
+
+// on_status_change
+//   a leaf's status changed during evaluation (e.g. a deferred leaf was
+// run).  Payload: (node, before, after).
+D_EVENT(on_status_change, const basic_test*, test_status, test_status);
+
+
+// ---- diagnostics ----
+
+// on_listener_threw
+//   a bound listener escaped with an exception during dispatch; the
+// framework caught it and re-reported it here rather than aborting the
+// run.  Payload: (event_name, what), both C-strings.  A handler for this
+// event must not itself throw.
+D_EVENT(on_listener_threw, const char*, const char*);
+
 
 
 NS_END  // test

@@ -32,7 +32,7 @@
 *
 *   BUILT-IN LIFECYCLE EVENTS:
 *   The built-in event TAGS are declared in test_event.hpp under the
-* `djinterp::test::events::` sub-namespace.  This file includes that
+* `djinterp::test::` sub-namespace.  This file includes that
 * header and references the tags by their qualified names.
 *
 *   CUSTOM EVENTS:
@@ -116,7 +116,8 @@
 #include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
-#include "../core/event/events.hpp"
+#include "../core/event/event_handler.hpp"
+#include "../core/event/event_dispatcher.hpp"
 #include "./test_common.hpp"
 #include "./test_event.hpp"
 #include "./test_object.hpp"
@@ -474,24 +475,24 @@ public:
     // ---- session lifecycle ----
 
     // start_session
-    //   resets counters and fires events::on_session_start.
+    //   resets counters and fires on_session_start.
     // Idempotent across nested calls; the counter reset is
     // the meaningful state change.
     void start_session()
     {
         m_result = session_result();
-        m_events.fire<events::on_session_start>();
+        m_events.fire<on_session_start>();
 
         return;
     }
 
     // end_session
-    //   fires events::on_session_end with the current pass /
+    //   fires on_session_end with the current pass /
     // fail counters.  Counters are NOT cleared; call
     // reset_counters() explicitly if a clean slate is wanted.
     void end_session()
     {
-        m_events.fire<events::on_session_end>(
+        m_events.fire<on_session_end>(
             m_result.passed,
             m_result.failed);
 
@@ -723,11 +724,11 @@ private:
         // dispatch interior-vs-leaf entry event
         if (is_leaf)
         {
-            fire_if_listened<events::on_test_start>(obj_ptr);
+            fire_if_listened<on_test_start>(obj_ptr);
         }
         else
         {
-            fire_if_listened<events::on_module_start>(obj_ptr);
+            fire_if_listened<on_module_start>(obj_ptr);
         }
 
         // dispatch the status-specific event for leaf nodes
@@ -737,11 +738,11 @@ private:
                                   to_test_status(_node.status()));
             increment_for(to_test_status(_node.status()));
 
-            fire_if_listened<events::on_test_end>(obj_ptr);
+            fire_if_listened<on_test_end>(obj_ptr);
         }
         else
         {
-            fire_if_listened<events::on_module_end>(obj_ptr);
+            fire_if_listened<on_module_end>(obj_ptr);
         }
 
         return;
@@ -778,19 +779,19 @@ private:
         switch (_status)
         {
             case test_status::passed:
-                fire_if_listened<events::on_test_passed>(_obj);
+                fire_if_listened<on_test_passed>(_obj);
                 break;
 
             case test_status::failed:
-                fire_if_listened<events::on_test_failed>(_obj);
+                fire_if_listened<on_test_failed>(_obj);
                 break;
 
             case test_status::skipped:
-                fire_if_listened<events::on_test_skipped>(_obj);
+                fire_if_listened<on_test_skipped>(_obj);
                 break;
 
             case test_status::error:
-                fire_if_listened<events::on_test_error>(
+                fire_if_listened<on_test_error>(
                     _obj,
                     static_cast<const char*>(nullptr));
                 break;
@@ -885,18 +886,17 @@ private:
         return ( _node.type_id() <= test_type_id{1} );
     }
 
-
-    event_dispatcher          m_events;
-    session_result            m_result;
-    std::vector<basic_test>   m_sink;
+    event_dispatcher        m_events;
+    session_result          m_result;
+    std::vector<basic_test> m_sink;
 
 protected:
     // m_printer is protected (not private) so subclasses that
     // extend the listener bundle can read the pointer when
     // building their listener bodies without going through a
     // virtual accessor on the hot path.
-    test_printer*             m_printer;
-    std::vector<handler_id>   m_printer_listener_ids;
+    test_printer*           m_printer;
+    std::vector<handler_id> m_printer_listener_ids;
 };
 
 

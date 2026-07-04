@@ -56,8 +56,9 @@
 *     {elapsed_ms} - integer milliseconds  (truncated)
 *     {elapsed_s}  - decimal seconds       (two-place)
 * TEMPLATE SECTIONS:
-*   The printer owns six text_template instances, each with its own
-* format string.  All use "{" / "}" markers by default.
+*   The printer owns six bound_template instances (a format-owning
+* text_template plus its own binding set), each with its own format
+* string.  Placeholders use "{key}" syntax.
 *     header          - rendered once before the walk
 *     section_header  - rendered at the start of each depth-0 group
 *     node            - rendered per-node during the walk
@@ -119,6 +120,8 @@ V.    TEST PRINTER
 #include <functional>
 #include <limits>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
@@ -721,11 +724,137 @@ NS_END  // internal
 class test_printer
 {
 public:
+    // bound_template
+    //   the stateful interpolation surface this printer is written
+    // against - a format-owning text_template paired with an
+    // accumulating key -> value binding set - re-expressed on top of
+    // the lean, construct-once text_template (which parses a format
+    // ONCE and takes its bindings per render).  set_format (re)parses;
+    // bind / clear_bindings accumulate the binding set (bind overwrites
+    // an existing key, else appends); render() interpolates that set
+    // through the template.  Values are owned (std::string), so views
+    // handed to the template stay valid for the whole render, and
+    // temporaries passed to bind() are safe.  One binding set per
+    // template preserves the old per-template binding behaviour: a
+    // caller still binds e.g. {suite_name} on header_template() and
+    // {section_name} on section_footer_template() before the matching
+    // print_* call.
+    class bound_template
+    {
+    public:
+        bound_template() = default;
+
+        explicit bound_template(
+            std::string _format
+        )
+            : m_tmpl(static_cast<std::string&&>(_format)),
+              m_bindings()
+        {}
+
+        // set_format -- (re)parse a new format string.
+        void
+        set_format(
+            std::string _format
+        )
+        {
+            m_tmpl = text_template<>(static_cast<std::string&&>(_format));
+
+            return;
+        }
+
+        // format -- the current (owned) format string.
+        D_NODISCARD const std::string&
+        format() const D_NOEXCEPT
+        {
+            return m_tmpl.format();
+        }
+
+        // empty -- true iff the format string is empty.
+        D_NODISCARD bool
+        empty() const
+        {
+            return m_tmpl.empty();
+        }
+
+        // clear_bindings -- drop all bindings (call before a fresh set).
+        void
+        clear_bindings() D_NOEXCEPT
+        {
+            m_bindings.clear();
+
+            return;
+        }
+
+        // bind -- record a key -> value pair.  Both are copied into
+        // owned storage, so a temporary passed as either is safe.  An
+        // existing key is overwritten, so re-binding across renders
+        // (e.g. per-section counter refresh) yields the current value.
+        void
+        bind(
+            std::string_view _key,
+            std::string_view _value
+        )
+        {
+            for (std::pair<std::string, std::string>& _entry : m_bindings)
+            {
+                if (std::string_view(_entry.first) == _key)
+                {
+                    _entry.second.assign(_value.data(), _value.size());
+
+                    return;
+                }
+            }
+
+            m_bindings.emplace_back(std::string(_key), std::string(_value));
+
+            return;
+        }
+
+        // render -- interpolate the accumulated bindings through the
+        // template.  Missing keys resolve to the empty view, exactly as
+        // the template's built-in inline lookup does.
+        D_NODISCARD std::string
+        render() const
+        {
+            return m_tmpl.render(
+                [this](std::string_view _key) -> std::string_view
+                {
+                    for (const std::pair<std::string, std::string>& _entry
+                             : m_bindings)
+                    {
+                        if (std::string_view(_entry.first) == _key)
+                        {
+                            return std::string_view(_entry.second);
+                        }
+                    }
+
+                    return std::string_view{};
+                });
+        }
+
+        // tmpl -- the underlying parsed template (keys / inspection).
+        D_NODISCARD text_template<>&
+        tmpl() D_NOEXCEPT
+        {
+            return m_tmpl;
+        }
+
+        D_NODISCARD const text_template<>&
+        tmpl() const D_NOEXCEPT
+        {
+            return m_tmpl;
+        }
+
+    private:
+        text_template<>                                  m_tmpl;
+        std::vector<std::pair<std::string, std::string>> m_bindings;
+    };
+
     using symbol_fn_type         = std::function<std::string(test_status)>;
     using status_fn_type         = std::function<std::string(test_status)>;
     using filter_fn_type         = std::function<bool(test_status,
                                                       std::size_t)>;
-    using binder_fn_type         = std::function<void(text_template&,
+    using binder_fn_type         = std::function<void(bound_template&,
                                                       std::size_t)>;
     using elapsed_format_fn_type = std::function<std::string(std::int64_t)>;
 
@@ -734,12 +863,12 @@ public:
     // -----------------------------------------------------------------
 
     test_printer()
-        : m_node_tmpl("{", "}"),
-          m_summary_tmpl("{", "}"),
-          m_header_tmpl("{", "}"),
-          m_footer_tmpl("{", "}"),
-          m_sec_hdr_tmpl("{", "}"),
-          m_sec_ftr_tmpl("{", "}"),
+        : m_node_tmpl(D_TEST_FMT_NODE_DEFAULT),
+          m_summary_tmpl(D_TEST_FMT_SUMMARY_DEFAULT),
+          m_header_tmpl(""),
+          m_footer_tmpl(""),
+          m_sec_hdr_tmpl(""),
+          m_sec_ftr_tmpl(""),
           m_node_fmt(D_TEST_FMT_NODE_DEFAULT),
           m_summary_fmt(D_TEST_FMT_SUMMARY_DEFAULT),
           m_header_fmt(""),
@@ -770,12 +899,12 @@ public:
     //  format setters
     // =================================================================
 
-    void set_node_format(const std::string& _f)           { m_node_fmt = _f; return; }
-    void set_summary_format(const std::string& _f)        { m_summary_fmt = _f; return; }
-    void set_header_format(const std::string& _f)         { m_header_fmt = _f; return; }
-    void set_footer_format(const std::string& _f)         { m_footer_fmt = _f; return; }
-    void set_section_header_format(const std::string& _f) { m_sec_hdr_fmt = _f; return; }
-    void set_section_footer_format(const std::string& _f) { m_sec_ftr_fmt = _f; return; }
+    void set_node_format(const std::string& _f)           { m_node_fmt = _f;    m_node_tmpl.set_format(_f);    return; }
+    void set_summary_format(const std::string& _f)        { m_summary_fmt = _f; m_summary_tmpl.set_format(_f); return; }
+    void set_header_format(const std::string& _f)         { m_header_fmt = _f;  m_header_tmpl.set_format(_f);  return; }
+    void set_footer_format(const std::string& _f)         { m_footer_fmt = _f;  m_footer_tmpl.set_format(_f);  return; }
+    void set_section_header_format(const std::string& _f) { m_sec_hdr_fmt = _f; m_sec_hdr_tmpl.set_format(_f); return; }
+    void set_section_footer_format(const std::string& _f) { m_sec_ftr_fmt = _f; m_sec_ftr_tmpl.set_format(_f); return; }
 
     const std::string& node_format()           const D_NOEXCEPT { return m_node_fmt; }
     const std::string& summary_format()        const D_NOEXCEPT { return m_summary_fmt; }
@@ -789,18 +918,18 @@ public:
     //  template access
     // =================================================================
 
-    text_template&       node_template()                 D_NOEXCEPT { return m_node_tmpl; }
-    const text_template& node_template()           const D_NOEXCEPT { return m_node_tmpl; }
-    text_template&       summary_template()              D_NOEXCEPT { return m_summary_tmpl; }
-    const text_template& summary_template()        const D_NOEXCEPT { return m_summary_tmpl; }
-    text_template&       header_template()               D_NOEXCEPT { return m_header_tmpl; }
-    const text_template& header_template()         const D_NOEXCEPT { return m_header_tmpl; }
-    text_template&       footer_template()               D_NOEXCEPT { return m_footer_tmpl; }
-    const text_template& footer_template()         const D_NOEXCEPT { return m_footer_tmpl; }
-    text_template&       section_header_template()       D_NOEXCEPT { return m_sec_hdr_tmpl; }
-    const text_template& section_header_template() const D_NOEXCEPT { return m_sec_hdr_tmpl; }
-    text_template&       section_footer_template()       D_NOEXCEPT { return m_sec_ftr_tmpl; }
-    const text_template& section_footer_template() const D_NOEXCEPT { return m_sec_ftr_tmpl; }
+    bound_template&       node_template()                 D_NOEXCEPT { return m_node_tmpl; }
+    const bound_template& node_template()           const D_NOEXCEPT { return m_node_tmpl; }
+    bound_template&       summary_template()              D_NOEXCEPT { return m_summary_tmpl; }
+    const bound_template& summary_template()        const D_NOEXCEPT { return m_summary_tmpl; }
+    bound_template&       header_template()               D_NOEXCEPT { return m_header_tmpl; }
+    const bound_template& header_template()         const D_NOEXCEPT { return m_header_tmpl; }
+    bound_template&       footer_template()               D_NOEXCEPT { return m_footer_tmpl; }
+    const bound_template& footer_template()         const D_NOEXCEPT { return m_footer_tmpl; }
+    bound_template&       section_header_template()       D_NOEXCEPT { return m_sec_hdr_tmpl; }
+    const bound_template& section_header_template() const D_NOEXCEPT { return m_sec_hdr_tmpl; }
+    bound_template&       section_footer_template()       D_NOEXCEPT { return m_sec_ftr_tmpl; }
+    const bound_template& section_footer_template() const D_NOEXCEPT { return m_sec_ftr_tmpl; }
 
 
     // =================================================================
@@ -979,7 +1108,7 @@ public:
     {
         if (!m_header_fmt.empty())
         {
-            emit(m_header_tmpl.render(m_header_fmt));
+            emit(m_header_tmpl.render());
         }
 
         return;
@@ -990,7 +1119,7 @@ public:
     {
         if (!m_footer_fmt.empty())
         {
-            emit(m_footer_tmpl.render(m_footer_fmt));
+            emit(m_footer_tmpl.render());
         }
 
         return;
@@ -1001,7 +1130,7 @@ public:
     {
         if (!m_sec_hdr_fmt.empty())
         {
-            emit(m_sec_hdr_tmpl.render(m_sec_hdr_fmt));
+            emit(m_sec_hdr_tmpl.render());
         }
 
         return;
@@ -1013,7 +1142,7 @@ public:
         if (!m_sec_ftr_fmt.empty())
         {
             bind_context_to(m_sec_ftr_tmpl, m_context);
-            emit(m_sec_ftr_tmpl.render(m_sec_ftr_fmt));
+            emit(m_sec_ftr_tmpl.render());
         }
 
         return;
@@ -1203,7 +1332,7 @@ public:
 
         bind_context_to(m_summary_tmpl, m_context);
 
-        emit(m_summary_tmpl.render(m_summary_fmt));
+        emit(m_summary_tmpl.render());
 
         return;
     }
@@ -1374,7 +1503,7 @@ private:
             m_node_binder(m_node_tmpl, _depth);
         }
 
-        emit(m_node_tmpl.render(m_node_fmt));
+        emit(m_node_tmpl.render());
 
         return;
     }
@@ -1393,7 +1522,7 @@ private:
     // values rather than per-node.
     void
     bind_context_to(
-        text_template&       _tmpl,
+        bound_template&      _tmpl,
         const print_context& _ctx
     ) const
     {
@@ -1472,12 +1601,12 @@ private:
     //  storage
     // =================================================================
 
-    mutable text_template m_node_tmpl;
-    mutable text_template m_summary_tmpl;
-    mutable text_template m_header_tmpl;
-    mutable text_template m_footer_tmpl;
-    mutable text_template m_sec_hdr_tmpl;
-    mutable text_template m_sec_ftr_tmpl;
+    mutable bound_template m_node_tmpl;
+    mutable bound_template m_summary_tmpl;
+    mutable bound_template m_header_tmpl;
+    mutable bound_template m_footer_tmpl;
+    mutable bound_template m_sec_hdr_tmpl;
+    mutable bound_template m_sec_ftr_tmpl;
 
     std::string m_node_fmt;
     std::string m_summary_fmt;
@@ -1502,6 +1631,41 @@ private:
     mutable print_context m_context;
     print_sink            m_sink;
 };
+
+// configure_report_printer
+//   function: presets a test_printer for the module-report console style -
+// the banner header, the dashed module section header and results footer, the
+// full assertion summary, and a two-space-indented "[SYM] name" node line with
+// numbering off.  The per-section keys the templates reference (suite_name /
+// suite_description for the header; section_name / section_description for the
+// section header and footer) are still bound by the caller on the matching
+// template before each print_* call - this helper only installs the formats.
+//
+//   This is the report-shaped counterpart to the printer's default (flat)
+// presets, and the seam through which a caller can drive the report console
+// through test_printer directly rather than through report_builder.
+//
+// Parameter(s):
+//   _printer: the printer to configure (its sink and other settings are left
+//             untouched).
+// Return:
+//   none.
+D_INLINE void
+configure_report_printer(
+    test_printer& _printer
+)
+{
+    _printer.set_header_format(D_TEST_FMT_HEADER_BANNER);
+    _printer.set_section_header_format(D_TEST_FMT_SECTION_HEADER_DASHED);
+    _printer.set_section_footer_format(D_TEST_FMT_SECTION_FOOTER_RESULTS);
+    _printer.set_summary_format(D_TEST_FMT_SUMMARY_FULL);
+    _printer.set_node_format("  {symbol} {name}\n");
+    _printer.set_indent("  ", 16);
+    _printer.set_numbering(numbering_mode::none);
+
+    return;
+}
+
 
 
 NS_END  // test

@@ -179,6 +179,25 @@ make_test_kind(
 //
 //   kinds.insert(D_TEST_KIND_ASSERT);
 //   if (kinds.contains(some_id)) { ... }
+
+NS_INTERNAL
+    // has_set_contains
+    //   trait: ::type is std::true_type when _Container exposes a
+    // contains(key_type) member (native-contains dispatch), else
+    // std::false_type (the find()-fallback dispatch is selected).
+    template<typename _Container,
+             typename = void>
+    struct has_set_contains : std::false_type
+    {};
+
+    template<typename _Container>
+    struct has_set_contains<_Container, void_t<
+        decltype(std::declval<const _Container&>().contains(
+            std::declval<const typename _Container::key_type&>()))
+    >> : std::true_type
+    {};
+NS_END  // internal
+
 template<typename _SetContainer>
 class test_kind_set
 {
