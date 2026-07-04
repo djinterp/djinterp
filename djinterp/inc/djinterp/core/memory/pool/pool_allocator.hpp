@@ -7,7 +7,7 @@
 * a drop-in replacement for std::allocator in any standard or djinterp
 * container.
 *
-*   The allocator is a lightweight handle — it stores a non-owning
+*   The allocator is a lightweight handle - it stores a non-owning
 * pointer to a pool_resource and delegates all storage operations to it.
 * Copying a pool_allocator copies the handle, not the pool.
 *
@@ -25,20 +25,22 @@
 *   across copies and moves unless explicitly rebound.
 *
 * DEPENDENCIES:
-*   pool.hpp       — pool_resource
-*   djinterp.hpp   — namespace macros
-*
-* TABLE OF CONTENTS
-* =================
-* I.    pool_allocator
-* II.   Equality Operators
-* III.  Convenience Aliases
+*   pool.hpp       - pool_resource
+*   djinterp.hpp   - namespace macros
 *
 *
 * path:      /inc/djinterp/core/memory/pool/pool_allocator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.03.30
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.30
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    pool_allocator
+II.   equality operators
+III.  convenience sliases
+*/
 
 #ifndef DJINTERP_MEMORY_POOL_ALLOCATOR_
 #define DJINTERP_MEMORY_POOL_ALLOCATOR_ 1
@@ -50,16 +52,15 @@
 #include <new>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./pool.hpp"
 
 
 NS_DJINTERP
 
-
-// =============================================================================
+// ===========================================================================
 // I.   pool_allocator
-// =============================================================================
+// ===========================================================================
 
 // pool_allocator
 //   class: a stateful allocator that draws storage from an
@@ -67,10 +68,10 @@ NS_DJINTERP
 // named requirements.
 //
 // Template parameters:
-//   _Type            — the element type
-//   _ReleasePolicy   — forwarded to pool_resource
-//   _BlockPolicy     — forwarded to pool_resource
-//   _GrowthPolicy    — forwarded to pool_resource
+//   _Type            - the element type
+//   _ReleasePolicy   - forwarded to pool_resource
+//   _BlockPolicy     - forwarded to pool_resource
+//   _GrowthPolicy    - forwarded to pool_resource
 template<typename _Type,
          typename _ReleasePolicy = free_list_release_policy,
          typename _BlockPolicy   = chunked_block_policy<>,
@@ -79,7 +80,6 @@ class pool_allocator
 {
 public:
     // --- standard allocator type aliases ---
-
     using value_type      = _Type;
     using pointer         = _Type*;
     using const_pointer   = const _Type*;
@@ -89,7 +89,6 @@ public:
     using difference_type = std::ptrdiff_t;
 
     // --- pool type ---
-
     using pool_type = pool_resource<_Type,
                                     _ReleasePolicy,
                                     _BlockPolicy,
@@ -100,7 +99,6 @@ public:
     // and does not propagate on container copy/move/swap.
     // The user rebinds explicitly when a different pool
     // is desired.
-
     using propagate_on_container_copy_assignment = std::false_type;
     using propagate_on_container_move_assignment = std::false_type;
     using propagate_on_container_swap            = std::false_type;
@@ -111,7 +109,6 @@ public:
     // preserving the policy parameters.  The rebound
     // allocator must be constructed with its own
     // pool_resource<_Other, ...>.
-
     template<typename _Other>
     struct rebind
     {
@@ -121,7 +118,6 @@ public:
                                      _GrowthPolicy>;
     };
 
-    // --------------------------------------------------------
     //  construction
     // --------------------------------------------------------
 
@@ -147,7 +143,7 @@ public:
     //   converting constructor for rebind.  Accepts a
     // pool_allocator of a different type but compatible
     // policies.  The pool pointer is NOT transferable
-    // across types — the caller must supply a correctly
+    // across types - the caller must supply a correctly
     // typed pool.
     //
     //   This constructor exists to satisfy the Allocator
@@ -166,14 +162,16 @@ public:
         // assign a pool via set_pool() or construct
         // with an explicit pool reference.
         //
-        // This is intentional — pool_resource is typed,
+        // This is intentional - pool_resource is typed,
         // and sharing a pool_resource<A> with a
         // pool_allocator<B> is not safe.
     }
 
     // pool_allocator (assignment)
     pool_allocator&
-    operator=(const pool_allocator& _other) noexcept
+    operator=(
+        const pool_allocator& _other
+    ) noexcept
     {
         m_pool = _other.m_pool;
 
@@ -195,7 +193,9 @@ public:
     // set_resource
     //   rebinds this allocator to a different pool.
     void
-    set_resource(pool_type& _pool) noexcept
+    set_resource(
+        pool_type& _pool
+    ) noexcept
     {
         m_pool = &_pool;
 
@@ -228,7 +228,7 @@ public:
             return static_cast<pointer>(slot);
         }
 
-        // bulk allocation — bypass pool
+        // bulk allocation - bypass pool
         return static_cast<pointer>(
             ::operator new(_n * sizeof(_Type)));
     }
@@ -267,7 +267,7 @@ public:
     // C++20 allocator_traits handles construction without
     // requiring these members.
 
-    template<typename _U,
+    template<typename    _U,
              typename... _Args>
     void
     construct(
@@ -302,8 +302,7 @@ public:
     size_type
     max_size() const noexcept
     {
-        return std::numeric_limits<size_type>::max()
-             / sizeof(_Type);
+        return ( std::numeric_limits<size_type>::max() / sizeof(_Type) )
     }
 
     // --------------------------------------------------------
@@ -332,20 +331,21 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Equality Operators
-// =============================================================================
+// ===========================================================================
 // Two pool allocators are equal if and only if they
 // reference the same pool_resource instance.
-
 template<typename _T1,
          typename _T2,
          typename _RP,
          typename _BP,
          typename _GP>
 bool
-operator==(const pool_allocator<_T1, _RP, _BP, _GP>& _a,
-           const pool_allocator<_T2, _RP, _BP, _GP>& _b) noexcept
+operator==(
+    const pool_allocator<_T1, _RP, _BP, _GP>& _a,
+    const pool_allocator<_T2, _RP, _BP, _GP>& _b
+) noexcept
 {
     // different value types cannot share a typed pool,
     // so they are never equal unless both are null.
@@ -365,36 +365,36 @@ template<typename _T1,
          typename _BP,
          typename _GP>
 bool
-operator!=(const pool_allocator<_T1, _RP, _BP, _GP>& _a,
-           const pool_allocator<_T2, _RP, _BP, _GP>& _b) noexcept
+operator!=(
+    const pool_allocator<_T1, _RP, _BP, _GP>& _a,
+    const pool_allocator<_T2, _RP, _BP, _GP>& _b
+) noexcept
 {
     return !(_a == _b);
 }
 
 
-// =============================================================================
+// ===========================================================================
 // III. Convenience Aliases
-// =============================================================================
+// ===========================================================================
 
 // default_pool_allocator
 //   alias: pool allocator with default policies (free-list
 // release, chunked blocks, exponential growth).
 template<typename _Type>
-using default_pool_allocator =
-    pool_allocator<_Type,
-                   free_list_release_policy,
-                   chunked_block_policy<>,
-                   exponential_growth_policy>;
+using default_pool_allocator = pool_allocator<_Type,
+                                              free_list_release_policy,
+                                              chunked_block_policy<>,
+                                              exponential_growth_policy>;
 
 // monotonic_pool_allocator
 //   alias: pool allocator with monotonic release.
-// Fastest allocation — no free list overhead.
+// Fastest allocation - no free list overhead.
 template<typename _Type>
-using monotonic_pool_allocator =
-    pool_allocator<_Type,
-                   monotonic_release_policy,
-                   chunked_block_policy<>,
-                   exponential_growth_policy>;
+using monotonic_pool_allocator = pool_allocator<_Type,
+                                                monotonic_release_policy,
+                                                chunked_block_policy<>,
+                                                exponential_growth_policy>;
 
 
 NS_END  // djinterp
