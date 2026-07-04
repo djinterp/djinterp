@@ -259,13 +259,13 @@ concept is_enum_c = std::is_enum_v<_Type>;
 
 // scoped_enum
 //   concept: satisfied if `_Type` is a scoped enumeration (enum class).
-template<typename _Type>
-concept scoped_enum = std::is_scoped_enum_v<_Type>;
+//template<typename _Type>
+//concept scoped_enum = std::is_scoped_enum_v<_Type>;
 
 // unscoped_enum
 //   concept: satisfied if `_Type` is an unscoped enumeration.
-template<typename _Type>
-concept unscoped_enum = std::is_enum_v<_Type> && !std::is_scoped_enum_v<_Type>;
+//template<typename _Type>
+//concept unscoped_enum = std::is_enum_v<_Type> && !std::is_scoped_enum_v<_Type>;
 
 // II.1.d  Pointer and reference concepts
 
@@ -541,18 +541,18 @@ concept follows_rule_of_five_c =
 // Parallels djinterp::is_sized, ::has_max_size, ::is_allocator, ::is_bounded
 // in type_traits.hpp.
 
-// has_value_type
+// has_value_type_c
 //   concept: satisfied if `_Type` has a value_type member type.
 template<typename _Type>
-concept has_value_type = requires
+concept has_value_type_c = requires
 {
     typename _Type::value_type;
 };
 
-// has_size_type
+// has_size_type_c
 //   concept: satisfied if `_Type` has a size_type member type.
 template<typename _Type>
-concept has_size_type = requires
+concept has_size_type_c = requires
 {
     typename _Type::size_type;
 };
@@ -708,17 +708,17 @@ concept is_template_with_args_c =
 // all_of
 //   concept: satisfied if every type predicate in `_Bs` is true.
 template<typename... _Bs>
-concept all_of = (... && _Bs::value);
+concept AllOf = (... && _Bs::value);
 
 // any_of
 //   concept: satisfied if at least one type predicate in `_Bs` is true.
 template<typename... _Bs>
-concept any_of = (... || _Bs::value);
+concept AnyOf = (... || _Bs::value);
 
 // none_of
 //   concept: satisfied if no type predicate in `_Bs` is true.
 template<typename... _Bs>
-concept none_of = !(... || _Bs::value);
+concept NoneOf = !(... || _Bs::value);
 
 // exactly_one_of
 //   concept: satisfied if exactly one type predicate in `_Bs` is true.

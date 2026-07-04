@@ -75,6 +75,7 @@ provides advanced tuple manipulation metafunctions for
 // djinterp
 #include "../djinterp.hpp"
 #include "./type_traits.hpp"
+#include "./trait_detect.hpp"   // D_TYPE_TRAIT_TYPE_ALIAS, _TRUE_AS, _IS_SPECIALIZATION_OF_AS
 
 
 NS_DJINTERP
@@ -962,7 +963,7 @@ NS_END  // internal
 // every element is itself a tuple (i.e., a 2D structure). Empty tuples
 // vacuously satisfy this property. This is the foundation for jagged and
 // uniform 2D tuple detection.
-D_TRAIT_IS_SPECIALIZATION_OF_AS(is_2d_tuple, std::tuple,
+D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS(is_2d_tuple, std::tuple,
     internal::is_2d_tuple_helper<std::tuple<_Types...>>)
 
 // is_2d_tuple_v
@@ -1009,7 +1010,7 @@ struct tuple_inner_sizes
 
 // tuple_inner_sizes_t
 //   type: convenience alias for tuple_inner_sizes<...>::type.
-D_TRAIT_TYPE_ALIAS(tuple_inner_sizes)
+D_TYPE_TRAIT_TYPE_ALIAS(tuple_inner_sizes)
 
 // tuple_outer_size
 //   trait: returns the number of inner tuples (rows) in a 2D tuple.
@@ -1058,7 +1059,7 @@ public:
 
 // tuple_flatten_types_t
 //   type: convenience alias for tuple_flatten_types<...>::type.
-D_TRAIT_TYPE_ALIAS(tuple_flatten_types)
+D_TYPE_TRAIT_TYPE_ALIAS(tuple_flatten_types)
 
 
 // -------------------------------------------------------------------------
@@ -1272,7 +1273,7 @@ struct tuple_common_element_type
 
 // tuple_common_element_type_t
 //   type: convenience alias for tuple_common_element_type<...>::type.
-D_TRAIT_TYPE_ALIAS(tuple_common_element_type)
+D_TYPE_TRAIT_TYPE_ALIAS(tuple_common_element_type)
 
 
 // -------------------------------------------------------------------------
@@ -1394,12 +1395,12 @@ NS_INTERNAL
     //   NOTE: bool_constant<...> (single template arg) is used here
     // instead of std::integral_constant<bool, ...> because the comma
     // between `bool` and the value-expression would be seen by the
-    // preprocessor as a macro-argument separator -- D_TRAIT_IS_DETECTED_AS
+    // preprocessor as a macro-argument separator -- D_TYPE_TRAIT_TRUE_AS
     // takes exactly three arguments and angle brackets do NOT shield
     // commas (only parentheses do).  bool_constant<X> has no top-level
     // comma in its argument list, so the macro receives the expected
     // three arguments.
-    D_TRAIT_IS_DETECTED_AS(inner_is_empty_tuple,
+    D_TYPE_TRAIT_TRUE_AS(inner_is_empty_tuple,
         std::enable_if_t<is_tuple<clean_t<_Type>>::value>,
         bool_constant<(std::tuple_size<normalize_tuple_t<_Type>>::value == 0)>)
 
