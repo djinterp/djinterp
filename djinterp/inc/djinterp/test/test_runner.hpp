@@ -40,7 +40,7 @@
 *     // or hold a runner for finer control
 *     djinterp::test::test_runner runner;
 *     runner.configure<cfg>();                 // (C++20) lower a schema
-*     runner.handler().on<events::on_test_failed>( ... );   // extra listeners
+*     runner.handler().on<on_test_failed>( ... );   // extra listeners
 *     auto result = runner.run(my_tree);
 *     return runner.exit_code();
 *
@@ -86,10 +86,11 @@
 // djinterp
 #include "../core/djinterp.hpp"
 #include "./test_common.hpp"     // test_status
-#include "./test_event.hpp"      // events:: alphabet
+#include "./test_event.hpp"      //  alphabet
 #include "./test_object.hpp"     // basic_test
 #include "./test_options.hpp"    // test_option_set, test_resolved, match_context, lowering
 #include "./test_handler.hpp"    // test_handler, session_result, session_verdict, handler_id
+#include "./test_pack.hpp"       // pack_report, pack_enabled (report packaging)
 
 
 NS_DJINTERP
@@ -271,6 +272,8 @@ public:
           m_console(&std::cout),
           m_file(),
           m_file_open(false),
+          m_file_buffer(),
+          m_pack_buffering(false),
           m_index(0),
           m_reporter_ids(),
           m_installed(false)
@@ -288,6 +291,8 @@ public:
           m_console(&std::cout),
           m_file(),
           m_file_open(false),
+          m_file_buffer(),
+          m_pack_buffering(false),
           m_index(0),
           m_reporter_ids(),
           m_installed(false)
@@ -367,10 +372,8 @@ public:
             m_console->flush();
         }
 
-        if (m_file_open)
-        {
-            m_file.flush();
-        }
+        // flush the streamed file, or pack the buffered report and write it
+        finalize_file();
 
         return m_handler.result();
     }
@@ -439,7 +442,7 @@ private:
 
         // session start: reset the ordinal counter
         m_reporter_ids.push_back(
-            m_handler.template on<events::on_session_start>(
+            m_handler.template on<on_session_start>(
                 [this]()
                 {
                     this->m_index = 0;
@@ -447,7 +450,7 @@ private:
 
         // interior node: a header line
         m_reporter_ids.push_back(
-            m_handler.template on<events::on_module_start>(
+            m_handler.template on<on_module_start>(
                 [this](const basic_test* _node)
                 {
                     this->report_module(_node);
@@ -456,7 +459,7 @@ private:
         // leaf node: one report line (fired once per leaf, after its status
         // event)
         m_reporter_ids.push_back(
-            m_handler.template on<events::on_test_end>(
+            m_handler.template on<on_test_end>(
                 [this](const basic_test* _node)
                 {
                     this->report_test(_node);
@@ -464,7 +467,7 @@ private:
 
         // session end: the summary line
         m_reporter_ids.push_back(
-            m_handler.template on<events::on_session_end>(
+            m_handler.template on<on_session_end>(
                 [this](std::size_t _passed,
                        std::size_t _failed)
                 {
@@ -647,21 +650,51 @@ private:
             (*m_console) << _line << "\n";
         }
 
-        if ( test_sink_has(_sinks, test_sink::file) &&
-             m_file_open )
+        if ( test_sink_has(_sinks, test_sink::file) )
         {
-            m_file << _line << "\n";
+            // packing: accumulate for an end-of-run pack; otherwise stream
+            if (m_pack_buffering)
+            {
+                m_file_buffer += _line;
+                m_file_buffer += '\n';
+            }
+            else if (m_file_open)
+            {
+                m_file << _line << "\n";
+            }
         }
 
         return;
     }
 
     // open_file_if_needed
-    //   opens the file sink at output_path on first run when a path is set.
+    //   prepares the file sink for this run.  With packing on, the report is
+    // collected in memory (m_file_buffer) and packed on finalize; otherwise the
+    // file at output_path is opened for streaming.  Either path requires a
+    // non-empty output_path.
     void
     open_file_if_needed()
     {
-        if ( m_file_open || m_options.output_path.empty() )
+        m_pack_buffering = false;
+
+        // no path: the file sink is inactive either way
+        if (m_options.output_path.empty())
+        {
+            return;
+        }
+
+        // packing: collect the file-destined report in memory and pack it on
+        // finalize (one codec / archive write), rather than streaming raw
+        if (pack_enabled(m_options))
+        {
+            m_file_buffer.clear();
+            m_pack_buffering = true;
+
+            return;
+        }
+
+        // not packing: stream straight to the open file (idempotent open)
+        if (m_file_open)
         {
             return;
         }
@@ -669,6 +702,70 @@ private:
         m_file.open(m_options.output_path.c_str(),
                     std::ios::out | std::ios::trunc);
         m_file_open = m_file.is_open();
+
+        return;
+    }
+
+    // finalize_file
+    //   ends the run's file output: with packing on, pack the buffered report
+    // and write the result to output_path; otherwise flush the streamed file.
+    void
+    finalize_file()
+    {
+        if (m_pack_buffering)
+        {
+            pack_and_write_file();
+
+            return;
+        }
+
+        if (m_file_open)
+        {
+            m_file.flush();
+        }
+
+        return;
+    }
+
+    // pack_and_write_file
+    //   packs m_file_buffer per the option set and writes the result to
+    // output_path (binary).  If packing fails (e.g. the codec / format is not
+    // built into this binary), the report is written UNPACKED so it is never
+    // lost, with a one-line note on the console sink.
+    void
+    pack_and_write_file()
+    {
+        byte_buffer packed;
+        status      s = pack_report(m_options, m_file_buffer, packed);
+
+        std::ofstream out(m_options.output_path.c_str(),
+                          std::ios::out | std::ios::binary | std::ios::trunc);
+
+        if (!out.is_open())
+        {
+            return;  // nowhere to write
+        }
+
+        if (s == status_ok)
+        {
+            out.write(packed.data(),
+                      static_cast<std::streamsize>(packed.size()));
+        }
+        else
+        {
+            // fall back to the raw report rather than losing it
+            out.write(m_file_buffer.data(),
+                      static_cast<std::streamsize>(m_file_buffer.size()));
+
+            if (m_console != nullptr)
+            {
+                (*m_console) << "[dtest] report packing failed ("
+                             << status_message(s)
+                             << "); wrote the report unpacked.\n";
+            }
+        }
+
+        out.flush();
 
         return;
     }
@@ -703,6 +800,8 @@ private:
     std::ostream*           m_console;
     std::ofstream           m_file;
     bool                    m_file_open;
+    std::string             m_file_buffer;     // buffered report (packing)
+    bool                    m_pack_buffering;  // packing active this run
     std::size_t             m_index;
     std::vector<handler_id> m_reporter_ids;
     bool                    m_installed;

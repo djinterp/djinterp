@@ -80,8 +80,9 @@
 * TABLE OF CONTENTS
 * =================
 * I.    test object
-* II.   convenience aliases
-* III.  factory functions
+* II.   test object protocol
+* III.  convenience aliases
+* IV.   factory functions
 *
 *
 * path:      /inc/djinterp/test/test_object.hpp
@@ -102,6 +103,7 @@
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/meta/kv_pair.hpp"
+#include "../core/meta/trait_detect.hpp"   // D_TYPE_TRAIT_TRUE (is_test_evaluable, section II)
 #include "./test_common.hpp"
 
 
@@ -550,7 +552,33 @@ struct test_object
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.  CONVENIENCE ALIASES                                  ///
+///                II.  TEST OBJECT PROTOCOL                                 ///
+///////////////////////////////////////////////////////////////////////////////
+
+// is_test_evaluable
+//   trait: true iff `_Type` satisfies the test object protocol - the
+// surface a runner needs to evaluate a node and read its outcome:
+// boolean conversion (result), status(), result(), type_id(),
+// callable_id(), and metadata().  Probed on a const lvalue, so a
+// const-qualified element agrees with its bare form.  This is the
+// element-level protocol reused by test_container.hpp and the
+// test_tree build surface (originally in test_object_traits.hpp,
+// folded in here).
+//
+//   The boolean probe uses static_cast<bool> rather than a bare
+// conversion so it holds whether or not operator bool is later
+// marked explicit.
+D_TYPE_TRAIT_TRUE(is_test_evaluable,
+    decltype(static_cast<bool>(std::declval<const _Type&>())),
+    decltype(std::declval<const _Type&>().status()),
+    decltype(std::declval<const _Type&>().result()),
+    decltype(std::declval<const _Type&>().type_id()),
+    decltype(std::declval<const _Type&>().callable_id()),
+    decltype(std::declval<const _Type&>().metadata()))
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III. CONVENIENCE ALIASES                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // basic_test
@@ -569,7 +597,7 @@ using tagged_test = test_object<std::uint8_t,
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                III. FACTORY FUNCTIONS                                    ///
+///                IV.  FACTORY FUNCTIONS                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // make_test

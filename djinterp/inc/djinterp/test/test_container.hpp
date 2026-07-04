@@ -30,7 +30,7 @@
 * feature-gated.  Under C++20 the contract is restated as concepts that
 * forward to the same traits, so the two agree by construction.  The
 * element protocol check (is_test_evaluable) is reused from
-* test_object_traits.hpp.
+* test_object.hpp (into which test_object_traits.hpp was folded).
 *
 *   This module supersedes the detection role of the retired
 * test_tree_traits.hpp / test_tree_concepts.hpp: the genuinely useful
@@ -71,7 +71,7 @@
 #include "../core/meta/type_traits.hpp"
 #include "../core/meta/trait_detect.hpp"
 #include "./test_common.hpp"
-#include "./test_object_traits.hpp"
+#include "./test_object.hpp"   // is_test_evaluable (folded in from test_object_traits; element protocol, section II)
 
 
 #if !D_ENV_LANG_IS_CPP11_OR_HIGHER
