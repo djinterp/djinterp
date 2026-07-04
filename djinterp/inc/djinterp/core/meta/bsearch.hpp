@@ -23,7 +23,9 @@
 *
 *   Precondition for any search: the pack is sorted ascending under the
 * SAME order the predicates encode.  Misses yield lookup_npos /
-* lookup_not_found (both from lookup.hpp's sentinel set, re-used here).
+* lookup_not_found (both from lookup_sentinels.hpp, shared with
+* lookup.hpp so the engine and the search families agree on miss
+* values without a cyclic include).
 *
 *   Complexity: O(log N) recursion DEPTH.  As with any compile-time
 * search the instantiation COUNT is not strictly log N (each index
@@ -53,8 +55,8 @@ II.   bsearch_by               (the engine)
 #include <type_traits>
 // djinterp
 #include "../djinterp.hpp"
-#include "./type_traits.hpp"   // pack_element_t
-#include "../util/lookup.hpp"  // lookup_not_found, lookup_npos
+#include "./pack_element.hpp"          // pack_element_t
+#include "./lookup_sentinels.hpp"      // lookup_not_found, lookup_npos
 
 
 NS_DJINTERP
