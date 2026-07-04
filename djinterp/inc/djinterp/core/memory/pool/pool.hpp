@@ -7,24 +7,21 @@
 * uniform-sized elements.  Pools are the engine behind pool_allocator
 * and can serve as the underlying resource for any node-based or
 * slot-based container.
-*
 *   The design is policy-based along three orthogonal axes:
-*
-*     RELEASE POLICY — what happens when a slot is returned:
-*       monotonic_release_policy     — individual release is a no-op;
+*     RELEASE POLICY - what happens when a slot is returned:
+*       monotonic_release_policy     - individual release is a no-op;
 *                                      all slots reclaimed on reset()
-*       free_list_release_policy     — freed slots are threaded into an
+*       free_list_release_policy     - freed slots are threaded into an
 *                                      intrusive free list for O(1) reuse
-*       generational_release_policy  — slots are grouped by generation;
+*       generational_release_policy  - slots are grouped by generation;
 *                                      entire generations can be swept
-*
-*     BLOCK POLICY — how the pool acquires backing memory:
-*       contiguous_block_policy      — single growable allocation; may
+*     BLOCK POLICY - how the pool acquires backing memory:
+*       contiguous_block_policy      - single growable allocation; may
 *                                      invalidate pointers on growth
-*       chunked_block_policy         — linked list of fixed-size blocks;
+*       chunked_block_policy         - linked list of fixed-size blocks;
 *                                      pointers are stable across growth
 *
-*     GROWTH POLICY — how much new memory to acquire when exhausted:
+*     GROWTH POLICY - how much new memory to acquire when exhausted:
 *       (reuses buffer.hpp growth policies: fixed, linear, exponential,
 *        page-aligned)
 *
@@ -34,26 +31,28 @@
 *   is required for concurrent access.
 *
 * DEPENDENCIES:
-*   djinterp.hpp   — namespace macros, clean_t
-*   buffer.hpp     — growth policies
-*   dmemory.h      — d_memset (optional, for debug zeroing)
-*
-* TABLE OF CONTENTS
-* =================
-* I.    Release Strategy Enum
-* II.   Block Layout Enum
-* III.  Release Policies
-* IV.   Block Policies
-* V.    pool_block (internal)
-* VI.   pool_resource
-* VII.  Policy Selection
-* VIII. Default Aliases
+*   djinterp.hpp   - namespace macros, clean_t
+*   buffer.hpp     - growth policies
+*   dmemory.h      - d_memset (optional, for debug zeroing)
 *
 *
 * path:      /inc/djinterp/core/memory/pool/pool.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.03.30
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.30
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.     release strategy enum
+II.    block layout enum
+III.   release policies
+IV.    block policies
+V.     pool_block (internal)
+VI.    pool_resource
+VII.   policy selection
+VIII.  default aliases
+*/
 
 #ifndef DJINTERP_MEMORY_POOL_
 #define DJINTERP_MEMORY_POOL_ 1
@@ -68,23 +67,23 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../djinterp.hpp"
-#include "../buffer.hpp"
+#include "../../djinterp.hpp"
+#include "../../container/buffer/buffer.hpp"
 
 
 NS_DJINTERP
 
 
-// =============================================================================
-// I.   Release Strategy Enum
-// =============================================================================
+// ===========================================================================
+// I.   release strategy enum
+// ===========================================================================
 
 // pool_release
 //   enum: classifies how a pool handles individual slot
 // deallocation.
 enum class pool_release
 {
-    // individual release is a no-op — all memory is
+    // individual release is a no-op - all memory is
     // reclaimed only when the pool is reset or destroyed
     monotonic,
 
@@ -98,29 +97,29 @@ enum class pool_release
 };
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Block Layout Enum
-// =============================================================================
+// ===========================================================================
 
 // pool_block_layout
 //   enum: classifies how a pool acquires and organizes
 // its backing storage.
 enum class pool_block_layout
 {
-    // single contiguous allocation — fast iteration,
+    // single contiguous allocation - fast iteration,
     // but pointers may be invalidated on growth
     contiguous,
 
-    // linked list of fixed-size blocks — pointers are
+    // linked list of fixed-size blocks - pointers are
     // stable across growth, ideal for node-based
     // containers
     chunked
 };
 
 
-// =============================================================================
+// ===========================================================================
 // III. Release Policies
-// =============================================================================
+// ===========================================================================
 // Each release policy is a stateless struct exposing
 // policy constants and (where needed) a free-list or
 // generation header type.  Mirrors the lock-policy and
@@ -134,8 +133,7 @@ enum class pool_block_layout
 // or when the entire pool is short-lived.
 struct monotonic_release_policy
 {
-    static constexpr pool_release strategy =
-        pool_release::monotonic;
+    static constexpr pool_release strategy = pool_release::monotonic;
     static constexpr bool supports_individual_release = false;
     static constexpr bool supports_generational_sweep = false;
 };
@@ -171,9 +169,9 @@ struct generational_release_policy
 };
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Block Policies
-// =============================================================================
+// ===========================================================================
 // Block policies describe how backing memory is organized.
 // They expose compile-time constants that pool_resource
 // uses to select its internal storage strategy.
@@ -184,9 +182,8 @@ struct generational_release_policy
 // linear iteration.  Growth may invalidate all pointers.
 struct contiguous_block_policy
 {
-    static constexpr pool_block_layout layout =
-        pool_block_layout::contiguous;
-    static constexpr bool pointer_stable = false;
+    static constexpr pool_block_layout layout = pool_block_layout::contiguous;
+    static constexpr bool              pointer_stable      = false;
 };
 
 // chunked_block_policy
@@ -196,10 +193,9 @@ struct contiguous_block_policy
 template<std::size_t _SlotsPerBlock = 256>
 struct chunked_block_policy
 {
-    static constexpr pool_block_layout layout =
-        pool_block_layout::chunked;
-    static constexpr bool        pointer_stable  = true;
-    static constexpr std::size_t slots_per_block = _SlotsPerBlock;
+    static constexpr pool_block_layout layout = pool_block_layout::chunked;
+    static constexpr bool              pointer_stable  = true;
+    static constexpr std::size_t       slots_per_block = _SlotsPerBlock;
 
     static_assert(_SlotsPerBlock > 0,
         "chunked_block_policy: _SlotsPerBlock must be "
@@ -207,9 +203,9 @@ struct chunked_block_policy
 };
 
 
-// =============================================================================
+// ===========================================================================
 // V.   pool_block (internal)
-// =============================================================================
+// ===========================================================================
 
 NS_INTERNAL
 
@@ -253,8 +249,10 @@ NS_INTERNAL
         //   allocates a new pool_block capable of holding
         // _count slots of _slot_size bytes each.
         static pool_block*
-        create(std::size_t _count,
-               std::size_t _slot_size)
+        create(
+            std::size_t _count,
+            std::size_t _slot_size
+        )
         {
             std::size_t header = sizeof(pool_block);
             std::size_t body   = _count * _slot_size;
@@ -318,22 +316,22 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// =============================================================================
+// ===========================================================================
 // VI.  pool_resource
-// =============================================================================
+// ===========================================================================
 // The core pool class.  Owns backing storage, manages a
 // free list (when the release policy permits), and provides
 // O(1) acquire/release for fixed-size slots.
 //
-// The pool does not construct or destroy objects — it deals
+// The pool does not construct or destroy objects - it deals
 // in raw aligned storage only.  Object lifecycle is the
 // responsibility of the allocator or the user.
 //
 // Template parameters:
-//   _Type          — element type (determines slot size)
-//   _ReleasePolicy — how individual release is handled
-//   _BlockPolicy   — contiguous vs. chunked storage
-//   _GrowthPolicy  — how much to grow when exhausted
+//   _Type          - element type (determines slot size)
+//   _ReleasePolicy - how individual release is handled
+//   _BlockPolicy   - contiguous vs. chunked storage
+//   _GrowthPolicy  - how much to grow when exhausted
 
 template<typename _Type,
          typename _ReleasePolicy = free_list_release_policy,
@@ -387,7 +385,9 @@ public:
     //   constructs a pool and pre-allocates storage for
     // at least _initial_capacity elements.
     explicit
-    pool_resource(size_type _initial_capacity)
+    pool_resource(
+        size_type _initial_capacity
+    )
         : m_free_head (nullptr),
           m_size      (0),
           m_capacity  (0)
@@ -402,7 +402,7 @@ public:
 
     // ~pool_resource
     //   releases all backing storage.  Does NOT call
-    // destructors on live elements — the user or
+    // destructors on live elements - the user or
     // allocator is responsible for element lifecycle.
     ~pool_resource()
     {
@@ -414,7 +414,9 @@ public:
     pool_resource& operator=(const pool_resource&) = delete;
 
     // movable
-    pool_resource(pool_resource&& _other) noexcept
+    pool_resource(
+        pool_resource&& _other
+    ) noexcept
         : m_free_head (_other.m_free_head),
           m_size      (_other.m_size),
           m_capacity  (_other.m_capacity)
@@ -427,7 +429,9 @@ public:
     }
 
     pool_resource&
-    operator=(pool_resource&& _other) noexcept
+    operator=(
+        pool_resource&& _other
+    ) noexcept
     {
         if (this != &_other)
         {
@@ -519,11 +523,13 @@ public:
     // release
     //   returns a previously acquired slot to the pool.
     // Behavior depends on the release policy:
-    //   monotonic   — no-op (slot reclaimed on reset)
-    //   free_list   — slot is pushed onto the free list
-    //   generational — slot pushed onto free list
+    //   monotonic   - no-op (slot reclaimed on reset)
+    //   free_list   - slot is pushed onto the free list
+    //   generational - slot pushed onto free list
     void
-    release(void* _ptr) noexcept
+    release(
+        void* _ptr
+    ) noexcept
     {
         if (!_ptr)
         {
@@ -537,7 +543,7 @@ public:
             m_free_head = node;
         }
 
-        // monotonic: no-op — slot memory is not reclaimed
+        // monotonic: no-op - slot memory is not reclaimed
         // until reset() or destruction.
 
         --m_size;
@@ -711,7 +717,7 @@ public:
 
 
 // ============================================================
-// PRIVATE — contiguous block layout
+// PRIVATE - contiguous block layout
 // ============================================================
 private:
 
@@ -891,7 +897,7 @@ private:
 
         if (m_blocks.data)
         {
-            // rewrite free list pointers — they are
+            // rewrite free list pointers - they are
             // now in the new allocation
             if constexpr (_ReleasePolicy::supports_individual_release)
             {
@@ -1089,7 +1095,7 @@ private:
     size_type             m_capacity;
     block_state           m_blocks;
 
-    // generational counter — only present when needed.
+    // generational counter - only present when needed.
     // Uses [[no_unique_address]] to avoid overhead when
     // the generation state is an empty struct.
     // [[no_unique_address]] avoids overhead when
@@ -1102,9 +1108,9 @@ private:
 };
 
 
-// =============================================================================
+// ===========================================================================
 // VII. Policy Selection
-// =============================================================================
+// ===========================================================================
 // Compile-time selection of release and block policies by
 // enum value.
 
@@ -1150,13 +1156,12 @@ struct select_block_policy<pool_block_layout::chunked>
 };
 
 template<pool_block_layout _Layout>
-using select_block_policy_t =
-    typename select_block_policy<_Layout>::type;
+using select_block_policy_t = typename select_block_policy<_Layout>::type;
 
 
-// =============================================================================
+// ===========================================================================
 // VIII. Default Aliases
-// =============================================================================
+// ===========================================================================
 // Sensible defaults for common use cases.
 
 // default_pool_resource
@@ -1164,33 +1169,30 @@ using select_block_policy_t =
 // stable), exponential growth.  The safest general-
 // purpose default.
 template<typename _Type>
-using default_pool_resource =
-    pool_resource<_Type,
-                  free_list_release_policy,
-                  chunked_block_policy<>,
-                  exponential_growth_policy>;
+using default_pool_resource = pool_resource<_Type,
+                                            free_list_release_policy,
+                                            chunked_block_policy<>,
+                                            exponential_growth_policy>;
 
 // monotonic_pool_resource
 //   alias: monotonic release, chunked blocks, exponential
-// growth.  Fastest acquire — no free list overhead.
+// growth.  Fastest acquire - no free list overhead.
 // All memory released on reset/destruction.
 template<typename _Type>
-using monotonic_pool_resource =
-    pool_resource<_Type,
-                  monotonic_release_policy,
-                  chunked_block_policy<>,
-                  exponential_growth_policy>;
+using monotonic_pool_resource = pool_resource<_Type,
+                                              monotonic_release_policy,
+                                              chunked_block_policy<>,
+                                              exponential_growth_policy>;
 
 // flat_pool_resource
 //   alias: free-list release, contiguous block, exponential
 // growth.  Enables linear iteration over slots but may
 // invalidate pointers on growth.
 template<typename _Type>
-using flat_pool_resource =
-    pool_resource<_Type,
-                  free_list_release_policy,
-                  contiguous_block_policy,
-                  exponential_growth_policy>;
+using flat_pool_resource = pool_resource<_Type,
+                                         free_list_release_policy,
+                                         contiguous_block_policy,
+                                         exponential_growth_policy>;
 
 
 NS_END  // djinterp

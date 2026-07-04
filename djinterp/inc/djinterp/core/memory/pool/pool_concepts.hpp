@@ -1,29 +1,30 @@
 /******************************************************************************
-* djinterp [container]                                       pool_concepts.hpp
+* djinterp [memory]                                          pool_concepts.hpp
 *
 *  djinterp pool classification concepts
 *   C++20 concepts layered on top of pool_traits.hpp.  These concepts
 * provide readable `requires` constraints for pool resources,
 * pool-backed allocators, and containers using such allocators.
-*
 *   This header is intentionally thin: it does not re-implement detection.
 * Instead, each concept forwards to the corresponding public trait or
 * variable template from the pool trait layer.
 *
-* TABLE OF CONTENTS
-* =================
-* 1.   Feature Gate
-* 2.   Pool Resource Concepts
-* 3.   Pool Stability and Release Concepts
-* 4.   Pool Capability Concepts
-* 5.   Allocator and Container Concepts
-* 6.   Resource Extraction Concepts
-*
 * 
-* path:      /inc/djinterp/pool/pool_concepts.hpp
+* path:      /inc/djinterp/core/memory/pool/pool_concepts.hpp
 * link(s):   TBA
-* author(s): OpenAI ChatGPT                                   date: 2026.04.01
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.01
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+1.   feature gate
+2.   pool resource concepts
+3.   pool stability and release concepts
+4.   pool capability concepts
+5.   allocator and container concepts
+6.   resource extraction concepts
+*/
 
 #ifndef DJINTERP_MEMORY_POOL_CONCEPTS_
 #define DJINTERP_MEMORY_POOL_CONCEPTS_ 1
@@ -31,7 +32,8 @@
 // std
 #include <type_traits>
 // djinterp
-#include "pool_traits.hpp"
+#include "../../djinterp.hpp"
+#include "./pool_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
     #error "pool_concepts.hpp requires C++20 concepts support."
@@ -40,21 +42,20 @@
 
 NS_DJINTERP
 
-// =============================================================================
+
+// ===========================================================================
 // I.   Pool Resource Concepts
-// =============================================================================
+// ===========================================================================
 
 // pool_resource
 //   concept: constrains types satisfying the minimum pool resource protocol.
 template<typename _Type>
-concept pool_resource =
-    is_pool_resource_v<clean_t<_Type>>;
+concept pool_resource = is_pool_resource_v<clean_t<_Type>>;
 
 // non_pool_resource
 //   concept: constrains types that do not satisfy the pool resource protocol.
 template<typename _Type>
-concept non_pool_resource =
-    !pool_resource<_Type>;
+concept non_pool_resource = !pool_resource<_Type>;
 
 // acquiring_pool
 //   concept: constrains pool-like types exposing acquire().
@@ -71,14 +72,12 @@ concept releasing_pool =
 // sized_pool
 //   concept: constrains pool-like types exposing size().
 template<typename _Type>
-concept sized_pool =
-    has_size_accessor_v<clean_t<_Type>>;
+concept sized_pool = has_size_accessor_v<clean_t<_Type>>;
 
 // typed_pool
 //   concept: constrains pool-like types exposing value_type.
 template<typename _Type>
-concept typed_pool =
-    has_value_type_v<clean_t<_Type>>;
+concept typed_pool = has_value_type_v<clean_t<_Type>>;
 
 // classified_pool
 //   concept: constrains types recognized by the pool trait layer.
@@ -91,9 +90,9 @@ concept classified_pool =
       has_memory_accounting_v<clean_t<_Type>> );
 
 
-// =============================================================================
+// ===========================================================================
 // II.  Pool Stability and Release Concepts
-// =============================================================================
+// ===========================================================================
 
 // pointer_stable_pool
 //   concept: constrains pools guaranteeing pointer stability across growth.
@@ -127,9 +126,9 @@ concept generational_pool =
     has_generational_sweep_v<clean_t<_Type>>;
 
 
-// =============================================================================
+// ===========================================================================
 // III. Pool Capability Concepts
-// =============================================================================
+// ===========================================================================
 
 // resettable_pool
 //   concept: constrains pools exposing reset().
@@ -192,9 +191,9 @@ concept utilization_reporting_pool =
     has_utilization_v<clean_t<_Type>>;
 
 
-// =============================================================================
+// ===========================================================================
 // IV.  Allocator and Container Concepts
-// =============================================================================
+// ===========================================================================
 
 // pool_allocator
 //   concept: constrains allocators backed by a pool resource.
@@ -234,9 +233,9 @@ concept allocator_aware_pool_container =
       has_allocator_type_v<clean_t<_Type>> );
 
 
-// =============================================================================
+// ===========================================================================
 // V.   Resource Extraction Concepts
-// =============================================================================
+// ===========================================================================
 
 // pool_allocator_with_resource
 //   concept: constrains pool allocators whose resource type can be extracted.
@@ -273,4 +272,4 @@ concept generational_pool_allocator =
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_POOL_CONCEPTS_
+#endif  // DJINTERP_CONTAINER_POOL_CONCEPTS_
