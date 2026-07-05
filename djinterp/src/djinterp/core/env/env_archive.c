@@ -1,44 +1,18 @@
-/*******************************************************************************
-* djinterp [core]                                                 env_archive.c
+/******************************************************************************
+* djinterp [utility]                                             env_archive.c
 *
 *   Runtime implementations for the query declarations in env_archive.h. The
 * notable one is d_env_archive_has_tool, a cross-platform PATH probe used to
 * confirm an external archiver (e.g. "rar", "7z", "tar") is present before the
 * archive layer shells out to it. The OS split is driven by the env.h flags.
 *
-* path:      /src/core/env/env_archive.c
+* 
+* path:      /src/djinterp/core/env/env_archive.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.05.23
-*******************************************************************************/
-
-#include "../../../inc/core/env/env_archive.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-// platform split for the PATH probe: Windows vs. POSIX
-#if ( defined(D_ENV_OS_ID) && D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
-    #define D_INTERNAL_ARCHIVE_OS_WINDOWS 1
-#else
-    #define D_INTERNAL_ARCHIVE_OS_WINDOWS 0
-#endif
-
-#if D_INTERNAL_ARCHIVE_OS_WINDOWS
-    #include <io.h>          /* _access  */
-    #define D_INTERNAL_ACCESS(p)      _access((p), 0)
-    #define D_INTERNAL_PATH_SEP       ';'
-    #define D_INTERNAL_DIR_SEP        '\\'
-#else
-    #include <unistd.h>      /* access, X_OK */
-    #define D_INTERNAL_ACCESS(p)      access((p), X_OK)
-    #define D_INTERNAL_PATH_SEP       ':'
-    #define D_INTERNAL_DIR_SEP        '/'
-#endif
-
-#if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
-    #include <archive.h>
-#endif
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+******************************************************************************/
+#include "../../../../inc/djinterp/core/env/env_archive.h"
+#include "../../../../inc/djinterp/core/env/env_compress_link.h"
 
 
 // d_env_archive_backend_name
@@ -148,9 +122,9 @@ d_env_archive_has_tool(const char* tool_name)
         {
 #if D_INTERNAL_ARCHIVE_OS_WINDOWS
             /* try bare name, then .exe / .com / .bat */
-            if (internal_tool_exists_at(cursor, len, tool_name, NULL)   ||
-                internal_tool_exists_at(cursor, len, tool_name, ".exe") ||
-                internal_tool_exists_at(cursor, len, tool_name, ".com") ||
+            if (internal_tool_exists_at(cursor, len, tool_name, NULL)    ||
+                internal_tool_exists_at(cursor, len, tool_name, ".exe")  ||
+                internal_tool_exists_at(cursor, len, tool_name, ".com")  ||
                 internal_tool_exists_at(cursor, len, tool_name, ".bat"))
             {
                 return 1;
