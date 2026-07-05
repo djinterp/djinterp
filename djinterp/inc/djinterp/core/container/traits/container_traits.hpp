@@ -140,15 +140,9 @@ D_TYPE_TRAIT_TRUE(has_multiplicity_interval_type,
     typename _Type::multiplicity_interval)
 
 // --- underlying container detection ---
-//   `has_underlying_container_type` detects the adaptor signal:
-// a container that delegates storage to another container names
-// it through an `underlying_container_type` member alias.  It is
-// defined here, alongside the underlying/fundamental classifiers
-// (section XIV) and the extractor (section XV) that consume it,
-// rather than in the restriction-overlay traits (whose "overlay"
-// is a mu/sigma/eta restriction descriptor, a distinct notion).
-D_TYPE_TRAIT_TRUE(has_underlying_container_type,
-    typename _Type::underlying_container_type)
+//   `has_underlying_container_type` is owned by
+// container_overlay_traits.hpp and re-exported through the
+// include chain above.
 
 // --- hierarchical structure detection ---
 //   `has_node_type` is owned by node_container_traits.hpp and
@@ -814,17 +808,25 @@ inline constexpr bool is_dynamic_storage_v =
 // definitions caused ODR conflicts when both headers were
 // pulled into the same TU.
 
-// is_const_iterable_container, is_mutable_iterable_container
-//   These are owned by iterable_container_traits.hpp and
-// re-exported via the include chain at the top of this header.
-// Earlier revisions defined is_const_iterable_container here as
-// well; the duplicate caused an ODR / redefinition conflict when
-// both headers were pulled into the same TU.  The canonical
-// definition classifies on the full iterability MODE axis
-// (iteration_mode_of / mode_grants_observation) rather than this
-// header's old cbegin()/cend() heuristic, so it agrees on
-// canonical STL types and is strictly more precise for
-// user-defined ones.
+// is_const_iterable_container
+//   type trait: true if container supports const iteration
+// via cbegin()/cend().
+template<typename _Type>
+struct is_const_iterable_container
+{
+    using clean_type = clean_t<_Type>;
+
+    static constexpr bool value =
+        ( has_cbegin_accessor_v<clean_type> &&
+          has_cend_accessor_v<clean_type> );
+};
+
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+template<typename _Type>
+inline constexpr bool is_const_iterable_container_v =
+    is_const_iterable_container<_Type>::value;
+
+#endif
 
 // ===========================================================================
 // IX.  Ordering Classification
@@ -994,19 +996,19 @@ inline constexpr bool is_fundamental_container_v =
     is_fundamental_container<_Type>::value;
 
 #endif
-// underlying_container_type_of
+// underlyunderlying_container_type_of
 //   type trait: extracts the underlying container type if
 // present, otherwise yields void.
 NS_INTERNAL
     template<typename _Type,
              typename = void>
-    struct underlying_container_type_of_helper
+    struct underlyunderlying_container_type_of_helper
     {
         using type = void;
     };
 
     template<typename _Type>
-    struct underlying_container_type_of_helper<
+    struct underlyunderlying_container_type_of_helper<
         _Type,
         std::void_t<typename _Type::underlying_container_type>>
     {
@@ -1017,16 +1019,16 @@ NS_INTERNAL
 NS_END  // internal
 
 template<typename _Type>
-struct underlying_container_type_of
+struct underlyunderlying_container_type_of
 {
     using type =
-        typename internal::underlying_container_type_of_helper<
+        typename internal::underlyunderlying_container_type_of_helper<
             clean_t<_Type>>::type;
 };
 
 template<typename _Type>
-using underlying_container_type_of_t =
-    typename underlying_container_type_of<_Type>::type;
+using underlyunderlying_container_type_of_t =
+    typename underlyunderlying_container_type_of<_Type>::type;
 
 
 // ===========================================================================
