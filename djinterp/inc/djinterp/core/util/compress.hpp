@@ -1,10 +1,10 @@
-/*******************************************************************************
-* djinterp [core]                                              compression.hpp
+/******************************************************************************
+* djinterp [utility]                                              compress.hpp
 *
-*   djinterp portable compression facade:
-* A version-portable (C++98 - C++23), OS-cross-platform interface for buffer
+* djinterp portable compression facade:
+*   A version-portable (C++98 - C++23), OS-cross-platform interface for buffer
 * compression and decompression. The user selects a codec with a tag type and
-* the call dispatches, at runtime, to whichever backend env_compression.h
+* the call dispatches, at runtime, to whichever backend env_compress.h
 * detected for this build:
 *
 *     using namespace djinterp::codecs;
@@ -13,7 +13,7 @@
 *
 * Tag dispatch (rather than an enum class) keeps the public surface identical
 * across every C++ standard. Thin template entry points forward to non-template
-* leaves defined in compression.cpp, so backend code is compiled once.
+* leaves defined in compress.cpp, so backend code is compiled once.
 *
 * codecs:
 *   store, deflate, zlib, gzip, bzip2, xz, zstd, lz4, brotli
@@ -23,17 +23,23 @@
 *   codecs compile fine and return status_unavailable at runtime; query at
 *   compile time with codec_traits<Codec>::is_available.
 *
-* path:      /inc/cpp/compression.hpp
+* 
+* path:      /inc/djinterp/core/util/compress.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.05.23
-*******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+******************************************************************************/
 
-#ifndef DJINTERP_COMPRESSION_HPP_
-#define DJINTERP_COMPRESSION_HPP_ 1
+#ifndef DJINTERP_UTILITY_COMPRESSION_
+#define DJINTERP_UTILITY_COMPRESSION_ 1
 
+// std
 #include <cstddef>
 #include <string>
-#include "./env_compression.h"
+// djinterp
+#include "../djinterp.hpp"
+#include "../env/env_compress.h"
+#include "./compress_options.hpp"  // compress_options (full, codec-aware)
+
 
 // D_ENV_COMPRESSION_HAS_EXCEPTIONS
 //   macro: 1 if C++ exceptions are enabled in this translation unit. the
@@ -62,8 +68,7 @@
 // gates.)
 
 
-namespace djinterp
-{
+NS_DJINTERP
 
 // =============================================================================
 // II.  SHARED TYPES
@@ -168,7 +173,7 @@ enum codec_id
 //   trait: maps a codec tag to its runtime id, availability, and name. The
 // primary template is intentionally left undefined so that an unknown tag is a
 // compile error. is_available is a compile-time constant (0/1) drawn from the
-// env_compression.h capability flags.
+// env_compress.h capability flags.
 template<typename _Codec>
 struct codec_traits;
 
@@ -268,21 +273,15 @@ struct codec_traits<codecs::brotli>
 // =============================================================================
 
 // compress_options
-//   struct: tuning knobs passed to a compression call.
-struct compress_options
-{
-    // level: compression effort. -1 selects the backend default; otherwise a
-    // codec-specific scale (commonly 0..9 for DEFLATE / bzip2).
-    int level;
-
-    compress_options()
-        : level(-1)
-    {}
-};
+//   struct: tuning knobs passed to a compression call.  The full, codec-aware
+// definition (generic level plus the per-codec advanced knob-sets) lives in
+// util/compress_option.hpp, included above; this facade no longer carries a
+// minimal stub of its own, so the two cannot diverge.  The dispatch leaves read
+// `level` plus whichever per-codec block matches the selected codec.
 
 
 // =============================================================================
-// VI.  DISPATCH LEAVES (defined in compression.cpp)
+// VI.  DISPATCH LEAVES (defined in compress.cpp)
 // =============================================================================
 
 namespace internal
@@ -427,7 +426,8 @@ decompress(
 
 #endif  // D_ENV_COMPRESSION_HAS_EXCEPTIONS
 
-}  // namespace djinterp
+
+NS_END  // djinterp
 
 
-#endif  // DJINTERP_COMPRESSION_HPP_
+#endif  // DJINTERP_UTILITY_COMPRESSION_
