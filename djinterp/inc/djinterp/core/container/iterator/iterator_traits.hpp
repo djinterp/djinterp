@@ -45,8 +45,9 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../../core/djinterp.hpp"
-#include "../../../core/meta/type_traits.hpp"
+#include "../../djinterp.hpp"
+#include "../../meta/trait_detect.hpp"
+#include "../../meta/type_traits.hpp"
 
 
 NS_DJINTERP
@@ -397,7 +398,7 @@ struct is_input_iterable : std::false_type
 template<typename _Type>
 struct is_input_iterable<_Type,
     typename std::enable_if<
-        is_iterable<_Type>::value                                          &&
+        is_iterable<_Type>::value  &&
         is_input_iterator<
             internal::safe_begin_iterator_t<_Type>>::value
     >::type> : std::true_type
@@ -421,7 +422,7 @@ struct is_output_iterable : std::false_type
 template<typename _Type>
 struct is_output_iterable<_Type,
     typename std::enable_if<
-        is_iterable<_Type>::value                                          &&
+        is_iterable<_Type>::value  &&
         is_output_iterator<
             internal::safe_begin_iterator_t<_Type>>::value
     >::type> : std::true_type
@@ -446,7 +447,7 @@ struct is_forward_iterable : std::false_type
 template<typename _Type>
 struct is_forward_iterable<_Type,
     typename std::enable_if<
-        is_iterable<_Type>::value                                          &&
+        is_iterable<_Type>::value  &&
         is_forward_iterator<
             internal::safe_begin_iterator_t<_Type>>::value
     >::type> : std::true_type
@@ -471,7 +472,7 @@ struct is_bidirectional_iterable : std::false_type
 template<typename _Type>
 struct is_bidirectional_iterable<_Type,
     typename std::enable_if<
-        is_iterable<_Type>::value                                          &&
+        is_iterable<_Type>::value &&
         is_bidirectional_iterator<
             internal::safe_begin_iterator_t<_Type>>::value
     >::type> : std::true_type
@@ -497,7 +498,7 @@ struct is_random_access_iterable : std::false_type
 template<typename _Type>
 struct is_random_access_iterable<_Type,
     typename std::enable_if<
-        is_iterable<_Type>::value                                          &&
+        is_iterable<_Type>::value &&
         is_random_access_iterator<
             internal::safe_begin_iterator_t<_Type>>::value
     >::type> : std::true_type
@@ -523,7 +524,7 @@ struct is_contiguous_iterable : std::false_type
 template<typename _Type>
 struct is_contiguous_iterable<_Type,
     typename std::enable_if<
-        is_iterable<_Type>::value                                          &&
+        is_iterable<_Type>::value &&
         is_contiguous_iterator<
             internal::safe_begin_iterator_t<_Type>>::value
     >::type> : std::true_type
@@ -543,7 +544,6 @@ struct is_contiguous_iterable<_Type,
 // ===========================================================================
 
 // --- const iteration ---
-
 D_TYPE_TRAIT_TRUE(has_cbegin,
     decltype(std::declval<const _Type&>().cbegin()))
 
