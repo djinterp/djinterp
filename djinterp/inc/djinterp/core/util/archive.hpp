@@ -1,5 +1,5 @@
-/*******************************************************************************
-* djinterp [core]                                                  archive.hpp
+/******************************************************************************
+* djinterp [utility]                                                archive.hpp
 *
 *   djinterp portable archive facade:
 * A version-portable (C++98 - C++23), OS-cross-platform interface for creating
@@ -13,7 +13,7 @@
 *     status s = try_archive<tar_gz>(entries, blob);   // non-throwing
 *     entry_list items = extract<zip>(blob);
 *
-* As with compression.hpp, tag dispatch keeps the public surface identical
+* As with compress.hpp, tag dispatch keeps the public surface identical
 * across every C++ standard, and thin template entry points forward to
 * non-template leaves defined in archive.cpp.
 *
@@ -27,23 +27,33 @@
 *   Note: RAR creation requires the proprietary rar/WinRAR tool; no library can
 *   write RAR.
 *
-* path:      /inc/cpp/archive.hpp
+* 
+* path:      /inc/djinterp/core/util/archive.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.05.23
-*******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+******************************************************************************/
 
-#ifndef DJINTERP_ARCHIVE_HPP_
-#define DJINTERP_ARCHIVE_HPP_ 1
+#ifndef DJINTERP_ARCHIVE_
+#define DJINTERP_ARCHIVE_ 1
 
+// std
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <string>
 #include <vector>
-#include "./env_archive.h"
-#include "./compression.hpp"
+// djinterp
+#include "../djinterp.hpp"
+#include "../env/env_archive.h"
+#include "./archive_options.hpp"    // archive_options (full, format-aware)
+#include "./compress.hpp"
 
 
-namespace djinterp
-{
+
+
+NS_DJINTERP
 
 // =============================================================================
 // I.   ARCHIVE ENTRY MODEL
@@ -216,51 +226,40 @@ struct format_traits<formats::rar>
 // =============================================================================
 
 // archive_options
-//   struct: tuning knobs passed to a creation call.
-struct archive_options
-{
-    // level: compression effort passed through to the codec. -1 = default.
-    int  level;
-
-    // store_only: for ZIP, store entries without DEFLATE even when a DEFLATE
-    // backend is available. Ignored by other formats.
-    bool store_only;
-
-    archive_options()
-        : level(-1),
-          store_only(false)
-    {}
-};
+//   struct: tuning knobs passed to a creation call.  The full, format-aware
+// definition (the generic level / store_only plus the per-format blocks and an
+// embedded compress_options for the in-archive stream) lives in
+// util/archive_option.hpp, included above; this facade no longer carries a
+// minimal stub of its own, so the two cannot diverge.
 
 
 // =============================================================================
 // V.   DISPATCH LEAVES (defined in archive.cpp)
 // =============================================================================
 
-namespace internal
-{
+NS_INTERNAL
     // archive_create
     //   function: builds an archive of [_items, _items + _count) in format
     // _fmt into _out.
     status archive_create(format_id               _fmt,
-                          const entry*             _items,
-                          std::size_t              _count,
-                          const archive_options&   _opt,
-                          byte_buffer&             _out);
+                          const entry*            _items,
+                          std::size_t             _count,
+                          const archive_options&  _opt,
+                          byte_buffer&            _out);
 
     // archive_extract
     //   function: extracts the archive in [_in, _in + _n) of format _fmt into
     // _out.
-    status archive_extract(format_id     _fmt,
-                          const char*     _in,
-                          std::size_t     _n,
-                          entry_list&     _out);
+    status archive_extract(format_id  _fmt,
+                          const char* _in,
+                          std::size_t _n,
+                          entry_list& _out);
 
     // format_can_write / format_can_read
     //   function: runtime capability of a format id.
     bool format_can_write(format_id _fmt);
     bool format_can_read(format_id _fmt);
-}  // namespace internal
+NS_END  // namespace internal
 
 
 // =============================================================================
@@ -273,9 +272,9 @@ namespace internal
 template<typename _Format>
 status
 try_archive(
-    const entry_list&       _items,
-    byte_buffer&            _out,
-    const archive_options&  _opt = archive_options()
+    const entry_list&      _items,
+    byte_buffer&           _out,
+    const archive_options& _opt = archive_options()
 )
 {
     const entry* first;
@@ -394,7 +393,8 @@ extract(
 
 #endif  // D_ENV_COMPRESSION_HAS_EXCEPTIONS
 
-}  // namespace djinterp
+
+NS_END  // djinterp
 
 
-#endif  // DJINTERP_ARCHIVE_HPP_
+#endif  // DJINTERP_ARCHIVE_
