@@ -1,20 +1,24 @@
 /******************************************************************************
-* djinterp [core]                                            env_long_long.h
+* djinterp [core]                                              env_long_long.h
 *
 * djinterp `long long` feature detection:
 *   Detects availability of the `long long` / `unsigned long long`
 * integral types.  Standard since C++11 and C99, but available as a
 * widespread compiler extension under earlier standards.
 *
+*   Requires:  env.h  (for the D_ENV_LANG_IS_* macros).  This header is an
+*              internal component of env.h and is #included by it after the
+*              language standard has been detected -- do NOT #include it
+*              directly.
 *
-* path:      /inc/env_long_long.h
+* 
+* path:      /inc/djinterp/core/env/c/env_long_long.h
+* link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.22
 ******************************************************************************/
 
-#ifndef DJINTERP_LONG_LONG_DETECTION_
-#define DJINTERP_LONG_LONG_DETECTION_ 1
-
-#include "./env.h"
+#ifndef DJINTERP_ENV_LONG_LONG_
+#define DJINTERP_ENV_LONG_LONG_ 1
 
 
 // D_ENV_HAS_LONG_LONG
@@ -38,4 +42,4 @@
 #endif
 
 
-#endif  // DJINTERP_LONG_LONG_DETECTION_
+#endif  // DJINTERP_ENV_LONG_LONG_
