@@ -1,11 +1,11 @@
-/*******************************************************************************
-* djinterp [core]                                                env_archive.h
+/******************************************************************************
+* djinterp [utility]                                             env_archive.h
 *
 *   djinterp archive-library environment detection header:
 * This header provides compile-time detection of third-party archive libraries
 * and maps them onto a portable capability matrix for the four target formats
 * requested by the archive layer: zip, tar, gz (gzip), and 7z. It builds on
-* env_compression.h for the underlying codecs and, like that header, performs
+* env_compress.h for the underlying codecs and, like that header, performs
 * presence-only detection (via __has_include) without #including any of the
 * third-party headers, so it adds no hard dependency.
 *
@@ -23,27 +23,59 @@
 *   Include env.h first (directly or transitively), then this header:
 *     #include "./env.h"
 *     #include "./env_archive.h"
-*   (env_compression.h is pulled in automatically.)
+*   (env_compress.h is pulled in automatically.)
 *
 *   A build system may pre-define any D_ENV_ARCHIVE_HAVE_* macro to force a
 *   result and bypass the __has_include probe.
 *
 * NAMING CONVENTION:
-*   D_ENV_ARCHIVE_HAVE_[LIB]         - 1 if the library is available, 0 if not
-*   D_ENV_ARCHIVE_[LIB]_[FIELD]      - version / metadata for a detected library
+*   D_ENV_ARCHIVE_HAVE_[LIB]    - 1 if the library is available, 0 if not
+*   D_ENV_ARCHIVE_[LIB]_[FIELD] - version / metadata for a detected library
 *   D_ENV_ARCHIVE_CAN_[READ|WRITE]_[FORMAT] - format capability roll-ups
 *
-* path:      \inc\core\env\env_archive.h
+* 
+* path:      /inc/djinterp/core/env/env_archive.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.05.23
-*******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+******************************************************************************/
 
 #ifndef DJINTERP_ENV_ARCHIVE_
 #define DJINTERP_ENV_ARCHIVE_ 1
 
+// std
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+// djinterp
+#include "../../c/djinterp.h"
 #include "./env.h"
-#include "./env_compression.h"
+#include "./env_compress.h"
 
+
+// platform split for the PATH probe: Windows vs. POSIX
+#if ( defined(D_ENV_OS_ID) &&                                                 \
+      D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+    #define D_INTERNAL_ARCHIVE_OS_WINDOWS 1
+#else
+    #define D_INTERNAL_ARCHIVE_OS_WINDOWS 0
+#endif
+
+#if D_INTERNAL_ARCHIVE_OS_WINDOWS
+    #include <io.h>          // _access
+    #define D_INTERNAL_ACCESS(p)      _access((p), 0)
+    #define D_INTERNAL_PATH_SEP       ';'
+    #define D_INTERNAL_DIR_SEP        '\\'
+#else
+    #include <unistd.h>      // access, X_OK
+    #define D_INTERNAL_ACCESS(p)      access((p), X_OK)
+    #define D_INTERNAL_PATH_SEP       ':'
+    #define D_INTERNAL_DIR_SEP        '/'
+#endif
+
+#if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
+    #include <archive.h>
+#endif
 
 // =============================================================================
 // I.   CONFIGURATION
@@ -340,7 +372,7 @@
 // =============================================================================
 // The roll-ups below answer "can this build read / write <format>?" without
 // the caller needing to know which backend is present. They combine library
-// availability with the codec roll-ups from env_compression.h where a format
+// availability with the codec roll-ups from env_compress.h where a format
 // requires a codec (e.g. zip "deflate", or tar.gz).
 
 // -----------------------------------------------------------------------------
