@@ -1,5 +1,5 @@
-/*******************************************************************************
-* djinterp [core]                                            env_compression.h
+/******************************************************************************
+* djinterp [env]                                                env_compress.h
 *
 *   djinterp compression-codec environment detection header:
 * This header provides compile-time detection of third-party data-compression
@@ -24,7 +24,7 @@
 * usage:
 *   Include env.h first (directly or transitively), then this header:
 *     #include "./env.h"
-*     #include "./env_compression.h"
+*     #include "./env_compress.h"
 *
 *   Detection is presence-only and never #includes the third-party headers
 *   themselves, so merely including this file introduces no hard dependency.
@@ -36,14 +36,20 @@
 *   D_ENV_COMPRESSION_[LIB]_[FIELD]  - version / metadata for a detected library
 *   D_ENV_COMPRESSION_HAVE_[CODEC]   - 1 if some library provides the codec
 *
-* path:      \inc\core\env\env_compression.h
+
+* path:      /inc/djinterp/core/env/env_compress.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.05.23
-*******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+******************************************************************************/
 
 #ifndef DJINTERP_ENV_COMPRESSION_
 #define DJINTERP_ENV_COMPRESSION_ 1
 
+
+// c
+#include <stdio.h>
+// djinterp
+#include "../../c/djinterp.h"
 #include "./env.h"
 
 
@@ -352,14 +358,14 @@
 // 0 when OS detection is unavailable (D_ENV_OS_ID undefined).
 
 // D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION
-//   feature: detect Apple's libcompression (<compression.h>), which provides
+//   feature: detect Apple's libcompression (<compress.h>), which provides
 // LZFSE, LZ4, raw DEFLATE (ZLIB), and LZMA. ships on macOS 10.11+ and iOS 9+.
 #ifndef D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION
     #if ( defined(D_ENV_OS_ID)                          &&                    \
           ( (D_ENV_OS_ID == D_ENV_OS_FLAG_MACOS) ||                           \
             (D_ENV_OS_ID == D_ENV_OS_FLAG_IOS)   ||                           \
             (D_ENV_OS_ID == D_ENV_OS_FLAG_APPLE) )      &&                    \
-          D_INTERNAL_COMPRESSION_PROBE(<compression.h>) )
+          D_INTERNAL_COMPRESSION_PROBE(<compress.h>) )
         #define D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION 1
     #else
         #define D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION 0

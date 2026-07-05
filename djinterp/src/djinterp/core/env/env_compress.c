@@ -1,19 +1,19 @@
-/*******************************************************************************
-* djinterp [core]                                              env_compression.c
+/******************************************************************************
+* djinterp [utility]                                            env_compress.c
 *
-*   Runtime implementations for the query declarations in env_compression.h.
+*   Runtime implementations for the query declarations in env_compress.h.
 * These are plain C functions (extern "C" when compiled as C++) and are gated
 * on the same D_ENV_COMPRESSION_HAVE_* flags as the rest of the layer, so this
 * unit links cleanly regardless of which codec libraries are present.
 *
-* path:      /src/core/env/env_compression.c
+* 
+* path:      /src/djinterp/core/env/env_compress.c
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.05.23
-*******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+******************************************************************************/
+#include "../../../../inc/djinterp/core/env/env_compress.h"
+#include "../../../../inc/djinterp/core/env/env_compress_link.h"
 
-#include "../../../inc/core/env/env_compression.h"
-
-#include <stdio.h>
 
 #if D_ENV_COMPRESSION_HAVE_ZLIB
     #include <zlib.h>
