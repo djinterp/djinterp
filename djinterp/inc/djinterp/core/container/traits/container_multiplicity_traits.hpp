@@ -49,6 +49,7 @@
 // djinterp
 #include "../../djinterp.hpp"            // clean_t, NS_*, feature macros
 #include "../../meta/trait_detect.hpp"  // D_TYPE_TRAIT_* detection macros, D_VOID_T
+#include "../../meta/member_types.hpp"  // has_key_type (canonical member-type detection)
 #include "../../meta/multiplicity.hpp"   // multiplicity_kind + bounds vocabulary
 
 
@@ -67,9 +68,8 @@ D_TYPE_TRAIT_TRUE(is_countable_container,
     decltype(std::declval<const clean_t<_Type>&>().size()))
 
 // has_key_type
-//   trait: detects a `key_type` alias - the duplicate-equivalence tell of a
-// keyed / associative container.
-D_TYPE_TRAIT_HAS_TYPE(has_key_type, key_type)
+//   Owned by meta/member_types.hpp (included above) and re-exported through
+// it; the local duplicate was removed to end the ODR conflict.
 
 // has_interval_bounds_signal
 //   trait: detects static `lower_bound` AND `upper_bound` - a closed-interval

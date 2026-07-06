@@ -37,6 +37,7 @@
 #include "../../djinterp.hpp"                 // clean_t, NS_*, D_ENV_* feature macros
 #include "../../meta/trait_detect.hpp"        // D_TYPE_TRAIT_* detection macros
 #include "./iterable_container_traits.hpp"    // is_iterable_container
+#include "../iterator/iterator_category_traits.hpp"    // is_*_iterable (sequential_layout_of consumes)
 
 
 NS_DJINTERP
