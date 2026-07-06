@@ -14,6 +14,20 @@
 * begin/end availability to answer "can I iterate this container with
 * at least X-category iterators?"
 *
+*   DIVISION OF RESPONSIBILITY:
+*   The container-level CATEGORY traits - is_forward_iterable,
+* is_bidirectional_iterable, is_random_access_iterable,
+* is_contiguous_iterable, and iterator_category_of - are owned by
+* iterator_category_traits.hpp and re-exported here via the include below.
+* Earlier revisions defined them in this header as well; the duplicate
+* definitions caused one-definition-rule conflicts in any translation unit
+* that pulled both headers (e.g. container_filter_traits.hpp, which reaches
+* iterator_traits.hpp through constexpr_container_traits.hpp and also
+* includes iterator_category_traits.hpp directly).  This header retains only
+* the iterator-LEVEL traits, the begin()/category extraction helpers, the
+* base/input/output iterability probes, const/reverse detection, iterator
+* compatibility, and the strongest-category summary.
+*
 *   PORTABILITY:
 *   C++11 baseline.  `_v` variable templates are gated behind
 * D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES (C++14+).  The contiguous-
@@ -23,8 +37,8 @@
 * TABLE OF CONTENTS
 * =================
 * I.    Iterator-Level Traits
-* II.   Iterator Category Extraction
-* III.  Container-Level Iterability
+* II.   Iterator Category Extraction (helpers; public category trait delegated)
+* III.  Container-Level Iterability (base/input/output; category traits delegated)
 * IV.   Const / Reverse Iteration Detection
 * V.    Iterator Compatibility
 * VI.   iterator_level Enum
@@ -48,6 +62,8 @@
 #include "../../djinterp.hpp"
 #include "../../meta/trait_detect.hpp"
 #include "../../meta/type_traits.hpp"
+#include "./iterator_category_traits.hpp"  // container-level is_*_iterable,
+                                           // iterator_category_of (canonical home)
 
 
 NS_DJINTERP
@@ -285,6 +301,18 @@ struct is_contiguous_iterator
 // ===========================================================================
 // II.  Iterator Category Extraction
 // ===========================================================================
+//   The internal helpers below extract a container's begin() iterator type and
+// that iterator's std category tag.  They back the input/output iterability
+// probes in section III and remain the low-level primitive for anyone needing
+// the raw tag TYPE of a container's iterator (internal::safe_iterator_category_t
+// applied to internal::safe_begin_iterator_t).
+//
+//   The PUBLIC container-category trait `iterator_category_of` is owned by
+// iterator_category_traits.hpp (included above) and re-exported through it.
+// That version classifies a container into an `iterator_category_kind` enum;
+// an earlier revision here exposed a same-named trait yielding the raw std tag
+// type instead, which collided with the canonical one.  It has been removed to
+// end the one-definition-rule conflict.
 
 NS_INTERNAL
 
@@ -336,35 +364,21 @@ NS_INTERNAL
 
 NS_END  // internal
 
-// iterator_category_of
-//   trait: extracts the iterator category of a container's
-// begin() iterator, yielding void if unavailable.
-template<typename _Container>
-struct iterator_category_of
-{
-private:
-    using cleaned    = clean_t<_Container>;
-    using _IterType =
-        internal::safe_begin_iterator_t<cleaned>;
-
-public:
-    using type =
-        internal::safe_iterator_category_t<_IterType>;
-};
-
-#if D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
-    // iterator_category_of_t
-    //   alias: convenience for
-    // iterator_category_of<_Container>::type.
-    template<typename _Container>
-    using iterator_category_of_t =
-        typename iterator_category_of<_Container>::type;
-#endif
-
 
 // ===========================================================================
 // III. Container-Level Iterability
 // ===========================================================================
+//   This section owns the base iterability probe (is_iterable) and the
+// input/output rungs, which gate on the iterator-LEVEL traits from section I.
+// The stronger CATEGORY rungs - is_forward_iterable, is_bidirectional_iterable,
+// is_random_access_iterable, is_contiguous_iterable - are owned by
+// iterator_category_traits.hpp (included above) and re-exported through it.
+// Earlier revisions defined those four here as well; the duplicate definitions
+// caused one-definition-rule conflicts wherever both headers were pulled into
+// the same TU.  The canonical versions read the category of the container's
+// begin() iterator through std::iterator_traits (so a pointer iterator resolves
+// to random-access) and gate on member begin()/end(); they agree with the
+// probes below for every class-type container that exposes begin()/end().
 
 // is_iterable
 //   trait: true if begin(c) and end(c) are well-formed.
@@ -436,107 +450,12 @@ struct is_output_iterable<_Type,
         is_output_iterable<_Type>::value;
 #endif
 
-// is_forward_iterable
-//   trait: true if container provides at least forward
-// iterators.
-template<typename _Type,
-         typename = void>
-struct is_forward_iterable : std::false_type
-{};
-
-template<typename _Type>
-struct is_forward_iterable<_Type,
-    typename std::enable_if<
-        is_iterable<_Type>::value  &&
-        is_forward_iterator<
-            internal::safe_begin_iterator_t<_Type>>::value
-    >::type> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_forward_iterable_v
-    //   variable template: value of is_forward_iterable<_Type>.
-    template<typename _Type>
-    constexpr bool is_forward_iterable_v =
-        is_forward_iterable<_Type>::value;
-#endif
-
-// is_bidirectional_iterable
-//   trait: true if container provides bidirectional
-// iterators.
-template<typename _Type,
-         typename = void>
-struct is_bidirectional_iterable : std::false_type
-{};
-
-template<typename _Type>
-struct is_bidirectional_iterable<_Type,
-    typename std::enable_if<
-        is_iterable<_Type>::value &&
-        is_bidirectional_iterator<
-            internal::safe_begin_iterator_t<_Type>>::value
-    >::type> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_bidirectional_iterable_v
-    //   variable template: value of
-    // is_bidirectional_iterable<_Type>.
-    template<typename _Type>
-    constexpr bool is_bidirectional_iterable_v =
-        is_bidirectional_iterable<_Type>::value;
-#endif
-
-// is_random_access_iterable
-//   trait: true if container provides random-access
-// iterators.
-template<typename _Type,
-         typename = void>
-struct is_random_access_iterable : std::false_type
-{};
-
-template<typename _Type>
-struct is_random_access_iterable<_Type,
-    typename std::enable_if<
-        is_iterable<_Type>::value &&
-        is_random_access_iterator<
-            internal::safe_begin_iterator_t<_Type>>::value
-    >::type> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_random_access_iterable_v
-    //   variable template: value of
-    // is_random_access_iterable<_Type>.
-    template<typename _Type>
-    constexpr bool is_random_access_iterable_v =
-        is_random_access_iterable<_Type>::value;
-#endif
-
+// is_forward_iterable, is_bidirectional_iterable, is_random_access_iterable,
 // is_contiguous_iterable
-//   trait: true if container provides contiguous iterators
-// (raw pointer or contiguous_iterator_tag).
-template<typename _Type,
-         typename = void>
-struct is_contiguous_iterable : std::false_type
-{};
-
-template<typename _Type>
-struct is_contiguous_iterable<_Type,
-    typename std::enable_if<
-        is_iterable<_Type>::value &&
-        is_contiguous_iterator<
-            internal::safe_begin_iterator_t<_Type>>::value
-    >::type> : std::true_type
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-    // is_contiguous_iterable_v
-    //   variable template: value of is_contiguous_iterable<_Type>.
-    template<typename _Type>
-    constexpr bool is_contiguous_iterable_v =
-        is_contiguous_iterable<_Type>::value;
-#endif
+//   These container-level category traits are owned by
+// iterator_category_traits.hpp (included above) and re-exported through it.
+// See the section III banner comment; the duplicates that used to live here
+// were removed to resolve the ODR conflict.
 
 
 // ===========================================================================
@@ -695,7 +614,9 @@ NS_INTERNAL
 
     // iterator_level_helper
     //   trait: priority cascade resolving the strongest
-    // iteration category supported by a container.
+    // iteration category supported by a container.  The
+    // forward/bidirectional/random-access/contiguous rungs
+    // resolve to the traits in iterator_category_traits.hpp.
     template<typename _Type>
     struct iterator_level_helper
     {

@@ -1,12 +1,12 @@
-/*******************************************************************************
+/******************************************************************************
 * djinterp [container]                                   container_iterator.hpp
 *
 * 
 * 
 * author(s): Samuel 'teer' Neal-Blim
 * link:   TBA
-* file:   \inc\container\container_iterator.hpp                date: 2024.04.19
-*******************************************************************************/
+* file:   \inc\container\container_iterator.hpp             created: 2024.04.19
+******************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_ITERATOR_
 #define	DJINTERP_CONTAINER_ITERATOR_ 1
