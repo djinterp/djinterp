@@ -74,6 +74,7 @@ TABLE OF CONTENTS
 #include "../../djinterp.hpp"
 #include "../../meta/trait_detect.hpp"
 #include "../../meta/type_traits.hpp"
+#include "../../meta/member_types.hpp"
 #include "../../../math/interval/interval.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "./bounded_container_traits.hpp"
@@ -114,11 +115,10 @@ D_TYPE_TRAIT_TRUE(has_capacity_accessor,
     decltype(std::declval<const _Type&>().capacity()))
 
 // --- type members ---
-D_TYPE_TRAIT_TRUE(has_allocator_type,
-    typename _Type::allocator_type)
-
-D_TYPE_TRAIT_TRUE(has_mapped_type,
-    typename _Type::mapped_type)
+//   has_allocator_type, has_mapped_type (and has_value_type below, plus
+// has_key_type) are owned by meta/member_types.hpp, included above, and
+// re-exported through it.  The local duplicates were removed to end the
+// one-definition-rule conflict with that canonical detection header.
 
 D_TYPE_TRAIT_TRUE(has_key_compare,
     typename _Type::key_compare)
@@ -140,9 +140,25 @@ D_TYPE_TRAIT_TRUE(has_multiplicity_interval_type,
     typename _Type::multiplicity_interval)
 
 // --- underlying container detection ---
-//   `has_underlying_container_type` is owned by
-// container_overlay_traits.hpp and re-exported through the
-// include chain above.
+// has_underlying_container_type
+//   trait: detects an `underlying_container_type` member alias - the mark of
+// a container defined in terms of another (a container adaptor, or a backed
+// container that delegates its storage rather than owning it).
+D_TYPE_TRAIT_HAS_TYPE(has_underlying_container_type, underlying_container_type)
+
+// is_underlying_container
+//   trait: true iff the container is underlying-based - it exposes an
+// `underlying_container_type`, so it delegates storage instead of owning it.
+// This is the complement of is_fundamental_container (below) and the signal
+// container_class reports as `is_underlying`.  (The underlying_container_type
+// extractor lives further down this section.)
+template<typename _Type>
+struct is_underlying_container
+    : std::integral_constant<bool,
+          has_underlying_container_type<clean_t<_Type>>::value>
+{};
+
+D_TYPE_TRAIT_VALUE_BOOL(is_underlying_container)
 
 // --- hierarchical structure detection ---
 //   `has_node_type` is owned by node_container_traits.hpp and
@@ -235,8 +251,8 @@ D_TYPE_TRAIT_TRUE(has_key_comp_method,
         std::declval<const _Type&>().key_comp()))
 
 // --- value_type detection ---
-D_TYPE_TRAIT_TRUE(has_value_type,
-    typename _Type::value_type)
+//   has_value_type is owned by meta/member_types.hpp (included above); the
+// local duplicate was removed.  See the type-members note above.
 
 
 // ===========================================================================
@@ -797,36 +813,6 @@ inline constexpr bool is_dynamic_storage_v =
 
 
 #endif
-// ===========================================================================
-// VIII. Iteration Classification
-// ===========================================================================
-
-// is_iterable_container, is_non_iterable_container
-//   These are owned by iterable_container_traits.hpp and
-// re-exported via the include chain at the top of this header.
-// Earlier revisions defined them here; the duplicate
-// definitions caused ODR conflicts when both headers were
-// pulled into the same TU.
-
-// is_const_iterable_container
-//   type trait: true if container supports const iteration
-// via cbegin()/cend().
-template<typename _Type>
-struct is_const_iterable_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        ( has_cbegin_accessor_v<clean_type> &&
-          has_cend_accessor_v<clean_type> );
-};
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-template<typename _Type>
-inline constexpr bool is_const_iterable_container_v =
-    is_const_iterable_container<_Type>::value;
-
-#endif
 
 // ===========================================================================
 // IX.  Ordering Classification
@@ -948,33 +934,6 @@ inline constexpr bool has_bounded_multiplicity_v =
 
 #endif
 
-// ===========================================================================
-// XIV. Underlying Container Classification
-// ===========================================================================
-// Some containers delegate storage to another container type.
-// Detection is purely structural:
-//   1. underlying_container_type alias => underlying.
-//   2. Absence of underlying_container_type, or C/std::array =>
-//      fundamental.
-
-// is_underlying_container
-//   type trait: true if container delegates storage to another
-// container type.
-template<typename _Type>
-struct is_underlying_container
-{
-    using clean_type = clean_t<_Type>;
-
-    static constexpr bool value =
-        has_underlying_container_type_v<clean_type>;
-};
-
-#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-template<typename _Type>
-inline constexpr bool is_underlying_container_v =
-    is_underlying_container<_Type>::value;
-
-#endif
 // is_fundamental_container
 //   type trait: true if container provides its own storage.
 // C-arrays and std::array are always fundamental.
@@ -996,19 +955,19 @@ inline constexpr bool is_fundamental_container_v =
     is_fundamental_container<_Type>::value;
 
 #endif
-// underlyunderlying_container_type_of
+// underlying_container_type_of
 //   type trait: extracts the underlying container type if
 // present, otherwise yields void.
 NS_INTERNAL
     template<typename _Type,
              typename = void>
-    struct underlyunderlying_container_type_of_helper
+    struct underlying_container_type_of_helper
     {
         using type = void;
     };
 
     template<typename _Type>
-    struct underlyunderlying_container_type_of_helper<
+    struct underlying_container_type_of_helper<
         _Type,
         std::void_t<typename _Type::underlying_container_type>>
     {
@@ -1019,16 +978,16 @@ NS_INTERNAL
 NS_END  // internal
 
 template<typename _Type>
-struct underlyunderlying_container_type_of
+struct underlying_container_type_of
 {
     using type =
-        typename internal::underlyunderlying_container_type_of_helper<
+        typename internal::underlying_container_type_of_helper<
             clean_t<_Type>>::type;
 };
 
 template<typename _Type>
-using underlyunderlying_container_type_of_t =
-    typename underlyunderlying_container_type_of<_Type>::type;
+using underlying_container_type_of_t =
+    typename underlying_container_type_of<_Type>::type;
 
 
 // ===========================================================================
