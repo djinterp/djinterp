@@ -39,7 +39,7 @@
 *
 * path:      /inc/container/meta/hierarchical_iterator_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
+* author(s): Samuel 'teer' Neal-Blim                   created: 2026.03.24
 ******************************************************************************/
 
 #ifndef DJINTERP_HIERARCHICAL_ITERATOR_TRAITS_
@@ -68,25 +68,25 @@ NS_TRAITS
 //  are already defined in container_traits.hpp)
 
 // has_first_child_accessor
-D_TYPE_TRAIT_TRUE(has_first_child_accessor,
+D_TYPE_TRAIT_DETECTED(has_first_child_accessor,
     decltype(std::declval<const _Type&>()
         .first_child()))
 
 // has_last_child_accessor
-D_TYPE_TRAIT_TRUE(has_last_child_accessor,
+D_TYPE_TRAIT_DETECTED(has_last_child_accessor,
     decltype(std::declval<const _Type&>()
         .last_child()))
 
 // has_value_accessor
 //   node has .value() to access the stored datum
 // (distinct from the node structure itself).
-D_TYPE_TRAIT_TRUE(has_node_value_accessor,
+D_TYPE_TRAIT_DETECTED(has_node_value_accessor,
     decltype(std::declval<const _Type&>()
         .value()))
 
 // has_key_accessor
 //   node has .key() for keyed trees (e.g. JSON, XML).
-D_TYPE_TRAIT_TRUE(has_node_key_accessor,
+D_TYPE_TRAIT_DETECTED(has_node_key_accessor,
     decltype(std::declval<const _Type&>()
         .key()))
 

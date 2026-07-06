@@ -35,7 +35,7 @@
 *
 * path:      /inc/container/meta/flat_iterator_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
+* author(s): Samuel 'teer' Neal-Blim                   created: 2026.03.24
 ******************************************************************************/
 
 #ifndef DJINTERP_FLAT_ITERATOR_TRAITS_
@@ -246,27 +246,27 @@ inline constexpr bool is_hierarchy_flattenable_v =
 // has_sibling_accessor
 //   type trait: true if container/node has a
 // next_sibling() method for sibling-order traversal.
-D_TYPE_TRAIT_TRUE(has_sibling_accessor,
+D_TYPE_TRAIT_DETECTED(has_sibling_accessor,
     decltype(
         std::declval<const _Type&>().next_sibling()))
 
 // has_prev_sibling_accessor
-D_TYPE_TRAIT_TRUE(has_prev_sibling_accessor,
+D_TYPE_TRAIT_DETECTED(has_prev_sibling_accessor,
     decltype(std::declval<const _Type&>()
         .prev_sibling()))
 
 // has_is_leaf_method
-D_TYPE_TRAIT_TRUE(has_is_leaf_method,
+D_TYPE_TRAIT_DETECTED(has_is_leaf_method,
     decltype(
         std::declval<const _Type&>().is_leaf()))
 
 // has_is_root_method
-D_TYPE_TRAIT_TRUE(has_is_root_method,
+D_TYPE_TRAIT_DETECTED(has_is_root_method,
     decltype(
         std::declval<const _Type&>().is_root()))
 
 // has_child_count_method
-D_TYPE_TRAIT_TRUE(has_child_count_method,
+D_TYPE_TRAIT_DETECTED(has_child_count_method,
     decltype(
         std::declval<const _Type&>().child_count()))
 

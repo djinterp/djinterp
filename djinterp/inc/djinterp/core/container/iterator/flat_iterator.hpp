@@ -1,565 +1,310 @@
 /******************************************************************************
-* djinterp [container]                                    flat_iterator.hpp
+* djinterp [container]                                        flat_iterator.hpp
 *
-* Flattening iterators for the djinterp container framework.
-*   Provides zero-overhead iterators that present nested or
-* hierarchical structures as a single linear sequence.
+*   The foundational FLAT iterator: a positional traversal over a flat container's
+* leaf positions (structure depth 1).  It is a random-access iterator over
+* contiguous storage, and it realises the two independent iterability axes (the
+* spec, Iterability) directly:
 *
-*   concat_iterator<Outer>     - flattens depth-1 nesting by
-*                                concatenating inner ranges.
-*   dfs_flatten_iterator<Node> - flattens a tree via depth-first
-*                                traversal, yielding nodes in
-*                                pre-order.
-*   bfs_flatten_iterator<Node> - flattens a tree via breadth-first
-*                                traversal, yielding nodes level
-*                                by level.
+*     STAGE.   Every observing and every FUNCTIONAL operation (dereference,
+*              comparison, and the pure `next` / `prev` / `operator+` that return a
+*              NEW iterator) is D_CONSTEXPR, so a traversal runs at compile time
+*              wherever the storage is statically addressable, and at runtime
+*              otherwise.  Compile-time iteration is thus functional: advancing
+*              yields a fresh iterator rather than mutating one in place, matching
+*              the spec's compile-time non-const = functional-update reading.  The
+*              in-place mutators (++, --, +=, -=) are the runtime path; they become
+*              constexpr as well from C++14, where a constexpr function may mutate.
+*     MODE.    Constness is a type parameter.  A non-const iterator grants a
+*              settable reference (_Type&) - it may replace the value at a position,
+*              the position set unchanged - while a const iterator grants only a
+*              read-only reference (const _Type&).  A non-const iterator converts to
+*              its const counterpart, never the reverse.
 *
-*   Each iterator stores only the minimal state needed for
-* traversal: concat_iterator holds (outer_it, outer_end,
-* inner_it); the tree iterators hold a stack or queue of
-* pending nodes.
-*
-* TABLE OF CONTENTS
-* =================
-* I.      concat_iterator (depth-1 flatten)
-* II.     dfs_flatten_iterator (pre-order tree)
-* III.    bfs_flatten_iterator (level-order tree)
-* IV.     View Adapters
-* V.      Factory Functions
+*   PORTABILITY:
+*   C++11 baseline.  Functional and observing operations are constexpr throughout;
+* the in-place mutators are constexpr from C++14 (relaxed constexpr).
 *
 *
-* path:      /inc/container/flat_iterator.hpp
+* path:      /inc/djinterp/core/container/iterator/flat_iterator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.03.24
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
 ******************************************************************************/
 
-#ifndef DJINTERP_FLAT_ITERATOR_
-#define DJINTERP_FLAT_ITERATOR_ 1
+#ifndef DJINTERP_CONTAINER_FLAT_ITERATOR_
+#define DJINTERP_CONTAINER_FLAT_ITERATOR_ 1
 
+// std
 #include <cstddef>
 #include <iterator>
-#include <queue>
-#include <stack>
 #include <type_traits>
-#include <vector>
-#include "../../djinterp.hpp"
+// djinterp
+#include "../../djinterp.hpp"   // D_CONSTEXPR, NS_*, feature macros
+
+
+// D_ITER_CONSTEXPR_MUT
+//   an in-place iterator mutator is constexpr only where a constexpr function may
+// mutate - C++14 (relaxed constexpr) onward; before that it is a runtime operation.
+#ifndef D_ITER_CONSTEXPR_MUT
+    #if ( D_ENV_CPP_FEATURE_LANG_CONSTEXPR_VAL >= 201304L )
+        #define D_ITER_CONSTEXPR_MUT  constexpr
+    #else
+        #define D_ITER_CONSTEXPR_MUT
+    #endif
+#endif
 
 
 NS_DJINTERP
-NS_CONTAINER
 
-// ===========================================================================
-// I.   concat_iterator (depth-1 flatten)
-// ===========================================================================
-// Iterates over a container-of-containers, yielding the
-// inner elements in order.  When the current inner range
-// is exhausted, advances to the next outer element.
-//
-// Example: vector<vector<int>> {{1,2},{3},{4,5}}
-//   yields: 1, 2, 3, 4, 5
 
-template<typename _OuterIter>
-class concat_iterator
+// flat_iterator
+//   class: a random-access iterator over a flat container's contiguous storage.
+// Parameterised on the element type and on constness; the latter fixes whether the
+// per-position access is settable.
+template<typename _Type,
+         bool     _Const = false>
+class flat_iterator
 {
 public:
-    using outer_value =
-        typename std::iterator_traits<
-            _OuterIter>::value_type;
-    using inner_iter =
-        decltype(std::begin(
-            std::declval<const outer_value&>()));
-
-    using value_type =
-        typename std::iterator_traits<
-            inner_iter>::value_type;
-    using difference_type = std::ptrdiff_t;
-    using reference       = const value_type&;
-    using pointer         = const value_type*;
-    using iterator_category =
-        std::forward_iterator_tag;
-
-    // --- construction ---
-
-    concat_iterator()
-        : m_outer()
-        , m_outer_end()
-        , m_inner()
-    {}
-
-    concat_iterator(_OuterIter _begin,
-                    _OuterIter _end)
-        : m_outer(_begin)
-        , m_outer_end(_end)
-        , m_inner()
-    {
-        advance_to_valid();
-    }
-
-    // --- dereference ---
-
-    reference operator*() const
-    {
-        return *m_inner;
-    }
-
-    pointer operator->() const
-    {
-        return &(*m_inner);
-    }
-
-    // --- increment ---
-
-    concat_iterator& operator++()
-    {
-        ++m_inner;
-
-        if (m_inner == std::end(*m_outer))
-        {
-            ++m_outer;
-            advance_to_valid();
-        }
-
-        return *this;
-    }
-
-    concat_iterator operator++(int)
-    {
-        auto tmp = *this;
-        ++(*this);
-
-        return tmp;
-    }
-
-    // --- comparison ---
-
-    friend bool operator==(
-        const concat_iterator& _a,
-        const concat_iterator& _b)
-    {
-        if (_a.m_outer == _a.m_outer_end &&
-            _b.m_outer == _b.m_outer_end)
-        {
-            return true;
-        }
-
-        return ( _a.m_outer == _b.m_outer &&
-                 _a.m_inner == _b.m_inner );
-    }
-
-    friend bool operator!=(
-        const concat_iterator& _a,
-        const concat_iterator& _b)
-    {
-        return !(_a == _b);
-    }
-
-    _OuterIter outer() const { return m_outer; }
-
-private:
-    void advance_to_valid()
-    {
-        while (m_outer != m_outer_end)
-        {
-            m_inner = std::begin(*m_outer);
-
-            if (m_inner != std::end(*m_outer))
-            {
-                return;
-            }
-
-            ++m_outer;
-        }
-    }
-
-    _OuterIter m_outer;
-    _OuterIter m_outer_end;
-    inner_iter m_inner;
-};
-
-
-// ===========================================================================
-// II.  dfs_flatten_iterator (pre-order tree)
-// ===========================================================================
-// Depth-first traversal of a hierarchical structure.
-// Yields each node in pre-order (parent before children).
-//
-// The node type must expose children() returning an
-// iterable range of child nodes (by reference or pointer).
-//
-// Uses an explicit stack to avoid recursion.
-
-template<typename _Node>
-class dfs_flatten_iterator
-{
-public:
-    using value_type        = _Node;
+    using value_type        = _Type;
     using difference_type   = std::ptrdiff_t;
-    using reference         = const _Node&;
-    using pointer           = const _Node*;
-    using iterator_category =
-        std::forward_iterator_tag;
+    using size_type         = std::size_t;
+    using iterator_category = std::random_access_iterator_tag;
 
-    // --- construction ---
+    using pointer =
+        typename std::conditional<_Const, const _Type*, _Type*>::type;
+    using reference =
+        typename std::conditional<_Const, const _Type&, _Type&>::type;
 
-    dfs_flatten_iterator()
-        : m_current(nullptr)
+    // ------------------------------------------------------------------
+    //  construction
+    // ------------------------------------------------------------------
+
+    // flat_iterator (default)
+    //   a singular iterator addressing nothing.
+    constexpr flat_iterator() noexcept
+        : m_ptr(nullptr)
     {}
 
-    explicit dfs_flatten_iterator(
-        const _Node* _root)
-        : m_current(_root)
+    // flat_iterator (pointer)
+    //   an iterator addressing the position at _ptr.
+    constexpr explicit flat_iterator(pointer _ptr) noexcept
+        : m_ptr(_ptr)
     {}
 
-    // --- dereference ---
+    // flat_iterator (const conversion)
+    //   a non-const iterator converts to its const counterpart (never the
+    // reverse).  Enabled only when THIS is the const flavour, taking the non-const.
+    template<bool _C = _Const,
+             typename = typename std::enable_if<_C>::type>
+    constexpr flat_iterator(const flat_iterator<_Type, false>& _other) noexcept
+        : m_ptr(_other.raw())
+    {}
 
-    reference operator*() const
+    // ------------------------------------------------------------------
+    //  access (observing - constexpr throughout)
+    // ------------------------------------------------------------------
+
+    // operator*
+    //   the reference at the current position (settable when non-const).
+    constexpr reference operator*() const noexcept
     {
-        return *m_current;
+        return *m_ptr;
     }
 
-    pointer operator->() const
+    // operator->
+    //   a pointer to the current position.
+    constexpr pointer operator->() const noexcept
     {
-        return m_current;
+        return m_ptr;
     }
 
-    // --- increment ---
-
-    dfs_flatten_iterator& operator++()
+    // operator[]
+    //   the reference _n positions away.
+    constexpr reference operator[](difference_type _n) const noexcept
     {
-        // push children in reverse order so that
-        // the first child is visited first
-        const auto& kids = m_current->children();
-        auto it  = std::end(kids);
-        auto bg  = std::begin(kids);
+        return m_ptr[_n];
+    }
 
-        while (it != bg)
-        {
-            --it;
-            m_stack.push(&(*it));
-        }
+    // raw
+    //   the underlying pointer (exposed for the const conversion above).
+    constexpr pointer raw() const noexcept
+    {
+        return m_ptr;
+    }
 
-        if (m_stack.empty())
-        {
-            m_current = nullptr;
-        }
-        else
-        {
-            m_current = m_stack.top();
-            m_stack.pop();
-        }
+    // ------------------------------------------------------------------
+    //  functional traversal (returns a NEW iterator - constexpr in C++11)
+    // ------------------------------------------------------------------
+
+    // next
+    //   the iterator one position forward.
+    constexpr flat_iterator next() const noexcept
+    {
+        return flat_iterator(m_ptr + 1);
+    }
+
+    // prev
+    //   the iterator one position back.
+    constexpr flat_iterator prev() const noexcept
+    {
+        return flat_iterator(m_ptr - 1);
+    }
+
+    // advanced
+    //   the iterator _n positions away.
+    constexpr flat_iterator advanced(difference_type _n) const noexcept
+    {
+        return flat_iterator(m_ptr + _n);
+    }
+
+    // operator+ / operator-
+    constexpr flat_iterator operator+(difference_type _n) const noexcept
+    {
+        return flat_iterator(m_ptr + _n);
+    }
+
+    constexpr flat_iterator operator-(difference_type _n) const noexcept
+    {
+        return flat_iterator(m_ptr - _n);
+    }
+
+    // operator- (distance)
+    //   the number of positions from _other to this.
+    constexpr difference_type
+    operator-(const flat_iterator& _other) const noexcept
+    {
+        return m_ptr - _other.m_ptr;
+    }
+
+    // ------------------------------------------------------------------
+    //  in-place traversal (runtime; constexpr from C++14)
+    // ------------------------------------------------------------------
+
+    // operator++ (pre / post)
+    D_ITER_CONSTEXPR_MUT flat_iterator& operator++() noexcept
+    {
+        ++m_ptr;
 
         return *this;
     }
 
-    dfs_flatten_iterator operator++(int)
+    D_ITER_CONSTEXPR_MUT flat_iterator operator++(int) noexcept
     {
-        auto tmp = *this;
-        ++(*this);
+        flat_iterator _tmp(*this);
+        ++m_ptr;
 
-        return tmp;
+        return _tmp;
     }
 
-    // --- comparison ---
-
-    friend bool operator==(
-        const dfs_flatten_iterator& _a,
-        const dfs_flatten_iterator& _b)
+    // operator-- (pre / post)
+    D_ITER_CONSTEXPR_MUT flat_iterator& operator--() noexcept
     {
-        return (_a.m_current == _b.m_current);
-    }
-
-    friend bool operator!=(
-        const dfs_flatten_iterator& _a,
-        const dfs_flatten_iterator& _b)
-    {
-        return (_a.m_current != _b.m_current);
-    }
-
-    // --- accessors ---
-
-    const _Node* current() const noexcept
-    {
-        return m_current;
-    }
-
-    std::size_t stack_depth() const noexcept
-    {
-        return m_stack.size();
-    }
-
-private:
-    const _Node*                   m_current;
-    std::stack<const _Node*,
-               std::vector<const _Node*>>
-                                   m_stack;
-};
-
-
-// ===========================================================================
-// III. bfs_flatten_iterator (level-order tree)
-// ===========================================================================
-// Breadth-first traversal of a hierarchical structure.
-// Yields nodes level by level (root first, then all
-// depth-1 nodes, then all depth-2 nodes, etc.).
-//
-// Uses an explicit queue.
-
-template<typename _Node>
-class bfs_flatten_iterator
-{
-public:
-    using value_type        = _Node;
-    using difference_type   = std::ptrdiff_t;
-    using reference         = const _Node&;
-    using pointer           = const _Node*;
-    using iterator_category =
-        std::forward_iterator_tag;
-
-    // --- construction ---
-
-    bfs_flatten_iterator()
-        : m_current(nullptr)
-    {}
-
-    explicit bfs_flatten_iterator(
-        const _Node* _root)
-        : m_current(_root)
-    {}
-
-    // --- dereference ---
-
-    reference operator*() const
-    {
-        return *m_current;
-    }
-
-    pointer operator->() const
-    {
-        return m_current;
-    }
-
-    // --- increment ---
-
-    bfs_flatten_iterator& operator++()
-    {
-        // enqueue children
-        const auto& kids = m_current->children();
-
-        for (const auto& child : kids)
-        {
-            m_queue.push(&child);
-        }
-
-        if (m_queue.empty())
-        {
-            m_current = nullptr;
-        }
-        else
-        {
-            m_current = m_queue.front();
-            m_queue.pop();
-        }
+        --m_ptr;
 
         return *this;
     }
 
-    bfs_flatten_iterator operator++(int)
+    D_ITER_CONSTEXPR_MUT flat_iterator operator--(int) noexcept
     {
-        auto tmp = *this;
-        ++(*this);
+        flat_iterator _tmp(*this);
+        --m_ptr;
 
-        return tmp;
+        return _tmp;
     }
 
-    // --- comparison ---
-
-    friend bool operator==(
-        const bfs_flatten_iterator& _a,
-        const bfs_flatten_iterator& _b)
+    // operator+= / operator-=
+    D_ITER_CONSTEXPR_MUT flat_iterator& operator+=(difference_type _n) noexcept
     {
-        return (_a.m_current == _b.m_current);
+        m_ptr += _n;
+
+        return *this;
     }
 
-    friend bool operator!=(
-        const bfs_flatten_iterator& _a,
-        const bfs_flatten_iterator& _b)
+    D_ITER_CONSTEXPR_MUT flat_iterator& operator-=(difference_type _n) noexcept
     {
-        return (_a.m_current != _b.m_current);
+        m_ptr -= _n;
+
+        return *this;
     }
 
-    // --- accessors ---
+    // ------------------------------------------------------------------
+    //  comparison (constexpr throughout)
+    // ------------------------------------------------------------------
 
-    const _Node* current() const noexcept
+    constexpr bool operator==(const flat_iterator& _o) const noexcept
     {
-        return m_current;
+        return m_ptr == _o.m_ptr;
     }
 
-    std::size_t queue_size() const noexcept
+    constexpr bool operator!=(const flat_iterator& _o) const noexcept
     {
-        return m_queue.size();
+        return m_ptr != _o.m_ptr;
     }
 
-private:
-    const _Node*              m_current;
-    std::queue<const _Node*>  m_queue;
-};
-
-
-// ===========================================================================
-// IV.  View Adapters
-// ===========================================================================
-
-// concat_view
-//   view: flattens a container-of-containers into a
-// single linear sequence.
-template<typename _Container>
-class concat_view
-{
-public:
-    using outer_iter =
-        decltype(std::cbegin(
-            std::declval<const _Container&>()));
-    using const_iterator =
-        concat_iterator<outer_iter>;
-    using value_type =
-        typename const_iterator::value_type;
-    using size_type = std::size_t;
-
-    explicit concat_view(
-        const _Container& _c) noexcept
-        : m_ref(_c)
-    {}
-
-    const_iterator begin() const
+    constexpr bool operator<(const flat_iterator& _o) const noexcept
     {
-        return const_iterator(
-            std::cbegin(m_ref),
-            std::cend(m_ref));
+        return m_ptr < _o.m_ptr;
     }
 
-    const_iterator end() const
+    constexpr bool operator>(const flat_iterator& _o) const noexcept
     {
-        return const_iterator(
-            std::cend(m_ref),
-            std::cend(m_ref));
+        return m_ptr > _o.m_ptr;
     }
 
-    bool empty() const noexcept
+    constexpr bool operator<=(const flat_iterator& _o) const noexcept
     {
-        return m_ref.empty();
+        return m_ptr <= _o.m_ptr;
+    }
+
+    constexpr bool operator>=(const flat_iterator& _o) const noexcept
+    {
+        return m_ptr >= _o.m_ptr;
     }
 
 private:
-    const _Container& m_ref;
+    pointer m_ptr;
 };
 
-// dfs_view
-//   view: pre-order depth-first traversal of a tree.
-template<typename _Node>
-class dfs_view
+
+// operator+ (n + it)
+//   the symmetric scalar-plus-iterator form.
+template<typename _Type,
+         bool     _Const>
+constexpr flat_iterator<_Type, _Const>
+operator+(
+    typename flat_iterator<_Type, _Const>::difference_type _n,
+    const flat_iterator<_Type, _Const>&                    _it
+) noexcept
 {
-public:
-    using const_iterator =
-        dfs_flatten_iterator<_Node>;
-    using value_type = _Node;
-
-    explicit dfs_view(
-        const _Node& _root) noexcept
-        : m_root(&_root)
-    {}
-
-    const_iterator begin() const
-    {
-        return const_iterator(m_root);
-    }
-
-    const_iterator end() const
-    {
-        return const_iterator();
-    }
-
-private:
-    const _Node* m_root;
-};
-
-// bfs_view
-//   view: level-order breadth-first traversal of a tree.
-template<typename _Node>
-class bfs_view
-{
-public:
-    using const_iterator =
-        bfs_flatten_iterator<_Node>;
-    using value_type = _Node;
-
-    explicit bfs_view(
-        const _Node& _root) noexcept
-        : m_root(&_root)
-    {}
-
-    const_iterator begin() const
-    {
-        return const_iterator(m_root);
-    }
-
-    const_iterator end() const
-    {
-        return const_iterator();
-    }
-
-private:
-    const _Node* m_root;
-};
+    return _it + _n;
+}
 
 
 // ===========================================================================
-// V.   Factory Functions
+//  factories
 // ===========================================================================
 
-// make_concat_view
-template<typename _Container>
-concat_view<_Container>
-make_concat_view(
-    const _Container& _c) noexcept
+// make_flat_iterator
+//   factory: a non-const flat iterator at _ptr.
+template<typename _Type>
+constexpr flat_iterator<_Type, false>
+make_flat_iterator(_Type* _ptr) noexcept
 {
-    return concat_view<_Container>(_c);
+    return flat_iterator<_Type, false>(_ptr);
 }
 
-// make_dfs_view
-template<typename _Node>
-dfs_view<_Node>
-make_dfs_view(const _Node& _root) noexcept
+// make_const_flat_iterator
+//   factory: a const flat iterator at _ptr.
+template<typename _Type>
+constexpr flat_iterator<_Type, true>
+make_const_flat_iterator(const _Type* _ptr) noexcept
 {
-    return dfs_view<_Node>(_root);
-}
-
-// make_bfs_view
-template<typename _Node>
-bfs_view<_Node>
-make_bfs_view(const _Node& _root) noexcept
-{
-    return bfs_view<_Node>(_root);
-}
-
-// make_dfs_iterator
-template<typename _Node>
-dfs_flatten_iterator<_Node>
-make_dfs_iterator(const _Node* _root)
-{
-    return dfs_flatten_iterator<_Node>(_root);
-}
-
-// make_bfs_iterator
-template<typename _Node>
-bfs_flatten_iterator<_Node>
-make_bfs_iterator(const _Node* _root)
-{
-    return bfs_flatten_iterator<_Node>(_root);
+    return flat_iterator<_Type, true>(_ptr);
 }
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FLAT_ITERATOR_
+#endif  // DJINTERP_CONTAINER_FLAT_ITERATOR_
