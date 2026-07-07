@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [test]                                           consumer_tests.hpp
+* djinterp [functional]                                     consumer_tests.hpp
 *
 *   DTest declarations and shared helper types for the consumer.hpp unit
 * test suite.  Each like-group semantic section of consumer.hpp maps to
@@ -30,13 +30,13 @@
 * (loops / assignments), which are runtime on C++11 and constexpr on
 * C++14+; the tests exercise them at runtime on every standard.
 *
-* path:      /inc/djinterp/core/functional/tests/consumer_tests.hpp
+* path:      /tests/djinterp/core/functional/consumer_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.31
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_CONSUMER_TESTS_
-#define DJINTERP_FUNCTIONAL_CONSUMER_TESTS_ 1
+#ifndef DJINTERP_TESTING_FUNCTIONAL_CONSUMER_
+#define DJINTERP_TESTING_FUNCTIONAL_CONSUMER_ 1
 
 // std
 #include <cstddef>
@@ -227,4 +227,4 @@ NS_END  // testing
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_CONSUMER_TESTS_
+#endif  // DJINTERP_TESTING_FUNCTIONAL_CONSUMER_
