@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [test]                                            compose_tests.hpp
+* djinterp [functional]                                      compose_tests.hpp
 *
 *   DTest declarations and shared helper types for the compose.hpp unit
 * test suite.  Each like-group semantic section of compose.hpp maps to a
@@ -30,13 +30,13 @@
 * C++98 fallback is exercised separately by its own (out-of-scope here)
 * suite because variadic / fix / traits are RED in C++98.
 *
-* path:      /inc/functional/tests/compose_tests.hpp
+* path:      /tests/djinterp/core/functional/compose_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.31
 ******************************************************************************/
 
-#ifndef DJINTERP_FUNCTIONAL_COMPOSE_TESTS_
-#define DJINTERP_FUNCTIONAL_COMPOSE_TESTS_ 1
+#ifndef DJINTERP_TESTING_FUNCTIONAL_COMPOSE_
+#define DJINTERP_TESTING_FUNCTIONAL_COMPOSE_ 1
 
 // std
 #include <cstddef>
@@ -202,4 +202,4 @@ NS_END  // testing
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_FUNCTIONAL_COMPOSE_TESTS_
+#endif  // DJINTERP_TESTING_FUNCTIONAL_COMPOSE_
