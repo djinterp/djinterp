@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [test]                                              maybe_tests.hpp
+* djinterp [functional]                                        maybe_tests.hpp
 *
 *   DTest declarations and shared fixtures for the maybe.hpp unit-test
 * suite.  Declares one section function per like-group semantic section of
@@ -28,13 +28,13 @@
 * III.  MODULE ENTRY POINTS
 *
 *
-* path:      /inc/djinterp/test/maybe_tests.hpp
+* path:      /tests/djinterp/core/functional/maybe_tests.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.31
 ******************************************************************************/
 
-#ifndef DJINTERP_TEST_MAYBE_TESTS_
-#define DJINTERP_TEST_MAYBE_TESTS_ 1
+#ifndef DJINTERP_TESTING_FUNCTIONAL_MAYBE_
+#define DJINTERP_TESTING_FUNCTIONAL_MAYBE_ 1
 
 // std
 #include <cstddef>
@@ -288,4 +288,4 @@ NS_END  // testing
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_TEST_MAYBE_TESTS_
+#endif  // DJINTERP_TESTING_FUNCTIONAL_MAYBE_
