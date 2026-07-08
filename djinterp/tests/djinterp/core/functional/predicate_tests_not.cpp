@@ -26,14 +26,11 @@ test_predicate_not
   - bool-convertible (int-returning) inner predicate is negated correctly
   - negation composes with binary combinators (e.g. NOT over an AND)
 */
-std::size_t
+void
 test_predicate_not(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
     // ---- basic negation truth table ----
     {
@@ -41,17 +38,17 @@ test_predicate_not(
 
         internal::predicate_not_combinator<is_positive> n(pos);
 
-        D_TESTING_CHECK(_reg, n(5)  == false);  // !pos(5)
-        D_TESTING_CHECK(_reg, n(-5) == true);   // !pos(-5)
-        D_TESTING_CHECK(_reg, n(0)  == true);   // !pos(0)  (0 is not > 0)
+        D_TEST_CHECK(_h, n(5)  == false);  // !pos(5)
+        D_TEST_CHECK(_h, n(-5) == true);   // !pos(-5)
+        D_TEST_CHECK(_h, n(0)  == true);   // !pos(0)  (0 is not > 0)
     }
 
     // ---- factory equivalence ----
     {
         is_positive pos;
 
-        D_TESTING_CHECK(_reg, predicate_not(pos)(5)  == false);
-        D_TESTING_CHECK(_reg, predicate_not(pos)(-5) == true);
+        D_TEST_CHECK(_h, predicate_not(pos)(5)  == false);
+        D_TEST_CHECK(_h, predicate_not(pos)(-5) == true);
     }
 
     // ---- arity-2 negation of a binary relation ----
@@ -60,9 +57,9 @@ test_predicate_not(
 
         internal::predicate_not_combinator<less_than> n(lt);
 
-        D_TESTING_CHECK(_reg, n(1, 2) == false);  // !(1 < 2)
-        D_TESTING_CHECK(_reg, n(2, 1) == true);   // !(2 < 1)
-        D_TESTING_CHECK(_reg, n(1, 1) == true);   // !(1 < 1)
+        D_TEST_CHECK(_h, n(1, 2) == false);  // !(1 < 2)
+        D_TEST_CHECK(_h, n(2, 1) == true);   // !(2 < 1)
+        D_TEST_CHECK(_h, n(1, 1) == true);   // !(1 < 1)
     }
 
     // ---- inner() accessor returns the un-negated predicate ----
@@ -71,17 +68,17 @@ test_predicate_not(
 
         internal::predicate_not_combinator<is_positive> n(pos);
 
-        D_TESTING_CHECK(_reg, n.inner()(5)  == true);   // pos, not !pos
-        D_TESTING_CHECK(_reg, n.inner()(-5) == false);
+        D_TEST_CHECK(_h, n.inner()(5)  == true);   // pos, not !pos
+        D_TEST_CHECK(_h, n.inner()(-5) == false);
     }
 
     // ---- double negation round-trips ----
     {
         is_positive pos;
 
-        D_TESTING_CHECK(_reg,
+        D_TEST_CHECK(_h,
             predicate_not(predicate_not(pos))(5) == true);
-        D_TESTING_CHECK(_reg,
+        D_TEST_CHECK(_h,
             predicate_not(predicate_not(pos))(-5) == false);
     }
 
@@ -91,8 +88,8 @@ test_predicate_not(
 
         internal::predicate_not_combinator<returns_int_predicate> n(ri);
 
-        D_TESTING_CHECK(_reg, n(5) == false);  // 5 -> true  -> !true
-        D_TESTING_CHECK(_reg, n(0) == true);   // 0 -> false -> !false
+        D_TEST_CHECK(_h, n(5) == false);  // 5 -> true  -> !true
+        D_TEST_CHECK(_h, n(0) == true);   // 0 -> false -> !false
     }
 
     // ---- negation over a binary combinator (NOT (pos AND even)) ----
@@ -105,9 +102,9 @@ test_predicate_not(
         internal::predicate_not_combinator<
             internal::predicate_and_combinator<is_positive, is_even> > n(a);
 
-        D_TESTING_CHECK(_reg, n(4)  == false);  // !(pos&&even)
-        D_TESTING_CHECK(_reg, n(3)  == true);   // !(pos&&!even)
-        D_TESTING_CHECK(_reg, n(-2) == true);   // !(!pos&&even)
+        D_TEST_CHECK(_h, n(4)  == false);  // !(pos&&even)
+        D_TEST_CHECK(_h, n(3)  == true);   // !(pos&&!even)
+        D_TEST_CHECK(_h, n(-2) == true);   // !(!pos&&even)
     }
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -121,12 +118,12 @@ test_predicate_not(
 
         bool result = n(0);
 
-        D_TESTING_CHECK(_reg, result == false);  // !true
-        D_TESTING_CHECK(_reg, calls   == 1);
+        D_TEST_CHECK(_h, result == false);  // !true
+        D_TEST_CHECK(_h, calls   == 1);
     }
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return (_reg.failures() - before);
+    return;
 }
 
 

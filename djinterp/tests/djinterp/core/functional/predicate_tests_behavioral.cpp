@@ -107,66 +107,41 @@ test_predicate_behavioral
   - the predicate / predicate_combinator concepts mirror the traits and are
     usable as constraints (C++20+)
 */
-std::size_t
+void
 test_predicate_behavioral(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // positive
-    D_TESTING_CHECK(_reg, (is_predicate<is_positive, int>::value));
-    D_TESTING_CHECK(_reg, (is_predicate<less_than, int, int>::value));
-    D_TESTING_CHECK(_reg, (is_predicate<returns_int_predicate, int>::value));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h, (is_predicate<is_positive, int>::value));
+    D_TEST_CHECK(_h, (is_predicate<less_than, int, int>::value));
+    D_TEST_CHECK(_h, (is_predicate<returns_int_predicate, int>::value));
+    D_TEST_CHECK(_h,
         (is_predicate<
             internal::predicate_and_combinator<is_positive, is_even>,
             int>::value));
 
     // negative
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (is_predicate<not_a_predicate, int>::value == false));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (is_predicate<returns_void_predicate, int>::value == false));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (is_predicate<is_positive, int, int>::value == false));
-    D_TESTING_CHECK(_reg, (is_predicate<int, int>::value == false));
+    D_TEST_CHECK(_h, (is_predicate<int, int>::value == false));
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // concept-constrained call compiles and runs
-    D_TESTING_CHECK(_reg, invoke_pred(is_positive(), 5)  == true);
-    D_TESTING_CHECK(_reg, invoke_pred(is_positive(), -5) == false);
+    D_TEST_CHECK(_h, invoke_pred(is_positive(), 5)  == true);
+    D_TEST_CHECK(_h, invoke_pred(is_positive(), -5) == false);
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 #else
-    (void)_reg;  // C++98: trait/concepts unavailable
+    (void)_h;  // C++98: trait/concepts unavailable
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return (_reg.failures() - before);
-}
-
-
-/*
-run_all_predicate_tests
-  Drives every predicate test section against the supplied registry and
-  returns the total number of failures observed across all sections.
-*/
-std::size_t
-run_all_predicate_tests(
-    test_registry& _reg
-)
-{
-    // run each section; the registry accumulates checks and failures
-    test_predicate_binary(_reg);
-    test_predicate_not(_reg);
-    test_predicate_nand_nor(_reg);
-    test_predicate_variadic(_reg);
-    test_predicate_traits(_reg);
-    test_predicate_behavioral(_reg);
-
-    return _reg.failures();
+    return;
 }
 
 

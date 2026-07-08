@@ -28,14 +28,11 @@ test_predicate_nand_nor
   - the factories decay their arguments
   - short-circuit behavior of the underlying && / || is preserved
 */
-std::size_t
+void
 test_predicate_nand_nor(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
     // ---- NAND truth table: !(pos && even) ----
     {
@@ -45,10 +42,10 @@ test_predicate_nand_nor(
         internal::predicate_nand_combinator<is_positive, is_even>
             n(pos, even);
 
-        D_TESTING_CHECK(_reg, n(4)  == false);  // !(T&&T)
-        D_TESTING_CHECK(_reg, n(3)  == true);   // !(T&&F)
-        D_TESTING_CHECK(_reg, n(-2) == true);   // !(F&&T)
-        D_TESTING_CHECK(_reg, n(-3) == true);   // !(F&&F)
+        D_TEST_CHECK(_h, n(4)  == false);  // !(T&&T)
+        D_TEST_CHECK(_h, n(3)  == true);   // !(T&&F)
+        D_TEST_CHECK(_h, n(-2) == true);   // !(F&&T)
+        D_TEST_CHECK(_h, n(-3) == true);   // !(F&&F)
     }
 
     // ---- NOR truth table: !(pos || even) ----
@@ -59,10 +56,10 @@ test_predicate_nand_nor(
         internal::predicate_nor_combinator<is_positive, is_even>
             n(pos, even);
 
-        D_TESTING_CHECK(_reg, n(4)  == false);  // !(T||T)
-        D_TESTING_CHECK(_reg, n(3)  == false);  // !(T||F)
-        D_TESTING_CHECK(_reg, n(-2) == false);  // !(F||T)
-        D_TESTING_CHECK(_reg, n(-3) == true);   // !(F||F)
+        D_TEST_CHECK(_h, n(4)  == false);  // !(T||T)
+        D_TEST_CHECK(_h, n(3)  == false);  // !(T||F)
+        D_TEST_CHECK(_h, n(-2) == false);  // !(F||T)
+        D_TEST_CHECK(_h, n(-3) == true);   // !(F||F)
     }
 
     // ---- factory equivalence ----
@@ -70,10 +67,10 @@ test_predicate_nand_nor(
         is_positive pos;
         is_even     even;
 
-        D_TESTING_CHECK(_reg, predicate_nand(pos, even)(4)  == false);
-        D_TESTING_CHECK(_reg, predicate_nand(pos, even)(3)  == true);
-        D_TESTING_CHECK(_reg, predicate_nor(pos, even)(-3)  == true);
-        D_TESTING_CHECK(_reg, predicate_nor(pos, even)(4)   == false);
+        D_TEST_CHECK(_h, predicate_nand(pos, even)(4)  == false);
+        D_TEST_CHECK(_h, predicate_nand(pos, even)(3)  == true);
+        D_TEST_CHECK(_h, predicate_nor(pos, even)(-3)  == true);
+        D_TEST_CHECK(_h, predicate_nor(pos, even)(4)   == false);
     }
 
     // ---- arity-2 overloads ----
@@ -82,13 +79,13 @@ test_predicate_nand_nor(
 
         internal::predicate_nand_combinator<less_than, less_than>
             nand2(lt, lt);
-        D_TESTING_CHECK(_reg, nand2(1, 2) == false);  // !(T&&T)
-        D_TESTING_CHECK(_reg, nand2(2, 1) == true);   // !(F&&F)
+        D_TEST_CHECK(_h, nand2(1, 2) == false);  // !(T&&T)
+        D_TEST_CHECK(_h, nand2(2, 1) == true);   // !(F&&F)
 
         internal::predicate_nor_combinator<less_than, less_than>
             nor2(lt, lt);
-        D_TESTING_CHECK(_reg, nor2(1, 2) == false);   // !(T||T)
-        D_TESTING_CHECK(_reg, nor2(2, 1) == true);    // !(F||F)
+        D_TEST_CHECK(_h, nor2(1, 2) == false);   // !(T||T)
+        D_TEST_CHECK(_h, nor2(2, 1) == true);    // !(F||F)
     }
 
     // ---- De Morgan: nand(p,q) == not(and(p,q)) over a sweep ----
@@ -101,7 +98,7 @@ test_predicate_nand_nor(
             bool nand_result = predicate_nand(pos, even)(v);
             bool not_and     = predicate_not(predicate_and(pos, even))(v);
 
-            D_TESTING_CHECK(_reg, nand_result == not_and);
+            D_TEST_CHECK(_h, nand_result == not_and);
         }
     }
 
@@ -115,7 +112,7 @@ test_predicate_nand_nor(
             bool nor_result = predicate_nor(pos, even)(v);
             bool not_or     = predicate_not(predicate_or(pos, even))(v);
 
-            D_TESTING_CHECK(_reg, nor_result == not_or);
+            D_TEST_CHECK(_h, nor_result == not_or);
         }
     }
 
@@ -130,7 +127,7 @@ test_predicate_nand_nor(
             bool and_nots   =
                 predicate_and(predicate_not(pos), predicate_not(even))(v);
 
-            D_TESTING_CHECK(_reg, nor_result == and_nots);
+            D_TEST_CHECK(_h, nor_result == and_nots);
         }
     }
 
@@ -148,9 +145,9 @@ test_predicate_nand_nor(
 
         bool result = n(0);
 
-        D_TESTING_CHECK(_reg, result == true);    // !(F&&?) -> true
-        D_TESTING_CHECK(_reg, left_calls  == 1);
-        D_TESTING_CHECK(_reg, right_calls == 0);  // short-circuited
+        D_TEST_CHECK(_h, result == true);    // !(F&&?) -> true
+        D_TEST_CHECK(_h, left_calls  == 1);
+        D_TEST_CHECK(_h, right_calls == 0);  // short-circuited
     }
 
     // ---- NOR preserves OR short-circuit: true-left skips right ----
@@ -166,13 +163,13 @@ test_predicate_nand_nor(
 
         bool result = n(0);
 
-        D_TESTING_CHECK(_reg, result == false);   // !(T||?) -> false
-        D_TESTING_CHECK(_reg, left_calls  == 1);
-        D_TESTING_CHECK(_reg, right_calls == 0);  // short-circuited
+        D_TEST_CHECK(_h, result == false);   // !(T||?) -> false
+        D_TEST_CHECK(_h, left_calls  == 1);
+        D_TEST_CHECK(_h, right_calls == 0);  // short-circuited
     }
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return (_reg.failures() - before);
+    return;
 }
 
 
