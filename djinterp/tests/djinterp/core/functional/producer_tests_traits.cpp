@@ -164,78 +164,55 @@ test_producer_traits
   - the producer / producer_step_type concepts mirror the traits and are
     usable as constraints (C++20+)
 */
-std::size_t
+void
 test_producer_traits(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // is_producer_step
-    D_TESTING_CHECK(_reg, (is_producer_step<producer_step<int> >::value));
-    D_TESTING_CHECK(_reg, (is_producer_step<int>::value == false));
-    D_TESTING_CHECK(_reg, (is_producer_step<range_t>::value == false));
+    D_TEST_CHECK(_h, (is_producer_step<producer_step<int> >::value));
+    D_TEST_CHECK(_h, (is_producer_step<int>::value == false));
+    D_TEST_CHECK(_h, (is_producer_step<range_t>::value == false));
 
     // is_producer (positive)
-    D_TESTING_CHECK(_reg, is_producer<range_t>::value);
-    D_TESTING_CHECK(_reg, is_producer<single_t>::value);
-    D_TESTING_CHECK(_reg, is_producer<empty_t>::value);
-    D_TESTING_CHECK(_reg, is_producer<take_n_t>::value);
-    D_TESTING_CHECK(_reg, is_producer<transform_t>::value);
-    D_TESTING_CHECK(_reg, (is_producer<const range_t&>::value));
+    D_TEST_CHECK(_h, is_producer<range_t>::value);
+    D_TEST_CHECK(_h, is_producer<single_t>::value);
+    D_TEST_CHECK(_h, is_producer<empty_t>::value);
+    D_TEST_CHECK(_h, is_producer<take_n_t>::value);
+    D_TEST_CHECK(_h, is_producer<transform_t>::value);
+    D_TEST_CHECK(_h, (is_producer<const range_t&>::value));
 
     // is_producer (negative)
-    D_TESTING_CHECK(_reg, (is_producer<int>::value == false));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h, (is_producer<int>::value == false));
+    D_TEST_CHECK(_h,
         (is_producer<producer_step<int> >::value == false));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (is_producer<step_returning_no_value_type>::value == false));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (is_producer<wrong_return_producer>::value == false));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (is_producer<needs_argument_producer>::value == false));
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (is_producer<non_const_call_producer>::value == false));
 
     // producer_value_type
-    D_TESTING_CHECK(_reg,
+    D_TEST_CHECK(_h,
         (std::is_same<producer_value_type<range_t>::type, int>::value));
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
     // concept-constrained call compiles and runs
     {
         auto r = range(0, 5);
-        D_TESTING_CHECK(_reg, length_of(r) == 5);
+        D_TEST_CHECK(_h, length_of(r) == 5);
     }
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 #else
-    (void)_reg;  // producer.hpp requires C++11+; nothing to test under C++98
+    (void)_h;  // producer.hpp requires C++11+; nothing to test under C++98
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return (_reg.failures() - before);
-}
-
-
-/*
-run_all_producer_tests
-  Drives every producer test section against the supplied registry and
-  returns the total number of failures observed across all sections.
-*/
-std::size_t
-run_all_producer_tests(
-    test_registry& _reg
-)
-{
-    test_producer_step(_reg);
-    test_producer_generators(_reg);
-    test_producer_adapters(_reg);
-    test_producer_terminals(_reg);
-    test_producer_traits(_reg);
-
-    return _reg.failures();
+    return;
 }
 
 

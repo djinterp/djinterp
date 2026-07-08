@@ -30,14 +30,11 @@ test_producer_terminals
   - fold over an empty producer returns the initial accumulator unchanged
   - the free collect and the inherited collect() agree on the same source
 */
-std::size_t
+void
 test_producer_terminals(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
     // ---- free collect drains a finite producer ----
     {
@@ -47,7 +44,7 @@ test_producer_terminals(
         want.push_back(1); want.push_back(2);
         want.push_back(3); want.push_back(4);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- free collect of an empty producer ----
@@ -55,7 +52,7 @@ test_producer_terminals(
         auto p = empty<int>();
         std::vector<int> got = collect(p);
 
-        D_TESTING_CHECK(_reg, got.empty());
+        D_TEST_CHECK(_h, got.empty());
     }
 
     // ---- for_each forwards every value in order ----
@@ -67,7 +64,7 @@ test_producer_terminals(
         std::vector<int> want;
         want.push_back(1); want.push_back(2); want.push_back(3);
 
-        D_TESTING_CHECK(_reg, sink == want);
+        D_TEST_CHECK(_h, sink == want);
     }
 
     // ---- for_each over an empty producer calls the consumer zero times ---
@@ -76,7 +73,7 @@ test_producer_terminals(
         std::vector<int> sink;
         for_each(p, push_consumer(&sink));
 
-        D_TESTING_CHECK(_reg, sink.empty());
+        D_TEST_CHECK(_h, sink.empty());
     }
 
     // ---- fold sums the produced values ----
@@ -84,7 +81,7 @@ test_producer_terminals(
         auto p = range(1, 5);                 // 1+2+3+4 = 10
         int total = fold(p, 0, sum_step());
 
-        D_TESTING_CHECK(_reg, total == 10);
+        D_TEST_CHECK(_h, total == 10);
     }
 
     // ---- fold over an empty producer returns the initial value ----
@@ -92,7 +89,7 @@ test_producer_terminals(
         auto p = empty<int>();
         int total = fold(p, 42, sum_step());
 
-        D_TESTING_CHECK(_reg, total == 42);
+        D_TEST_CHECK(_h, total == 42);
     }
 
     // ---- free collect and inherited collect() agree ----
@@ -101,7 +98,7 @@ test_producer_terminals(
         std::vector<int> via_free = collect(p);
         std::vector<int> via_crtp = range(0, 6).collect();
 
-        D_TESTING_CHECK(_reg, via_free == via_crtp);
+        D_TEST_CHECK(_h, via_free == via_crtp);
     }
 
     // ---- fold can build a product as well as a sum ----
@@ -114,10 +111,10 @@ test_producer_terminals(
         auto p = range(1, 5);                 // 1*2*3*4 = 24
         int product = fold(p, 1, mul_step());
 
-        D_TESTING_CHECK(_reg, product == 24);
+        D_TEST_CHECK(_h, product == 24);
     }
 
-    return (_reg.failures() - before);
+    return;
 }
 
 

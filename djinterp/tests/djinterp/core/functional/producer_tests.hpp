@@ -6,13 +6,16 @@
 * and the declarations of the per-section test entry points (one per
 * like-group semantic section of producer.hpp).
 *
-*   HARNESS:
-*   The harness is intentionally minimal so it carries no dependency on the
-* full DTest session/tree machinery. A `test_registry` collects pass/fail
-* tallies; each section function registers its checks against a registry
-* reference and returns the number of failures it observed. Runtime checks
-* use `D_TESTING_CHECK`; purely compile-time facts (traits / concepts) are
-* asserted with `static_assert` directly in the .cpp files.
+*   HARNESS (DTest run_session):
+*   Converted from the original self-contained test_registry harness onto the
+* DTest run_session model, so this suite reads and reports like every other
+* functional module. Each section has the framework's leaf signature
+* `void(test::test_handler&)` and records its findings through D_TEST_CHECK --
+* the thin bridge over test::record_assertion that replaced D_TESTING_CHECK (it
+* stringifies the checked expression as the assertion label). Purely
+* compile-time facts (traits / concepts) remain `static_assert` in the .cpp
+* files. The module identity / run-all entry points are consumed by the session
+* runner (producer_tests_runner.cpp).
 *
 *   SECTION MAP (one .cpp per section):
 *     producer_tests_step.cpp       -- producer_step<T>, make_step, no_step
@@ -45,6 +48,13 @@
 // djinterp
 #include "../djinterp.hpp"
 #include "./producer.hpp"
+// DTest framework (run_session model: handler + record_assertion + session).
+// Same include convention as the example suites (view_tests.hpp, ...); adjust
+// the prefix if this header sits elsewhere relative to the test framework.
+#include "./test_common.hpp"
+#include "./test_handler.hpp"
+#include "./test_defaults.hpp"
+#include "./test_runner.hpp"
 
 
 #ifndef D_KEYWORD_TESTING
@@ -61,77 +71,18 @@ NS_TESTING
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                I.   LIGHTWEIGHT TEST HARNESS                            ///
+///                I.   ASSERTION BRIDGE                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// test_registry
-//   class: minimal pass/fail tally for producer unit tests. Each runtime
-// check increments either the pass or fail counter and records the first
-// failure's location for reporting. Deliberately decoupled from the DTest
-// session/tree machinery so these tests stay small and buildable alone.
-class test_registry
-{
-public:
-    test_registry()
-        : m_checks(0),
-          m_failures(0),
-          m_first_fail_file(0),
-          m_first_fail_line(0),
-          m_first_fail_expr(0)
-    {}
-
-    // record
-    //   function: record the outcome of a single runtime check.
-    void
-    record(
-        bool        _ok,
-        const char* _expr,
-        const char* _file,
-        int         _line
-    )
-    {
-        ++m_checks;
-
-        // remember the location of the first observed failure
-        if (!_ok)
-        {
-            if (m_failures == 0)
-            {
-                m_first_fail_file = _file;
-                m_first_fail_line = _line;
-                m_first_fail_expr = _expr;
-            }
-
-            ++m_failures;
-        }
-
-        return;
-    }
-
-    std::size_t checks()   const { return m_checks; }
-    std::size_t failures() const { return m_failures; }
-    bool        passed()   const { return (m_failures == 0); }
-
-    const char* first_fail_file() const { return m_first_fail_file; }
-    int         first_fail_line() const { return m_first_fail_line; }
-    const char* first_fail_expr() const { return m_first_fail_expr; }
-
-private:
-    std::size_t m_checks;
-    std::size_t m_failures;
-    const char* m_first_fail_file;
-    int         m_first_fail_line;
-    const char* m_first_fail_expr;
-};
-
-
-// D_TESTING_CHECK
-//   macro: record a single boolean check against a test_registry named
-// `_reg`. Evaluates `_expr` exactly once. Wrap expressions containing a
-// top-level comma (e.g. multi-arg template-ids) in an extra set of parens
-// so the preprocessor does not split them.
-#define D_TESTING_CHECK(_reg, _expr)                                          \
-    (_reg).record((_expr), #_expr, __FILE__, __LINE__)
+// D_TEST_CHECK
+//   macro: records one boolean check against the DTest handler `_h`, using
+// the stringified expression as the assertion label, by forwarding to
+// test::record_assertion. Section bodies stay flat check-lists while results
+// flow through the framework's handler / tree / report like every other
+// run_session suite. Variadic so a top-level comma inside a multi-arg
+// template-id passes through as a single expression.
+#define D_TEST_CHECK(_h, ...)                                                 \
+    ::djinterp::test::record_assertion((_h), (__VA_ARGS__), #__VA_ARGS__)
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -279,30 +230,34 @@ struct unfold_countdown
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. PER-SECTION TEST ENTRY POINTS                       ///
 ///////////////////////////////////////////////////////////////////////////////
-// Each function registers its checks against the supplied registry and
-// returns the number of failures it observed (0 == all passed).
+// Each section has the framework's leaf signature void(test::test_handler&) and
+// records its findings with D_TEST_CHECK (test::record_assertion), so the totals
+// roll up through the runner exactly like every other run_session module.
 
 // producer_step<T>, make_step, no_step
-std::size_t test_producer_step(test_registry& _reg);
+void test_producer_step(test::test_handler&);
 
 // iterate / unfold / range / iota / repeat / repeat_n / cycle /
 // generate / empty / single / from_container
-std::size_t test_producer_generators(test_registry& _reg);
+void test_producer_generators(test::test_handler&);
 
 // take_n / drop_n / concat / interleave / transform / filter + collect()
-std::size_t test_producer_adapters(test_registry& _reg);
+void test_producer_adapters(test::test_handler&);
 
 // free collect / for_each / fold
-std::size_t test_producer_terminals(test_registry& _reg);
+void test_producer_terminals(test::test_handler&);
 
 // is_producer_step / is_producer / producer_value_type + concepts
-std::size_t test_producer_traits(test_registry& _reg);
+void test_producer_traits(test::test_handler&);
 
 
-// run_all_producer_tests
-//   function: drives every section against the supplied registry and
-// returns the total number of failures observed (0 == the suite passed).
-std::size_t run_all_producer_tests(test_registry& _reg);
+// producer_module_info / producer_module_run_all
+//   The run_session wiring: module_info carries the module identity and
+// producer_module_run_all schedules every section against the shared engine.
+// Both are DEFINED in producer_tests_runner.cpp.
+extern const test::test_module_info producer_module_info;
+
+void producer_module_run_all(test::test_runner_ctx&);
 
 
 NS_END  // testing

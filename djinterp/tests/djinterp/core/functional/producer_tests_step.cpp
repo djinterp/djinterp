@@ -30,20 +30,17 @@ test_producer_step
   - producer_step works for non-trivial element types (std::string,
     std::pair) as well as scalars
 */
-std::size_t
+void
 test_producer_step(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
     // ---- default construction: empty step ----
     {
         producer_step<int> s;
 
-        D_TESTING_CHECK(_reg, s.has_value == false);
+        D_TEST_CHECK(_h, s.has_value == false);
     }
 
     // ---- const-lvalue value construction ----
@@ -51,16 +48,16 @@ test_producer_step(
         int                v = 42;
         producer_step<int> s(v);
 
-        D_TESTING_CHECK(_reg, s.has_value == true);
-        D_TESTING_CHECK(_reg, s.value == 42);
+        D_TEST_CHECK(_h, s.has_value == true);
+        D_TEST_CHECK(_h, s.value == 42);
     }
 
     // ---- rvalue value construction (move) ----
     {
         producer_step<std::string> s(std::string("hello"));
 
-        D_TESTING_CHECK(_reg, s.has_value == true);
-        D_TESTING_CHECK(_reg, s.value == "hello");
+        D_TEST_CHECK(_h, s.has_value == true);
+        D_TEST_CHECK(_h, s.value == "hello");
     }
 
     // ---- make_step from an lvalue (decays to value) ----
@@ -68,16 +65,16 @@ test_producer_step(
         int  v = 7;
         producer_step<int> s = make_step(v);
 
-        D_TESTING_CHECK(_reg, s.has_value == true);
-        D_TESTING_CHECK(_reg, s.value == 7);
+        D_TEST_CHECK(_h, s.has_value == true);
+        D_TEST_CHECK(_h, s.value == 7);
     }
 
     // ---- make_step from an rvalue ----
     {
         producer_step<int> s = make_step(99);
 
-        D_TESTING_CHECK(_reg, s.has_value == true);
-        D_TESTING_CHECK(_reg, s.value == 99);
+        D_TEST_CHECK(_h, s.has_value == true);
+        D_TEST_CHECK(_h, s.value == 99);
     }
 
     // ---- make_step moves a string's contents ----
@@ -85,22 +82,22 @@ test_producer_step(
         std::string                src = "movable";
         producer_step<std::string> s   = make_step(std::move(src));
 
-        D_TESTING_CHECK(_reg, s.has_value == true);
-        D_TESTING_CHECK(_reg, s.value == "movable");
+        D_TEST_CHECK(_h, s.has_value == true);
+        D_TEST_CHECK(_h, s.value == "movable");
     }
 
     // ---- no_step yields an empty step ----
     {
         producer_step<int> s = no_step<int>();
 
-        D_TESTING_CHECK(_reg, s.has_value == false);
+        D_TEST_CHECK(_h, s.has_value == false);
     }
 
     // ---- no_step for a non-trivial element type ----
     {
         producer_step<std::string> s = no_step<std::string>();
 
-        D_TESTING_CHECK(_reg, s.has_value == false);
+        D_TEST_CHECK(_h, s.has_value == false);
     }
 
     // ---- pair-valued step round-trips both members ----
@@ -108,12 +105,12 @@ test_producer_step(
         producer_step<std::pair<int, int> > s =
             make_step(std::make_pair(3, 4));
 
-        D_TESTING_CHECK(_reg, s.has_value == true);
-        D_TESTING_CHECK(_reg, s.value.first == 3);
-        D_TESTING_CHECK(_reg, s.value.second == 4);
+        D_TEST_CHECK(_h, s.has_value == true);
+        D_TEST_CHECK(_h, s.value.first == 3);
+        D_TEST_CHECK(_h, s.value.second == 4);
     }
 
-    return (_reg.failures() - before);
+    return;
 }
 
 
