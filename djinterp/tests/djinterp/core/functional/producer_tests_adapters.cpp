@@ -40,21 +40,18 @@ test_producer_adapters
   - filter that matches nothing yields an empty result
   - collect() on a non-adapter producer (range) works via the CRTP base
 */
-std::size_t
+void
 test_producer_adapters(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
     // ---- take_n bounds an infinite producer ----
     {
         std::vector<int> got = take_n(repeat(1), 4).collect();
         std::vector<int> want(4, 1);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- take_n with n > inner length stops at inner exhaustion ----
@@ -64,14 +61,14 @@ test_producer_adapters(
         std::vector<int> want;
         want.push_back(0); want.push_back(1); want.push_back(2);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- take_n(p, 0) yields nothing ----
     {
         std::vector<int> got = take_n(repeat(5), 0).collect();
 
-        D_TESTING_CHECK(_reg, got.empty());
+        D_TEST_CHECK(_h, got.empty());
     }
 
     // ---- drop_n skips the first n ----
@@ -82,14 +79,14 @@ test_producer_adapters(
         want.push_back(2); want.push_back(3);
         want.push_back(4); want.push_back(5);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- drop_n past the inner length yields nothing ----
     {
         std::vector<int> got = drop_n(range(0, 3), 10).collect();
 
-        D_TESTING_CHECK(_reg, got.empty());
+        D_TEST_CHECK(_h, got.empty());
     }
 
     // ---- drop_n(p, 0) forwards everything ----
@@ -97,7 +94,7 @@ test_producer_adapters(
         std::vector<int> got  = drop_n(range(0, 4), 0).collect();
         std::vector<int> want = range(0, 4).collect();
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- concat: 1,2 then 100,101 ----
@@ -107,7 +104,7 @@ test_producer_adapters(
         want.push_back(1); want.push_back(2);
         want.push_back(100); want.push_back(101);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- concat with empty first behaves as identity ----
@@ -115,7 +112,7 @@ test_producer_adapters(
         std::vector<int> got  = concat(empty<int>(), range(1, 4)).collect();
         std::vector<int> want = range(1, 4).collect();
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- concat with empty second behaves as identity ----
@@ -123,7 +120,7 @@ test_producer_adapters(
         std::vector<int> got  = concat(range(1, 4), empty<int>()).collect();
         std::vector<int> want = range(1, 4).collect();
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- interleave alternates first, second, first, second, ... ----
@@ -136,7 +133,7 @@ test_producer_adapters(
         want.push_back(2); want.push_back(20);
         want.push_back(3); want.push_back(30);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- interleave stops when the first (turn-leading) side exhausts ----
@@ -149,7 +146,7 @@ test_producer_adapters(
         std::vector<int> want;
         want.push_back(1); want.push_back(10);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- transform doubles each value ----
@@ -158,7 +155,7 @@ test_producer_adapters(
         std::vector<int> want;
         want.push_back(2); want.push_back(4); want.push_back(6);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- transform changes the value type (int -> std::string) ----
@@ -176,12 +173,12 @@ test_producer_adapters(
         std::vector<std::string> got =
             transform(range(1, 4), to_string_map()).collect();
 
-        D_TESTING_CHECK(_reg, got.size() == 3);
+        D_TEST_CHECK(_h, got.size() == 3);
         if (got.size() == 3)
         {
-            D_TESTING_CHECK(_reg, got[0] == "a");
-            D_TESTING_CHECK(_reg, got[1] == "aa");
-            D_TESTING_CHECK(_reg, got[2] == "aaa");
+            D_TEST_CHECK(_h, got[0] == "a");
+            D_TEST_CHECK(_h, got[1] == "aa");
+            D_TEST_CHECK(_h, got[2] == "aaa");
         }
     }
 
@@ -190,7 +187,7 @@ test_producer_adapters(
         std::vector<int> got =
             transform(empty<int>(), times_two()).collect();
 
-        D_TESTING_CHECK(_reg, got.empty());
+        D_TEST_CHECK(_h, got.empty());
     }
 
     // ---- filter keeps only even values ----
@@ -200,7 +197,7 @@ test_producer_adapters(
         std::vector<int> want;
         want.push_back(0); want.push_back(2); want.push_back(4);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- filter that matches nothing yields empty ----
@@ -212,7 +209,7 @@ test_producer_adapters(
 
         std::vector<int> got = filter(range(0, 5), never()).collect();
 
-        D_TESTING_CHECK(_reg, got.empty());
+        D_TEST_CHECK(_h, got.empty());
     }
 
     // ---- composed pipeline: range -> filter even -> transform x2 ----
@@ -225,7 +222,7 @@ test_producer_adapters(
         want.push_back(0);  want.push_back(4);  want.push_back(8);
         want.push_back(12); want.push_back(16);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
     // ---- CRTP collect() on a plain (non-adapter) producer ----
@@ -234,10 +231,10 @@ test_producer_adapters(
         std::vector<int> want;
         want.push_back(1); want.push_back(2); want.push_back(3);
 
-        D_TESTING_CHECK(_reg, got == want);
+        D_TEST_CHECK(_h, got == want);
     }
 
-    return (_reg.failures() - before);
+    return;
 }
 
 
