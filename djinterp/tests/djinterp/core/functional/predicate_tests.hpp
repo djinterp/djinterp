@@ -42,17 +42,15 @@
 // std
 #include <cstddef>
 // djinterp
-#include "../djinterp.hpp"
-#include "./predicate.hpp"
-
-
-#ifndef D_KEYWORD_TESTING
-#  define D_KEYWORD_TESTING testing
-#endif  // D_KEYWORD_TESTING
-
-#ifndef NS_TESTING
-#  define NS_TESTING D_NAMESPACE(D_KEYWORD_TESTING)
-#endif  // NS_TESTING
+#include <djinterp/core/djinterp.hpp>
+#include <djinterp/core/functional/predicate.hpp>
+// DTest framework (run_session model: handler + record_assertion + session).
+// Same include convention as the example suites (view_tests.hpp, ...); adjust
+// the prefix if this header sits elsewhere relative to the test framework.
+#include "./test_common.hpp"
+#include "./test_handler.hpp"
+#include "./test_defaults.hpp"
+#include "./test_runner.hpp"
 
 
 NS_DJINTERP
@@ -60,77 +58,18 @@ NS_TESTING
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                I.   LIGHTWEIGHT TEST HARNESS                            ///
+///                I.   ASSERTION BRIDGE                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// test_registry
-//   class: minimal pass/fail tally for predicate unit tests. Each runtime
-// check increments either the pass or fail counter and records the first
-// failure's location for reporting. The harness is deliberately decoupled
-// from the DTest session/tree machinery so the predicate tests stay small
-// and buildable in isolation.
-class test_registry
-{
-public:
-    test_registry()
-        : m_checks(0),
-          m_failures(0),
-          m_first_fail_file(0),
-          m_first_fail_line(0),
-          m_first_fail_expr(0)
-    {}
-
-    // record
-    //   function: record the outcome of a single runtime check.
-    void
-    record(
-        bool        _ok,
-        const char* _expr,
-        const char* _file,
-        int         _line
-    )
-    {
-        ++m_checks;
-
-        // record the location of the first observed failure
-        if (!_ok)
-        {
-            if (m_failures == 0)
-            {
-                m_first_fail_file = _file;
-                m_first_fail_line = _line;
-                m_first_fail_expr = _expr;
-            }
-
-            ++m_failures;
-        }
-
-        return;
-    }
-
-    std::size_t checks()   const { return m_checks; }
-    std::size_t failures() const { return m_failures; }
-    bool        passed()   const { return (m_failures == 0); }
-
-    const char* first_fail_file() const { return m_first_fail_file; }
-    int         first_fail_line() const { return m_first_fail_line; }
-    const char* first_fail_expr() const { return m_first_fail_expr; }
-
-private:
-    std::size_t m_checks;
-    std::size_t m_failures;
-    const char* m_first_fail_file;
-    int         m_first_fail_line;
-    const char* m_first_fail_expr;
-};
-
-
-// D_TESTING_CHECK
-//   macro: record a single boolean check against a test_registry named
-// `_reg`. Evaluates `_expr` exactly once. Use inside the per-section test
-// functions for every runtime assertion.
-#define D_TESTING_CHECK(_reg, _expr)                                          \
-    (_reg).record((_expr), #_expr, __FILE__, __LINE__)
+// D_TEST_CHECK
+//   macro: records one boolean check against the DTest handler `_h`, using
+// the stringified expression as the assertion label, by forwarding to
+// test::record_assertion. Section bodies stay flat check-lists while results
+// flow through the framework's handler / tree / report like every other
+// run_session suite. Variadic so a top-level comma inside a multi-arg
+// template-id passes through as a single expression.
+#define D_TEST_CHECK(_h, ...)                                                 \
+    ::djinterp::test::record_assertion((_h), (__VA_ARGS__), #__VA_ARGS__)
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -295,32 +234,36 @@ struct returns_void_predicate
 ///////////////////////////////////////////////////////////////////////////////
 ///                III. PER-SECTION TEST ENTRY POINTS                       ///
 ///////////////////////////////////////////////////////////////////////////////
-// Each function registers its checks against the supplied registry and
-// returns the number of failures it observed (0 == all passed).
+// Each section has the framework's leaf signature void(test::test_handler&) and
+// records its findings with D_TEST_CHECK (test::record_assertion), so the totals
+// roll up through the runner exactly like every other run_session module.
 
 // and / or / xor combinators + factories
-std::size_t test_predicate_binary(test_registry& _reg);
+void test_predicate_binary(test::test_handler&);
 
 // not combinator + factory
-std::size_t test_predicate_not(test_registry& _reg);
+void test_predicate_not(test::test_handler&);
 
 // nand / nor combinators + factories
-std::size_t test_predicate_nand_nor(test_registry& _reg);
+void test_predicate_nand_nor(test::test_handler&);
 
 // all_of / any_of / none_of variadic folds (C++11+)
-std::size_t test_predicate_variadic(test_registry& _reg);
+void test_predicate_variadic(test::test_handler&);
 
 // structural is_predicate_* / is_predicate_combinator traits (C++11+)
-std::size_t test_predicate_traits(test_registry& _reg);
+void test_predicate_traits(test::test_handler&);
 
 // behavioral is_predicate trait + C++20 concepts (C++11+)
-std::size_t test_predicate_behavioral(test_registry& _reg);
+void test_predicate_behavioral(test::test_handler&);
 
 
-// run_all_predicate_tests
-//   function: drives every section against a fresh registry and returns the
-// total number of failures across all sections (0 == the full suite passed).
-std::size_t run_all_predicate_tests(test_registry& _reg);
+// predicate_module_info / predicate_module_run_all
+//   The run_session wiring: module_info carries the module identity and
+// predicate_module_run_all schedules every section against the shared engine.
+// Both are DEFINED in predicate_tests_runner.cpp.
+extern const test::test_module_info predicate_module_info;
+
+void predicate_module_run_all(test::test_runner_ctx&);
 
 
 NS_END  // testing

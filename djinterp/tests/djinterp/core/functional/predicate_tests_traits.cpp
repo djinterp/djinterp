@@ -112,55 +112,52 @@ test_predicate_traits
   The static_asserts above guarantee these at build time; the checks here
   re-validate at run time for coverage accounting.
 */
-std::size_t
+void
 test_predicate_traits(
-    test_registry& _reg
+    test::test_handler& _h
 )
 {
-    std::size_t before;
-
-    before = _reg.failures();
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     // positive identification
-    D_TESTING_CHECK(_reg, is_predicate_and<and_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_or<or_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_xor<xor_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_not<not_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_nand<nand_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_nor<nor_t>::value);
+    D_TEST_CHECK(_h, is_predicate_and<and_t>::value);
+    D_TEST_CHECK(_h, is_predicate_or<or_t>::value);
+    D_TEST_CHECK(_h, is_predicate_xor<xor_t>::value);
+    D_TEST_CHECK(_h, is_predicate_not<not_t>::value);
+    D_TEST_CHECK(_h, is_predicate_nand<nand_t>::value);
+    D_TEST_CHECK(_h, is_predicate_nor<nor_t>::value);
 
     // cross-negatives
-    D_TESTING_CHECK(_reg, (is_predicate_or<and_t>::value  == false));
-    D_TESTING_CHECK(_reg, (is_predicate_and<or_t>::value  == false));
-    D_TESTING_CHECK(_reg, (is_predicate_nor<nand_t>::value == false));
+    D_TEST_CHECK(_h, (is_predicate_or<and_t>::value  == false));
+    D_TEST_CHECK(_h, (is_predicate_and<or_t>::value  == false));
+    D_TEST_CHECK(_h, (is_predicate_nor<nand_t>::value == false));
 
     // non-combinators
-    D_TESTING_CHECK(_reg, (is_predicate_and<is_positive>::value == false));
-    D_TESTING_CHECK(_reg, (is_predicate_combinator<is_positive>::value
+    D_TEST_CHECK(_h, (is_predicate_and<is_positive>::value == false));
+    D_TEST_CHECK(_h, (is_predicate_combinator<is_positive>::value
                            == false));
-    D_TESTING_CHECK(_reg, (is_predicate_combinator<int>::value == false));
+    D_TEST_CHECK(_h, (is_predicate_combinator<int>::value == false));
 
     // aggregate accepts every kind
-    D_TESTING_CHECK(_reg, is_predicate_combinator<and_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_combinator<or_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_combinator<xor_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_combinator<not_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_combinator<nand_t>::value);
-    D_TESTING_CHECK(_reg, is_predicate_combinator<nor_t>::value);
+    D_TEST_CHECK(_h, is_predicate_combinator<and_t>::value);
+    D_TEST_CHECK(_h, is_predicate_combinator<or_t>::value);
+    D_TEST_CHECK(_h, is_predicate_combinator<xor_t>::value);
+    D_TEST_CHECK(_h, is_predicate_combinator<not_t>::value);
+    D_TEST_CHECK(_h, is_predicate_combinator<nand_t>::value);
+    D_TEST_CHECK(_h, is_predicate_combinator<nor_t>::value);
 
     // decay-insensitivity
-    D_TESTING_CHECK(_reg, is_predicate_and<const and_t&>::value);
-    D_TESTING_CHECK(_reg, is_predicate_combinator<const nor_t&>::value);
+    D_TEST_CHECK(_h, is_predicate_and<const and_t&>::value);
+    D_TEST_CHECK(_h, is_predicate_combinator<const nor_t&>::value);
 
     // nested
-    D_TESTING_CHECK(_reg, is_predicate_not<not_of_and_t>::value);
-    D_TESTING_CHECK(_reg, (is_predicate_and<not_of_and_t>::value == false));
+    D_TEST_CHECK(_h, is_predicate_not<not_of_and_t>::value);
+    D_TEST_CHECK(_h, (is_predicate_and<not_of_and_t>::value == false));
 #else
-    (void)_reg;  // C++98: traits unavailable
+    (void)_h;  // C++98: traits unavailable
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    return (_reg.failures() - before);
+    return;
 }
 
 
