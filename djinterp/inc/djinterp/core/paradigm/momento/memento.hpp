@@ -1,27 +1,27 @@
 /******************************************************************************
-* djinterp [core]                                                  memento.hpp
+* djinterp [paradigm]                                              memento.hpp
 *
 * Memento Pattern Module:
 *   Provides a comprehensive, container-agnostic, version-portable foundation
 * for the memento pattern. Supports multiple snapshot strategies, undo/redo
-* history management, and compile-time capability detection — all without
+* history management, and compile-time capability detection - all without
 * coupling to any specific data structure.
 *
 *   DESIGN:
 *   The module is organized in three layers:
-*     1. TRAITS — SFINAE-based detection of memento-related capabilities
+*     1. TRAITS - SFINAE-based detection of memento-related capabilities
 *        (save/restore, clone, serialize, diff) on arbitrary types.
-*     2. CORE — abstract and CRTP base classes that define the memento
+*     2. CORE - abstract and CRTP base classes that define the memento
 *        protocol: originator (state owner), memento (snapshot), and
 *        caretaker (history manager).
-*     3. POLICIES — pluggable snapshot strategies (deep copy, serialized,
+*     3. POLICIES - pluggable snapshot strategies (deep copy, serialized,
 *        delta/diff, external) and history policies (unlimited, bounded,
 *        coalescing) that compose with the core via template parameters.
 *
 *   PORTABILITY:
 *   - C++11  : core memento protocol, snapshot strategies, history stack,
 *              SFINAE capability traits, caretaker, type-erased memento
-*              (via restd::any — RTTI-free, constexpr-capable)
+*              (via restd::any - RTTI-free, constexpr-capable)
 *   - C++14  : generic lambda support in for_each_memento, make_caretaker
 *   - C++17  : std::optional integration, string_view tags, if constexpr
 *              dispatch, structured bindings
@@ -29,9 +29,9 @@
 *              std::span for external buffer snapshots
 *
 *
-* path:      /inc/djinterp/paradigm/momento/memento.hpp
+* path:      /inc/djinterp/core/paradigm/momento/memento.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.09
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.09
 ******************************************************************************/
 
 /*
@@ -105,12 +105,14 @@ IX.   CONCEPT-CONSTRAINED INTERFACES (C++20+)
 #ifndef DJINTERP_PARADIGM_MEMENTO_
 #define DJINTERP_PARADIGM_MEMENTO_ 1
 
+// std
 #include <cstddef>
 #include <type_traits>
 #include <vector>
+// djinterp
 #include "../../djinterp.hpp"
 #include "../../meta/type_traits.hpp"
-#include "../../../re_std/any/any.hpp"
+#include "../../../restd/any/any.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
@@ -558,7 +560,7 @@ NS_END  // internal
 // delta (via _State::diff()). Restoration walks deltas back to the
 // nearest baseline.
 //
-// Note: this policy is stateful at the strategy level — the caretaker
+// Note: this policy is stateful at the strategy level - the caretaker
 // must store the previous state for computing diffs. The policy itself
 // provides the diff/apply_diff wrappers.
 struct delta_snapshot
@@ -890,7 +892,7 @@ struct memento
 //   {
 //       std::string text;
 //   public:
-//       // deep_copy_snapshot uses copy ctor/assignment — nothing
+//       // deep_copy_snapshot uses copy ctor/assignment - nothing
 //       // extra needed.
 //   };
 //
@@ -948,8 +950,15 @@ public:
     )
     {
         _Derived& self = static_cast<_Derived&>(*this);
+
+        // preserve the originator's own bookkeeping across the restore: a
+        // whole-object snapshot policy (e.g. deep_copy_snapshot) round-trips
+        // m_sequence through the snapshotted state, which would otherwise
+        // rewind the monotonic memento counter.
+        const std::size_t saved_sequence = m_sequence;
         _SnapshotPolicy::restore(self,
                                  _memento.state);
+        m_sequence = saved_sequence;
 
         return;
     }
@@ -1380,7 +1389,7 @@ public:
     //   function: true if the stored snapshot was originally of type
     // _Snapshot. RTTI-free; uses any's function-pointer type identity.
     //
-    // Note: no .template disambiguator — any_memento is not a class
+    // Note: no .template disambiguator - any_memento is not a class
     // template, so m_state's type is not dependent.
     template<typename _Snapshot>
     D_CONSTEXPR bool
@@ -1390,7 +1399,7 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // get (const, SBO types — bool)
+    // get (const, SBO types - bool)
     // -----------------------------------------------------------------
 
     template<typename _Snapshot,
@@ -1405,7 +1414,7 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // get (const, SBO types — signed integral, not bool)
+    // get (const, SBO types - signed integral, not bool)
     // -----------------------------------------------------------------
 
     template<typename _Snapshot,
@@ -1422,7 +1431,7 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // get (const, SBO types — unsigned integral, not bool)
+    // get (const, SBO types - unsigned integral, not bool)
     // -----------------------------------------------------------------
 
     template<typename _Snapshot,
@@ -1439,7 +1448,7 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // get (const, SBO types — floating point)
+    // get (const, SBO types - floating point)
     // -----------------------------------------------------------------
 
     template<typename _Snapshot,
@@ -1454,7 +1463,7 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // get (const, SBO types — enum)
+    // get (const, SBO types - enum)
     // -----------------------------------------------------------------
 
     template<typename _Snapshot,
@@ -1469,7 +1478,7 @@ public:
     }
 
     // -----------------------------------------------------------------
-    // get (const, SBO types — pointer)
+    // get (const, SBO types - pointer)
     // -----------------------------------------------------------------
 
     template<typename _Snapshot,
