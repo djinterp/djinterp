@@ -31,7 +31,7 @@
 *
 * path:      /inc/djinterp/paradigm/adapter/adapter.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.09
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.09
 ******************************************************************************/
 
 /*
@@ -231,6 +231,14 @@ struct by_value
         {
             return _s;
         }
+
+        static D_CONSTEXPR_INLINE const _Adaptee&
+        access(
+            const stored_type& _s
+        ) noexcept
+        {
+            return _s;
+        }
     };
 };
 
@@ -252,6 +260,14 @@ struct by_shared_ptr
         {
             return *_s;
         }
+
+        static D_CONSTEXPR_INLINE const _Adaptee&
+        access(
+            const stored_type& _s
+        ) noexcept
+        {
+            return *_s;
+        }
     };
 };
 
@@ -269,6 +285,14 @@ struct by_unique_ptr
         static reference_type
         access(
             stored_type& _s
+        ) noexcept
+        {
+            return *_s;
+        }
+
+        static D_CONSTEXPR_INLINE const _Adaptee&
+        access(
+            const stored_type& _s
         ) noexcept
         {
             return *_s;
@@ -562,7 +586,7 @@ public:
     explicit object_adapter(
             stored_type _adaptee
         )
-            : m_adaptee(std::move(_adaptee))
+            : m_adaptee(std::forward<stored_type>(_adaptee))
         {}
 
     // adaptee
@@ -732,7 +756,7 @@ public:
     explicit interface_adapter(
             stored_type _adaptee
         )
-            : m_adaptee(std::move(_adaptee))
+            : m_adaptee(std::forward<stored_type>(_adaptee))
         {}
 
 protected:
