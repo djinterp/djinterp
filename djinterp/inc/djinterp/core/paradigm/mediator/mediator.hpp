@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                               mediator.hpp
+* djinterp [paradigm]                                             mediator.hpp
 *
 * Mediator Pattern Module:
 *   Provides a comprehensive, abstract, version-portable foundation for the
@@ -29,9 +29,10 @@
 *              variant_event_bus for closed event sets
 *   - C++20  : concept-constrained mediator_for, colleague_of, handler_for
 *
-* path:      /inc/patterns/mediator.hpp
+
+* path:      /inc/djinterp/core/paradigm/mediator/mediator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.04.12
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.12
 ******************************************************************************/
 
 /*
@@ -101,16 +102,18 @@ X.    CONCEPT-CONSTRAINED INTERFACES (C++20+)
       iii.  handler_for (concept)
 */
 
-#ifndef DJINTERP_MEDIATOR_
-#define DJINTERP_MEDIATOR_ 1
+#ifndef DJINTERP_PARADIGM_MEDIATOR_
+#define DJINTERP_PARADIGM_MEDIATOR_ 1
 
+// std
 #include <cstddef>
+#include <functional>
 #include <type_traits>
 #include <vector>
-#include <functional>
-#include ".\djinterp.hpp"
-#include ".\meta\type_traits.hpp"
-#include ".\compat\std\any.hpp"
+// djinterp
+#include "../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "compat/std/any.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <utility>
@@ -897,6 +900,21 @@ public:
         return tok;
     }
 
+    // connect (const char* overload)
+    //   Disambiguates a string-literal channel: without this, a literal
+    // converts equally well to const signal_id& and to std::string_view under
+    // C++17, so connect("chan", fn) is ambiguous. A const char* parameter binds
+    // the literal by array-to-pointer (a standard conversion), which is a
+    // better match than either user-defined conversion.
+    subscription_token
+    connect(
+        const char* _channel,
+        handler_fn  _fn
+    )
+    {
+        return connect(signal_id(_channel), std::move(_fn));
+    }
+
 #if D_MEDIATOR_HAS_STRING_VIEW
     // connect (string_view overload)
     subscription_token
@@ -1182,7 +1200,7 @@ public:
     template<std::size_t _Index>
     auto
     get_colleague() const
-        -> decltype(std::get<_Index>(m_colleagues))
+        -> typename std::tuple_element<_Index, std::tuple<_Colleagues*...>>::type
     {
         return std::get<_Index>(m_colleagues);
     }
@@ -1466,4 +1484,4 @@ constrained_connect(
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEDIATOR_
+#endif  // DJINTERP_PARADIGM_MEDIATOR_
