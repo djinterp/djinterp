@@ -1,18 +1,20 @@
 /******************************************************************************
 * djinterp [test]                                type_traits_tests_macros_op.cpp
 *
-*   Unit tests for the operator-detection macros and the legacy
-* HAS_METHOD_OF_TYPE family in Section 0.3 of type_traits.hpp:
-*     - D_TRAIT_DETECT_BINARY_OP   (covered indirectly via HAS_BINARY_OP)
-*     - D_TRAIT_HAS_BINARY_OP
-*     - D_TRAIT_DETECT_UNARY_OP    (covered indirectly via HAS_UNARY_OP)
-*     - D_TRAIT_HAS_UNARY_OP
+*   Unit tests for the operator-detection macros (now in trait_detect.hpp)
+* and the legacy HAS_METHOD_OF_TYPE family (still in type_traits.hpp's
+* Section 0.3, the one SFINAE shape that was NOT moved out because it
+* yields enable_if expressions rather than trait definitions):
+*     - D_TYPE_TRAIT_EXPR_BINARY_OP   (covered indirectly via HAS_BINARY_OP)
+*     - D_TYPE_TRAIT_HAS_BINARY_OP    (was D_TRAIT_HAS_BINARY_OP)
+*     - D_TYPE_TRAIT_EXPR_UNARY_OP    (covered indirectly via HAS_UNARY_OP)
+*     - D_TYPE_TRAIT_HAS_UNARY_OP     (was D_TRAIT_HAS_UNARY_OP)
 *     - HAS_METHOD_OF_TYPE         (legacy enable_if-expression family)
 *     - HAS_METHOD_OF_TYPE_ARGS
 *     - HAS_METHOD_OF_TYPE_V
 *     - HAS_METHOD_OF_TYPE_ARGS_V
 *
-*   D_TRAIT_HAS_BINARY_OP / D_TRAIT_HAS_UNARY_OP rely on operator overload
+*   D_TYPE_TRAIT_HAS_BINARY_OP / D_TYPE_TRAIT_HAS_UNARY_OP rely on operator overload
 * resolution: the trait should fire for built-in arithmetic types AND for
 * user-defined types that overload the operator, and should NOT fire for
 * a class that doesn't.  Specific tested operators:
@@ -123,80 +125,80 @@ struct bare_box
 
 
 // =========================================================================
-// I.   D_TRAIT_HAS_BINARY_OP  (compile-time)
+// I.   D_TYPE_TRAIT_HAS_BINARY_OP  (compile-time)
 // =========================================================================
 
-D_TRAIT_HAS_BINARY_OP(has_op_plus,      +)
-D_TRAIT_HAS_BINARY_OP(has_op_equal,    ==)
-D_TRAIT_HAS_BINARY_OP(has_op_less,      <)
+D_TYPE_TRAIT_HAS_BINARY_OP(has_op_plus,      +)
+D_TYPE_TRAIT_HAS_BINARY_OP(has_op_equal,    ==)
+D_TYPE_TRAIT_HAS_BINARY_OP(has_op_less,      <)
 
 // addable_t supports +, ==, <
 static_assert(has_op_plus<addable_t>::value  == true,
-              "D_TRAIT_HAS_BINARY_OP: addable_t + addable_t -> true");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t + addable_t -> true");
 static_assert(has_op_equal<addable_t>::value == true,
-              "D_TRAIT_HAS_BINARY_OP: addable_t == addable_t -> true");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t == addable_t -> true");
 static_assert(has_op_less<addable_t>::value  == true,
-              "D_TRAIT_HAS_BINARY_OP: addable_t < addable_t -> true");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t < addable_t -> true");
 
 // builtin int supports all three
 static_assert(has_op_plus<int>::value  == true,
-              "D_TRAIT_HAS_BINARY_OP: int + int -> true (builtin)");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: int + int -> true (builtin)");
 static_assert(has_op_equal<int>::value == true,
-              "D_TRAIT_HAS_BINARY_OP: int == int -> true (builtin)");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: int == int -> true (builtin)");
 static_assert(has_op_less<int>::value  == true,
-              "D_TRAIT_HAS_BINARY_OP: int < int -> true (builtin)");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: int < int -> true (builtin)");
 
 // inert_t supports none
 static_assert(has_op_plus<inert_t>::value  == false,
-              "D_TRAIT_HAS_BINARY_OP: inert_t + inert_t -> false");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t + inert_t -> false");
 static_assert(has_op_equal<inert_t>::value == false,
-              "D_TRAIT_HAS_BINARY_OP: inert_t == inert_t -> false");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t == inert_t -> false");
 static_assert(has_op_less<inert_t>::value  == false,
-              "D_TRAIT_HAS_BINARY_OP: inert_t < inert_t -> false");
+              "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t < inert_t -> false");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     static_assert(has_op_plus_v<addable_t>  == true,
-                  "D_TRAIT_HAS_BINARY_OP _v alias (true case)");
+                  "D_TYPE_TRAIT_HAS_BINARY_OP _v alias (true case)");
     static_assert(has_op_plus_v<inert_t>    == false,
-                  "D_TRAIT_HAS_BINARY_OP _v alias (false case)");
+                  "D_TYPE_TRAIT_HAS_BINARY_OP _v alias (false case)");
 #endif
 
 
 // =========================================================================
-// II.  D_TRAIT_HAS_UNARY_OP  (compile-time)
+// II.  D_TYPE_TRAIT_HAS_UNARY_OP  (compile-time)
 // =========================================================================
 
-D_TRAIT_HAS_UNARY_OP(has_op_neg,    -)
-D_TRAIT_HAS_UNARY_OP(has_op_not,    !)
-D_TRAIT_HAS_UNARY_OP(has_op_deref,  *)
+D_TYPE_TRAIT_HAS_UNARY_OP(has_op_neg,    -)
+D_TYPE_TRAIT_HAS_UNARY_OP(has_op_not,    !)
+D_TYPE_TRAIT_HAS_UNARY_OP(has_op_deref,  *)
 
 // addable_t supports -, !, and *
 static_assert(has_op_neg<addable_t>::value   == true,
-              "D_TRAIT_HAS_UNARY_OP: -addable_t -> true");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: -addable_t -> true");
 static_assert(has_op_not<addable_t>::value   == true,
-              "D_TRAIT_HAS_UNARY_OP: !addable_t -> true");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: !addable_t -> true");
 static_assert(has_op_deref<addable_t>::value == true,
-              "D_TRAIT_HAS_UNARY_OP: *addable_t -> true");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: *addable_t -> true");
 
 // builtin int supports - and !; pointer types support *
 static_assert(has_op_neg<int>::value == true,
-              "D_TRAIT_HAS_UNARY_OP: -int -> true (builtin)");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: -int -> true (builtin)");
 static_assert(has_op_not<int>::value == true,
-              "D_TRAIT_HAS_UNARY_OP: !int -> true (builtin)");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: !int -> true (builtin)");
 static_assert(has_op_deref<int*>::value == true,
-              "D_TRAIT_HAS_UNARY_OP: *int* -> true (builtin)");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: *int* -> true (builtin)");
 
 // negative cases
 static_assert(has_op_neg<inert_t>::value   == false,
-              "D_TRAIT_HAS_UNARY_OP: -inert_t -> false");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: -inert_t -> false");
 static_assert(has_op_deref<int>::value     == false,
-              "D_TRAIT_HAS_UNARY_OP: *int -> false (cannot deref non-pointer)");
+              "D_TYPE_TRAIT_HAS_UNARY_OP: *int -> false (cannot deref non-pointer)");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     static_assert(has_op_neg_v<addable_t> == true,
-                  "D_TRAIT_HAS_UNARY_OP _v alias (true case)");
+                  "D_TYPE_TRAIT_HAS_UNARY_OP _v alias (true case)");
     static_assert(has_op_neg_v<inert_t>   == false,
-                  "D_TRAIT_HAS_UNARY_OP _v alias (false case)");
+                  "D_TYPE_TRAIT_HAS_UNARY_OP _v alias (false case)");
 #endif
 
 
@@ -303,48 +305,48 @@ type_traits_tests_macros_op(
     // ---- HAS_BINARY_OP ----
     record_assertion(_test_handler, 
         has_op_plus<addable_t>::value  == true,
-        "D_TRAIT_HAS_BINARY_OP: addable_t + addable_t");
+        "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t + addable_t");
     record_assertion(_test_handler, 
         has_op_equal<addable_t>::value == true,
-        "D_TRAIT_HAS_BINARY_OP: addable_t == addable_t");
+        "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t == addable_t");
     record_assertion(_test_handler, 
         has_op_less<addable_t>::value  == true,
-        "D_TRAIT_HAS_BINARY_OP: addable_t < addable_t");
+        "D_TYPE_TRAIT_HAS_BINARY_OP: addable_t < addable_t");
     record_assertion(_test_handler, 
         ( has_op_plus<int>::value  == true &&
           has_op_equal<int>::value == true &&
           has_op_less<int>::value  == true ),
-        "D_TRAIT_HAS_BINARY_OP: builtin int supports +, ==, <");
+        "D_TYPE_TRAIT_HAS_BINARY_OP: builtin int supports +, ==, <");
     record_assertion(_test_handler, 
         has_op_plus<inert_t>::value == false,
-        "D_TRAIT_HAS_BINARY_OP: inert_t -> false for +");
+        "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t -> false for +");
     record_assertion(_test_handler, 
         has_op_equal<inert_t>::value == false,
-        "D_TRAIT_HAS_BINARY_OP: inert_t -> false for ==");
+        "D_TYPE_TRAIT_HAS_BINARY_OP: inert_t -> false for ==");
 
     // ---- HAS_UNARY_OP ----
     record_assertion(_test_handler, 
         has_op_neg<addable_t>::value == true,
-        "D_TRAIT_HAS_UNARY_OP: -addable_t");
+        "D_TYPE_TRAIT_HAS_UNARY_OP: -addable_t");
     record_assertion(_test_handler, 
         has_op_not<addable_t>::value == true,
-        "D_TRAIT_HAS_UNARY_OP: !addable_t");
+        "D_TYPE_TRAIT_HAS_UNARY_OP: !addable_t");
     record_assertion(_test_handler, 
         has_op_deref<addable_t>::value == true,
-        "D_TRAIT_HAS_UNARY_OP: *addable_t");
+        "D_TYPE_TRAIT_HAS_UNARY_OP: *addable_t");
     record_assertion(_test_handler, 
         ( has_op_neg<int>::value == true &&
           has_op_not<int>::value == true ),
-        "D_TRAIT_HAS_UNARY_OP: -int and !int (builtin)");
+        "D_TYPE_TRAIT_HAS_UNARY_OP: -int and !int (builtin)");
     record_assertion(_test_handler, 
         has_op_deref<int*>::value == true,
-        "D_TRAIT_HAS_UNARY_OP: *int*");
+        "D_TYPE_TRAIT_HAS_UNARY_OP: *int*");
     record_assertion(_test_handler, 
         has_op_neg<inert_t>::value == false,
-        "D_TRAIT_HAS_UNARY_OP: -inert_t -> false");
+        "D_TYPE_TRAIT_HAS_UNARY_OP: -inert_t -> false");
     record_assertion(_test_handler, 
         has_op_deref<int>::value == false,
-        "D_TRAIT_HAS_UNARY_OP: *int -> false (cannot deref non-pointer)");
+        "D_TYPE_TRAIT_HAS_UNARY_OP: *int -> false (cannot deref non-pointer)");
 
     // ---- HAS_METHOD_OF_TYPE ----
     record_assertion(_test_handler, 

@@ -4,22 +4,34 @@
 *   Test-suite header for the djinterp type_traits.hpp module.
 *
 *   Public surface:
-*     - per-section runner templates `type_traits_tests_<section>` which
-*       each take a `test_handler&` and an optional variadic options pack;
-*       any options supplied are forwarded to the handler before the
-*       section's worker runs.  The runner returns `true` iff no new
-*       failure or error counters were recorded during the worker call.
-*     - a `type_traits_tests_all` aggregate driver in the same shape
-*       which AND-folds every section's bool back to the caller
+*     - `type_traits_spec()` -- the whole suite as one module_spec (plain
+*       data: a block of `{ name, descriptor, bool() }` unit tests, one per
+*       section).  This is what the spec-based runner hands to run_module
+*       (test_defaults.hpp), which lowers it into the six-kind test tree AND
+*       projects it onto the console report and an optional PDF.  Each unit
+*       test's `bool()` is a thin adapter (type_traits_detail::run_section)
+*       over the corresponding per-section worker.
+*     - per-section `void(test_handler&)` WORKERS, declared here and defined
+*       in the .cpp files.  Each records many assertions but represents one
+*       aggregate unit test; the spec adapter surfaces its pass/fail.
+*     - a `type_traits_tests_all` aggregate driver (the legacy whole-suite
+*       flow: one handler, sequential worker calls, AND-folded verdict),
+*       compiled out under DTEST_SPEC_MODE since the spec-based runner does
+*       not need it.
 *     - a small library of helper types used across multiple sections so
-*       each individual .cpp can stay focused on the trait under test
+*       each individual .cpp can stay focused on the trait under test.
 *
-*   Per-section .cpp files implement the work in `` worker
-* functions that take only a `test_handler&` and return `bool`; the
-* inline wrappers below forward to those workers after applying any
-* caller-supplied options via `apply_options_to_handler`.  The hook is
-* in place; sections opt in to consuming options as the handler grows
-* an option-application API.
+*   DTEST_SPEC_MODE:
+*   A runner that consumes the suite as data defines DTEST_SPEC_MODE before
+* including this header (mirroring the other DTest suites).  In that mode
+* the legacy aggregate driver is dropped and type_traits_spec() is the
+* entry point.  The section .cpp files are compiled WITHOUT the macro and
+* supply the worker definitions the spec's function pointers resolve to.
+*
+*   Per-section .cpp files implement the work in `void(test_handler&)`
+* worker functions; they record their assertions directly via
+* record_assertion().  `apply_options_to_handler` remains as the hook for
+* the day the handler grows an option-application API.
 *
 *   Section coverage map (see the individual .cpp files for detail):
 *
@@ -296,8 +308,144 @@ void type_traits_tests_arity(test_handler& _test_handler);
 void type_traits_tests_template(test_handler& _test_handler);
 void type_traits_tests_tuple(test_handler& _test_handler);
 
+
 // =========================================================================
-// V.   AGGREGATE DRIVER
+// IV.  MODULE SPEC  (the data view the spec-based runner consumes)
+// =========================================================================
+//   The framework's one-call runner (run_module in test_defaults.hpp) does
+// not drive `void(test_handler&)` workers directly -- it consumes a
+// module_spec: plain data describing a module as blocks of unit tests,
+// each unit test a `{ name, descriptor, bool() }` triple.  run_module
+// lowers that spec into the six-kind test tree AND projects it onto the
+// report / PDF, so authoring the suite once as data feeds both views.
+//
+//   Each per-section worker here is one aggregate unit test (it records
+// many assertions but reports a single pass/fail), which is exactly the
+// shape a test_spec wants.  The only impedance is the signature: the spec
+// needs `bool()`, the workers are `void(test_handler&)`.  run_section
+// bridges the two -- it runs one worker against a private handler and
+// returns whether that run added no failures or errors.  A function-pointer
+// non-type template parameter gives one distinct thunk per worker without
+// hand-writing fifteen wrappers.
+
+namespace type_traits_detail
+{
+
+// run_section
+//   adapter: presents one `void(test_handler&)` worker as a nullary
+// `bool()` predicate.  Runs the worker against a fresh default_test_handler
+// and returns true iff it recorded no new failures and no new errors.  The
+// worker still pushes its per-assertion leaves into that private handler,
+// so nothing about the section's own recording changes -- only the verdict
+// is surfaced, which is all a test_spec consumes.
+template<void (*_Worker)(test_handler&)>
+inline bool
+run_section()
+{
+    default_test_handler _handler;
+
+    _Worker(_handler);
+
+    return ( (_handler.failed() == 0) &&
+             (_handler.errors() == 0) );
+}
+
+}  // namespace type_traits_detail
+
+
+// type_traits_spec
+//   provider: the whole type_traits suite as one module_spec -- a single
+// block whose fifteen unit tests are the per-section workers, in the same
+// declared order as the aggregate driver below.  Hand this to run_module
+// (see the runner) to drive both the six-kind tree and the report / PDF.
+//   Kept inline in the header so the runner needs only this file: the
+// section .cpp translation units supply the worker definitions the
+// function-pointer template arguments resolve to at link time.
+inline module_spec
+type_traits_spec()
+{
+    module_spec _module;
+
+    _module.name       = "type_traits";
+    _module.descriptor =
+        "Compile-time metafunction module: the detection idiom (0.2), the "
+        "trait-defining macro families (0.3, now in trait_detect.hpp), the "
+        "portable standard-library traits (section I), and the djinterp "
+        "custom trait surface (section III).";
+
+    block_spec _block;
+
+    _block.name       = "type_traits";
+    _block.descriptor =
+        "One unit test per semantic section; each aggregates its section's "
+        "assertions into a single pass/fail verdict.";
+
+    _block.tests = std::vector<test_spec>{
+        { "detection",
+          "0.2  detection idiom: nonesuch, detected_or/_t, is_detected[_v], "
+          "is_detected_convertible, is_detected_exact",
+          &type_traits_detail::run_section<&type_traits_tests_detection> },
+        { "macros_core",
+          "0.3  core macros: D_VOID_T, D_TYPE_TRAIT_TRUE[_AS/_FROM], "
+          "D_TYPE_TRAIT_VALUE_BOOL, D_TYPE_TRAIT_TYPE_ALIAS",
+          &type_traits_detail::run_section<&type_traits_tests_macros_core> },
+        { "macros_member",
+          "0.3  member macros: HAS_METHOD[_ARGS], HAS_TYPE, "
+          "HAS_STATIC_MEMBER, MEMBER_TYPE_OR",
+          &type_traits_detail::run_section<&type_traits_tests_macros_member> },
+        { "macros_op",
+          "0.3  operator macros: HAS_BINARY_OP, HAS_UNARY_OP, and the "
+          "legacy HAS_METHOD_OF_TYPE family",
+          &type_traits_detail::run_section<&type_traits_tests_macros_op> },
+        { "macros_spec",
+          "0.3  specialization macros: IS_SPECIALIZATION_OF[_AS]",
+          &type_traits_detail::run_section<&type_traits_tests_macros_spec> },
+        { "logical",
+          "I.1 + II  bool_constant, conjunction, disjunction, negation, "
+          "D_CONJUNCTION / D_DISJUNCTION / D_NEGATION",
+          &type_traits_detail::run_section<&type_traits_tests_logical> },
+        { "callable",
+          "I.2  invoke_result, is_invocable[_r], is_nothrow_invocable[_r]",
+          &type_traits_detail::run_section<&type_traits_tests_callable> },
+        { "cpp20",
+          "I.3  is_bounded_array, is_unbounded_array, remove_cvref, "
+          "type_identity",
+          &type_traits_detail::run_section<&type_traits_tests_cpp20> },
+        { "cpp23",
+          "I.4  is_scoped_enum",
+          &type_traits_detail::run_section<&type_traits_tests_cpp23> },
+        { "evaluate",
+          "III  evaluate_types_for_trait, are_all_nonvoid, "
+          "exclusive_disjunction",
+          &type_traits_detail::run_section<&type_traits_tests_evaluate> },
+        { "rules",
+          "III  follows_rule_of_five / _three / _zero",
+          &type_traits_detail::run_section<&type_traits_tests_rules> },
+        { "traits",
+          "III  has_max_size, has_nested_template_type, "
+          "has_variadic_constructor, is_allocator, is_bounded, is_nonvoid, "
+          "is_sized, is_valid_size_type",
+          &type_traits_detail::run_section<&type_traits_tests_traits> },
+        { "arity",
+          "III  is_zero, is_nonzero, is_single_arg, is_single_type_arg",
+          &type_traits_detail::run_section<&type_traits_tests_arity> },
+        { "template",
+          "III  is_template, is_template_with_args, "
+          "is_template_parameter_base_of",
+          &type_traits_detail::run_section<&type_traits_tests_template> },
+        { "tuple",
+          "III  first_arg, is_tuple, is_single_tuple_arg, to_tuple",
+          &type_traits_detail::run_section<&type_traits_tests_tuple> }
+    };
+
+    _module.blocks.push_back(_block);
+
+    return _module;
+}
+
+
+// =========================================================================
+// V.   AGGREGATE DRIVER  (legacy whole-suite void() flow)
 // =========================================================================
 //   Runs every per-section worker in declared order against the
 // supplied handler, applying any caller-supplied options to the
@@ -308,6 +456,12 @@ void type_traits_tests_tuple(test_handler& _test_handler);
 // the counter delta around the run.  Every section is run even
 // after an earlier failure -- short-circuit logic would mask
 // later-section regressions in the same run.
+//
+//   Retained for callers that still drive the suite the old way (one
+// handler, sequential worker calls).  It is the "fixtures" the spec-mode
+// runner does not need, so it is compiled out when DTEST_SPEC_MODE is
+// defined -- the runner consumes type_traits_spec() instead.
+#ifndef DTEST_SPEC_MODE
 
 template<typename... _Options>
 inline bool
@@ -344,6 +498,8 @@ type_traits_tests_all(
     return ( (_handler.failed() == _failed_before) &&
              (_handler.errors() == _errors_before) );
 }
+
+#endif  // !DTEST_SPEC_MODE
 
 
 NS_END  // test

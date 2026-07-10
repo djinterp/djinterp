@@ -1,9 +1,10 @@
 /******************************************************************************
 * djinterp [test]                              type_traits_tests_macros_spec.cpp
 *
-*   Unit tests for the specialization-detection macros in Section 0.3:
-*     - D_TRAIT_IS_SPECIALIZATION_OF_AS
-*     - D_TRAIT_IS_SPECIALIZATION_OF
+*   Unit tests for the specialization-detection macros, now in
+* trait_detect.hpp (re-exported through Section 0.3 of type_traits.hpp):
+*     - D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS   (was D_TRAIT_IS_SPECIALIZATION_OF_AS)
+*     - D_TYPE_TRAIT_IS_SPECIALIZATION_OF      (was D_TRAIT_IS_SPECIALIZATION_OF)
 *
 *   These macros are a distinct family from the SFINAE-detection ones:
 * they emit a primary template (inherits std::false_type) plus a partial
@@ -40,73 +41,73 @@ NS_TEST
 
 
 // =========================================================================
-// I.   D_TRAIT_IS_SPECIALIZATION_OF  (compile-time)
+// I.   D_TYPE_TRAIT_IS_SPECIALIZATION_OF  (compile-time)
 // =========================================================================
 //   Sugar over _AS that inherits from std::true_type and emits a _v alias.
 
-D_TRAIT_IS_SPECIALIZATION_OF(macro_is_tuple, std::tuple)
+D_TYPE_TRAIT_IS_SPECIALIZATION_OF(macro_is_tuple, std::tuple)
 
 // positive cases
 static_assert(macro_is_tuple<std::tuple<int, char>>::value == true,
-              "D_TRAIT_IS_SPECIALIZATION_OF: tuple<int, char> -> true");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: tuple<int, char> -> true");
 static_assert(macro_is_tuple<std::tuple<>>::value == true,
-              "D_TRAIT_IS_SPECIALIZATION_OF: empty tuple -> true (variadic accepts empty)");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: empty tuple -> true (variadic accepts empty)");
 static_assert(macro_is_tuple<std::tuple<int>>::value == true,
-              "D_TRAIT_IS_SPECIALIZATION_OF: single-element tuple -> true");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: single-element tuple -> true");
 static_assert(macro_is_tuple<std::tuple<int, char, float, double>>::value == true,
-              "D_TRAIT_IS_SPECIALIZATION_OF: 4-element tuple -> true");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: 4-element tuple -> true");
 
 // negative cases
 static_assert(macro_is_tuple<int>::value == false,
-              "D_TRAIT_IS_SPECIALIZATION_OF: builtin int -> false");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: builtin int -> false");
 static_assert(macro_is_tuple<std::vector<int>>::value == false,
-              "D_TRAIT_IS_SPECIALIZATION_OF: vector<int> is not tuple<...> -> false");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: vector<int> is not tuple<...> -> false");
 
 // nested-pair edge case: pair<tuple, tuple> is NOT itself a tuple
 static_assert(macro_is_tuple<std::pair<std::tuple<int>, std::tuple<char>>>::value == false,
-              "D_TRAIT_IS_SPECIALIZATION_OF: pair-of-tuples is not tuple -> false");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: pair-of-tuples is not tuple -> false");
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
     static_assert(macro_is_tuple_v<std::tuple<int>>  == true,
-                  "D_TRAIT_IS_SPECIALIZATION_OF _v alias (true case)");
+                  "D_TYPE_TRAIT_IS_SPECIALIZATION_OF _v alias (true case)");
     static_assert(macro_is_tuple_v<int>              == false,
-                  "D_TRAIT_IS_SPECIALIZATION_OF _v alias (false case)");
+                  "D_TYPE_TRAIT_IS_SPECIALIZATION_OF _v alias (false case)");
 #endif
 
 
 // =========================================================================
-// II.  D_TRAIT_IS_SPECIALIZATION_OF_AS  (compile-time)
+// II.  D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS  (compile-time)
 // =========================================================================
 //   The base macro -- success-case inherits a caller-supplied base.
 // Distinguishable base = integral_constant<int, 13>.  As with
-// D_TRAIT_IS_DETECTED_AS, the comma inside the base's template-arg list
+// D_TYPE_TRAIT_TRUE_AS, the comma inside the base's template-arg list
 // would confuse the preprocessor, so we typedef-alias it first.
 
 using macro_spec_count_13_base = std::integral_constant<int, 13>;
 
-D_TRAIT_IS_SPECIALIZATION_OF_AS(macro_is_vector_count_13,
+D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS(macro_is_vector_count_13,
                                 std::vector,
                                 macro_spec_count_13_base)
 
 // match cases inherit from the supplied base; verify ::value is the
 // base's value, not std::true_type's 1.
 static_assert(macro_is_vector_count_13<std::vector<int>>::value == 13,
-              "D_TRAIT_IS_SPECIALIZATION_OF_AS: match inherits supplied base (value=13)");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: match inherits supplied base (value=13)");
 static_assert(std::is_base_of<macro_spec_count_13_base,
                               macro_is_vector_count_13<std::vector<int>>>::value,
-              "D_TRAIT_IS_SPECIALIZATION_OF_AS: base type matches INHERIT_EXPR");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: base type matches INHERIT_EXPR");
 
 // no-match: primary template -> std::false_type
 static_assert(macro_is_vector_count_13<int>::value == false,
-              "D_TRAIT_IS_SPECIALIZATION_OF_AS: non-match ::value is false");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: non-match ::value is false");
 static_assert(std::is_base_of<std::false_type,
                               macro_is_vector_count_13<int>>::value,
-              "D_TRAIT_IS_SPECIALIZATION_OF_AS: non-match base is std::false_type");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: non-match base is std::false_type");
 
 // vector of a different element type still matches -- the macro detects
 // "any specialization of vector"
 static_assert(macro_is_vector_count_13<std::vector<double>>::value == 13,
-              "D_TRAIT_IS_SPECIALIZATION_OF_AS: vector<double> also matches");
+              "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: vector<double> also matches");
 
 
 // =========================================================================
@@ -115,8 +116,8 @@ static_assert(macro_is_vector_count_13<std::vector<double>>::value == 13,
 //   A specialization-of trait for X must NOT fire for Y -- even if Y has
 // the same arity or shape.
 
-D_TRAIT_IS_SPECIALIZATION_OF(macro_is_pair, std::pair)
-D_TRAIT_IS_SPECIALIZATION_OF(macro_is_vector, std::vector)
+D_TYPE_TRAIT_IS_SPECIALIZATION_OF(macro_is_pair, std::pair)
+D_TYPE_TRAIT_IS_SPECIALIZATION_OF(macro_is_vector, std::vector)
 
 static_assert(macro_is_pair<std::pair<int, char>>::value == true,
               "macro_is_pair: pair<int, char> -> true");
@@ -138,41 +139,41 @@ type_traits_tests_macros_spec(
     test_handler& _test_handler
 )
 {
-    // ---- D_TRAIT_IS_SPECIALIZATION_OF (sugar) ----
+    // ---- D_TYPE_TRAIT_IS_SPECIALIZATION_OF (sugar) ----
     record_assertion(_test_handler, 
         macro_is_tuple<std::tuple<int, char>>::value == true,
-        "D_TRAIT_IS_SPECIALIZATION_OF: tuple<int,char>");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: tuple<int,char>");
     record_assertion(_test_handler, 
         macro_is_tuple<std::tuple<>>::value == true,
-        "D_TRAIT_IS_SPECIALIZATION_OF: empty tuple");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: empty tuple");
     record_assertion(_test_handler, 
         macro_is_tuple<std::tuple<int>>::value == true,
-        "D_TRAIT_IS_SPECIALIZATION_OF: single-element tuple");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: single-element tuple");
     record_assertion(_test_handler, 
         macro_is_tuple<int>::value == false,
-        "D_TRAIT_IS_SPECIALIZATION_OF: builtin int -> false");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: builtin int -> false");
     record_assertion(_test_handler, 
         macro_is_tuple<std::vector<int>>::value == false,
-        "D_TRAIT_IS_SPECIALIZATION_OF: vector -> false");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF: vector -> false");
 
-    // ---- D_TRAIT_IS_SPECIALIZATION_OF_AS (base macro) ----
+    // ---- D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS (base macro) ----
     record_assertion(_test_handler, 
         macro_is_vector_count_13<std::vector<int>>::value == 13,
-        "D_TRAIT_IS_SPECIALIZATION_OF_AS: match inherits supplied base");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: match inherits supplied base");
     record_assertion(_test_handler, 
         std::is_base_of<macro_spec_count_13_base,
                         macro_is_vector_count_13<std::vector<int>>>::value,
-        "D_TRAIT_IS_SPECIALIZATION_OF_AS: base type matches INHERIT_EXPR");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: base type matches INHERIT_EXPR");
     record_assertion(_test_handler, 
         macro_is_vector_count_13<int>::value == false,
-        "D_TRAIT_IS_SPECIALIZATION_OF_AS: non-match ::value false");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: non-match ::value false");
     record_assertion(_test_handler, 
         std::is_base_of<std::false_type,
                         macro_is_vector_count_13<int>>::value,
-        "D_TRAIT_IS_SPECIALIZATION_OF_AS: non-match base is false_type");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: non-match base is false_type");
     record_assertion(_test_handler, 
         macro_is_vector_count_13<std::vector<double>>::value == 13,
-        "D_TRAIT_IS_SPECIALIZATION_OF_AS: vector<double> also matches");
+        "D_TYPE_TRAIT_IS_SPECIALIZATION_OF_AS: vector<double> also matches");
 
     // ---- Cross-template hygiene ----
     record_assertion(_test_handler, 
