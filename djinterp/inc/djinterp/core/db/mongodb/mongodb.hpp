@@ -43,6 +43,11 @@
 * or <bson.h>; the concrete _impl methods in mongodb.cpp include them.
 *
 * 
+*   DETECTION:
+*   Also carries this database's capability-detection traits and C++20 concepts
+* (trailing sections), folded in from mongo_traits.hpp and the matching *_concepts.hpp;
+* detection now lives with the connection. Concepts gated on concept support.
+*
 * path:      /inc/djinterp/core/db/mongodb/mongodb.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.26
@@ -55,7 +60,7 @@
 #include "../../../djinterp.hpp"
 #include "../../../env/db/env_mongodb.h"
 #include "../database_connection.hpp"
-#include "./mongo_traits.hpp"
+#include "../database_traits.hpp"
 
 
 NS_DJINTERP
@@ -1153,6 +1158,777 @@ private:
 //   struct: forward declaration of the MongoDB result set
 // (cursor wrapper) implementation.
 struct mongo_result_set_impl;
+
+
+// ===========================================================================
+//                   CAPABILITY DETECTION (traits & concepts)
+// ===========================================================================
+//   Folded in from the former mongo_traits.hpp / mongo_concepts.hpp
+// so detection lives with the connection it describes. Traits build at C++17;
+// concepts appear under C++20.
+
+// =============================================================================
+// IX.   EXPRESSION DETECTORS
+// =============================================================================
+
+// -------------------------------------------------------------------------
+// A.  document CRUD
+// -------------------------------------------------------------------------
+
+// mongo_insert_one_t
+//   detector: insert_one(const std::string&, const std::string&) method.
+template<typename _T>
+using mongo_insert_one_t = decltype(std::declval<_T&>().insert_one(
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>()));
+
+// mongo_find_one_t
+//   detector: find_one(const std::string&, const std::string&) const
+// method.
+template<typename _T>
+using mongo_find_one_t =
+    decltype(std::declval<const _T&>().find_one(
+        std::declval<const std::string&>(),
+        std::declval<const std::string&>()));
+
+// mongo_update_one_t
+//   detector: update_one(const std::string&, const std::string&,
+// const std::string&) method.
+template<typename _T>
+using mongo_update_one_t = decltype(std::declval<_T&>().update_one(
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>()));
+
+// mongo_delete_one_t
+//   detector: delete_one(const std::string&, const std::string&) method.
+template<typename _T>
+using mongo_delete_one_t = decltype(std::declval<_T&>().delete_one(
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>()));
+
+// mongo_replace_one_t
+//   detector: replace_one(const std::string&, const std::string&,
+// const std::string&) method.
+template<typename _T>
+using mongo_replace_one_t = decltype(std::declval<_T&>().replace_one(
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>()));
+
+// -------------------------------------------------------------------------
+// B.  collection management
+// -------------------------------------------------------------------------
+
+// mongo_create_collection_t
+//   detector: create_collection(const std::string&) method.
+template<typename _T>
+using mongo_create_collection_t =
+    decltype(std::declval<_T&>().create_collection(
+        std::declval<const std::string&>()));
+
+// mongo_drop_collection_t
+//   detector: drop_collection(const std::string&) method.
+template<typename _T>
+using mongo_drop_collection_t =
+    decltype(std::declval<_T&>().drop_collection(
+        std::declval<const std::string&>()));
+
+// mongo_collection_exists_t
+//   detector: collection_exists(const std::string&) const method.
+template<typename _T>
+using mongo_collection_exists_t =
+    decltype(std::declval<const _T&>().collection_exists(
+        std::declval<const std::string&>()));
+
+// mongo_list_collection_names_t
+//   detector: list_collection_names() const method.
+template<typename _T>
+using mongo_list_collection_names_t =
+    decltype(std::declval<const _T&>().list_collection_names());
+
+// -------------------------------------------------------------------------
+// C.  aggregation
+// -------------------------------------------------------------------------
+
+// mongo_aggregate_t
+//   detector: aggregate(const std::string&, const std::string&) method.
+template<typename _T>
+using mongo_aggregate_t = decltype(std::declval<_T&>().aggregate(
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>()));
+
+// -------------------------------------------------------------------------
+// D.  change streams
+// -------------------------------------------------------------------------
+
+// mongo_watch_collection_t
+//   detector: watch_collection(const std::string&) method.
+template<typename _T>
+using mongo_watch_collection_t =
+    decltype(std::declval<_T&>().watch_collection(
+        std::declval<const std::string&>()));
+
+// mongo_watch_database_t
+//   detector: watch_database() method.
+template<typename _T>
+using mongo_watch_database_t =
+    decltype(std::declval<_T&>().watch_database());
+
+// -------------------------------------------------------------------------
+// E.  bulk write
+// -------------------------------------------------------------------------
+
+// mongo_execute_bulk_t
+//   detector: execute_bulk(const std::string&, const std::string&)
+// method.
+template<typename _T>
+using mongo_execute_bulk_t =
+    decltype(std::declval<_T&>().execute_bulk(
+        std::declval<const std::string&>(),
+        std::declval<const std::string&>()));
+
+// -------------------------------------------------------------------------
+// F.  GridFS
+// -------------------------------------------------------------------------
+
+// mongo_gridfs_upload_t
+//   detector: gridfs_upload(const std::string&,
+// const std::vector<std::uint8_t>&) method.
+template<typename _T>
+using mongo_gridfs_upload_t =
+    decltype(std::declval<_T&>().gridfs_upload(
+        std::declval<const std::string&>(),
+        std::declval<const std::vector<std::uint8_t>&>()));
+
+// mongo_gridfs_download_t
+//   detector: gridfs_download(const std::string&) method.
+template<typename _T>
+using mongo_gridfs_download_t =
+    decltype(std::declval<_T&>().gridfs_download(
+        std::declval<const std::string&>()));
+
+// -------------------------------------------------------------------------
+// G.  index management
+// -------------------------------------------------------------------------
+
+// mongo_create_index_t
+//   detector: create_index(const std::string&, const std::string&)
+// method.
+template<typename _T>
+using mongo_create_index_t =
+    decltype(std::declval<_T&>().create_index(
+        std::declval<const std::string&>(),
+        std::declval<const std::string&>()));
+
+// mongo_list_indexes_t
+//   detector: list_indexes(const std::string&) const method.
+template<typename _T>
+using mongo_list_indexes_t =
+    decltype(std::declval<const _T&>().list_indexes(
+        std::declval<const std::string&>()));
+
+// -------------------------------------------------------------------------
+// H.  session and transactions
+// -------------------------------------------------------------------------
+
+// mongo_start_session_t
+//   detector: start_session() method.
+template<typename _T>
+using mongo_start_session_t =
+    decltype(std::declval<_T&>().start_session());
+
+// mongo_start_transaction_t
+//   detector: start_transaction() method.
+template<typename _T>
+using mongo_start_transaction_t =
+    decltype(std::declval<_T&>().start_transaction());
+
+// mongo_commit_transaction_t
+//   detector: commit_transaction() method.
+template<typename _T>
+using mongo_commit_transaction_t =
+    decltype(std::declval<_T&>().commit_transaction());
+
+// mongo_abort_transaction_t
+//   detector: abort_transaction() method.
+template<typename _T>
+using mongo_abort_transaction_t =
+    decltype(std::declval<_T&>().abort_transaction());
+
+// -------------------------------------------------------------------------
+// I.  read/write concern
+// -------------------------------------------------------------------------
+
+// mongo_set_read_concern_t
+//   detector: set_read_concern(const std::string&) method.
+template<typename _T>
+using mongo_set_read_concern_t =
+    decltype(std::declval<_T&>().set_read_concern(
+        std::declval<const std::string&>()));
+
+// mongo_set_write_concern_t
+//   detector: set_write_concern(int) method.
+template<typename _T>
+using mongo_set_write_concern_t =
+    decltype(std::declval<_T&>().set_write_concern(
+        std::declval<int>()));
+
+// -------------------------------------------------------------------------
+// J.  find
+// -------------------------------------------------------------------------
+
+// mongo_find_t
+//   detector: find(const std::string&, const std::string&) method.
+template<typename _T>
+using mongo_find_t = decltype(std::declval<_T&>().find(
+    std::declval<const std::string&>(),
+    std::declval<const std::string&>()));
+
+// mongo_count_documents_t
+//   detector: count_documents(const std::string&, const std::string&)
+// const method.
+template<typename _T>
+using mongo_count_documents_t =
+    decltype(std::declval<const _T&>().count_documents(
+        std::declval<const std::string&>(),
+        std::declval<const std::string&>()));
+
+
+// =============================================================================
+// X.  TAGGED CAPABILITY TRAITS (struct-based)
+// =============================================================================
+
+// has_mongo_document_crud
+//   trait: checks if type _T supports document CRUD.
+template<typename _T>
+struct has_mongo_document_crud : djinterp::conjunction<
+    is_detected<mongo_insert_one_t, clean_t<_T>>,
+    is_detected<mongo_find_one_t, clean_t<_T>>,
+    is_detected<mongo_update_one_t, clean_t<_T>>,
+    is_detected<mongo_delete_one_t, clean_t<_T>>>
+{
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    constexpr bool has_mongo_document_crud_v =
+        has_mongo_document_crud<clean_t<_T>>::value;
+#endif
+
+// has_mongo_collections
+//   trait: checks if type _T supports collection management.
+template<typename _T>
+struct has_mongo_collections : djinterp::conjunction<
+    is_detected<mongo_create_collection_t, clean_t<_T>>,
+    is_detected<mongo_drop_collection_t, clean_t<_T>>,
+    is_detected<mongo_collection_exists_t, clean_t<_T>>,
+    is_detected<mongo_list_collection_names_t, clean_t<_T>>>
+{
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    constexpr bool has_mongo_collections_v =
+        has_mongo_collections<clean_t<_T>>::value;
+#endif
+
+// has_mongo_change_streams
+//   trait: checks if type _T supports change streams.
+template<typename _T>
+struct has_mongo_change_streams : djinterp::conjunction<
+    is_detected<mongo_watch_collection_t, clean_t<_T>>,
+    is_detected<mongo_watch_database_t, clean_t<_T>>>
+{
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    constexpr bool has_mongo_change_streams_v =
+        has_mongo_change_streams<clean_t<_T>>::value;
+#endif
+
+// has_mongo_gridfs
+//   trait: checks if type _T supports GridFS.
+template<typename _T>
+struct has_mongo_gridfs : djinterp::conjunction<
+    is_detected<mongo_gridfs_upload_t, clean_t<_T>>,
+    is_detected<mongo_gridfs_download_t, clean_t<_T>>>
+{
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    constexpr bool has_mongo_gridfs_v = has_mongo_gridfs<clean_t<_T>>::value;
+#endif
+
+// has_mongo_transactions
+//   trait: checks if type _T supports transactions.
+template<typename _T>
+struct has_mongo_transactions : djinterp::conjunction<
+    is_detected<mongo_start_session_t, clean_t<_T>>,
+    is_detected<mongo_start_transaction_t, clean_t<_T>>,
+    is_detected<mongo_commit_transaction_t, clean_t<_T>>,
+    is_detected<mongo_abort_transaction_t, clean_t<_T>>>
+{
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    constexpr bool has_mongo_transactions_v =
+        has_mongo_transactions<clean_t<_T>>::value;
+#endif
+
+// has_mongo_indexes
+//   trait: checks if type _T supports index management.
+template<typename _T>
+struct has_mongo_indexes : djinterp::conjunction<
+    is_detected<mongo_create_index_t, clean_t<_T>>,
+    is_detected<mongo_list_indexes_t, clean_t<_T>>>
+{
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    constexpr bool has_mongo_indexes_v =
+        has_mongo_indexes<clean_t<_T>>::value;
+#endif
+
+// is_mongo_connection
+//   trait: compound trait verifying type _T implements a MongoDB
+// connection interface (connect + documents + collections +
+// aggregation).
+template<typename _T>
+struct is_mongo_connection : djinterp::conjunction<
+    has_connect<clean_t<_T>>,
+    has_disconnect<clean_t<_T>>,
+    has_mongo_document_crud<clean_t<_T>>,
+    has_mongo_collections<clean_t<_T>>,
+    is_detected<mongo_aggregate_t, clean_t<_T>>>
+{
+};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _T>
+    constexpr bool is_mongo_connection_v =
+        is_mongo_connection<clean_t<_T>>::value;
+#endif
+
+
+// =============================================================================
+// XI. TAGLESS CAPABILITY TRAITS (constexpr bool)
+// =============================================================================
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_insert = false;
+template<typename _T>
+constexpr bool mongo_can_insert<_T,
+    std::void_t<mongo_insert_one_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_find = false;
+template<typename _T>
+constexpr bool mongo_can_find<_T,
+    std::void_t<mongo_find_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_aggregate = false;
+template<typename _T>
+constexpr bool mongo_can_aggregate<_T,
+    std::void_t<mongo_aggregate_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_watch = false;
+template<typename _T>
+constexpr bool mongo_can_watch<_T,
+    std::void_t<mongo_watch_collection_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_bulk_write = false;
+template<typename _T>
+constexpr bool mongo_can_bulk_write<_T,
+    std::void_t<mongo_execute_bulk_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_gridfs = false;
+template<typename _T>
+constexpr bool mongo_can_gridfs<_T,
+    std::void_t<mongo_gridfs_upload_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_transact = false;
+template<typename _T>
+constexpr bool mongo_can_transact<_T,
+    std::void_t<mongo_start_transaction_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_can_create_collection = false;
+template<typename _T>
+constexpr bool mongo_can_create_collection<_T,
+    std::void_t<mongo_create_collection_t<_T>>> = true;
+
+// compound
+
+template<typename _T, typename = void>
+constexpr bool mongo_does_document_crud = false;
+template<typename _T>
+constexpr bool mongo_does_document_crud<_T, std::void_t<
+    mongo_insert_one_t<_T>,
+    mongo_find_one_t<_T>,
+    mongo_update_one_t<_T>,
+    mongo_delete_one_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_does_change_streams = false;
+template<typename _T>
+constexpr bool mongo_does_change_streams<_T, std::void_t<
+    mongo_watch_collection_t<_T>,
+    mongo_watch_database_t<_T>>> = true;
+
+template<typename _T, typename = void>
+constexpr bool mongo_does_transactions = false;
+template<typename _T>
+constexpr bool mongo_does_transactions<_T, std::void_t<
+    mongo_start_session_t<_T>,
+    mongo_start_transaction_t<_T>,
+    mongo_commit_transaction_t<_T>,
+    mongo_abort_transaction_t<_T>>> = true;
+
+template<typename _T>
+constexpr bool mongo_is_full_connection =
+    ( can_connect<clean_t<_T>>                  &&
+      can_disconnect<clean_t<_T>>               &&
+      mongo_does_document_crud<clean_t<_T>>     &&
+      mongo_can_aggregate<clean_t<_T>>          &&
+      mongo_can_create_collection<clean_t<_T>> );
+
+
+// =============================================================================
+// XII.  SFINAE HELPERS
+// =============================================================================
+
+template<typename _T>
+using enable_if_mongo_connection =
+    typename std::enable_if<is_mongo_connection<clean_t<_T>>::value>::type;
+
+template<typename _T>
+using enable_if_has_mongo_transactions =
+    typename std::enable_if<has_mongo_transactions<clean_t<_T>>::value>::type;
+
+template<typename _T>
+using enable_if_has_mongo_change_streams =
+    typename std::enable_if<has_mongo_change_streams<clean_t<_T>>::value>::type;
+
+template<typename _T>
+using enable_if_has_mongo_gridfs =
+    typename std::enable_if<has_mongo_gridfs<clean_t<_T>>::value>::type;
+
+
+// ===========================================================================
+// XIII.   C++20 CONCEPTS
+// ===========================================================================
+//   The mongo classification concepts, folded in from the former mongo_concepts.hpp.
+// Gated on concept support so the traits build at the C++17 baseline.
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
+// =============================================================================
+// A.   Core MongoDB Connection Concepts
+// =============================================================================
+
+// Mongo_connection
+//   concept: constrains types implementing the MongoDB connection interface.
+template<typename _Type>
+concept Mongo_connection =
+    is_mongo_connection<clean_t<_Type>>::value;
+
+// non_mongo_connection
+//   concept: constrains types that do not implement the MongoDB connection
+// interface.
+template<typename _Type>
+concept non_mongo_connection =
+    !Mongo_connection<_Type>;
+
+// mongo_document_connection
+//   concept: constrains MongoDB connections supporting document CRUD.
+template<typename _Type>
+concept mongo_document_connection =
+    has_mongo_document_crud<clean_t<_Type>>::value;
+
+// mongo_collection_connection
+//   concept: constrains MongoDB connections supporting collection
+// management.
+template<typename _Type>
+concept mongo_collection_connection =
+    has_mongo_collections<clean_t<_Type>>::value;
+
+// mongo_aggregation_connection
+//   concept: constrains MongoDB connections exposing aggregate().
+template<typename _Type>
+concept mongo_aggregation_connection =
+    is_detected<mongo_aggregate_t, clean_t<_Type>>::value;
+
+
+// =============================================================================
+// B.  MongoDB Capability Concepts
+// =============================================================================
+
+// mongo_change_stream_connection
+//   concept: constrains MongoDB connections supporting change streams.
+template<typename _Type>
+concept mongo_change_stream_connection =
+    has_mongo_change_streams<clean_t<_Type>>::value;
+
+// mongo_gridfs_connection
+//   concept: constrains MongoDB connections supporting GridFS.
+template<typename _Type>
+concept mongo_gridfs_connection =
+    has_mongo_gridfs<clean_t<_Type>>::value;
+
+// mongo_transaction_connection
+//   concept: constrains MongoDB connections supporting sessions and
+// transactions.
+template<typename _Type>
+concept mongo_transaction_connection =
+    has_mongo_transactions<clean_t<_Type>>::value;
+
+// mongo_index_connection
+//   concept: constrains MongoDB connections supporting index management.
+template<typename _Type>
+concept mongo_index_connection =
+    has_mongo_indexes<clean_t<_Type>>::value;
+
+// mongo_insert_connection
+//   concept: constrains MongoDB connections exposing insert_one().
+template<typename _Type>
+concept mongo_insert_connection =
+    is_detected<mongo_insert_one_t, clean_t<_Type>>::value;
+
+// mongo_find_one_connection
+//   concept: constrains MongoDB connections exposing find_one().
+template<typename _Type>
+concept mongo_find_one_connection =
+    is_detected<mongo_find_one_t, clean_t<_Type>>::value;
+
+// mongo_update_one_connection
+//   concept: constrains MongoDB connections exposing update_one().
+template<typename _Type>
+concept mongo_update_one_connection =
+    is_detected<mongo_update_one_t, clean_t<_Type>>::value;
+
+// mongo_delete_one_connection
+//   concept: constrains MongoDB connections exposing delete_one().
+template<typename _Type>
+concept mongo_delete_one_connection =
+    is_detected<mongo_delete_one_t, clean_t<_Type>>::value;
+
+// mongo_replace_one_connection
+//   concept: constrains MongoDB connections exposing replace_one().
+template<typename _Type>
+concept mongo_replace_one_connection =
+    is_detected<mongo_replace_one_t, clean_t<_Type>>::value;
+
+// mongo_create_collection_connection
+//   concept: constrains MongoDB connections exposing create_collection().
+template<typename _Type>
+concept mongo_create_collection_connection =
+    is_detected<mongo_create_collection_t, clean_t<_Type>>::value;
+
+// mongo_drop_collection_connection
+//   concept: constrains MongoDB connections exposing drop_collection().
+template<typename _Type>
+concept mongo_drop_collection_connection =
+    is_detected<mongo_drop_collection_t, clean_t<_Type>>::value;
+
+// mongo_collection_query_connection
+//   concept: constrains MongoDB connections exposing collection_exists().
+template<typename _Type>
+concept mongo_collection_query_connection =
+    is_detected<mongo_collection_exists_t, clean_t<_Type>>::value;
+
+// mongo_collection_list_connection
+//   concept: constrains MongoDB connections exposing list_collection_names().
+template<typename _Type>
+concept mongo_collection_list_connection =
+    is_detected<mongo_list_collection_names_t, clean_t<_Type>>::value;
+
+// mongo_watch_collection_connection
+//   concept: constrains MongoDB connections exposing watch_collection().
+template<typename _Type>
+concept mongo_watch_collection_connection =
+    is_detected<mongo_watch_collection_t, clean_t<_Type>>::value;
+
+// mongo_watch_database_connection
+//   concept: constrains MongoDB connections exposing watch_database().
+template<typename _Type>
+concept mongo_watch_database_connection =
+    is_detected<mongo_watch_database_t, clean_t<_Type>>::value;
+
+// mongo_bulk_write_connection
+//   concept: constrains MongoDB connections exposing execute_bulk().
+template<typename _Type>
+concept mongo_bulk_write_connection =
+    is_detected<mongo_execute_bulk_t, clean_t<_Type>>::value;
+
+// mongo_gridfs_upload_connection
+//   concept: constrains MongoDB connections exposing gridfs_upload().
+template<typename _Type>
+concept mongo_gridfs_upload_connection =
+    is_detected<mongo_gridfs_upload_t, clean_t<_Type>>::value;
+
+// mongo_gridfs_download_connection
+//   concept: constrains MongoDB connections exposing gridfs_download().
+template<typename _Type>
+concept mongo_gridfs_download_connection =
+    is_detected<mongo_gridfs_download_t, clean_t<_Type>>::value;
+
+// mongo_create_index_connection
+//   concept: constrains MongoDB connections exposing create_index().
+template<typename _Type>
+concept mongo_create_index_connection =
+    is_detected<mongo_create_index_t, clean_t<_Type>>::value;
+
+// mongo_list_indexes_connection
+//   concept: constrains MongoDB connections exposing list_indexes().
+template<typename _Type>
+concept mongo_list_indexes_connection =
+    is_detected<mongo_list_indexes_t, clean_t<_Type>>::value;
+
+// mongo_session_connection
+//   concept: constrains MongoDB connections exposing start_session().
+template<typename _Type>
+concept mongo_session_connection =
+    is_detected<mongo_start_session_t, clean_t<_Type>>::value;
+
+// mongo_start_transaction_connection
+//   concept: constrains MongoDB connections exposing start_transaction().
+template<typename _Type>
+concept mongo_start_transaction_connection =
+    is_detected<mongo_start_transaction_t, clean_t<_Type>>::value;
+
+// mongo_commit_transaction_connection
+//   concept: constrains MongoDB connections exposing commit_transaction().
+template<typename _Type>
+concept mongo_commit_transaction_connection =
+    is_detected<mongo_commit_transaction_t, clean_t<_Type>>::value;
+
+// mongo_abort_transaction_connection
+//   concept: constrains MongoDB connections exposing abort_transaction().
+template<typename _Type>
+concept mongo_abort_transaction_connection =
+    is_detected<mongo_abort_transaction_t, clean_t<_Type>>::value;
+
+// mongo_read_concern_connection
+//   concept: constrains MongoDB connections exposing set_read_concern().
+template<typename _Type>
+concept mongo_read_concern_connection =
+    is_detected<mongo_set_read_concern_t, clean_t<_Type>>::value;
+
+// mongo_write_concern_connection
+//   concept: constrains MongoDB connections exposing set_write_concern().
+template<typename _Type>
+concept mongo_write_concern_connection =
+    is_detected<mongo_set_write_concern_t, clean_t<_Type>>::value;
+
+// mongo_find_connection
+//   concept: constrains MongoDB connections exposing find().
+template<typename _Type>
+concept mongo_find_connection =
+    is_detected<mongo_find_t, clean_t<_Type>>::value;
+
+// mongo_count_documents_connection
+//   concept: constrains MongoDB connections exposing count_documents().
+template<typename _Type>
+concept mongo_count_documents_connection =
+    is_detected<mongo_count_documents_t, clean_t<_Type>>::value;
+
+
+// =============================================================================
+// C. Tagless MongoDB Capability Concepts
+// =============================================================================
+
+// mongo_insertable_connection
+//   concept: constrains types satisfying the tagless insert capability.
+template<typename _Type>
+concept mongo_insertable_connection =
+    mongo_can_insert<clean_t<_Type>>;
+
+// mongo_findable_connection
+//   concept: constrains types satisfying the tagless find capability.
+template<typename _Type>
+concept mongo_findable_connection =
+    mongo_can_find<clean_t<_Type>>;
+
+// mongo_aggregating_connection
+//   concept: constrains types satisfying the tagless aggregate capability.
+template<typename _Type>
+concept mongo_aggregating_connection =
+    mongo_can_aggregate<clean_t<_Type>>;
+
+// mongo_watchable_connection
+//   concept: constrains types satisfying the tagless change-stream watch
+// capability.
+template<typename _Type>
+concept mongo_watchable_connection =
+    mongo_can_watch<clean_t<_Type>>;
+
+// mongo_bulk_writable_connection
+//   concept: constrains types satisfying the tagless bulk-write capability.
+template<typename _Type>
+concept mongo_bulk_writable_connection =
+    mongo_can_bulk_write<clean_t<_Type>>;
+
+// mongo_gridfs_capable_connection
+//   concept: constrains types satisfying the tagless GridFS capability.
+template<typename _Type>
+concept mongo_gridfs_capable_connection =
+    mongo_can_gridfs<clean_t<_Type>>;
+
+// mongo_transactable_connection
+//   concept: constrains types satisfying the tagless transaction start
+// capability.
+template<typename _Type>
+concept mongo_transactable_connection =
+    mongo_can_transact<clean_t<_Type>>;
+
+// mongo_collection_creating_connection
+//   concept: constrains types satisfying the tagless create_collection
+// capability.
+template<typename _Type>
+concept mongo_collection_creating_connection =
+    mongo_can_create_collection<clean_t<_Type>>;
+
+// mongo_crud_connection
+//   concept: constrains types satisfying the tagless full document CRUD
+// capability set.
+template<typename _Type>
+concept mongo_crud_connection =
+    mongo_does_document_crud<clean_t<_Type>>;
+
+// mongo_streaming_connection
+//   concept: constrains types satisfying the tagless change-stream
+// capability set.
+template<typename _Type>
+concept mongo_streaming_connection =
+    mongo_does_change_streams<clean_t<_Type>>;
+
+// mongo_transactional_connection
+//   concept: constrains types satisfying the tagless transaction
+// capability set.
+template<typename _Type>
+concept mongo_transactional_connection =
+    mongo_does_transactions<clean_t<_Type>>;
+
+// mongo_full_connection
+//   concept: constrains types satisfying the tagless full MongoDB
+// connection capability set.
+template<typename _Type>
+concept mongo_full_connection =
+    mongo_is_full_connection<clean_t<_Type>>;
+
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_END  // djinterp
