@@ -53,8 +53,8 @@ VI.   COMBINATORS
 VII.  C++20 CONCEPTS
 */
 
-#ifndef DJINTERP_PATTERN_
-#define DJINTERP_PATTERN_ 1
+#ifndef DJINTERP_PARADIGM_PATTERN_
+#define DJINTERP_PARADIGM_PATTERN_ 1
 
 // std
 #include <cstddef>
@@ -68,6 +68,15 @@ VII.  C++20 CONCEPTS
 
 NS_DJINTERP
 
+// forward declarations
+template<typename _Type, typename = void> struct pattern_has_input_type;
+template<typename _Type, typename = void> struct pattern_has_key_type;  
+template<typename _Type, typename = void> struct pattern_has_value_type;
+template<typename _Type, typename = void> struct pattern_has_do_match;
+template<typename _Type, typename = void> struct pattern_has_do_extract;
+template<typename _Type, typename = void> struct pattern_has_do_render;
+template<typename _Type, typename = void> struct pattern_has_do_rewrite;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   STATUS CODES                                        ///
@@ -80,12 +89,12 @@ typedef std::int32_t pattern_status;
 // DPatternStatus*
 //   constants: standard pattern status codes.  Derived patterns
 // may define additional codes above DPatternStatusUserBase.
-constexpr pattern_status DPatternStatusOk           =  0;
-constexpr pattern_status DPatternStatusNoMatch      =  1;
-constexpr pattern_status DPatternStatusAmbiguous    =  2;
-constexpr pattern_status DPatternStatusKeyNotFound  =  3;
-constexpr pattern_status DPatternStatusMalformed    =  4;
-constexpr pattern_status DPatternStatusUserBase     = 64;
+constexpr pattern_status DPatternStatusOk          =  0;
+constexpr pattern_status DPatternStatusNoMatch     =  1;
+constexpr pattern_status DPatternStatusAmbiguous   =  2;
+constexpr pattern_status DPatternStatusKeyNotFound =  3;
+constexpr pattern_status DPatternStatusMalformed   =  4;
+constexpr pattern_status DPatternStatusUserBase    = 64;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -149,11 +158,9 @@ public:
     //  capacity
     // -----------------------------------------------------------------
 
-    D_NODISCARD
-    bool         empty() const { return m_entries.empty(); }
+    D_NODISCARD bool         empty() const { return m_entries.empty(); }
 
-    D_NODISCARD
-    size_type    size()  const { return m_entries.size();  }
+    D_NODISCARD size_type    size()  const { return m_entries.size();  }
 
     void         clear()       { m_entries.clear(); return; }
 
@@ -164,10 +171,8 @@ public:
     // find
     //   method: returns a pointer to the value bound to _key, or
     // nullptr if the key is absent.
-    D_NODISCARD
-    const _Value*
-    find
-    (
+    D_NODISCARD const _Value*
+    find(
         const _Key& _key
     ) const
     {
@@ -184,10 +189,8 @@ public:
 
     // find (mutable)
     //   method: mutable overload of find().
-    D_NODISCARD
-    _Value*
-    find
-    (
+    D_NODISCARD _Value*
+    find(
         const _Key& _key
     )
     {
@@ -204,10 +207,8 @@ public:
 
     // has
     //   method: returns true if _key is bound.
-    D_NODISCARD
-    bool
-    has
-    (
+    D_NODISCARD bool
+    has(
         const _Key& _key
     ) const
     {
@@ -222,8 +223,7 @@ public:
     //   method: binds _key to _value, replacing any existing
     // binding.  Returns a reference to *this for chaining.
     pattern_capture_map&
-    set
-    (
+    set(
         const _Key&   _key,
         const _Value& _value
     )
@@ -244,8 +244,7 @@ public:
 
     // set (move overload)
     pattern_capture_map&
-    set
-    (
+    set(
         _Key&&   _key,
         _Value&& _value
     )
@@ -269,8 +268,7 @@ public:
     //   method: removes the binding for _key, returning true if
     // a binding was removed.
     bool
-    erase
-    (
+    erase(
         const _Key& _key
     )
     {
@@ -294,15 +292,15 @@ public:
     // already present in this map are overwritten when
     // _overwrite is true; otherwise they are preserved.
     void
-    merge
-    (
+    merge(
         const pattern_capture_map& _other,
         bool                       _overwrite = true
     )
     {
         for (const auto& e : _other.m_entries)
         {
-            if (_overwrite || !has(e.key))
+            if ( _overwrite || 
+                 !has(e.key)) )
             {
                 set(e.key, e.value);
             }
@@ -324,8 +322,11 @@ public:
     //  storage access
     // -----------------------------------------------------------------
 
-    D_NODISCARD
-    const storage_type& entries() const { return m_entries; }
+    D_NODISCARD const storage_type&
+    entries() const
+    {
+        return m_entries;
+    }
 
 private:
     storage_type m_entries;
@@ -374,8 +375,7 @@ struct pattern_match_result
           captures()
     {}
 
-    D_NODISCARD
-    explicit operator bool() const { return matched; }
+    D_NODISCARD explicit operator bool() const { return matched; }
 };
 
 
@@ -433,11 +433,10 @@ public:
     //   method: predicate face.  Returns true iff the input
     // conforms to the pattern.  Allows a conforming pattern to
     // act as a predicate in any predicate-consuming combinator.
-    D_NODISCARD
-    bool
-    operator()
-    (
-        const typename derived_type::input_type& _in
+    template<typename _D = derived_type>
+    D_NODISCARD bool
+    operator()(
+        const typename _D::input_type& _in
     ) const
     {
         check_conformance();
@@ -452,11 +451,10 @@ public:
     // match
     //   method: explicit alias for operator() - preferred when
     // operator() would be ambiguous with another face.
-    D_NODISCARD
-    bool
-    match
-    (
-        const typename derived_type::input_type& _in
+    template<typename _D = derived_type>
+    D_NODISCARD bool
+    match(
+        const typename _D::input_type& _in
     ) const
     {
         check_conformance();
@@ -472,13 +470,11 @@ public:
     //   method: returns a match result populated with the
     // captures bound by the input.  An unmatched input yields
     // a result with matched == false.
-    D_NODISCARD
-    pattern_match_result<
-        typename derived_type::key_type,
-        typename derived_type::value_type>
-    extract
-    (
-        const typename derived_type::input_type& _in
+    template<typename _D = derived_type>
+    D_NODISCARD pattern_match_result<typename _D::key_type,
+                                     typename _D::value_type>
+    extract(
+        const typename _D::input_type& _in
     ) const
     {
         check_conformance();
@@ -493,13 +489,11 @@ public:
     // render
     //   method: produces an input value from a capture map,
     // substituting bound values at each capture point.
-    D_NODISCARD
-    typename derived_type::input_type
-    render
-    (
-        const pattern_capture_map<
-            typename derived_type::key_type,
-            typename derived_type::value_type>& _captures
+    template<typename _D = derived_type>
+    D_NODISCARD typename _D::input_type
+    render(
+        const pattern_capture_map<typename _D::key_type,
+                                  typename _D::value_type>& _captures
     ) const
     {
         check_conformance();
@@ -516,13 +510,12 @@ public:
     // _value, and re-renders.  Captures other than _key are
     // preserved.  If _in does not match the pattern, the input
     // is returned unchanged.
-    D_NODISCARD
-    typename derived_type::input_type
-    rewrite
-    (
-        const typename derived_type::input_type& _in,
-        const typename derived_type::key_type&   _key,
-        const typename derived_type::value_type& _value
+    template<typename _D = derived_type>
+    D_NODISCARD typename _D::input_type
+    rewrite(
+        const typename _D::input_type& _in,
+        const typename _D::key_type&   _key,
+        const typename _D::value_type& _value
     ) const
     {
         check_conformance();
@@ -537,11 +530,17 @@ protected:
 private:
     // self
     //   method: CRTP cast helper.
-    D_NODISCARD
-    derived_type&       self()       { return *static_cast<derived_type*>(this); }
+    D_NODISCARD derived_type&
+    self()
+    { 
+        return *static_cast<derived_type*>(this); 
+    }
 
-    D_NODISCARD
-    const derived_type& self() const { return *static_cast<const derived_type*>(this); }
+    D_NODISCARD const derived_type&
+    self() const 
+    { 
+        return *static_cast<const derived_type*>(this); 
+    }
 
     // check_conformance
     //   method: deferred static_assert checks that fire only on
@@ -551,34 +550,34 @@ private:
     check_conformance()
     {
         static_assert(
-            traits::pattern_has_input_type<derived_type>::value,
+            pattern_has_input_type<derived_type>::value,
             "Pattern must define a public `input_type` typedef.");
 
         static_assert(
-            traits::pattern_has_key_type<derived_type>::value,
+            pattern_has_key_type<derived_type>::value,
             "Pattern must define a public `key_type` typedef.");
 
         static_assert(
-            traits::pattern_has_value_type<derived_type>::value,
+            pattern_has_value_type<derived_type>::value,
             "Pattern must define a public `value_type` typedef.");
 
         static_assert(
-            traits::pattern_has_do_match<derived_type>::value,
+            pattern_has_do_match<derived_type>::value,
             "Pattern must define a public `do_match` member "
             "function returning a bool-convertible value.");
 
         static_assert(
-            traits::pattern_has_do_extract<derived_type>::value,
+            pattern_has_do_extract<derived_type>::value,
             "Pattern must define a public `do_extract` member "
             "function returning a pattern_match_result.");
 
         static_assert(
-            traits::pattern_has_do_render<derived_type>::value,
+            pattern_has_do_render<derived_type>::value,
             "Pattern must define a public `do_render` member "
             "function returning an input_type.");
 
         static_assert(
-            traits::pattern_has_do_rewrite<derived_type>::value,
+            pattern_has_do_rewrite<derived_type>::value,
             "Pattern must define a public `do_rewrite` member "
             "function returning an input_type.");
     }
@@ -588,8 +587,6 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 ///                V.   PATTERN TRAITS                                      ///
 ///////////////////////////////////////////////////////////////////////////////
-
-NS_TRAITS
 
     // pattern_has_input_type
     //   trait: detects a public `input_type` typedef.
@@ -711,7 +708,6 @@ NS_TRAITS
     template<typename _Type>
     constexpr bool is_pattern_v = is_pattern<_Type>::value;
 
-NS_END  // traits
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -766,20 +762,16 @@ public:
     {}
 
     // CRTP-required interface
-    D_NODISCARD
-    bool
-    do_match
-    (
+    D_NODISCARD bool
+    do_match(
         const input_type& _in
     ) const
     {
         return ( m_a.do_match(_in) && m_b.do_match(_in) );
     }
 
-    D_NODISCARD
-    match_result_type
-    do_extract
-    (
+    D_NODISCARD match_result_type
+    do_extract(
         const input_type& _in
     ) const
     {
@@ -803,20 +795,16 @@ public:
         return match_result_type(std::move(a.captures));
     }
 
-    D_NODISCARD
-    input_type
-    do_render
-    (
+    D_NODISCARD input_type
+    do_render(
         const capture_map_type& _c
     ) const
     {
         return m_b.do_render(_c);
     }
 
-    D_NODISCARD
-    input_type
-    do_rewrite
-    (
+    D_NODISCARD input_type
+    do_rewrite(
         const input_type& _in,
         const key_type&   _k,
         const value_type& _v
@@ -904,20 +892,16 @@ public:
           m_b(std::forward<_BFwd>(_b))
     {}
 
-    D_NODISCARD
-    bool
-    do_match
-    (
+    D_NODISCARD bool
+    do_match(
         const input_type& _in
     ) const
     {
         return ( m_a.do_match(_in) || m_b.do_match(_in) );
     }
 
-    D_NODISCARD
-    match_result_type
-    do_extract
-    (
+    D_NODISCARD match_result_type
+    do_extract(
         const input_type& _in
     ) const
     {
@@ -931,20 +915,16 @@ public:
         return m_b.do_extract(_in);
     }
 
-    D_NODISCARD
-    input_type
-    do_render
-    (
+    D_NODISCARD input_type
+    do_render(
         const capture_map_type& _c
     ) const
     {
         return m_a.do_render(_c);
     }
 
-    D_NODISCARD
-    input_type
-    do_rewrite
-    (
+    D_NODISCARD input_type
+    do_rewrite(
         const input_type& _in,
         const key_type&   _k,
         const value_type& _v
@@ -959,8 +939,17 @@ public:
         return m_b.do_rewrite(_in, _k, _v);
     }
 
-    D_NODISCARD const _PatternA& first()  const { return m_a; }
-    D_NODISCARD const _PatternB& second() const { return m_b; }
+    D_NODISCARD const _PatternA&
+    first()  const 
+    {
+        return m_a;     
+    }
+
+    D_NODISCARD const _PatternB&
+    second() const
+    {
+        return m_b;
+    }
 
 private:
     _PatternA m_a;
@@ -1018,20 +1007,16 @@ public:
         : m_p(std::forward<_PFwd>(_p))
     {}
 
-    D_NODISCARD
-    bool
-    do_match
-    (
+    D_NODISCARD bool
+    do_match(
         const input_type& _in
     ) const
     {
         return ( !m_p.do_match(_in) );
     }
 
-    D_NODISCARD
-    match_result_type
-    do_extract
-    (
+    D_NODISCARD match_result_type
+    do_extract(
         const input_type& _in
     ) const
     {
@@ -1043,20 +1028,16 @@ public:
         return match_result_type(capture_map_type());
     }
 
-    D_NODISCARD
-    input_type
-    do_render
-    (
+    D_NODISCARD input_type
+    do_render(
         const capture_map_type& /*_c*/
     ) const
     {
         return input_type();
     }
 
-    D_NODISCARD
-    input_type
-    do_rewrite
-    (
+    D_NODISCARD input_type
+    do_rewrite(
         const input_type& _in,
         const key_type&   /*_k*/,
         const value_type& /*_v*/
@@ -1065,7 +1046,11 @@ public:
         return _in;
     }
 
-    D_NODISCARD const _Pattern& inner() const { return m_p; }
+    D_NODISCARD const _Pattern& 
+    inner() const
+    { 
+        return m_p; 
+    }
 
 private:
     _Pattern m_p;
@@ -1075,8 +1060,7 @@ private:
 // pattern_not
 //   function: constructs a pattern_not_combinator.
 template<typename _Pattern>
-D_NODISCARD
-pattern_not_combinator<typename std::decay<_Pattern>::type>
+D_NODISCARD pattern_not_combinator<typename std::decay<_Pattern>::type>
 pattern_not
 (
     _Pattern&& _p
@@ -1092,15 +1076,15 @@ pattern_not
 ///                VII. C++20 CONCEPTS                                      ///
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                               \
-    (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1)
+#if ( defined(D_ENV_CPP_FEATURE_LANG_CONCEPTS) &&                             \
+      (D_ENV_CPP_FEATURE_LANG_CONCEPTS == 1) )
 
 // pattern_type
 //   concept: constrains types that satisfy the full pattern
 // protocol - input/key/value typedefs plus the four do_*
 // member functions.
 template<typename _Type>
-concept pattern_type = traits::is_pattern<_Type>::value;
+concept pattern_type = is_pattern<_Type>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
@@ -1108,4 +1092,4 @@ concept pattern_type = traits::is_pattern<_Type>::value;
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_PATTERN_
+#endif  // DJINTERP_PARADIGM_PATTERN_
