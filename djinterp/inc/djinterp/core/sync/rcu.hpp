@@ -32,7 +32,7 @@
 *   C++23:     rcu_protected delegates to std::rcu_domain when available
 *
 *
-* path:      /inc/djinterp/sync/rcu.hpp
+* path:      /inc/djinterp/core/sync/rcu.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
@@ -91,8 +91,8 @@ NS_DJINTERP
 
     using rcu_domain = std::rcu_default_domain;
 
-    template<typename _T>
-    void rcu_retire(_T* _ptr)
+    template<typename _Type>
+    void rcu_retire(_Type* _ptr)
     {
         std::rcu_retire(_ptr);
     }
@@ -351,11 +351,11 @@ private:
 // through this object; it handles epoch tracking and
 // reclamation automatically.
 
-template<typename _T>
+template<typename _Type>
 class deferred_reclaimer
 {
 public:
-    using deleter_fn = std::function<void(_T*)>;
+    using deleter_fn = std::function<void(_Type*)>;
 
     explicit deferred_reclaimer(
         std::size_t _max_threads = 64)
@@ -402,13 +402,13 @@ public:
     //   retires _ptr for deferred deletion.  Advances
     // the epoch and triggers a scan if the retired
     // count exceeds the threshold.
-    void retire(_T* _ptr)
+    void retire(_Type* _ptr)
     {
         std::uint64_t e = m_epoch.advance();
 
         m_retired.push_back(
             { _ptr,
-              [](_T* p) { delete p; },
+              [](_Type* p) { delete p; },
               e });
 
         if (m_retired.size() >= m_scan_threshold)
@@ -419,7 +419,7 @@ public:
 
     // retire (custom deleter)
     void retire(
-        _T*        _ptr,
+        _Type*        _ptr,
         deleter_fn _deleter)
     {
         std::uint64_t e = m_epoch.advance();
@@ -502,7 +502,7 @@ public:
 private:
     struct retired_entry
     {
-        _T*           ptr;
+        _Type*           ptr;
         deleter_fn    deleter;
         std::uint64_t retire_epoch;
     };
@@ -535,7 +535,7 @@ private:
 
 #if !D_HAS_STD_RCU
 
-template<typename _T>
+template<typename _Type>
 class rcu_protected
 {
 public:
@@ -581,20 +581,20 @@ public:
 
     // --- constructors ---
 
-    explicit rcu_protected(const _T& _initial)
+    explicit rcu_protected(const _Type& _initial)
         : m_reclaimer(64)
     {
-        _T* p = new _T(_initial);
+        _Type* p = new _Type(_initial);
         m_data.store(p, std::memory_order_release);
 
         m_reader_slot =
             m_reclaimer.register_reader();
     }
 
-    explicit rcu_protected(_T&& _initial)
+    explicit rcu_protected(_Type&& _initial)
         : m_reclaimer(64)
     {
-        _T* p = new _T(std::move(_initial));
+        _Type* p = new _Type(std::move(_initial));
         m_data.store(p, std::memory_order_release);
 
         m_reader_slot =
@@ -604,7 +604,7 @@ public:
     ~rcu_protected()
     {
         // reclaim the current value
-        _T* p = m_data.load(
+        _Type* p = m_data.load(
             std::memory_order_acquire);
 
         delete p;
@@ -639,7 +639,7 @@ public:
     // read
     //   returns a const reference to the current value.
     // MUST be called while holding a rcu_read_guard.
-    const _T& read(
+    const _Type& read(
         const rcu_read_guard& /*guard*/) const noexcept
     {
         return *m_data.load(
@@ -652,20 +652,20 @@ public:
     //   atomically replaces the current value with a
     // copy of _new_value.  The old value is retired
     // for deferred reclamation.
-    void update(const _T& _new_value)
+    void update(const _Type& _new_value)
     {
-        _T* fresh = new _T(_new_value);
-        _T* old   = m_data.exchange(
+        _Type* fresh = new _Type(_new_value);
+        _Type* old   = m_data.exchange(
             fresh, std::memory_order_acq_rel);
 
         m_reclaimer.retire(old);
     }
 
     // update (move)
-    void update(_T&& _new_value)
+    void update(_Type&& _new_value)
     {
-        _T* fresh = new _T(std::move(_new_value));
-        _T* old   = m_data.exchange(
+        _Type* fresh = new _Type(std::move(_new_value));
+        _Type* old   = m_data.exchange(
             fresh, std::memory_order_acq_rel);
 
         m_reclaimer.retire(old);
@@ -679,14 +679,14 @@ public:
     template<typename _Fn>
     void modify(_Fn&& _fn)
     {
-        const _T* current = m_data.load(
+        const _Type* current = m_data.load(
             std::memory_order_acquire);
 
-        _T* fresh = new _T(*current);
+        _Type* fresh = new _Type(*current);
 
         std::forward<_Fn>(_fn)(*fresh);
 
-        _T* old = m_data.exchange(
+        _Type* old = m_data.exchange(
             fresh, std::memory_order_acq_rel);
 
         m_reclaimer.retire(old);
@@ -705,8 +705,8 @@ public:
     }
 
 private:
-    std::atomic<_T*>                 m_data;
-    deferred_reclaimer<_T>           m_reclaimer;
+    std::atomic<_Type*>                 m_data;
+    deferred_reclaimer<_Type>           m_reclaimer;
     std::atomic<std::uint64_t>*      m_reader_slot;
 };
 

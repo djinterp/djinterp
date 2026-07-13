@@ -396,7 +396,7 @@ private:
 // On 32-bit platforms, uses a 64-bit CAS with separate
 // fields.
 
-template<typename _T>
+template<typename _Type>
 class atomic_stamped_ptr
 {
 public:
@@ -407,7 +407,7 @@ public:
     {}
 
     explicit atomic_stamped_ptr(
-        _T*        _ptr,
+        _Type*        _ptr,
         stamp_type _stamp = 0) noexcept
         : m_packed(pack(_ptr, _stamp))
     {}
@@ -419,7 +419,7 @@ public:
 
     // --- accessors ---
 
-    _T* load_ptr(
+    _Type* load_ptr(
         std::memory_order _order =
             std::memory_order_acquire) const noexcept
     {
@@ -436,7 +436,7 @@ public:
     // --- store ---
 
     void store(
-        _T*               _ptr,
+        _Type*               _ptr,
         stamp_type        _stamp,
         std::memory_order _order =
             std::memory_order_release) noexcept
@@ -447,9 +447,9 @@ public:
     // --- CAS ---
 
     bool compare_exchange_weak(
-        _T*&              _expected_ptr,
+        _Type*&              _expected_ptr,
         stamp_type&       _expected_stamp,
-        _T*               _desired_ptr,
+        _Type*               _desired_ptr,
         stamp_type        _desired_stamp,
         std::memory_order _success =
             std::memory_order_acq_rel,
@@ -475,7 +475,7 @@ public:
 
 private:
     static std::uintptr_t pack(
-        _T*        _ptr,
+        _Type*        _ptr,
         stamp_type _stamp) noexcept
     {
         std::uintptr_t raw =
@@ -487,7 +487,7 @@ private:
                    << 48);
     }
 
-    static _T* unpack_ptr(
+    static _Type* unpack_ptr(
         std::uintptr_t _packed) noexcept
     {
         // sign-extend from 48 bits for canonical form
@@ -498,7 +498,7 @@ private:
             raw |= 0xFFFF000000000000;
         }
 
-        return reinterpret_cast<_T*>(raw);
+        return reinterpret_cast<_Type*>(raw);
     }
 
     static stamp_type unpack_stamp(
