@@ -45,7 +45,7 @@
 * VI.   FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/test_stress.hpp
+* path:      /inc/djinterp/test/sync/test_stress.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -58,6 +58,9 @@
 #include <cstdint>
 #include <string>
 
+// djinterp core first: defines the D_ENV_LANG_* gates the std block needs
+#include "../../core/djinterp.hpp"
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
     #include <chrono>
@@ -66,13 +69,10 @@
     #include <utility>
     #include <vector>
 #endif
-
-// djinterp
-#include "../core/djinterp.hpp"
-#include "../sync/atomic.hpp"
-#include "../sync/condvar.hpp"
-#include "./test_common.hpp"
-#include "./test_object.hpp"
+#include "../../core/sync/atomic.hpp"
+#include "../../core/sync/condvar.hpp"
+#include "../test_common.hpp"
+#include "../test_object.hpp"
 #include "./test_thread.hpp"
 #include "./test_concurrent.hpp"
 
@@ -84,7 +84,7 @@ NS_TEST
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- threadsafe foundation wrappers used by this module ---
-using ::atomic_size;
+using djinterp::atomic_size;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   STRESS REPORT                                       ///
@@ -148,15 +148,16 @@ struct stress_report
         const char*  _name = "stress_run"
     ) const
     {
-        basic_test t(_type_id, success(), _name);
+        basic_test t(_type_id, success());
+        t.metadata().set("name", _name);
 
         if (!success())
         {
-            t.set_message("stress run reported failure");
+            t.metadata().set("message", "stress run reported failure");
         }
         else
         {
-            t.set_message("stress run completed");
+            t.metadata().set("message", "stress run completed");
         }
 
         return t;

@@ -44,7 +44,7 @@
 * V.    FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/test_deadlock.hpp
+* path:      /inc/djinterp/test/sync/test_deadlock.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -56,6 +56,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+
+// djinterp core first: defines the D_ENV_LANG_* gates the std block needs
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     #include <atomic>
@@ -69,13 +72,10 @@
 #else
     #include <vector>
 #endif
-
-// djinterp
-#include "../core/djinterp.hpp"
-#include "../sync/atomic.hpp"
-#include "../sync/condvar.hpp"
-#include "./test_common.hpp"
-#include "./test_object.hpp"
+#include "../../core/sync/atomic.hpp"
+#include "../../core/sync/condvar.hpp"
+#include "../test_common.hpp"
+#include "../test_object.hpp"
 
 
 NS_DJINTERP
@@ -85,8 +85,8 @@ NS_TEST
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- threadsafe foundation wrappers used by this module ---
-using ::portable_condvar;
-using ::exclusive_lock_policy;
+using djinterp::portable_condvar;
+using djinterp::exclusive_lock_policy;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   DEADLOCK REPORT                                     ///
@@ -169,7 +169,10 @@ struct deadlock_report
         const char*  _name = "deadlock_test"
     ) const
     {
-        return basic_test(_kind, ok(), _name);
+        basic_test t(_kind, ok());
+        t.metadata().set("name", _name);
+
+        return t;
     }
 };
 
@@ -194,7 +197,7 @@ struct deadlock_report
 //   // ... operation that should complete within 5s ...
 //   wd.disarm();
 //   auto report = wd.report();
-//   suite.adopt(report.to_test_object(0, "lock acquisition"));
+//   suite.add_root(report.to_test_object(0, "lock acquisition"));
 //
 // Re-arming:
 //   A watchdog may be reused.  Call arm() again after disarm()
@@ -1054,7 +1057,10 @@ struct deadlock_report
         const char*  _name = "deadlock_test"
     ) const
     {
-        return basic_test(_kind, ok(), _name);
+        basic_test t(_kind, ok());
+        t.metadata().set("name", _name);
+
+        return t;
     }
 };
 

@@ -42,7 +42,7 @@
 * IV.   FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/test_thread.hpp
+* path:      /inc/djinterp/test/sync/test_thread.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -66,9 +66,9 @@
 #endif
 
 // djinterp
-#include "../core/djinterp.hpp"
-#include "../sync/condvar.hpp"
-#include "./test_common.hpp"
+#include "../../core/djinterp.hpp"
+#include "../../core/sync/condvar.hpp"
+#include "../test_common.hpp"
 
 
 NS_DJINTERP
