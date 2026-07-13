@@ -1,5 +1,5 @@
-/*******************************************************************************
-* uxoxo [font]                                                          font.hpp
+/******************************************************************************
+* djinterp [text]                                                      font.hpp
 *
 * Abstract font model:
 *   A framework-agnostic, OS-agnostic typography model.  Defines the
@@ -10,8 +10,8 @@
 *
 *   The core type `font<_Feat, _ColorType>` is a compile-time
 * configurable data aggregate.  Capabilities that not every platform
-* supports — underline, strikethrough, color, small caps, variable-
-* font axes, OpenType feature tags — are gated behind feature-flag
+* supports - underline, strikethrough, color, small caps, variable-
+* font axes, OpenType feature tags - are gated behind feature-flag
 * EBO mixins, matching the pattern used by button, input_control,
 * and dialog elsewhere in uxoxo.  Disabled capabilities consume zero
 * bytes (EBO folds the empty mixin into the outer struct).
@@ -22,10 +22,10 @@
 *     - weight (symbolic + numeric)
 *     - slant (upright / italic / oblique)
 *
-*   Everything else — underline, strikethrough, overline, small caps,
+*   Everything else - underline, strikethrough, overline, small caps,
 * stretch, letter spacing, line height, foreground color, background
 * color, OpenType feature list, variable-axis values, language /
-* script hint — is optional.
+* script hint - is optional.
 *
 *   This module intentionally does NOT:
 *     - open or enumerate files
@@ -35,28 +35,39 @@
 *
 *   Backends map `font<>` onto their native representation; the
 * font_traits module provides structural detection so adapters can
-* branch with `if constexpr (traits::has_underline_v<F>)`.
-*
-* Contents:
-*   1.  Feature flags (font_feat)
-*   2.  Core enums (font_weight, font_slant, font_stretch,
-*                    font_spacing, font_size_unit)
-*   3.  Color type
-*   4.  OpenType feature tags (fourcc-style)
-*   5.  Variable-font axis
-*   6.  Font family info (catalogue entry)
-*   7.  EBO mixins
-*   8.  font<_Feat, _ColorType> struct
-*   9.  Free functions (fn_set_*, fn_clear_*, fn_has_*, fn_convert_size)
+* branch with `if constexpr (has_underline_v<F>)`.
 *
 *
-* path:      /inc/uxoxo/templates/font/font.hpp
+* path:      /inc/djinterp/core/text/font.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                      date: 2026.04.18
-*******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.18
+******************************************************************************/
 
-#ifndef UXOXO_FONT_
-#define UXOXO_FONT_ 1
+/*
+TABLE OF CONTENTS
+=================
+1.  feature flags (font_feat)
+2.  core enums (font_weight,
+                font_slant,
+                font_stretch,
+                font_spacing,
+                font_size_unit)
+3.  color type
+4.  openType feature tags (fourcc-style)
+5.  variable-font axis
+6.  font family info (catalogue entry)
+7.  EBO mixins
+8.  font<_Feat, _ColorType> struct
+9.  free functions (fn_set_*, 
+                    fn_clear_*, 
+                    fn_has_*, 
+                    fn_convert_size)
+10. font traits (consolidated from font_traits.hpp)
+11. font concepts (consolidated from font_concepts.hpp)
+*/
+
+#ifndef DJINTERP_TEXT_FONT_
+#define DJINTERP_TEXT_FONT_ 1
 
 // std
 #include <cstddef>
@@ -66,30 +77,23 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include <djinterp/core/djinterp.hpp>
-// uxoxo
-#include "../../uxoxo.hpp"
+#include "../djinterp.hpp"
+#include "../meta/type_traits.hpp"      // is_detected<> (used by the font traits)
+#include "../util/color/color_rgb.hpp"  // native rgb (default font color type)
 
 
-NS_UXOXO
+NS_DJINTERP
 
-// NOTE: uxoxo.hpp does not (yet) define NS_FONT.  Using a plain
-// namespace declaration here; add `#define NS_FONT D_NAMESPACE(font)`
-// alongside the other NS_* macros in uxoxo.hpp if the macro idiom
-// is preferred.
-namespace font {
-
-
-// ===============================================================================
+// =============================================================================
 //  1.  FONT FEATURE FLAGS
-// ===============================================================================
+// =============================================================================
 //   Each flag gates a data member or mixin in `font<_Feat>`.  A flag
 // costs nothing when disabled (empty base optimization folds the
 // corresponding mixin into the outer type).
 //
 //   Rationale for the partitions:
 //     - "core" (always present): family, size, weight, slant
-//     - "decorations": underline, strikethrough, overline — commonly
+//     - "decorations": underline, strikethrough, overline - commonly
 //       absent on terminals and low-level glyph pipelines
 //     - "casing": small caps, all caps, subscript, superscript
 //     - "metrics overrides": letter_spacing, line_height
@@ -100,7 +104,7 @@ namespace font {
 //     - "variable": variable-font axis list (wght, wdth, slnt, ital, ...)
 //     - "script_hint": language / script tag (for shaping selection)
 //     - "backend_handles": PostScript name, file path, face index,
-//       opaque native handle — resolution hints for adapters
+//       opaque native handle - resolution hints for adapters
 
 enum font_feat : unsigned
 {
@@ -162,9 +166,9 @@ constexpr bool has_ff(unsigned   _f,
 }
 
 
-// ===============================================================================
+// =============================================================================
 //  2.  CORE ENUMS
-// ===============================================================================
+// =============================================================================
 
 // font_weight
 //   enum: symbolic weight names with numeric values matching the OS/2
@@ -187,7 +191,7 @@ enum class font_weight : std::uint16_t
 
 // font_slant
 //   enum: italic / oblique axis.  `oblique` is algorithmically slanted
-// while `italic` is typographically designed — adapters that cannot
+// while `italic` is typographically designed - adapters that cannot
 // distinguish may treat them as equivalent.
 enum class font_slant : std::uint8_t
 {
@@ -238,15 +242,15 @@ enum class font_size_unit : std::uint8_t
 };
 
 
-// ===============================================================================
+// =============================================================================
 //  3.  COLOR TYPE
-// ===============================================================================
+// =============================================================================
 
 // font_color
-//   struct: default 8-bit RGBA color.  Parameterisable at the `font`
-// level via the _ColorType template argument; this type is the
-// default and is used as the sentinel-free fallback.  Deliberately
-// NOT coupled to djinterp::color so this header stays self-contained.
+//   struct: a legacy 8-bit RGBA color, retained so existing
+// `font<F, font_color>` instantiations keep compiling.  The font's
+// default color type is now the native djinterp::rgb; prefer that (or
+// djinterp::rgba for alpha).  Kept here as a self-contained option.
 struct font_color
 {
     std::uint8_t  r = 0;
@@ -263,9 +267,9 @@ struct font_color
 };
 
 
-// ===============================================================================
+// =============================================================================
 //  4.  OPENTYPE FEATURE TAGS
-// ===============================================================================
+// =============================================================================
 
 // opentype_tag
 //   type: 4-character OpenType feature tag packed into a uint32.
@@ -305,9 +309,9 @@ struct opentype_feature
 };
 
 
-// ===============================================================================
+// =============================================================================
 //  5.  VARIABLE-FONT AXIS
-// ===============================================================================
+// =============================================================================
 
 // variable_axis
 //   struct: one variable-font axis value.  The tag identifies the
@@ -321,14 +325,14 @@ struct variable_axis
 };
 
 
-// ===============================================================================
+// =============================================================================
 //  6.  FONT FAMILY INFO
-// ===============================================================================
+// =============================================================================
 
 // font_family_info
 //   struct: one entry in the catalogue of available families.  Kept
-// here (rather than in the dialog) so that non-dialog consumers —
-// font managers, asset pipelines, debug overlays — share one type.
+// here (rather than in the dialog) so that non-dialog consumers -
+// font managers, asset pipelines, debug overlays - share one type.
 struct font_family_info
 {
     std::string               family;
@@ -344,9 +348,9 @@ struct font_family_info
 };
 
 
-// ===============================================================================
+// =============================================================================
 //  7.  EBO MIXINS
-// ===============================================================================
+// =============================================================================
 //   Each mixin stores exactly the data its feature introduces.  The
 // `_Enable == false` specialisation is empty and subject to EBO.
 
@@ -549,9 +553,9 @@ namespace font_mixin {
 }   // namespace font_mixin
 
 
-// ===============================================================================
+// =============================================================================
 //  8.  FONT
-// ===============================================================================
+// =============================================================================
 
 // font
 //   struct: framework-agnostic font descriptor.  Carries symbolic
@@ -560,9 +564,10 @@ namespace font_mixin {
 //
 //   _Feat       bitwise OR of font_feat values.  Gates mixins.
 //   _ColorType  color type used by the foreground/background mixins.
-//               Defaults to font_color (8-bit RGBA).  Substitute any
+//               Defaults to the native djinterp::rgb.  Substitute any
 //               type that is default-constructible, copyable, and
-//               equality-comparable (e.g. djinterp::color::rgb).
+//               equality-comparable (e.g. djinterp::rgba for alpha, or
+//               the legacy font_color).
 //
 //   Always-present members:
 //     family            std::string         display name
@@ -575,7 +580,7 @@ namespace font_mixin {
 //     slant             font_slant          upright / italic / oblique
 
 template <unsigned _Feat      = ff_none,
-          typename _ColorType = font_color>
+          typename _ColorType = rgb>
 struct font
     : font_mixin::underline_data         <has_ff(_Feat, ff_underline)>
     , font_mixin::strikethrough_data     <has_ff(_Feat, ff_strikethrough)>
@@ -665,9 +670,9 @@ struct font
 };
 
 
-// ===============================================================================
+// =============================================================================
 //  9.  FREE FUNCTIONS
-// ===============================================================================
+// =============================================================================
 
 // ---------------------------------------------------------------------
 // core setters
@@ -1322,8 +1327,1014 @@ fn_convert_size(
 }
 
 
-}   // namespace font
-NS_END  // uxoxo
+
+///////////////////////////////////////////////////////////////////////////////
+///       10.   FONT TRAITS   (consolidated from font_traits.hpp)           ///
+///////////////////////////////////////////////////////////////////////////////
+
+// ===========================================================================
+// I.   EXPRESSION DETECTORS
+// ===========================================================================
+//   Each `using` alias probes for a specific member.  In SFINAE
+// context, a well-formed detector names the member's type; an
+// ill-formed one silently falls out.  The detection idiom from
+// djinterp::type_traits (is_detected<>) then classifies the result.
+
+// -- core identity --------------------------------------------------
+
+// font_family_t
+//   detector: `.family` member (expected: std::string or string-like).
+template<typename _Type>
+using font_family_t = decltype(std::declval<_Type&>().family);
+
+// font_style_name_t
+//   detector: `.style_name` member.
+template<typename _Type>
+using font_style_name_t = decltype(std::declval<_Type&>().style_name);
+
+// font_size_t
+//   detector: `.size` member (expected: float or arithmetic).
+template<typename _Type>
+using font_size_t = decltype(std::declval<_Type&>().size);
+
+// font_size_unit_t
+//   detector: `.size_unit` member.
+template<typename _Type>
+using font_size_unit_t = decltype(std::declval<_Type&>().size_unit);
+
+// font_weight_t
+//   detector: `.weight` member (symbolic weight).
+template<typename _Type>
+using font_weight_t = decltype(std::declval<_Type&>().weight);
+
+// font_weight_numeric_t
+//   detector: `.weight_numeric` member.
+template<typename _Type>
+using font_weight_numeric_t = decltype(std::declval<_Type&>().weight_numeric);
+
+// font_slant_t
+//   detector: `.slant` member.
+template<typename _Type>
+using font_slant_t = decltype(std::declval<_Type&>().slant);
+
+// font_empty_t
+//   detector: `.empty()` method returning bool.
+template<typename _Type>
+using font_empty_t = decltype(std::declval<const _Type&>().empty());
 
 
-#endif  // UXOXO_FONT_
+// -- decorations ----------------------------------------------------
+
+template<typename _Type>
+using font_underline_t =
+    decltype(std::declval<_Type&>().underline);
+
+template<typename _Type>
+using font_strikethrough_t =
+    decltype(std::declval<_Type&>().strikethrough);
+
+template<typename _Type>
+using font_overline_t =
+    decltype(std::declval<_Type&>().overline);
+
+
+// -- casing ---------------------------------------------------------
+
+template<typename _Type>
+using font_small_caps_t =
+    decltype(std::declval<_Type&>().small_caps);
+
+template<typename _Type>
+using font_all_caps_t =
+    decltype(std::declval<_Type&>().all_caps);
+
+template<typename _Type>
+using font_subscript_t =
+    decltype(std::declval<_Type&>().subscript);
+
+template<typename _Type>
+using font_superscript_t =
+    decltype(std::declval<_Type&>().superscript);
+
+
+// -- metrics overrides ----------------------------------------------
+
+template<typename _Type>
+using font_letter_spacing_t =
+    decltype(std::declval<_Type&>().letter_spacing);
+
+template<typename _Type>
+using font_line_height_t =
+    decltype(std::declval<_Type&>().line_height);
+
+
+// -- axes -----------------------------------------------------------
+
+template<typename _Type>
+using font_stretch_t =
+    decltype(std::declval<_Type&>().stretch);
+
+template<typename _Type>
+using font_spacing_t =
+    decltype(std::declval<_Type&>().spacing);
+
+
+// -- color / background --------------------------------------------
+
+template<typename _Type>
+using font_foreground_t =
+    decltype(std::declval<_Type&>().foreground);
+
+template<typename _Type>
+using font_background_t =
+    decltype(std::declval<_Type&>().background);
+
+template<typename _Type>
+using font_background_enabled_t =
+    decltype(std::declval<_Type&>().background_enabled);
+
+
+// -- opentype features ---------------------------------------------
+
+template<typename _Type>
+using font_opentype_features_t =
+    decltype(std::declval<_Type&>().opentype_features);
+
+
+// -- variable-font axes --------------------------------------------
+
+template<typename _Type>
+using font_variable_axes_t =
+    decltype(std::declval<_Type&>().variable_axes);
+
+
+// -- script hint ---------------------------------------------------
+
+template<typename _Type>
+using font_script_tag_t =
+    decltype(std::declval<_Type&>().script_tag);
+
+template<typename _Type>
+using font_language_tag_t =
+    decltype(std::declval<_Type&>().language_tag);
+
+
+// -- backend handles -----------------------------------------------
+
+template<typename _Type>
+using font_postscript_name_t =
+    decltype(std::declval<_Type&>().postscript_name);
+
+template<typename _Type>
+using font_full_name_t =
+    decltype(std::declval<_Type&>().full_name);
+
+template<typename _Type>
+using font_file_path_t =
+    decltype(std::declval<_Type&>().file_path);
+
+template<typename _Type>
+using font_face_index_t =
+    decltype(std::declval<_Type&>().face_index);
+
+template<typename _Type>
+using font_native_handle_t =
+    decltype(std::declval<_Type&>().native_handle);
+
+
+// -- color-type alias ----------------------------------------------
+
+template<typename _Type>
+using font_color_type_t =
+    typename clean_t<_Type>::color_type;
+
+
+// ===========================================================================
+// II.  INDIVIDUAL CAPABILITY TRAITS
+// ===========================================================================
+
+// -- core identity --------------------------------------------------
+
+// has_font_family
+//   trait: checks for a `.family` member.
+template<typename _Type>
+struct has_font_family
+    : djinterp::is_detected<font_family_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_family_v =
+    has_font_family<_Type>::value;
+
+// has_font_style_name
+template<typename _Type>
+struct has_font_style_name
+    : djinterp::is_detected<font_style_name_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_style_name_v =
+    has_font_style_name<_Type>::value;
+
+// has_font_size
+template<typename _Type>
+struct has_font_size
+    : djinterp::is_detected<font_size_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_size_v =
+    has_font_size<_Type>::value;
+
+// has_font_size_unit
+template<typename _Type>
+struct has_font_size_unit
+    : djinterp::is_detected<font_size_unit_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_size_unit_v =
+    has_font_size_unit<_Type>::value;
+
+// has_font_weight
+template<typename _Type>
+struct has_font_weight
+    : djinterp::is_detected<font_weight_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_weight_v =
+    has_font_weight<_Type>::value;
+
+// has_font_weight_numeric
+template<typename _Type>
+struct has_font_weight_numeric
+    : djinterp::is_detected<font_weight_numeric_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_weight_numeric_v =
+    has_font_weight_numeric<_Type>::value;
+
+// has_font_slant
+template<typename _Type>
+struct has_font_slant
+    : djinterp::is_detected<font_slant_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_slant_v =
+    has_font_slant<_Type>::value;
+
+
+// -- decorations ----------------------------------------------------
+
+// has_font_underline
+template<typename _Type>
+struct has_font_underline
+    : djinterp::is_detected<font_underline_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_underline_v =
+    has_font_underline<_Type>::value;
+
+// has_font_strikethrough
+template<typename _Type>
+struct has_font_strikethrough
+    : djinterp::is_detected<font_strikethrough_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_strikethrough_v =
+    has_font_strikethrough<_Type>::value;
+
+// has_font_overline
+template<typename _Type>
+struct has_font_overline
+    : djinterp::is_detected<font_overline_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_overline_v =
+    has_font_overline<_Type>::value;
+
+// has_font_decorations
+//   trait: true when at least one decoration (underline, strikethrough,
+// or overline) is exposed.  Useful for adapters that render any
+// decoration via a single code path.
+template<typename _Type>
+struct has_font_decorations : djinterp::disjunction<
+    has_font_underline<_Type>,
+    has_font_strikethrough<_Type>,
+    has_font_overline<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool has_font_decorations_v =
+    has_font_decorations<_Type>::value;
+
+
+// -- casing ---------------------------------------------------------
+
+// has_font_small_caps
+template<typename _Type>
+struct has_font_small_caps
+    : djinterp::is_detected<font_small_caps_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_small_caps_v =
+    has_font_small_caps<_Type>::value;
+
+// has_font_all_caps
+template<typename _Type>
+struct has_font_all_caps
+    : djinterp::is_detected<font_all_caps_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_all_caps_v =
+    has_font_all_caps<_Type>::value;
+
+// has_font_subscript
+template<typename _Type>
+struct has_font_subscript
+    : djinterp::is_detected<font_subscript_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_subscript_v =
+    has_font_subscript<_Type>::value;
+
+// has_font_superscript
+template<typename _Type>
+struct has_font_superscript
+    : djinterp::is_detected<font_superscript_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_superscript_v =
+    has_font_superscript<_Type>::value;
+
+// has_font_casing
+//   trait: true if any casing transform is exposed.
+template<typename _Type>
+struct has_font_casing : djinterp::disjunction<
+    has_font_small_caps<_Type>,
+    has_font_all_caps<_Type>,
+    has_font_subscript<_Type>,
+    has_font_superscript<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool has_font_casing_v =
+    has_font_casing<_Type>::value;
+
+
+// -- metrics overrides ----------------------------------------------
+
+// has_font_letter_spacing
+template<typename _Type>
+struct has_font_letter_spacing
+    : djinterp::is_detected<font_letter_spacing_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_letter_spacing_v =
+    has_font_letter_spacing<_Type>::value;
+
+// has_font_line_height
+template<typename _Type>
+struct has_font_line_height
+    : djinterp::is_detected<font_line_height_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_line_height_v =
+    has_font_line_height<_Type>::value;
+
+// has_font_metrics_overrides
+//   trait: true if either metrics override is exposed.
+template<typename _Type>
+struct has_font_metrics_overrides : djinterp::disjunction<
+    has_font_letter_spacing<_Type>,
+    has_font_line_height<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool has_font_metrics_overrides_v =
+    has_font_metrics_overrides<_Type>::value;
+
+
+// -- axes -----------------------------------------------------------
+
+// has_font_stretch
+template<typename _Type>
+struct has_font_stretch
+    : djinterp::is_detected<font_stretch_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_stretch_v =
+    has_font_stretch<_Type>::value;
+
+// has_font_spacing
+template<typename _Type>
+struct has_font_spacing
+    : djinterp::is_detected<font_spacing_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_spacing_v =
+    has_font_spacing<_Type>::value;
+
+
+// -- color / background --------------------------------------------
+
+// has_font_color
+//   trait: true if the type exposes a `foreground` member.
+template<typename _Type>
+struct has_font_color
+    : djinterp::is_detected<font_foreground_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_color_v =
+    has_font_color<_Type>::value;
+
+// has_font_background
+//   trait: true when both `background` and `background_enabled` are
+// exposed.  The paired check avoids false positives on types that
+// carry only a nominal background field.
+template<typename _Type>
+struct has_font_background : djinterp::conjunction<
+    djinterp::is_detected<font_background_t,         _Type>,
+    djinterp::is_detected<font_background_enabled_t, _Type>>
+{};
+
+template<typename _Type>
+constexpr bool has_font_background_v =
+    has_font_background<_Type>::value;
+
+
+// -- opentype features ---------------------------------------------
+
+// has_font_opentype_features
+template<typename _Type>
+struct has_font_opentype_features
+    : djinterp::is_detected<font_opentype_features_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_opentype_features_v =
+    has_font_opentype_features<_Type>::value;
+
+
+// -- variable-font axes --------------------------------------------
+
+// has_font_variable_axes
+template<typename _Type>
+struct has_font_variable_axes
+    : djinterp::is_detected<font_variable_axes_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_variable_axes_v =
+    has_font_variable_axes<_Type>::value;
+
+
+// -- script hint ---------------------------------------------------
+
+// has_font_script_hint
+//   trait: true when both script_tag and language_tag are exposed.
+template<typename _Type>
+struct has_font_script_hint : djinterp::conjunction<
+    djinterp::is_detected<font_script_tag_t,   _Type>,
+    djinterp::is_detected<font_language_tag_t, _Type>>
+{};
+
+template<typename _Type>
+constexpr bool has_font_script_hint_v =
+    has_font_script_hint<_Type>::value;
+
+
+// -- backend handles -----------------------------------------------
+
+// has_font_file_path
+template<typename _Type>
+struct has_font_file_path
+    : djinterp::is_detected<font_file_path_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_file_path_v =
+    has_font_file_path<_Type>::value;
+
+// has_font_postscript_name
+template<typename _Type>
+struct has_font_postscript_name
+    : djinterp::is_detected<font_postscript_name_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_postscript_name_v =
+    has_font_postscript_name<_Type>::value;
+
+// has_font_native_handle
+template<typename _Type>
+struct has_font_native_handle
+    : djinterp::is_detected<font_native_handle_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_native_handle_v =
+    has_font_native_handle<_Type>::value;
+
+// has_font_backend_handles
+//   trait: true if ANY backend-resolution handle is exposed (file
+// path, PostScript name, or opaque native handle).  Adapters use
+// this to decide whether symbolic-only resolution is sufficient.
+template<typename _Type>
+struct has_font_backend_handles : djinterp::disjunction<
+    has_font_file_path<_Type>,
+    has_font_postscript_name<_Type>,
+    has_font_native_handle<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool has_font_backend_handles_v =
+    has_font_backend_handles<_Type>::value;
+
+
+// -- color type alias ----------------------------------------------
+
+// has_font_color_type_alias
+//   trait: true if the type exposes a `color_type` nested alias.
+// Used by templates that need to forward the color type without
+// assuming `font_color`.
+template<typename _Type>
+struct has_font_color_type_alias
+    : djinterp::is_detected<font_color_type_t, _Type>
+{};
+
+template<typename _Type>
+constexpr bool has_font_color_type_alias_v =
+    has_font_color_type_alias<_Type>::value;
+
+
+// ===========================================================================
+// III. COMPOSITE TRAITS
+// ===========================================================================
+
+// is_font_like
+//   trait: compound check for the minimal font interface - family +
+// size + weight + slant.  This is the least-common-denominator a
+// backend can rely on across Win32 LOGFONT, Cocoa NSFont, fontconfig
+// patterns, FreeType face descriptors, and bitmap atlas refs.
+//
+//   Note: `style_name`, `size_unit`, `weight_numeric`, and `empty()`
+// are conveniences rather than requirements - many backend types
+// lack them, and adapters provide defaults when absent.
+template<typename _Type>
+struct is_font_like : djinterp::conjunction<
+    has_font_family<_Type>,
+    has_font_size<_Type>,
+    has_font_weight<_Type>,
+    has_font_slant<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_like_v =
+    is_font_like<_Type>::value;
+
+// is_font_bold_like
+//   trait: true if `_Type` is font-like AND exposes a weight axis.
+// Equivalent to is_font_like here (weight is in the minimal set),
+// provided as an explicit name to mirror is_font_italic_like and
+// document intent at the call site.
+template<typename _Type>
+struct is_font_bold_like : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_weight<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_bold_like_v =
+    is_font_bold_like<_Type>::value;
+
+// is_font_italic_like
+//   trait: true if `_Type` is font-like AND exposes slant.
+template<typename _Type>
+struct is_font_italic_like : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_slant<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_italic_like_v =
+    is_font_italic_like<_Type>::value;
+
+// is_font_with_decorations
+template<typename _Type>
+struct is_font_with_decorations : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_decorations<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_with_decorations_v =
+    is_font_with_decorations<_Type>::value;
+
+// is_font_with_casing
+template<typename _Type>
+struct is_font_with_casing : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_casing<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_with_casing_v =
+    is_font_with_casing<_Type>::value;
+
+// is_font_with_color
+template<typename _Type>
+struct is_font_with_color : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_color<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_with_color_v =
+    is_font_with_color<_Type>::value;
+
+// is_font_with_background
+template<typename _Type>
+struct is_font_with_background : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_background<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_with_background_v =
+    is_font_with_background<_Type>::value;
+
+// is_font_with_metrics
+template<typename _Type>
+struct is_font_with_metrics : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_metrics_overrides<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_with_metrics_v =
+    is_font_with_metrics<_Type>::value;
+
+// is_font_with_opentype
+template<typename _Type>
+struct is_font_with_opentype : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_opentype_features<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_with_opentype_v =
+    is_font_with_opentype<_Type>::value;
+
+// is_font_variable
+//   trait: true when variable-font axes are exposed.  Used by
+// adapters that want to fall back to static-font resolution when
+// the input doesn't carry axes.
+template<typename _Type>
+struct is_font_variable : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_variable_axes<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_variable_v =
+    is_font_variable<_Type>::value;
+
+// is_font_terminal
+//   trait: appropriate for a terminal / TUI backend - family + size +
+// weight + slant + (color or background).  Terminals rarely carry
+// decorations or metric overrides; this gate reflects that.
+template<typename _Type>
+struct is_font_terminal : djinterp::conjunction<
+    is_font_like<_Type>,
+    djinterp::disjunction<
+        has_font_color<_Type>,
+        has_font_background<_Type>>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_terminal_v =
+    is_font_terminal<_Type>::value;
+
+// is_font_rich
+//   trait: the "full" gate - decorations + casing + metrics + axes
+// + color + opentype features.  A font that satisfies this is
+// suitable input for any modern GUI text renderer.
+template<typename _Type>
+struct is_font_rich : djinterp::conjunction<
+    is_font_like<_Type>,
+    has_font_decorations<_Type>,
+    has_font_casing<_Type>,
+    has_font_metrics_overrides<_Type>,
+    has_font_color<_Type>,
+    has_font_opentype_features<_Type>>
+{};
+
+template<typename _Type>
+constexpr bool is_font_rich_v =
+    is_font_rich<_Type>::value;
+
+
+// ===========================================================================
+// IV.  SFINAE HELPERS
+// ===========================================================================
+
+// enable_if_font_like
+//   type: SFINAE helper selecting overloads that accept any font-like type.
+template<typename _Type>
+using enable_if_font_like =
+    typename std::enable_if<is_font_like<_Type>::value>::type;
+
+// enable_if_has_font_underline
+template<typename _Type>
+using enable_if_has_font_underline =
+    typename std::enable_if<has_font_underline<_Type>::value>::type;
+
+// enable_if_has_font_strikethrough
+template<typename _Type>
+using enable_if_has_font_strikethrough =
+    typename std::enable_if<has_font_strikethrough<_Type>::value>::type;
+
+// enable_if_has_font_color
+template<typename _Type>
+using enable_if_has_font_color =
+    typename std::enable_if<has_font_color<_Type>::value>::type;
+
+// enable_if_is_font_variable
+template<typename _Type>
+using enable_if_is_font_variable =
+    typename std::enable_if<is_font_variable<_Type>::value>::type;
+
+// enable_if_is_font_rich
+template<typename _Type>
+using enable_if_is_font_rich =
+    typename std::enable_if<is_font_rich<_Type>::value>::type;
+
+///////////////////////////////////////////////////////////////////////////////
+///       11.   FONT CONCEPTS   (consolidated from font_concepts.hpp)       ///
+///////////////////////////////////////////////////////////////////////////////
+
+#if ( (defined(__cpp_concepts)) &&                                            \
+      (__cpp_concepts >= 201907L) )
+
+// =============================================================================
+//  1.  CORE IDENTITY CONCEPTS
+// =============================================================================
+
+// font_family_font
+//   concept: the type exposes a font family member.
+template<typename _Type>
+concept font_family_font = has_font_family<_Type>::value;
+
+// font_style_named_font
+//   concept: the type exposes a font style-name member.
+template<typename _Type>
+concept font_style_named_font = has_font_style_name<_Type>::value;
+
+// font_sized_font
+//   concept: the type exposes a font size member.
+template<typename _Type>
+concept font_sized_font = has_font_size<_Type>::value;
+
+// font_size_unit_font
+//   concept: the type exposes a font size-unit member.
+template<typename _Type>
+concept font_size_unit_font = has_font_size_unit<_Type>::value;
+
+// font_weighted_font
+//   concept: the type exposes a font weight member.
+template<typename _Type>
+concept font_weighted_font = has_font_weight<_Type>::value;
+
+// font_numeric_weight_font
+//   concept: the type exposes a numeric font weight member.
+template<typename _Type>
+concept font_numeric_weight_font = has_font_weight_numeric<_Type>::value;
+
+// font_slanted_font
+//   concept: the type exposes a slant member.
+template<typename _Type>
+concept font_slanted_font = has_font_slant<_Type>::value;
+
+// font_like_type
+//   concept: the type satisfies the minimal font-like profile.
+template<typename _Type>
+concept font_like_type = is_font_like<_Type>::value;
+
+
+// =============================================================================
+//  2.  DECORATION AND CASING CONCEPTS
+// =============================================================================
+
+// underline_font
+//   concept: the type exposes underline support.
+template<typename _Type>
+concept underline_font = has_font_underline<_Type>::value;
+
+// strikethrough_font
+//   concept: the type exposes strikethrough support.
+template<typename _Type>
+concept strikethrough_font = has_font_strikethrough<_Type>::value;
+
+// overline_font
+//   concept: the type exposes overline support.
+template<typename _Type>
+concept overline_font = has_font_overline<_Type>::value;
+
+// decorated_font
+//   concept: the type exposes at least one decoration axis.
+template<typename _Type>
+concept decorated_font = has_font_decorations<_Type>::value;
+
+// small_caps_font
+//   concept: the type exposes small-caps support.
+template<typename _Type>
+concept small_caps_font = has_font_small_caps<_Type>::value;
+
+// all_caps_font
+//   concept: the type exposes all-caps support.
+template<typename _Type>
+concept all_caps_font = has_font_all_caps<_Type>::value;
+
+// subscript_font
+//   concept: the type exposes subscript support.
+template<typename _Type>
+concept subscript_font = has_font_subscript<_Type>::value;
+
+// superscript_font
+//   concept: the type exposes superscript support.
+template<typename _Type>
+concept superscript_font = has_font_superscript<_Type>::value;
+
+// casing_font
+//   concept: the type exposes at least one casing feature.
+template<typename _Type>
+concept casing_font = has_font_casing<_Type>::value;
+
+
+// =============================================================================
+//  3.  METRICS, AXES, AND COLOR CONCEPTS
+// =============================================================================
+
+// letter_spacing_font
+//   concept: the type exposes letter-spacing overrides.
+template<typename _Type>
+concept letter_spacing_font = has_font_letter_spacing<_Type>::value;
+
+// line_height_font
+//   concept: the type exposes line-height overrides.
+template<typename _Type>
+concept line_height_font = has_font_line_height<_Type>::value;
+
+// metrics_override_font
+//   concept: the type exposes any metrics override.
+template<typename _Type>
+concept metrics_override_font = has_font_metrics_overrides<_Type>::value;
+
+// stretch_font
+//   concept: the type exposes a stretch axis.
+template<typename _Type>
+concept stretch_font = has_font_stretch<_Type>::value;
+
+// spacing_axis_font
+//   concept: the type exposes a spacing axis.
+template<typename _Type>
+concept spacing_axis_font = has_font_spacing<_Type>::value;
+
+// foreground_color_font
+//   concept: the type exposes foreground color.
+template<typename _Type>
+concept foreground_color_font = has_font_color<_Type>::value;
+
+// background_color_font
+//   concept: the type exposes background color.
+template<typename _Type>
+concept background_color_font = has_font_background<_Type>::value;
+
+// color_typed_font
+//   concept: the type exposes a color_type alias.
+template<typename _Type>
+concept color_typed_font = has_font_color_type_alias<_Type>::value;
+
+
+// =============================================================================
+//  4.  OPENTYPE, SCRIPT, AND BACKEND CONCEPTS
+// =============================================================================
+
+// opentype_feature_font
+//   concept: the type exposes OpenType feature support.
+template<typename _Type>
+concept opentype_feature_font = has_font_opentype_features<_Type>::value;
+
+// variable_axis_font
+//   concept: the type exposes variable-font axes.
+template<typename _Type>
+concept variable_axis_font = has_font_variable_axes<_Type>::value;
+
+// script_hint_font
+//   concept: the type exposes script and language hint members.
+template<typename _Type>
+concept script_hint_font = has_font_script_hint<_Type>::value;
+
+// file_backed_font
+//   concept: the type exposes a font file path.
+template<typename _Type>
+concept file_backed_font = has_font_file_path<_Type>::value;
+
+// postscript_named_font
+//   concept: the type exposes a PostScript name.
+template<typename _Type>
+concept postscript_named_font = has_font_postscript_name<_Type>::value;
+
+// native_handle_font
+//   concept: the type exposes a native backend handle.
+template<typename _Type>
+concept native_handle_font = has_font_native_handle<_Type>::value;
+
+// backend_resolvable_font
+//   concept: the type exposes at least one backend-resolution handle.
+template<typename _Type>
+concept backend_resolvable_font = has_font_backend_handles<_Type>::value;
+
+
+// =============================================================================
+//  5.  COMPOSITE PROFILE CONCEPTS
+// =============================================================================
+
+// bold_like_font
+//   concept: font-like type with weight support.
+template<typename _Type>
+concept bold_like_font = is_font_bold_like<_Type>::value;
+
+// italic_like_font
+//   concept: font-like type with slant support.
+template<typename _Type>
+concept italic_like_font = is_font_italic_like<_Type>::value;
+
+// decoration_capable_font
+//   concept: font-like type with decoration support.
+template<typename _Type>
+concept decoration_capable_font = is_font_with_decorations<_Type>::value;
+
+// casing_capable_font
+//   concept: font-like type with casing support.
+template<typename _Type>
+concept casing_capable_font = is_font_with_casing<_Type>::value;
+
+// color_capable_font
+//   concept: font-like type with foreground color support.
+template<typename _Type>
+concept color_capable_font = is_font_with_color<_Type>::value;
+
+// background_capable_font
+//   concept: font-like type with background color support.
+template<typename _Type>
+concept background_capable_font = is_font_with_background<_Type>::value;
+
+// metrics_capable_font
+//   concept: font-like type with metric override support.
+template<typename _Type>
+concept metrics_capable_font = is_font_with_metrics<_Type>::value;
+
+// opentype_capable_font
+//   concept: font-like type with OpenType feature support.
+template<typename _Type>
+concept opentype_capable_font = is_font_with_opentype<_Type>::value;
+
+// variable_font_type
+//   concept: font-like type with variable-font axes.
+template<typename _Type>
+concept variable_font_type = is_font_variable<_Type>::value;
+
+// terminal_font_type
+//   concept: font-like type suitable for terminal or TUI rendering.
+template<typename _Type>
+concept terminal_font_type = is_font_terminal<_Type>::value;
+
+// rich_font_type
+//   concept: font-like type satisfying the rich modern renderer profile.
+template<typename _Type>
+concept rich_font_type = is_font_rich<_Type>::value;
+
+#endif  // __cpp_concepts >= 201907L
+
+
+NS_END  // djinterp
+
+
+#endif  // DJINTERP_TEXT_FONT_
