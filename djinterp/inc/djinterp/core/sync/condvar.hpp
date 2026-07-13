@@ -18,7 +18,7 @@
 *   C++20:     + jthread-compatible condvar wait
 *
 *
-* path:      /inc/djinterp/sync/condvar.hpp
+* path:      /inc/djinterp/core/sync/condvar.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
@@ -51,13 +51,13 @@
 #endif
 
 // platform includes for pre-C++11 or supplemental
-#if D_ENV_OS_BLOCK == D_ENV_OS_BLOCK_WINDOWS
+#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN
     #endif
     #include <windows.h>
 #elif defined(_POSIX_VERSION) ||                                              \
-      defined(__unix__)       ||                                              \ 
+      defined(__unix__)       ||                                              \
       defined(__APPLE__)
     #include <unistd.h>
     #include <sched.h>
@@ -77,7 +77,7 @@ d_thread_yield()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     std::this_thread::yield();
-#elif D_ENV_OS_BLOCK == D_ENV_OS_BLOCK_WINDOWS
+#elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
     SwitchToThread();
 #elif defined(_POSIX_VERSION)
     sched_yield();
@@ -98,7 +98,7 @@ inline unsigned hardware_concurrency()
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     return std::thread::hardware_concurrency();
-#elif D_ENV_OS_BLOCK == D_ENV_OS_BLOCK_WINDOWS
+#elif D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
     SYSTEM_INFO si;
     GetSystemInfo(&si);
     return static_cast<unsigned>(si.dwNumberOfProcessors);
@@ -198,15 +198,15 @@ NS_INTERNAL
         void wait(_Lock& /*unused*/) {}
 
         template<typename _Lock,
-                 typename _Pred>
+                 typename _Predicate>
         void wait(_Lock& /*unused*/,
-                  _Pred   _pred)
+                  _Predicate   _predicate)
         {
             // single-threaded: if pred is false, it will
             // never become true (no other threads), so
             // this is a programming error.  In debug
             // builds, assert.
-            (void)_pred;
+            (void)_predicate;
         }
 
         template<typename _Lock,
@@ -223,14 +223,14 @@ NS_INTERNAL
         template<typename _Lock,
                  typename _Rep,
                  typename _Period,
-                 typename _Pred>
+                 typename _Predicate>
         bool wait_for(
             _Lock& /*unused*/,
             const std::chrono::duration<_Rep, _Period>&
                 /*unused*/,
-            _Pred _pred)
+            _Predicate _predicate)
         {
-            return _pred();
+            return _predicate();
         }
     };
 
@@ -281,11 +281,11 @@ public:
     }
 
     template<typename _Lock,
-             typename _Pred>
+             typename _Predicate>
     void wait(_Lock& _lock,
-              _Pred  _pred)
+              _Predicate  _predicate)
     {
-        m_cv.wait(_lock, _pred);
+        m_cv.wait(_lock, _predicate);
     }
 
     // --- wait_for (timed) ---
@@ -304,15 +304,15 @@ public:
     template<typename _Lock,
              typename _Rep,
              typename _Period,
-             typename _Pred>
+             typename _Predicate>
     bool wait_for(
         _Lock& _lock,
         const std::chrono::duration<_Rep, _Period>&
             _duration,
-        _Pred  _pred)
+        _Predicate  _predicate)
     {
         return m_cv.wait_for(
-            _lock, _duration, _pred);
+            _lock, _duration, _predicate);
     }
 
     // --- wait_until (timed) ---
@@ -333,14 +333,14 @@ public:
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
     template<typename _Lock,
-             typename _Pred>
+             typename _Predicate>
     bool wait(
         _Lock&           _lock,
         std::stop_token  _stoken,
-        _Pred            _pred)
+        _Predicate            _predicate)
     {
-        m_cv.wait(_lock, _stoken, _pred);
-        return _pred();
+        m_cv.wait(_lock, _stoken, _predicate);
+        return _predicate();
     }
 
 #endif  // C++20

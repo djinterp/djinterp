@@ -76,7 +76,7 @@
 #include <functional>
 #include <vector>
 // djinterp
-#include "../sync/concurrency_strategy_tags.hpp"
+#include "./concurrency_strategy_tags.hpp"
 
 
 NS_DJINTERP
@@ -91,8 +91,8 @@ NS_DJINTERP
     using hazard_pointer_domain =
         std::hazard_pointer_default_domain;
 
-    template<typename _T>
-    using hazard_pointer = std::hazard_pointer<_T>;
+    template<typename _Type>
+    using hazard_pointer = std::hazard_pointer<_Type>;
 
 #else
 
@@ -415,7 +415,7 @@ private:
 //       // safe to dereference 'safe'
 //   }
 
-template<typename _T>
+template<typename _Type>
 class typed_hazard_ptr
 {
 public:
@@ -433,21 +433,21 @@ public:
     // Retries up to _max_retries times.
     // Returns the protected pointer, or nullptr if
     // validation fails.
-    _T* protect_and_validate(
-        const std::atomic<_T*>& _source,
+    _Type* protect_and_validate(
+        const std::atomic<_Type*>& _source,
         unsigned                _max_retries = 4) noexcept
     {
         for (unsigned i = 0;
              i < _max_retries; ++i)
         {
-            _T* ptr = _source.load(
+            _Type* ptr = _source.load(
                 std::memory_order_acquire);
 
             m_guard.protect(
                 static_cast<void*>(ptr));
 
             // re-read and validate
-            _T* reread = _source.load(
+            _Type* reread = _source.load(
                 std::memory_order_acquire);
 
             if (reread == ptr)
@@ -465,7 +465,7 @@ public:
     // protect
     //   directly protects a known pointer (caller is
     // responsible for validation).
-    void protect(_T* _ptr) noexcept
+    void protect(_Type* _ptr) noexcept
     {
         m_guard.protect(
             static_cast<void*>(_ptr));
@@ -501,15 +501,15 @@ private:
 // domain's active hazard records and reclaims those
 // that are no longer protected.
 
-template<typename _T>
+template<typename _Type>
 class retired_list
 {
 public:
-    using deleter_fn = std::function<void(_T*)>;
+    using deleter_fn = std::function<void(_Type*)>;
 
     struct entry
     {
-        _T*           ptr;
+        _Type*           ptr;
         deleter_fn    deleter;
         std::uint64_t retire_epoch;
     };
@@ -519,19 +519,19 @@ public:
     // retire
     //   adds a node to the retired list.
     void retire(
-        _T*           _ptr,
+        _Type*           _ptr,
         std::uint64_t _epoch = 0)
     {
         m_entries.push_back(
             { _ptr,
-              [](_T* p) { delete p; },
+              [](_Type* p) { delete p; },
               _epoch });
     }
 
     // retire (custom deleter)
     //   adds a node with a custom deleter.
     void retire(
-        _T*           _ptr,
+        _Type*           _ptr,
         deleter_fn    _deleter,
         std::uint64_t _epoch = 0)
     {

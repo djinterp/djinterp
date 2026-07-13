@@ -22,7 +22,7 @@
 *   C++17:     + c_shared on all platforms
 *
 *
-* path:      /inc/djinterp/sync/lock_policy_c.hpp
+* path:      /inc/djinterp/core/sync/lock_policy_c.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
@@ -39,12 +39,12 @@
 #include "./lock_policy.hpp"
 
 // --- platform includes ---
-#if D_ENV_OS_BLOCK == D_ENV_OS_BLOCK_WINDOWS
+#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN
     #endif
     #include <windows.h>
-#elif defined(_POSIX_VERSION) ||                                              \ 
+#elif defined(_POSIX_VERSION) ||                                              \
       defined(__unix__)       ||                                              \
       defined(__APPLE__)
     #include <pthread.h>
@@ -65,7 +65,7 @@ NS_DJINTERP
 // I.   PLATFORM EXCLUSIVE MUTEX
 // =========================================================================
 
-#if D_ENV_OS_BLOCK == D_ENV_OS_BLOCK_WINDOWS
+#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
 
 // c_mutex_win32
 //   class: wraps CRITICAL_SECTION.
@@ -339,7 +339,7 @@ private:
 // III. C-BACKED LOCK POLICY STRUCTS
 // =========================================================================
 
-#if D_ENV_OS_BLOCK == D_ENV_OS_BLOCK_WINDOWS
+#if D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)
 
 // c_exclusive
 //   struct: lock policy using Win32 CRITICAL_SECTION.

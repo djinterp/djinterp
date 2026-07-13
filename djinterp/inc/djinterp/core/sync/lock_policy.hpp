@@ -34,7 +34,7 @@
 *   C++17:     + shared_lock_policy
 *
 *
-* path:      /inc/djinterp/sync/lock_policy.hpp
+* path:      /inc/djinterp/core/sync/lock_policy.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/

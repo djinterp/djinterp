@@ -39,7 +39,7 @@
 *   C++20:     + concepts constraints
 *
 *
-* path:      /inc/djinterp/sync/cow.hpp
+* path:      /inc/djinterp/core/sync/cow.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.07
 ******************************************************************************/
@@ -66,9 +66,9 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "lock_policy.hpp"
-#include "lock_guard.hpp"
-#include "atomic.hpp"
+#include "./lock_policy.hpp"
+#include "./lock_guard.hpp"
+#include "./atomic.hpp"
 #include "./concurrency_strategy_tags.hpp"
 
 
