@@ -58,7 +58,7 @@
 * IX.   VARIABLE TEMPLATES
 *
 *
-* path:      /inc/djinterp/test/test_thread_traits.hpp
+* path:      /inc/djinterp/test/sync/test_thread_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -70,11 +70,11 @@
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../core/djinterp.hpp"
-#include "../meta/type_traits.hpp"
-#include "../container/meta/threadsafe_container_traits.hpp"
-#include "../container/meta/concurrency_strategy_traits.hpp"
-#include "./test_common.hpp"
+#include "../../core/djinterp.hpp"
+#include "../../core/meta/type_traits.hpp"
+#include "../../core/container/meta/threadsafe_container_traits.hpp"
+#include "../../core/container/meta/concurrency_strategy_traits.hpp"
+#include "../test_common.hpp"
 
 
 NS_DJINTERP

@@ -59,7 +59,7 @@
 * IV.   FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/test_concurrent.hpp
+* path:      /inc/djinterp/test/sync/test_concurrent.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -81,10 +81,10 @@
 #endif
 
 // djinterp
-#include "../core/djinterp.hpp"
-#include "../sync/condvar.hpp"
-#include "./test_common.hpp"
-#include "./test_object.hpp"
+#include "../../core/djinterp.hpp"
+#include "../../core/sync/condvar.hpp"
+#include "../test_common.hpp"
+#include "../test_object.hpp"
 #include "./test_thread.hpp"
 #include "./test_sync.hpp"
 
@@ -180,23 +180,24 @@ struct concurrent_run_report
         const char*  _name = "concurrent_run"
     ) const
     {
-        basic_test t(_type_id, success(), _name);
+        basic_test t(_type_id, success());
+        t.metadata().set("name", _name);
 
         if (success())
         {
-            t.set_message("all threads completed");
+            t.metadata().set("message", "all threads completed");
         }
         else if (outcome == concurrent_run_outcome::timed_out)
         {
-            t.set_message("timed out: surviving threads remain");
+            t.metadata().set("message", "timed out: surviving threads remain");
         }
         else if (outcome == concurrent_run_outcome::thread_threw)
         {
-            t.set_message("at least one thread threw");
+            t.metadata().set("message", "at least one thread threw");
         }
         else
         {
-            t.set_message("did not start or unknown failure");
+            t.metadata().set("message", "did not start or unknown failure");
         }
 
         return t;

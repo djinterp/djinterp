@@ -49,7 +49,7 @@
 * V.    FACTORY HELPERS
 *
 *
-* path:      /inc/djinterp/test/test_race.hpp
+* path:      /inc/djinterp/test/sync/test_race.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -72,10 +72,10 @@
 #endif
 
 // djinterp
-#include "../core/djinterp.hpp"
-#include "../sync/atomic.hpp"
-#include "./test_common.hpp"
-#include "./test_object.hpp"
+#include "../../core/djinterp.hpp"
+#include "../../core/sync/atomic.hpp"
+#include "../test_common.hpp"
+#include "../test_object.hpp"
 #include "./test_thread.hpp"
 #include "./test_concurrent.hpp"
 
@@ -87,7 +87,7 @@ NS_TEST
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- threadsafe foundation wrappers used by this module ---
-using ::atomic_size;
+using djinterp::atomic_size;
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   RACE PROBE                                          ///
@@ -139,12 +139,15 @@ struct race_probe_report
         const char*  _name = "race_probe"
     ) const
     {
-        return basic_test(
-            _type_id,
-            success(),
-            _name,
-            "no race evidence observed",
-            "race evidence observed");
+        const bool passed = success();
+
+        basic_test t(_type_id, passed);
+        t.metadata().set("name", _name);
+        t.metadata().set("message", passed
+            ? "no race evidence observed"
+            : "race evidence observed");
+
+        return t;
     }
 };
 
@@ -370,12 +373,15 @@ struct atomicity_observer_report
         const char*  _name = "atomicity"
     ) const
     {
-        return basic_test(
-            _type_id,
-            success(),
-            _name,
-            "only allowed states observed",
-            "intermediate state observed: not atomic");
+        const bool passed = success();
+
+        basic_test t(_type_id, passed);
+        t.metadata().set("name", _name);
+        t.metadata().set("message", passed
+            ? "only allowed states observed"
+            : "intermediate state observed: not atomic");
+
+        return t;
     }
 };
 
@@ -768,12 +774,15 @@ struct consistency_check_report
         const char*  _name = "consistency"
     ) const
     {
-        return basic_test(
-            _type_id,
-            consistent,
-            _name,
-            "events are sequentially consistent",
-            "consistency violation observed");
+        const bool passed = consistent;
+
+        basic_test t(_type_id, passed);
+        t.metadata().set("name", _name);
+        t.metadata().set("message", passed
+            ? "events are sequentially consistent"
+            : "consistency violation observed");
+
+        return t;
     }
 };
 

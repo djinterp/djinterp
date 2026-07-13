@@ -15,7 +15,7 @@
 *     - aggregate concepts      (testable, fully-described)
 *
 *
-* path:      /inc/djinterp/test/test_thread_concepts.hpp
+* path:      /inc/djinterp/test/sync/test_thread_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -28,7 +28,7 @@
 #endif
 
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "./test_thread_traits.hpp"
 
 

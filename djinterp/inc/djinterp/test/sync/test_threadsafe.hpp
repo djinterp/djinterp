@@ -40,7 +40,7 @@
 *
 *   COMPLEMENTS:
 *   This suite complements the threadsafe foundation module
-* (../sync/threadsafe.hpp) which provides the production-side
+* (../../core/sync/threadsafe.hpp) which provides the production-side
 * primitives (lock_policy, atomic, condvar, cow, hazard_pointer, rcu).
 * The test suite consumes those primitives to exercise threadsafe
 * code under controlled concurrent load.
@@ -62,7 +62,7 @@
 * stubs that always succeed.
 *
 *
-* path:      /inc/djinterp/test/test_threadsafe.hpp
+* path:      /inc/djinterp/test/sync/test_threadsafe.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -74,10 +74,10 @@
 //
 //   Pulled in transitively so that callers who include this
 // umbrella to test their threadsafe code do not also need to
-// include <djinterp/sync/threadsafe.hpp> separately.  The
+// include <djinterp/core/sync/threadsafe.hpp> separately.  The
 // individual test submodules also include the specific sync
 // headers they consume.
-#include "../sync/threadsafe.hpp"
+#include "../../core/sync/threadsafe.hpp"
 
 // --- DTest multithreading harness submodules ---
 

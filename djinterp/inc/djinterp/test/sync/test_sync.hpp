@@ -42,7 +42,7 @@
 * V.    SIMULTANEOUS START HELPER
 *
 *
-* path:      /inc/djinterp/test/test_sync.hpp
+* path:      /inc/djinterp/test/sync/test_sync.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.27
 ******************************************************************************/
@@ -72,10 +72,10 @@
 #endif
 
 // djinterp
-#include "../core/djinterp.hpp"
-#include "../sync/atomic.hpp"
-#include "../sync/condvar.hpp"
-#include "./test_common.hpp"
+#include "../../core/djinterp.hpp"
+#include "../../core/sync/atomic.hpp"
+#include "../../core/sync/condvar.hpp"
+#include "../test_common.hpp"
 
 
 NS_DJINTERP
@@ -89,8 +89,8 @@ NS_TEST
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // --- threadsafe foundation wrappers used by this module ---
-using ::portable_condvar;
-using ::exclusive_lock_policy;
+using djinterp::portable_condvar;
+using djinterp::exclusive_lock_policy;
 
 // test_latch
 //   class: one-shot countdown latch.  Threads call
