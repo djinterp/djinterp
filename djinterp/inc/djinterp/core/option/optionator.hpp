@@ -752,7 +752,7 @@ struct is_optionator<optionator<_Options...>> : std::true_type
 {};
 
 template<typename _Type>
-D_CONSTEXPR_INLINE bool is_optionator_v =
+D_CONSTEXPR_VAR bool is_optionator_v =
     is_optionator<clean_t<_Type>>::value;
 
 
@@ -770,7 +770,7 @@ struct is_option_chain<internal::option_chain<_Set, _Producer, _Xform>>
 {};
 
 template<typename _Type>
-D_CONSTEXPR_INLINE bool is_option_chain_v = is_option_chain<clean_t<_Type>>::value;
+D_CONSTEXPR_VAR bool is_option_chain_v = is_option_chain<clean_t<_Type>>::value;
 
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS

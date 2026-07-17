@@ -142,7 +142,7 @@ struct is_option<option<_Key, _Args...>> : std::true_type
 {};
 
 template<typename _Type>
-D_CONSTEXPR_INLINE bool is_option_v = is_option<clean_t<_Type>>::value;
+D_CONSTEXPR_VAR bool is_option_v = is_option<clean_t<_Type>>::value;
 
 
 // ===========================================================================

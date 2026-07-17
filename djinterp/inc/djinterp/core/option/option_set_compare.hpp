@@ -14,11 +14,11 @@
 *                             carriers compare equal at every key.
 *
 *   The value-equality trait is intentionally extractor-parameterized -
-* the user picks the carrier (actual<>, default_<>, value<>, or a custom
-* "actual or default" chain).  Two ready-made extractors live here:
-*     extract_actual    - pulls actual<V>
-*     extract_default   - pulls default_<V>
-*     extract_effective - tries actual<V>, falls back to default_<V>
+* the caller supplies a unary extractor that maps an option to a value
+* carrier in the {value_absent | value_present<V>} interface (Section IV).
+*   No extractor ships here.  The earlier actual<> / default_ / effective
+* extractors were retired along with the actual<> option carrier, so
+* _Extract is a REQUIRED template parameter (there is no default).
 *
 *   All traits are flat-view aware (they go through option_set's normalized
 * tuple) so opposing_unary_pair and any other multi-expander participate
@@ -37,8 +37,7 @@ I.    key_list + option_set_keys     (key extraction)
 II.   key-list operations            (subset, equal)
 III.  congruity traits               (key, type)
 IV.   value-carrier sentinels        (value_absent, value_present)
-V.    extractors                     (actual / default / effective)
-VI.   option_set_value_eq            (parameterized value equality)
+V.    option_set_value_eq            (parameterized value equality)
 */
 
 #ifndef DJINTERP_OPTION_SET_COMPARE_
@@ -248,89 +247,7 @@ NS_END  // internal
 
 
 // ===========================================================================
-// V.   extractors
-// ===========================================================================
-
-// extract_actual
-//   extractor: pulls actual<V> from an option's args.  Yields
-// value_present<V> on hit, value_absent on miss.
-template<typename _Opt>
-struct extract_actual
-{
-private:
-    using tag_t = option_actual_tag_t<_Opt>;
-
-    template<typename _Type>
-    struct apply
-    {
-        using type = value_absent;
-    };
-
-    template<auto _V>
-    struct apply<actual<_V>>
-    {
-        using type = value_present<_V>;
-    };
-
-public:
-    using type = typename apply<tag_t>::type;
-};
-
-template<typename _Opt>
-using extract_actual_t = typename extract_actual<_Opt>::type;
-
-
-// extract_default
-//   extractor: pulls default_<V> from an option's args.
-template<typename _Opt>
-struct extract_default
-{
-private:
-    using tag_t = option_default_tag_t<_Opt>;
-
-    template<typename _Type>
-    struct apply
-    {
-        using type = value_absent;
-    };
-
-    template<auto _V>
-    struct apply<default_<_V>>
-    {
-        using type = value_present<_V>;
-    };
-
-public:
-    using type = typename apply<tag_t>::type;
-};
-
-template<typename _Opt>
-using extract_default_t = typename extract_default<_Opt>::type;
-
-
-// extract_effective
-//   extractor: tries actual<>, falls back to default_<>.  Models the
-// "effective value" of an option (what runtime code would actually
-// observe).
-template<typename _Opt>
-struct extract_effective
-{
-private:
-    using a = extract_actual_t<_Opt>;
-
-public:
-    using type = std::conditional_t<
-        a::has_value,
-        a,
-        extract_default_t<_Opt>>;
-};
-
-template<typename _Opt>
-using extract_effective_t = typename extract_effective<_Opt>::type;
-
-
-// ===========================================================================
-// VI.  option_set_value_eq
+// V.   option_set_value_eq
 // ===========================================================================
 
 // option_set_value_eq
@@ -342,12 +259,12 @@ using extract_effective_t = typename extract_effective<_Opt>::type;
 // satisfying the {value_absent | value_present<V>} interface.
 template<typename                 _A,
          typename                 _B,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract>
 struct option_set_value_eq;
 
 template<typename... _AOpts,
          typename     _B,
-         template<typename> class _Extract>
+         template<typename> typename _Extract>
 struct option_set_value_eq<option_set<_AOpts...>, _B, _Extract>
 {
 private:
@@ -368,7 +285,7 @@ public:
 
 template<typename                 _A,
          typename                 _B,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract>
 inline constexpr bool option_set_value_eq_v =
     option_set_value_eq<_A, _B, _Extract>::value;
 
