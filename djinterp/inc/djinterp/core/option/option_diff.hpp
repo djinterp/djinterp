@@ -226,7 +226,7 @@ NS_INTERNAL
     // considered; key-only differences are the domain of added/removed.
     template<typename                 _A,
              typename                 _B,
-             template<typename> class _Extract,
+             template<typename> typename _Extract,
              bool                     _WantChanged,
              typename                 _Acc,
              auto...                  _CommonKeys>
@@ -237,7 +237,7 @@ NS_INTERNAL
 
     template<typename                 _A,
              typename                 _B,
-             template<typename> class _Extract,
+             template<typename> typename _Extract,
              bool                     _WantChanged,
              typename                 _Acc,
              auto                     _Head,
@@ -272,14 +272,14 @@ NS_INTERNAL
     //   helper: unpack the common-key list into kl_filter_changed.
     template<typename                 _A,
              typename                 _B,
-             template<typename> class _Extract,
+             template<typename> typename _Extract,
              bool                     _WantChanged,
              typename                 _CommonList>
     struct kl_changed_dispatch;
 
     template<typename                 _A,
              typename                 _B,
-             template<typename> class _Extract,
+             template<typename> typename _Extract,
              bool                     _WantChanged,
              auto...                  _CommonKeys>
     struct kl_changed_dispatch<_A, _B, _Extract, _WantChanged,
@@ -298,7 +298,7 @@ NS_END  // internal
 // extract_actual.
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract = extract_actual>
 struct option_set_changed_keys
 {
     using type = typename internal::kl_changed_dispatch<
@@ -308,7 +308,7 @@ struct option_set_changed_keys
 
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract = extract_actual>
 using option_set_changed_keys_t =
     typename option_set_changed_keys<_Base, _Derived, _Extract>::type;
 
@@ -318,7 +318,7 @@ using option_set_changed_keys_t =
 // value is identical.
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract = extract_actual>
 struct option_set_unchanged_keys
 {
     using type = typename internal::kl_changed_dispatch<
@@ -328,7 +328,7 @@ struct option_set_unchanged_keys
 
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract = extract_actual>
 using option_set_unchanged_keys_t =
     typename option_set_unchanged_keys<_Base, _Derived, _Extract>::type;
 
@@ -343,7 +343,7 @@ using option_set_unchanged_keys_t =
 // Mirrors PART B's option_diff_count.
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract = extract_actual>
 struct option_set_diff_count
 {
     static D_CONSTEXPR std::size_t value =
@@ -354,8 +354,8 @@ struct option_set_diff_count
 
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
-D_CONSTEXPR_INLINE std::size_t option_set_diff_count_v =
+         template<typename> typename _Extract = extract_actual>
+D_CONSTEXPR_VAR std::size_t option_set_diff_count_v =
     option_set_diff_count<_Base, _Derived, _Extract>::value;
 
 
@@ -366,7 +366,7 @@ D_CONSTEXPR_INLINE std::size_t option_set_diff_count_v =
 // "are these two diffs empty" reads naturally next to the count.
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
+         template<typename> typename _Extract = extract_actual>
 struct option_set_value_equal
     : std::integral_constant<bool,
         (option_set_diff_count<_Base, _Derived, _Extract>::value == 0)>
@@ -374,8 +374,8 @@ struct option_set_value_equal
 
 template<typename                 _Base,
          typename                 _Derived,
-         template<typename> class _Extract = extract_actual>
-D_CONSTEXPR_INLINE bool option_set_value_equal_v =
+         template<typename> typename _Extract = extract_actual>
+D_CONSTEXPR_VAR bool option_set_value_equal_v =
     option_set_value_equal<_Base, _Derived, _Extract>::value;
 
 

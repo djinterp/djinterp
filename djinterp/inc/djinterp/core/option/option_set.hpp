@@ -52,7 +52,7 @@ I.    expand_option              (structural per-entry expansion)
 II.   flatten helpers            (tuple_cat at the type level)
 III.  set checks                 (all-options + uniformity + uniqueness)
 IV.   option_set                 (type-level pack form)
-V.    runtime map + dispatch     (option_set<Key,Value> + public option_set)
+V.    field marker + values      (field<>, value-carrying option_set)
 VI.   queries                    (is_option_set, key_type, contains, find)
 VII.  concepts                   (C++20 analogs)
 */
@@ -63,7 +63,6 @@ VII.  concepts                   (C++20 analogs)
 // std
 #include <cstddef>
 #include <tuple>
-#include <vector>
 #include <type_traits>
 #include <utility>
 // djinterp
@@ -262,201 +261,241 @@ NS_END  // internal
 
 
 // ===========================================================================
-// V.   runtime key->value map  +  public option_set dispatch
+// V.   FIELD MARKER + value-carrying option_set
 // ===========================================================================
 //
-//   The pack form above (internal::option_set_pack) is the COMPILE-TIME,
-// type-level option_set: a variadic list of option<> types exposing
-// size / empty / flat_options_t / option_at.
-//
-//   Below, the PUBLIC option_set name dispatches by shape:
-//     - option_set<_Key, _Value> where _Key is a runtime key (enum or
-//       integral, not an option<>)  ->  runtime key->value map
-//       (insert / insert_or_assign / at / find / end / erase / ...).
-//     - everything else (any arity, or a 2-arg pack of option<>s)  ->
-//       the type-level pack form.
-//
-//   VERSION PORTABILITY: the runtime map's own code is C++11-grade - it
-// keys on a plain typename, with no auto NTTP, variable templates, or fold
-// expressions of its own.  The header overall is C++17 (the option<> /
-// pack forms use an auto NTTP), but nothing in the runtime map adds a
-// C++17-only requirement; extracted on its own it compiles to C++11.
+//   option_set is BOTH faces of a configuration in ONE type:
+//     - a pure TYPE-LEVEL SCHEMA when its options carry compile-time payloads
+//       (val_t<V>, the node-sugar surface): used by compose / override /
+//       lowering.  Its derived values_type is then all-unit, so the type is
+//       pure - no instance carries storage.
+//     - a POPULATED, mutable, constexpr-capable INSTANCE when its options carry
+//       a field<T> marker: each field<T> option contributes one runtime slot of
+//       type T, addressed by key through get<> / set<>.
+//   Both faces share the type-level engine above (internal::option_set_pack):
+//   the contract, flat_options_t, and key->slot resolution are reused, never
+//   re-derived.  The value-carrying face is the construction target of
+//   option_generator.hpp (the flat one-statement authoring front-end).
+
+// field
+//   marker: as an option's first arg, field<T> declares "this key's slot stores
+// a runtime T".  Sibling of carrier.hpp's val_t<V> (a compile-time value);
+// field<T> carries a runtime value's TYPE.
+template<typename _Type>
+struct field
+{
+    using type = _Type;
+};
+
+// unit
+//   type: the empty slot for a key that contributes no runtime value - a
+// presence-only (unary) key, or a compile-time val_t<> schema option.  get<> /
+// set<> reject a unit slot, directing the caller to contains<>.
+struct unit
+{
+};
+
+// unary_option
+//   type: a presence-only flag - sugar for option<_Key, field<unit> >.  Keeps
+// the option<->slot 1:1 mapping (an empty unit slot); query it with
+// contains<_Key>().
+template<auto _Key>
+using unary_option = option<_Key, field<unit> >;
+
 
 NS_INTERNAL
 
-    // os_is_runtime_key
-    //   trait: true iff _Type is a runtime key (enum or integral) and not an
-    // option<>.  Routes a two-arg option_set<_Key,_Value> to the runtime
-    // map rather than the type-level pack.
-    template<typename _Type>
-    struct os_is_runtime_key
-        : std::integral_constant<bool,
-            ( ( std::is_enum<_Type>::value || 
-                std::is_integral<_Type>::value ) &&
-              ( !is_option_v<_Type> ) )>
-    {};
-
-
-    // option_set_map
-    //   the runtime key->value map base.  An ordered-vector map: linear
-    // find, stable storage, value semantics.  The element type exposes
-    // public `.key` / `.value` members so callers can write `it->value`.
-    template<typename _Key,
-             typename _Value>
-    struct option_set_map
+    // option_field
+    //   trait: the runtime field type bound to an option - its first arg read
+    // as field<T> (-> T); unit otherwise (a val_t<> schema option, a unary
+    // option<K>, or any non-field arg).  THE defaults / value seam: re-point at
+    // extract_default_t (option_set_compare.hpp) to source explicit defaults.
+    template<typename _Opt,
+             typename = void>
+    struct option_field
     {
-        // entry: stored key/value pair.
-        struct entry
-        {
-            _Key   key;
-            _Value value;
+        using type = unit;
+    };
 
-            entry() : key(), value() 
-            {}
+    template<auto        _Key,
+             typename    _Type,
+             typename... _Rest>
+    struct option_field<option<_Key, field<_Type>, _Rest...>, void>
+    {
+        using type = _Type;
+    };
 
-            entry(
-                const _Key&   _k, 
-                const _Value& _v
-            ) : key(_k), value(_v)
-            {}
+    // store_values
+    //   trait: tuple<option...> -> tuple<option_field<option>::type...> over the
+    // normalized (post-expansion) flat option list.  All-unit for a pure schema.
+    template<typename _Flat>
+    struct store_values;
 
-            entry(
-                const _Key& _k,
-                _Value&&    _v
-            ) : key(_k), value(static_cast<_Value&&>(_v)) 
-            {}
-        };
+    template<typename... _Opts>
+    struct store_values<std::tuple<_Opts...> >
+    {
+        using type = std::tuple<typename option_field<_Opts>::type...>;
+    };
 
-        typedef _Key                                        key_type;
-        typedef _Value                                      mapped_type;
-        typedef entry                                       value_type;
-        typedef std::size_t                                 size_type;
-        typedef typename std::vector<entry>::iterator       iterator;
-        typedef typename std::vector<entry>::const_iterator const_iterator;
+    // os_slot
+    //   trait: key -> slot index over a flat option tuple, via find_by_key (the
+    // same primitive option_set_find uses) - not a re-rolled scan.
+    template<auto     _Key,
+             typename _Flat>
+    struct os_slot;
 
-        // ---- capacity ----
-        size_type size()  const D_NOEXCEPT { return m_entries.size(); }
-        bool      empty() const D_NOEXCEPT { return m_entries.empty(); }
-        void      clear()                  { m_entries.clear(); }
-
-        // ---- iterators ----
-        iterator       begin() D_NOEXCEPT       { return m_entries.begin(); }
-        iterator       end()   D_NOEXCEPT       { return m_entries.end(); }
-        const_iterator begin() const D_NOEXCEPT { return m_entries.begin(); }
-        const_iterator end()   const D_NOEXCEPT { return m_entries.end(); }
-
-        // ---- lookup ----
-        iterator find(const _Key& _key)
-        {
-            iterator it = m_entries.begin();
-            for (; it != m_entries.end(); ++it)
-            {
-                if (it->key == _key) { return it; }
-            }
-            return m_entries.end();
-        }
-        const_iterator find(const _Key& _key) const
-        {
-            const_iterator it = m_entries.begin();
-            for (; it != m_entries.end(); ++it)
-            {
-                if (it->key == _key) { return it; }
-            }
-            return m_entries.end();
-        }
-        bool contains(const _Key& _key) const
-        {
-            return find(_key) != end();
-        }
-
-        // at: reference to the mapped value for _key.  Precondition: the
-        //   key is present (documented UB-if-absent contract, matching the
-        //   test option helpers).
-        _Value& at(const _Key& _key)
-        {
-            return find(_key)->value;
-        }
-        const _Value& at(const _Key& _key) const
-        {
-            return find(_key)->value;
-        }
-
-        // ---- modifiers ----
-        // insert: adds (key,value) if absent.  Returns true if inserted,
-        //   false if the key already existed (no overwrite).
-        bool insert(const _Key& _key, const _Value& _value)
-        {
-            if (contains(_key)) { return false; }
-            m_entries.push_back(entry(_key, _value));
-            return true;
-        }
-        bool insert(const _Key& _key, _Value&& _value)
-        {
-            if (contains(_key)) { return false; }
-            m_entries.push_back(entry(_key, static_cast<_Value&&>(_value)));
-            return true;
-        }
-
-        // insert_or_assign: sets the value for _key, overwriting if present.
-        //   Returns true if a new key was inserted, false if an existing
-        // value was overwritten (parity with std::map::insert_or_assign).
-        bool insert_or_assign(const _Key& _key, const _Value& _value)
-        {
-            iterator it = find(_key);
-            if (it != end()) { it->value = _value; return false; }
-            m_entries.push_back(entry(_key, _value));
-            return true;
-        }
-        bool insert_or_assign(const _Key& _key, _Value&& _value)
-        {
-            iterator it = find(_key);
-            if (it != end())
-            {
-                it->value = static_cast<_Value&&>(_value);
-                return false;
-            }
-            m_entries.push_back(entry(_key, static_cast<_Value&&>(_value)));
-            return true;
-        }
-
-        // erase: removes _key if present; returns true if removed.
-        bool erase(const _Key& _key)
-        {
-            iterator it = find(_key);
-            if (it == end()) { return false; }
-            m_entries.erase(it);
-            return true;
-        }
-
-    private:
-        std::vector<entry> m_entries;
+    template<auto        _Key,
+             typename... _Opts>
+    struct os_slot<_Key, std::tuple<_Opts...> >
+    {
+        static D_CONSTEXPR bool        found = find_by_key<_Key, _Opts...>::found;
+        static D_CONSTEXPR std::size_t index = find_by_key<_Key, _Opts...>::index;
     };
 
 NS_END  // internal
 
 
-// option_set  (public primary: the type-level pack form)
-//   Inherits the full type-level API from internal::option_set_pack for
-// every instantiation EXCEPT the two-arg runtime-keyed case specialized
-// below.
+// option_field_t
+//   type: the runtime field type bound to an option (its value's type); unit
+// when the option carries no runtime value.
+template<typename _Opt>
+using option_field_t = typename internal::option_field<_Opt>::type;
+
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER
+
+// option_set  (public: the type-level engine PLUS the value-carrying face)
+//   Inherits the contract / size / flat_options_t / option_at from
+// internal::option_set_pack and adds a values_type derived from the options'
+// field<T> markers (all-unit, hence storage-free, for a pure schema), a
+// values-constructor, and key-addressed get<> / set<> / contains<>.  key_type
+// is inferred per option from its key (option<Key,...>::key_type ==
+// decltype(Key)); the head option's key_type is available via
+// option_set_key_type (Section VI).
+template<typename... _Entries>
+struct option_set
+    : internal::option_set_pack<_Entries...>
+{
+private:
+    using base = internal::option_set_pack<_Entries...>;
+
+    // slot_of: key -> slot index, via find_by_key.  Clamped to 0 when absent so
+    // the friendly static_assert in get/set is the first diagnostic.
+    template<auto _Key>
+    static D_CONSTEXPR std::size_t slot_of =
+        ( internal::os_slot<_Key, typename base::flat_options_t>::found
+              ? internal::os_slot<_Key, typename base::flat_options_t>::index
+              : std::size_t(0) );
+
+public:
+    // values_type: one slot per option (field<T> -> T, otherwise unit).
+    using values_type =
+        typename internal::store_values<typename base::flat_options_t>::type;
+
+    // option_set ()
+    //   constructor: default - every field value-initialized (a schema's
+    // all-unit values cost nothing).
+    D_CONSTEXPR option_set() = default;
+
+    // option_set (values)
+    //   constructor: seed the fields in slot order.  Guarded to the non-empty
+    // set so it does not collide with the default constructor.  This is the
+    // construct-with-values path option_generator drives; it assumes the
+    // entries ARE the flat options (no multi-expanders), as generated instances
+    // are.
+    D_CONSTEXPR explicit option_set(
+        option_field_t<_Entries>... _values
+    )
+        requires (sizeof...(_Entries) > 0)
+        : m_values{ static_cast<option_field_t<_Entries>&&>(_values)... }
+    {}
+
+    // contains
+    //   function: whether _Key is one of the set's keys (compile time).
+    template<auto _Key>
+    static D_CONSTEXPR bool
+    contains()
+    D_NOEXCEPT
+    {
+        return internal::os_slot<_Key, typename base::flat_options_t>::found;
+    }
+
+    // get
+    //   function: a reference to the field bound to _Key, at its exact declared
+    // type.  Rejected for a unit slot (a unary or compile-time-only option).
+    template<auto _Key>
+    D_NODISCARD D_CONSTEXPR auto&
+    get()
+    {
+        static_assert(contains<_Key>(),
+            "option_set::get: _Key is not one of this set's keys.");
+        static_assert(
+            !std::is_same<std::tuple_element_t<slot_of<_Key>, values_type>,
+                          unit>::value,
+            "option_set::get: _Key carries no runtime value (a unary flag or a "
+            "compile-time val_t<> option); query it with contains<_Key>().");
+
+        return std::get<slot_of<_Key> >(m_values);
+    }
+
+    template<auto _Key>
+    D_NODISCARD D_CONSTEXPR const auto&
+    get() const
+    {
+        static_assert(contains<_Key>(),
+            "option_set::get: _Key is not one of this set's keys.");
+        static_assert(
+            !std::is_same<std::tuple_element_t<slot_of<_Key>, values_type>,
+                          unit>::value,
+            "option_set::get: _Key carries no runtime value (a unary flag or a "
+            "compile-time val_t<> option); query it with contains<_Key>().");
+
+        return std::get<slot_of<_Key> >(m_values);
+    }
+
+    // set
+    //   function: assign the field bound to _Key.  Rejected for a unit slot.
+    template<auto     _Key,
+             typename _Value>
+    D_CONSTEXPR void
+    set(
+        const _Value& _value
+    )
+    {
+        static_assert(contains<_Key>(),
+            "option_set::set: _Key is not one of this set's keys.");
+        static_assert(
+            !std::is_same<std::tuple_element_t<slot_of<_Key>, values_type>,
+                          unit>::value,
+            "option_set::set: _Key carries no runtime value.");
+
+        std::get<slot_of<_Key> >(m_values) = _value;
+
+        return;
+    }
+
+    // values
+    //   accessor: the underlying slot tuple.
+    D_NODISCARD D_CONSTEXPR const values_type&
+    values() const
+    D_NOEXCEPT
+    {
+        return m_values;
+    }
+
+private:
+    values_type m_values{};
+};
+
+#else  // pre-C++20: type-level-only option_set (the value-carrying face needs
+       // the requires-guarded constructor and is unavailable here)
+
 template<typename... _Entries>
 struct option_set
     : internal::option_set_pack<_Entries...>
 {};
 
-// option_set<_Key, _Value>  (two-arg dispatch)
-//   For exactly two type arguments, route by the nature of _Key: a runtime
-// key (enum / integral, not an option<>) selects the runtime map; anything
-// else (e.g. a 2-entry pack of option<>s) keeps the type-level pack.
-template<typename _A,
-         typename _B>
-struct option_set<_A, _B>
-    : std::conditional<
-          internal::os_is_runtime_key<_A>::value,
-          internal::option_set_map<_A, _B>,
-          internal::option_set_pack<_A, _B>
-      >::type
-{};
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
 // ===========================================================================
