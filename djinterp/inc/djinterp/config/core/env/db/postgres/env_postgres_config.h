@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [config][db]                                env_postgresql_config.h
+* djinterp [config][db]                                  env_postgres_config.h
 *
 * Per-module configuration for env_postgresql.h. Owns all
 * D_CFG_ENV_POSTGRESQL_* defaults plus D_CFG_ENV_PG_CUSTOM and the
@@ -9,7 +9,7 @@
 * D_CFG_CUSTOM is defined.
 *
 * 
-* path:      /inc/djinterp/config/core/env/db/postgres/env_postgresql_config.h
+* path:      /inc/djinterp/config/core/env/db/postgres/env_postgres_config.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.22
 ******************************************************************************/
@@ -23,9 +23,9 @@
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // I.   ENABLE / PATH CONFIGURATION
-// =============================================================================
+// ===========================================================================
 
 // D_CFG_ENV_USING_POSTGRESQL
 //   configuration: 1 to enable PostgreSQL header inclusion and detection.
@@ -47,9 +47,9 @@
 #endif
 
 
-// =============================================================================
+// ===========================================================================
 // II.  DETECTION-MODE CONFIGURATION
-// =============================================================================
+// ===========================================================================
 
 // D_CFG_ENV_PG_CUSTOM
 //   configuration: master PostgreSQL environment detection control flag.
