@@ -1,115 +1,52 @@
-/******************************************************************************
-* djinterp [core]                                                    dconfig.h
+/*****************************************************************************
+* djinterp [core]                                                   cfg_all.h
 *
-* Project-wide configuration override hub.
+*   Configuration umbrella. Including this file resolves the ENTIRE config
+* graph up front. Use it when you want cross-cutting deductions applied
+* deterministically, or to precompile all configuration into a PCH.
 *
-*   This file is included once per per-module *_config.h, and ONLY when
-* D_CFG_CUSTOM is defined at the compiler level:
-*     -DD_CFG_CUSTOM=1
-*   Without that flag, this file is never parsed and each module falls back
-* to the defaults baked into its own *_config.h.
+*   You do NOT need this for normal use: each module pulls its own *_cfg.h,
+* which pulls dconfig_common.h -- so you only pay for the modules you include
+* (demand-loading). This umbrella is the opt-in "resolve everything" path.
 *
-*   Any #define placed here takes effect project-wide. Because it is
-* included BEFORE per-module defaults, anything set here wins over the
-* built-in defaults but loses to compiler -D flags (which is the intended
-* precedence order: command-line > dconfig.h > module defaults).
-*
-*   Two flavors of configuration live here:
-*     1. Enable / path flags:     D_CFG_ENV_USING_*   D_CFG_ENV_*_C_PATH
-*                                 D_CFG_ENV_*_CPP_PATH
-*     2. Detection-mode flags:    D_CFG_ENV_*_CUSTOM
-*        Setting a _CUSTOM flag to 1 disables that module's auto-detection
-*        and requires you to supply pre-defined D_ENV_*_DETECTED_* vars.
-*        Leave these alone unless you are cross-compiling or stubbing.
-*
-*   Uncomment and edit the lines below to activate overrides. All lines are
-* commented out by default; uncommenting is never required for normal use.
-*
-* path:      /inc/djinterp/config/dconfig.h
+* path:      /inc/djinterp/config/cfg_all.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.10.15
-******************************************************************************/
+* author(s): Sam 'teer' Neal-Blim
+*****************************************************************************/
 
-#ifndef DJINTERP_CONFIG_
-#define DJINTERP_CONFIG_ 1
+#ifndef DJINTERP_CFG_ALL_
+#define DJINTERP_CFG_ALL_ 1
 
-
-// =============================================================================
-// ENV - core environment (env_config.h)
-// =============================================================================
-
-// #define D_CFG_ENV_CUSTOM               0  // bitfield; see env_config.h
+// Root first: user overrides + testing preset + shared helpers.
+#include "cfg_common.h"
 
 
-// =============================================================================
-// ENV / DB - databases
-// =============================================================================
+// ===========================================================================
+// I.   SUBFRAMEWORK CONFIGURATIONS   (include in dependency order)
+// ===========================================================================
+//   Each of these also includes dconfig_common.h at its top (guarded, so it is
+// a cheap skip here). List env first; others depend on its detection tuning.
 
-// --- env_db.h (top-level DB dispatcher) ---
-// #define D_CFG_ENV_DB_CUSTOM            0
-
-// --- MariaDB ---
-// #define D_CFG_ENV_USING_MARIADB        0
-// #define D_CFG_ENV_MARIADB_C_PATH       <mysql/mysql.h>
-// #define D_CFG_ENV_MARIADB_CPP_PATH     <mariadb/conncpp.hpp>
-// #define D_CFG_ENV_MARIADB_CUSTOM       0
-
-// --- MySQL (Oracle) ---
-// #define D_CFG_ENV_USING_MYSQL          0
-// #define D_CFG_ENV_MYSQL_C_PATH         <mysql/mysql.h>
-// #define D_CFG_ENV_MYSQL_CPP_PATH       <mysqlx/xdevapi.h>
-// #define D_CFG_ENV_MYSQL_CUSTOM         0
-
-// --- PostgreSQL ---
-// #define D_CFG_ENV_USING_POSTGRESQL     0
-// #define D_CFG_ENV_POSTGRESQL_C_PATH    <libpq-fe.h>
-// #define D_CFG_ENV_POSTGRESQL_CPP_PATH  <pqxx/pqxx>
-// #define D_CFG_ENV_PG_CUSTOM            0
-
-// --- SQLite ---
-// #define D_CFG_ENV_USING_SQLITE         0
-// #define D_CFG_ENV_SQLITE_C_PATH        <sqlite3.h>
-// #define D_CFG_ENV_SQLITE_CUSTOM        0
-
-// --- MongoDB ---
-// #define D_CFG_ENV_USING_MONGODB        0
-// #define D_CFG_ENV_MONGODB_C_PATH       <mongoc/mongoc.h>
-// #define D_CFG_ENV_MONGODB_CPP_PATH     <mongocxx/client.hpp>
-// #define D_CFG_ENV_MONGO_CUSTOM         0
-
-// --- Oracle Database ---
-// #define D_CFG_ENV_USING_ORACLE         0
-// #define D_CFG_ENV_ORACLE_C_PATH        <oci.h>
-// #define D_CFG_ENV_ORACLE_CPP_PATH      <occi.h>
-// #define D_CFG_ENV_ORA_CUSTOM           0
-
-// --- ArangoDB ---
-// #define D_CFG_ENV_USING_ARANGODB       0
-// #define D_CFG_ENV_ARANGODB_CPP_PATH    <velocypack/vpack.h>
-// #define D_CFG_ENV_ARANGO_CUSTOM        0
-
-// --- Redis ---
-// #define D_CFG_ENV_USING_REDIS          0
-// #define D_CFG_ENV_REDIS_C_PATH         <hiredis/hiredis.h>
-// #define D_CFG_ENV_REDIS_CPP_PATH       <sw/redis++/redis++.h>
-
-// --- Microsoft SQL Server ---
-// #define D_CFG_ENV_USING_MSSQL          0
-// #define D_CFG_ENV_MSSQL_C_PATH         <sql.h>
-
-// --- IBM DB2 ---
-// #define D_CFG_ENV_USING_DB2            0
-// #define D_CFG_ENV_DB2_C_PATH           <sqlcli1.h>
-
-// --- Cassandra ---
-// #define D_CFG_ENV_USING_CASSANDRA      0
-// #define D_CFG_ENV_CASSANDRA_C_PATH     <cassandra.h>
-
-// --- CouchDB / Neo4j / Firebase ---
-//   (HTTP-only - no canonical client header)
-// #define D_CFG_ENV_USING_COUCHDB        0
-// #define D_CFG_ENV_USING_NEO4J          0
-// #define D_CFG_ENV_USING_FIREBASE       0
+#include "core/env/env_config.h" // environment detection tuning
+#include "cfg_qualifiers.h"      // storage / linkage qualifiers
+#include "core/container/table/cfg_table.h"  // the table DSL subframework
+// #include "core/<sub>/cfg_<sub>.h"  // <- add future subframeworks here
 
 
-#endif  // DJINTERP_CONFIG_
+// ===========================================================================
+// II.  CROSS-CUTTING DEDUCTIONS
+// ===========================================================================
+//   Long-range propagation that demand-loading cannot order correctly belongs
+// here (module A influencing an otherwise-unrelated module B). Every rule is
+// #ifndef-guarded so explicit user overrides still win. Example:
+//
+//     #if D_CFG_IS_ON(D_CFG_FOO_ADVANCED)
+//     #  ifndef D_CFG_BAR_BACKEND
+//     #    define D_CFG_BAR_BACKEND 1
+//     #  endif
+//     #endif
+//
+//   (none defined yet)
+
+
+#endif  // DJINTERP_CFG_ALL_
