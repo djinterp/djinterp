@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [container]                                            buffer.hpp
+* djinterp [container]                                              buffer.hpp
 *
 * Foundational buffer module for the djinterp container framework.
 *   A buffer is temporary storage that is written in stages and consumed
@@ -14,17 +14,17 @@
 *
 *   The design is policy-based along two orthogonal axes:
 *
-*     GROWTH POLICY — how the buffer acquires more storage when the
+*     GROWTH POLICY - how the buffer acquires more storage when the
 *       write cursor reaches capacity:
-*         fixed_growth_policy       — compile-time capacity, no growth
-*         linear_growth_policy      — grow by a constant increment
-*         exponential_growth_policy — double capacity on exhaustion
-*         page_growth_policy        — grow in OS page-aligned chunks
+*         fixed_growth_policy       - compile-time capacity, no growth
+*         linear_growth_policy      - grow by a constant increment
+*         exponential_growth_policy - double capacity on exhaustion
+*         page_growth_policy        - grow in OS page-aligned chunks
 *
-*     CURSOR POLICY — how the buffer tracks read/write positions:
-*         write_only_cursor_policy  — single write cursor; consumer
+*     CURSOR POLICY - how the buffer tracks read/write positions:
+*         write_only_cursor_policy  - single write cursor; consumer
 *                                     manages read position externally
-*         dual_cursor_policy        — paired write + read cursors for
+*         dual_cursor_policy        - paired write + read cursors for
 *                                     producer/consumer patterns
 *
 *   buffer_base<Derived> is a CRTP base providing the storage-agnostic
@@ -35,47 +35,51 @@
 *   djinterp.hpp    - namespace macros, clean_t
 *   env.h           - C++ version and OS page-size detection
 *
-* TABLE OF CONTENTS
-* =================
-* I.      Growth Strategy Enum
-* II.     Cursor Model Enum
-* III.    Growth Policies
-* IV.     Cursor Policies
-* V.      buffer_base (CRTP)
-* VI.     Growth Policy Selection
-* VII.    Cursor Policy Selection
-* VIII.   Default Policy Aliases
 *
-*
-* path:      /inc/container/buffer.hpp
+* path:      /inc/djinterp/core/container/buffer/buffer.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.03.29
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.29
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.      growth strategy enum
+II.     cursor model enum
+III.    growth policies
+IV.     cursor policies
+V.      buffer_base (CRTP)
+VI.     growth policy selection
+VII.    cursor policy selection
+VIII.   default policy aliases
+*/
 
 #ifndef DJINTERP_CONTAINER_BUFFER_
 #define DJINTERP_CONTAINER_BUFFER_ 1
 
+// std
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
-#include "..\djinterp.hpp"
+// djinterp
+#include "../../djinterp.hpp"
 
 
 NS_DJINTERP
-NS_CONTAINER
+
 
 // =============================================================================
 // I.   Growth Strategy Enum
 // =============================================================================
 
-// DBufferGrowth
-//   enum: classifies the growth strategy a buffer uses
-// when the write cursor reaches capacity.
-enum class DBufferGrowth
+// buffer_growth_strategy
+//   enum: classifies the growth strategy a buffer uses when the write cursor 
+// reaches capacity.
+enum class buffer_growth_strategy
 {
-    // no growth — capacity is fixed at construction
+    // no growth - capacity is fixed at construction
     // or compile time; writes beyond capacity fail
     none,
 
@@ -97,17 +101,17 @@ enum class DBufferGrowth
 // II.  Cursor Model Enum
 // =============================================================================
 
-// DBufferCursorModel
+// buffer_cursor_model
 //   enum: classifies how the buffer tracks read/write
 // positions.
-enum class DBufferCursorModel
+enum class buffer_cursor_model
 {
-    // single write cursor only — the consumer
+    // single write cursor only - the consumer
     // manages read position externally (e.g. by
     // taking the whole buffer via data()/release())
     write_only,
 
-    // paired write + read cursors — supports
+    // paired write + read cursors - supports
     // incremental consumption via advance()/consume()
     dual
 };
@@ -130,13 +134,12 @@ enum class DBufferCursorModel
 // and never changes.  Writes that exceed capacity fail.
 struct fixed_growth_policy
 {
-    static constexpr DBufferGrowth strategy =
-        DBufferGrowth::none;
+    static constexpr buffer_growth_strategy strategy = buffer_growth_strategy::none;
     static constexpr bool can_grow = false;
 
     // compute
     //   returns the current capacity unchanged.
-    // _required is ignored — growth is not permitted.
+    // _required is ignored - growth is not permitted.
     static constexpr std::size_t
     compute(std::size_t _current,
             std::size_t /*_required*/) noexcept
@@ -152,10 +155,9 @@ struct fixed_growth_policy
 template<std::size_t _Increment = 4096>
 struct linear_growth_policy
 {
-    static constexpr DBufferGrowth strategy =
-        DBufferGrowth::linear;
-    static constexpr bool        can_grow  = true;
-    static constexpr std::size_t increment = _Increment;
+    static constexpr buffer_growth_strategy strategy = buffer_growth_strategy::linear;
+    static constexpr bool        can_grow   = true;
+    static constexpr std::size_t increment  = _Increment;
 
     static_assert(_Increment > 0,
         "linear_growth_policy: _Increment must be "
@@ -165,8 +167,10 @@ struct linear_growth_policy
     //   returns the smallest capacity >= _required that
     // is a multiple of _Increment above _current.
     static constexpr std::size_t
-    compute(std::size_t _current,
-            std::size_t _required) noexcept
+    compute(
+        std::size_t _current,
+        std::size_t _required
+    ) noexcept
     {
         std::size_t cap = _current;
 
@@ -185,8 +189,8 @@ struct linear_growth_policy
 // is 64 bytes.
 struct exponential_growth_policy
 {
-    static constexpr DBufferGrowth strategy =
-        DBufferGrowth::exponential;
+    static constexpr buffer_growth_strategy strategy =
+        buffer_growth_strategy::exponential;
     static constexpr bool        can_grow     = true;
     static constexpr std::size_t min_capacity = 64;
 
@@ -217,8 +221,8 @@ struct exponential_growth_policy
 template<std::size_t _PageSize = 4096>
 struct page_growth_policy
 {
-    static constexpr DBufferGrowth strategy =
-        DBufferGrowth::page_aligned;
+    static constexpr buffer_growth_strategy strategy =
+        buffer_growth_strategy::page_aligned;
     static constexpr bool        can_grow  = true;
     static constexpr std::size_t page_size = _PageSize;
 
@@ -256,9 +260,8 @@ struct page_growth_policy
 // read offset externally.
 struct write_only_cursor_policy
 {
-    static constexpr DBufferCursorModel model =
-        DBufferCursorModel::write_only;
-    static constexpr bool has_read_cursor = false;
+    static constexpr buffer_cursor_model model = buffer_cursor_model::write_only;
+    static constexpr bool has_read_cursor     = false;
 
     struct cursor_state
     {
@@ -277,8 +280,10 @@ struct write_only_cursor_policy
     //   returns the number of bytes available for
     // writing between the write cursor and capacity.
     static constexpr std::size_t
-    writable(const cursor_state& _state,
-             std::size_t         _capacity) noexcept
+    writable(
+        const cursor_state& _state,
+        std::size_t         _capacity
+    ) noexcept
     {
         return _capacity - _state.write_pos;
     }
@@ -321,8 +326,8 @@ struct write_only_cursor_policy
 // is [write_pos, capacity).
 struct dual_cursor_policy
 {
-    static constexpr DBufferCursorModel model =
-        DBufferCursorModel::dual;
+    static constexpr buffer_cursor_model model =
+        buffer_cursor_model::dual;
     static constexpr bool has_read_cursor = true;
 
     struct cursor_state
@@ -441,10 +446,10 @@ struct dual_cursor_policy
 // predicates, and growth dispatch for any buffer.
 //
 // The derived class must expose:
-//   - char*       storage()           — writable pointer
-//   - const char* storage() const     — readable pointer
-//   - std::size_t capacity() const    — usable capacity
-//   - bool        grow(std::size_t)   — grow usable
+//   - char*       storage()           - writable pointer
+//   - const char* storage() const     - readable pointer
+//   - std::size_t capacity() const    - usable capacity
+//   - bool        grow(std::size_t)   - grow usable
 //                                       capacity to at
 //                                       least N bytes
 //
@@ -465,8 +470,7 @@ class buffer_base
 protected:
     buffer_base() noexcept
         : m_cursors(_CursorPolicy::init())
-    {
-    }
+    {}
 
     ~buffer_base() = default;
 
@@ -513,10 +517,10 @@ public:
 
     // --- capacity and growth constants ---
 
-    static constexpr DBufferGrowth growth_strategy =
+    static constexpr buffer_growth_strategy growth_strategy =
         _GrowthPolicy::strategy;
 
-    static constexpr DBufferCursorModel cursor_model =
+    static constexpr buffer_cursor_model cursor_model =
         _CursorPolicy::model;
 
     static constexpr bool can_grow =
@@ -596,10 +600,13 @@ public:
     // number of bytes actually written (may be less than
     // _n if the buffer is fixed and full).
     std::size_t
-    write(const void* _src,
-          std::size_t _n) noexcept
+    write(
+        const void* _src,
+        std::size_t _n
+    ) noexcept
     {
-        if ( (!_src) || (_n == 0) )
+        if ( (!_src) || 
+             (_n == 0) )
         {
             return 0;
         }
@@ -607,7 +614,7 @@ public:
         // ensure capacity
         if (!ensure_writable(_n))
         {
-            // growth failed — write what fits
+            // growth failed - write what fits
             _n = _CursorPolicy::writable(
                      m_cursors, self().capacity());
 
@@ -631,7 +638,9 @@ public:
     // write_byte
     //   appends a single byte to the buffer, growing if
     // necessary.  Returns true on success.
-    bool write_byte(char _byte) noexcept
+    bool write_byte(
+        char _byte
+    ) noexcept
     {
         return write(&_byte, 1) == 1;
     }
@@ -640,8 +649,10 @@ public:
     //   appends _n copies of _byte to the buffer.
     // Returns the number of bytes actually written.
     std::size_t
-    write_fill(char        _byte,
-               std::size_t _n) noexcept
+    write_fill(
+        char        _byte,
+        std::size_t _n
+    ) noexcept
     {
         if (_n == 0)
         {
@@ -894,34 +905,34 @@ protected:
 // =============================================================================
 // Compile-time selection of growth policy by enum value.
 
-template<DBufferGrowth _Strategy>
+template<buffer_growth_strategy _Strategy>
 struct select_growth_policy;
 
 template<>
-struct select_growth_policy<DBufferGrowth::none>
+struct select_growth_policy<buffer_growth_strategy::none>
 {
     using type = fixed_growth_policy;
 };
 
 template<>
-struct select_growth_policy<DBufferGrowth::linear>
+struct select_growth_policy<buffer_growth_strategy::linear>
 {
     using type = linear_growth_policy<>;
 };
 
 template<>
-struct select_growth_policy<DBufferGrowth::exponential>
+struct select_growth_policy<buffer_growth_strategy::exponential>
 {
     using type = exponential_growth_policy;
 };
 
 template<>
-struct select_growth_policy<DBufferGrowth::page_aligned>
+struct select_growth_policy<buffer_growth_strategy::page_aligned>
 {
     using type = page_growth_policy<>;
 };
 
-template<DBufferGrowth _Strategy>
+template<buffer_growth_strategy _Strategy>
 using select_growth_policy_t =
     typename select_growth_policy<_Strategy>::type;
 
@@ -931,24 +942,23 @@ using select_growth_policy_t =
 // =============================================================================
 // Compile-time selection of cursor policy by enum value.
 
-template<DBufferCursorModel _Model>
+template<buffer_cursor_model _Model>
 struct select_cursor_policy;
 
 template<>
-struct select_cursor_policy<DBufferCursorModel::write_only>
+struct select_cursor_policy<buffer_cursor_model::write_only>
 {
     using type = write_only_cursor_policy;
 };
 
 template<>
-struct select_cursor_policy<DBufferCursorModel::dual>
+struct select_cursor_policy<buffer_cursor_model::dual>
 {
     using type = dual_cursor_policy;
 };
 
-template<DBufferCursorModel _Model>
-using select_cursor_policy_t =
-    typename select_cursor_policy<_Model>::type;
+template<buffer_cursor_model _Model>
+using select_cursor_policy_t = typename select_cursor_policy<_Model>::type;
 
 
 // =============================================================================
@@ -962,7 +972,6 @@ using default_growth_policy = exponential_growth_policy;
 using default_cursor_policy = dual_cursor_policy;
 
 
-NS_END  // container
 NS_END  // djinterp
 
 
