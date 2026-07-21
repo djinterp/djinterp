@@ -82,8 +82,7 @@ IV.  CONCEPT FACES                      (C++20)
 #include <type_traits>
 // djinterp
 #include "../djinterp.hpp"
-#include "./function_traits.hpp"   // is_invocable_with / call_result_t /
-                                   // is_invocable_r_with (call detection)
+#include "function_traits.hpp"   // call_result_t / is_invocable_with / is_invocable_r_with
 
 
 NS_DJINTERP
@@ -98,8 +97,7 @@ NS_DJINTERP
 // it succeeds on generic lambdas and other templated operator() callables.
 template<typename    _Fn,
          typename... _Args>
-struct is_callable
-    : is_invocable_with<_Fn, _Args...>
+struct is_callable : is_invocable_with<_Fn, _Args...>
 {};
 
 // callable_result_t
