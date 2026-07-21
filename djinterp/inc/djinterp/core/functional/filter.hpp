@@ -64,9 +64,7 @@
 #include <vector>
 // djinterp
 #include "../djinterp.hpp"
-
-
-#include "./functional_traits.hpp"
+#include "./functional_common.hpp"
 
 
 NS_DJINTERP
@@ -429,28 +427,29 @@ public:
     // success constructor
     filter_result(std::vector<_Type>&&       _elements,
                   std::vector<std::size_t>&& _indices)
-        : m_elements(std::move(_elements))
-        , m_indices(std::move(_indices))
-        , m_status(m_elements.empty()
+        : m_elements(std::move(_elements)),
+          m_indices(std::move(_indices)),
+          m_status(m_elements.empty()
                    ? filter_result_status::empty
                    : filter_result_status::success)
-(}
+    {}
 
     // error constructor
-    explicit filter_result(filter_result_status _status,
-                           std::string          _msg = "")
-        : m_status(_status)
-        , m_error_message(std::move(_msg))
-(}
+    explicit filter_result(
+        filter_result_status _status,
+        std::string          _msg = ""
+    ) : m_status(_status),
+        m_error_message(std::move(_msg))
+    {}
 
-    D_NODISCARD
-    bool ok() const
+    D_NODISCARD bool
+    ok() const
     {
         return m_status == filter_result_status::success;
     }
 
-    D_NODISCARD
-    bool empty() const { return m_elements.empty(); }
+    D_NODISCARD bool
+    empty() const { return m_elements.empty(); }
 
     D_NODISCARD
     filter_result_status status() const { return m_status; }
