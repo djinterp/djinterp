@@ -30,8 +30,8 @@
 #include "../djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-#  include <type_traits>
-#  include "./functional_traits.hpp"
+#include <type_traits>
+#include "./function_traits.hpp"
 #endif
 
 
@@ -652,8 +652,8 @@ NS_INTERNAL
             _CFwd&& _comparator,
             _BFwd&& _bound
         )
-            : m_comparator(std::forward<_CFwd>(_comparator))
-            , m_bound(std::forward<_BFwd>(_bound))
+            : m_comparator(std::forward<_CFwd>(_comparator)),
+              m_bound(std::forward<_BFwd>(_bound))
         {}
 
         template<typename _V>
@@ -683,7 +683,7 @@ NS_INTERNAL
             _CFwd&& _comparator,
             _BFwd&& _bound
         )
-            : m_comparator(std::forward<_CFwd>(_comparator))б
+            : m_comparator(std::forward<_CFwd>(_comparator)),
               m_bound(std::forward<_BFwd>(_bound))
         {}
 
