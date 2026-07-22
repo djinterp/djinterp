@@ -1,67 +1,37 @@
+/******************************************************************************
+* djinterp [test]                               test_session_tests_runner.cpp
+*
+*   Entry point for the test_session.hpp suite.  Defining DTEST_SPEC_MODE
+* selects the header's spec-provider face (declarations + session_spec(), no
+* fixtures); this TU contributes main() and the five section TUs the bodies.
+* main() only configures options and hands session_spec() to run_module - all
+* templating lives in test_defaults.hpp.
+*
+* path:      /build/cmake/config/testing/djinterp/test/test_session_tests_runner.cpp
+* author(s): djinterp test-suite
+******************************************************************************/
+
+#define DTEST_SPEC_MODE                    // suite exposes its spec provider, not fixtures
+
+// std
+#include <string>
 // djinterp
 #include "test_session_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"    // report_builder + report model
-
-
-// D_TS_RUN
-//   macro: runs ::djinterp::testing::<fn> as a unit test named for the
-// function - recorded in the report and echoed to the live console.
-#define D_TS_RUN(_fn)   rb.run(#_fn, &::djinterp::testing::_fn)
 
 
 int
 main()
 {
-    ::djinterp::test::report_builder rb;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    rb.set_title("test_session.hpp unit tests");
+    dt::test_option_set opts = dt::default_test_options();
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(std::string("test_session_tests.pdf"));
 
-    // write a PDF beside the live console output; omit this line for a
-    // console-only run (see test_options.hpp for layout / naming knobs).
-    rb.use_pdf("test_session_tests.pdf");
-
-    rb.module("test_session",
-              "Top-level run context: tree, counters, timer, and lifecycle");
-
-    // I.  construction, type aliases, initial state
-    D_TS_RUN(tests_session_default_state);
-    D_TS_RUN(tests_session_default_counters_zero);
-    D_TS_RUN(tests_session_default_tree_and_timer);
-    D_TS_RUN(tests_session_type_aliases);
-
-    // II.  accessors
-    D_TS_RUN(tests_session_tree_accessor_mutable_and_const);
-    D_TS_RUN(tests_session_counter_accessors_mutable_and_const);
-    D_TS_RUN(tests_session_total_sums_counters);
-    D_TS_RUN(tests_session_timer_accessor_mutable_and_const);
-    D_TS_RUN(tests_session_elapsed_initial_zero);
-    D_TS_RUN(tests_session_save_load_are_noops);
-
-    // III.  state machine
-    D_TS_RUN(tests_session_run_transitions_and_noops);
-    D_TS_RUN(tests_session_pause_transitions_and_noops);
-    D_TS_RUN(tests_session_resume_transitions_and_noops);
-    D_TS_RUN(tests_session_finish_transitions_and_noops);
-    D_TS_RUN(tests_session_reset_clears_state);
-    D_TS_RUN(tests_session_lifecycle_sequence);
-    D_TS_RUN(tests_session_timer_tracks_state);
-
-    // IV.  handler-driven run
-    D_TS_RUN(tests_session_run_handler_empty_tree);
-    D_TS_RUN(tests_session_run_handler_all_statuses);
-    D_TS_RUN(tests_session_run_handler_all_pass_pending_root);
-    D_TS_RUN(tests_session_run_handler_and_tree_prebuilt_passed);
-    D_TS_RUN(tests_session_run_handler_not_idle_skips_walk);
-    D_TS_RUN(tests_session_run_handler_and_tree_not_idle_no_move);
-
-    // V.  verdict decision logic
-    D_TS_RUN(tests_session_current_verdict_empty);
-    D_TS_RUN(tests_session_current_verdict_failed_on_failed);
-    D_TS_RUN(tests_session_current_verdict_failed_on_error);
-    D_TS_RUN(tests_session_current_verdict_pending);
-    D_TS_RUN(tests_session_current_verdict_passed);
-
-    return rb.finish();
+    return dt::run_module(
+        tt::session_spec(),
+        "test_session.hpp unit tests",
+        "Top-level run context: tree, counters, timer, lifecycle, and verdict.",
+        opts);
 }
-
-#undef D_TS_RUN
