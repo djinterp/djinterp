@@ -23,17 +23,17 @@
 * USAGE:
 *   std::vector<int> v = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 *
-*   auto result = v
-*               | filter([](int x) { return x % 2 == 0; })
-*               | transform([](int x) { return x * x; })
-*               | take(3)
-*               | to_vector();
+*   auto result = v                                         |
+*                 filter([](int x) { return x % 2 == 0; })  |
+*                 transform([](int x) { return x * x; })    |
+*                 take(3)                                   |
+*                 to_vector();
 *   // result == { 4, 16, 36 }
 *
 *   // infinite source + bounded sink
-*   auto fibs = iota(0)
-*             | take(20)
-*             | to_vector();
+*   auto fibs = iota(0)   |
+*               take(20)  |
+*               to_vector();
 *
 *   // enumerate
 *   for (auto&& p : v | enumerate())
@@ -524,10 +524,10 @@ NS_INTERNAL
 
         D_CONSTEXPR
         repeat_iterator()
-            : m_value(_Type())
-            , m_remaining(0)
-            , m_has_bound(false)
-            , m_is_end(true)
+            : m_value(_Type()),
+              m_remaining(0),
+              m_has_bound(false),
+              m_is_end(true)
         {}
 
         D_CONSTEXPR
@@ -537,19 +537,20 @@ NS_INTERNAL
             bool        _has_bound,
             bool        _is_end
         )
-            : m_value(std::move(_value))
-            , m_remaining(_remaining)
-            , m_has_bound(_has_bound)
-            , m_is_end(_is_end)
+            : m_value(std::move(_value)),
+              m_remaining(_remaining),
+              m_has_bound(_has_bound),
+              m_is_end(_is_end)
         {}
 
-        D_CONSTEXPR
-        const _Type& operator*() const
+        D_CONSTEXPR const _Type& 
+        operator*() const
         {
             return m_value;
         }
 
-        repeat_iterator& operator++()
+        repeat_iterator&
+        operator++()
         {
             if (m_has_bound)
             {
@@ -618,23 +619,24 @@ public:
     repeat_view(
         _Type _value
     )
-        : m_value(std::move(_value))
-        , m_n(0)
-        , m_has_bound(false)
+        : m_value(std::move(_value)),
+          m_n(0),
+          m_has_bound(false)
     {}
 
     // constructor (bounded)
     D_CONSTEXPR
     repeat_view(
-        _Type          _value,
+        _Type       _value,
         std::size_t _n
     )
-        : m_value(std::move(_value))
-        , m_n(_n)
-        , m_has_bound(true)
+        : m_value(std::move(_value)),
+          m_n(_n),
+          m_has_bound(true)
     {}
 
-    D_NODISCARD     iterator begin() const
+    D_NODISCARD iterator 
+    begin() const
     {
         if (m_has_bound)
         {
@@ -644,7 +646,8 @@ public:
         return iterator(m_value, 0, false, false);
     }
 
-    D_NODISCARD     iterator end() const
+    D_NODISCARD iterator
+    end() const
     {
         return iterator(m_value, 0, m_has_bound, true);
     }
@@ -757,12 +760,14 @@ public:
         : m_fn(std::forward<_FFwd>(_fn))
     {}
 
-    iterator begin()
+    iterator 
+    begin()
     {
         return iterator(m_fn);
     }
 
-    iterator end() const
+    iterator 
+    end() const
     {
         return iterator{};
     }
@@ -2855,12 +2860,10 @@ iota(
     return iota_view<_Int>(_start);
 }
 
-
 // repeat (unbounded)
 //   function: builds an infinite view yielding _value forever.
 template<typename _Type>
-D_CONSTEXPR
-repeat_view<typename std::decay<_Type>::type>
+D_CONSTEXPR repeat_view<typename std::decay<_Type>::type>
 repeat(
     _Type&& _value
 )
@@ -3554,8 +3557,7 @@ struct functor_traits<
     // view is iterated or forced by a terminal.
     template<typename _ViewArg,
              typename _Function>
-    static
-    D_CONSTEXPR
+    static D_CONSTEXPR
     transform_view<typename std::decay<_ViewArg>::type,
                    typename std::decay<_Function>::type>
     map(
@@ -3596,13 +3598,12 @@ struct foldable_traits<
     //   strict left fold by iterating the view; the accumulator is threaded
     // by move so collecting folds stay O(n). D_CONSTEXPR -- a view is not a
     // literal type before C++20.
-    template<typename _Acc,
+    template<typename _Accumulator,
              typename _Function>
-    static
-    D_CONSTEXPR
-    _Acc fold_left(
+    static D_CONSTEXPR _Accumulator 
+    fold_left(
         const _View& _view,
-        _Acc         _init,
+        _Accumulator _init,
         _Function    _function
     )
     {
