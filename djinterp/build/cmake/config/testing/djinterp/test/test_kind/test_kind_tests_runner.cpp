@@ -1,77 +1,37 @@
+/******************************************************************************
+* djinterp [test]                                  test_kind_tests_runner.cpp
+*
+*   Entry point for the test_kind.hpp suite.  Defining DTEST_SPEC_MODE selects
+* the header's spec-provider face (declarations + test_kind_spec(), no
+* fixtures); this TU contributes main() and the seven section TUs the bodies.
+* main() only configures options and hands test_kind_spec() to run_module -
+* all templating lives in test_defaults.hpp.
+*
+* path:      /build/cmake/config/testing/djinterp/test/test_kind_tests_runner.cpp
+* author(s): Samuel 'teer' Neal-Blim
+******************************************************************************/
+
+#define DTEST_SPEC_MODE                    // suite exposes its spec provider, not fixtures
+
+// std
+#include <string>
 // djinterp
 #include "test_kind_tests.hpp"
-#include "djinterp/test/test_report_runner.hpp"    // report_builder + report model
-
-
-// D_TK_RUN
-//   macro: runs ::djinterp::testing::<fn> as a unit test named for the
-// function - recorded in the report and echoed to the live console.
-#define D_TK_RUN(_fn)   rb.run(#_fn, &::djinterp::testing::_fn)
 
 
 int
 main()
 {
-    ::djinterp::test::report_builder rb;
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    rb.set_title("test_kind.hpp unit tests");
+    dt::test_option_set opts = dt::default_test_options();
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(std::string("test_kind_tests.pdf"));
 
-    // write a PDF beside the live console output; omit this line for a
-    // console-only run (see test_options.hpp for layout / naming knobs).
-    rb.use_pdf("test_kind_tests.pdf");
-
-    rb.module("test_kind",
-              "Test-kind records, the kind set, and resolved queries");
-
-    // I. test kind record
-    D_TK_RUN(tests_test_kind_aggregate);
-    D_TK_RUN(tests_test_kind_members);
-    D_TK_RUN(tests_test_kind_traits);
-    D_TK_RUN(tests_test_kind_values);
-
-    // II. factory function
-    D_TK_RUN(tests_make_test_kind_basic);
-    D_TK_RUN(tests_make_test_kind_default_arg);
-    D_TK_RUN(tests_make_test_kind_constexpr);
-    D_TK_RUN(tests_make_test_kind_noexcept);
-
-    // III. test kind set -- construction / aliases
-    D_TK_RUN(tests_set_aliases);
-    D_TK_RUN(tests_set_default_ctor);
-    D_TK_RUN(tests_set_copy_ctor);
-    D_TK_RUN(tests_set_move_ctor);
-    D_TK_RUN(tests_set_underlying);
-    D_TK_RUN(tests_set_ctor_noexcept);
-
-    // III. test kind set -- forwarded surface + iteration
-    D_TK_RUN(tests_set_size_empty);
-    D_TK_RUN(tests_set_clear);
-    D_TK_RUN(tests_set_insert);
-    D_TK_RUN(tests_set_erase);
-    D_TK_RUN(tests_set_find);
-    D_TK_RUN(tests_set_iteration);
-
-    // III. test kind set -- contains + dispatch
-    D_TK_RUN(tests_set_contains_native);
-    D_TK_RUN(tests_set_contains_fallback);
-    D_TK_RUN(tests_set_contains_detection);
-
-    // IV. resolved queries
-    D_TK_RUN(tests_find_kind);
-    D_TK_RUN(tests_rank_of);
-    D_TK_RUN(tests_is_leaf);
-    D_TK_RUN(tests_is_interior);
-    D_TK_RUN(tests_name_of);
-    D_TK_RUN(tests_default_options);
-    D_TK_RUN(tests_can_be_child_of);
-    D_TK_RUN(tests_queries_compose);
-
-    // V. structural detection
-    D_TK_RUN(tests_is_test_kind_set);
-    D_TK_RUN(tests_is_test_kind_set_cvref);
-    D_TK_RUN(tests_is_test_kind_set_variable);
-
-    return rb.finish();
+    return dt::run_module(
+        tt::test_kind_spec(),
+        "test_kind.hpp unit tests",
+        "records, the kind set, resolved queries, and structural detection.",
+        opts);
 }
-
-#undef D_TK_RUN

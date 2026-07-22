@@ -1,67 +1,126 @@
 /******************************************************************************
-* djinterp [test]                                        dtest_tests_runner.cpp
+* djinterp [test]                                       tests_all_runner.cpp
 *
-*   The umbrella runner for the whole DTest suite.  It drives EVERY component's
-* tests through one report_builder - so the live console and the structured
-* report come from a single run - then, instead of the single-PDF `use_pdf`
-* path the per-component runners take, packages ONE PDF PER MODULE into a
-* single 7z through the emit stack (test/output).
+*   Single-process umbrella: runs every migrated suite's spec in ONE run_suite
+* call, producing one combined report / PDF.  Defining DTEST_SPEC_MODE selects
+* each header's spec-provider face; this TU is linked against EVERY suite's
+* section TUs (the CMakeLists globs them), which define the tests_* bodies.
 *
-*   WHY TWO LAYERS:
-*   report_builder runs the tests and accumulates the test_report; it can write
-* one styled PDF (use_pdf) but cannot archive.  Archiving is the new packaging
-* layer's job (document_bundle + output_packaging): build one DEFERRED PDF
-* producer per module, then let write()'s `archive` mode fold them into one
-* container.  The run and the emit compose - report_builder up front, the
-* packaging stack at the back.
+*   NOTE 1 (macros): each suite header defines its own D_xx_CHECK macro, used
+* only by the section TUs.  A few suffixes repeat (TC / TO / TT), so we #undef
+* after each include to avoid a macro-redefinition diagnostic when pulling every
+* header into one TU.  (The individual runners include one header each and never
+* hit this.)
 *
-*   SHARED TEST LISTS:
-*   Each module's tests come from its register_<component>() entry point (one
-* small *_tests_runner.hpp each), the same registrations the standalone runners
-* drive.  So this file is a list of module registrations plus the archive emit
-* and nothing is duplicated.
+*   NOTE 2 (scope): this umbrella covers the 15 migrated suites.  It does NOT
+* include the pre-existing *_spec() suites (options / callable / context /
+* builder / container / emit / handler / runner / event_*), because their
+* headers are not part of this drop-in.  To fold them in, add their header +
+* spec to the two marked spots below.  If you would rather run EVERYTHING with
+* no editing, prefer the `all_djinterp_test` aggregate (ctest) over this exe -
+* it depends on every registered suite exe, pre-existing ones included.
+*
+* path:  build/cmake/config/testing/djinterp/test/tests_all_runner.cpp
 ******************************************************************************/
 
+#define DTEST_SPEC_MODE
+
 // std
-#include <cstddef>
-#include <cstdio>
 #include <string>
-// djinterp
-#include <djinterp/core/djinterp.hpp>                    // report_builder, test_report
-#include <djinterp/test/output/test_report_runner.hpp>   // report_builder, test_report
-#include <djinterp/test/output/test_output.hpp>
-//#include "carrier_tests_runner.hpp"        // register_carrier
-//#include "counter_tests_runner.hpp"        // register_counter
-//#include "timer_tests_runner.hpp"          // register_timer
-#include "../../../../../../../tests/djinterp/test/test_common_tests.hpp"    // register_test_common
-#include "../../../../../../../tests/djinterp/test/test_counter_tests.hpp"   // register_test_counter
-#include "../../../../../../../tests/djinterp/test/test_kind_tests.hpp"      // register_test_kind
-#include "../../../../../../../tests/djinterp/test/test_object_tests.hpp"    // register_test_object
-#include "../../../../../../../tests/djinterp/test/test_session_tests.hpp"   // register_test_session
-#include "../../../../../../../tests/djinterp/test/test_timer_tests.hpp"     // register_test_timer
-#include "../../../../../../../tests/djinterp/test/test_tree_tests.hpp"      // register_test_tree
-//#include "../../../../../../../tests/djinterp/test/type_traits_tests_runner.hpp"    // register_type_traits
+#include <vector>
+
+// -- suite headers (spec-provider face) ------------------------------------
+//    INCLUDES gives both tests roots, so every header is included bare.
+#include "test_common_tests.hpp"
+#ifdef D_TC_CHECK
+#  undef D_TC_CHECK
+#endif
+#include "test_kind_tests.hpp"
+#ifdef D_TK_CHECK
+#  undef D_TK_CHECK
+#endif
+#include "test_object_tests.hpp"
+#ifdef D_TO_CHECK
+#  undef D_TO_CHECK
+#endif
+#include "test_tree_tests.hpp"
+#include "test_session_tests.hpp"
+#include "test_timer_tests.hpp"
+#ifdef D_TT_CHECK
+#  undef D_TT_CHECK
+#endif
+#include "test_counter_tests.hpp"
+#ifdef D_TC_CHECK
+#  undef D_TC_CHECK
+#endif
+#include "test_event_tests.hpp"
+#ifdef D_TE_CHECK
+#  undef D_TE_CHECK
+#endif
+#include "test_traits_tests.hpp"
+#ifdef D_TT_CHECK
+#  undef D_TT_CHECK
+#endif
+//#include "test_pack_tests.hpp"
+//#ifdef D_TP_CHECK
+//#  undef D_TP_CHECK
+//#endif
+#include "test_defaults_tests.hpp"
+#ifdef D_TD_CHECK
+#  undef D_TD_CHECK
+#endif
+#include "test_output_config_tests.hpp"     // under tests/.../output (INCLUDES root)
+#ifdef D_OC_CHECK
+#  undef D_OC_CHECK
+#endif
+#include "test_render_tests.hpp"
+#ifdef D_TR_CHECK
+#  undef D_TR_CHECK
+#endif
+#include "test_output_tests.hpp"
+#ifdef D_TO_CHECK
+#  undef D_TO_CHECK
+#endif
+#include "test_report_tests.hpp"
+#ifdef D_RT_CHECK
+#  undef D_RT_CHECK
+#endif
+// <-- add pre-existing suite headers here (spot A)
 
 
 int
 main()
 {
-    ::djinterp::test::report_builder rb;          // default_test_options() = shared settings
+    namespace dt = ::djinterp::test;
+    namespace tt = ::djinterp::testing;
 
-    rb.set_title("djinterp - full DTest suite");
-    rb.use_archive_per_module("dtest_tests");     // -> dtest_tests.7z, one PDF per module
+    dt::test_option_set opts = dt::default_test_options();
+    opts.set<dt::test_option::document>(dt::test_doc_type::pdf);
+    opts.set<dt::test_option::output_file>(std::string("djinterp_all_tests.pdf"));
 
-    register_carrier(rb);
-    register_counter(rb);
-    register_timer(rb);
-    register_test_common(rb);
-    register_test_counter(rb);
-    register_test_kind(rb);
-    register_test_object(rb);
-    register_test_session(rb);
-    register_test_timer(rb);
-    register_test_tree(rb);
-    register_type_traits(rb);
+    const std::vector<dt::module_spec> modules = {
+        tt::common_spec(),
+        tt::test_kind_spec(),
+        tt::object_spec(),
+        tt::tree_spec(),
+        tt::session_spec(),
+        tt::timer_spec(),
+        tt::counter_spec(),
+        tt::event_spec(),
+        tt::traits_spec(),
+        //tt::pack_spec(),
+        tt::defaults_spec(),
+        tt::output_config_spec(),
+        tt::render_spec(),
+        tt::output_spec(),
+        tt::report_spec(),
+        // <-- add pre-existing suite specs here (spot B)
+    };
 
-    return rb.finish();          // finish() -> emit_report() -> per-module PDFs in the 7z
+    return dt::run_suite(
+        "djinterp",
+        "All djinterp DTest unit suites",
+        modules,
+        "djinterp - all unit tests",
+        opts);
 }

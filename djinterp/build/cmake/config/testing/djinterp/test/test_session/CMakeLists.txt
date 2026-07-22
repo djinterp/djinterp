@@ -1,14 +1,14 @@
-# djinterp/test/test_object — test leaf (recipe R1). Builds test_object_tests and registers CTest.
+# djinterp/test/test_session — test leaf (recipe R1). Builds test_session_tests and registers CTest.
 #   runner (this dir) + section TUs (tests/djinterp/test).  Output dir is computed:
-#   bin/<arch>-<Config>/testing/djinterp/test/test_object/.
+#   bin/<arch>-<Config>/testing/djinterp/test/test_session/.
 set(_tests_dir "${DJINTERP_TESTS_ROOT}/djinterp/test")
 
-file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/test_object_tests_*.cpp")
+file(GLOB _sources CONFIGURE_DEPENDS "${_tests_dir}/test_session_tests_*.cpp")
 list(FILTER _sources EXCLUDE REGEX "_tests_(runner|main)\.cpp$")
 
-djinterp_add_test_executable(test_object_tests
+djinterp_add_test_executable(test_session_tests
     SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/test_object_tests_runner.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/test_session_tests_runner.cpp"
         ${_sources}
     INCLUDES
         "${DJINTERP_INC_ROOT}/djinterp/test"
