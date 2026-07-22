@@ -41,11 +41,9 @@
 // std
 #include <type_traits>
 #include <utility>
-
 // djinterp
 #include "../djinterp.hpp"
-#include "./type_traits.hpp"
-
+#include "../meta/type_traits.hpp"
 
 // require C++17 for the overlay baseline
 #if !D_ENV_LANG_IS_CPP17_OR_HIGHER

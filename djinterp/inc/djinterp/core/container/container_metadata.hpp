@@ -1,334 +1,364 @@
 /******************************************************************************
-* djinterp [util]                                        container_metadata.hpp
+* djinterp [container]                                  container_metadata.hpp
 *
-* djinterp container-metadata foundational module:
-*   Container-agnostic, payload-agnostic association between a container
-* and its metadata. Builds on the three primitives from
-* `util/metadata/metadata.hpp` (single value, key-value entry,
-* homogeneous collection) and ties a payload of any of these shapes to
-* an arbitrary container.
+*   The foundational metadata facility for containers.  Metadata is, at bottom,
+* nothing more than a COLLECTION OF KEY-VALUE PAIRS whose key and value types are
+* open: a container may carry any optional metadata -- a title, a name, a
+* description, a date, a provenance record -- and this module imposes no fixed
+* metadata type, following the framework's metadata_traits protocol (which asks
+* only whether a type carries metadata, what type it has, and what holds it).
 *
-*   PURPOSE
-*   =======
-*   Many container types want to carry side information that isn't part
-* of their data: descriptive labels (table titles, list names), formatting
-* hints, versioning, tags, comments, provenance, and so on. This module
-* provides the foundational wrapper - `container_metadata` - that pairs
-* a container with a metadata payload without imposing requirements on
-* either. The container is held by reference (non-owning); the payload
-* is owned.
+*   TWO PIECES:
+*   1. container_metadata<_Key, _Value, _Store> -- the store: an ordered
+*      collection of _Key -> _Value entries over an open backing _Store.  Keys and
+*      values are ANY types the caller chooses; for heterogeneous values, a
+*      variant or std::any as _Value keeps the pairs fully generic
+*      (container_metadata<std::string, std::any> is the maximally open form).
+*   2. metadata_carrier<_Metadata> -- the attachment: a mixin a container inherits
+*      to CARRY a metadata object and expose it through the metadata_traits
+*      protocol names (metadata(), metadata_type, metadata_container_type), so the
+*      framework's has_metadata / metadata_type_t / metadata_container_type_t
+*      detect and extract it with no further wiring.
 *
-*   DESIGN
-*   ======
-*   `container_metadata<_Container, _Payload>` is a thin pairing:
-*     - `_Container`  : any user-provided container type. The class
-*                       holds a pointer to an instance. There is NO
-*                       requirement on the container - no expected
-*                       `value_type`, `size()`, iterators, or anything
-*                       else. If the user wants to associate metadata
-*                       with a non-container too, this works.
-*     - `_Payload`    : the metadata payload. Typically one of
-*                       `metadata_value<>`, `metadata_entry<>`, or
-*                       `metadata_collection<>`, but any type is
-*                       accepted. The `is_metadata` trait can be used
-*                       at the call site to enforce constraints when
-*                       desired.
+*   OPENNESS.  Nothing here fixes the key type, the value type, or the backing.
+* The default backing is a flat vector of pairs with linear lookup -- right for
+* the handful of entries metadata usually holds, and imposing only equality on
+* the key; a caller wanting ordered or hashed lookup, or non-equality keys, passes
+* a different _Store.  A metadata collection is not dimensionally constrained (it
+* is just pairs); the table's dimensional headers are the derived table_metadata
+* module's concern.
 *
-*   The pairing is intentionally non-owning of the container - a
-* container_metadata "decorates" a container that lives elsewhere.
-* This makes it cheap to attach and detach metadata, and lets multiple
-* metadata views coexist for the same container.
-*
-*   COMPOSITION
-*   ===========
-*   For containers carrying multiple kinds of metadata (e.g. a single
-* title PLUS a key-value formatting dictionary PLUS a list of tags),
-* compose container_metadata instances or build a payload that is
-* itself a collection of mixed metadata primitives.
-*
-*   PORTABILITY
-*   ===========
-*     version: C++11 or higher; `_v` companions C++14+.
-*     dependencies:
-*       - djinterp.hpp           : NS_DJINTERP, NS_INTERNAL, clean_t
-*       - core/meta/type_traits.hpp : void_t
-*       - util/metadata/metadata.hpp : metadata primitives, is_metadata
+*   PORTABILITY:
+*   C++11 baseline (runtime store; the `_v` companions degrade with the language).
 *
 *
-* path:      /inc/djinterp/util/metadata/container_metadata.hpp
+* path:      /inc/djinterp/core/container/metadata/container_metadata.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.18
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    container_metadata (class)
+II.   is_container_metadata (detection trait)
+III.  equality
+IV.   metadata_carrier (protocol-exposing mixin)
+*/
 
 #ifndef DJINTERP_CONTAINER_METADATA_
 #define DJINTERP_CONTAINER_METADATA_ 1
 
 // std
 #include <cstddef>
+#include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
 // djinterp
-#include "../../djinterp.hpp"
-#include "../../core/meta/type_traits.hpp"
-#include "./metadata.hpp"
+#include "../../djinterp.hpp"   // NS_*, D_NODISCARD, clean_t
 
 
 NS_DJINTERP
 
+// ===========================================================================
+// I.   container_metadata (class)
+// ===========================================================================
 
-    // =========================================================================
-    // I.   CONTAINER METADATA
-    // =========================================================================
-    //
-    // `container_metadata<_Container, _Payload>`
-    //   Pairs a non-owning reference to a `_Container` with an owned
-    // `_Payload` of metadata. The class is deliberately minimal - it
-    // exposes the held container, the held payload, and a small set
-    // of binding controls. Anything richer (typed access, dictionary
-    // lookup, named-key indexing) belongs in a higher-level layer
-    // that targets a specific payload shape.
-    //
-    //   No constraints are imposed on either template parameter:
-    //     - `_Container` is not required to be iterable, sized,
-    //       allocator-aware, or anything else. The class holds a
-    //       pointer; the user's code is responsible for whatever
-    //       operations it performs through that pointer.
-    //     - `_Payload` is not required to satisfy `is_metadata`.
-    //       Callers wanting that constraint can `static_assert` at
-    //       their site of use.
+// container_metadata
+//   class: an ordered collection of _Key -> _Value metadata entries over an open
+// backing _Store.  The key and value types are unconstrained; the default store
+// is a flat vector of pairs with linear lookup.  Insertion overwrites an existing
+// key (a metadata name holds one value), preserving first-seen order otherwise.
+template<typename _Key   = std::string,
+         typename _Value = std::string,
+         typename _Store = std::vector<std::pair<_Key, _Value>>>
+class container_metadata
+{
+public:
+    // --- member types ---
 
-    // container_metadata
-    //   class: container-agnostic, payload-agnostic
-    // metadata pairing.
-    template<typename _Container,
-             typename _Payload>
-    class container_metadata
+    using key_type       = _Key;
+    using mapped_type    = _Value;
+    using store_type     = _Store;
+    using value_type     = typename _Store::value_type;   // the (key, value) pair
+    using size_type      = typename _Store::size_type;
+    using iterator       = typename _Store::iterator;
+    using const_iterator = typename _Store::const_iterator;
+
+    // --- construction ---
+
+    container_metadata() = default;
+
+    // from a list of entries (later duplicates overwrite earlier ones on set,
+    // but the initializer keeps them verbatim; use set() to enforce uniqueness).
+    container_metadata(std::initializer_list<value_type> _init)
+        : m_entries(_init.begin(), _init.end())
+    {}
+
+    // --- key-value surface ---
+
+    // set -- bind _key to _value, overwriting any existing entry for that key.
+    void set(const _Key& _key, _Value _value)
     {
-    public:
-        using container_type = _Container;
-        using payload_type   = _Payload;
-        using self_type      = container_metadata<_Container, _Payload>;
-
-        // container_metadata()
-        //   constructor: default - unbound (no container), empty
-        // payload.
-        container_metadata()
-            : m_container(nullptr),
-              m_payload()
-        {}
-
-        // container_metadata(payload)
-        //   constructor: bound only to a payload (no container).
-        // Useful when the metadata exists before the container or
-        // independently of any specific instance.
-        explicit container_metadata(
-            const _Payload& _payload
-        )
-            : m_container(nullptr),
-              m_payload(_payload)
-        {}
-
-        // container_metadata(payload&&)
-        //   constructor: bound only to a payload (move).
-        explicit container_metadata(
-            _Payload&& _payload
-        )
-        noexcept(std::is_nothrow_move_constructible<_Payload>::value)
-            : m_container(nullptr),
-              m_payload(std::move(_payload))
-        {}
-
-        // container_metadata(container, payload)
-        //   constructor: bound to both a container and a payload.
-        container_metadata(
-            _Container&     _container,
-            const _Payload& _payload
-        )
-            : m_container(&_container),
-              m_payload(_payload)
-        {}
-
-        // container_metadata(container, payload&&)
-        //   constructor: bound to both, payload moved.
-        container_metadata(
-            _Container& _container,
-            _Payload&&  _payload
-        )
-        noexcept(std::is_nothrow_move_constructible<_Payload>::value)
-            : m_container(&_container),
-              m_payload(std::move(_payload))
-        {}
-
-        // container_metadata(container)
-        //   constructor: bound only to a container (empty payload).
-        explicit container_metadata(
-            _Container& _container
-        )
-            : m_container(&_container),
-              m_payload()
-        {}
-
-        // -----------------------------------------------------------------
-        //  container binding
-        // -----------------------------------------------------------------
-
-        // bind
-        //   function: associates this metadata with `_container`.
-        void bind(_Container& _container) noexcept
+        // overwrite in place when the key is already present
+        for (value_type& _entry : m_entries)
         {
-            m_container = &_container;
+            if (key_equal(get_key(_entry), _key))
+            {
+                get_value(_entry) = static_cast<_Value&&>(_value);
 
-            return;
+                return;
+            }
         }
 
-        // unbind
-        //   function: disassociates this metadata from any container.
-        // The payload is preserved; only the container pointer is
-        // cleared.
-        void unbind() noexcept
-        {
-            m_container = nullptr;
+        // otherwise append a new entry
+        m_entries.push_back(value_type(_key, static_cast<_Value&&>(_value)));
 
-            return;
+        return;
+    }
+
+    // find -- pointer to the value bound to _key, or nullptr when absent.
+    D_NODISCARD const _Value* find(const _Key& _key) const
+    {
+        for (const value_type& _entry : m_entries)
+        {
+            if (key_equal(get_key(_entry), _key))
+            {
+                return &get_value(_entry);
+            }
         }
 
-        // is_bound
-        //   function: true iff a container is currently associated.
-        bool is_bound() const noexcept
+        return nullptr;
+    }
+
+    D_NODISCARD _Value* find(const _Key& _key)
+    {
+        for (value_type& _entry : m_entries)
         {
-            return (m_container != nullptr);
+            if (key_equal(get_key(_entry), _key))
+            {
+                return &get_value(_entry);
+            }
         }
 
-        // get_container
-        //   function: pointer to the associated container (may be
-        // null).
-        _Container*       get_container()       noexcept
+        return nullptr;
+    }
+
+    // at -- the value bound to _key; throws std::out_of_range when absent.
+    D_NODISCARD const _Value& at(const _Key& _key) const
+    {
+        const _Value* _p = find(_key);
+
+        // an absent metadata key is a lookup error, not a blank value
+        if (_p == nullptr)
         {
-            return m_container;
+            throw std::out_of_range("container_metadata::at: no such key.");
         }
 
-        // get_container
-        //   function: const pointer to the associated container.
-        const _Container* get_container() const noexcept
+        return *_p;
+    }
+
+    // contains -- whether _key is bound.
+    D_NODISCARD bool contains(const _Key& _key) const
+    {
+        return (find(_key) != nullptr);
+    }
+
+    // erase -- remove the entry for _key; returns whether one was removed.
+    bool erase(const _Key& _key)
+    {
+        for (iterator _it = m_entries.begin(); _it != m_entries.end(); ++_it)
         {
-            return m_container;
+            if (key_equal(get_key(*_it), _key))
+            {
+                m_entries.erase(_it);
+
+                return true;
+            }
         }
 
-        // -----------------------------------------------------------------
-        //  payload access
-        // -----------------------------------------------------------------
+        return false;
+    }
 
-        // payload
-        //   function: const accessor for the metadata payload.
-        const _Payload& payload() const noexcept
-        {
-            return m_payload;
-        }
+    // --- size / iteration / access to the backing ---
 
-        // payload
-        //   function: mutable accessor for the metadata payload.
-        _Payload& payload() noexcept
-        {
-            return m_payload;
-        }
+    D_NODISCARD size_type size() const noexcept
+    {
+        return m_entries.size();
+    }
 
-        // set_payload
-        //   function: replaces the metadata payload (copy).
-        void set_payload(const _Payload& _payload)
-        {
-            m_payload = _payload;
+    D_NODISCARD bool empty() const noexcept
+    {
+        return m_entries.empty();
+    }
 
-            return;
-        }
+    void clear() noexcept
+    {
+        m_entries.clear();
 
-        // set_payload
-        //   function: replaces the metadata payload (move).
-        void set_payload(_Payload&& _payload)
-        noexcept(std::is_nothrow_move_assignable<_Payload>::value)
-        {
-            m_payload = std::move(_payload);
+        return;
+    }
 
-            return;
-        }
+    D_NODISCARD iterator       begin()        noexcept { return m_entries.begin(); }
+    D_NODISCARD iterator       end()          noexcept { return m_entries.end();   }
+    D_NODISCARD const_iterator begin()  const noexcept { return m_entries.begin(); }
+    D_NODISCARD const_iterator end()    const noexcept { return m_entries.end();   }
+    D_NODISCARD const_iterator cbegin() const noexcept { return m_entries.begin(); }
+    D_NODISCARD const_iterator cend()   const noexcept { return m_entries.end();   }
 
-        // -----------------------------------------------------------------
-        //  comparison
-        // -----------------------------------------------------------------
+    // entries -- the underlying store (read-only), for interop.
+    D_NODISCARD const store_type& entries() const noexcept
+    {
+        return m_entries;
+    }
 
-        // operator==
-        //   function: compares the payload only - container identity
-        // is ignored, since the container is non-owning.
-        bool operator==(const self_type& _other) const
-        {
-            return (m_payload == _other.m_payload);
-        }
+private:
+    // key_equal -- equality on keys; the only relation the default store imposes
+    // on _Key.  A store keyed by a non-equality type supplies its own lookup.
+    static bool key_equal(const _Key& _a, const _Key& _b)
+    {
+        return (_a == _b);
+    }
 
-        // operator!=
-        //   function: inequality on payload.
-        bool operator!=(const self_type& _other) const
-        {
-            return !(*this == _other);
-        }
+    // get_key / get_value -- read a pair-like entry's members generically, so the
+    // store's value_type may be std::pair or any {first, second} aggregate.
+    static const _Key&   get_key(const value_type& _e)   { return _e.first;  }
+    static const _Value& get_value(const value_type& _e) { return _e.second; }
+    static _Value&       get_value(value_type& _e)       { return _e.second; }
 
-    private:
-        _Container* m_container;
-        _Payload    m_payload;
-    };
+    _Store m_entries;
+};
 
 
-    // =========================================================================
-    // II.  CONTAINER-METADATA DETECTION
-    // =========================================================================
+// ===========================================================================
+// II.  is_container_metadata (detection trait)
+// ===========================================================================
 
-    // is_container_metadata
-    //   trait: detects `container_metadata<>` specializations and
-    // structurally compatible types (exposing `container_type` and
-    // `payload_type` aliases plus `get_container()` and `payload()`
-    // accessors).
-    template<typename _Type,
-             typename = void>
-    struct is_container_metadata : std::false_type
+// is_container_metadata
+//   trait: true when _Type (after stripping cv/ref) is a specialization of
+// container_metadata.
+NS_INTERNAL
+
+    template<typename _Type>
+    struct is_container_metadata_impl : std::false_type
     {};
 
-    // is_container_metadata (specialization)
-    //   trait: SFINAE success case.
-    template<typename _Type>
-    struct is_container_metadata<_Type,
-        void_t<typename _Type::container_type,
-               typename _Type::payload_type,
-               decltype(std::declval<const _Type&>().get_container()),
-               decltype(std::declval<const _Type&>().payload())>>
+    template<typename _K,
+             typename _V,
+             typename _S>
+    struct is_container_metadata_impl<container_metadata<_K, _V, _S>>
         : std::true_type
     {};
 
-    #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
-        // is_container_metadata_v
-        //   value: variable-template companion to
-        // `is_container_metadata`.
-        template<typename _Type>
-        inline constexpr bool is_container_metadata_v =
-            is_container_metadata<_Type>::value;
-    #endif
+NS_END  // internal
+
+template<typename _Type>
+struct is_container_metadata
+    : internal::is_container_metadata_impl<clean_t<_Type>>
+{};
+
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+template<typename _Type>
+inline constexpr bool is_container_metadata_v =
+    is_container_metadata<_Type>::value;
+#endif
 
 
-    // =========================================================================
-    // III. CONVENIENCE FACTORY
-    // =========================================================================
+// ===========================================================================
+// III. equality
+// ===========================================================================
 
-    // make_container_metadata
-    //   function: factory deducing `_Container` and `_Payload` from
-    // the arguments.
-    template<typename _Container,
-             typename _Payload>
-    container_metadata<clean_t<_Container>, clean_t<_Payload>>
-    make_container_metadata(_Container& _container,
-                            _Payload&&  _payload)
+// operator== / operator!=
+//   two metadata collections are equal iff they bind the same keys to equal
+// values -- an order-INSENSITIVE comparison, since metadata is a set of named
+// entries, not a sequence.
+template<typename _Key,
+         typename _Value,
+         typename _Store>
+D_NODISCARD bool operator==(
+    const container_metadata<_Key, _Value, _Store>& _a,
+    const container_metadata<_Key, _Value, _Store>& _b)
+{
+    if (_a.size() != _b.size())
     {
-        return container_metadata<clean_t<_Container>,
-                                  clean_t<_Payload>>(
-            _container,
-            std::forward<_Payload>(_payload));
+        return false;
     }
+
+    // every key of _a must be present in _b with an equal value
+    for (const auto& _entry : _a)
+    {
+        const _Value* _rhs = _b.find(_entry.first);
+
+        if ( (_rhs == nullptr) ||
+             (!(*_rhs == _entry.second)) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+template<typename _Key,
+         typename _Value,
+         typename _Store>
+D_NODISCARD bool operator!=(
+    const container_metadata<_Key, _Value, _Store>& _a,
+    const container_metadata<_Key, _Value, _Store>& _b)
+{
+    return !(_a == _b);
+}
+
+
+// ===========================================================================
+// IV.  metadata_carrier (protocol-exposing mixin)
+// ===========================================================================
+
+// metadata_carrier
+//   class: a mixin a container inherits to CARRY a metadata object and expose it
+// through the metadata_traits protocol.  It provides metadata() (the accessor the
+// has_metadata trait detects) and the metadata_type / metadata_container_type
+// aliases the extractors read.  _Metadata is any metadata type -- a
+// container_metadata, a table_metadata, or a user's own; when the metadata is a
+// collection it is its own container, so both aliases name it.
+//
+// Usage:
+//   class my_container
+//       : public metadata_carrier<container_metadata<std::string, std::any>>
+//   { ... };
+//   c.metadata().set("title", std::string("Q3 results"));
+template<typename _Metadata>
+class metadata_carrier
+{
+public:
+    // the metadata_traits protocol names
+    using metadata_type           = _Metadata;
+    using metadata_container_type = _Metadata;
+
+    // metadata -- the carried metadata object (the has_metadata accessor).
+    D_NODISCARD const _Metadata& metadata() const noexcept
+    {
+        return m_metadata;
+    }
+
+    D_NODISCARD _Metadata& metadata() noexcept
+    {
+        return m_metadata;
+    }
+
+protected:
+    metadata_carrier() = default;
+
+    explicit metadata_carrier(_Metadata _metadata)
+        : m_metadata(static_cast<_Metadata&&>(_metadata))
+    {}
+
+    ~metadata_carrier() = default;
+
+    _Metadata m_metadata;
+};
 
 
 NS_END  // djinterp
