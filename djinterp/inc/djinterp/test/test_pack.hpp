@@ -9,14 +9,23 @@
 * facade call and hands back the packed bytes.
 *
 *   THE DISPATCH:
-*   The facades (compression.hpp / archive.hpp) select a codec / format with a
+*   The facades (compress.hpp / archive.hpp) select a codec / format with a
 * TAG TYPE at compile time (codecs::gzip, formats::zip); the configuration
 * selects with a runtime ENUM (test_compressor, test_archive_format), because a
 * test_option_set is a runtime value.  The one thing this header does, then, is
 * the runtime -> compile-time hop: a switch over the enum that instantiates the
 * matching try_compress<Tag> / try_archive<Tag>.  Everything else (the actual
 * backend work) lives behind the facades' non-template leaves, compiled once in
-* compression.cpp / archive.cpp.
+* compress.cpp / archive.cpp.
+*
+*   READING THE OPTION SET:
+*   Configuration values are read through the test_options.hpp FREE ACCESSORS
+* (pack(_o), compressor(_o), document(_o), output_path(_o), ...), never through
+* raw struct members.  This is what keeps the header correct on both faces of
+* test_option_set: the pre-C++20 aggregate (where the accessor fetches a member)
+* AND the C++20 option_set<> (a key-typed container with no named members, where
+* the accessor fetches the slot via get<key>()).  Naming a member directly
+* compiles only on the struct face and is a hard error on the option_set face.
 *
 *   WHAT IT PRODUCES:
 *   pack_report renders the assembled report bytes into `out` per the option
@@ -28,8 +37,8 @@
 *
 *   DEPENDENCY:
 *   Pulling in test_options.hpp and the facades in one translation unit requires
-* that the facades already source their option structs from compress_option.hpp
-* / archive_option.hpp (i.e. that compression.hpp / archive.hpp include those
+* that the facades already source their option structs from compress_options.hpp
+* / archive_options.hpp (i.e. that compress.hpp / archive.hpp include those
 * headers and no longer define their own compress_options / archive_options
 * stub).  Otherwise djinterp::compress_options is defined twice.  This is the
 * integration those headers were written to expect.
@@ -57,10 +66,27 @@
 #include <cstddef>
 #include <string>
 // djinterp
-#include "../core/djinterp.hpp"        // NS_*, D_INLINE, D_NODISCARD
-#include "../core/compression.hpp"     // byte_buffer, status, codecs::, try_*
-#include "../core/archive.hpp"         // entry, entry_list, formats::, archive
-#include "./test_options.hpp"          // test_option_set + the packaging enums
+#include "../core/djinterp.hpp"       // NS_*, D_INLINE, D_NODISCARD
+// ---- swappable compress/archive facade (test seam) -------------------------
+//   Production (default) resolves the real facades by their in-tree relative
+// paths, so a normal build needs no configuration.  A relative include is
+// resolved against THIS file's own directory first and therefore cannot be
+// shadowed by -I; to let an instrumented double take effect, a test build
+// defines DTEST_PACK_USE_FACADE_DOUBLE and puts basename drop-ins named
+// "archive.hpp" / "compress.hpp" on the include path (e.g. -I .../pack_facade).
+// Those basenames are NOT present next to this header, so they fall through to
+// the -I double.  The double supplies the same surface, recorded: byte_buffer,
+// status{status_ok,status_unavailable,status_invalid_argument}, compress_options,
+// archive_options, entry, entry_list, codecs::/formats:: tags, and
+// try_compress<>/try_archive<>/codec_is_available<>/format_is_writable<>.
+#ifdef DTEST_PACK_USE_FACADE_DOUBLE
+#  include "archive.hpp"                 // instrumented drop-in (-I .../pack_facade)
+#  include "compress.hpp"                // instrumented drop-in (-I .../pack_facade)
+#else
+#  include "../core/util/archive.hpp"   // entry, entry_list, formats::, archive
+#  include "../core/util/compress.hpp"  // byte_buffer, status, codecs::, try_*
+#endif
+#include "./test_options.hpp"         // test_option_set + the packaging enums + accessors
 
 
 NS_DJINTERP
@@ -226,7 +252,7 @@ pack_enabled(
     const test_option_set& _opts
 )
 {
-    return (_opts.pack != test_output_pack::none);
+    return (pack(_opts) != test_output_pack::none);
 }
 
 // report_codec_available
@@ -305,10 +331,10 @@ report_format_available(
 //     - pack == none      : `_report` is copied into `_out` (status_ok); the
 //                           caller normally streams the report raw instead.
 //     - pack == compress  : try_compress with the selected codec and
-//                           opts.compress_opts.
+//                           compress_opts(_opts).
 //     - pack == archive   : try_archive of a single entry - the report, named
 //                           from output_path and the document format - with the
-//                           selected container and opts.archive_opts.
+//                           selected container and archive_opts(_opts).
 //   On a non-ok status `_out` is left empty and the caller may write `_report`
 // unpacked so it is never lost.  This function performs NO file I/O.
 //
@@ -320,14 +346,14 @@ report_format_available(
 //   status_ok on success; otherwise a facade status (e.g. status_unavailable).
 D_NODISCARD D_INLINE status
 pack_report(
-    const test_option_set&  _opts,
-    const byte_buffer&      _report,
-    byte_buffer&            _out
+    const test_option_set& _opts,
+    const byte_buffer&     _report,
+    byte_buffer&           _out
 )
 {
     _out.clear();
 
-    switch (_opts.pack)
+    switch (pack(_opts))
     {
         case test_output_pack::none:
         {
@@ -339,7 +365,7 @@ pack_report(
         case test_output_pack::compress:
         {
             return internal::pack_compress_helper(
-                _opts.compressor, _report, _opts.compress_opts, _out);
+                compressor(_opts), _report, compress_opts(_opts), _out);
         }
 
         case test_output_pack::archive:
@@ -348,13 +374,13 @@ pack_report(
             entry_list items;
 
             item.name = internal::pack_entry_name_helper(
-                _opts.output_path, _opts.document);
+                output_path(_opts), document(_opts));
             item.data         = _report;
             item.is_directory = false;
             items.push_back(item);
 
             return internal::pack_archive_helper(
-                _opts.archive_format, items, _opts.archive_opts, _out);
+                archive_format(_opts), items, archive_opts(_opts), _out);
         }
     }
 

@@ -57,7 +57,10 @@
 // djinterp
 #include "../../core/djinterp.hpp"               // NS_*, D_NODISCARD
 #include "../../core/text/pdf/pdf_template.hpp"  // pdf::pdf_template (path: match your tree)
-#include "../../core/util/compression.hpp"       // pdf::pdf_template (path: match your tree)
+#include "../../core/util/compress.hpp"       // pdf::pdf_template (path: match your tree)
+#include "../../core/text/templates/title_page.hpp"            // cover page (template)
+#include "../../core/text/templates/document_table.hpp"        // summary table (template)
+#include "../../core/text/pdf/pdf_document_renderer.hpp" // document_renderer -> pdf_template
 #include "./test_render.hpp"                     // the binding (make_test_resolver) + emit + the walk shape
 
 
@@ -344,6 +347,320 @@ pdf_default_layout()
     // closes empty; run_close empty (the document ends with the last check)
 
     return _l;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                V.   TEMPLATE-BASED RENDER  (document_renderer path)      ///
+///////////////////////////////////////////////////////////////////////////////
+//   An alternative to the styled-op walk above: build the report as document
+// templates (title_page + document_table + colored check lines) and render them
+// through pdf_document_renderer, the PDF face of the dialect-agnostic
+// document-template subframework.  This is the DTest DEFAULT (test_report_runner.hpp
+// calls the *_doc entry points below).  It yields a colored verdict cover, a
+// module-summary table, and per-check pass/fail coloring, none of which the
+// op-walk expressed.  The op-walk (Sections I-IV) is retained for callers that
+// want literal control over the flow.
+
+namespace internal
+{
+    // dtest_check_face
+    //   the (word, style-name) pair a check's status renders as: PASS/FAIL/ERROR/
+    // SKIP/PENDING against the check.pass / check.fail / check.skip palette
+    // entries register_dtest_palette() seats.
+    inline void
+    dtest_check_face(
+        test_status  _status,
+        const char*& _word,
+        const char*& _style
+    )
+    {
+        switch (_status)
+        {
+            case test_status::passed:  { _word = "PASS";    _style = "check.pass"; break; }
+            case test_status::failed:  { _word = "FAIL";    _style = "check.fail"; break; }
+            case test_status::error:   { _word = "ERROR";   _style = "check.fail"; break; }
+            case test_status::skipped: { _word = "SKIP";    _style = "check.skip"; break; }
+            default:                   { _word = "PENDING"; _style = "check.skip"; break; }
+        }
+
+        return;
+    }
+}  // namespace internal
+
+
+// register_dtest_palette
+//   seat the colored fonts the cover, summary table, and per-check lines use:
+// a large title, a gray subtitle, plain fields, a green/red verdict banner, and
+// green/red/gray monospace check lines.  A caller may register its own entries
+// after this to retheme.
+inline void
+register_dtest_palette(
+    pdf_document_renderer& _renderer
+)
+{
+    // -- cover --
+    pdf_text_style _title(pdf_font(pdf_base_font::helvetica_bold, 24.0));
+    _title.leading = 30.0;
+    _renderer.register_style(title_page_style_title, _title);
+
+    pdf_text_style _subtitle(pdf_font(pdf_base_font::helvetica, 13.0));
+    _subtitle.color   = pdf_color::gray();
+    _subtitle.leading = 17.0;
+    _renderer.register_style(title_page_style_subtitle, _subtitle);
+
+    pdf_text_style _field(pdf_font(pdf_base_font::helvetica, 11.0));
+    _field.leading = 15.0;
+    _renderer.register_style(title_page_style_field, _field);
+
+    // -- verdict banner --
+    pdf_text_style _pass(pdf_font(pdf_base_font::helvetica_bold, 22.0));
+    _pass.color   = pdf_color::green();
+    _pass.leading = 28.0;
+    _renderer.register_style("verdict.pass", _pass);
+
+    pdf_text_style _fail(pdf_font(pdf_base_font::helvetica_bold, 22.0));
+    _fail.color   = pdf_color::red();
+    _fail.leading = 28.0;
+    _renderer.register_style("verdict.fail", _fail);
+
+    // -- per-check lines (Courier so descriptions align) --
+    pdf_text_style _check_pass(pdf_font(pdf_base_font::courier, 10.0));
+    _check_pass.color = pdf_color::green();
+    _renderer.register_style("check.pass", _check_pass);
+
+    pdf_text_style _check_fail(pdf_font(pdf_base_font::courier, 10.0));
+    _check_fail.color = pdf_color::red();
+    _renderer.register_style("check.fail", _check_fail);
+
+    pdf_text_style _check_skip(pdf_font(pdf_base_font::courier, 10.0));
+    _check_skip.color = pdf_color::gray();
+    _renderer.register_style("check.skip", _check_skip);
+
+    return;
+}
+
+
+// build_report_title_page
+//   assemble the cover from the run's metadata, verdict, and cross-module
+// roll-up figures.
+D_NODISCARD inline title_page
+build_report_title_page(
+    const test_report& _run
+)
+{
+    title_page _page;
+
+    _page.set_title(_run.title.empty() ? std::string("Test Report") : _run.title);
+
+    if (!_run.subtitle.empty()) { _page.set_subtitle(_run.subtitle); }
+    if (!_run.author.empty())   { _page.set_author(_run.author); }
+
+    // date as YYYY-MM-DD from the local clock (report_report timestamp helper)
+    std::string _date;
+    std::string _time;
+
+    internal::report_timestamp_helper(_date, _time);
+
+    if (_date.size() == 8)
+    {
+        _page.set_date(_date.substr(0, 4) + "-" +
+                       _date.substr(4, 2) + "-" +
+                       _date.substr(6, 2));
+    }
+
+    const report_verdict _verdict = _run.verdict();
+
+    _page.set_banner(
+        report_verdict_word(_verdict),
+        report_verdict_is_pass(_verdict) ? "verdict.pass" : "verdict.fail");
+
+    _page.add_field("Modules",    report_ratio(_run.passed_modules(), _run.total_modules()));
+    _page.add_field("Unit tests", report_ratio(_run.passed_units(),   _run.total_units()));
+    _page.add_field("Assertions", report_ratio(_run.passed_checks(),  _run.total_checks()));
+    _page.add_field("Pass rate",  report_pass_rate(_run.passed_checks(), _run.total_checks()));
+
+    return _page;
+}
+
+
+// build_module_summary_table
+//   one row per module: name, unit-test ratio, assertion ratio, and pass rate.
+D_NODISCARD inline document_table
+build_module_summary_table(
+    const test_report& _run
+)
+{
+    document_table _table;
+
+    _table.set_caption("Module Summary", 2);
+    _table.add_column("Module")
+          .add_column("Unit tests", text_alignment::right)
+          .add_column("Assertions", text_alignment::right)
+          .add_column("Rate",       text_alignment::right);
+
+    std::size_t _i = 0;
+
+    for (_i = 0; _i < _run.modules.size(); ++_i)
+    {
+        const report_module& _m = _run.modules[_i];
+
+        _table.add_row({
+            _m.name,
+            report_ratio(_m.passed_units(),  _m.total_units()),
+            report_ratio(_m.passed_checks(), _m.total_checks()),
+            report_pass_rate(_m.passed_checks(), _m.total_checks())
+        });
+    }
+
+    return _table;
+}
+
+
+// render_module_detail
+//   a module heading, its description and assertion roll-up, then one colored
+// line per check.
+inline void
+render_module_detail(
+    const report_module& _module,
+    document_renderer&   _renderer
+)
+{
+    _renderer.heading(std::size_t(2), _module.name, doc_attributes());
+
+    if (!_module.description.empty())
+    {
+        _renderer.paragraph(_module.description, doc_attributes());
+    }
+
+    _renderer.paragraph(
+        report_ratio(_module.passed_checks(), _module.total_checks()) +
+        " assertions passed  (" +
+        report_pass_rate(_module.passed_checks(), _module.total_checks()) + ")",
+        doc_attributes());
+
+    std::size_t _ui = 0;
+    std::size_t _n  = 0;
+
+    for (_ui = 0; _ui < _module.units.size(); ++_ui)
+    {
+        const report_unit& _unit = _module.units[_ui];
+        std::size_t        _ci   = 0;
+
+        for (_ci = 0; _ci < _unit.checks.size(); ++_ci)
+        {
+            const report_check& _check = _unit.checks[_ci];
+            const char*         _word   = "";
+            const char*         _style  = "";
+
+            internal::dtest_check_face(_check.status, _word, _style);
+
+            ++_n;
+
+            doc_attributes _attrs;
+            _attrs.set(doc_attr_style, std::string(_style));
+
+            _renderer.paragraph(
+                "  " + std::to_string(_n) + ". " + _check.description +
+                "   [" + std::string(_word) + "]",
+                _attrs);
+        }
+    }
+
+    return;
+}
+
+
+// render_report_doc
+//   the whole run into a pdf_document_renderer: cover, module summary table,
+// then per-module detail.
+inline void
+render_report_doc(
+    const test_report&     _run,
+    pdf_document_renderer& _renderer
+)
+{
+    build_report_title_page(_run).render(_renderer);
+    build_module_summary_table(_run).render(_renderer);
+
+    std::size_t _i = 0;
+
+    for (_i = 0; _i < _run.modules.size(); ++_i)
+    {
+        render_module_detail(_run.modules[_i], _renderer);
+    }
+
+    return;
+}
+
+
+// render_report_pdf_bytes_doc
+//   the template-based whole-run entry point (the DTest default): render the
+// document templates into a fresh pdf_template and serialize to bytes.
+D_NODISCARD inline byte_buffer
+render_report_pdf_bytes_doc(
+    const test_report& _run
+)
+{
+    pdf_template          _tpl;
+    pdf_document_renderer _renderer(_tpl);
+
+    register_dtest_palette(_renderer);
+    render_report_doc(_run, _renderer);
+
+    const std::string _bytes = _tpl.render_pdf();
+
+    return byte_buffer(_bytes.begin(), _bytes.end());
+}
+
+
+// render_module_pdf_bytes_doc
+//   the template-based per-module entry point: a cover for the one module plus
+// its detail.  The module and run are read off the focus, exactly as
+// render_module_pdf_bytes reads them.
+D_NODISCARD inline byte_buffer
+render_module_pdf_bytes_doc(
+    const test_context& _module_ctx
+)
+{
+    pdf_template          _tpl;
+    pdf_document_renderer _renderer(_tpl);
+
+    register_dtest_palette(_renderer);
+
+    if (_module_ctx.module_ != nullptr)
+    {
+        const report_module& _module = *_module_ctx.module_;
+
+        title_page _page;
+
+        _page.set_title(_module.name);
+
+        if ( (_module_ctx.run != nullptr) &&
+             !_module_ctx.run->title.empty() )
+        {
+            _page.set_subtitle(_module_ctx.run->title);
+        }
+
+        const report_verdict _verdict = _module.verdict();
+
+        _page.set_banner(
+            report_verdict_word(_verdict),
+            report_verdict_is_pass(_verdict) ? "verdict.pass" : "verdict.fail");
+
+        _page.add_field("Assertions", report_ratio(_module.passed_checks(),
+                                                    _module.total_checks()));
+        _page.add_field("Pass rate",  report_pass_rate(_module.passed_checks(),
+                                                       _module.total_checks()));
+
+        _page.render(_renderer);
+
+        render_module_detail(_module, _renderer);
+    }
+
+    const std::string _bytes = _tpl.render_pdf();
+
+    return byte_buffer(_bytes.begin(), _bytes.end());
 }
 
 

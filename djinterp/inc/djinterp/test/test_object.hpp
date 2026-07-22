@@ -51,9 +51,10 @@
 * canonical metadata protocol.
 *
 *   No assumptions about metadata content are baked in.  The
-* default `std::vector<std::int32_t>` is a generic placeholder;
-* callers that need name + options should substitute a metadata
-* container tailored to that shape.
+* default container is `test_metadata` - basic_metadata<> - a
+* std::string-keyed key/value store; it is itself agnostic over
+* key, mapped value, and backing container, and callers that need
+* a different shape substitute their own metadata container.
 *
 *   TEST OBJECT PROTOCOL:
 *   test_object satisfies the test object protocol detected by
@@ -77,18 +78,19 @@
 *   C++11 minimum.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    test object
-* II.   test object protocol
-* III.  convenience aliases
-* IV.   factory functions
-*
-*
 * path:      /inc/djinterp/test/test_object.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.14
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    test object
+II.   test object protocol
+III.  convenience aliases
+IV.   factory functions
+*/
 
 #ifndef DJINTERP_TEST_OBJECT_
 #define DJINTERP_TEST_OBJECT_ 1
@@ -103,7 +105,7 @@
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/meta/kv_pair.hpp"
-#include "../core/meta/trait_detect.hpp"   // D_TYPE_TRAIT_TRUE (is_test_evaluable, section II)
+#include "../core/meta/trait_detect.hpp"   // D_TYPE_TRAIT_TRUE
 #include "./test_common.hpp"
 
 
@@ -115,44 +117,76 @@ NS_TEST
 ///                I.   TEST OBJECT                                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
-// test_metadata
-//   class: minimal runtime key/value metadata store for a test node -
-// a flat list of kv_pairs queried and updated by string key.  Just
-// enough to carry name / message strings on a test_object until the
-// fuller key-value metadata design lands.  It is the default metadata
-// container for test_object (and therefore for basic_test), so it must
-// be a complete type before the test_object template below.  Satisfies
-// test_object's container requirement: it exposes a `value_type` (the
-// row), from which test_object derives metadata_type.
+// basic_metadata
+//   class: minimal runtime key/value metadata store for a test node - a flat,
+// back-insertable sequence of kv_pair rows, queried and updated by key.  Just
+// enough to carry name / message strings on a test_object until the fuller
+// key-value metadata design lands.
 //
-//   NOTE: lookup is a linear scan over the entry list comparing the
-// key strings directly; it deliberately never invokes kv_pair's
-// relational operators (which are presently ill-formed when
-// instantiated), constructing rows through the value constructor only.
-class test_metadata
+//   AGNOSTIC OVER KEY / VALUE / CONTAINER:
+//   The key type, the mapped value type, and the backing container are all
+// template parameters.  Their defaults (std::string / std::string /
+// std::vector<row>) are declared in test_common.hpp, whose all-defaulted
+// alias `test_metadata` is the default _MetadataContainer for test_object
+// (and therefore for basic_test) - which is why every use site keeps spelling
+// `test_metadata` with no angle brackets.
+//
+//   PROTOCOL:
+//   Satisfies test_object's container requirement by exposing `value_type` -
+// the ROW type, kv_pair<_Key, _Value> - from which test_object derives
+// metadata_type.  The parameter names follow the std::map vocabulary:
+// key_type (_Key), mapped_type (_Value), value_type (the row), and
+// container_type (_Container).
+//
+//   CONTAINER CONTRACT:
+//   _Container must be a back-insertable, range-iterable sequence of
+// value_type (e.g. std::vector / std::deque / std::list of the row).  Lookup
+// is a linear scan, so ordered/associative containers are neither required
+// nor exploited.
+//
+//   NOTE: the scan compares KEYS directly (via _Key's own operator==); it
+// deliberately never invokes kv_pair's relational operators (which are
+// presently ill-formed when instantiated), constructing rows through the
+// value constructor only.  get() returns a value-initialized mapped_type on a
+// miss, so _Value must be default-constructible.
+//
+//   The default template arguments are declared once, on the forward
+// declaration in test_common.hpp; this definition intentionally omits them.
+template<typename _Key,
+         typename _Value,
+         typename _Container>
+class basic_metadata
 {
 public:
-    // value_type
-    //   type: one metadata row, a string key / string value pair.
-    using value_type = ::djinterp::kv_pair<std::string, std::string>;
+    // key_type / mapped_type
+    //   type: the metadata key type and the mapped value type.
+    using key_type    = _Key;
+    using mapped_type = _Value;
 
-    test_metadata() = default;
+    // value_type
+    //   type: one metadata row, a _Key key / _Value value pair.  This is the
+    // element type test_object reads as its metadata_type.
+    using value_type = ::djinterp::kv_pair<_Key, _Value>;
+
+    // container_type
+    //   type: the backing sequence that holds the value_type rows.
+    using container_type = _Container;
+
+    basic_metadata() = default;
 
     // set
     //   inserts or overwrites the value stored under _key.
     void
     set(
-        const std::string& _key,
-        const std::string& _value
+        const key_type&    _key,
+        const mapped_type& _value
     )
     {
-        std::size_t i;
-
-        for (i = 0; i < m_entries.size(); ++i)
+        for (value_type& _entry : m_entries)
         {
-            if (m_entries[i].m_key == _key)
+            if (_entry.m_key == _key)
             {
-                m_entries[i].m_value = _value;
+                _entry.m_value = _value;
 
                 return;
             }
@@ -164,38 +198,34 @@ public:
     }
 
     // get
-    //   returns the value stored under _key, or an empty string if the
-    // key is absent.
-    std::string
+    //   returns the value stored under _key, or a value-initialized
+    // mapped_type if the key is absent.
+    mapped_type
     get(
-        const std::string& _key
+        const key_type& _key
     ) const
     {
-        std::size_t i;
-
-        for (i = 0; i < m_entries.size(); ++i)
+        for (const value_type& _entry : m_entries)
         {
-            if (m_entries[i].m_key == _key)
+            if (_entry.m_key == _key)
             {
-                return m_entries[i].m_value;
+                return _entry.m_value;
             }
         }
 
-        return std::string();
+        return mapped_type();
     }
 
     // contains
     //   true iff an entry is stored under _key.
     bool
     contains(
-        const std::string& _key
+        const key_type& _key
     ) const
     {
-        std::size_t i;
-
-        for (i = 0; i < m_entries.size(); ++i)
+        for (const value_type& _entry : m_entries)
         {
-            if (m_entries[i].m_key == _key)
+            if (_entry.m_key == _key)
             {
                 return true;
             }
@@ -213,7 +243,7 @@ public:
     }
 
 private:
-    std::vector<value_type> m_entries;
+    container_type m_entries;
 };
 
 

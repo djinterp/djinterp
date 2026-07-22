@@ -82,7 +82,8 @@
 // djinterp
 #include "../core/djinterp.hpp"      // NS_*, D_* qualifiers
 #include "../core/event/event_common.hpp"   // verdict, event_traits, D_EVENT[_EMPTY]
-#include "./test_common.hpp"         // test_status (status-change payload)
+#include "./test_common.hpp"         // test_status (status-change payload),
+                                     // test_metadata alias (basic_test below)
 
 
 NS_DJINTERP
@@ -94,10 +95,11 @@ NS_TEST
 // =========================================================================
 
 // test_metadata
-//   forward declaration: the default per-node metadata container, completed
-// in test_object.hpp.  Named here only to spell the default argument of the
-// basic_test alias below.
-class test_metadata;
+//   the default per-node metadata container (basic_metadata<>) is NOT
+// forward-declared here: it arrives as an alias from test_common.hpp (included
+// above), which is where basic_metadata and its default template arguments are
+// declared.  Named below only to spell the default argument of the basic_test
+// alias, for which the incomplete basic_metadata<> suffices (pointer payload).
 
 // test_object
 //   forward declaration: the node template, completed in test_object.hpp.

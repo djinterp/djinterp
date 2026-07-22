@@ -21,7 +21,7 @@
 *   WHERE OPTIONS MEET EVENTS:
 *   For every leaf, the reporter builds a match_context from the node (name /
 * type id / status, and tags parsed from a "tags" metadata key when present)
-* and calls test_option_set::resolve(...).  The resolved verdict decides
+* and calls the free resolve(...).  The resolved verdict decides
 * whether the line is shown (the show policy), how it is formatted (the
 * possibly route-overridden format template), and which sink(s) it reaches
 * (console and/or file, with per-node add/replace routing).  This is the same
@@ -33,13 +33,8 @@
 *     djinterp::test::run_tests(my_tree);                       // -> exit code
 *     djinterp::test::run_tests(my_tree, my_options);
 *
-*     // a type-level schema (C++20)
-*     using cfg = djinterp::test::test_config< ... >;
-*     djinterp::test::run_tests<cfg>(my_tree);
-*
 *     // or hold a runner for finer control
 *     djinterp::test::test_runner runner;
-*     runner.configure<cfg>();                 // (C++20) lower a schema
 *     runner.handler().on<on_test_failed>( ... );   // extra listeners
 *     auto result = runner.run(my_tree);
 *     return runner.exit_code();
@@ -54,10 +49,8 @@
 * line_width) composes the cli_string algebra.
 *
 *   PORTABILITY:
-*   The runner core is C++11 (it drives the runtime test_option_set).  The
-* schema conveniences -- configure<Schema>() and run_tests<Schema>() -- ride
-* the same C++20 gate as the test_options vocabulary; below C++20 the runtime
-* option-set path remains fully usable.
+*   The runner is C++11 throughout -- it drives the runtime test_option_set and
+* the free resolve() the option subframework defines.
 *
 *
 * TABLE OF CONTENTS
@@ -88,7 +81,7 @@
 #include "./test_common.hpp"     // test_status
 #include "./test_event.hpp"      //  alphabet
 #include "./test_object.hpp"     // basic_test
-#include "./test_options.hpp"    // test_option_set, test_resolved, match_context, lowering
+#include "./test_options.hpp"    // test_option_set, test_resolved, match_context, resolve
 #include "./test_handler.hpp"    // test_handler, session_result, session_verdict, handler_id
 #include "./test_pack.hpp"       // pack_report, pack_enabled (report packaging)
 
@@ -258,7 +251,7 @@ NS_END  // internal
 // test_option_set, installs an option-driven reporter on the handler's event
 // dispatcher, and runs a tree to a session_result with one call.  Default
 // construction yields the framework defaults writing to std::cout; supply a
-// test_option_set (or, on C++20, a test_config schema via configure()) to
+// test_option_set to
 // change behavior.
 class test_runner
 {
@@ -323,20 +316,6 @@ public:
 
         return;
     }
-
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS
-    // configure
-    //   lowers a type-level test_config schema into this runner's option set.
-    // (C++20.)
-    template<typename _Schema>
-    void
-    configure()
-    {
-        m_options = test_options_lower<_Schema>::build();
-
-        return;
-    }
-#endif
 
     // set_console
     //   redirects console-sink output to _os (default std::cout).
@@ -532,7 +511,7 @@ private:
     )
     {
         match_context ctx = context_of(_node);
-        test_resolved r   = m_options.resolve(ctx);
+        test_resolved r   = resolve(m_options, ctx);
 
         ++m_index;
 
@@ -841,25 +820,6 @@ run_tests(
 
     return runner.exit_code();
 }
-
-#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_NONTYPE_TEMPLATE_ARGS
-// run_tests
-//   function: run _nodes under a type-level test_config schema; return the
-// exit code.  (C++20.)  Usage: run_tests<my_config>(tree);
-template<typename _Schema,
-         typename _Iterable>
-D_NODISCARD int
-run_tests(
-    _Iterable& _nodes
-)
-{
-    test_runner runner;
-    runner.template configure<_Schema>();
-    runner.run(_nodes);
-
-    return runner.exit_code();
-}
-#endif
 
 
 NS_END  // test

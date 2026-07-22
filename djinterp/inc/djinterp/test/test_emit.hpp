@@ -8,7 +8,7 @@
 * procedural emit_report builds, and read the SAME option set through the free
 * accessors.  This is the realization of optionator's pattern for emit - a
 * run piped into output streams, configured by options - against the runtime
-* option_set (the type-level register is the test_config schema + with_option_t).
+* option_set (the type-level register is the with_option_t option composition).
 *
 *   THE ALGEBRA (two monoids, no overlap):
 *     - targets   as_pdf / as_xml / as_html / as_text  (and to_*_file shorthands)
@@ -58,7 +58,7 @@
 // djinterp
 #include "../core/djinterp.hpp"            // NS_*, D_NODISCARD, gates
 #include "./test_output_config.hpp"        // to_output_config, doc_format, render_*_bytes,
-                                           //   build_*, test_document, at_module,
+                                           //   build_*, at_module,
                                            //   document_bundle, output_config, pack_mode,
                                            //   format_id_*, codec_id, write_to_disk,
                                            //   write_to_buffer, byte_buffer, pdf_template_source
@@ -313,7 +313,7 @@ public:
     emit_builder& as_html_()                     { return as(doc_format::html); }
     emit_builder& as_pdf_()                      { return as(doc_format::pdf); }
 
-    emit_builder& to_text_file(std::string _n)   { return add(to_text_file(_n)); }
+    emit_builder& to_text_file(std::string _n)   { return add(::djinterp::test::to_text_file(_n)); }
     emit_builder& to_md_file  (std::string _n)   { return add(::djinterp::test::to_md_file(_n)); }
     emit_builder& to_xml_file (std::string _n)   { return add(::djinterp::test::to_xml_file(_n)); }
     emit_builder& to_html_file(std::string _n)   { return add(::djinterp::test::to_html_file(_n)); }
@@ -344,8 +344,7 @@ public:
     {
         m_done = true;
 
-        ::djinterp::test::test_document _doc;          // outlives the deferred renders below
-        ::djinterp::document_bundle     _bundle = build(_doc);
+        ::djinterp::document_bundle _bundle = build();     // producers borrow m_report by pointer
 
         ::djinterp::output_config _cfg = ::djinterp::test::to_output_config(m_opts);  // compress/archive opts
         _cfg.naming = [](const std::string& _n, const std::string& _e,
@@ -392,13 +391,12 @@ private:
     // build
     //   render every target into a deferred bundle item.  Per-module fans each
     // target across the run's modules (named by module); otherwise one item per
-    // target (named by its pinned destination stem, else "report").  _doc must
+    // target (named by its pinned destination stem, else "report").  The run must
     // outlive write() - the producers borrow it by pointer.
     ::djinterp::document_bundle
-    build(::djinterp::test::test_document& _doc)
+    build()
     {
         ::djinterp::document_bundle  _bundle;
-        const test_document*         _dp = &_doc;
         const test_report*           _rp = m_report;
         const pdf_template_source    _src = m_pdf;
 
@@ -419,10 +417,10 @@ private:
                     _bundle.add(
                         std::string(_mod->name),
                         std::string(format_extension(_fmt)),
-                        [_dp, _rp, _mod, _idx, _fmt, _src]() -> byte_buffer
+                        [_rp, _mod, _idx, _fmt, _src]() -> byte_buffer
                         {
                             return render_module_bytes(
-                                *_dp, at_module(_rp, _mod, _idx + 1), _fmt, _src);
+                                at_module(_rp, _mod, _idx + 1), _fmt, _src);
                         });
                 }
             }
@@ -435,9 +433,9 @@ private:
                 _bundle.add(
                     static_cast<std::string&&>(_name),
                     std::string(format_extension(_fmt)),
-                    [_dp, _rp, _fmt, _src]() -> byte_buffer
+                    [_rp, _fmt, _src]() -> byte_buffer
                     {
-                        return _rp ? render_report_bytes(*_dp, *_rp, _fmt, _src)
+                        return _rp ? render_report_bytes(*_rp, _fmt, _src)
                                    : byte_buffer();
                     });
             }

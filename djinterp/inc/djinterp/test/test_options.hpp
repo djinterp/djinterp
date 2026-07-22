@@ -48,7 +48,6 @@
 * compress_options.hpp / archive_options.hpp.  Packaging is a whole-report
 * decision, so it sits on the set beside output_file and is deliberately absent
 * from the per-node test_resolved.
-*
 *   PORTABILITY:
 *   PART A is C++11 (the framework floor).  The value-carrying option_set face
 * (PART B's test_option_set) is C++20 - the requires-guarded values constructor
@@ -59,34 +58,34 @@
 * only the #else arms here - never the framework that consumes a test_option_set.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* PART A - RUNTIME CORE (C++11)
-*   A.I.    value enums              (doc type, sink, show, packaging, ...)
-*   A.II.   match_context            (the facts a node presents to a route)
-*   A.III.  test_predicate           (runtime match IR + evaluate + builders)
-*   A.IV.   test_route               (one conditional override + builders)
-*   A.V.    test_resolved            (a node's resolved, flat configuration)
-*
-* PART B - CONFIGURATION SET
-*   B.I.    test_option              (the slot key enum)
-*   B.II.   test_option_set          (option_set face | plain-struct face)
-*   B.III.  free accessors           (the portable read seam)
-*   B.IV.   default_test_options     (the defaults factory)
-*   B.V.    resolve                  (free fold: option set + node -> resolved)
-*
-* PART C - ROUTE AUTHORING (C++20)
-*   C.I.    payload carriers         (flag / choice / text via val_t)
-*   C.II.   override sugar           (numbering_, show_, destination_, ...)
-*   C.III.  test_match + predicates  (any_test, name_is<>, all_of<>, ...)
-*   C.IV.   route_                   (one conditional override, type-level)
-*   C.V.    lowering + make_routes   (route_ ... -> std::vector<test_route>)
-*
-*
 * path:      /inc/djinterp/test/test_options.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.19
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+PART A - RUNTIME CORE (C++11)
+  A.I.    value enums              (doc type, sink, show, packaging, ...)
+  A.II.   match_context            (the facts a node presents to a route)
+  A.III.  test_predicate           (runtime match IR + evaluate + builders)
+  A.IV.   test_route               (one conditional override + builders)
+  A.V.    test_resolved            (a node's resolved, flat configuration)
+PART B - CONFIGURATION SET
+  B.I.    test_option              (the slot key enum)
+  B.II.   test_option_set          (option_set face | plain-struct face)
+  B.III.  free accessors           (the portable read seam)
+  B.IV.   default_test_options     (the defaults factory)
+  B.V.    resolve                  (free fold: option set + node -> resolved)
+
+PART C - ROUTE AUTHORING (C++20)
+  C.I.    payload carriers         (flag / choice / text via val_t)
+  C.II.   override sugar           (numbering_, show_, destination_, ...)
+  C.III.  test_match + predicates  (any_test, name_is<>, all_of<>, ...)
+  C.IV.   route_                   (one conditional override, type-level)
+  C.V.    lowering + make_routes   (route_ ... -> std::vector<test_route>)
+*/
 
 #ifndef DJINTERP_TEST_OPTIONS_
 #define DJINTERP_TEST_OPTIONS_ 1
@@ -152,8 +151,7 @@ operator|(
     test_sink _b
 )
 {
-    return static_cast<test_sink>(
-        static_cast<unsigned>(_a) | static_cast<unsigned>(_b));
+    return static_cast<test_sink>(static_cast<unsigned>(_a) | static_cast<unsigned>(_b));
 }
 
 // test_sink_and
@@ -164,8 +162,7 @@ operator&(
     test_sink _b
 )
 {
-    return static_cast<test_sink>(
-        static_cast<unsigned>(_a) & static_cast<unsigned>(_b));
+    return static_cast<test_sink>(static_cast<unsigned>(_a) & static_cast<unsigned>(_b));
 }
 
 // test_sink_not
@@ -207,7 +204,6 @@ test_sink_has(
              static_cast<unsigned>(_bit) ) &&
            ( static_cast<unsigned>(_bit) != 0u );
 }
-
 
 // test_sink_mode
 //   enum: how a route's sink set combines with what it inherits - `add`
@@ -1174,10 +1170,10 @@ resolve(
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                                                                         ///
-///                   PART C - ROUTE AUTHORING  (C++20)                    ///
+///                   PART C - ROUTE AUTHORING  (C++20)                     ///
 ///                                                                         ///
 ///////////////////////////////////////////////////////////////////////////////
-//
+
 //   The type-level vocabulary for writing the conditional override list, lowered
 // to the std::vector<test_route> that seeds the `routes` slot.  Routes are
 // structural (a predicate is a tree; the list is ordered), so they ride the
@@ -1321,14 +1317,14 @@ template<fixed_string _Tag>
 using tag_is = option<test_match::tag_has, text<_Tag>>;
 
 // all_of
-//   type: the conjunction of the child predicates _Preds.
-template<typename... _Preds>
-using all_of = option<test_match::all_of, _Preds...>;
+//   type: the conjunction of the child predicates _Predicates.
+template<typename... _Predicates>
+using all_of = option<test_match::all_of, _Predicates...>;
 
 // any_of
-//   type: the disjunction of the child predicates _Preds.
-template<typename... _Preds>
-using any_of = option<test_match::any_of, _Preds...>;
+//   type: the disjunction of the child predicates _Predicates.
+template<typename... _Predicates>
+using any_of = option<test_match::any_of, _Predicates...>;
 
 // not_
 //   type: the negation of the child predicate _Pred.
@@ -1447,25 +1443,25 @@ NS_INTERNAL
         }
     };
 
-    template<typename... _Preds>
-    struct lower_predicate_helper<option<test_match::all_of, _Preds...>>
+    template<typename... _Predicates>
+    struct lower_predicate_helper<option<test_match::all_of, _Predicates...>>
     {
         static test_predicate go()
         {
             return match_all(
                 std::vector<test_predicate>{
-                    lower_predicate_value_helper<_Preds>()... });
+                    lower_predicate_value_helper<_Predicates>()... });
         }
     };
 
-    template<typename... _Preds>
-    struct lower_predicate_helper<option<test_match::any_of, _Preds...>>
+    template<typename... _Predicates>
+    struct lower_predicate_helper<option<test_match::any_of, _Predicates...>>
     {
         static test_predicate go()
         {
             return match_any_of(
                 std::vector<test_predicate>{
-                    lower_predicate_value_helper<_Preds>()... });
+                    lower_predicate_value_helper<_Predicates>()... });
         }
     };
 

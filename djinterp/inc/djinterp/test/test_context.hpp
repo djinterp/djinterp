@@ -55,9 +55,9 @@
 // std
 #include <cstddef>
 // djinterp
-#include "../core/djinterp.hpp"   // NS_*, D_NODISCARD, language gates
-#include "./test_report.hpp"      // test_report, report_module, report_unit,
-                                  //   report_check (the focus pointees)
+#include "../core/djinterp.hpp"      // NS_*, D_NODISCARD, language gates
+#include "./output/test_report.hpp"  // test_report, report_module, report_unit,
+                                     //   report_check (the focus pointees)
 
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER

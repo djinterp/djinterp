@@ -87,18 +87,13 @@
 // djinterp
 #include "../core/djinterp.hpp"
 #include "../core/meta/type_traits.hpp"
-#include "../core/container/set/set_traits.hpp"
+#include "../core/container/set/set.hpp"
 #include "./test_common.hpp"
 #include "./test_options.hpp"
-
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
-    #include "../core/container/set/set_concepts.hpp"
-#endif
 
 
 NS_DJINTERP
 NS_TEST
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///                I.   TEST KIND RECORD                                    ///
@@ -203,12 +198,12 @@ class test_kind_set
 {
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
     static_assert(
-        ::djinterp::container::traits::set_like_container<_SetContainer>,
+        ::djinterp::SetLike<_SetContainer>,
         "`_SetContainer` must satisfy the set-like container "
         "protocol (set_traits.hpp / set_concepts.hpp).");
 #else
     static_assert(
-        ::djinterp::container::traits::is_set_like<_SetContainer>::value,
+        ::djinterp::is_set_like<_SetContainer>::value,
         "`_SetContainer` must satisfy the set-like container "
         "protocol (set_traits.hpp).");
 #endif

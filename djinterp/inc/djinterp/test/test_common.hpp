@@ -4,6 +4,7 @@
 *   DTest framework common definitions header.  Provides the foundational
 * types, enumerations, and event infrastructure shared by all DTest modules:
 *   - test type identification (test_type_id)
+*   - the default node metadata container (basic_metadata / test_metadata)
 *   - test status classification (passed, failed, skipped, pending, error)
 *   - test event identifier type and event data structure
 *   - event handler function pointer type for runtime event dispatch
@@ -28,20 +29,21 @@
 *   This header uses env.h for C++ version detection and djinterp.hpp
 * for namespace macros and constexpr support.  Minimum requirement is
 * C++11.
-*
-*
-* TABLE OF CONTENTS
-* =================
-* I.    TEST TYPE IDENTIFICATION
-* II.   STATUS CLASSIFICATION
-* III.  EVENT SYSTEM
-* IV.   CONSTEXPR SUPPORT MACROS
-*
+* 
 *
 * path:      /inc/djinterp/test/test_common.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.14
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    TEST TYPE IDENTIFICATION
+II.   STATUS CLASSIFICATION
+III.  EVENT SYSTEM
+IV.   CONSTEXPR SUPPORT MACROS
+*/
 
 #ifndef DJINTERP_TEST_COMMON_
 #define DJINTERP_TEST_COMMON_ 1
@@ -49,8 +51,11 @@
 // std
 #include <cstddef>
 #include <cstdint>
+#include <string>
+#include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
+#include "../core/meta/kv_pair.hpp"   // kv_pair (the metadata row type)
 
 
 #ifndef D_KEYWORD_TESTING
@@ -118,6 +123,41 @@ typedef std::uint32_t test_callable_id;
 // 0 directly, but more self-documenting at call sites.
 D_STATIC D_CONSTEXPR test_callable_id k_no_callable =
     static_cast<test_callable_id>(0);
+
+
+// iii. default node metadata
+//////////////////////////////////////////
+
+// basic_metadata
+//   forward declaration: the default per-node key/value metadata container,
+// completed in test_object.hpp.  It is declared HERE - the shared floor both
+// test_object.hpp and test_event.hpp include - so that both siblings can name
+// the default instantiation without either including the other.
+//
+//   The default template arguments live on THIS declaration and nowhere else:
+// a class template's default arguments may appear on only one declaration, and
+// the definition in test_object.hpp deliberately omits them.  Placing them on
+// the floor header is what lets test_event.hpp spell `test_metadata` (below)
+// for its `basic_test` alias while sitting beneath test_object.hpp in the
+// include chain.
+//
+// Template parameters:
+//   _Key       - the metadata key type.        Default: std::string.
+//   _Value     - the metadata mapped value.     Default: std::string.
+//   _Container - the backing storage, holding kv_pair<_Key, _Value> rows.
+//                Default: std::vector<kv_pair<_Key, _Value>>.
+template<typename _Key       = std::string,
+         typename _Value     = std::string,
+         typename _Container = std::vector< ::djinterp::kv_pair<_Key, _Value> > >
+class basic_metadata;
+
+// test_metadata
+//   type: the default metadata container - basic_metadata's all-defaulted
+// instantiation (std::string keys / std::string values over a std::vector of
+// rows).  A non-template alias, so every use site spells `test_metadata`
+// unchanged; it is the default _MetadataContainer for test_object (and thus
+// for basic_test).
+using test_metadata = basic_metadata<>;
 
 
 ///////////////////////////////////////////////////////////////////////////////

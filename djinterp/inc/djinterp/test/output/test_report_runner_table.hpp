@@ -416,29 +416,6 @@ public:
         return;
     }
 
-    // open_unit (described)
-    //   begins a unit that also carries a descriptor - e.g. a spec block's
-    // "descriptor" - rendered as the test card's description line.  Follow with
-    // check() calls and close_unit().
-    void
-    open_unit(
-        const std::string& _name,
-        const std::string& _description
-    )
-    {
-        ensure_module();
-
-        m_report.modules[m_module_index].units.push_back(
-            report_unit(_name, _description));
-
-        if (m_console)
-        {
-            emit(std::string("  --- Testing ") + _name + " ---\n");
-        }
-
-        return;
-    }
-
     // check (detail overload)
     //   records an assertion carrying its expression text and the expected /
     // actual values, populating the EXPECTED / ACTUAL columns of the PDF table.
@@ -467,43 +444,6 @@ public:
         {
             emit(std::string("    ") + symbol(_ok) + " " + _expression +
                  "  (expected " + _expected + ", got " + _actual + ")\n");
-        }
-
-        return;
-    }
-
-    // check (named-test overload)
-    //   records a result carrying an identifier (_expression, e.g. a spec
-    // test's "name") AND a prose descriptor (_description, e.g. its
-    // "descriptor"), with no expected/actual.  The PDF table renders such rows
-    // in test-level form: RESULT / # / TEST (the identifier) / DESCRIPTION.
-    // No-op if no unit is open.
-    void
-    check(
-        const std::string& _expression,
-        const std::string& _description,
-        bool               _ok
-    )
-    {
-        if ( (!m_have_module) ||
-             (m_report.modules[m_module_index].units.empty()) )
-        {
-            return;
-        }
-
-        report_unit& u =
-            m_report.modules[m_module_index].units.back();
-
-        u.add_check(_description,
-                    _ok ? test_status::passed : test_status::failed,
-                    _expression,
-                    std::string(),
-                    std::string());
-
-        if (m_console)
-        {
-            emit(std::string("    ") + symbol(_ok) + " " + _expression +
-                 "  " + _description + "\n");
         }
 
         return;
