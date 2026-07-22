@@ -1482,24 +1482,30 @@ tree_summary(const enriched_tree& _tree)
 ///////////////////////////////////////////////////////////////////////////////
 
 // drive_report
-//   projects one module_spec onto a report_builder: one module band, then one
-// unit per test (its "name" the unit header) carrying a single assertion whose
-// line is the test's "descriptor".  Both reach the console and any attached
-// PDF.  Blocks are a tree-level grouping; the report model is module > unit >
-// check, so a block's tests appear directly under the module band here.  Each
-// predicate runs once to produce its recorded verdict.
+//   projects one module_spec onto a report_builder, PRESERVING the block level
+// so the whole nested tree reaches the document: one module band, then one
+// UNIT per block (its "name" the card header, its "descriptor" the card
+// description line), each carrying one CHECK per test (the test's "name" the
+// TEST cell, its "descriptor" the DESCRIPTION cell).  So module > block > test
+// lands as report module > unit > check, and every name + descriptor the
+// runner authored is rendered.  Each predicate runs once to produce its verdict.
 inline void
 drive_report(
     report_builder&    _rb,
     const module_spec& _module
 )
 {
-    _rb.module(_module.name, _module.descriptor);
+    // const char* -> std::string, tolerating a null descriptor.
+    struct to_str { static std::string of(const char* _p) { return _p ? std::string(_p) : std::string(); } };
+
+    _rb.module(_module.name, to_str::of(_module.descriptor));
 
     std::size_t bi = 0;
     for (bi = 0; bi < _module.blocks.size(); ++bi)
     {
         const block_spec& b = _module.blocks[bi];
+
+        _rb.open_unit(to_str::of(b.name), to_str::of(b.descriptor));   // block -> card
 
         std::size_t ti = 0;
         for (ti = 0; ti < b.tests.size(); ++ti)
@@ -1508,13 +1514,281 @@ drive_report(
 
             const bool ok = (t.fn != nullptr) ? t.fn() : false;
 
-            _rb.open_unit(t.name);          // "name"       -> unit header
-            _rb.check(t.descriptor, ok);    // "descriptor" -> assertion line
-            _rb.close_unit();
+            _rb.check(to_str::of(t.name), to_str::of(t.descriptor), ok);   // test -> row
         }
+
+        _rb.close_unit();
     }
 
     return;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                XIV-b. PIPE-TABLE VIEW                                   ///
+///////////////////////////////////////////////////////////////////////////////
+//   A results table in the Markdown |...| grammar that parse_table_text<>()
+// reads back: a header row, a full-width dash rule (the header/body split), then
+// one body row per test.  This is the ONE place the |...| representation is
+// defined, so a format tweak happens here and every runner picks it up (the
+// runners themselves only choose options).  Kept dependency-free - plain string
+// assembly over <string> / <vector>, no link against the table subframework -
+// so this widely-included header stays light; the text it emits is what that
+// subframework parses.
+
+// pipe_escape
+//   neutralises a cell's text for the grid: a literal '|' would read as a
+// column delimiter and a newline would break the row, so fold both away.  We
+// substitute rather than backslash-escape so the result parses regardless of
+// whether the grammar supports an escape sequence.  Test names and descriptors
+// rarely contain either, so this is almost always a no-op.
+inline std::string
+pipe_escape(
+    const std::string& _s
+)
+{
+    std::string _out;
+    _out.reserve(_s.size());
+
+    std::size_t i = 0;
+    for (i = 0; i < _s.size(); ++i)
+    {
+        const char _c = _s[i];
+
+        if      (_c == '|')  { _out += '/';  }   // delimiter -> slash
+        else if (_c == '\n') { _out += ' ';  }   // newline   -> space
+        else if (_c == '\r') { /* drop */    }
+        else                 { _out += _c;   }
+    }
+
+    return _out;
+}
+
+
+// pipe_table_row_helper
+//   internal: append one "| a | b | c | d |\n" row, each cell left-padded to a
+// common column width so the text is both human-readable and grid-parseable.
+namespace internal
+{
+    inline std::string
+    pipe_table_row_helper(
+        const std::string& _a, std::size_t _wa,
+        const std::string& _b, std::size_t _wb,
+        const std::string& _c, std::size_t _wc,
+        const std::string& _d, std::size_t _wd
+    )
+    {
+        std::string _o;
+
+        _o += "| "; _o += _a; _o.append(_wa - _a.size(), ' '); _o += ' ';
+        _o += "| "; _o += _b; _o.append(_wb - _b.size(), ' '); _o += ' ';
+        _o += "| "; _o += _c; _o.append(_wc - _c.size(), ' '); _o += ' ';
+        _o += "| "; _o += _d; _o.append(_wd - _d.size(), ' '); _o += " |\n";
+
+        return _o;
+    }
+
+    // pipe_table_rule_helper
+    //   internal: a full-width dash rule the width of _header (the header/body
+    // split, the form the table-parser tests use - interior pipes optional,
+    // columns resolve off the data rows).
+    inline std::string
+    pipe_table_rule_helper(
+        const std::string& _header
+    )
+    {
+        const std::size_t _inner = (_header.size() >= 3) ? (_header.size() - 3) : 0;
+
+        std::string _sep = "|";
+        _sep.append(_inner, '-');
+        _sep += "|\n";
+
+        return _sep;
+    }
+}
+
+
+// render_spec_pipe_table
+//   renders a module_spec's tests as a |...| table with columns
+// RESULT | # | TEST | DESCRIPTION, one row per test across every block.  Each
+// predicate is run once to fill its RESULT cell (PASS / FAIL).
+//
+//   NOTE: this runs every predicate.  drive_report() also runs them once, so a
+// caller that has already driven the report (run_module / run_suite below) runs
+// each predicate TWICE when it emits this table.  That is harmless for the pure
+// bool() predicates DTest expects; a caller holding a populated report can use
+// render_report_pipe_table() instead, which runs nothing.
+inline std::string
+render_spec_pipe_table(
+    const module_spec& _module
+)
+{
+    struct cell { static std::string of(const char* _p)
+        { return pipe_escape(_p ? std::string(_p) : std::string()); } };
+
+    // 1) gather the rows -----------------------------------------------------
+    std::vector<std::string> _res;
+    std::vector<std::string> _num;
+    std::vector<std::string> _name;
+    std::vector<std::string> _desc;
+
+    std::size_t _n = 0;
+    std::size_t bi = 0;
+    for (bi = 0; bi < _module.blocks.size(); ++bi)
+    {
+        const block_spec& _b = _module.blocks[bi];
+
+        std::size_t ti = 0;
+        for (ti = 0; ti < _b.tests.size(); ++ti)
+        {
+            const test_spec& _t = _b.tests[ti];
+            const bool        _ok = (_t.fn != nullptr) ? _t.fn() : false;
+
+            ++_n;
+            _res.push_back(_ok ? "PASS" : "FAIL");
+            _num.push_back(std::to_string(_n));
+            _name.push_back(cell::of(_t.name));
+            _desc.push_back(cell::of(_t.descriptor));
+        }
+    }
+
+    // 2) column widths (header vs widest cell) -------------------------------
+    const std::string _h_res = "RESULT", _h_num = "#", _h_name = "TEST", _h_desc = "DESCRIPTION";
+
+    std::size_t _w_res  = _h_res.size();
+    std::size_t _w_num  = _h_num.size();
+    std::size_t _w_name = _h_name.size();
+    std::size_t _w_desc = _h_desc.size();
+
+    std::size_t i = 0;
+    for (i = 0; i < _res.size(); ++i)
+    {
+        if (_res[i].size()  > _w_res)  { _w_res  = _res[i].size();  }
+        if (_num[i].size()  > _w_num)  { _w_num  = _num[i].size();  }
+        if (_name[i].size() > _w_name) { _w_name = _name[i].size(); }
+        if (_desc[i].size() > _w_desc) { _w_desc = _desc[i].size(); }
+    }
+
+    // 3) assemble ------------------------------------------------------------
+    std::string _out;
+
+    const std::string _hdr =
+        internal::pipe_table_row_helper(_h_res, _w_res, _h_num, _w_num,
+                                        _h_name, _w_name, _h_desc, _w_desc);
+    _out += _hdr;
+    _out += internal::pipe_table_rule_helper(_hdr);
+
+    for (i = 0; i < _res.size(); ++i)
+    {
+        _out += internal::pipe_table_row_helper(_res[i], _w_res, _num[i], _w_num,
+                                                _name[i], _w_name, _desc[i], _w_desc);
+    }
+
+    return _out;
+}
+
+
+// render_report_pipe_table
+//   the same idea sourced from an already-populated test_report (module ->
+// units -> checks), so it runs NO predicates.  Columns
+// MODULE | UNIT | RESULT | CHECK, one row per check.
+inline std::string
+render_report_pipe_table(
+    const test_report& _report
+)
+{
+    struct word { static const char* of(test_status _s)
+        {
+            switch (_s)
+            {
+                case test_status::passed:  return "PASS";
+                case test_status::failed:  return "FAIL";
+                case test_status::skipped: return "SKIP";
+                case test_status::error:   return "ERROR";
+                default:                   return "PENDING";   // incl. pending
+            }
+        } };
+
+    std::vector<std::string> _mod;
+    std::vector<std::string> _unit;
+    std::vector<std::string> _res;
+    std::vector<std::string> _chk;
+
+    std::size_t mi = 0;
+    for (mi = 0; mi < _report.modules.size(); ++mi)
+    {
+        const report_module& _m = _report.modules[mi];
+
+        std::size_t ui = 0;
+        for (ui = 0; ui < _m.units.size(); ++ui)
+        {
+            const report_unit& _u = _m.units[ui];
+
+            std::size_t ci = 0;
+            for (ci = 0; ci < _u.checks.size(); ++ci)
+            {
+                const report_check& _c = _u.checks[ci];
+
+                _mod.push_back(pipe_escape(_m.name));
+                _unit.push_back(pipe_escape(_u.name));
+                _res.push_back(word::of(_c.status));
+                _chk.push_back(pipe_escape(_c.description));
+            }
+        }
+    }
+
+    const std::string _h_mod = "MODULE", _h_unit = "UNIT", _h_res = "RESULT", _h_chk = "CHECK";
+
+    std::size_t _w_mod  = _h_mod.size();
+    std::size_t _w_unit = _h_unit.size();
+    std::size_t _w_res  = _h_res.size();
+    std::size_t _w_chk  = _h_chk.size();
+
+    std::size_t i = 0;
+    for (i = 0; i < _res.size(); ++i)
+    {
+        if (_mod[i].size()  > _w_mod)  { _w_mod  = _mod[i].size();  }
+        if (_unit[i].size() > _w_unit) { _w_unit = _unit[i].size(); }
+        if (_res[i].size()  > _w_res)  { _w_res  = _res[i].size();  }
+        if (_chk[i].size()  > _w_chk)  { _w_chk  = _chk[i].size();  }
+    }
+
+    std::string _out;
+
+    const std::string _hdr =
+        internal::pipe_table_row_helper(_h_mod, _w_mod, _h_unit, _w_unit,
+                                        _h_res, _w_res, _h_chk, _w_chk);
+    _out += _hdr;
+    _out += internal::pipe_table_rule_helper(_hdr);
+
+    for (i = 0; i < _res.size(); ++i)
+    {
+        _out += internal::pipe_table_row_helper(_mod[i], _w_mod, _unit[i], _w_unit,
+                                                _res[i], _w_res, _chk[i], _w_chk);
+    }
+
+    return _out;
+}
+
+
+// emit_spec_pipe_table
+//   internal: print a module's |...| results table to stdout, bracketed by a
+// caption line so it is easy to find (and to slice back out of) the console
+// stream.  The one emission seam the entry points share.
+namespace internal
+{
+    inline void
+    emit_spec_pipe_table(
+        const module_spec& _module
+    )
+    {
+        std::fputs("\n|-- results table (", stdout);
+        std::fputs((_module.name != nullptr) ? _module.name : "", stdout);
+        std::fputs(") --|\n", stdout);
+        std::fputs(render_spec_pipe_table(_module).c_str(), stdout);
+
+        return;
+    }
 }
 
 
@@ -1537,8 +1811,8 @@ run_module(
 {
     // view 1: the six-kind tree ---------------------------------------------
     enriched_tree tree =
-        build_enriched_tree("event subsystem",
-                            "One suite of the djinterp event core.",
+        build_enriched_tree(_module.name,
+                            (_module.descriptor != nullptr) ? _module.descriptor : "",
                             _module);
     describe_tree(tree);
 
@@ -1550,6 +1824,7 @@ run_module(
     if (_pdf != nullptr)      { rb.use_pdf(_pdf); }
 
     drive_report(rb, _module);
+    internal::emit_spec_pipe_table(_module);      // the |...| results table
 
     return rb.finish();
 }
@@ -1583,6 +1858,85 @@ run_suite(
     for (i = 0; i < _modules.size(); ++i)
     {
         drive_report(rb, _modules[i]);
+        internal::emit_spec_pipe_table(_modules[i]);   // the |...| results table
+    }
+
+    return rb.finish();
+}
+
+
+// run_module  (options-driven overload)
+//   the same one-suite flow as the convenience overload above, but the report
+// / PDF view is configured by a caller-supplied test_option_set
+// (test_options.hpp) instead of the bare _pdf char*.  The option set already
+// carries the document / output_file / split / show decisions, so this overload
+// SEEDS the report_builder from it and does NOT call use_pdf().  Select the PDF
+// face the documented way -
+//     opts.set<test_option::document>(test_doc_type::pdf);
+//     opts.set<test_option::output_file>("suite.pdf");
+// - or leave `document` at its txt default for a console-only run.  The
+// six-kind tree view is identical to the convenience overload; only the report
+// configuration seam differs (a caller-owned option set vs the framework
+// default plus use_pdf()).
+inline int
+run_module(
+    const module_spec&     _module,
+    const char*            _title,
+    const char*            _subtitle,
+    const test_option_set& _opts
+)
+{
+    // view 1: the six-kind tree ---------------------------------------------
+    enriched_tree tree =
+        build_enriched_tree(_module.name,
+                            (_module.descriptor != nullptr) ? _module.descriptor : "",
+                            _module);
+    describe_tree(tree);
+
+    // view 2: the report, configured by the option set ----------------------
+    report_builder rb(_opts);                       // seed from caller options
+    rb.set_title(_title);
+    if (_subtitle != nullptr) { rb.set_subtitle(_subtitle); }
+    rb.set_description(_module.descriptor);
+    // no use_pdf(): _opts already decides document / output_file / split
+
+    drive_report(rb, _module);
+    internal::emit_spec_pipe_table(_module);      // the |...| results table
+
+    return rb.finish();
+}
+
+// run_suite  (options-driven overload)
+//   the union-of-suites flow, configured by a caller-supplied test_option_set
+// instead of the bare _pdf char*: the option set decides document /
+// output_file / split / show, so the builder is seeded from it and use_pdf()
+// is not called.  With split == per_module the run writes one document per
+// module; whole_run (the default) writes a single document covering every
+// suite.
+inline int
+run_suite(
+    const char*                     _suite_name,
+    const char*                     _suite_descriptor,
+    const std::vector<module_spec>& _modules,
+    const char*                     _title,
+    const test_option_set&          _opts
+)
+{
+    // view 1: one tree over every module ------------------------------------
+    enriched_tree tree =
+        build_enriched_tree(_suite_name, _suite_descriptor, _modules);
+    tree_summary(tree);
+
+    // view 2: one report, a band per module, configured by the option set ---
+    report_builder rb(_opts);
+    rb.set_title(_title);
+    rb.set_description(_suite_descriptor);
+
+    std::size_t i = 0;
+    for (i = 0; i < _modules.size(); ++i)
+    {
+        drive_report(rb, _modules[i]);
+        internal::emit_spec_pipe_table(_modules[i]);   // the |...| results table
     }
 
     return rb.finish();

@@ -192,11 +192,23 @@ struct report_check
     std::string description;
     test_status status;
 
+    // Assertion detail, for the per-assertion report table (RESULT / # /
+    // ASSERTION / EXPECTED / ACTUAL).  A check may carry only a description
+    // (a bare pass/fail leaf); when it also records the asserted expression
+    // and the expected / actual values, the report shows them column-wise.
+    // Empty by default, so existing checks render exactly as before.
+    std::string expression;   // the asserted expression   (ASSERTION column)
+    std::string expected;     // rendered expected value    (EXPECTED column)
+    std::string actual;       // rendered actual value      (ACTUAL column)
+
     // report_check
     //   constructor: an empty, pending check.
     report_check()
         : description(),
-          status(test_status::pending)
+          status(test_status::pending),
+          expression(),
+          expected(),
+          actual()
     {}
 
     // report_check
@@ -206,7 +218,27 @@ struct report_check
         test_status _status
     )
         : description(static_cast<std::string&&>(_description)),
-          status(_status)
+          status(_status),
+          expression(),
+          expected(),
+          actual()
+    {}
+
+    // report_check
+    //   constructor: a check that also carries per-assertion detail - the
+    // asserted expression and its expected / actual rendered values.
+    report_check(
+        std::string _description,
+        test_status _status,
+        std::string _expression,
+        std::string _expected,
+        std::string _actual
+    )
+        : description(static_cast<std::string&&>(_description)),
+          status(_status),
+          expression(static_cast<std::string&&>(_expression)),
+          expected(static_cast<std::string&&>(_expected)),
+          actual(static_cast<std::string&&>(_actual))
     {}
 
     // passed
@@ -232,6 +264,7 @@ struct report_check
 struct report_unit
 {
     std::string               name;
+    std::string               description;
     std::vector<report_check> checks;
     report_verdict            verdict;
     std::int64_t              elapsed_ns;
@@ -240,6 +273,7 @@ struct report_unit
     //   constructor: an empty, pending unit.
     report_unit()
         : name(),
+          description(),
           checks(),
           verdict(report_verdict::empty),
           elapsed_ns(0),
@@ -252,6 +286,22 @@ struct report_unit
         std::string _name
     )
         : name(static_cast<std::string&&>(_name)),
+          description(),
+          checks(),
+          verdict(report_verdict::empty),
+          elapsed_ns(0),
+          m_verdict_explicit(false)
+    {}
+
+    // report_unit
+    //   constructor: a named unit carrying a descriptor (e.g. a spec block's
+    // "descriptor"), rendered as the test card's description line.
+    report_unit(
+        std::string _name,
+        std::string _description
+    )
+        : name(static_cast<std::string&&>(_name)),
+          description(static_cast<std::string&&>(_description)),
           checks(),
           verdict(report_verdict::empty),
           elapsed_ns(0),
@@ -290,6 +340,59 @@ struct report_unit
         add_check(
             static_cast<std::string&&>(_description),
             _ok ? test_status::passed : test_status::failed);
+
+        return;
+    }
+
+    // add_check
+    //   overload: appends a check carrying per-assertion detail (the asserted
+    // expression and its expected / actual rendered values), re-deriving the
+    // unit verdict unless it was pinned explicitly.
+    void
+    add_check(
+        std::string _description,
+        test_status _status,
+        std::string _expression,
+        std::string _expected,
+        std::string _actual
+    )
+    {
+        checks.push_back(report_check(
+            static_cast<std::string&&>(_description),
+            _status,
+            static_cast<std::string&&>(_expression),
+            static_cast<std::string&&>(_expected),
+            static_cast<std::string&&>(_actual)));
+
+        if (!m_verdict_explicit)
+        {
+            verdict = derive_verdict();
+        }
+
+        return;
+    }
+
+    // add_result
+    //   overload: appends a `passed`/`failed` check with per-assertion detail.
+    // The asserted expression doubles as the check's description (so the live
+    // console line reads it), and the expected / actual values populate the
+    // report's EXPECTED / ACTUAL columns.
+    void
+    add_result(
+        std::string _expression,
+        std::string _expected,
+        std::string _actual,
+        bool        _ok
+    )
+    {
+        std::string _desc = _expression;
+
+        add_check(
+            static_cast<std::string&&>(_desc),
+            _ok ? test_status::passed : test_status::failed,
+            static_cast<std::string&&>(_expression),
+            static_cast<std::string&&>(_expected),
+            static_cast<std::string&&>(_actual));
 
         return;
     }

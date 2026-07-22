@@ -6,7 +6,13 @@
 * harness in a single import:
 *
 *   test_thread.hpp           - exception-capturing thread wrapper
-*                               (test_thread, test_thread_group)
+*                               (test_thread, test_thread_group);
+*                               ALSO carries the threadsafe-testable
+*                               SFINAE traits and C++20 concepts
+*                               (formerly test_thread_traits.hpp /
+*                                test_thread_concepts.hpp, folded in
+*                                2026.07) in namespace
+*                                djinterp::test::traits
 *
 *   test_sync.hpp             - coordination primitives for tests
 *                               (test_latch, test_barrier, test_gate,
@@ -32,11 +38,12 @@
 *                               (deadlock_watchdog, lock_order_tracker,
 *                                scoped_deadlock_watchdog)
 *
-*   test_thread_traits.hpp    - SFINAE traits for thread-safe testable
-*                               types (lock policy / strategy / lock-free)
-*
-*   test_thread_concepts.hpp  - C++20 concepts layered over the traits
-*                               (only included on C++20+)
+*   test_thread_traits.hpp    - RETIRED: folded into test_thread.hpp.
+*   test_thread_concepts.hpp    Both are gone as standalone headers;
+*                               their contents (the SFINAE trait
+*                               surface and the C++20 concept layer)
+*                               now live in test_thread.hpp above.
+*                               Include test_thread.hpp for them.
 *
 *   COMPLEMENTS:
 *   This suite complements the threadsafe foundation module
@@ -102,11 +109,10 @@
 // deadlock and timeout detection
 #include "./test_deadlock.hpp"
 
-// SFINAE traits classifying threadsafe types
-#include "./test_thread_traits.hpp"
-
-// C++20 concepts (no-op on pre-C++20)
-#include "./test_thread_concepts.hpp"
+// NOTE: the SFINAE traits (formerly ./test_thread_traits.hpp) and the
+// C++20 concepts (formerly ./test_thread_concepts.hpp) are now folded
+// into ./test_thread.hpp (included above), so there is nothing to
+// include here.  The standalone headers have been removed.
 
 
 #endif  // DJINTERP_TEST_THREADSAFE_

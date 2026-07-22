@@ -46,11 +46,10 @@
 // std
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"                  // NS_*, D_NODISCARD, gates
-#include "../core/output/output_packaging.hpp"   // pack_mode, codec_id,
-                                                 //   format_id, output_config
+#include "../../core/djinterp.hpp"                  // NS_*, D_NODISCARD, gates
+#include "../../core/util/output/output_packaging.hpp"   // pack_mode, codec_id, format_id, output_config
+#include "../test_options.hpp"                    // test_option_set + the test_*
 #include "./test_output.hpp"                     // doc_format
-#include "./test_options.hpp"                    // test_option_set + the test_*
                                                  //   enums + free accessors
 
 
