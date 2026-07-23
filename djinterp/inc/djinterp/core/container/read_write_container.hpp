@@ -42,8 +42,8 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"   // clean_t, D_CONSTEXPR, NS_*, D_ENV_* feature macros
-#include "./read_write.hpp"     // read_write capability tag
+#include "../djinterp.hpp"         // clean_t, D_CONSTEXPR, NS_*, D_ENV_* feature macros
+#include "../meta/read_write.hpp"  // read_write capability tag
 
 
 // DJINTERP_ACCESS_MUT_CONSTEXPR
