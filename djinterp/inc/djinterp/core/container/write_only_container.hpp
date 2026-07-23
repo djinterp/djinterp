@@ -38,8 +38,8 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"   // clean_t, D_CONSTEXPR, NS_*, D_ENV_* feature macros
-#include "./write_only.hpp"     // write_only capability tag
+#include "../djinterp.hpp"   // clean_t, D_CONSTEXPR, NS_*, D_ENV_* feature macros
+#include "../meta/write_only.hpp"     // write_only capability tag
 
 
 // DJINTERP_ACCESS_MUT_CONSTEXPR

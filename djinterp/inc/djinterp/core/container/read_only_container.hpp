@@ -39,8 +39,8 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"   // clean_t, D_CONSTEXPR, NS_*
-#include "./read_only.hpp"      // read_only capability tag
+#include "../djinterp.hpp"        // clean_t, D_CONSTEXPR, NS_*
+#include "../meta/read_only.hpp"  // read_only capability tag
 
 
 NS_DJINTERP
