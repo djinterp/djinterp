@@ -1,0 +1,73 @@
+--- a/core/util/pdf/pdf_canvas.hpp	2026-07-25 15:26:59.913063571 +0000
++++ b/core/util/pdf/pdf_canvas.hpp	2026-07-25 15:26:59.914998438 +0000
+@@ -185,12 +185,12 @@
+                                                  std::size_t /*_col*/)>;
+ 
+ 
+-// table_options
++// canvas_table_options
+ //   struct: rendering parameters for the basic table helper -
+ // column widths (points), cell padding, the body and header text
+ // styles, grid line color/width, whether the first supplied row is a
+ // header, and an optional per-cell format callback.
+-struct table_options
++struct canvas_table_options
+ {
+     std::vector<pdf_unit> column_widths;
+     pdf_unit              padding;
+@@ -207,7 +207,7 @@
+     //   optional per-cell overrides; null (the default) keeps the plain grid.
+     cell_format_fn        cells;
+ 
+-    table_options()
++    canvas_table_options()
+         : column_widths(),
+           padding(4.0),
+           row_height(18.0),
+@@ -752,7 +752,7 @@
+     void
+     table(
+         const std::vector<std::vector<std::string>>& _rows,
+-        const table_options&                         _opts
++        const canvas_table_options&                         _opts
+     )
+     {
+         ensure_started();
+@@ -1000,7 +1000,7 @@
+     // the content width.
+     std::vector<pdf_unit>
+     resolve_columns(
+-        const table_options&                         _opts,
++        const canvas_table_options&                         _opts,
+         const std::vector<std::vector<std::string>>& _rows
+     ) const
+     {
+@@ -1043,7 +1043,7 @@
+     draw_table_row(
+         const std::vector<std::string>& _cells,
+         const std::vector<pdf_unit>&    _widths,
+-        const table_options&            _opts,
++        const canvas_table_options&            _opts,
+         bool                            _is_header,
+         size_type                       _row_index
+     )
+--- a/core/util/pdf/pdf_canvas_document_renderer.hpp	2026-07-25 15:26:59.916686457 +0000
++++ b/core/util/pdf/pdf_canvas_document_renderer.hpp	2026-07-25 15:26:59.918286693 +0000
+@@ -77,7 +77,7 @@
+                                                     // document_renderer,
+                                                     // doc_attributes, D_OVERRIDE
+ #include "./pdf_canvas.hpp"                         // pdf_canvas, canvas_style,
+-                                                    // table_options
++                                                    // canvas_table_options
+ 
+ 
+ NS_DJINTERP
+@@ -433,7 +433,7 @@
+             return;
+         }
+ 
+-        table_options _opts;
++        canvas_table_options _opts;
+ 
+         _opts.has_header  = m_have_header;
+         _opts.fill_header = m_have_header;
