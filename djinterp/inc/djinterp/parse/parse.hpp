@@ -22,7 +22,7 @@
 *   parse_error       the error type E in the `result` arm.  Value-
 *                     semantic, copyable without lifetime caveats.
 *
-*   parse_result<T>   a thin refinement of result<T,
+*   parse_result<T>   a thin refinement of functional::result<T,
 *                     parse_error>: it IS a result and inherits the
 *                     monadic surface (map, and_then, or_else, match,
 *                     value_or, operator|, the protocol specialisations
@@ -269,7 +269,7 @@ operator!=(
 // parse_result
 //   class: the outcome of a fallible parse — a value of type
 // _ValueType (success) or a parse_error (failure).  A refinement of
-// result<_ValueType, parse_error>: it IS a result and
+// functional::result<_ValueType, parse_error>: it IS a result and
 // inherits the whole monadic surface (map, and_then, or_else,
 // match, value_or, operator|, plus the functor / monad protocol
 // specialisations defined in result.hpp).  This is the C++ shape
@@ -290,13 +290,13 @@ operator!=(
 //
 //   The inherited result<>::ok() returning maybe<T> is shadowed
 // here by the boolean predicate the parse vocabulary wants; the
-// inherited form is reachable via to_maybe on the base.
+// inherited form is reachable via functional::to_maybe on the base.
 template<typename _ValueType>
 class parse_result
-    : public result<_ValueType, parse_error>
+    : public functional::result<_ValueType, parse_error>
 {
 private:
-    using base_type = result<_ValueType, parse_error>;
+    using base_type = functional::result<_ValueType, parse_error>;
 
 public:
     using value_type = _ValueType;
@@ -306,8 +306,8 @@ public:
         const _ValueType& _value
     )
         : base_type(
-              internal::ok_tag(
-                  internal::ok_tag::construct_tag()),
+              functional::internal::ok_tag(
+                  functional::internal::ok_tag::construct_tag()),
               _value)
     {}
 
@@ -315,8 +315,8 @@ public:
         _ValueType&& _value
     )
         : base_type(
-              internal::ok_tag(
-                  internal::ok_tag::construct_tag()),
+              functional::internal::ok_tag(
+                  functional::internal::ok_tag::construct_tag()),
               static_cast<_ValueType&&>(_value))
     {}
 
@@ -324,8 +324,8 @@ public:
         const parse_error& _error
     )
         : base_type(
-              internal::err_tag(
-                  internal::err_tag::construct_tag()),
+              functional::internal::err_tag(
+                  functional::internal::err_tag::construct_tag()),
               _error)
     {}
 
@@ -333,8 +333,8 @@ public:
         parse_error&& _error
     )
         : base_type(
-              internal::err_tag(
-                  internal::err_tag::construct_tag()),
+              functional::internal::err_tag(
+                  functional::internal::err_tag::construct_tag()),
               static_cast<parse_error&&>(_error))
     {}
 
@@ -492,7 +492,8 @@ struct parse_state
     // advance
     //   method: moves the offset forward by _count elements, clamped
     // to the end of the input.
-    void advance(
+    void 
+    advance(
         std::size_t _count = 1
     )
     {
