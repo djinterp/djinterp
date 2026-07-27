@@ -1,143 +1,71 @@
 /******************************************************************************
-* djinterp [container]                       threadsafe_container_concepts.hpp
-*
-* Thread-safe container concepts:
-*   C++20 concepts layered over threadsafe_container_traits.hpp. These
-* concepts provide readable constraints for lock-aware and thread-safe
-* containers without replacing the existing SFINAE trait surface.
-*
-*   The concepts mirror the verified public trait surface from
-* threadsafe_container_traits.hpp:
-*   - lock policy and mutex detection
-*   - direct locking and atomic-state detection
-*   - thread-safety level wrappers
-*   - convenience predicates
-*   - shorthand concepts over container_threadsafe_class<T>
-*
-* 
-* path:      /inc/djinterp/core/container/concepts/
-*                threadsafe_container_concepts.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.29
-******************************************************************************/
+* djinterp [container] threadsafe_container_concepts.hpp C++20 concepts for the
+* THREAD SAFETY (the lock surface) axis -- the `requires`-facing view of
+* threadsafe_container_traits.hpp. THE CONCEPTS ADD NO POLICY. Each is exactly
+* its trait, spelled so it can constrain a template instead of gating one
+* through enable_if. The trait stays the single source of truth. NAMES. Where
+* the obvious name is taken by a CONTAINER CLASS in this namespace, the concept
+* takes an adjective form instead. A concept and a class of the same name in one
+* namespace is a hard redeclaration, and this framework has already been bitten
+* by that three times. PORTABILITY: Gated on C++20 + concepts. Below that the
+* header is empty and callers use the `::value` / `_v` forms directly. path:
+* /inc/djinterp/core/container/concepts/threadsafe_container_concepts.hpp
+* link(s): TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
+* *****************************************************************************/
 
 #ifndef DJINTERP_THREADSAFE_CONTAINER_CONCEPTS_
 #define DJINTERP_THREADSAFE_CONTAINER_CONCEPTS_ 1
 
-#ifndef __cplusplus
-    #error "threadsafe_container_concepts.hpp requires C++ compilation"
-#endif
-
-//djinterp
+// djinterp
 #include "../../djinterp.hpp"
+#include "../../meta/concepts.hpp"   // D_CONCEPT_FROM_TRAIT
 #include "../traits/threadsafe_container_traits.hpp"
+
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_DJINTERP
 
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// ==========================================================================
+//  THE LOCK SURFACE
+// ==========================================================================
 
+
+// ThreadsafeContainer
+// concept: exposes lock() / unlock(). Named `lockable_`: threadsafe_container
+// is a class in this namespace.
 template<typename _Type>
-concept lock_policy_typed_container =
-    has_lock_policy_type_v<_Type>;
+concept ThreadsafeContainer =
+    has_lock_method_v<clean_t<_Type>> && has_unlock_method_v<clean_t<_Type>>;
 
-template<typename _Type>
-concept mutex_typed_container =
-    has_mutex_type_alias_v<_Type>;
 
-template<typename _Type>
-concept valid_lock_policy_container =
-    has_valid_lock_policy_v<_Type>;
+// SharedLockableContainer
+//   concept: exposes lock_shared() -- many readers, one writer.
+D_CONCEPT_FROM_TRAIT(SharedLockableContainer, has_lock_shared_method_v)
 
-template<typename _Type>
-concept policy_threadsafe_container =
-    policy_is_threadsafe_v<_Type>;
 
-template<typename _Type>
-concept policy_shared_container =
-    policy_supports_shared_v<_Type>;
+// TryLockableContainer
+// concept: exposes try_lock() -- acquisition that may FAIL rather than block,
+// which is the only kind a caller can back out of.
+D_CONCEPT_FROM_TRAIT(TryLockableContainer, has_try_lock_method_v)
 
-template<typename _Type>
-concept policy_timed_container =
-    policy_supports_timed_v<_Type>;
 
-template<typename _Type>
-concept directly_lockable_container =
-    is_directly_lockable_v<_Type>;
+// DeclaresLockPolicy
+// concept: carries a lock_policy_type -- it names HOW it is guarded, rather
+// than leaving the caller to infer it from the surface.
+D_CONCEPT_FROM_TRAIT(DeclaresLockPolicy, has_lock_policy_type_v)
 
-template<typename _Type>
-concept directly_shared_lockable_container =
-    is_directly_shared_lockable_v<_Type>;
 
-template<typename _Type>
-concept directly_timed_lockable_container =
-    is_directly_timed_lockable_v<_Type>;
-
-template<typename _Type>
-concept mutex_access_container =
-    has_get_mutex_method_v<_Type> || has_get_mutex_accessor_v<_Type>;
-
-template<typename _Type>
-concept atomic_size_container =
-    has_atomic_size_type_v<_Type>;
-
-template<typename _Type>
-concept atomic_version_container =
-    has_atomic_version_type_v<_Type>;
-
-template<typename _Type>
-concept versioned_threadsafe_container =
-    has_version_tracking_v<_Type>;
-
-template<typename _Type>
-concept threadsafe_container_type =
-    is_threadsafe_container_v<_Type>;
-
-template<typename _Type>
-concept non_threadsafe_container_type =
-    is_non_threadsafe_container_v<_Type>;
-
-template<typename _Type>
-concept concurrent_read_container =
-    supports_concurrent_reads_v<_Type>;
-
-template<typename _Type>
-concept timed_locking_container =
-    supports_timed_locking_v<_Type>;
-
-template<typename _Type>
-concept atomic_only_threadsafe_container =
-    container_thread_safety_level_v<_Type> ==
-    thread_safety_level::atomic_only;
-
-template<typename _Type>
-concept exclusive_threadsafe_container =
-    container_thread_safety_level_v<_Type> ==
-    thread_safety_level::exclusive;
-
-template<typename _Type>
-concept timed_threadsafe_container =
-    container_thread_safety_level_v<_Type> ==
-    thread_safety_level::timed;
-
-template<typename _Type>
-concept shared_threadsafe_container =
-    container_thread_safety_level_v<_Type> ==
-    thread_safety_level::shared;
-
-template<typename _Type>
-concept shared_timed_threadsafe_container =
-    container_thread_safety_level_v<_Type> ==
-    thread_safety_level::shared_timed;
-
-template<typename _Type>
-concept classified_threadsafe_container =
-    container_threadsafe_class<_Type>::is_threadsafe;
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
+// VersionedContainer
+// concept: exposes a version stamp -- the basis of optimistic reads, where you
+// check afterwards whether what you read was torn.
+D_CONCEPT_FROM_TRAIT(VersionedContainer, has_version_method_v)
 
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 #endif  // DJINTERP_THREADSAFE_CONTAINER_CONCEPTS_

@@ -1,122 +1,76 @@
 /******************************************************************************
-* djinterp [container]                          container_storage_concepts.hpp
-*
-* Storage-kind concepts:
-*   C++20 concepts layered over container_storage_traits.hpp. These concepts
-* provide readable constraints for storage-kind classification without
-* replacing the existing SFINAE trait surface.
-*
-*   The concepts mirror the verified public trait surface from
-* container_storage_traits.hpp:
-*   - compile-time extent, tuple_size, capacity, and fixed-capacity-tag signals
-*   - static / fixed / dynamic storage classification
-*   - storage_kind wrappers and shorthand concepts over 
-*     container_storage_class<T>
-*
-* 
-* path:      /inc/djinterp/core/container/concepts/
-*                container_storage_concepts.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* djinterp [container] container_storage_concepts.hpp C++20 concepts for the
+* STORAGE (siting) axis -- the `requires`-facing view of
+* container_storage_traits.hpp. THE CONCEPTS ADD NO POLICY. Each is exactly its
+* trait, spelled so it can constrain a template instead of gating one through
+* enable_if. The trait stays the single source of truth. NAMES. Where the
+* obvious name is taken by a CONTAINER CLASS in this namespace, the concept
+* takes an adjective form instead. A concept and a class of the same name in one
+* namespace is a hard redeclaration, and this framework has already been bitten
+* by that three times. PORTABILITY: Gated on C++20 + concepts. Below that the
+* header is empty and callers use the `::value` / `_v` forms directly. path:
+* /inc/djinterp/core/container/concepts/container_storage_concepts.hpp link(s):
+* TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
+* *****************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_STORAGE_CONCEPTS_
 #define DJINTERP_CONTAINER_STORAGE_CONCEPTS_ 1
 
-#ifndef __cplusplus
-    #error "container_storage_concepts.hpp requires C++ compilation"
-#endif
-
-//djinterp
+// djinterp
 #include "../../djinterp.hpp"
+#include "../../meta/concepts.hpp"   // D_CONCEPT_FROM_TRAIT
 #include "../traits/container_storage_traits.hpp"
+
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_DJINTERP
 
+// ==========================================================================
+//  WHERE THE CELLS LIVE
+// ==========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-///////////////////////////////////////////////////////////////////////////////
-// I.   primitive signal concepts
-///////////////////////////////////////////////////////////////////////////////
+// StaticStorageContainer
+//   concept: the cells sit in the container's own footprint -- an extent or a
+// tuple_size. Storage answers WHERE; Lifetime answers WHEN, and the two
+// are independent.
+D_CONCEPT_FROM_TRAIT(StaticStorageContainer, is_static_storage_container_v)
 
-template<typename _Type>
-concept compile_time_extent_storage_surface =
-    has_compile_time_extent<_Type>::value;
 
-template<typename _Type>
-concept tuple_sized_storage_surface =
-    has_tuple_size<_Type>::value;
+// DynamicStorageContainer
+// concept: the cells are acquired out of line -- an allocator_type or a
+// reserve(n). Static storage takes no allocator, so either probe is decisive.
+D_CONCEPT_FROM_TRAIT(DynamicStorageContainer, is_dynamic_storage_container_v)
 
-template<typename _Type>
-concept capacity_storage_surface =
-    has_capacity_method_signal<_Type>::value;
 
-template<typename _Type>
-concept fixed_capacity_tagged_storage_surface =
-    has_fixed_capacity_tag<_Type>::value;
+// HybridStorageContainer
+// concept: the siting spans both -- small-buffer optimisation. Only ever true
+// via the opt-in: SBO is not legible from a public surface, so it is DECLARED,
+// never detected.
+D_CONCEPT_FROM_TRAIT(HybridStorageContainer, is_hybrid_storage_container_v)
 
-///////////////////////////////////////////////////////////////////////////////
-// II.  storage-kind identity concepts
-///////////////////////////////////////////////////////////////////////////////
 
-template<typename _Type>
-concept static_storage_container_type =
-    is_static_storage_container<_Type>::value;
+// ==========================================================================
+//  COMPONENTS  (the ones to use when hybrid should count on both sides)
+// ==========================================================================
 
-template<typename _Type>
-concept fixed_storage_container_type =
-    is_fixed_storage_container<_Type>::value;
 
-template<typename _Type>
-concept dynamic_storage_container_type =
-    is_dynamic_storage_container<_Type>::value;
+// HasStaticStorage
+//   concept: the siting INCLUDES an inline part -- static or hybrid.
+D_CONCEPT_FROM_TRAIT(HasStaticStorage, has_static_storage_component_container_v)
 
-template<typename _Type>
-concept known_storage_container_type =
-    ( storage_kind_of<_Type>::value != storage_kind::unknown );
 
-///////////////////////////////////////////////////////////////////////////////
-// III. storage-kind wrapper concepts
-///////////////////////////////////////////////////////////////////////////////
-
-template<typename _Type>
-concept storage_kind_static_container =
-    ( storage_kind_of<_Type>::value == storage_kind::static_storage );
-
-template<typename _Type>
-concept storage_kind_fixed_container =
-    ( storage_kind_of<_Type>::value == storage_kind::fixed_storage );
-
-template<typename _Type>
-concept storage_kind_dynamic_container =
-    ( storage_kind_of<_Type>::value == storage_kind::dynamic_storage );
-
-///////////////////////////////////////////////////////////////////////////////
-// IV.  classification-based shorthand concepts
-///////////////////////////////////////////////////////////////////////////////
-
-template<typename _Type>
-concept classified_static_storage_container =
-    container_storage_class<_Type>::kind == storage_kind::static_storage;
-
-template<typename _Type>
-concept classified_fixed_storage_container =
-    container_storage_class<_Type>::kind == storage_kind::fixed_storage;
-
-template<typename _Type>
-concept classified_dynamic_storage_container =
-    container_storage_class<_Type>::kind == storage_kind::dynamic_storage;
-
-template<typename _Type>
-concept classified_known_storage_container =
-    container_storage_class<_Type>::kind != storage_kind::unknown;
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
+// HasDynamicStorage
+//   concept: the siting INCLUDES an out-of-line part -- dynamic or hybrid.
+D_CONCEPT_FROM_TRAIT(HasDynamicStorage,
+                     has_dynamic_storage_component_container_v)
 
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 #endif  // DJINTERP_CONTAINER_STORAGE_CONCEPTS_

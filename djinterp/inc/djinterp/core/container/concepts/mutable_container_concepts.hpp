@@ -1,92 +1,65 @@
 /******************************************************************************
-* djinterp [container]                          mutable_container_concepts.hpp
-*
-* Mutability-axis concepts:
-*   C++20 concepts layered over mutable_container_traits.hpp. These concepts
-* provide readable constraints for mutable / immutable classification without
-* replacing the existing SFINAE trait surface.
-*
-*   The concepts mirror the verified public trait surface from
-* mutable_container_traits.hpp:
-*   - individual mutator signals
-*   - mutable / immutable classification
-*   - shorthand concepts over mutable_container_class<T>
-*
-* 
-* path:      /inc/djinterp/core/container/concepts/
-*                mutable_container_concepts.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.29
-******************************************************************************/
+* djinterp [container] mutable_container_concepts.hpp C++20 concepts for the
+* MUTABILITY axis -- the `requires`-facing view of mutable_container_traits.hpp.
+* THE CONCEPTS ADD NO POLICY. Each is exactly its trait, spelled so it can
+* constrain a template instead of gating one through enable_if. The trait stays
+* the single source of truth. NAMES. Where the obvious name is taken by a
+* CONTAINER CLASS in this namespace, the concept takes an adjective form
+* instead. A concept and a class of the same name in one namespace is a hard
+* redeclaration, and this framework has already been bitten by that three times.
+* PORTABILITY: Gated on C++20 + concepts. Below that the header is empty and
+* callers use the `::value` / `_v` forms directly. path:
+* /inc/djinterp/core/container/concepts/mutable_container_concepts.hpp link(s):
+* TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
+* *****************************************************************************/
 
 #ifndef DJINTERP_MUTABLE_CONTAINER_CONCEPTS_
 #define DJINTERP_MUTABLE_CONTAINER_CONCEPTS_ 1
 
-#ifndef __cplusplus
-    #error "mutable_container_concepts.hpp requires C++ compilation"
-#endif
-
-//djinterp
+// djinterp
 #include "../../djinterp.hpp"
+#include "../../meta/concepts.hpp"   // D_CONCEPT_FROM_TRAIT
 #include "../traits/mutable_container_traits.hpp"
+
+
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 NS_DJINTERP
 
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+// ==========================================================================
+//  WHAT MAY CHANGE
+// ==========================================================================
 
-template<typename _Type>
-concept push_back_mutable_container =
-    has_push_back_signal_v<_Type>;
 
-template<typename _Type>
-concept push_front_mutable_container =
-    has_push_front_signal_v<_Type>;
+// MutableContainerType
+//   concept: something may change -- values, structure, or both.
+D_CONCEPT_FROM_TRAIT(MutableContainerType, is_mutable_container_v)
 
-template<typename _Type>
-concept insert_mutable_container =
-    has_insert_signal_v<_Type>;
 
-template<typename _Type>
-concept erase_mutable_container =
-    has_erase_signal_v<_Type>;
+// ImmutableContainerType
+//   concept: container-shaped and nothing may change.
+D_CONCEPT_FROM_TRAIT(ImmutableContainerType, is_immutable_container_v)
 
-template<typename _Type>
-concept clear_mutable_container =
-    has_clear_signal_v<_Type>;
 
-template<typename _Type>
-concept resize_mutable_container =
-    has_resize_signal_v<_Type>;
+// ElementMutableContainerType
+// concept: an EXISTING element may be overwritten in place. The probe is
+// sequence- shaped (a settable operator[] or data()), so an associative
+// container -- std::map included -- does not read as this. Not a bug: it is
+// what the structural probe can see.
+D_CONCEPT_FROM_TRAIT(ElementMutableContainerType,
+                     is_element_mutable_container_v)
 
-template<typename _Type>
-concept mutable_subscript_container =
-    has_mutable_subscript_signal_v<_Type>;
 
-template<typename _Type>
-concept mutable_data_container =
-    has_mutable_data_signal_v<_Type>;
-
-template<typename _Type>
-concept mutable_container_type_structural =
-    is_mutable_container_v<_Type>;
-
-template<typename _Type>
-concept immutable_container_type_structural =
-    is_immutable_container_v<_Type>;
-
-template<typename _Type>
-concept classified_mutable_container =
-    mutable_container_class<_Type>::is_mutable;
-
-template<typename _Type>
-concept classified_immutable_container =
-    mutable_container_class<_Type>::is_immutable;
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
+// StructurallyMutableContainerType
+//   concept: the SET of elements may change -- insert, erase, clear, resize.
+D_CONCEPT_FROM_TRAIT(StructurallyMutableContainerType,
+                     is_structurally_mutable_container_v)
 
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 #endif  // DJINTERP_MUTABLE_CONTAINER_CONCEPTS_

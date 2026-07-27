@@ -1,142 +1,78 @@
 /******************************************************************************
-* djinterp [container]                        constexpr_container_concepts.hpp
-*
-* Constexpr container concepts:
-*   C++20 concepts layered over constexpr_container_traits.hpp. These concepts
-* provide readable constraints for compile-time-usable containers without
-* replacing the existing SFINAE trait surface.
-*
-*   The concepts mirror the verified public trait surface from
-* constexpr_container_traits.hpp:
-*   - constexpr opt-in tag, extent, size-expression, and iteration signals
-*   - constexpr vs not-constexpr classification
-*   - shorthand concepts over constexpr_container_class<T>
-*
-* 
-* path:      /inc/djinterp/core/container/concepts/
-*                constexpr_container_concepts.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* djinterp [container] constexpr_container_concepts.hpp C++20 concepts for the
+* LIFETIME (compile-time end) axis -- the `requires`-facing view of
+* constexpr_container_traits.hpp. THE CONCEPTS ADD NO POLICY. Each is exactly
+* its trait, spelled so it can constrain a template instead of gating one
+* through enable_if. The trait stays the single source of truth; if a
+* classification is wrong, it is wrong in one place. That is the whole point of
+* generating these rather than restating the detection logic in `requires`
+* clauses. PORTABILITY: Gated on C++20 + concepts. Below that the header is
+* empty and callers use the `::value` / `_v` forms directly -- which is why
+* nothing else in the framework is allowed to depend on these. path:
+* /inc/djinterp/core/container/concepts/constexpr_container_concepts.hpp
+* link(s): TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
+* *****************************************************************************/
 
 #ifndef DJINTERP_CONSTEXPR_CONTAINER_CONCEPTS_
 #define DJINTERP_CONSTEXPR_CONTAINER_CONCEPTS_ 1
 
-#ifndef __cplusplus
-    #error "constexpr_container_concepts.hpp requires C++ compilation"
-#endif
-
-//djinterp
+// djinterp
 #include "../../djinterp.hpp"
 #include "../traits/constexpr_container_traits.hpp"
 
 
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
 NS_DJINTERP
 
+// ==========================================================================
+//  LIFETIME
+// ==========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// ===========================================================================
-// I.   Primitive signal concepts
-// ===========================================================================
-
-// constexpr_tagged_container_surface
-//   concept: constrains types exposing the opt-in constexpr container tag.
+// constexpr_container
+// concept: usable in constant evaluation -- BOTH the size and every component
+// value are fixed by the program text. That conjunction is the lattice MEET of
+// the two lifetimes, not a coincidence of two checks.
 template<typename _Type>
-concept constexpr_tagged_container_surface =
-    has_constexpr_container_tag<_Type>::value;
+concept constexpr_container =
+    is_constexpr_container_v<clean_t<_Type>>;
 
-// constexpr_extent_container_surface
-//   concept: constrains types exposing a compile-time extent signal.
+
+// runtime_container
+// concept: the explicit negation -- a DYNAMIC lifetime. Spelled out so a pair
+// of requires-clauses can be disjoint rather than one being `!`.
 template<typename _Type>
-concept constexpr_extent_container_surface =
-    has_constexpr_extent<_Type>::value;
+concept runtime_container =
+    is_not_constexpr_container_v<clean_t<_Type>>;
 
-// constexpr_size_expression_surface
-//   concept: constrains types whose default-constructed size() is usable in
-// constant evaluation.
+
+// ==========================================================================
+//  SIGNALS
+// ==========================================================================
+
+
+// constexpr_tagged_container
+// concept: carries the opt-in `is_constexpr_container` alias -- an explicit
+// claim of static-lifetime capability, which outranks the structural probes.
 template<typename _Type>
-concept constexpr_size_expression_surface =
-    has_constexpr_size_expression<_Type>::value;
+concept constexpr_tagged_container =
+    has_constexpr_container_tag_v<clean_t<_Type>>;
 
-// constexpr_iteration_container_surface
-//   concept: constrains types classified as having constexpr iteration.
+
+// compile_time_sized_container
+// concept: its SIZE is compile-time-expressible, whether or not its CONTENTS
+// are. array<std::string, N> is this and is not constexpr_container -- which is
+// exactly why the two are separate concepts.
 template<typename _Type>
-concept constexpr_iteration_container_surface =
-    has_constexpr_iteration<_Type>::value;
-
-
-// ===========================================================================
-// II.  Axis classification concepts
-// ===========================================================================
-
-// constexpr_container_type
-//   concept: constrains types classified as constexpr-capable containers.
-template<typename _Type>
-concept constexpr_container_type =
-    is_constexpr_container<_Type>::value;
-
-// not_constexpr_container_type
-//   concept: constrains types explicitly classified as not constexpr-capable.
-template<typename _Type>
-concept not_constexpr_container_type =
-    is_not_constexpr_container<_Type>::value;
-
-// structurally_constexpr_container_type
-//   concept: constrains constexpr containers classified through structural
-// rather than opt-in tagging alone.
-template<typename _Type>
-concept structurally_constexpr_container_type =
-    constexpr_container_type<_Type> &&
-    ( has_constexpr_size_expression<_Type>::value ||
-      has_constexpr_extent<_Type>::value          ||
-      has_constexpr_iteration<_Type>::value );
-
-// opt_in_constexpr_container_type
-//   concept: constrains constexpr containers classified through the
-// explicit is_constexpr_container opt-in tag.
-template<typename _Type>
-concept opt_in_constexpr_container_type =
-    constexpr_container_type<_Type> &&
-    has_constexpr_container_tag<_Type>::value;
-
-
-// ===========================================================================
-// III. Classification-based shorthand concepts
-// ===========================================================================
-
-// classified_constexpr_container
-//   concept: shorthand for any type recognized as constexpr-capable by the
-// aggregate classification struct.
-template<typename _Type>
-concept classified_constexpr_container =
-    constexpr_container_class<_Type>::is_constexpr;
-
-// extent_constexpr_container
-//   concept: constexpr-capable container with compile-time extent metadata.
-template<typename _Type>
-concept extent_constexpr_container =
-    constexpr_container_type<_Type> &&
-    constexpr_container_class<_Type>::has_extent;
-
-// iterable_constexpr_container
-//   concept: constexpr-capable container with constexpr iteration support.
-template<typename _Type>
-concept iterable_constexpr_container =
-    constexpr_container_type<_Type> &&
-    constexpr_container_class<_Type>::has_iteration;
-
-// size_constexpr_container
-//   concept: constexpr-capable container with constexpr-valid size().
-template<typename _Type>
-concept size_constexpr_container =
-    constexpr_container_type<_Type> &&
-    constexpr_container_class<_Type>::has_size_expr;
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
+concept compile_time_sized_container =
+    is_compile_time(size_lifetime<clean_t<_Type>>::value);
 
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 #endif  // DJINTERP_CONSTEXPR_CONTAINER_CONCEPTS_

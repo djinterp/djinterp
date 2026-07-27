@@ -1,140 +1,91 @@
 /******************************************************************************
-* djinterp [container]                       container_conversion_concepts.hpp
-*
-* Conversion-tier concepts:
-*   C++20 concepts layered over container_conversion_traits.hpp. These
-* concepts provide readable constraints for full container conversion-tier
-* classification without replacing the existing SFINAE trait surface.
-*
-*   The concepts mirror the verified public trait surface from
-* container_conversion_traits.hpp:
-*   - lossy and structural per-axis detection
-*   - overall tier deduction
-*   - convenience predicates
-*   - shorthand concepts over container_conversion_class<F, T>
-*
-* 
-* path:      /inc/djinterp/core/container/concepts/
-*                container_conversion_concepts.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* djinterp [container] container_conversion_concepts.hpp C++20 concepts for the
+* CONVERSION axis -- the `requires`-facing view of
+* container_conversion_traits.hpp. THE CONCEPTS ADD NO POLICY. Each is exactly
+* its trait, spelled so it can constrain a template instead of gating one
+* through enable_if. The trait stays the single source of truth; if a
+* classification is wrong, it is wrong in one place. That is the whole point of
+* generating these rather than restating the detection logic in `requires`
+* clauses. PORTABILITY: Gated on C++20 + concepts. Below that the header is
+* empty and callers use the `::value` / `_v` forms directly -- which is why
+* nothing else in the framework is allowed to depend on these. path:
+* /inc/djinterp/core/container/concepts/container_conversion_concepts.hpp
+* link(s): TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
+* *****************************************************************************/
 
 #ifndef DJINTERP_CONTAINER_CONVERSION_CONCEPTS_
 #define DJINTERP_CONTAINER_CONVERSION_CONCEPTS_ 1
 
-#ifndef __cplusplus
-    #error "container_conversion_concepts.hpp requires C++ compilation"
-#endif
-
-//djinterp
+// djinterp
 #include "../../djinterp.hpp"
 #include "../traits/container_conversion_traits.hpp"
 
 
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
 NS_DJINTERP
 
+// ==========================================================================
+//  CONVERTIBILITY
+// ==========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// ===========================================================================
-// I.   Tier-2 / Tier-3 per-axis concepts
-// ===========================================================================
-
+// container_convertible_to
+//   concept: there is any path at all from _From to _To.
 template<typename _From, typename _To>
-concept deduplicating_conversion_pair =
-    needs_deduplication_v<_From, _To>;
+concept container_convertible_to =
+    is_convertible_between<clean_t<_From>, clean_t<_To>>::value;
 
+
+// losslessly_convertible_to
+// concept: the conversion loses NOTHING -- no content, no topology, no
+// capacity. The distinction from lossy is not a warning label; it is the
+// difference between a rename and a projection.
 template<typename _From, typename _To>
-concept bound_clamping_conversion_pair =
-    needs_bound_clamp_v<_From, _To>;
+concept losslessly_convertible_to =
+    is_lossless_conversion<clean_t<_From>, clean_t<_To>>::value;
 
+
+// lossily_convertible_to
+// concept: the conversion is possible but DROPS something -- content, ordering,
+// or elements over capacity.
 template<typename _From, typename _To>
-concept lossy_conversion_pair =
-    is_lossy_convertible_v<_From, _To>;
+concept lossily_convertible_to =
+    is_lossy_conversion<clean_t<_From>, clean_t<_To>>::value;
 
+
+// ==========================================================================
+//  PATHS
+// ==========================================================================
+
+
+// range_constructible_from
+// concept: _To can be built from _From's iterator range. Note the direction:
+// the CONSTRAINT is on _To, the RANGE is _From.
 template<typename _From, typename _To>
-concept hierarchy_changing_conversion_pair =
-    needs_hierarchy_change_v<_From, _To>;
+concept range_constructible_from =
+    is_range_constructible<clean_t<_To>, clean_t<_From>>::value;
 
+
+// range_insertable_from
+//   concept: _From's range can be inserted into an existing _To.
 template<typename _From, typename _To>
-concept backing_changing_conversion_pair =
-    needs_ing_change_v<_From, _To>;
+concept range_insertable_from =
+    is_range_insertable<clean_t<_To>, clean_t<_From>>::value;
 
+
+// view_convertible_to
+// concept: the conversion is a VIEW -- no copy, no ownership, and therefore no
+// cost and no independence.
 template<typename _From, typename _To>
-concept incompatible_element_conversion_pair =
-    has_incompatible_elements_v<_From, _To>;
-
-template<typename _From, typename _To>
-concept structural_conversion_pair =
-    is_structural_convertible_v<_From, _To>;
-
-
-// ===========================================================================
-// II.  Tier identity concepts
-// ===========================================================================
-
-template<typename _From, typename _To>
-concept view_conversion_pair =
-    ( conversion_tier_v<_From, _To> == DConversionTier::view );
-
-template<typename _From, typename _To>
-concept constructive_conversion_pair =
-    ( conversion_tier_v<_From, _To> == DConversionTier::constructive );
-
-template<typename _From, typename _To>
-concept lossy_tier_conversion_pair =
-    ( conversion_tier_v<_From, _To> == DConversionTier::lossy );
-
-template<typename _From, typename _To>
-concept structural_tier_conversion_pair =
-    ( conversion_tier_v<_From, _To> == DConversionTier::structural );
-
-template<typename _From, typename _To>
-concept impossible_conversion_pair =
-    ( conversion_tier_v<_From, _To> == DConversionTier::impossible );
-
-template<typename _From, typename _To>
-concept convertible_container_pair =
-    is_convertible_container_pair_v<_From, _To>;
-
-template<typename _From, typename _To>
-concept lossless_conversion_pair =
-    is_lossless_convertible_v<_From, _To>;
-
-
-// ===========================================================================
-// III. Classification-based shorthand concepts
-// ===========================================================================
-
-template<typename _From, typename _To>
-concept classified_conversion_pair =
-    container_conversion_class<_From, _To>::is_convertible;
-
-template<typename _From, typename _To>
-concept classified_view_conversion_pair =
-    container_conversion_class<_From, _To>::is_view;
-
-template<typename _From, typename _To>
-concept classified_constructive_conversion_pair =
-    container_conversion_class<_From, _To>::is_constructive;
-
-template<typename _From, typename _To>
-concept classified_lossy_conversion_pair =
-    container_conversion_class<_From, _To>::is_lossy;
-
-template<typename _From, typename _To>
-concept classified_structural_conversion_pair =
-    container_conversion_class<_From, _To>::is_structural;
-
-template<typename _From, typename _To>
-concept classified_impossible_conversion_pair =
-    container_conversion_class<_From, _To>::is_impossible;
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
+concept view_convertible_to =
+    is_view_conversion<clean_t<_From>, clean_t<_To>>::value;
 
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 #endif  // DJINTERP_CONTAINER_CONVERSION_CONCEPTS_
