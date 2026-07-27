@@ -3,7 +3,7 @@
 *
 *   A tiny, DEPENDENCY-FREE archive writer: it bundles a set of entries into a
 * single ZIP container using the STORED method (no compression), emitting the
-* bytes into a byte_buffer.  It exists so the report packaging path
+* bytes into a byte_blob.  It exists so the report packaging path
 * (test_report_runner.hpp, write_archived_report) can always produce ONE
 * container file even on a build with no third-party archive backend
 * (libarchive / minizip / the LZMA SDK / bit7z).  The core archive facade
@@ -54,7 +54,7 @@
 #include <vector>
 // djinterp
 #include "../../core/djinterp.hpp"
-#include "../../core/util/archive.hpp"   // entry, entry_list, byte_buffer
+#include "../../core/util/archive.hpp"   // entry, entry_list, byte_blob
 
 
 NS_DJINTERP
@@ -160,7 +160,7 @@ namespace zip_store_internal
 D_INLINE bool
 zip_store_archive(
     const entry_list& _entries,
-    byte_buffer&      _out
+    byte_blob&      _out
 )
 {
     using namespace zip_store_internal;
@@ -179,7 +179,7 @@ zip_store_archive(
     for (i = 0; i < _entries.size(); ++i)
     {
         const std::string&  name = _entries[i].name;
-        const byte_buffer&  data = _entries[i].data;
+        const byte_blob&  data = _entries[i].data;
 
         const std::uint32_t crc    = crc32(data.data(), data.size());
         const std::uint32_t size   = static_cast<std::uint32_t>(data.size());

@@ -75,7 +75,7 @@
 // defines DTEST_PACK_USE_FACADE_DOUBLE and puts basename drop-ins named
 // "archive.hpp" / "compress.hpp" on the include path (e.g. -I .../pack_facade).
 // Those basenames are NOT present next to this header, so they fall through to
-// the -I double.  The double supplies the same surface, recorded: byte_buffer,
+// the -I double.  The double supplies the same surface, recorded: byte_blob,
 // status{status_ok,status_unavailable,status_invalid_argument}, compress_options,
 // archive_options, entry, entry_list, codecs::/formats:: tags, and
 // try_compress<>/try_archive<>/codec_is_available<>/format_is_writable<>.
@@ -84,7 +84,7 @@
 #  include "compress.hpp"                // instrumented drop-in (-I .../pack_facade)
 #else
 #  include "../core/util/archive.hpp"   // entry, entry_list, formats::, archive
-#  include "../core/util/compress.hpp"  // byte_buffer, status, codecs::, try_*
+#  include "../core/util/compress.hpp"  // byte_blob, status, codecs::, try_*
 #endif
 #include "./test_options.hpp"         // test_option_set + the packaging enums + accessors
 
@@ -108,9 +108,9 @@ NS_INTERNAL
     D_INLINE status
     pack_compress_helper(
         test_compressor          _codec,
-        const byte_buffer&       _in,
+        const byte_blob&       _in,
         const compress_options&  _opt,
-        byte_buffer&             _out
+        byte_blob&             _out
     )
     {
         using namespace codecs;
@@ -149,7 +149,7 @@ NS_INTERNAL
         test_archive_format     _format,
         const entry_list&       _items,
         const archive_options&  _opt,
-        byte_buffer&            _out
+        byte_blob&            _out
     )
     {
         using namespace formats;
@@ -175,21 +175,25 @@ NS_INTERNAL
 
     // pack_doc_ext_helper
     //   helper: the file extension matching a document format, for naming the
-    // entry placed inside an archive.
+    // entry placed inside an archive.  The spelling comes from the canonical
+    // format_extension (document_format.hpp) rather than a local switch, so a
+    // format added there is named correctly here without an edit; the leading
+    // dot is stripped because an entry name applies it itself.
     D_INLINE std::string
     pack_doc_ext_helper(
         test_doc_type _doc
     )
     {
-        switch (_doc)
+        const std::string _ext = ::djinterp::format_extension(_doc);
+
+        // format_extension yields ".txt"; an entry name wants "txt"
+        if ( (!_ext.empty()) &&
+             (_ext[0] == '.') )
         {
-            case test_doc_type::txt:  return std::string("txt");
-            case test_doc_type::xml:  return std::string("xml");
-            case test_doc_type::html: return std::string("html");
-            case test_doc_type::pdf:  return std::string("pdf");
+            return _ext.substr(1);
         }
 
-        return std::string("txt");
+        return _ext;
     }
 
     // pack_entry_name_helper
@@ -347,8 +351,8 @@ report_format_available(
 D_NODISCARD D_INLINE status
 pack_report(
     const test_option_set& _opts,
-    const byte_buffer&     _report,
-    byte_buffer&           _out
+    const byte_blob&     _report,
+    byte_blob&           _out
 )
 {
     _out.clear();

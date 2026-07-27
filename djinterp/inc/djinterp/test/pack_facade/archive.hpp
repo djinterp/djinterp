@@ -16,7 +16,7 @@
 *       A|<tag>|<count>|<first entry name>
 *
 * into _out and returns fmt_stat<Tag>(), a per-format status slot the tests
-* steer.  byte_buffer and status come from the sibling compress double, as in
+* steer.  byte_blob and status come from the sibling compress double, as in
 * the production tree where archive.hpp includes compress.hpp.
 *
 *   The recorded tag ids are the ENUM-STYLE names the tests expect -- note
@@ -51,7 +51,7 @@
 // sibling compress double is reached by basename (it sits next to this file).
 #include <djinterp/core/djinterp.hpp>              // NS_*, D_INLINE
 #include <djinterp/core/util/archive_options.hpp>  // archive_options
-#include "compress.hpp"                            // byte_buffer, status, tags
+#include "compress.hpp"                            // byte_blob, status, tags
 
 
 NS_DJINTERP
@@ -70,7 +70,7 @@ struct entry
     std::string  name;
 
     // data: file contents (ignored when is_directory is true).
-    byte_buffer  data;
+    byte_blob  data;
 
     // is_directory: true for a directory member with no data.
     bool         is_directory;
@@ -237,7 +237,7 @@ template<typename _Format>
 status
 try_archive(
     const entry_list&       _items,
-    byte_buffer&            _out,
+    byte_blob&            _out,
     const archive_options&  _opt = archive_options()
 )
 {
@@ -345,7 +345,7 @@ NS_INTERNAL
         const entry*            _items,
         std::size_t             _count,
         const archive_options&  _opt,
-        byte_buffer&            _out
+        byte_blob&            _out
     )
     {
         status s;
@@ -424,7 +424,7 @@ NS_INTERNAL
             entry e;
 
             e.name = format_id_label(_format);
-            e.data = ( _in ? byte_buffer(_in, _n) : byte_buffer() );
+            e.data = ( _in ? byte_blob(_in, _n) : byte_blob() );
 
             _out.clear();
             _out.push_back(e);

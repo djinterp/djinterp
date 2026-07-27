@@ -102,6 +102,8 @@ PART C - ROUTE AUTHORING (C++20)
 #include "../core/option/option.hpp"           // option<>
 #include "../core/option/option_set.hpp"       // option_set<>, field<>
 #include "../core/option/option_generator.hpp" // make_option_set<>
+#include "../core/util/document/document_format.hpp" // document_format (the single
+                                              //   document-format selector)
 #include "../core/util/compress_options.hpp"   // compress_options
 #include "../core/util/archive_options.hpp"    // archive_options
 #include "./test_common.hpp"                   // test_type_id, test_status
@@ -122,15 +124,20 @@ NS_TEST
 ///////////////////////////////////////////////////////////////////////////////
 
 // test_doc_type
-//   enum: the document format a report is rendered as.  `txt` is the plain
-// default; `xml` / `html` / `pdf` select the corresponding emitter.
-enum class test_doc_type
-{
-    txt,
-    xml,
-    html,
-    pdf
-};
+//   type: the document format a report is rendered as -- an ALIAS of the
+// framework's single format selector, `document_format`.  It was a DTest-local
+// enum spelling a subset of the same concept, which forced a hand-written
+// switch to bridge to the emit layer's `doc_format` and to output_packaging;
+// the alias retires the bridge and, with it, the mis-mapping bugs that come of
+// keeping three orderings in step by hand.
+//
+//   ONE SPELLING CHANGED: the plain default is `text`, not `txt` (the core
+// enum's spelling wins, and "txt" survives as an accepted alias in
+// format_from_name for config strings).  `xml` / `html` / `pdf` are unchanged,
+// so a runner that only ever selected PDF is untouched.  `markdown` / `tex` /
+// `wiki` are now selectable here for free -- the emit layer already renders
+// markdown, and simply had no way to be asked for it.
+using test_doc_type = ::djinterp::document_format;
 
 // test_sink
 //   enum: a BITSET of output destinations - a report can be written to more
@@ -705,7 +712,7 @@ struct test_route
           has_format(false),
           format(),
           has_document(false),
-          document(test_doc_type::txt)
+          document(test_doc_type::text)
     {}
 };
 
@@ -925,7 +932,7 @@ struct test_option_set
           wrap_mode(test_wrap_mode::word),
           indent_width(2),
           color(true),
-          document(test_doc_type::txt),
+          document(test_doc_type::text),
           sinks(test_sink::console),
           output_path(),
           show(test_show::all),

@@ -32,7 +32,7 @@
 * per-file NAME is a builder-local pattern (set_file_name_pattern(), folded
 * through test_report.hpp's expand_report_file_name) rather than an option
 * slot - test_options.hpp carries no file_name_pattern slot today; see that
-* header's "FILE NAMING" note. With the default `txt` document no file is
+* header's "FILE NAMING" note. With the default `text` document no file is
 * written - the run is console-only - so a runner opts into PDF explicitly.
 *
 *   PDF RENDERING:
@@ -99,20 +99,16 @@
 #include <vector>
 // djinterp
 #include "../../core/djinterp.hpp"
+#include "../../core/container/buffer/byte_buffer.hpp"
 #include "../test_common.hpp"      // test_status
 #include "../test_context.hpp"     // test_context + at_run (PDF focus)
 #include "../test_options.hpp"     // test_option_set + accessors + defaults
 #include "./test_report.hpp"       // test_report model + tallies +
                                    //   expand_report_file_name
-#include "./test_render_pdf.hpp"   // pdf_layout, pdf_default_layout,
-                                   //   render_report_pdf_bytes,
-                                   //   render_module_pdf_bytes - the CURRENT
-                                   //   PDF render entry points.  (NOTE: this
-                                   //   header is C++17-gated; emit_document()
-                                   //   below is correspondingly gated.)
-#include "./test_render_pdf_table.hpp" // render_report_pdf_bytes_table - the
-                                   //   DEFAULT real-ruled-table renderer this
-                                   //   runner now emits (C++11 baseline).
+#include "./test_report_pdf.hpp"      // render_report_pdf_bytes_table -- the
+                                       //   banded/ruled PDF face, now composed
+                                       //   via test_report_document + the
+                                       //   canvas-backed document_renderer
 
 // Output packaging is OPT-IN: define D_TEST_REPORT_ENABLE_ARCHIVE before
 // including this header to pull in the archive facade and have write_pdf_report()
@@ -120,9 +116,12 @@
 // Left undefined (the default), the builder compiles exactly as before, with no
 // dependency on the archive backend - so a console-only or single-PDF runner
 // pays nothing for a feature it does not use.  See PDF RENDERING in the header
-// banner: this is the "future pass" that routes emission through packaging,
-// reaching the archive facade directly since the document_bundle layer the
-// banner names is a separate, heavier dependency.
+// banner: the archive path.  The document_bundle route now exists as
+// test_packaging.hpp (emit_report_to_disk / _to_buffer), which adds a naming
+// policy, both pack modes and a sink abstraction; prefer it for new work.  The
+// direct facade calls below remain because zip_store_archive is the fallback
+// when no backend zip writer is built in -- a capability output_packaging does
+// not have, since it dispatches to the facade rather than around it.
 #if defined(D_TEST_REPORT_ENABLE_ARCHIVE) && D_ENV_LANG_IS_CPP17_OR_HIGHER
     #include "../../core/util/archive.hpp"   // entry, entry_list, try_archive<>,
                                              //   formats::*, archive_options,
@@ -778,7 +777,7 @@ private:
     struct pending_doc
     {
         std::string name;
-        byte_buffer bytes;
+        std::string bytes;
     };
 
     // write_pdf_report
@@ -879,12 +878,12 @@ private:
     }
 
     // write_bytes_to_file
-    //   internal: a raw byte_buffer -> file write.  Returns false (and writes
+    //   internal: a raw byte_blob -> file write.  Returns false (and writes
     // nothing) on an empty path or a failed fopen()/short write.
     static bool
     write_bytes_to_file(
         const std::string& _path,
-        const byte_buffer& _bytes
+        const std::string& _bytes
     )
     {
         if (_path.empty())
@@ -915,8 +914,8 @@ private:
     // `output_file` path (a fallback "report.<ext>" is used when that slot is
     // empty).  Each document keeps the name computed above (basename only) as
     // its entry name inside the archive.  Rendering + archiving happen entirely
-    // in memory (byte_buffer is std::string; the archive facade builds the
-    // container as a byte_buffer), matching the builder's write-bytes-verbatim
+    // in memory (byte_blob is std::string; the archive facade builds the
+    // container as a byte_blob), matching the builder's write-bytes-verbatim
     // model.
     //
     // Return:
@@ -936,11 +935,11 @@ private:
         {
             ::djinterp::entry e;
             e.name = base_name_of(_docs[i].name);   // path within the archive
-            e.data = _docs[i].bytes;                 // byte_buffer == std::string
+            e.data = _docs[i].bytes;                 // byte_blob == std::string
             entries.push_back(e);
         }
 
-        ::djinterp::byte_buffer blob;
+        ::djinterp::byte_blob blob;
 
         if (!try_build_archive(archive_format(m_opts),
                                entries,
@@ -981,7 +980,7 @@ private:
         test_archive_format                _fmt,
         const ::djinterp::entry_list&      _entries,
         const ::djinterp::archive_options& _aopts,
-        ::djinterp::byte_buffer&           _out
+        ::djinterp::byte_blob&           _out
     )
     {
         using namespace ::djinterp;

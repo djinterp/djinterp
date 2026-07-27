@@ -49,8 +49,8 @@
 #include <vector>
 // djinterp
 #include "../../core/djinterp.hpp"               // NS_*, D_NODISCARD, D_NOEXCEPT
-#include "../../core/text/pdf/pdf.hpp"           // pdf_document + primitives (whole chain)
-#include "../../core/text/pdf/pdf_metrics.hpp"   // text_width, wrap_to_width
+#include "../../core/util/pdf/pdf.hpp"           // pdf_document + primitives (whole chain)
+#include "../../core/util/pdf/pdf_metrics.hpp"   // text_width, wrap_to_width
 #include "./test_report.hpp"                    // test_report model (enriched)
 
 
