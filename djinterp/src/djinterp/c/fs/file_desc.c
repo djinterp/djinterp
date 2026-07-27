@@ -5,6 +5,10 @@
 ///             INTERNAL DEFINITIONS                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
+#if !D_FILE_BACKEND_IS_STDC
+//   Not built on the ISO C backend: the only caller is in the non-STDC
+// branch below, so defining it there is an unused function and a warning.
+
 /*
 d_internal_desc_flags
   Applies this build's open policy to a caller's flags.
@@ -53,6 +57,8 @@ d_internal_desc_flags
 
     return flags;
 }
+
+#endif // !D_FILE_BACKEND_IS_STDC
 
 
 ///////////////////////////////////////////////////////////////////////////////

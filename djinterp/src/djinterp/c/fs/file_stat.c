@@ -70,19 +70,31 @@ d_internal_stat_statx
     _out->st_dev = (uint64_t)makedev(stx.stx_dev_major, stx.stx_dev_minor);
 
     _out->st_modified      = (int64_t)stx.stx_mtime.tv_sec;
-    _out->st_modified_nsec = (uint32_t)stx.stx_mtime.tv_nsec;
     _out->st_accessed      = (int64_t)stx.stx_atime.tv_sec;
-    _out->st_accessed_nsec = (uint32_t)stx.stx_atime.tv_nsec;
     _out->st_changed       = (int64_t)stx.stx_ctime.tv_sec;
+
+    //   The knobs are honoured HERE too, not just on the plain-stat path.
+    // statx hands back sub-second and birth times whether or not this build
+    // asked for them, so filling them unconditionally made the query macros
+    // lie in the opposite direction from the bug they were added for:
+    // D_FILE_STAT_HAS_NSEC would report 0 while the fields carried real data.
+    // A caller cannot defend against a macro that says no and means yes any
+    // more than one that says yes and means no.
+    #if (D_INTERNAL_FILE_STAT_NSEC != 0)
+    _out->st_modified_nsec = (uint32_t)stx.stx_mtime.tv_nsec;
+    _out->st_accessed_nsec = (uint32_t)stx.stx_atime.tv_nsec;
     _out->st_changed_nsec  = (uint32_t)stx.stx_ctime.tv_nsec;
+    #endif
 
     // the whole point -- but only when the filesystem actually stored one.
     // statx succeeds without STATX_BTIME on a filesystem that does not, and
     // reading stx_btime then would be reading a zero and calling it a date.
+    #if (D_INTERNAL_FILE_STAT_BIRTHTIME == 1)
     if ((stx.stx_mask & STATX_BTIME) != 0)
     {
         _out->st_created = (int64_t)stx.stx_btime.tv_sec;
     }
+    #endif
 
     return 0;
 }

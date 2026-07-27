@@ -42,6 +42,15 @@ FILE* d_popen(const char* _command,
               const char* _mode);
 int   d_pclose(FILE* _stream);
 
+// d_pipe_exit_code
+//   function: turn d_pclose's return value into the command's exit code.
+// POSIX pclose returns a WAIT STATUS, not a code: `exit 3` yields 768. This
+// decodes it -- N for a normal exit, 128+N for death by signal N, -1 for a
+// failed reap -- so callers never see the raw encoding. On Windows _pclose
+// already returns the code, so this is the identity there. The decode lives
+// here because <sys/wait.h> is an OS header and the C++ layer may not read one.
+int   d_pipe_exit_code(int _status);
+
 
 D_EXTERN_C_END
 

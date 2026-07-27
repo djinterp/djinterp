@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "../../../../inc/djinterp/c/fs/file_seek.h"
 
 
