@@ -13,6 +13,10 @@
 ///             INTERNAL DEFINITIONS                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
+#if !D_FILE_BACKEND_IS_STDC
+//   Not built on the ISO C backend: the only caller is in the non-STDC
+// branch below, so defining it there is an unused function and a warning.
+
 /*
 d_internal_ops_copy_portable
   Copies a file's contents by moving bytes through a user-space buffer.
@@ -160,6 +164,8 @@ d_internal_ops_copy_native
 }
 
 #endif  // D_INTERNAL_FILE_OPS_COPY_NATIVE
+
+#endif // !D_FILE_BACKEND_IS_STDC
 
 
 ///////////////////////////////////////////////////////////////////////////////

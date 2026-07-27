@@ -5,6 +5,9 @@
 ///             INTERNAL DEFINITIONS                                        ///
 ///////////////////////////////////////////////////////////////////////////////
 
+//   Not built on the ISO C backend: the only caller is in the non-STDC
+// branch below, so defining it there is an unused function and a warning.
+#if ( (D_INTERNAL_FILE_VALIDATE == 1) && !D_FILE_BACKEND_IS_STDC )
 /*
 d_internal_lock_check_op
   Validates a lock operation.
@@ -46,6 +49,7 @@ d_internal_lock_check_op
 
     return (count == 1);
 }
+#endif // D_INTERNAL_FILE_VALIDATE && !D_FILE_BACKEND_IS_STDC
 
 
 ///////////////////////////////////////////////////////////////////////////////

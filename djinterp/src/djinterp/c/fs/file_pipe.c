@@ -3,6 +3,10 @@
 
 #if (D_INTERNAL_FILE_HAS_PIPES == 1)
 
+#if !D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    #include <sys/wait.h>   /* WIFEXITED / WEXITSTATUS / WTERMSIG */
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 ///             I.  PIPES                                                   ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,5 +159,57 @@ d_pclose
 
     return result;
 }
+
+
+/*
+d_pipe_exit_code
+  Decodes what d_pclose returned into the command's exit code.
+  d_pclose deliberately hands back the platform's own value, because smoothing
+that over would discard the signal information a POSIX wait status carries.
+This is the other half of that decision: the caller who wants a single number
+in the shell's vocabulary -- N for a normal exit, 128+N for death by signal N,
+127 for "command not found" -- gets it here, and the caller who wants the raw
+status still has it from d_pclose.
+  The 128+N convention does fold `exit 143` and SIGTERM onto one value. That is
+the trade the convention makes, and it is made HERE rather than in each caller,
+so that every caller makes the same one. Anything the platform reports that is
+neither a normal exit nor a signal is returned unchanged rather than mapped
+onto a plausible-looking number.
+  This lives in C because decoding needs <sys/wait.h>, and no C++ header in
+this framework may read an OS header.
+
+Parameter(s):
+  _status: the value d_pclose returned.
+Return:
+  The exit code, or -1 when _status reported a failed wait.
+*/
+int
+d_pipe_exit_code
+(
+    int _status
+)
+{
+    if (_status < 0)
+    {
+        return -1;
+    }
+
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    return _status;
+#else
+    if (WIFEXITED(_status))
+    {
+        return WEXITSTATUS(_status);
+    }
+
+    if (WIFSIGNALED(_status))
+    {
+        return 128 + WTERMSIG(_status);
+    }
+
+    return _status;
+#endif
+}
+
 
 #endif  // D_INTERNAL_FILE_HAS_PIPES
