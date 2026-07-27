@@ -714,7 +714,7 @@ private:
     void
     pack_and_write_file()
     {
-        byte_buffer packed;
+        byte_blob packed;
         status      s = pack_report(m_options, m_file_buffer, packed);
 
         std::ofstream out(m_options.output_path.c_str(),

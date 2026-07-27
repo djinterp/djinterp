@@ -1874,7 +1874,7 @@ run_suite(
 // face the documented way -
 //     opts.set<test_option::document>(test_doc_type::pdf);
 //     opts.set<test_option::output_file>("suite.pdf");
-// - or leave `document` at its txt default for a console-only run.  The
+// - or leave `document` at its `text` default for a console-only run.  The
 // six-kind tree view is identical to the convenience overload; only the report
 // configuration seam differs (a caller-owned option set vs the framework
 // default plus use_pdf()).

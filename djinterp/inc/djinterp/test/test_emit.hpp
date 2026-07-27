@@ -61,7 +61,7 @@
                                            //   build_*, at_module,
                                            //   document_bundle, output_config, pack_mode,
                                            //   format_id_*, codec_id, write_to_disk,
-                                           //   write_to_buffer, byte_buffer, pdf_template_source
+                                           //   write_to_buffer, byte_blob, pdf_template_source
 
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -370,7 +370,7 @@ public:
             case emit_sink::console:
             {
                 _cfg.pack = ::djinterp::pack_mode::none;
-                byte_buffer _buf;
+                byte_blob _buf;
                 const bool _ok = ::djinterp::write_to_buffer(_bundle, _cfg, _buf, std::string("\n"));
                 std::cout.write(_buf.data(), static_cast<std::streamsize>(_buf.size()));
                 std::cout.flush();
@@ -417,7 +417,7 @@ private:
                     _bundle.add(
                         std::string(_mod->name),
                         std::string(format_extension(_fmt)),
-                        [_rp, _mod, _idx, _fmt, _src]() -> byte_buffer
+                        [_rp, _mod, _idx, _fmt, _src]() -> byte_blob
                         {
                             return render_module_bytes(
                                 at_module(_rp, _mod, _idx + 1), _fmt, _src);
@@ -433,10 +433,10 @@ private:
                 _bundle.add(
                     static_cast<std::string&&>(_name),
                     std::string(format_extension(_fmt)),
-                    [_rp, _fmt, _src]() -> byte_buffer
+                    [_rp, _fmt, _src]() -> byte_blob
                     {
                         return _rp ? render_report_bytes(*_rp, _fmt, _src)
-                                   : byte_buffer();
+                                   : byte_blob();
                     });
             }
         }

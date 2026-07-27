@@ -32,7 +32,7 @@
 * name) for the by-name style (there is no add_text(format, name); "" / unknown
 * falls back to the body style), add_rule(pdf_unit, pdf_color) / add_vspace(
 * pdf_unit) / add_page_break(), the register_style + heading_style/body_style
-* style API, and render_pdf() -> std::string (converted to byte_buffer here).
+* style API, and render_pdf() -> std::string (converted to byte_blob here).
 * The adapter compiles and emits the correct op sequence against those
 * signatures.  A full end-to-end link against the built-in backend additionally
 * needs parser.hpp (text_template) and color.hpp (pdf_primitives), which are
@@ -56,11 +56,11 @@
 #include <vector>
 // djinterp
 #include "../../core/djinterp.hpp"               // NS_*, D_NODISCARD
-#include "../../core/text/pdf/pdf_template.hpp"  // pdf::pdf_template (path: match your tree)
+#include "../../core/util/pdf/pdf_template.hpp"  // pdf::pdf_template (path: match your tree)
 #include "../../core/util/compress.hpp"       // pdf::pdf_template (path: match your tree)
-#include "../../core/text/templates/title_page.hpp"            // cover page (template)
-#include "../../core/text/templates/document_table.hpp"        // summary table (template)
-#include "../../core/text/pdf/pdf_document_renderer.hpp" // document_renderer -> pdf_template
+#include "../../core/util/document/templates/title_page.hpp"            // cover page (template)
+#include "../../core/util/document/templates/document_table.hpp"        // summary table (template)
+#include "../../core/util/pdf/pdf_document_renderer.hpp" // document_renderer -> pdf_template
 #include "./test_render.hpp"                     // the binding (make_test_resolver) + emit + the walk shape
 
 
@@ -287,7 +287,7 @@ register_default_styles(
 
 // render_report_pdf_bytes
 //   the test_output entry point: walk into a fresh template, serialize to bytes.
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_report_pdf_bytes(
     const pdf_layout&   _layout,
     const test_report&  _run
@@ -297,13 +297,13 @@ render_report_pdf_bytes(
     register_default_styles(_tpl);
     render_report_pdf(_layout, _run, _tpl);
     const std::string _bytes = _tpl.render_pdf();          // pdf_template serializes to std::string
-    return byte_buffer(_bytes.begin(), _bytes.end());
+    return byte_blob(_bytes.begin(), _bytes.end());
 }
 
 
 // render_module_pdf_bytes
 //   one module as a standalone PDF - the per-module bundle's pdf producer.
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_module_pdf_bytes(
     const pdf_layout&   _layout,
     const test_context& _module_ctx
@@ -313,7 +313,7 @@ render_module_pdf_bytes(
     register_default_styles(_tpl);
     render_module_pdf(_layout, _module_ctx, _tpl);
     const std::string _bytes = _tpl.render_pdf();
-    return byte_buffer(_bytes.begin(), _bytes.end());
+    return byte_blob(_bytes.begin(), _bytes.end());
 }
 
 
@@ -597,7 +597,7 @@ render_report_doc(
 // render_report_pdf_bytes_doc
 //   the template-based whole-run entry point (the DTest default): render the
 // document templates into a fresh pdf_template and serialize to bytes.
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_report_pdf_bytes_doc(
     const test_report& _run
 )
@@ -610,7 +610,7 @@ render_report_pdf_bytes_doc(
 
     const std::string _bytes = _tpl.render_pdf();
 
-    return byte_buffer(_bytes.begin(), _bytes.end());
+    return byte_blob(_bytes.begin(), _bytes.end());
 }
 
 
@@ -618,7 +618,7 @@ render_report_pdf_bytes_doc(
 //   the template-based per-module entry point: a cover for the one module plus
 // its detail.  The module and run are read off the focus, exactly as
 // render_module_pdf_bytes reads them.
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_module_pdf_bytes_doc(
     const test_context& _module_ctx
 )
@@ -660,7 +660,7 @@ render_module_pdf_bytes_doc(
 
     const std::string _bytes = _tpl.render_pdf();
 
-    return byte_buffer(_bytes.begin(), _bytes.end());
+    return byte_blob(_bytes.begin(), _bytes.end());
 }
 
 

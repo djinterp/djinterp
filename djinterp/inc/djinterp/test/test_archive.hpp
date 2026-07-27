@@ -14,7 +14,7 @@
 * the archive module itself).  Their tests all need the same handful of
 * checks, so they are collected once, in djinterp::test, alongside the other
 * shared test utilities (e.g. test_zip_store.hpp).  Everything here is built
-* strictly on archive.hpp's PUBLIC surface (entry / entry_list / byte_buffer /
+* strictly on archive.hpp's PUBLIC surface (entry / entry_list / byte_blob /
 * the format tags / try_archive / try_extract / format_is_writable), so it adds
 * no dependency a caller of the facade does not already have, and it never
 * reaches into archive.cpp internals.
@@ -62,7 +62,7 @@
 #include <vector>
 // djinterp
 #include "../core/djinterp.hpp"
-#include "../core/util/archive.hpp"   // entry, entry_list, byte_buffer, formats
+#include "../core/util/archive.hpp"   // entry, entry_list, byte_blob, formats
 
 
 NS_DJINTERP
@@ -138,7 +138,7 @@ namespace archive_verify_internal
 D_INLINE entry
 make_entry(
     const std::string& _name,
-    const byte_buffer& _data,
+    const byte_blob& _data,
     bool               _is_directory,
     unsigned int       _mode,
     long               _mtime
@@ -166,7 +166,7 @@ make_entry(
 D_INLINE entry
 make_file_entry(
     const std::string& _name,
-    const byte_buffer& _data
+    const byte_blob& _data
 )
 {
     return make_entry(_name, _data, false, 0u, 0L);
@@ -202,7 +202,7 @@ make_dir_entry(
     const std::string& _name
 )
 {
-    return make_entry(_name, byte_buffer(), true, 0u, 0L);
+    return make_entry(_name, byte_blob(), true, 0u, 0L);
 }
 
 
@@ -350,7 +350,7 @@ D_INLINE bool
 file_data(
     const entry_list&  _items,
     const std::string& _name,
-    byte_buffer&       _out
+    byte_blob&       _out
 )
 {
     const entry* e = find_entry(_items, _name);
@@ -427,7 +427,7 @@ files_preserved(
 //   the offset of the EOCD signature, or (std::size_t)-1 when not found.
 D_INLINE std::size_t
 zip_find_eocd(
-    const byte_buffer& _blob
+    const byte_blob& _blob
 )
 {
     const std::size_t npos = (std::size_t)-1;
@@ -467,7 +467,7 @@ zip_find_eocd(
 //   true when _blob has the shape of a ZIP container.
 D_INLINE bool
 looks_like_zip(
-    const byte_buffer& _blob
+    const byte_blob& _blob
 )
 {
     const char* p = _blob.data();
@@ -503,7 +503,7 @@ looks_like_zip(
 //   the advertised entry count, or -1 when no EOCD is present.
 D_INLINE long
 zip_total_entries(
-    const byte_buffer& _blob
+    const byte_blob& _blob
 )
 {
     std::size_t eocd = zip_find_eocd(_blob);
@@ -530,7 +530,7 @@ zip_total_entries(
 //   true when the local-header chain parsed without running past the end.
 D_INLINE bool
 zip_local_methods(
-    const byte_buffer&         _blob,
+    const byte_blob&         _blob,
     std::vector<unsigned int>& _out
 )
 {
@@ -586,7 +586,7 @@ zip_local_methods(
 //   true when _blob begins with a gzip / DEFLATE header.
 D_INLINE bool
 looks_like_gzip(
-    const byte_buffer& _blob
+    const byte_blob& _blob
 )
 {
     const char* p = _blob.data();
@@ -607,7 +607,7 @@ looks_like_gzip(
 //   true when the first header carries the ustar magic.
 D_INLINE bool
 tar_has_ustar_magic(
-    const byte_buffer& _blob
+    const byte_blob& _blob
 )
 {
     const char* p = _blob.data();
@@ -634,7 +634,7 @@ tar_has_ustar_magic(
 //   true when the final 1024 bytes are all zero.
 D_INLINE bool
 tar_is_terminated(
-    const byte_buffer& _blob
+    const byte_blob& _blob
 )
 {
     const char* p = _blob.data();
@@ -682,7 +682,7 @@ roundtrip(
     const archive_options& _opt = archive_options()
 )
 {
-    byte_buffer blob;
+    byte_blob blob;
     status      s;
 
     s = try_archive<_Format>(_in, blob, _opt);

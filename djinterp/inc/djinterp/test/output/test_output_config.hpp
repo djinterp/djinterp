@@ -2,12 +2,20 @@
 * djinterp [test]                                       test_output_config.hpp
 *
 *   The bridge from a test_option_set's KNOBS to the emit layer's VOCABULARY.
-* test_options owns the typed test_* selection enums (test_output_pack /
-* test_compressor / test_archive_format / test_doc_type); output_packaging owns
-* the runtime vocabulary the bundle / sinks consume (pack_mode / codec_id /
-* format_id / output_config); test_output owns doc_format.  This header is the
-* single place those three meet - it lowers a configuration into an
-* output_config + the list of doc_formats to emit, and nothing else.
+* test_options owns the typed test_* PACKAGING enums (test_output_pack /
+* test_compressor / test_archive_format); output_packaging owns the runtime
+* vocabulary the bundle / sinks consume (pack_mode / codec_id / format_id /
+* output_config).  This header is the single place those meet - it lowers a
+* configuration into an output_config + the list of formats to emit, and
+* nothing else.
+*
+*   THE DOCUMENT-FORMAT ARM IS GONE.  test_doc_type and doc_format are both now
+* aliases of ::djinterp::document_format, so to_doc_format below is an identity
+* kept for source compatibility rather than a mapping.  What remains to bridge
+* is the PACKAGING vocabulary, where two independently-ordered enum sets really
+* do exist and really do need the explicit switches (see the note on tar_gz /
+* gz below - that hazard is unchanged and is exactly why these are switches and
+* not casts).
 *
 *   WHY A SEPARATE HEADER:
 *   test_output stays clean C++17 (it composes test_document / document_bundle)
@@ -127,23 +135,24 @@ to_format_id(
 
 
 // to_doc_format
-//   function: a test_doc_type -> the emit layer's doc_format.  test_doc_type has
-// no markdown member today; doc_format::markdown is reachable only by binding a
-// new test_doc_type member (and routing it here) when a markdown_print_policy
-// lands.
+//   function: a test_doc_type -> the emit layer's doc_format.  Both are now
+// aliases of ::djinterp::document_format, so this is an IDENTITY and is kept
+// only so existing call sites need no edit.
+//
+//   It used to be a real switch between two enums that spelled overlapping
+// subsets of one concept -- and, because test_doc_type had no markdown member,
+// doc_format::markdown was unreachable from a configuration even though the
+// emit layer rendered it.  Collapsing the two removed both the switch and that
+// dead corner: `markdown` (and `tex` / `wiki`) are now simply selectable.
+//
+//   New code should pass document(_opts) straight through; this overload is a
+// candidate for removal once no caller names it.
 D_NODISCARD inline doc_format
 to_doc_format(
     test_doc_type _t
 ) D_NOEXCEPT
 {
-    switch (_t)
-    {
-        case test_doc_type::txt:  { return doc_format::text; }
-        case test_doc_type::xml:  { return doc_format::xml;  }
-        case test_doc_type::html: { return doc_format::html; }
-        case test_doc_type::pdf:  { return doc_format::pdf;  }
-        default:                  { return doc_format::text; }
-    }
+    return _t;
 }
 
 

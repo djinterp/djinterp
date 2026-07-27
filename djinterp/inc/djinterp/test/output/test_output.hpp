@@ -85,8 +85,10 @@
 #include <vector>
 // djinterp
 #include "../../core/djinterp.hpp"                    // NS_*, D_NODISCARD, gates
-#include "../../core/text/document_bundle.hpp"        // document_bundle, write_to_disk,
-                                                      //   write_to_buffer, byte_buffer,
+#include "../../core/util/document/document_format.hpp"  // document_format (aliased
+                                                        //   below as doc_format)
+#include "../../core/util/document/document_bundle.hpp"        // document_bundle, write_to_disk,
+                                                      //   write_to_buffer, byte_blob,
                                                       //   output_config, disk_output_sink
                                                       //   (sinks via output_packaging)
 #include "../../core/text/markup_string_template.hpp" // xml_escape_policy, html_escape_policy
@@ -111,40 +113,34 @@ NS_TEST
 ///////////////////////////////////////////////////////////////////////////////
 
 // doc_format
-//   enum: the output formats the DTest layer can emit.  Each maps to exactly one
-// layout: text / markdown / xml / html to a report_layout (test_render), pdf to a
-// pdf_layout (test_render_pdf).  The layout - and, for the markup formats, the
-// escaping sink - is the ONLY thing that varies; the projections are shared.
-enum class doc_format
-{
-    text,
-    markdown,
-    xml,
-    html,
-    pdf
-};
+//   type: the output formats the DTest layer can emit -- an ALIAS of the
+// framework's single format selector, `document_format`.  Each served value
+// maps to exactly one layout: text / markdown / xml / html to a report_layout
+// (test_render), pdf to a pdf_layout (test_render_pdf).  The layout - and, for
+// the markup formats, the escaping sink - is the ONLY thing that varies; the
+// projections are shared.
+//
+//   It was a DTest-local enum spelling a subset of the same concept, needing a
+// switch (test_output_config's to_doc_format) to bridge from test_options'
+// selector.  With both aliased to document_format the bridge is an identity and
+// the two orderings can no longer drift apart.
+//
+//   THE ENUM IS WIDER THAN THE SWITCHES.  document_format also names `tex` and
+// `wiki`, which this layer has no layout for; every switch below therefore
+// carries a `default:` fused with the text arm, so an unserved format degrades
+// to plain text rather than failing to compile when the enum grows.
+using doc_format = ::djinterp::document_format;
 
 
 // format_extension
-//   function: the conventional file extension for a format (".txt", ".md",
-// ".xml", ".html", ".pdf"), handed to the bundle's naming policy.  (Distinct
-// from output_packaging's format_extension(format_id), which names archive
-// CONTAINERS; this one names report DOCUMENTS.)
-D_NODISCARD inline const char*
-format_extension(
-    doc_format _fmt
-) D_NOEXCEPT
-{
-    switch (_fmt)
-    {
-        case doc_format::text:     { return ".txt";  }
-        case doc_format::markdown: { return ".md";   }
-        case doc_format::xml:      { return ".xml";  }
-        case doc_format::html:     { return ".html"; }
-        case doc_format::pdf:      { return ".pdf";  }
-        default:                   { return ".txt";  }
-    }
-}
+//   the conventional file extension for a format (".txt", ".md", ".xml",
+// ".html", ".pdf"), handed to the bundle's naming policy, now comes from
+// document_format.hpp -- one table for the whole framework rather than a copy
+// per layer.  It is found here by ordinary lookup into the enclosing djinterp
+// namespace, where it forms an overload set with output_packaging's
+// format_extension(format_id) (which names archive CONTAINERS, not report
+// DOCUMENTS).  The two take distinct scoped enums, so a call is never
+// ambiguous.
 
 
 // pdf_template_source
@@ -169,18 +165,18 @@ NS_INTERNAL
 // an interp_string_sink (text / markdown); the escaped form feeds an
 // escaping_sink<_Policy>, so a resolved value containing markup is escaped
 // rather than injected (xml / html).  The two differ ONLY in the sink.
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_run_plain(
     const report_layout&  _layout,
     const test_report&    _run
 )
 {
-    return byte_buffer(render_report_string(_layout, _run));
+    return byte_blob(render_report_string(_layout, _run));
 }
 
 
 template<typename _Policy>
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_run_escaped(
     const report_layout&  _layout,
     const test_report&    _run
@@ -191,14 +187,14 @@ render_run_escaped(
 
     render_report(_layout, _run, _sink);
 
-    return byte_buffer(static_cast<std::string&&>(_out));
+    return byte_blob(static_cast<std::string&&>(_out));
 }
 
 
 // render_mod_plain / render_mod_escaped
 //   helper: the same two sinks, applied to ONE module subtree (the per-module
 // document the emit layer fans out when per_module is set).
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_mod_plain(
     const report_layout&  _layout,
     const test_context&   _focus
@@ -209,12 +205,12 @@ render_mod_plain(
 
     render_module(_layout, _focus, _sink);
 
-    return byte_buffer(static_cast<std::string&&>(_out));
+    return byte_blob(static_cast<std::string&&>(_out));
 }
 
 
 template<typename _Policy>
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_mod_escaped(
     const report_layout&  _layout,
     const test_context&   _focus
@@ -225,7 +221,7 @@ render_mod_escaped(
 
     render_module(_layout, _focus, _sink);
 
-    return byte_buffer(static_cast<std::string&&>(_out));
+    return byte_blob(static_cast<std::string&&>(_out));
 }
 
 
@@ -240,7 +236,7 @@ NS_END  // internal
 //     xml / html-> a report_layout rendered into an escaping sink.
 // The bytes ARE the document - no conversion stands between here and
 // document_bundle / archive.
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_report_bytes(
     const test_report&          _run,
     doc_format                  _fmt,
@@ -259,7 +255,7 @@ render_report_bytes(
 
                 render_report_pdf(pdf_default_layout(), _run, _tpl);
 
-                return byte_buffer(_tpl.render_pdf());
+                return byte_blob(_tpl.render_pdf());
             }
 
             return render_report_pdf_bytes(pdf_default_layout(), _run);
@@ -296,7 +292,7 @@ render_report_bytes(
 // document the emit layer fans out when a target is per_module.  _focus must be
 // a module focus (run + module_ + module_index set; see at_module).  Same switch,
 // same layouts, same projections - only the traversal root differs.
-D_NODISCARD inline byte_buffer
+D_NODISCARD inline byte_blob
 render_module_bytes(
     const test_context&         _focus,
     doc_format                  _fmt,
@@ -313,7 +309,7 @@ render_module_bytes(
 
                 render_module_pdf(pdf_default_layout(), _focus, _tpl);
 
-                return byte_buffer(_tpl.render_pdf());
+                return byte_blob(_tpl.render_pdf());
             }
 
             return render_module_pdf_bytes(pdf_default_layout(), _focus);
@@ -370,7 +366,7 @@ add_report(
     return _bundle.add(
         static_cast<std::string&&>(_name),
         std::string(format_extension(_fmt)),
-        [_run_p, _fmt, _src]() -> byte_buffer
+        [_run_p, _fmt, _src]() -> byte_blob
         {
             return render_report_bytes(*_run_p, _fmt, _src);
         });
@@ -438,7 +434,7 @@ emit_report_to_buffer(
     const test_report&              _run,
     const std::vector<doc_format>&  _formats,
     const output_config&            _cfg,
-    byte_buffer&                    _out,
+    byte_blob&                    _out,
     const std::string&              _separator = std::string(),
     std::string                     _name      = std::string("report"),
     const pdf_template_source&      _pdf_src   = pdf_template_source()

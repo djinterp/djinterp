@@ -718,7 +718,7 @@ private:
     struct pending_doc
     {
         std::string name;
-        byte_buffer bytes;
+        std::string bytes;
     };
 
     // write_pdf_report
@@ -819,12 +819,12 @@ private:
     }
 
     // write_bytes_to_file
-    //   internal: a raw byte_buffer -> file write.  Returns false (and writes
+    //   internal: a raw byte_blob -> file write.  Returns false (and writes
     // nothing) on an empty path or a failed fopen()/short write.
     static bool
     write_bytes_to_file(
         const std::string& _path,
-        const byte_buffer& _bytes
+        const std::string& _bytes
     )
     {
         if (_path.empty())
@@ -855,8 +855,8 @@ private:
     // `output_file` path (a fallback "report.<ext>" is used when that slot is
     // empty).  Each document keeps the name computed above (basename only) as
     // its entry name inside the archive.  Rendering + archiving happen entirely
-    // in memory (byte_buffer is std::string; the archive facade builds the
-    // container as a byte_buffer), matching the builder's write-bytes-verbatim
+    // in memory (byte_blob is std::string; the archive facade builds the
+    // container as a byte_blob), matching the builder's write-bytes-verbatim
     // model.
     //
     // Return:
@@ -876,11 +876,11 @@ private:
         {
             ::djinterp::entry e;
             e.name = base_name_of(_docs[i].name);   // path within the archive
-            e.data = _docs[i].bytes;                 // byte_buffer == std::string
+            e.data = _docs[i].bytes;                 // byte_blob == std::string
             entries.push_back(e);
         }
 
-        ::djinterp::byte_buffer blob;
+        ::djinterp::byte_blob blob;
 
         if (!try_build_archive(archive_format(m_opts),
                                entries,
@@ -921,7 +921,7 @@ private:
         test_archive_format                _fmt,
         const ::djinterp::entry_list&      _entries,
         const ::djinterp::archive_options& _aopts,
-        ::djinterp::byte_buffer&           _out
+        ::djinterp::byte_blob&           _out
     )
     {
         using namespace ::djinterp;

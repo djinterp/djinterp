@@ -10,7 +10,7 @@
 * reaches for the real header that header collapses to a no-op and only this
 * double is in force.
 *
-*   It reproduces exactly the surface test_pack.hpp consumes -- byte_buffer,
+*   It reproduces exactly the surface test_pack.hpp consumes -- byte_blob,
 * status, the codecs:: tags, try_compress<>, and codec_is_available<> -- but
 * RECORDS rather than compresses: try_compress<Tag> writes the observable line
 *
@@ -56,10 +56,10 @@ NS_DJINTERP
 // I.   SHARED TYPES
 // =============================================================================
 
-// byte_buffer
+// byte_blob
 //   type: binary blob container.  std::string exactly as in the production
 // facade, so the recorded surface matches byte for byte.
-typedef std::string byte_buffer;
+typedef std::string byte_blob;
 
 // status
 //   enum: result code returned by every non-throwing operation.  The
@@ -241,8 +241,8 @@ reset_codec_hooks()
 template<typename _Codec>
 status
 try_compress(
-    const byte_buffer&       _in,
-    byte_buffer&             _out,
+    const byte_blob&       _in,
+    byte_blob&             _out,
     const compress_options&  _opt = compress_options()
 )
 {
@@ -352,7 +352,7 @@ NS_INTERNAL
         const char*              _in,
         std::size_t              _n,
         const compress_options&  _opt,
-        byte_buffer&             _out
+        byte_blob&             _out
     )
     {
         status s;
@@ -398,7 +398,7 @@ NS_INTERNAL
         codec_id      _id,
         const char*   _in,
         std::size_t   _n,
-        byte_buffer&  _out
+        byte_blob&  _out
     )
     {
         status s;

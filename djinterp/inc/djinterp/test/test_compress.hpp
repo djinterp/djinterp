@@ -82,24 +82,24 @@ NS_TEST
 //   function: a buffer of _n copies of byte _c.  The most compressible input
 // there is (a single run), useful for confirming a codec actually shrinks
 // redundant data and for stressing run-length paths.
-inline byte_buffer
+inline byte_blob
 make_repeated(
     char        _c,
     std::size_t _n
 )
 {
-    return byte_buffer(_n, _c);
+    return byte_blob(_n, _c);
 }
 
 // make_pattern
 //   function: _n bytes cycling 0x00,0x01,...,0xFF,0x00,...  Exercises the full
 // byte range (including NUL) with mild, regular redundancy.
-inline byte_buffer
+inline byte_blob
 make_pattern(
     std::size_t _n
 )
 {
-    byte_buffer out;
+    byte_blob out;
     std::size_t i;
 
     out.reserve(_n);
@@ -116,7 +116,7 @@ make_pattern(
 //   function: _n bytes of repeating ASCII prose.  Text-like input with the
 // kind of partial redundancy real documents carry - the natural case for the
 // codecs the archive / document layers drive.
-inline byte_buffer
+inline byte_blob
 make_text(
     std::size_t _n
 )
@@ -124,7 +124,7 @@ make_text(
     static const char  k_seed[] =
         "the quick brown fox jumps over the lazy dog. ";
     const std::size_t  k_len    = (sizeof(k_seed) - 1u);
-    byte_buffer        out;
+    byte_blob        out;
 
     out.reserve(_n);
 
@@ -145,13 +145,13 @@ make_text(
 // entropy, so a compressor cannot meaningfully shrink it; this is the input
 // that forces the "compressed output may be LARGER than the input" bound and
 // the buffer-sizing paths, while remaining perfectly reproducible.
-inline byte_buffer
+inline byte_blob
 make_incompressible(
     std::size_t   _n,
     std::uint32_t _seed = 0x1234ABCDu
 )
 {
-    byte_buffer   out;
+    byte_blob   out;
     std::uint32_t state;
     std::size_t   i;
 
@@ -175,12 +175,12 @@ make_incompressible(
 //   function: _n bytes that deliberately embed NUL (0x00) throughout, so a
 // round-trip proves the codec path is length-carrying and never treats the
 // buffer as a C string.
-inline byte_buffer
+inline byte_blob
 make_with_nuls(
     std::size_t _n
 )
 {
-    byte_buffer out;
+    byte_blob out;
     std::size_t i;
 
     out.reserve(_n);
@@ -204,14 +204,14 @@ make_with_nuls(
 // pattern, medium prose, medium high-entropy data, a NUL-bearing buffer, and
 // two large payloads (prose and high-entropy) chosen to exceed the 64 KiB
 // chunk the streaming decoders read in, so the multi-chunk path is covered.
-inline std::vector<byte_buffer>
+inline std::vector<byte_blob>
 standard_corpus()
 {
-    std::vector<byte_buffer> corpus;
+    std::vector<byte_blob> corpus;
 
-    corpus.push_back(byte_buffer());                         // empty
-    corpus.push_back(byte_buffer("A"));                      // one byte
-    corpus.push_back(byte_buffer("hello, world"));           // short text
+    corpus.push_back(byte_blob());                         // empty
+    corpus.push_back(byte_blob("A"));                      // one byte
+    corpus.push_back(byte_blob("hello, world"));           // short text
     corpus.push_back(make_repeated('Z', 4096));              // long run
     corpus.push_back(make_pattern(1024));                    // byte cycle
     corpus.push_back(make_text(8192));                       // medium prose
@@ -236,7 +236,7 @@ standard_corpus()
 //   function: true iff _b opens with the gzip identification bytes 1F 8B.
 inline bool
 has_gzip_magic(
-    const byte_buffer& _b
+    const byte_blob& _b
 )
 {
     return ( (_b.size() >= 2u)                                     &&
@@ -250,7 +250,7 @@ has_gzip_magic(
 // pair a multiple of 31 (the FCHECK constraint).
 inline bool
 has_zlib_magic(
-    const byte_buffer& _b
+    const byte_blob& _b
 )
 {
     unsigned int cmf;
@@ -277,7 +277,7 @@ has_zlib_magic(
 //   function: true iff _b opens with the bzip2 signature "BZh".
 inline bool
 has_bzip2_magic(
-    const byte_buffer& _b
+    const byte_blob& _b
 )
 {
     return ( (_b.size() >= 3u) &&
@@ -291,7 +291,7 @@ has_bzip2_magic(
 // FD 37 7A 58 5A 00 ("\xFD" "7zXZ" "\0").
 inline bool
 has_xz_magic(
-    const byte_buffer& _b
+    const byte_blob& _b
 )
 {
     static const unsigned char k_magic[6] =
@@ -319,7 +319,7 @@ has_xz_magic(
 // little-endian as 28 B5 2F FD.
 inline bool
 has_zstd_magic(
-    const byte_buffer& _b
+    const byte_blob& _b
 )
 {
     static const unsigned char k_magic[4] =
@@ -347,7 +347,7 @@ has_zstd_magic(
 // little-endian as 04 22 4D 18.
 inline bool
 has_lz4_frame_magic(
-    const byte_buffer& _b
+    const byte_blob& _b
 )
 {
     static const unsigned char k_magic[4] =
@@ -378,15 +378,15 @@ NS_INTERNAL
     // magic (raw DEFLATE has no container; brotli's stream has no constant
     // prefix), so they always pass - a caller checking those learns nothing
     // from framing and should rely on a round-trip instead.
-    inline bool signature_of(codecs::store,   const byte_buffer&)    { return true; }
-    inline bool signature_of(codecs::deflate, const byte_buffer&)    { return true; }
-    inline bool signature_of(codecs::zlib,    const byte_buffer& _b) { return has_zlib_magic(_b); }
-    inline bool signature_of(codecs::gzip,    const byte_buffer& _b) { return has_gzip_magic(_b); }
-    inline bool signature_of(codecs::bzip2,   const byte_buffer& _b) { return has_bzip2_magic(_b); }
-    inline bool signature_of(codecs::xz,      const byte_buffer& _b) { return has_xz_magic(_b); }
-    inline bool signature_of(codecs::zstd,    const byte_buffer& _b) { return has_zstd_magic(_b); }
-    inline bool signature_of(codecs::lz4,     const byte_buffer& _b) { return has_lz4_frame_magic(_b); }
-    inline bool signature_of(codecs::brotli,  const byte_buffer&)    { return true; }
+    inline bool signature_of(codecs::store,   const byte_blob&)    { return true; }
+    inline bool signature_of(codecs::deflate, const byte_blob&)    { return true; }
+    inline bool signature_of(codecs::zlib,    const byte_blob& _b) { return has_zlib_magic(_b); }
+    inline bool signature_of(codecs::gzip,    const byte_blob& _b) { return has_gzip_magic(_b); }
+    inline bool signature_of(codecs::bzip2,   const byte_blob& _b) { return has_bzip2_magic(_b); }
+    inline bool signature_of(codecs::xz,      const byte_blob& _b) { return has_xz_magic(_b); }
+    inline bool signature_of(codecs::zstd,    const byte_blob& _b) { return has_zstd_magic(_b); }
+    inline bool signature_of(codecs::lz4,     const byte_blob& _b) { return has_lz4_frame_magic(_b); }
+    inline bool signature_of(codecs::brotli,  const byte_blob&)    { return true; }
 
 NS_END  // internal
 
@@ -397,7 +397,7 @@ NS_END  // internal
 template<typename _Codec>
 inline bool
 has_expected_signature(
-    const byte_buffer& _b
+    const byte_blob& _b
 )
 {
     return internal::signature_of(_Codec(), _b);
@@ -419,8 +419,8 @@ struct roundtrip_report
     bool        available;
     status      compress_status;
     status      decompress_status;
-    byte_buffer compressed;
-    byte_buffer restored;
+    byte_blob compressed;
+    byte_blob restored;
     bool        restored_equals_input;
     std::size_t input_size;
     std::size_t compressed_size;
@@ -435,7 +435,7 @@ struct roundtrip_report
 template<typename _Codec>
 inline roundtrip_report
 roundtrip(
-    const byte_buffer&      _in,
+    const byte_blob&      _in,
     const compress_options& _opt = compress_options()
 )
 {
@@ -462,7 +462,7 @@ roundtrip(
 template<typename _Codec>
 inline bool
 roundtrips(
-    const byte_buffer&      _in,
+    const byte_blob&      _in,
     const compress_options& _opt = compress_options()
 )
 {
@@ -483,7 +483,7 @@ roundtrips(
 template<typename _Codec>
 inline bool
 facade_roundtrip_ok(
-    const byte_buffer&      _in,
+    const byte_blob&      _in,
     const compress_options& _opt = compress_options()
 )
 {
@@ -508,11 +508,11 @@ facade_roundtrip_ok(
 template<typename _Codec>
 inline bool
 decompresses_to(
-    const byte_buffer& _compressed,
-    const byte_buffer& _expected
+    const byte_blob& _compressed,
+    const byte_blob& _expected
 )
 {
-    byte_buffer out;
+    byte_blob out;
     status      s;
 
     s = try_decompress<_Codec>(_compressed, out);
@@ -528,10 +528,10 @@ decompresses_to(
 template<typename _Codec>
 inline bool
 is_valid_stream(
-    const byte_buffer& _compressed
+    const byte_blob& _compressed
 )
 {
-    byte_buffer out;
+    byte_blob out;
 
     return (try_decompress<_Codec>(_compressed, out) == status_ok);
 }
