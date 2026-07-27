@@ -1,145 +1,98 @@
 /******************************************************************************
-* djinterp [container]                          bounded_container_concepts.hpp
-*
-* Bounded container concepts:
-*   C++20 concepts layered over bounded_container_traits.hpp. These concepts
-* provide readable constraints for the bounded / unbounded axis without
-* replacing the existing SFINAE trait surface.
-*   The concepts mirror the verified public trait surface from
-* bounded_container_traits.hpp:
-*   - fixed extent, max_size, capacity, reserve, and size signals
-*   - bounded vs unbounded classification
-*   - shorthand concepts over bounded_container_class<T>
-*
-* 
-* path:      /inc/djinterp/core/container/concepts/
-*                bounded_container_concepts.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
-******************************************************************************/
+* djinterp [container] bounded_container_concepts.hpp C++20 concepts for the
+* BOUNDEDNESS axis -- the `requires`-facing view of
+* bounded_container_traits.hpp. THE CONCEPTS ADD NO POLICY. Each is exactly its
+* trait, spelled so it can constrain a template instead of gating one through
+* enable_if. The trait stays the single source of truth; if a classification is
+* wrong, it is wrong in one place. That is the whole point of generating these
+* rather than restating the detection logic in `requires` clauses. PORTABILITY:
+* Gated on C++20 + concepts. Below that the header is empty and callers use the
+* `::value` / `_v` forms directly -- which is why nothing else in the framework
+* is allowed to depend on these. path:
+* /inc/djinterp/core/container/concepts/bounded_container_concepts.hpp link(s):
+* TBA author(s): Samuel 'teer' Neal-Blim created: 2026.07.14
+* *****************************************************************************/
 
 #ifndef DJINTERP_BOUNDED_CONTAINER_CONCEPTS_
 #define DJINTERP_BOUNDED_CONTAINER_CONCEPTS_ 1
 
-#ifndef __cplusplus
-    #error "bounded_container_concepts.hpp requires C++ compilation"
-#endif
-
-//djinterp
+// djinterp
 #include "../../djinterp.hpp"
 #include "../traits/bounded_container_traits.hpp"
 
 
+#if D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
 NS_DJINTERP
 
+// ==========================================================================
+//  CAPACITY  (kappa < infinity?)
+// ==========================================================================
 
-#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
-// ===========================================================================
-// I.   Primitive signal concepts
-// ===========================================================================
-
-// fixed_extent_bounded_surface
-//   concept: constrains types exposing a compile-time extent signal.
+// bounded_container
+// concept: kappa < infinity -- the container's total size is capped by its
+// type. Positive evidence only: a fixed extent, a tuple_size, static interval
+// bounds, or a capacity() that no reserve() can move.
 template<typename _Type>
-concept fixed_extent_bounded_surface =
-    has_fixed_extent_signal<_Type>::value;
+concept bounded_container =
+    is_bounded_container_v<clean_t<_Type>>;
 
-// max_size_bounded_surface
-//   concept: constrains types exposing max_size().
+
+// unbounded_container
+// concept: kappa = infinity -- it looks like a container (it has size()) and
+// shows no capacity-bounding evidence at all.
 template<typename _Type>
-concept max_size_bounded_surface =
-    has_max_size_signal<_Type>::value;
+concept unbounded_container =
+    is_unbounded_container_v<clean_t<_Type>>;
 
-// capacity_bounded_surface
-//   concept: constrains types exposing capacity().
+
+// ==========================================================================
+//  DOMAIN  (an orthogonal sub-axis)
+// ==========================================================================
+
+
+// domain_bounded_container
+// concept: every element value lies in a closed interval I = [x,y,z].
+// Orthogonal to capacity: a fixed array is size-bounded but domain-free.
 template<typename _Type>
-concept capacity_bounded_surface =
-    has_capacity_signal<_Type>::value;
+concept domain_bounded_container =
+    is_domain_bounded_container_v<clean_t<_Type>>;
 
-// reserve_capable_bounded_surface
-//   concept: constrains types exposing reserve(size_t).
+
+// ==========================================================================
+//  SIGNALS  (for constraining on the evidence, not the verdict)
+// ==========================================================================
+
+
+// fixed_extent_container
+// concept: carries a static `extent` -- the compile-time fixed-capacity
+// convention.
 template<typename _Type>
-concept reserve_capable_bounded_surface =
-    has_reserve_signal<_Type>::value;
+concept fixed_extent_container =
+    has_fixed_extent_signal_v<clean_t<_Type>>;
 
-// sized_bounded_surface
-//   concept: constrains types exposing size().
+
+// growable_container
+// concept: exposes reserve(n) -- the ANTI-signal that disqualifies a capacity()
+// from meaning a FIXED capacity.
 template<typename _Type>
-concept sized_bounded_surface =
-    has_size_signal<_Type>::value;
+concept growable_container =
+    has_reserve_signal_v<clean_t<_Type>>;
 
 
-// ===========================================================================
-// II.  Axis classification concepts
-// ===========================================================================
-
-// bounded_container_type
-//   concept: constrains types classified as bounded.
+// sized_container
+// concept: exposes size(). The weakest 'is a container at all' guard, and what
+// separates unbounded from unknown.
 template<typename _Type>
-concept bounded_container_type =
-    is_bounded_container<_Type>::value;
-
-// unbounded_container_type
-//   concept: constrains types classified as unbounded.
-template<typename _Type>
-concept unbounded_container_type =
-    is_unbounded_container<_Type>::value;
-
-// fixed_capacity_container_type
-//   concept: constrains bounded containers whose bound is implied by
-// capacity() without reserve().
-template<typename _Type>
-concept fixed_capacity_container_type =
-    has_capacity_signal<_Type>::value &&
-    !has_reserve_signal<_Type>::value;
-
-// extent_bounded_container_type
-//   concept: constrains bounded containers whose bound is signaled by extent.
-template<typename _Type>
-concept extent_bounded_container_type =
-    bounded_container_type<_Type> &&
-    has_fixed_extent_signal<_Type>::value;
-
-// max_size_bounded_container_type
-//   concept: constrains bounded containers whose bound is signaled by max_size().
-template<typename _Type>
-concept max_size_bounded_container_type =
-    bounded_container_type<_Type> &&
-    has_max_size_signal<_Type>::value;
-
-
-// ===========================================================================
-// III. Classification-based shorthand concepts
-// ===========================================================================
-
-// classified_bounded_container
-//   concept: shorthand for any type recognized as bounded by the aggregate
-// classification struct.
-template<typename _Type>
-concept classified_bounded_container =
-    bounded_container_class<_Type>::is_bounded;
-
-// classified_unbounded_container
-//   concept: shorthand for any type recognized as unbounded by the aggregate
-// classification struct.
-template<typename _Type>
-concept classified_unbounded_container =
-    bounded_container_class<_Type>::is_unbounded;
-
-// fully_signaled_bounded_container
-//   concept: bounded container exposing one or more explicit bounding signals.
-template<typename _Type>
-concept fully_signaled_bounded_container =
-    bounded_container_type<_Type> &&
-    ( bounded_container_class<_Type>::has_extent   ||
-      bounded_container_class<_Type>::has_max_size ||
-      bounded_container_class<_Type>::has_capacity );
-
-#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
+concept sized_container =
+    has_size_signal_v<clean_t<_Type>>;
 
 NS_END  // djinterp
+
+
+#endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER && D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
 
 #endif  // DJINTERP_BOUNDED_CONTAINER_CONCEPTS_
