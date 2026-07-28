@@ -1,46 +1,54 @@
 /******************************************************************************
-* djinterp [text]                                      xml_template_traits.hpp
+* djinterp [text]                                                      xml.hpp
 *
-*   Structural SFINAE detection traits for XML attribute, node, document,
-* and backend types. All detection is purely structural -- no tag types,
-* no base-class checks, no registration. Expose the right members and
-* the trait system classifies the type automatically.
+*   Foundational XML module for the djinterp framework. Provides shared
+* types, node-type enumerations, encoding identifiers, backend tag
+* dispatch, the tag-based detection trait `is_xml_backend`, the full set
+* of structural SFINAE detection traits for attribute / node / document /
+* backend types, and -- under C++20 -- the matching concept wrappers.
 *
-*   This header is what makes the XML module library-agnostic. Any
-* third-party XML library whose types satisfy the structural protocol
-* (member names + signatures) is detected as XML-shaped, regardless of
-* its provenance. To accommodate the divergent naming conventions of
-* the major C++ XML libraries, both short-form (`name()`, `value()`)
-* and getter-form (`get_name()`, `get_value()`) accessors are detected.
+*   This is the foundation header: it has no dependency on the templated
+* node/document types. `xml_template.hpp` is a separate module that
+* includes this header for its shared types and trait system; including
+* `xml.hpp` alone gives the vocabulary (types, traits, concepts) without
+* pulling in a concrete document implementation.
 *
-*   DETECTED PROTOCOLS:
+*   CONSOLIDATION:
+*   The detection traits (formerly `xml_template_traits.hpp`) and the
+* C++20 concept wrappers (formerly `xml_template_concepts.hpp`) now live
+* here directly, so a single `#include "xml.hpp"` brings in the shared
+* types, the trait system, and the concepts together.
 *
-*   xml_attribute protocol:
-*     A type exposing a name and a value, both string-convertible.
-*     Detected via name()/get_name() and value()/get_value() in
-*     either method form.
+*   LIBRARY AGNOSTICISM:
+*   This module does NOT include or depend on any third-party XML
+* library (libxml++, pugixml, tinyxml2, RapidXML, etc.). All
+* interaction with such libraries is by structural duck-typing through
+* the trait system below. Adapters for specific libraries live in their
+* own headers (e.g. `xml_libxmlpp_adapter.hpp`) and are NOT pulled in by
+* this header.
 *
-*   xml_node protocol:
-*     A type exposing a node kind, a name, and (optionally) attributes,
-*     children, and text content. The minimum protocol is name() + a
-*     way to enumerate children.
+*   STRUCTURAL DETECTION:
+*   All detection is purely structural -- no base-class checks, no
+* registration, and (beyond the optional `backend_tag`) no tag types.
+* Expose the right members and the trait system classifies the type
+* automatically. To accommodate the divergent naming conventions of the
+* major C++ XML libraries, both short-form (`name()`, `value()`) and
+* getter-form (`get_name()`, `get_value()`) accessors are detected.
 *
-*   xml_document protocol:
-*     A type exposing a root_element() / document_element() and
-*     (optionally) prolog accessors (version, encoding, standalone).
-*
-*   xml_backend protocol:
-*     A type exposing nested type aliases (`node_type`, `attribute_type`,
-*     `document_type`) plus factory functions for parsing and writing.
+*   BACKEND MODEL:
+*   `xml_node` and `xml_document` are templated over a `_Backend` type
+* parameter. The backend is any type that satisfies the structural
+* protocol detected by `is_xml_backend`. A default in-memory backend
+* (`xml_default_backend`) is provided in `xml_template.hpp`.
 *
 *   COMPAT:
 *   C++11: all traits via struct::value
 *   C++14: _v variable templates (gated)
 *   C++17: if constexpr usable in consumer code
-*   C++20: concept wrappers in xml_template_concepts.hpp
+*   C++20: concept wrappers (gated behind D_ENV_CPP_FEATURE_LANG_CONCEPTS)
 *
 *
-* path:      /inc/djinterp/core/text/xml/xml_template_traits.hpp
+* path:      /inc/djinterp/core/text/xml/xml.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                             date: 2026.05.08
 ******************************************************************************/
@@ -48,14 +56,43 @@
 /*
 TABLE OF CONTENTS
 =================
-I.    NAME / VALUE ACCESSOR DETECTION
-      ---------------------------------
+I.    SHARED TYPES & CONSTANTS
+      --------------------------
+      i.    xml_string_t
+      ii.   xml_size_t
+      iii.  D_XML_DEFAULT_VERSION
+      iv.   D_XML_DEFAULT_ENCODING
+      v.    D_XML_DEFAULT_INDENT
+
+II.   CORE ENUMERATIONS
+      ------------------
+      a. xml_node_kind
+      b. xml_encoding
+      c. xml_standalone
+
+III.  BACKEND TAG DISPATCH
+      ---------------------
+      a. xml_backend_tag
+      b. xml_default_backend_tag
+      c. xml_libxmlpp_backend_tag
+      d. xml_pugixml_backend_tag
+      e. xml_tinyxml2_backend_tag
+      f. xml_rapidxml_backend_tag
+
+IV.   BACKEND TAG DETECTION
+      ----------------------
+      i.    has_backend_tag_helper (internal)
+      ii.   is_xml_backend
+            a. is_xml_backend_v
+
+V.    ACCESSOR DETECTION (NAME / VALUE / KIND)
+      ----------------------------------------
       a. has_name_method,         has_get_name_method
       b. has_value_method,        has_get_value_method
       c. has_kind_method,         has_get_kind_method
       d. has_name_access,         has_value_access, has_kind_access
 
-II.   ATTRIBUTE DETECTION
+VI.   ATTRIBUTE DETECTION
       --------------------
       a. has_attributes_method,   has_get_attributes_method
       b. has_find_attribute_method
@@ -64,7 +101,7 @@ II.   ATTRIBUTE DETECTION
       e. has_attribute_count_method
       f. is_xml_attribute
 
-III.  CHILD / TRAVERSAL DETECTION
+VII.  CHILD / TRAVERSAL DETECTION
       ----------------------------
       a. has_children_method,     has_get_children_method
       b. has_first_child_method
@@ -73,19 +110,21 @@ III.  CHILD / TRAVERSAL DETECTION
       e. has_add_child_method
       f. has_remove_child_method
       g. has_child_count_method
+      h. has_traversal
 
-IV.   TEXT CONTENT DETECTION
+VIII. TEXT CONTENT DETECTION
       ------------------------
       a. has_text_method,         has_get_text_method
       b. has_set_text_method
+      c. has_text_access
 
-V.    NODE CLASSIFICATION
-      ---------------------
+IX.   NODE CLASSIFICATION
+      --------------------
       a. is_xml_node
       b. is_xml_element
       c. xml_node_class
 
-VI.   DOCUMENT DETECTION
+X.    DOCUMENT DETECTION
       -------------------
       a. has_root_element_method, has_document_element_method
       b. has_version_method
@@ -97,33 +136,255 @@ VI.   DOCUMENT DETECTION
       h. is_xml_document
       i. xml_document_class
 
-VII.  BACKEND DETECTION
-      ------------------
+XI.   BACKEND PROTOCOL DETECTION
+      -------------------------
       a. has_node_type_alias
       b. has_attribute_type_alias
       c. has_document_type_alias
       d. has_make_document_method
       e. is_xml_backend_complete
 
-VIII. VARIABLE TEMPLATES
+XII.  VARIABLE TEMPLATES
+
+XIII. CONCEPTS (C++20)
+      ----------------
+      a. leaf protocol concepts       (attribute, node, element, document)
+      b. capability concepts          (mutable, parseable, writable, savable)
+      c. composition concepts         (full_xml_node, full_xml_document)
+      d. backend concepts             (xml_backend_type, complete_xml_backend)
 */
 
-#ifndef DJINTERP_XML_TEMPLATE_TRAITS_
-#define DJINTERP_XML_TEMPLATE_TRAITS_ 1
+#ifndef DJINTERP_XML_
+#define DJINTERP_XML_ 1
 
 // std
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <type_traits>
 // djinterp
-#include "../../../djinterp.hpp"
+#include "../../djinterp.hpp"
 
+
+///////////////////////////////////////////////////////////////////////////////
+///                I.   SHARED TYPES & CONSTANTS                            ///
+///////////////////////////////////////////////////////////////////////////////
 
 NS_DJINTERP
 
 
+// xml_string_t
+//   type: string type used for XML names, attribute values, text
+// content, and CDATA payloads. Defined as std::string by default;
+// define D_XML_STRING_TYPE before inclusion to override (e.g. with
+// std::u8string under C++20 or a small-string-optimised wrapper).
+#ifndef D_XML_STRING_TYPE
+    using xml_string_t = std::string;
+#else
+    using xml_string_t = D_XML_STRING_TYPE;
+#endif
+
+
+// xml_size_t
+//   type: unsigned size type for XML counts (children, attributes,
+// document size). Defined as std::size_t by default.
+#ifndef D_XML_SIZE_TYPE
+    using xml_size_t = std::size_t;
+#else
+    using xml_size_t = D_XML_SIZE_TYPE;
+#endif
+
+
+// D_XML_DEFAULT_VERSION
+//   constant: default XML version string emitted in the prolog.
+#ifndef D_XML_DEFAULT_VERSION
+    #define D_XML_DEFAULT_VERSION       "1.0"
+#endif
+
+
+// D_XML_DEFAULT_ENCODING
+//   constant: default XML encoding string emitted in the prolog.
+#ifndef D_XML_DEFAULT_ENCODING
+    #define D_XML_DEFAULT_ENCODING      "UTF-8"
+#endif
+
+
+// D_XML_DEFAULT_INDENT
+//   constant: default whitespace string used per indentation level
+// when serialising.
+#ifndef D_XML_DEFAULT_INDENT
+    #define D_XML_DEFAULT_INDENT        "  "
+#endif
+
+
 ///////////////////////////////////////////////////////////////////////////////
-///           I.   NAME / VALUE ACCESSOR DETECTION                          ///
+///                  II.   CORE ENUMERATIONS                                ///
+///////////////////////////////////////////////////////////////////////////////
+
+// xml_node_kind
+//   enum: discriminator for the kind of an XML node. Modelled on the
+// W3C DOM Node.nodeType set, narrowed to the subset most XML
+// libraries agree on. Values are intentionally non-contiguous so new
+// kinds can be inserted without breaking existing serialisation.
+enum class xml_node_kind : std::uint8_t
+{
+    element                = 1,
+    attribute              = 2,
+    text                   = 3,
+    cdata_section          = 4,
+    entity_reference       = 5,
+    processing_instruction = 7,
+    comment                = 8,
+    document               = 9,
+    document_type          = 10,
+    document_fragment      = 11,
+    notation               = 12,
+    unknown                = 0
+};
+
+
+// xml_encoding
+//   enum: well-known character encodings used by XML documents.
+// Carry the literal string via `xml_encoding_name`; backends are
+// free to accept arbitrary encoding strings beyond this list.
+enum class xml_encoding : std::uint8_t
+{
+    utf_8,
+    utf_16,
+    utf_16_le,
+    utf_16_be,
+    utf_32,
+    iso_8859_1,
+    us_ascii,
+    custom
+};
+
+
+// xml_standalone
+//   enum: tri-state for the XML declaration's `standalone`
+// attribute. `unspecified` means the attribute is omitted entirely
+// from the prolog.
+enum class xml_standalone : std::uint8_t
+{
+    unspecified,
+    yes,
+    no
+};
+
+
+// xml_encoding_name
+//   function: returns the canonical IANA-style string for an
+// `xml_encoding` value, or an empty string for `custom`.
+D_CONSTEXPR_INLINE const char*
+xml_encoding_name(
+    xml_encoding _enc
+)
+{
+    return (_enc == xml_encoding::utf_8)      ? "UTF-8"
+         : (_enc == xml_encoding::utf_16)     ? "UTF-16"
+         : (_enc == xml_encoding::utf_16_le)  ? "UTF-16LE"
+         : (_enc == xml_encoding::utf_16_be)  ? "UTF-16BE"
+         : (_enc == xml_encoding::utf_32)     ? "UTF-32"
+         : (_enc == xml_encoding::iso_8859_1) ? "ISO-8859-1"
+         : (_enc == xml_encoding::us_ascii)   ? "US-ASCII"
+         :                                      "";
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                III.   BACKEND TAG DISPATCH                              ///
+///////////////////////////////////////////////////////////////////////////////
+
+// xml_backend_tag
+//   struct: empty base tag for all XML backend tag types. Roots
+// the tag hierarchy used by `is_xml_backend` and by adapter
+// specialisations of `xml_node` / `xml_document`.
+struct xml_backend_tag
+{};
+
+// xml_default_backend_tag
+//   struct: tag identifying the bundled in-memory backend defined
+// in `xml_template.hpp`.
+struct xml_default_backend_tag : xml_backend_tag
+{};
+
+// xml_libxmlpp_backend_tag
+//   struct: tag identifying a libxml++-based backend. The adapter
+// itself lives in a separate header; this tag is provided here so
+// detection code never has to depend on libxml++ headers.
+struct xml_libxmlpp_backend_tag : xml_backend_tag
+{};
+
+// xml_pugixml_backend_tag
+//   struct: tag identifying a pugixml-based backend.
+struct xml_pugixml_backend_tag : xml_backend_tag
+{};
+
+// xml_tinyxml2_backend_tag
+//   struct: tag identifying a tinyxml2-based backend.
+struct xml_tinyxml2_backend_tag : xml_backend_tag
+{};
+
+// xml_rapidxml_backend_tag
+//   struct: tag identifying a RapidXML-based backend.
+struct xml_rapidxml_backend_tag : xml_backend_tag
+{};
+
+
+///////////////////////////////////////////////////////////////////////////////
+///                  IV.   BACKEND TAG DETECTION                            ///
+///////////////////////////////////////////////////////////////////////////////
+
+// is_xml_backend
+//   trait: detects whether _Type is an XML backend type by
+// checking for a nested `backend_tag` alias. This is the tag-based
+// gate; the *structural* completeness check (nested type aliases +
+// make_document) is `is_xml_backend_complete`, in section XI.
+
+NS_INTERNAL
+
+    // has_backend_tag_helper
+    //   trait: SFINAE helper; primary template (failure case).
+    template<typename _Type,
+             typename = void>
+    struct has_backend_tag_helper
+    {
+        D_STATIC_CONSTEXPR bool value = false;
+    };
+
+    // has_backend_tag_helper (specialization)
+    //   trait: success case when _Type::backend_tag exists.
+    template<typename _Type>
+    struct has_backend_tag_helper<_Type,
+                                  void_t<typename _Type::backend_tag>>
+    {
+        D_STATIC_CONSTEXPR bool value = true;
+    };
+
+NS_END  // internal
+
+// is_xml_backend
+//   trait: true if _Type has a nested backend_tag type derived
+// from xml_backend_tag.
+template<typename _Type>
+struct is_xml_backend
+{
+    D_STATIC_CONSTEXPR bool value =
+        internal::has_backend_tag_helper<clean_t<_Type>>::value;
+};
+
+// is_xml_backend_v
+//   constant: convenience accessor for
+// is_xml_backend<_Type>::value.
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+    template<typename _Type>
+    D_STATIC_CONSTEXPR bool is_xml_backend_v =
+        is_xml_backend<_Type>::value;
+#endif
+
+
+///////////////////////////////////////////////////////////////////////////////
+///           V.   ACCESSOR DETECTION (NAME / VALUE / KIND)                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // ---------------------------------------------------------------------
@@ -261,7 +522,7 @@ struct has_kind_access
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                II.   ATTRIBUTE DETECTION                                ///
+///                VI.   ATTRIBUTE DETECTION                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_attributes_method
@@ -368,7 +629,7 @@ struct is_xml_attribute
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///             III.   CHILD / TRAVERSAL DETECTION                          ///
+///             VII.   CHILD / TRAVERSAL DETECTION                          ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_children_method
@@ -502,7 +763,7 @@ struct has_traversal
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                IV.   TEXT CONTENT DETECTION                             ///
+///                VIII.   TEXT CONTENT DETECTION                           ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_text_method
@@ -561,7 +822,7 @@ struct has_text_access
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                V.   NODE CLASSIFICATION                                 ///
+///                IX.   NODE CLASSIFICATION                                ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // is_xml_node
@@ -648,7 +909,7 @@ struct xml_node_class
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                VI.   DOCUMENT DETECTION                                 ///
+///                X.   DOCUMENT DETECTION                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_root_element_method
@@ -824,7 +1085,7 @@ struct xml_document_class
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                VII.   BACKEND DETECTION                                 ///
+///                XI.   BACKEND PROTOCOL DETECTION                         ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // has_node_type_alias
@@ -838,7 +1099,7 @@ struct has_node_type_alias : std::false_type
 
 template<typename _Type>
 struct has_node_type_alias<_Type, void_t<
-    typename _Type::node_type
+    typename clean_t<_Type>::node_type
 >> : std::true_type
 {};
 
@@ -852,7 +1113,7 @@ struct has_attribute_type_alias : std::false_type
 
 template<typename _Type>
 struct has_attribute_type_alias<_Type, void_t<
-    typename _Type::attribute_type
+    typename clean_t<_Type>::attribute_type
 >> : std::true_type
 {};
 
@@ -866,7 +1127,7 @@ struct has_document_type_alias : std::false_type
 
 template<typename _Type>
 struct has_document_type_alias<_Type, void_t<
-    typename _Type::document_type
+    typename clean_t<_Type>::document_type
 >> : std::true_type
 {};
 
@@ -881,7 +1142,7 @@ struct has_make_document_method : std::false_type
 
 template<typename _Type>
 struct has_make_document_method<_Type, void_t<
-    decltype(_Type::make_document())
+    decltype(clean_t<_Type>::make_document())
 >> : std::true_type
 {};
 
@@ -901,7 +1162,7 @@ struct is_xml_backend_complete
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                VIII.  VARIABLE TEMPLATES                                ///
+///                XII.  VARIABLE TEMPLATES                                 ///
 ///////////////////////////////////////////////////////////////////////////////
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
@@ -953,7 +1214,157 @@ struct is_xml_backend_complete
 #endif  // variable templates
 
 
+///////////////////////////////////////////////////////////////////////////////
+///                XIII.  CONCEPTS (C++20)                                  ///
+///////////////////////////////////////////////////////////////////////////////
+
+//   C++20 concept wrappers over the structural protocols above. Each
+// concept is a thin shell over the corresponding SFINAE trait, so a
+// type that satisfies the trait satisfies the concept and vice versa.
+// The whole section is gated behind `D_ENV_CPP_FEATURE_LANG_CONCEPTS`;
+// under older standards it expands to nothing so existing trait-based
+// code keeps compiling unchanged. Where the trait variant is
+// `is_xml_node<T>::value`, the concept variant is simply
+// `xml_node_type<T>`.
+
+#if D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+// ---------------------------------------------------------------------
+//  leaf protocol concepts
+// ---------------------------------------------------------------------
+
+// xml_attribute_type
+//   concept: constrains types satisfying the XML attribute
+// protocol -- a name accessor and a value accessor in either
+// short-form or get-form.
+template<typename _Type>
+concept xml_attribute_type =
+    is_xml_attribute<_Type>::value;
+
+
+// xml_node_type
+//   concept: constrains types satisfying the minimum XML node
+// protocol -- a name accessor and some form of child traversal.
+template<typename _Type>
+concept xml_node_type =
+    is_xml_node<_Type>::value;
+
+
+// xml_element_type
+//   concept: constrains types satisfying the full XML element
+// protocol -- node + attribute container.
+template<typename _Type>
+concept xml_element_type =
+    is_xml_element<_Type>::value;
+
+
+// xml_document_type
+//   concept: constrains types satisfying the XML document
+// protocol -- a root-element accessor in some form.
+template<typename _Type>
+concept xml_document_type =
+    is_xml_document<_Type>::value;
+
+
+// ---------------------------------------------------------------------
+//  capability concepts
+// ---------------------------------------------------------------------
+
+// mutable_xml_node
+//   concept: constrains nodes that can be mutated in place via
+// at least one of set_attribute, add_child, or set_text.
+template<typename _Type>
+concept mutable_xml_node =
+    ( xml_node_type<_Type> &&
+      ( has_set_attribute_method<_Type>::value ||
+        has_add_child_method<_Type>::value     ||
+        has_set_text_method<_Type>::value ) );
+
+
+// parseable_xml_document
+//   concept: constrains documents that can ingest serialised
+// XML via a parse(string) method.
+template<typename _Type>
+concept parseable_xml_document =
+    ( xml_document_type<_Type> &&
+      has_parse_method<_Type>::value );
+
+
+// writable_xml_document
+//   concept: constrains documents that can serialise to a
+// string via write().
+template<typename _Type>
+concept writable_xml_document =
+    ( xml_document_type<_Type> &&
+      has_write_method<_Type>::value );
+
+
+// savable_xml_document
+//   concept: constrains documents that can persist to a file
+// path via save(path).
+template<typename _Type>
+concept savable_xml_document =
+    ( xml_document_type<_Type> &&
+      has_save_method<_Type>::value );
+
+
+// ---------------------------------------------------------------------
+//  composition concepts
+// ---------------------------------------------------------------------
+
+// full_xml_node
+//   concept: constrains nodes that expose the complete
+// structural protocol -- name, kind, attributes, children,
+// and text -- regardless of mutability.
+template<typename _Type>
+concept full_xml_node =
+    ( xml_node_type<_Type>          &&
+      has_kind_access<_Type>::value &&
+      has_text_access<_Type>::value &&
+      ( has_attributes_method<_Type>::value ||
+        has_get_attributes_method<_Type>::value ) );
+
+
+// full_xml_document
+//   concept: constrains documents that expose the complete
+// document protocol -- root + every prolog accessor + read +
+// write.
+template<typename _Type>
+concept full_xml_document =
+    ( xml_document_type<_Type>           &&
+      has_version_method<_Type>::value   &&
+      has_encoding_method<_Type>::value  &&
+      has_write_method<_Type>::value );
+
+
+// ---------------------------------------------------------------------
+//  backend concepts
+// ---------------------------------------------------------------------
+
+// xml_backend_type
+//   concept: constrains types tagged as XML backends via the
+// `backend_tag` nested alias.
+template<typename _Type>
+concept xml_backend_type =
+    is_xml_backend<_Type>::value;
+
+
+// complete_xml_backend
+//   concept: constrains backends that expose the full set of
+// nested type aliases (node_type, attribute_type, document_type)
+// plus a make_document factory. This is the bar a backend must
+// clear to be plugged into `xml_node<_Backend>` and
+// `xml_document<_Backend>` without further specialisation.
+template<typename _Type>
+concept complete_xml_backend =
+    ( xml_backend_type<_Type>                 &&
+      is_xml_backend_complete<_Type>::value   &&
+      has_make_document_method<_Type>::value );
+
+#endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
+
+
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_XML_TEMPLATE_TRAITS_
+#endif  // DJINTERP_XML_
