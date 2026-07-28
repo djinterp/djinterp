@@ -29,7 +29,7 @@
 * accepted. The trait `is_xml_dialect<_Type>` recognizes both forms.
 *
 *
-* path:      /inc/djinterp/core/util/text/xml_dialect.hpp
+* path:      /inc/djinterp/core/text/xml/xml_dialect.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                             date: 2026.05.09
 ******************************************************************************/
