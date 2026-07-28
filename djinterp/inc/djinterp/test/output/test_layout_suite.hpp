@@ -399,7 +399,6 @@ register_layout_tests(
 
     _rb.close_unit();
 
-    _rb.close_module();
 
     return;
 }

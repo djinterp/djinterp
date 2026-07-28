@@ -100,6 +100,11 @@
 // djinterp
 #include "../../core/djinterp.hpp"
 #include "../../core/container/buffer/byte_buffer.hpp"
+#include "../../core/util/document/document_bundle.hpp"
+                                        // document_bundle, output_config,
+                                        //   write_to_disk -- the packaging
+                                        //   engine this runner defers to
+#include "./test_packaging.hpp"          // to_output_config
 #include "../test_common.hpp"      // test_status
 #include "../test_context.hpp"     // test_context + at_run (PDF focus)
 #include "../test_options.hpp"     // test_option_set + accessors + defaults
@@ -119,17 +124,12 @@
 // banner: the archive path.  The document_bundle route now exists as
 // test_packaging.hpp (emit_report_to_disk / _to_buffer), which adds a naming
 // policy, both pack modes and a sink abstraction; prefer it for new work.  The
-// direct facade calls below remain because zip_store_archive is the fallback
-// when no backend zip writer is built in -- a capability output_packaging does
-// not have, since it dispatches to the facade rather than around it.
+// direct facade calls below remain for the per-format capability checks; every
+// format, ZIP included, now goes through the facade.
 #if defined(D_TEST_REPORT_ENABLE_ARCHIVE) && D_ENV_LANG_IS_CPP17_OR_HIGHER
     #include "../../core/util/archive.hpp"   // entry, entry_list, try_archive<>,
                                              //   formats::*, archive_options,
                                              //   format_is_writable<>
-    #include "./test_zip_store.hpp"          // zip_store_archive - a dependency-
-                                             //   free stored (uncompressed) ZIP
-                                             //   writer used as the fallback when
-                                             //   no backend zip writer is built in
 #endif
 
 
@@ -928,137 +928,60 @@ private:
     )
     {
         std::vector<std::string> written;
-        ::djinterp::entry_list   entries;
-        std::size_t              i = 0;
 
-        for (i = 0; i < _docs.size(); ++i)
+        // Bundle the already-rendered documents under the names computed above.
+        // document_bundle::add takes an EXPLICIT name, so this runner's
+        // pattern-driven naming (module name, index, title) survives.  Going
+        // through test_packaging's bundle_report instead would re-derive every
+        // name from one base name plus the format extension, collapsing the
+        // per-module documents onto a single name.
+        ::djinterp::document_bundle _bundle;
+
+        for (std::size_t _i = 0; _i < _docs.size(); ++_i)
         {
-            ::djinterp::entry e;
-            e.name = base_name_of(_docs[i].name);   // path within the archive
-            e.data = _docs[i].bytes;                 // byte_blob == std::string
-            entries.push_back(e);
+            const ::djinterp::byte_blob _bytes = _docs[_i].bytes;
+
+            _bundle.add(base_name_of(_docs[_i].name),
+                        std::string(),
+                        [_bytes]() -> ::djinterp::byte_blob { return _bytes; });
         }
 
-        ::djinterp::byte_blob blob;
+        ::djinterp::output_config _cfg =
+            to_output_config(pack(m_opts),
+                             compressor(m_opts),
+                             archive_format(m_opts));
 
-        if (!try_build_archive(archive_format(m_opts),
-                               entries,
-                               archive_opts(m_opts),
-                               blob))
+        // the container tuning the facade call used to pass directly
+        _cfg.archive_opts = archive_opts(m_opts);
+
+        // An explicit output_file still wins; otherwise the container keeps the
+        // name the config gives it -- "report" plus the format's extension,
+        // which is exactly the fallback this method used to apply by hand.
+        const std::string _explicit = output_path(m_opts);
+        std::string       _final;
+
+        const bool _ok = ::djinterp::write_to_disk(
+            _bundle,
+            _cfg,
+            [&_final, _explicit](const std::string& _file) -> std::string
+            {
+                _final = _explicit.empty() ? _file : _explicit;
+
+                return _final;
+            });
+
+        if (_ok)
         {
-            return written;                          // unavailable / failed
-        }
-
-        std::string path = output_path(m_opts);
-
-        if (path.empty())
-        {
-            path = std::string("report.") +
-                   archive_extension(archive_format(m_opts));
-        }
-
-        if (write_bytes_to_file(path, blob))
-        {
-            written.push_back(path);
+            written.push_back(_final);
         }
 
         return written;
     }
+    // NOTE: the hand-rolled try_build_archive / archive_extension helpers that
+    // used to live here are gone: write_archived_report now defers to
+    // document_bundle + write_to_disk, which own the format dispatch and the
+    // extension mapping already.
 
-    // try_build_archive
-    //   runtime-dispatches the selected archive format to the matching
-    // try_archive<> tag (the format tag is a TYPE, so the runtime enum is
-    // switched here).  Guards each arm with format_is_writable<> so an
-    // unavailable backend fails cleanly rather than emitting a broken file.
-    // RAR creation is tool-only and is reported unavailable.
-    //
-    // Return:
-    //   true iff the archive was built into _out; false (writing nothing)
-    // otherwise.
-    static bool
-    try_build_archive(
-        test_archive_format                _fmt,
-        const ::djinterp::entry_list&      _entries,
-        const ::djinterp::archive_options& _aopts,
-        ::djinterp::byte_blob&           _out
-    )
-    {
-        using namespace ::djinterp;
-        using namespace ::djinterp::formats;
-
-        status s = status_unavailable;
-
-        switch (_fmt)
-        {
-            case test_archive_format::zip:
-            {
-                // Always use the self-contained STORED writer for the report
-                // bundle.  It computes its own CRC-32 (no zlib required) and so
-                // produces a container that every ZIP reader accepts.
-                //
-                // We deliberately do NOT defer to the framework's built-in
-                // zip_create here even though format_is_writable<zip>() reports
-                // it usable: that writer derives the CRC from zlib, and when
-                // zlib is absent from the build (D_ENV_COMPRESSION_HAVE_ZLIB
-                // == 0) it emits a CRC of 0 for every entry.  The data is intact
-                // but strict readers (WinRAR, among others) recompute the CRC,
-                // see the stored 0, and reject the archive as corrupt.  The
-                // self-contained writer avoids that dependency entirely.
-                (void)_aopts;   // stored writer takes no codec options
-                return zip_store_archive(_entries, _out);
-            }
-            case test_archive_format::tar:
-            {
-                if (!format_is_writable<tar>())      { return false; }
-                s = try_archive<tar>(_entries, _out, _aopts);
-                break;
-            }
-            case test_archive_format::tar_gz:
-            {
-                if (!format_is_writable<tar_gz>())   { return false; }
-                s = try_archive<tar_gz>(_entries, _out, _aopts);
-                break;
-            }
-            case test_archive_format::gz:
-            {
-                if (!format_is_writable<gz>())       { return false; }
-                s = try_archive<gz>(_entries, _out, _aopts);
-                break;
-            }
-            case test_archive_format::sevenzip:
-            {
-                if (!format_is_writable<sevenzip>()) { return false; }
-                s = try_archive<sevenzip>(_entries, _out, _aopts);
-                break;
-            }
-            case test_archive_format::rar:
-            default:
-            {
-                return false;   // RAR creation is tool-only; unknown -> none
-            }
-        }
-
-        return s == status_ok;
-    }
-
-    // archive_extension
-    //   the conventional file extension for a fallback archive name.
-    static const char*
-    archive_extension(
-        test_archive_format _fmt
-    )
-    {
-        switch (_fmt)
-        {
-            case test_archive_format::zip:      { return "zip";    }
-            case test_archive_format::tar:      { return "tar";    }
-            case test_archive_format::tar_gz:   { return "tar.gz"; }
-            case test_archive_format::gz:       { return "gz";     }
-            case test_archive_format::sevenzip: { return "7z";     }
-            case test_archive_format::rar:      { return "rar";    }
-            default:                            { return "bin";    }
-        }
-    }
 
     // base_name_of
     //   the final path component of _p ('/' or '\\' separated), so archive
