@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [text]                                                 document.hpp
+* djinterp [utility]                                                 document.hpp
 *
 *   A fluent facade over the build side (`document_writer`) and the print
 * side (`document_printer`): one object you build a tree into and then
@@ -22,7 +22,7 @@
 * self-suppresses below it.
 *
 * 
-* path:      /inc/djinterp/core/text/document.hpp
+* path:      /inc/djinterp/core/util/document/document.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                          created: 2026.06.18
 ******************************************************************************/
@@ -36,17 +36,17 @@ I.    DOCUMENT FACADE
       b. xml_document
 */
 
-#ifndef DJINTERP_TEXT_DOCUMENT_
-#define DJINTERP_TEXT_DOCUMENT_ 1
+#ifndef DJINTERP_UTIL_DOCUMENT_
+#define DJINTERP_UTIL_DOCUMENT_ 1
 
 // std
 #include <ostream>
 #include <fstream>
 #include <string>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./document_writer.hpp"   // document_writer, cursor
-#include "./printer.hpp"           // document_printer, render, policies
+#include "../../text/printer.hpp"           // document_printer, render, policies
 
 
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -202,4 +202,4 @@ NS_END  // djinterp
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-#endif  // DJINTERP_TEXT_DOCUMENT_
+#endif  // DJINTERP_UTIL_DOCUMENT_
