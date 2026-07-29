@@ -45,7 +45,7 @@
 * VII.  Combined Classification
 *
 *
-* path:      /inc/djinterp/container/iterator/iterator_traits.hpp
+* path:      /inc/djinterp/core/container/iterator/iterator_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.05.20
 ******************************************************************************/
