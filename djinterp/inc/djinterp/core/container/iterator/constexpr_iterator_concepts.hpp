@@ -29,7 +29,7 @@
 * IV.   Aggregate Concept
 *
 *
-* path:      /inc/djinterp/container/iterator/constexpr_iterator_concepts.hpp
+* path:      /inc/djinterp/core/container/iterator/constexpr_iterator_concepts.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.25
 ******************************************************************************/

@@ -33,7 +33,7 @@
 * VI.     Combined Classification
 *
 *
-* path:      /inc/container/meta/flat_iterator_traits.hpp
+* path:      /inc/djinterp/core/container/iterator/flat_iterator_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                   created: 2026.03.24
 ******************************************************************************/
@@ -48,6 +48,8 @@
 #include "../../meta/type_traits.hpp"
 #include "../meta/container_traits.hpp"
 #include "./iterator_traits.hpp"
+#include "../traits/hierarchical_container_traits.hpp"  // is_hierarchical_container_v
+#include "../traits/flat_container_traits.hpp"          // is_flat_container_v
 
 
 NS_DJINTERP

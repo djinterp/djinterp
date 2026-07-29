@@ -31,7 +31,7 @@
 * VI.   Combined Classification
 *
 *
-* path:      /inc/djinterp/container/iterator/constexpr_iterator_traits.hpp
+* path:      /inc/djinterp/core/container/iterator/constexpr_iterator_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.25
 ******************************************************************************/

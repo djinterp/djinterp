@@ -23,7 +23,7 @@
 *   C++11 baseline; `_v` companions degrade with the language as the rest do.
 *
 *
-* path:      /inc/djinterp/core/container/traits/iterator_category_traits.hpp
+* path:      /inc/djinterp/core/container/iterator/iterator_category_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.30
 ******************************************************************************/
@@ -39,7 +39,7 @@
 // djinterp
 #include "../../djinterp.hpp"                       // clean_t, NS_*, feature macros
 #include "../../meta/trait_detect.hpp"              // D_TYPE_TRAIT_* detection macros
-#include "./iterable_container_traits.hpp"          // is_iterable_container (the gate)
+#include "../traits/iterable_container_traits.hpp"  // is_iterable_container (the gate)
 
 
 NS_DJINTERP

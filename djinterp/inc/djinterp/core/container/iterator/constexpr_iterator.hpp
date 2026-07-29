@@ -50,7 +50,7 @@
 * IV.   Compile-Time Algorithms
 *
 *
-* path:      /inc/djinterp/container/iterator/constexpr_iterator.hpp
+* path:      /inc/djinterp/core/container/iterator/constexpr_iterator.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.23
 ******************************************************************************/

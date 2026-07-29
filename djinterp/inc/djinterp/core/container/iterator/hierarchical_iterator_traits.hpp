@@ -37,7 +37,7 @@
 * VIII.   Combined Classification
 *
 *
-* path:      /inc/container/meta/hierarchical_iterator_traits.hpp
+* path:      /inc/djinterp/core/container/iterator/hierarchical_iterator_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                   created: 2026.03.24
 ******************************************************************************/
@@ -50,6 +50,8 @@
 #include "../../djinterp.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../meta/container_traits.hpp"
+#include "../traits/hierarchical_container_traits.hpp"  // is_hierarchical_container_v
+                                                   //   (used below; was neither included nor qualified)
 
 
 NS_DJINTERP
