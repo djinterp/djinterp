@@ -34,7 +34,7 @@
 *
 *   Requires C++17 (std::string_view); self-suppresses below it.
 *
-* path:      /inc/djinterp/text/text_template.hpp
+* path:      /inc/djinterp/core/text/text_template.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.14
 ******************************************************************************/
@@ -50,8 +50,7 @@
 #include <utility>
 #include <initializer_list>
 // djinterp
-#include "../djinterp.hpp"          // NS_*, D_NODISCARD, language gates
-#include "../../parse/parser.hpp"   // parser<_Type> -- the placeholder parser
+#include "../djinterp.hpp"                 // NS_*, D_NODISCARD, language gates
 
 
 // std::string_view is the spine of the source contract; below C++17 this
@@ -60,6 +59,309 @@
 
 
 NS_DJINTERP
+
+
+NS_INTERNAL
+
+// ===========================================================================
+// 0.   placeholder_parser  (the segment scanner text_template binds)
+// ===========================================================================
+
+// placeholder_parser
+//   class: scans a format string with `{key}` placeholders ONCE into a flat
+// list of literal/key segments, each stored as an (offset, length) into the
+// owned format -- so copying or moving the parser is cheap and segments never
+// dangle.  This is the small, self-contained scanner text_template was written
+// against; it depends only on <string>/<string_view>/<vector> and is
+// deliberately decoupled from the parse-combinator subframework (text_template
+// needs a `{key}` scan, not a parser carrier).
+//
+//   Dialect (matches text_template's documented contract):
+//     {key}        -- a key segment named `key`
+//     { key }      -- surrounding whitespace inside the braces is trimmed
+//     {{  }}       -- escaped literal `{` / `}` (emitted as a one-char literal)
+//   Lenient and never throws: an unmatched `{` with no following `}` is emitted
+// literally, a lone `}` is literal, and the first `}` closes a placeholder (no
+// nesting).
+template<typename _Type = char>
+class placeholder_parser
+{
+public:
+    using char_type   = _Type;
+    using string_type = std::basic_string<_Type>;
+    using view_type   = std::basic_string_view<_Type>;
+    using size_type   = std::size_t;
+
+    // segment
+    //   struct: one scanned span -- a literal or a key -- as an offset and
+    // length into the owned format string.  `m_is_key` discriminates the two.
+    struct segment
+    {
+        size_type m_offset;
+        size_type m_length;
+        bool      m_is_key;
+
+        segment()
+            : m_offset(0),
+              m_length(0),
+              m_is_key(false)
+        {}
+
+        segment(
+            size_type _offset,
+            size_type _length,
+            bool      _is_key
+        )
+            : m_offset(_offset),
+              m_length(_length),
+              m_is_key(_is_key)
+        {}
+    };
+
+    placeholder_parser() = default;
+
+    explicit placeholder_parser(
+        string_type _format
+    )
+        : m_format(static_cast<string_type&&>(_format)),
+          m_segments()
+    {
+        scan();
+    }
+
+    explicit placeholder_parser(
+        view_type _format
+    )
+        : m_format(_format.data(), _format.size()),
+          m_segments()
+    {
+        scan();
+    }
+
+    explicit placeholder_parser(
+        const _Type* _format
+    )
+        : m_format(_format ? string_type(_format) : string_type()),
+          m_segments()
+    {
+        scan();
+    }
+
+    // segments -- the scanned segment list (literal and key spans, in order).
+    D_NODISCARD const std::vector<segment>&
+    segments() const
+    {
+        return m_segments;
+    }
+
+    // text -- the view a segment resolves to within the owned format.  For a
+    // key segment this is the (trimmed) key name; for a literal it is the
+    // literal span (a single char for an escaped brace).
+    D_NODISCARD view_type
+    text(
+        const segment& _seg
+    ) const
+    {
+        return view_type(m_format.data() + _seg.m_offset, _seg.m_length);
+    }
+
+    // format -- the original (owned) format string.
+    D_NODISCARD const string_type&
+    format() const
+    {
+        return m_format;
+    }
+
+    // keys -- the placeholder names, in order of appearance.
+    D_NODISCARD std::vector<view_type>
+    keys() const
+    {
+        std::vector<view_type> _out;
+        _out.reserve(key_count());
+
+        for (const segment& _seg : m_segments)
+        {
+            if (_seg.m_is_key)
+            {
+                _out.push_back(text(_seg));
+            }
+        }
+
+        return _out;
+    }
+
+    // literal_size -- total bytes contributed by literal segments (the lower
+    // bound text_template reserves for the output buffer).
+    D_NODISCARD size_type
+    literal_size() const
+    {
+        size_type _total = 0;
+
+        for (const segment& _seg : m_segments)
+        {
+            if (!_seg.m_is_key)
+            {
+                _total += _seg.m_length;
+            }
+        }
+
+        return _total;
+    }
+
+    D_NODISCARD size_type
+    key_count() const
+    {
+        size_type _count = 0;
+
+        for (const segment& _seg : m_segments)
+        {
+            if (_seg.m_is_key)
+            {
+                ++_count;
+            }
+        }
+
+        return _count;
+    }
+
+    D_NODISCARD size_type
+    segment_count() const
+    {
+        return m_segments.size();
+    }
+
+    D_NODISCARD bool
+    empty() const
+    {
+        return m_format.empty();
+    }
+
+private:
+    // is_space -- ASCII whitespace test for key trimming.
+    static bool
+    is_space(
+        _Type _c
+    )
+    {
+        return ( _c == static_cast<_Type>(' ')  ||
+                 _c == static_cast<_Type>('\t') ||
+                 _c == static_cast<_Type>('\n') ||
+                 _c == static_cast<_Type>('\r') ||
+                 _c == static_cast<_Type>('\f') ||
+                 _c == static_cast<_Type>('\v') );
+    }
+
+    // push_literal -- record a literal segment for [_from, _to), if non-empty.
+    void
+    push_literal(
+        size_type _from,
+        size_type _to
+    )
+    {
+        if (_to > _from)
+        {
+            m_segments.push_back(segment(_from, _to - _from, false));
+        }
+
+        return;
+    }
+
+    // scan -- the one-pass segmentation; see the dialect notes above.
+    void
+    scan()
+    {
+        const _Type     k_open  = static_cast<_Type>('{');
+        const _Type     k_close = static_cast<_Type>('}');
+        const size_type n       = m_format.size();
+        const _Type*    p       = m_format.data();
+
+        size_type i         = 0;
+        size_type lit_start = 0;
+
+        while (i < n)
+        {
+            const _Type c = p[i];
+
+            if (c == k_open)
+            {
+                // escaped '{{' -> one literal '{'
+                if (((i + 1) < n) && (p[i + 1] == k_open))
+                {
+                    push_literal(lit_start, i);
+                    m_segments.push_back(segment(i, 1, false));
+                    i        += 2;
+                    lit_start = i;
+                    continue;
+                }
+
+                // potential key: first '}' (if any) closes it
+                size_type j = i + 1;
+
+                while ((j < n) && (p[j] != k_close))
+                {
+                    ++j;
+                }
+
+                if (j < n)
+                {
+                    push_literal(lit_start, i);
+
+                    size_type k_begin = i + 1;
+                    size_type k_end   = j;
+
+                    while ((k_begin < k_end) && is_space(p[k_begin]))
+                    {
+                        ++k_begin;
+                    }
+
+                    while ((k_end > k_begin) && is_space(p[k_end - 1]))
+                    {
+                        --k_end;
+                    }
+
+                    m_segments.push_back(
+                        segment(k_begin, k_end - k_begin, true));
+
+                    i         = j + 1;
+                    lit_start = i;
+                    continue;
+                }
+
+                // no closing brace: '{' is literal (stays in the run)
+                ++i;
+                continue;
+            }
+
+            if (c == k_close)
+            {
+                // escaped '}}' -> one literal '}'
+                if (((i + 1) < n) && (p[i + 1] == k_close))
+                {
+                    push_literal(lit_start, i);
+                    m_segments.push_back(segment(i, 1, false));
+                    i        += 2;
+                    lit_start = i;
+                    continue;
+                }
+
+                // lone '}' is literal
+                ++i;
+                continue;
+            }
+
+            ++i;
+        }
+
+        push_literal(lit_start, n);
+
+        return;
+    }
+
+    string_type          m_format;
+    std::vector<segment> m_segments;
+};
+
+NS_END  // internal
 
 
 // ===========================================================================
@@ -81,7 +383,7 @@ public:
     using string_type = std::basic_string<_Type>;
     using view_type   = std::basic_string_view<_Type>;
     using size_type   = std::size_t;
-    using parser_type = parser<_Type>;
+    using parser_type = internal::placeholder_parser<_Type>;
 
     // empty template
     text_template() = default;
@@ -262,92 +564,6 @@ private:
     }
 
     parser_type m_parser;
-};
-
-
-// ===========================================================================
-// II.  interpolate
-// ===========================================================================
-
-// interpolate
-//   class: the interpolation transformation as a functor -- it binds a
-// text_template (the *template* t) and maps a *source* (a lookup) to the
-// produced string (the *sink*).  This is F_t = F-hat(t): construct it once with
-// a template, then call it with as many sources as desired.  `_Type` is the
-// character type.
-template<typename _Type = char>
-class interpolate
-{
-public:
-    using char_type     = _Type;
-    using string_type   = std::basic_string<_Type>;
-    using view_type     = std::basic_string_view<_Type>;
-    using template_type = text_template<_Type>;
-
-    // an interpolate over the empty template
-    interpolate() = default;
-
-    // bind an existing template
-    explicit interpolate(
-        template_type _template
-    )
-        : m_template(static_cast<template_type&&>(_template))
-    {}
-
-    // bind a template built from a format string
-    explicit interpolate(
-        string_type _format
-    )
-        : m_template(static_cast<string_type&&>(_format))
-    {}
-
-    // bind a template built from a C string
-    explicit interpolate(
-        const _Type* _format
-    )
-        : m_template(_format)
-    {}
-
-    // operator() -- apply the bound template to a source, returning the sink
-    template<typename _Lookup>
-    D_NODISCARD string_type
-    operator()(
-        _Lookup&& _source
-    ) const
-    {
-        return m_template.render(static_cast<_Lookup&&>(_source));
-    }
-
-    D_NODISCARD string_type
-    operator()(
-        std::initializer_list<std::pair<view_type, view_type>> _source
-    ) const
-    {
-        return m_template.render(_source);
-    }
-
-    // operator() -- append form: interpolate into an existing buffer
-    template<typename _Lookup>
-    void
-    operator()(
-        string_type& _out,
-        _Lookup&&    _source
-    ) const
-    {
-        m_template.render_to(_out, static_cast<_Lookup&&>(_source));
-
-        return;
-    }
-
-    // bound -- the underlying template t
-    D_NODISCARD const template_type&
-    bound() const
-    {
-        return m_template;
-    }
-
-private:
-    template_type m_template;
 };
 
 
