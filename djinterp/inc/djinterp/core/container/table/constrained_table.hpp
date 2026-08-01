@@ -108,7 +108,7 @@ template<typename _Type>
 struct is_constrained_table : internal::is_constrained_table_impl<clean_t<_Type>>
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_constrained_table_v =
     is_constrained_table<_Type>::value;

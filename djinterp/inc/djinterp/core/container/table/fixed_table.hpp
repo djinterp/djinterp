@@ -116,7 +116,7 @@ template<typename _Type>
 struct is_fixed_table : internal::is_fixed_table_impl<clean_t<_Type>>
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 // is_fixed_table_v
 //   value: variable-template shorthand for is_fixed_table<_Type>::value.
 template<typename _Type>

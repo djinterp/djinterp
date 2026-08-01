@@ -116,7 +116,7 @@ template<typename _Type>
 struct is_sorted_table : internal::is_sorted_table_impl<clean_t<_Type>>
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_sorted_table_v = is_sorted_table<_Type>::value;
 #endif

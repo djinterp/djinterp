@@ -35,7 +35,7 @@
 *   C++11 baseline, as container_metadata.
 *
 *
-* path:      /inc/djinterp/core/container/metadata/table_metadata.hpp
+* path:      /inc/djinterp/core/container/table/table_metadata.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.07
 ******************************************************************************/
@@ -396,7 +396,7 @@ struct is_table_metadata
     : internal::is_table_metadata_impl<clean_t<_Type>>
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 template<typename _Type>
 inline constexpr bool is_table_metadata_v =
     is_table_metadata<_Type>::value;
