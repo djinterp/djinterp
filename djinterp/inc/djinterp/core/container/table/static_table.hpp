@@ -110,7 +110,7 @@ template<typename _Type>
 struct is_static_table : internal::is_static_table_impl<clean_t<_Type>>
 {};
 
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+#if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
 // is_static_table_v
 //   value: variable-template shorthand for is_static_table<_Type>::value.
 template<typename _Type>
