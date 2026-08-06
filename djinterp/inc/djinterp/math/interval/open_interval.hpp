@@ -16,7 +16,7 @@
 *   - static constexpr bool is_left_open  = true
 *   - static constexpr bool is_right_open = true
 *
-* path:      /inc/math/open_interval.hpp
+* path:      /inc/djinterp/math/interval/open_interval.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       date: 2024.04.23
 ******************************************************************************/

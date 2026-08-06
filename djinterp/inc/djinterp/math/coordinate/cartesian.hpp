@@ -10,37 +10,34 @@
 * STRUCTURAL INTERFACE (for coordinate traits):
 *   - value_type, point_type
 *   - static constexpr dimension
-*   - static constexpr bool is_cartesian   = true
-*   - static constexpr bool is_polar       = false
+*   - static constexpr bool is_cartesian  = true
+*   - static constexpr bool is_polar      = false
 *   - static constexpr bool is_cylindrical = false
-*   - static constexpr bool is_spherical   = false
-*   - static constexpr bool is_orthogonal  = true
+*   - static constexpr bool is_spherical  = false
+*   - static constexpr bool is_orthogonal = true
 *   - scale_factors(point), jacobian(point)
 *   - to_cartesian(point), from_cartesian(point)
+*
 * AXIS NAMING:
 *   1D: x
 *   2D: x, y
 *   3D: x, y, z
 *   ND: x₀, x₁, ..., x_{N-1}
 *
-* 
 * path:      /inc/djinterp/math/coordinate/cartesian.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.06
+* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
 ******************************************************************************/
 
-#ifndef DJINTERP_MATH_COORDINATE_CARTESIAN_
-#define DJINTERP_MATH_COORDINATE_CARTESIAN_ 1
+#ifndef DJINTERP_MATH_CARTESIAN_
+#define DJINTERP_MATH_CARTESIAN_ 1
 
-// std
 #include <cstddef>
 #include <cstdint>
 #include <cmath>
 #include <array>
 #include <type_traits>
-// djinterp
-#include "../../core/djinterp.hpp"
-#include "../math.hpp"
+#include "../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -400,4 +397,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_COORDINATE_CARTESIAN_
+#endif  // DJINTERP_MATH_CARTESIAN_

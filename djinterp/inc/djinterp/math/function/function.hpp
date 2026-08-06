@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [math]                                                 function.hpp
+* djinterp [math]                                                function.hpp
 *
 * Named functions, higher-order forms, and the fluent builder.
 *   This header sits on top of expression.hpp (the value-holding expression
@@ -24,31 +24,28 @@
 * the same object evaluates identically at compile time and at run time.
 *
 * MARKER CONTRACT (unchanged from function_traits.hpp):
-*     inequality:     static constexpr bool is_inequality     = true;
-*     piecewise:      static constexpr bool is_piecewise      = true;  pieces_type
-*     parametric:     static constexpr bool is_parametric     = true;  parameter_count
-*     implicit:       static constexpr bool is_implicit       = true;
-*     vector-valued:  static constexpr bool is_vector_valued  = true;  output_dimension
-*     named function: static constexpr bool is_math_function  = true;
+*     Inequality:     static constexpr bool is_inequality    = true;
+*     Piecewise:      static constexpr bool is_piecewise      = true;  pieces_type
+*     Parametric:     static constexpr bool is_parametric     = true;  parameter_count
+*     Implicit:       static constexpr bool is_implicit       = true;
+*     Vector-valued:  static constexpr bool is_vector_valued  = true;  output_dimension
+*     Named function: static constexpr bool is_math_function  = true;
 *
-* 
 * path:      /inc/djinterp/math/function/function.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.06
+* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
 ******************************************************************************/
 
 #ifndef DJINTERP_MATH_FUNCTION_
 #define DJINTERP_MATH_FUNCTION_ 1
 
-// std
 #include <cstddef>
 #include <array>
 #include <tuple>
 #include <utility>
 #include <type_traits>
-// djinterp
-#include "../../core/djinterp.hpp"
-#include "../math.hpp"
+
+#include "../djinterp.hpp"
 #include "./expression.hpp"
 #include "./coordinate.hpp"
 

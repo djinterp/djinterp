@@ -17,14 +17,13 @@
 *   - static constexpr bool is_left_open  = false
 *   - static constexpr bool is_right_open = false
 *
-* 
 * path:      /inc/djinterp/math/interval/discrete_interval.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2024.04.23
+* author(s): Samuel 'teer' Neal-Blim                       date: 2024.04.23
 ******************************************************************************/
 
-#ifndef DJINTERP_MATH_INTERVAL_DISCRETE_
-#define DJINTERP_MATH_INTERVAL_DISCRETE_ 1
+#ifndef DJINTERP_MATH_DISCRETE_INTERVAL_
+#define DJINTERP_MATH_DISCRETE_INTERVAL_ 1
 
 // std
 #include <cstddef>
@@ -34,7 +33,6 @@
 #include <type_traits>
 // djinterp
 #include "../../core/djinterp.hpp"
-#include "../math.hpp"
 
 
 NS_DJINTERP
@@ -517,4 +515,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_INTERVAL_DISCRETE_
+#endif  // DJINTERP_MATH_DISCRETE_INTERVAL_

@@ -19,25 +19,21 @@
 *   quadratic_bezier<System>       - degree-2 Bezier
 *   cubic_bezier<System>           - degree-3 Bezier
 *
-* 
 * path:      /inc/djinterp/math/geometry/edge.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
 ******************************************************************************/
 
 #ifndef DJINTERP_MATH_GEOMETRY_EDGE_
 #define DJINTERP_MATH_GEOMETRY_EDGE_ 1
 
-// std
 #include <cstddef>
 #include <cstdint>
 #include <cmath>
 #include <array>
 #include <tuple>
 #include <type_traits>
-// djinterp
-#include "../../core/djinterp.hpp"
-#include "../math.hpp"
+#include "../../djinterp.hpp"
 #include "../coordinate.hpp"
 #include "./geometry_common.hpp"
 

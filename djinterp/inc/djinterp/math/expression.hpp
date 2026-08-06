@@ -27,7 +27,6 @@
 *   - Transcendentals evaluate via a constexpr math kernel at compile time and
 *     via <cmath> at runtime (std::is_constant_evaluated dispatch).
 *
-* 
 * path:      /inc/djinterp/math/expression.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim
@@ -43,8 +42,20 @@
 #include <utility>
 #include <type_traits>
 // djinterp
-#include "../core/djinterp.hpp"
-#include "./math.hpp"
+#include "../djinterp.hpp"
+
+
+// D_INLINE_VAR: `inline` for namespace-scope constexpr variables under C++17+
+// (one shared, ODR-merged object). Under C++14 it is empty: a namespace-scope
+// constexpr variable already has internal linkage, so each TU gets its own
+// copy with no ODR conflict. (Provided by the djinterp env header when present.)
+#ifndef D_INLINE_VAR
+    #if D_ENV_CPP_FEATURE_LANG_INLINE_VARIABLES
+        #define D_INLINE_VAR inline
+    #else
+        #define D_INLINE_VAR
+    #endif
+#endif
 
 
 NS_DJINTERP
@@ -75,7 +86,8 @@ template<typename _Type>
 struct is_expression
     : std::is_base_of<expression_base<typename std::decay<_Type>::type>,
                       typename std::decay<_Type>::type>
-{};
+{
+};
 
 #if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 template<typename _Type>
@@ -123,6 +135,7 @@ struct vec3
 // ===========================================================================
 
 NS_INTERNAL
+
     // ---- constexpr scalar kernel (compile-time fallback for <cmath>) -------
 
     // cabs
