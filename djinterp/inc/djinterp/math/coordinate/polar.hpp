@@ -34,24 +34,20 @@
 *   - scale_factors(point), jacobian(point)
 *   - to_cartesian(point), from_cartesian(point)
 *
-* 
 * path:      /inc/djinterp/math/coordinate/polar.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.06
+* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
 ******************************************************************************/
 
-#ifndef DJINTERP_MATH_COORDINATE_POLAR_
-#define DJINTERP_MATH_COORDINATE_POLAR_ 1
+#ifndef DJINTERP_MATH_POLAR_
+#define DJINTERP_MATH_POLAR_ 1
 
-// std
 #include <cstddef>
 #include <cstdint>
 #include <cmath>
 #include <array>
 #include <type_traits>
-// djinterp
-#include "../../core/djinterp.hpp"
-#include "../math.hpp"
+#include "../djinterp.hpp"
 
 
 NS_DJINTERP
@@ -335,4 +331,4 @@ NS_END  // math
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MATH_COORDINATE_POLAR_
+#endif  // DJINTERP_MATH_POLAR_

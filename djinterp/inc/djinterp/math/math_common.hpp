@@ -1,18 +1,12 @@
 /******************************************************************************
 * djinterp [math]                                              math_common.hpp
 *
-* Compile-time mathematical expressions and functions.
-*   This header provides template types for representing mathematical 
-* expressions, constants, functions, and coordinate systems at compile time.
-* No tag types are used - all detection is structural via SFINAE.
+* Common foundation for the math subsystem.
+*   Establishes the math namespace macro and the shared environment include
+* that every math header builds on. Including this header (directly or
+* transitively) is sufficient to obtain the NS_MATH / NS_DJINTERP / NS_INTERNAL
+* namespace-open macros and the version-gating helpers from djinterp.hpp.
 *
-* STRUCTURAL REQUIREMENTS (for SFINAE detection):
-*   Constants: static constexpr value, static constexpr degree == 0
-*   Functions: static evaluate(_x) method, static constexpr arity
-*   Polynomials: static constexpr degree, static evaluate(_x) method
-*   Number bases: static constexpr radix
-*
-* 
 * path:      /inc/djinterp/math/math_common.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.04
@@ -21,38 +15,17 @@
 #ifndef DJINTERP_MATH_COMMON_
 #define DJINTERP_MATH_COMMON_ 1
 
-#include <cstddef>
-#include <cstdint>
-#include <array>
-#include <ratio>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-// djinterp
-#include "../../core/djinterp.hpp"
-#include "../interval/interval.hpp"
-
+#include "../djinterp.hpp"
 
 
 // D_KEYWORD_MATH
-//   keyword: resolves to `math`.  Marks a unit of code as part
-// of the maths subframework.
+//   keyword: resolves to `math`.  Marks a unit of code as part of the maths
+// namespace.
 #define D_KEYWORD_MATH              math
 
 // NS_MATH
-//   namespace: the parse subframework namespace.
+//   namespace: the maths subsystem namespace.
 #define NS_MATH                     D_NAMESPACE(D_KEYWORD_MATH)
-
-
-NS_DJINTERP  // djinterp
-NS_MATH      // math
-
-
-
-
-
-NS_END  // math
-NS_END  // djinterp
 
 
 #endif  // DJINTERP_MATH_COMMON_

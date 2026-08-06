@@ -25,24 +25,20 @@
 *   circular_sector<System>    - centre, radius, start and sweep angles
 *   circular_segment<System>   - centre, radius, sweep angle
 *
-* 
 * path:      /inc/djinterp/math/geometry/named_2d.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
 ******************************************************************************/
 
 #ifndef DJINTERP_MATH_GEOMETRY_NAMED_2D_
 #define DJINTERP_MATH_GEOMETRY_NAMED_2D_ 1
 
-// std
 #include <cstddef>
 #include <cstdint>
 #include <cmath>
 #include <array>
 #include <type_traits>
-// djinterp
 #include "../../djinterp.hpp"
-#include "../math.hpp"
 #include "../coordinate.hpp"
 #include "./geometry_common.hpp"
 

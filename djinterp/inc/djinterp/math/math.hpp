@@ -1,23 +1,29 @@
 /******************************************************************************
 * djinterp [math]                                                     math.hpp
 *
-* Umbrella header for the math expression subframework.
-*   Following consolidation, math.hpp no longer defines types of its own. Its
-* former contents were split into focused headers; this header includes them
-* all so existing `#include "math.hpp"` sites keep compiling. New code may
-* include the specific sub-headers directly to keep compile times tight.
+* Umbrella header for the math subframework.
+*   math.hpp defines no types of its own; it includes the focused headers that
+* make up the module so a single `#include "math.hpp"` pulls in everything.
+* New code may include the specific sub-headers directly to keep compile times
+* tight.
 *
 * DIRECTORY MAP:
-*   expression.hpp - expression core: constant, variable, term, polynomial,
-*                    binary/unary ops, power, function_expr, rational_function,
-*                    compose (the canonical expression tree)
-*   constants.hpp  - named constants (pi, e, phi, sqrt2), typed value
-*                    templates (pi_v, ...), compile-time rational, number_base
-*   builtins.hpp   - linear, step_function, sign_function, abs_function
-*   values.hpp     - compile-time function-value sampling over an interval
-*   interval.hpp   - interval types (pulled in transitively for convenience)
+*   math_common.hpp - subsystem foundation: NS_MATH and the env include
+*   expression.hpp  - value-holding expression core: constant_node,
+*                     variable_node, binary/unary nodes, operators, combinators
+*   function.hpp    - math_function + fluent builder, piecewise / vector /
+*                     parametric / implicit forms, relational + logical layers,
+*                     coordinate-system detection, axis sets
+*   coordinate.hpp  - coordinate-system trait layer; cartesian/polar/
+*                     cylindrical/spherical.hpp - the concrete systems
+*   interval.hpp    - unified interval type + folded interval traits
+*   constants.hpp   - constants (djinterp::math::constants), compile-time
+*                     rational, number_base / radix system
+*   values.hpp      - compile-time sampling of an expression over points
+*   geometry/       - geometry subframework (edges, surfaces, solids, measures)
+*   calculus/       - calculus subframework (differentiation, integration,
+*                     sequences, series, elementary functions)
 *
-* 
 * path:      /inc/djinterp/math/math.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2024.04.24
@@ -26,13 +32,28 @@
 #ifndef DJINTERP_MATH_
 #define DJINTERP_MATH_ 1
 
-// djinterp
-#include "../core/djinterp.hpp"
+// foundation
+#include "./math_common.hpp"
+
+// expression core + functions
 #include "./expression.hpp"
-#include "./constants.hpp"
-#include "./builtins.hpp"
-#include "./values.hpp"
+#include "./function.hpp"
+
+// coordinate systems
+#include "./coordinate.hpp"
+#include "./cartesian.hpp"
+#include "./polar.hpp"
+#include "./cylindrical.hpp"
+#include "./spherical.hpp"
+
+// numeric support
 #include "./interval.hpp"
+#include "./constants.hpp"
+#include "./values.hpp"
+
+// subframeworks
+#include "./geometry/geometry.hpp"
+#include "./calculus/calculus.hpp"
 
 
 #endif  // DJINTERP_MATH_

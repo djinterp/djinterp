@@ -1,20 +1,15 @@
 /******************************************************************************
 * djinterp [math]                                                   values.hpp
 *
-* Compile-time function-value generation over an interval.
-*   Harvested from the former math.hpp during consolidation. Samples an
-* expression at the integral points of an interval and stores the results
-* in a std::array, available at compile time.
+* Compile-time sampling of an expression.
+*   Evaluates a value-holding expression (expression.hpp) at a sequence of
+* points and stores the results in a std::array available at compile time.
+* This replaces the former static-`evaluate` sampling: expressions are now
+* instances called through operator(), so sampling takes an expression value.
 *
-* NOTE (interval API):
-*   The original math.hpp implementation referenced an interval interface
-* (first(), ::size, ::is_empty) that does not match the current interval
-* headers. This version is adapted to the closed_interval / discrete_interval
-* surface (static lower_bound, static size()). It assumes unit-step sampling
-* from lower_bound; sampling a strided discrete_interval correctly requires
-* dispatching through _Interval::at(index) and is left as a follow-up.
+*   sample<Count>(e, start, step)  - e at start, start+step, ... (Count points)
+*   sample_over<Interval>(e)       - e at an interval's sample points
 *
-* 
 * path:      /inc/djinterp/math/values.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.04
@@ -28,106 +23,69 @@
 #include <cstddef>
 #include <utility>
 // djinterp
-#include "../core/djinterp.hpp"
-#include "./math.hpp"
+#include "../djinterp.hpp"
 #include "./expression.hpp"
 #include "./interval.hpp"
 
 
-NS_DJINTERP  // djinterp
-NS_MATH      // math
+NS_DJINTERP
+NS_MATH
 
-// ===========================================================================
-// I.   Value Generation
-// ===========================================================================
+// ============================================================================
+// I.    SAMPLING
+// ============================================================================
 
 NS_INTERNAL
 
-    // values_helper
-    //   helper: generates an array of evaluated function values from an
-    // index sequence.
-    template<typename _OutputType,
-             typename _Function,
-             typename _Interval,
-             typename _Seq>
-    struct values_helper;
-
-    // values_helper (index-sequence specialization)
-    //   helper: evaluates _Function at lower_bound + index for each index.
-    template<typename       _OutputType,
-             typename       _Function,
-             typename       _Interval,
-             std::size_t... _Indices>
-    struct values_helper<_OutputType,
-                         _Function,
-                         _Interval,
-                         std::index_sequence<_Indices...>>
+    // sample_impl
+    //   helper: builds the array by evaluating _e at start + i*step for each
+    // index i in the pack (functor-free so it stays constexpr in C++14).
+    template<typename _Expr, std::size_t... _Is>
+    D_CONSTEXPR std::array<double, sizeof...(_Is)>
+    sample_impl(const _Expr& _e, double _start, double _step,
+                std::index_sequence<_Is...>)
     {
-        using value_type = _OutputType;
-
-        static constexpr std::size_t count = sizeof...(_Indices);
-
-        static constexpr std::array<value_type, count>
-        make() noexcept
-        {
-            return {{
-                static_cast<value_type>(
-                    _Function::evaluate(_Interval::lower_bound + _Indices)
-                )...
-            }};
-        }
-    };
+        return {{
+            static_cast<double>(
+                _e(_start + static_cast<double>(_Is) * _step))...
+        }};
+    }
 
 NS_END  // internal
 
-// values
-//   struct: generates an array of function values over an interval,
-// evaluating the function at each integral sample point.
-template<typename _OutputType,
-         typename _Function,
-         typename _Interval>
-struct values
+// sample
+//   evaluates _e at _Count points beginning at _start, spaced by _step, and
+// returns the results as a std::array<double, _Count>.
+template<std::size_t _Count, typename _Expr>
+D_CONSTEXPR std::array<double, _Count>
+sample(const _Expr& _e, double _start, double _step = 1.0)
 {
-    static_assert((_Interval::size() > 0),
-                  "values: cannot generate values from an empty interval.");
+    return internal::sample_impl(_e, _start, _step,
+                                 std::make_index_sequence<_Count>{});
+}
 
-    using value_type = _OutputType;
+// sample_over
+//   evaluates _e at the sample points of an interval: lower_bound + i * step,
+// where step is the interval's step when discrete and 1 otherwise, for each of
+// the interval's size() positions.
+template<typename _Interval, typename _Expr>
+D_CONSTEXPR std::array<double, _Interval::size()>
+sample_over(const _Expr& _e)
+{
+    static_assert(is_interval<_Interval>::value,
+                  "sample_over: _Interval must be an interval type.");
 
-    static constexpr std::size_t count = _Interval::size();
+    constexpr double step =
+        (_Interval::step > static_cast<decltype(_Interval::step)>(0))
+            ? static_cast<double>(_Interval::step)
+            : 1.0;
 
-private:
-    using helper = internal::values_helper<
-        _OutputType,
-        _Function,
-        _Interval,
-        std::make_index_sequence<count>>;
-
-public:
-    static constexpr std::array<value_type, count> array = helper::make();
-
-    static constexpr value_type
-    at(std::size_t _index) noexcept
-    {
-        return array[_index];
-    }
-
-    static constexpr std::size_t
-    size() noexcept
-    {
-        return count;
-    }
-};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-// values_v
-//   variable template: array of function values over an interval.
-template<typename _OutputType,
-         typename _Function,
-         typename _Interval>
-inline constexpr auto values_v =
-    values<_OutputType, _Function, _Interval>::array;
-#endif
-
+    return internal::sample_impl(
+        _e,
+        static_cast<double>(_Interval::lower_bound),
+        step,
+        std::make_index_sequence<_Interval::size()>{});
+}
 
 NS_END  // math
 NS_END  // djinterp

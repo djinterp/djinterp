@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [math]                                             interval.hpp
+* djinterp [math]                                                 interval.hpp
 *
 * Unified compile-time interval template.
 *   This header provides a single, fully generic interval type parameterized
@@ -16,24 +16,19 @@
 *   _RightOpen - true if the right endpoint is excluded (default: false)
 *   _Step      - discrete stride; 0 means continuous    (default: 0)
 *   _SizeType  - unsigned type used for counts/indices  (default: size_t)
-*
 * BOUNDARY CONFIGURATIONS:
 *   [a, b]   closed        _LeftOpen=false, _RightOpen=false  (default)
 *   (a, b)   open          _LeftOpen=true,  _RightOpen=true
 *   [a, b)   half-open-R   _LeftOpen=false, _RightOpen=true
 *   (a, b]   half-open-L   _LeftOpen=true,  _RightOpen=false
-*
 * DISCRETE vs CONTINUOUS:
 *   _Step == 0  => continuous (unit-stride iteration for integral types)
 *   _Step >  0  => discrete   (stride-_Step iteration, alignment checks)
-*
 * CONVERSION TYPE ALIASES (nested):
 *   as_closed, as_open, as_half_open_left, as_half_open_right,
 *   as_continuous, with_step<S>, with_bounds<L,U>, with_size_type<S>
-*
 * FREE-STANDING CONVERSION METAFUNCTION:
 *   interval_cast<_Target, _Source> - converts between interval configs
-*
 * STRUCTURAL INTERFACE (for interval_traits):
 *   value_type, size_type, lower_bound, upper_bound, step,
 *   is_left_open, is_right_open
@@ -55,7 +50,6 @@
 #include <type_traits>
 // djinterp
 #include "../../core/djinterp.hpp"
-#include "../math.hpp"
 #include "./closed_interval.hpp"
 #include "./open_interval.hpp"
 #include "./discrete_interval.hpp"
@@ -1388,7 +1382,9 @@ NS_INTERNAL
     {};
 
     // has_step
-    //   helper: detects step static member (for discrete intervals).
+    //   helper: detects step static member (present on all interval types;
+    // a zero step denotes a continuous interval, so presence alone does not
+    // imply discreteness -- see has_discrete_step).
     template<typename _Type,
              typename = void>
     struct has_step : std::false_type
@@ -1397,6 +1393,23 @@ NS_INTERNAL
     template<typename _Type>
     struct has_step<_Type, std::void_t<decltype(_Type::step)>>
         : std::true_type
+    {};
+
+    // has_discrete_step
+    //   helper: detects a step static member whose value is non-zero. This is
+    // what distinguishes a discrete interval from a continuous one: continuous
+    // intervals (closed, open, half-open, and the unified interval with
+    // _Step == 0) all expose step == 0, while a discrete interval carries a
+    // positive step. Mirrors the unified interval's own m_is_discrete test.
+    template<typename _Type,
+             typename = void>
+    struct has_discrete_step : std::false_type
+    {};
+
+    template<typename _Type>
+    struct has_discrete_step<_Type, std::enable_if_t<
+        ( _Type::step > static_cast<decltype(_Type::step)>(0) )
+    >> : std::true_type
     {};
 
     // interval_structural_check
@@ -1427,7 +1440,7 @@ NS_INTERNAL
     template<typename _Type>
     struct discrete_interval_structural_check<_Type, std::enable_if_t<
         ( interval_structural_check<_Type>::value &&
-          has_step<_Type>::value )
+          has_discrete_step<_Type>::value )
     >> : std::true_type
     {};
 
@@ -1842,8 +1855,8 @@ NS_INTERNAL
     struct intervals_same_boundary_check<_Interval1,
                                         _Interval2,
                                         std::enable_if_t<
-        ( is_interval<_Interval1>::value                                &&
-          is_interval<_Interval2>::value                                &&
+        ( is_interval<_Interval1>::value                                 &&
+          is_interval<_Interval2>::value                                 &&
           (_Interval1::is_left_open  == _Interval2::is_left_open)       &&
           (_Interval1::is_right_open == _Interval2::is_right_open) )
     >> : std::true_type
@@ -1974,8 +1987,6 @@ struct intervals_same_boundary_type
         intervals_same_boundary_type<_Interval1, _Interval2>::value;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-
 NS_END  // math
 NS_END  // djinterp
 

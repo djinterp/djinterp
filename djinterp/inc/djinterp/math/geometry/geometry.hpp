@@ -35,24 +35,24 @@
 *                         surface_area, centroid_3d, bounding_box
 *                         helpers
 *
-* 
 * path:      /inc/djinterp/math/geometry/geometry.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
+* author(s): Samuel 'teer' Neal-Blim                       date: 2026.05.23
 ******************************************************************************/
 
 #ifndef DJINTERP_MATH_GEOMETRY_
 #define DJINTERP_MATH_GEOMETRY_ 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
-#include "../math.hpp"
 #include "./geometry_common.hpp"
+
+// 1D and 2D
 #include "./edge.hpp"
 #include "./shape_2d.hpp"
 #include "./named_2d.hpp"
 #include "./star_2d.hpp"
 #include "./measure_2d.hpp"
+
+// 2-manifold surfaces and 3D
 #include "./surface.hpp"
 #include "./solid.hpp"
 #include "./named_3d.hpp"

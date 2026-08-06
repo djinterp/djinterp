@@ -33,28 +33,26 @@
 *     - static scale_factors(point_type) -> array<value_type, dimension>
 *     - static jacobian(point_type) -> value_type
 *
-* 
 * path:      /inc/djinterp/math/coordinate/coordinate.hpp
 * link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.06
+* author(s): Samuel 'teer' Neal-Blim                       date: 2026.02.06
 ******************************************************************************/
 
 #ifndef DJINTERP_MATH_COORDINATE_
 #define DJINTERP_MATH_COORDINATE_ 1
 
-// std
 #include <cstddef>
 #include <cstdint>
 #include <cmath>
 #include <array>
 #include <type_traits>
-// djinterp
-#include "../../core/djinterp.hpp"
-#include "../math.hpp"
-#include "./cartesian.hpp"
-#include "./polar.hpp"
-#include "./cylindrical.hpp"
-#include "./spherical.hpp"
+#include "../djinterp.hpp"
+
+// sub-module headers (usable independently)
+#include "cartesian.hpp"
+#include "polar.hpp"
+#include "cylindrical.hpp"
+#include "spherical.hpp"
 
 
 NS_DJINTERP

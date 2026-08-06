@@ -1,14 +1,16 @@
 /******************************************************************************
 * djinterp [math]                                                constants.hpp
 *
-* Compile-time numeric constants and number-base representation.
-*   Harvested from the former math.hpp during consolidation. Provides the
-* named mathematical constants (pi, e, phi, sqrt2), a compile-time reduced
-* rational number type, and the radix / number-base system. Each constant
-* type models the expression protocol from expression.hpp, so it composes
-* directly into expression trees.
+* Mathematical constants, compile-time rationals, and number bases.
+*   This is the single source of truth for numeric constants across the math
+* module. Constants live in the nested djinterp::math::constants namespace as
+* variable templates parameterised on their floating-point type; use them with
+* the expression core via constant(constants::pi<double>), etc. The geometry
+* and calculus subframeworks both draw their constants from here.
 *
-* 
+*   Also provides a value-holding compile-time rational number (an expression
+* leaf) and the number_base / radix system.
+*
 * path:      /inc/djinterp/math/constants.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.02.04
@@ -22,233 +24,171 @@
 #include <cstdint>
 #include <ratio>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "./expression.hpp"
 
 
-NS_DJINTERP  // djinterp
-NS_MATH      // math
+NS_DJINTERP
+NS_MATH
 
-// ===========================================================================
-// I.   Named Mathematical Constants
-// ===========================================================================
+// ============================================================================
+// I.    NAMED CONSTANTS  (djinterp::math::constants)
+// ============================================================================
+// Variable templates, parameterised on the floating-point type. These do not
+// collide with the geometry subframework's flat pi_v family; that family can
+// be expressed as aliases of these (e.g. pi_v<T> == constants::pi<T>).
 
-// pi_constant
-//   struct: the mathematical constant pi as an expression node.
-struct pi_constant : expression_base<pi_constant>
+namespace constants
 {
-    using value_type = double;
+    // pi and friends
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T pi =
+        static_cast<_T>(3.141592653589793238462643383279502884L);
 
-    static constexpr const char* name             = "pi";
-    static constexpr value_type  value            = 3.14159265358979323846;
-    static constexpr std::size_t arity            = 0;
-    static constexpr std::size_t degree           = 0;
-    static constexpr bool        is_constant_expr = true;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T two_pi =
+        static_cast<_T>(6.283185307179586476925286766559005768L);
 
-    template<typename _InputType>
-    static constexpr value_type
-    evaluate(_InputType) noexcept
-    {
-        return value;
-    }
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T half_pi =
+        static_cast<_T>(1.570796326794896619231321691639751442L);
 
-    using derivative = constant<value_type, static_cast<value_type>(0)>;
-};
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T quarter_pi =
+        static_cast<_T>(0.785398163397448309615660845819875721L);
 
-// e_constant
-//   struct: Euler's number e as an expression node.
-struct e_constant : expression_base<e_constant>
-{
-    using value_type = double;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T inv_pi =
+        static_cast<_T>(0.318309886183790671537767526745028724L);
 
-    static constexpr const char* name             = "e";
-    static constexpr value_type  value            = 2.71828182845904523536;
-    static constexpr std::size_t arity            = 0;
-    static constexpr std::size_t degree           = 0;
-    static constexpr bool        is_constant_expr = true;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T tau =
+        static_cast<_T>(6.283185307179586476925286766559005768L);
 
-    template<typename _InputType>
-    static constexpr value_type
-    evaluate(_InputType) noexcept
-    {
-        return value;
-    }
+    // e and logarithms
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T e =
+        static_cast<_T>(2.718281828459045235360287471352662498L);
 
-    using derivative = constant<value_type, static_cast<value_type>(0)>;
-};
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T ln2 =
+        static_cast<_T>(0.693147180559945309417232121458176568L);
 
-// phi_constant
-//   struct: the golden ratio phi as an expression node.
-struct phi_constant : expression_base<phi_constant>
-{
-    using value_type = double;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T ln10 =
+        static_cast<_T>(2.302585092994045684017991454684364208L);
 
-    static constexpr const char* name             = "phi";
-    static constexpr value_type  value            = 1.61803398874989484820;
-    static constexpr std::size_t arity            = 0;
-    static constexpr std::size_t degree           = 0;
-    static constexpr bool        is_constant_expr = true;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T log2e =
+        static_cast<_T>(1.442695040888963407359924681001892137L);
 
-    template<typename _InputType>
-    static constexpr value_type
-    evaluate(_InputType) noexcept
-    {
-        return value;
-    }
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T log10e =
+        static_cast<_T>(0.434294481903251827651128918916605082L);
 
-    using derivative = constant<value_type, static_cast<value_type>(0)>;
-};
+    // roots
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T sqrt2 =
+        static_cast<_T>(1.414213562373095048801688724209698079L);
 
-// sqrt2_constant
-//   struct: the square root of two as an expression node.
-struct sqrt2_constant : expression_base<sqrt2_constant>
-{
-    using value_type = double;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T sqrt3 =
+        static_cast<_T>(1.732050807568877293527446341505872367L);
 
-    static constexpr const char* name             = "sqrt2";
-    static constexpr value_type  value            = 1.41421356237309504880;
-    static constexpr std::size_t arity            = 0;
-    static constexpr std::size_t degree           = 0;
-    static constexpr bool        is_constant_expr = true;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T inv_sqrt2 =
+        static_cast<_T>(0.707106781186547524400844362104849039L);
 
-    template<typename _InputType>
-    static constexpr value_type
-    evaluate(_InputType) noexcept
-    {
-        return value;
-    }
+    // other
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T euler_gamma =
+        static_cast<_T>(0.577215664901532860606512090082402431L);
 
-    using derivative = constant<value_type, static_cast<value_type>(0)>;
-};
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T golden_ratio =
+        static_cast<_T>(1.618033988749894848204586834365638118L);
 
-// pi
-//   type: convenience alias for pi_constant.
-using pi = pi_constant;
+    // phi: alias spelling of golden_ratio.
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T phi =
+        static_cast<_T>(1.618033988749894848204586834365638118L);
 
-// e
-//   type: convenience alias for e_constant.
-using e = e_constant;
+    // angle conversion factors
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T rad_per_deg =
+        static_cast<_T>(0.017453292519943295769236907684886127L);
 
-// phi
-//   type: convenience alias for phi_constant.
-using phi = phi_constant;
-
-// sqrt2
-//   type: convenience alias for sqrt2_constant.
-using sqrt2 = sqrt2_constant;
+    template<typename _T = double>
+    D_INLINE_VAR constexpr _T deg_per_rad =
+        static_cast<_T>(57.29577951308232087679815481410517033L);
+}  // constants
 
 
-// ===========================================================================
-// II.  Typed Constant Value Templates
-// ===========================================================================
-// Value-level constants for use where a plain numeric literal is wanted in
-// a chosen precision (e.g. coordinate-system scale factors). Centralizes
-// the pi literal that was previously inlined across the coordinate headers.
-
-// pi_v
-//   constant: pi in the requested precision.
-template<typename _T = double>
-inline constexpr _T pi_v = static_cast<_T>(3.14159265358979323846L);
-
-// e_v
-//   constant: Euler's number in the requested precision.
-template<typename _T = double>
-inline constexpr _T e_v = static_cast<_T>(2.71828182845904523536L);
-
-// phi_v
-//   constant: the golden ratio in the requested precision.
-template<typename _T = double>
-inline constexpr _T phi_v = static_cast<_T>(1.61803398874989484820L);
-
-// sqrt2_v
-//   constant: the square root of two in the requested precision.
-template<typename _T = double>
-inline constexpr _T sqrt2_v = static_cast<_T>(1.41421356237309504880L);
-
-// two_pi_v
-//   constant: 2*pi in the requested precision.
-template<typename _T = double>
-inline constexpr _T two_pi_v = static_cast<_T>(2) * pi_v<_T>;
-
-
-// ===========================================================================
-// III. Compile-Time Rational Number
-// ===========================================================================
+// ============================================================================
+// II.   COMPILE-TIME RATIONAL  (value-holding expression leaf)
+// ============================================================================
 
 // rational
-//   struct: compile-time reduced rational number (a fraction) as an
-// expression node. The fraction is reduced by gcd and the sign is
-// normalized onto the numerator at instantiation.
+//   struct: a compile-time reduced rational number that models the expression
+// protocol (arity 0, value_type, operator()), so it composes directly into
+// expression trees alongside constant_node. The fraction is reduced by gcd and
+// the sign normalised onto the numerator at instantiation.
 template<std::intmax_t _Numerator,
          std::intmax_t _Denominator = 1>
 struct rational : expression_base<rational<_Numerator, _Denominator>>
 {
-    static_assert(_Denominator != 0,
-                  "rational: denominator cannot be zero.");
+    static_assert(_Denominator != 0, "rational: denominator cannot be zero.");
 
     using value_type = double;
 
 private:
     static constexpr std::intmax_t
-    gcd(std::intmax_t _a, std::intmax_t _b)
+    gcd_of(std::intmax_t _a, std::intmax_t _b)
     {
-        return (_b == 0) ? _a : gcd(_b, _a % _b);
+        return (_b == 0) ? _a : gcd_of(_b, _a % _b);
     }
 
     static constexpr std::intmax_t
-    abs_val(std::intmax_t _x)
+    abs_of(std::intmax_t _x)
     {
         return (_x < 0) ? -_x : _x;
     }
 
-    static constexpr std::intmax_t
-    sign_val(std::intmax_t _x)
-    {
-        return (_x < 0) ? -1 : 1;
-    }
-
     static constexpr std::intmax_t common =
-        gcd(abs_val(_Numerator), abs_val(_Denominator));
-    static constexpr std::intmax_t sign = sign_val(_Denominator);
+        gcd_of(abs_of(_Numerator), abs_of(_Denominator));
+    static constexpr std::intmax_t den_sign = (_Denominator < 0) ? -1 : 1;
 
 public:
-    static constexpr std::intmax_t numerator   = sign * _Numerator / common;
-    static constexpr std::intmax_t denominator = abs_val(_Denominator) / common;
+    static constexpr std::intmax_t numerator   = den_sign * _Numerator / common;
+    static constexpr std::intmax_t denominator = abs_of(_Denominator) / common;
 
     static constexpr value_type value =
         static_cast<value_type>(numerator) /
         static_cast<value_type>(denominator);
 
-    static constexpr std::size_t arity            = 0;
-    static constexpr std::size_t degree           = 0;
-    static constexpr bool        is_constant_expr = true;
+    static constexpr std::size_t arity = 0;
 
-    template<typename _InputType>
-    static constexpr value_type
-    evaluate(_InputType) noexcept
+    template<typename... _Args>
+    D_CONSTEXPR value_type
+    operator()(_Args&&...) const noexcept
     {
         return value;
     }
 
-    using derivative = rational<0, 1>;
+    // compile-time fraction arithmetic (reduced on instantiation of the result)
+    template<std::intmax_t _On, std::intmax_t _Od>
+    using add = rational<numerator * _Od + _On * denominator,
+                         denominator * _Od>;
 
-    // compile-time fraction arithmetic
-    template<std::intmax_t _OtherNum, std::intmax_t _OtherDen>
-    using add = rational<numerator * _OtherDen + _OtherNum * denominator,
-                         denominator * _OtherDen>;
+    template<std::intmax_t _On, std::intmax_t _Od>
+    using subtract = rational<numerator * _Od - _On * denominator,
+                             denominator * _Od>;
 
-    template<std::intmax_t _OtherNum, std::intmax_t _OtherDen>
-    using subtract = rational<( (numerator * _OtherDen) -
-                                (_OtherNum * denominator) ),
-                             denominator * _OtherDen>;
+    template<std::intmax_t _On, std::intmax_t _Od>
+    using multiply = rational<numerator * _On, denominator * _Od>;
 
-    template<std::intmax_t _OtherNum, std::intmax_t _OtherDen>
-    using multiply = rational<numerator * _OtherNum,
-                             denominator * _OtherDen>;
-
-    template<std::intmax_t _OtherNum, std::intmax_t _OtherDen>
-    using divide = rational<numerator * _OtherDen,
-                           denominator * _OtherNum>;
+    template<std::intmax_t _On, std::intmax_t _Od>
+    using divide = rational<numerator * _Od, denominator * _On>;
 };
 
 // ratio_to_rational
@@ -257,9 +197,9 @@ template<typename _Ratio>
 using ratio_to_rational = rational<_Ratio::num, _Ratio::den>;
 
 
-// ===========================================================================
-// IV.  Number Base / Radix System
-// ===========================================================================
+// ============================================================================
+// III.  NUMBER BASE / RADIX SYSTEM
+// ============================================================================
 
 // number_base
 //   struct: specifies a number base/radix for digit interpretation.
@@ -288,32 +228,144 @@ struct number_base
     }
 };
 
-// binary_base
-//   type: number_base with radix 2.
 template<typename _Type = std::size_t>
 using binary_base = number_base<_Type, 2>;
 
-// octal_base
-//   type: number_base with radix 8.
 template<typename _Type = std::size_t>
 using octal_base = number_base<_Type, 8>;
 
-// decimal_base
-//   type: number_base with radix 10.
 template<typename _Type = std::size_t>
 using decimal_base = number_base<_Type, 10>;
 
-// hexadecimal_base
-//   type: number_base with radix 16.
 template<typename _Type = std::size_t>
 using hexadecimal_base = number_base<_Type, 16>;
 
-// base
-//   type: number_base with an explicit radix.
 template<typename    _Type,
          std::size_t _Base>
 using base = number_base<_Type, _Base>;
 
+
+// ============================================================================
+// IV.   NUMBER & BASE TRAITS
+// ============================================================================
+// Folded in from the retired math_traits.hpp. Only the traits whose target
+// types still exist are reproduced here (rational, number_base). The old-model
+// traits are NOT carried over -- they are superseded as follows:
+//   is_evaluable / is_constant / is_mathematical_constant   -> is_expression
+//                                                              (expression.hpp)
+//   is_function / is_unary_function / is_binary_function     -> is_function +
+//                                                       function_arity (function.hpp)
+//   is_polynomial / is_linear / is_quadratic / is_cubic /
+//     is_constant_function                                   -> (no degree-based
+//                                                       polynomial type in the
+//                                                       value-holding model)
+//   is_differentiable / is_integrable                        -> the calculus
+//                                                       free functions derivative<>(),
+//                                                       integrate(), ... (calculus/)
+//   has_coordinate_system / is_cartesian / is_polar          -> is_coord_system /
+//                                                       are_same_system (coordinate.hpp)
+//                                                       and is_coordinate_system (function.hpp)
+//   is_differentiable, interval traits                       -> interval.hpp folded traits
+
+NS_INTERNAL
+
+    // constants-local well-formedness probe, scoped under cdetail so it stays
+    // distinct from the module's other internal void_t definitions. C++14-safe,
+    // keeping this header compilable at C++14.
+    namespace cdetail
+    {
+        template<typename...>
+        struct make_void { using type = void; };
+        template<typename... _Ts>
+        using void_t = typename make_void<_Ts...>::type;
+    }
+
+    // member detectors
+    template<typename _Type, typename = void>
+    struct has_radix : std::false_type {};
+    template<typename _Type>
+    struct has_radix<_Type, cdetail::void_t<decltype(_Type::radix)>>
+        : std::true_type {};
+
+    template<typename _Type, typename = void>
+    struct has_numerator : std::false_type {};
+    template<typename _Type>
+    struct has_numerator<_Type, cdetail::void_t<decltype(_Type::numerator)>>
+        : std::true_type {};
+
+    template<typename _Type, typename = void>
+    struct has_denominator : std::false_type {};
+    template<typename _Type>
+    struct has_denominator<_Type, cdetail::void_t<decltype(_Type::denominator)>>
+        : std::true_type {};
+
+    template<typename _Type, typename = void>
+    struct rational_check : std::false_type {};
+    template<typename _Type>
+    struct rational_check<_Type, std::enable_if_t<
+        has_numerator<_Type>::value && has_denominator<_Type>::value
+    >> : std::true_type {};
+
+    template<typename _Type, std::size_t _Base, typename = void>
+    struct using_base_check : std::false_type {};
+    template<typename _Type, std::size_t _Base>
+    struct using_base_check<_Type, _Base, std::enable_if_t<
+        has_radix<_Type>::value && (_Type::radix == _Base)
+    >> : std::true_type {};
+
+NS_END  // internal
+
+// is_rational
+//   trait: _Type models a rational number (exposes numerator and denominator).
+template<typename _Type>
+struct is_rational : internal::rational_check<_Type> {};
+
+// has_number_base
+//   trait: _Type specifies a number base (exposes radix).
+template<typename _Type>
+struct has_number_base : internal::has_radix<_Type> {};
+
+// is_using_base
+//   trait: _Type uses the specific number base _Base.
+template<typename    _Type,
+         std::size_t _Base>
+struct is_using_base : internal::using_base_check<_Type, _Base> {};
+
+// is_binary / is_octal / is_decimal / is_hexadecimal
+//   trait: _Type uses base 2 / 8 / 10 / 16 respectively.
+template<typename _Type> struct is_binary      : is_using_base<_Type, 2>  {};
+template<typename _Type> struct is_octal       : is_using_base<_Type, 8>  {};
+template<typename _Type> struct is_decimal     : is_using_base<_Type, 10> {};
+template<typename _Type> struct is_hexadecimal : is_using_base<_Type, 16> {};
+
+// number-domain vocabulary (thin std wrappers, kept for API parity).
+template<typename _Type> struct is_integer_type        : std::is_integral<_Type>       {};
+template<typename _Type> struct is_real_number         : std::is_arithmetic<_Type>     {};
+template<typename _Type> struct is_floating_point_type : std::is_floating_point<_Type> {};
+
+#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_rational_v = is_rational<_Type>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool has_number_base_v = has_number_base<_Type>::value;
+template<typename    _Type,
+         std::size_t _Base>
+D_INLINE_VAR constexpr bool is_using_base_v = is_using_base<_Type, _Base>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_binary_v = is_binary<_Type>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_octal_v = is_octal<_Type>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_decimal_v = is_decimal<_Type>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_hexadecimal_v = is_hexadecimal<_Type>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_integer_type_v = is_integer_type<_Type>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_real_number_v = is_real_number<_Type>::value;
+template<typename _Type>
+D_INLINE_VAR constexpr bool is_floating_point_type_v = is_floating_point_type<_Type>::value;
+#endif
 
 NS_END  // math
 NS_END  // djinterp
