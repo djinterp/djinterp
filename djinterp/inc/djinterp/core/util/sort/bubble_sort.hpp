@@ -1,111 +1,99 @@
 /******************************************************************************
 * djinterp [utility]                                           bubble_sort.hpp
 *
-* bubble sort algorithm implementation.
-*   Provides bubble_sort() entry-point functions and compile-time traits.
-* bubble sort: in-place, iterative, stable, comparison-based O(n) best case,
-* O(n^2) average and worst case algorithm. The algorithm progressively walks
-* adjacent element pairs and swaps out-of-order values; each pass bubbles the
-* next largest/smallest element (depending on order) toward its final position,
-* and the sorted portion of the data grows one element at a time until the
-* sorted subsection constitutes the entire collection.
+*   Bubble sort: the sequential driver.
+* In-place, iterative, stable, comparison-based.  Each pass sweeps the adjacent
+* pairs of the unsorted region and exchanges those out of order, which carries
+* the largest remaining element to the region's end.  The driver is a loop
+* around bubble_pass; everything it does lives in bubble_sort_common.hpp, so a
+* concurrent driver added later shares those primitives rather than restating
+* them.
+*
+*   WHY THIS IS NOT THE C MODULE WITH A TEMPLATE ON TOP.  Two reasons, one
+* practical and one about what the algorithm guarantees.
+*
+*   The practical one: calling d_bubble_sort would cost everything the erased
+* interface costs -- an indirect call per comparison and a width-driven
+* exchange, neither visible to the optimiser, measured at roughly 3x.
+*
+*   The other one is why the duplication is safe.  Bubble sort is STABLE, and
+* sortedness plus stability leaves exactly one possible arrangement of any
+* input.  Two correct stable implementations therefore cannot disagree about
+* the result: their agreement follows from the algorithm's contract, not from
+* shared code.  (This does NOT extend to the unstable algorithms -- selection,
+* quick and heap leave the arrangement of equivalent elements to choices no
+* contract pins down, so the case for sharing text there must be made on its
+* own.)
 *
 *   complexity:
-*     best:     O(n)        (already sorted — single pass, adaptive)
+*     best:     O(n)        (already sorted -- one pass, no exchanges)
 *     average:  O(n^2)
 *     worst:    O(n^2)
-*     space:    O(1)        (in-place)
-*     stable:   yes
+*     space:    O(1)        (one carried element)
+*     stable:   yes         (only a STRICT precedence exchanges a pair)
+*
+*   REQUIREMENTS.  _RandomIterator must be a random-access iterator; the
+* element type must be copy-constructible and copy-assignable.  _Comparator
+* must be a std::sort-convention binary predicate -- which every model of
+* is_comparator is, so the composed comparators from the functional layer drop
+* in unchanged:
+*
+*       bubble_sort(v.begin(), v.end(),
+*                   by_key(&person::age) | then(by_member(&person::name)));
 *
 *
-* path:      /inc/djinterp/core/util/sort/bubble_sort.hpp
+* path:      /djinterp/cpp/util/sort/bubble_sort.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
+* author(s): Sam 'teer' Neal-Blim                         created: 2026.03.22
+*                                                         revised: 2026.08.10
 ******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_BUBBLE_
-#define DJINTERP_UTILITY_SORT_BUBBLE_ 1
+#ifndef DJINTERP_UTILITY_SORT_BUBBLE_HPP_
+#define DJINTERP_UTILITY_SORT_BUBBLE_HPP_ 1
 
 // djinterp
 #include "../../djinterp.hpp"
 #include "./sort_common.hpp"
+#include "./bubble_sort_common.hpp"
 
 
 NS_DJINTERP
 
-// implementation
+
+///////////////////////////////////////////////////////////////////////////////
+///                    I.   IMPLEMENTATION                                  ///
+///////////////////////////////////////////////////////////////////////////////
+
 NS_INTERNAL
 
     // bubble_sort_apply
-    //   function: performs an optimised bubble sort on [_first, _last).
+    //   function: performs bubble sort on [_first, _last).
     //
-    //   The outer loop shrinks the unsorted region from the right.  On
-    // each pass the inner loop walks from _first up to the current
-    // unsorted boundary, bubbling the largest unsorted element into its
-    // final position.  The position of the last swap is recorded so that
-    // elements known to be in order are never re-examined.
-    //
-    //   If a complete pass produces no swaps the range is sorted and the
-    // function returns immediately, giving O(n) best-case performance on
-    // already-sorted or nearly-sorted input.
+    //   THE SHRINKING BOUND.  Each pass returns the index of its last
+    // exchange, and that becomes the next pass's bound: nothing at or after it
+    // moved, so every element from there on is in final position.  A pass that
+    // exchanges nothing returns 0, which ends the loop -- so the O(n) best
+    // case on ordered input costs no separate test to obtain.
     template<typename _RandomIterator,
              typename _Comparator>
     void bubble_sort_apply(_RandomIterator _first,
                            _RandomIterator _last,
                            _Comparator     _comparator)
     {
-        // nothing to sort for empty or single-element ranges
-        if (_first == _last)
+        typedef typename std::iterator_traits<_RandomIterator>::difference_type
+            difference_type;
+
+        difference_type end;
+
+        end = _last - _first;
+
+        // a range of 0 or 1 elements is already sorted
+        while (end > 1)
         {
-            return;
-        }
-
-        _RandomIterator unsorted_end;
-        _RandomIterator new_end;
-        _RandomIterator current;
-        _RandomIterator next;
-        bool            swapped;
-
-        unsorted_end = _last;
-
-        // outer: repeat until no swaps occur or range is exhausted
-        for (;;)
-        {
-            swapped = false;
-            new_end = _first;
-            current = _first;
-            next    = _first;
-            ++next;
-
-            // inner: walk the unsorted region, bubbling out-of-order
-            // pairs
-            for (; next != unsorted_end; ++current, ++next)
-            {
-                // swap if the pair is in the wrong order according
-                // to the comparator
-                if (_comparator(*next, *current))
-                {
-                    std::iter_swap(current, next);
-                    swapped = true;
-                    new_end = next;
-                }
-            }
-
-            // early exit: no swaps means the range is sorted
-            if (!swapped)
-            {
-                break;
-            }
-
-            // shrink: everything after the last swap is already in
-            // its final position
-            unsorted_end = new_end;
-
-            // single element left means we are done
-            if (_first == unsorted_end)
-            {
-                break;
-            }
+            end = bubble_pass(_first,
+                              static_cast<difference_type>(1),
+                              end,
+                              _comparator);
         }
 
         return;
@@ -114,11 +102,17 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// bubble_sort(first, last, comp)
+///////////////////////////////////////////////////////////////////////////////
+///                    II.  ENTRY POINTS                                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// A.  bubble_sort(first, last, comp)
+// ----------------------------------------------------------------------------
 
 // bubble_sort
-//   function: sorts the range [_first, _last) using bubble sort with
-// the comparator _comparator.
+//   function: sorts the range [_first, _last) using bubble sort with the
+// comparator _comparator.
 template<typename _RandomIterator,
          typename _Comparator>
 void bubble_sort(_RandomIterator _first,
@@ -132,13 +126,16 @@ void bubble_sort(_RandomIterator _first,
     return;
 }
 
-// bubble_sort(first, last)      (C++11+)
-//    Uses operator< via less<value_type>.
+// ----------------------------------------------------------------------------
+// B.  bubble_sort(first, last)      (C++11+)
+//     Uses operator< via less<value_type>.
+// ----------------------------------------------------------------------------
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // bubble_sort
-//   function: sorts the range [_first, _last) using bubble sort with
-// the default ascending comparator.
+//   function: sorts the range [_first, _last) using bubble sort with the
+// default ascending comparator.
 template<typename _RandomIterator>
 void bubble_sort(_RandomIterator _first,
                  _RandomIterator _last)
@@ -155,18 +152,30 @@ void bubble_sort(_RandomIterator _first,
 
 #endif  // C++11
 
+// ----------------------------------------------------------------------------
+// C.  bubble_sort_ordered(first, last, comp, order)
+//     Wraps the comparator to honour sort_order at runtime.
+// ----------------------------------------------------------------------------
+
 // bubble_sort_ordered
-//   function: sorts the range [_first, _last) using bubble sort,
-// adapting _comparator to the requested _order.
-//     Wraps the comparator to honour `_ascending` at runtime.
+//   function: sorts the range [_first, _last) using bubble sort, adapting
+// _comparator to the requested _order.  The C++ counterpart of the C module's
+// _order parameter: there the direction is passed to the call, here it is
+// folded into the comparator, which costs the same and composes better.
+//
+//   Takes a sort_order rather than a bool, matching merge_sort_ordered,
+// heap_sort_ordered and quick_sort_ordered, and matching what
+// internal::order_comparator's constructor accepts -- the previous
+// `bool _ascending` parameter could not compile, since sort_order is a scoped
+// enum and admits no implicit conversion from bool.
 template<typename _RandomIterator,
          typename _Comparator>
 void bubble_sort_ordered(_RandomIterator _first,
                          _RandomIterator _last,
                          _Comparator     _comparator,
-                         bool            _ascending)
+                         sort_order      _order)
 {
-    internal::order_comparator<_Comparator> wrapped(_comparator, _ascending);
+    internal::order_comparator<_Comparator> wrapped(_comparator, _order);
 
     internal::bubble_sort_apply(_first,
                                 _last,
@@ -175,7 +184,8 @@ void bubble_sort_ordered(_RandomIterator _first,
     return;
 }
 
+
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_BUBBLE_
+#endif  // DJINTERP_UTILITY_SORT_BUBBLE_HPP_

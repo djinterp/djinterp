@@ -1,177 +1,93 @@
 /******************************************************************************
 * djinterp [utility]                                        insertion_sort.hpp
 *
-* insertion sort algorithm implementation.
-*   Provides insertion_sort() entry-point functions and compile-time traits.
-* insertion sort: in-place, iterative, stable, comparison-based O(n) best case,
-* O(n^2) average and worst case algorithm. The algorithm progressively takes
-* the next unsorted element and shifts larger elements in the sorted portion
-* rightward until the correct insertion position is found; the array in effect
-* grows the sorted portion of the data one element at a time, until the sorted
-* subsection constitutes the entire collection.
+*   Insertion sort: the sequential driver.
+* In-place, iterative, stable, comparison-based.  Each element is placed into
+* the ordered run growing behind it, so the sorted prefix extends by exactly
+* one element per step until it is the whole range.  The driver is a single
+* call into insertion_sort_common.hpp, so a concurrent driver -- or quicksort's
+* small-range fallback -- shares the primitives rather than restating them.
+*
+*   ONE SWEEP, NOT MANY.  Insertion and bubble move elements the same way, one
+* place at a time between adjacent neighbours, and differ in when they stop.
+* Bubble sweeps until a sweep exchanges nothing; insertion sweeps once, because
+* each step leaves the prefix fully ordered rather than only pushing one
+* element to its end.  That, plus assigning rather than exchanging, is why
+* insertion beats bubble on the same input despite sharing its complexity
+* class.
+*
+*   WHY THIS IS NOT THE C MODULE WITH A TEMPLATE ON TOP.  Calling
+* d_insertion_sort would cost what the erased interface costs -- an indirect
+* call per comparison and a width-driven shift, neither visible to the
+* optimiser.  The duplication is safe because insertion sort is STABLE, and
+* sortedness plus stability leaves exactly one possible arrangement of any
+* input: two correct stable implementations cannot disagree about the result.
+* Their agreement follows from the algorithm's contract, not from shared code.
 *
 *   complexity:
-*     best:     O(n)        (already sorted — one comparison per element)
+*     best:     O(n)        (already sorted -- one comparison per element,
+*                            and no writes at all)
 *     average:  O(n^2)
 *     worst:    O(n^2)
-*     space:    O(1)        (in-place)
-*     stable:   yes
+*     space:    O(1)        (one held candidate)
+*     stable:   yes         (a candidate never travels past an equivalent)
+*
+*   REQUIREMENTS.  _RandomIterator must be a random-access iterator; the
+* element type must be copy-constructible and copy-assignable.  _Comparator
+* must be a std::sort-convention binary predicate -- which every model of
+* is_comparator is, so the composed comparators from the functional layer drop
+* in unchanged:
+*
+*       insertion_sort(v.begin(), v.end(),
+*                      by_key(&person::age) | then(by_member(&person::name)));
 *
 *
-* path:      /inc/djinterp/core/util/sort/insertion_sort.hpp
+* path:      /djinterp/cpp/util/sort/insertion_sort.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
+* author(s): Sam 'teer' Neal-Blim                         created: 2026.03.22
+*                                                         revised: 2026.08.10
 ******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_INSERTION_
-#define DJINTERP_UTILITY_SORT_INSERTION_ 1
+#ifndef DJINTERP_UTILITY_SORT_INSERTION_HPP_
+#define DJINTERP_UTILITY_SORT_INSERTION_HPP_ 1
 
 // djinterp
 #include "../../djinterp.hpp"
 #include "./sort_common.hpp"
+#include "./insertion_sort_common.hpp"
 
 
 NS_DJINTERP
 
 
-// implementation
+///////////////////////////////////////////////////////////////////////////////
+///                    I.   IMPLEMENTATION                                  ///
+///////////////////////////////////////////////////////////////////////////////
+
 NS_INTERNAL
 
     // insertion_sort_apply
     //   function: performs insertion sort on [_first, _last).
     //
-    //   The outer iterator _current starts at (_first + 1) and advances
-    // to _last.  At each step the value at _current is saved into a
-    // temporary, and the inner loop shifts sorted elements rightward
-    // until the correct insertion position is found.  The temporary is
-    // then written into the vacated slot.
+    //   A single sweep is the whole sort, so unlike bubble_sort_apply there is
+    // no loop here.  What would be the driver's loop lives inside placement
+    // instead, as the backward scan that finds where one element belongs.
     //
-    //   The shift-based approach avoids per-element swaps, giving a
-    // lower constant factor than a swap-based variant while preserving
-    // stability.  On already-sorted input the inner loop body never
-    // executes, yielding O(n) best-case performance.
+    //   quick_sort.hpp calls this for the sub-ranges it stops subdividing, so
+    // the name is load-bearing beyond this header.
     template<typename _RandomIterator,
              typename _Comparator>
-    void 
-    insertion_sort_apply(
-        _RandomIterator _first,
-        _RandomIterator _last,
-        _Comparator     _comparator
-    )
+    void insertion_sort_apply(_RandomIterator _first,
+                              _RandomIterator _last,
+                              _Comparator     _comparator)
     {
-        // nothing to sort for empty or single-element ranges
-        if (_first == _last)
-        {
-            return;
-        }
+        typedef typename std::iterator_traits<_RandomIterator>::difference_type
+            difference_type;
 
-        _RandomIterator current;
-        _RandomIterator hole;
-        _RandomIterator prev;
-
-        current = _first;
-        ++current;
-
-        // outer: extend the sorted prefix one element at a time
-        for (; current != _last; ++current)
-        {
-            // skip elements that are already in position — this is
-            // the fast path that gives O(n) on sorted input
-            if (!_comparator(*current, *(current - 1)))
-            {
-                continue;
-            }
-
-            // save the element to be inserted
-            typename std::iterator_traits<_RandomIterator>::value_type
-                key = *current;
-
-            hole = current;
-
-            // inner: shift sorted elements rightward until we find
-            // the insertion point for key
-            while (hole != _first)
-            {
-                prev = hole;
-                --prev;
-
-                // stop shifting once we find an element that
-                // belongs before key
-                if (!_comparator(key, *prev))
-                {
-                    break;
-                }
-
-                *hole = *prev;
-                hole  = prev;
-            }
-
-            // place key into the vacated slot
-            *hole = key;
-        }
-
-        return;
-    }
-
-    // insertion_sort_apply  (C++98 overload)
-    //   function: C++98-safe variant that accepts an explicit value type
-    // parameter, bypassing std::iterator_traits.
-    template<typename _RandomIterator,
-             typename _Comparator,
-             typename _ValueType>
-    void 
-    insertion_sort_apply_98(
-        _RandomIterator _first,
-        _RandomIterator  _last,
-        _Comparator      _comparator,
-        _ValueType*
-    )
-    {
-        // nothing to sort for empty or single-element ranges
-        if (_first == _last)
-        {
-            return;
-        }
-
-        _RandomIterator current;
-        _RandomIterator hole;
-        _RandomIterator prev;
-
-        current = _first;
-        ++current;
-
-        // outer: extend the sorted prefix one element at a time
-        for (; current != _last; ++current)
-        {
-            // skip elements that are already in position
-            if (!_comparator(*current, *(current - 1)))
-            {
-                continue;
-            }
-
-            // save the element to be inserted
-            _ValueType key = *current;
-
-            hole = current;
-
-            // inner: shift sorted elements rightward
-            while (hole != _first)
-            {
-                prev = hole;
-                --prev;
-
-                if (!_comparator(key, *prev))
-                {
-                    break;
-                }
-
-                *hole = *prev;
-                hole  = prev;
-            }
-
-            // place key into the vacated slot
-            *hole = key;
-        }
+        insertion_pass(_first,
+                       static_cast<difference_type>(0),
+                       _last - _first,
+                       _comparator);
 
         return;
     }
@@ -179,20 +95,22 @@ NS_INTERNAL
 NS_END  // internal
 
 
-// insertion_sort(first, last, comparator)
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+///////////////////////////////////////////////////////////////////////////////
+///                    II.  ENTRY POINTS                                    ///
+///////////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// A.  insertion_sort(first, last, comp)
+// ----------------------------------------------------------------------------
 
 // insertion_sort
-//   function: sorts the range [_first, _last) using insertion sort with
-// the comparator _comparator.
+//   function: sorts the range [_first, _last) using insertion sort with the
+// comparator _comparator.
 template<typename _RandomIterator,
          typename _Comparator>
-void 
-insertion_sort(
-    _RandomIterator _first,
-    _RandomIterator _last,
-    _Comparator     _comparator
-)
+void insertion_sort(_RandomIterator _first,
+                    _RandomIterator _last,
+                    _Comparator     _comparator)
 {
     internal::insertion_sort_apply(_first,
                                    _last,
@@ -201,48 +119,19 @@ insertion_sort(
     return;
 }
 
-#else  // C++98
-
-// insertion_sort
-//   function: sorts the range [_first, _last) using insertion sort with
-// the comparator _comparator.  The _value_type_hint parameter is used only for
-// type deduction — pass a null pointer of the element type.
-//   e.g.  insertion_sort(v, v + n, my_comp, (int*)0);
-template<typename _RandomIterator,
-         typename _Comparator,
-         typename _ValueType>
-void 
-insertion_sort(
-    _RandomIterator _first,
-    _RandomIterator _last,
-    _Comparator     _comparator,
-    _ValueType*     _value_type_hint
-)
-{
-    internal::insertion_sort_apply_98(_first,
-                                      _last,
-                                      _comparator,
-                                      _value_type_hint);
-
-    return;
-}
-
-#endif  // C++11
-
-//  insertion_sort(first, last)      (C++11+)
-//    uses operator< via less<value_type>.
+// ----------------------------------------------------------------------------
+// B.  insertion_sort(first, last)      (C++11+)
+//     Uses operator< via less<value_type>.
+// ----------------------------------------------------------------------------
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 // insertion_sort
-//   function: sorts the range [_first, _last) using insertion sort with
-// the default ascending comparator.
+//   function: sorts the range [_first, _last) using insertion sort with the
+// default ascending comparator.
 template<typename _RandomIterator>
-void 
-insertion_sort(
-    _RandomIterator _first,
-    _RandomIterator _last
-)
+void insertion_sort(_RandomIterator _first,
+                    _RandomIterator _last)
 {
     typedef typename std::iterator_traits<_RandomIterator>::value_type
         value_type;
@@ -256,25 +145,29 @@ insertion_sort(
 
 #endif  // C++11
 
-// insertion_sort_ordered(first, last, comp, order)
-//    wraps the comparator to honour `_ascending` at runtime.
-
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
+// ----------------------------------------------------------------------------
+// C.  insertion_sort_ordered(first, last, comp, order)
+//     Wraps the comparator to honour sort_order at runtime.
+// ----------------------------------------------------------------------------
 
 // insertion_sort_ordered
-//   function: sorts the range [_first, _last) using insertion sort,
-// adapting _comparator to the requested _order.
+//   function: sorts the range [_first, _last) using insertion sort, adapting
+// _comparator to the requested _order.  The C++ counterpart of the C module's
+// _order parameter: there the direction is passed to the call, here it is
+// folded into the comparator, which costs the same and composes better.
+//
+//   Takes a sort_order rather than a bool, matching the other _ordered entry
+// points and matching what internal::order_comparator's constructor accepts --
+// the previous `bool _ascending` parameter could not compile, since sort_order
+// is a scoped enum and admits no implicit conversion from bool.
 template<typename _RandomIterator,
          typename _Comparator>
-void 
-insertion_sort_ordered(
-    _RandomIterator _first,
-    _RandomIterator _last,
-    _Comparator     _comparator,
-    bool            _ascending
-)
+void insertion_sort_ordered(_RandomIterator _first,
+                            _RandomIterator _last,
+                            _Comparator     _comparator,
+                            sort_order      _order)
 {
-    internal::order_comparator<_Comparator> wrapped(_comparator, _ascending);
+    internal::order_comparator<_Comparator> wrapped(_comparator, _order);
 
     internal::insertion_sort_apply(_first,
                                    _last,
@@ -283,38 +176,8 @@ insertion_sort_ordered(
     return;
 }
 
-#else  // C++98
-
-// insertion_sort_ordered
-//   function: sorts the range [_first, _last) using insertion sort,
-// adapting _comparator to the requested _order.  The _value_type_hint parameter
-// is used only for type deduction.
-template<typename _RandomIterator,
-         typename _Comparator,
-         typename _ValueType>
-void 
-insertion_sort_ordered(
-    _RandomIterator _first,
-    _RandomIterator _last,
-    _Comparator     _comparator,
-    bool            _ascending,
-    _ValueType*     _value_type_hint
-)
-{
-    internal::order_comparator<_Comparator> wrapped(_comparator, _ascending);
-
-    internal::insertion_sort_apply_98(_first,
-                                      _last,
-                                      wrapped,
-                                      _value_type_hint);
-
-    return;
-}
-
-#endif  // C++11
-
 
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_INSERTION_
+#endif  // DJINTERP_UTILITY_SORT_INSERTION_HPP_
