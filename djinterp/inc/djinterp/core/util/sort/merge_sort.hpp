@@ -1,294 +1,138 @@
 /******************************************************************************
-* djinterp [utility]                                             heap_sort.hpp
+* djinterp [utility]                                            merge_sort.hpp
 *
-*   heap sort algorithm implementation.
-* Provides heap_sort() entry-point functions and compile-time traits.
-* heap sort: in-place, comparison-based O(n log n) best, average, and worst
-* case algorithm. The algorithm progressively builds a heap from the data,
-* then repeatedly moves the root element to its final position and restores
-* the heap property over the remaining unsorted portion; the sorted subsection
-* grows one element at a time until the entire collection is sorted.
+*   Merge sort: the sequential driver.
+* Stable, comparison-based, O(n log n) in every case -- no input defeats it,
+* which is what separates it from quicksort.  The only algorithm in the
+* subsystem that is not in place, and so the only one whose C++ entry point
+* acquires storage.
+*
+*   WHO OWNS THE BUFFER.  The C module cannot allocate, so it takes the scratch
+* and reports D_SORT_STATUS_BUFFER_TOO_SMALL.  A C++ caller writing
+* merge_sort(v.begin(), v.end()) expects it to work, so the plain entry points
+* acquire a buffer and release it, and merge_sort_buffered takes one instead
+* for a caller who is sorting in a loop and would rather reuse storage than
+* reacquire it.  Same algorithm, two ownership stories.
+*
+*   The buffer is a std::vector copy-constructed from the range rather than a
+* new[] array.  Two reasons: new[] would require the element type to be default
+* constructible, which merge sort has no need of, and it would leak the array
+* if a comparison threw between the allocation and the delete[].  Copying the
+* range in also means both halves of the ping-pong start holding valid objects,
+* so no pass ever assigns over an uninitialised one.
 *
 *   complexity:
-*     best:     O(n log n)
-*     average:  O(n log n)
-*     worst:    O(n log n)   (guaranteed)
-*     space:    O(1)         (in-place)
-*     stable:   no
+*     best:       O(n)      comparisons (ordered input -- an ordered run pair
+*                           is detected in one comparison and copied)
+*     average:    O(n log n)
+*     worst:      O(n log n)   (guaranteed)
+*     space:      O(n)      auxiliary
+*     stable:     yes
 *
-* 
-* path:      /inc/djinterp/core/util/sort/heap_sort.hpp
+*   WHEN TO REACH FOR IT.  When the worst case matters -- it has no bad input,
+* where quicksort does -- or when stability is required at O(n log n), which no
+* other algorithm here offers.  The price is the buffer.
+*
+*   REQUIREMENTS.  _RandomIterator must be a random-access iterator; the
+* element type must be copy-constructible and copy-assignable.  _Comparator
+* must be a std::sort-convention binary predicate, so the composed comparators
+* from the functional layer drop in unchanged:
+*
+*       merge_sort(v.begin(), v.end(),
+*                  by_key(&person::age) | then(by_member(&person::name)));
+*
+*
+* path:      /djinterp/cpp/util/sort/merge_sort.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.03.22
+* author(s): Sam 'teer' Neal-Blim                         created: 2026.03.22
+*                                                         revised: 2026.08.10
 ******************************************************************************/
 
-#ifndef DJINTERP_UTILITY_SORT_MERGE_
-#define DJINTERP_UTILITY_SORT_MERGE_ 1
+#ifndef DJINTERP_UTILITY_SORT_MERGE_HPP_
+#define DJINTERP_UTILITY_SORT_MERGE_HPP_ 1
 
+// std
+#include <vector>
 // djinterp
 #include "../../djinterp.hpp"
 #include "./sort_common.hpp"
+#include "./merge_sort_common.hpp"
 
 
 NS_DJINTERP
 
-///////////////////////////////////////////////////////////////////////////////
-///                    I.   ALGORITHM TRAITS                                ///
-///////////////////////////////////////////////////////////////////////////////
-
-// merge_sort_traits
-//   struct: compile-time properties of the merge sort algorithm.
-//   - is_stable:   yes  (equal elements preserve their relative order
-//                         because the merge step favours the left half)
-//   - is_in_place: no   (requires O(n) auxiliary memory)
-//   - is_adaptive: no   (always O(n log n) regardless of existing order)
-struct merge_sort_traits
-{
-    static const bool is_stable   = true;
-    static const bool is_in_place = false;
-    static const bool is_adaptive = false;
-};
-
 
 ///////////////////////////////////////////////////////////////////////////////
-///                    II.  IMPLEMENTATION                                  ///
+///                    I.   IMPLEMENTATION                                  ///
 ///////////////////////////////////////////////////////////////////////////////
 
 NS_INTERNAL
 
-    // ------------------------------------------------------------------------
-    // merge
-    // ------------------------------------------------------------------------
-
-    // merge_halves
-    //   function: merges two adjacent sorted sub-ranges
-    // [_first, _mid) and [_mid, _last) into a single sorted range
-    // [_first, _last), using _buffer as temporary storage.
-    //
-    //   The entire range [_first, _last) is first copied into _buffer.
-    // Two read cursors then walk the left and right halves inside the
-    // buffer while a write cursor advances through the original range.
-    // When elements compare equal, the left-half element is chosen,
-    // preserving stability.  When one half is exhausted the remainder
-    // of the other half is copied in bulk.
-    template<typename _RandomIterator,
-             typename _ValueType,
-             typename _Comparator,
-             typename _DiffType>
-    void merge_halves(_RandomIterator  _first,
-                      _RandomIterator  _mid,
-                      _RandomIterator  _last,
-                      _ValueType* _buffer,
-                      _Comparator   _comp)
-    {
-        _DiffType total;
-        _DiffType left_size;
-        _DiffType right_size;
-        _DiffType i;
-        _DiffType li;
-        _DiffType ri;
-        _DiffType wi;
-
-        total      = _last - _first;
-        left_size  = _mid  - _first;
-        right_size = _last - _mid;
-
-        // copy the full range into the buffer
-        for (i = 0; i < total; ++i)
-        {
-            _buffer[i] = *(_first + i);
-        }
-
-        li = 0;                // left-half read cursor  (buffer)
-        ri = left_size;        // right-half read cursor  (buffer)
-        wi = 0;                // write cursor            (original)
-
-        // merge: interleave from buffer back into original range
-        while ( (li < left_size) &&
-                (ri < total) )
-        {
-            // favour left when equal — this preserves stability
-            if (_comp(_buffer[ri], _buffer[li]))
-            {
-                *(_first + wi) = _buffer[ri];
-                ++ri;
-            }
-            else
-            {
-                *(_first + wi) = _buffer[li];
-                ++li;
-            }
-
-            ++wi;
-        }
-
-        // copy remaining left-half elements (if any)
-        while (li < left_size)
-        {
-            *(_first + wi) = _buffer[li];
-            ++li;
-            ++wi;
-        }
-
-        // copy remaining right-half elements (if any)
-        while (ri < total)
-        {
-            *(_first + wi) = _buffer[ri];
-            ++ri;
-            ++wi;
-        }
-
-        return;
-    }
-
-    // ------------------------------------------------------------------------
-    // recursive driver
-    // ------------------------------------------------------------------------
-
-    // merge_sort_recurse
-    //   function: recursively sorts [_first, _last) by splitting,
-    // sorting each half, and merging.  The _buffer is shared across
-    // all recursion levels to avoid per-level allocation.
-    //
-    //   Base case: ranges of 0 or 1 element are already sorted.
-    //   Recursive case: split at the midpoint, recurse on both halves,
-    // then merge.
-    template<typename _RandomIterator,
-             typename _ValueType,
-             typename _Comparator,
-             typename _DiffType>
-    void merge_sort_recurse(_RandomIterator   _first,
-                            _RandomIterator   _last,
-                            _ValueType* _buffer,
-                            _Comparator    _comp)
-    {
-        _DiffType size;
-        _DiffType half;
-        _RandomIterator mid;
-
-        size = _last - _first;
-
-        // base case: 0 or 1 elements
-        if (size <= 1)
-        {
-            return;
-        }
-
-        half = size / 2;
-        mid  = _first + half;
-
-        // sort the left half
-        merge_sort_recurse<_RandomIterator,
-                           _ValueType,
-                           _Comparator,
-                           _DiffType>(_first,
-                                      mid,
-                                      _buffer,
-                                      _comp);
-
-        // sort the right half
-        merge_sort_recurse<_RandomIterator,
-                           _ValueType,
-                           _Comparator,
-                           _DiffType>(mid,
-                                      _last,
-                                      _buffer,
-                                      _comp);
-
-        // merge the two sorted halves
-        merge_halves<_RandomIterator,
-                     _ValueType,
-                     _Comparator,
-                     _DiffType>(_first,
-                                mid,
-                                _last,
-                                _buffer,
-                                _comp);
-
-        return;
-    }
-
-    // ------------------------------------------------------------------------
-    // top-level apply
-    // ------------------------------------------------------------------------
-
     // merge_sort_apply
-    //   function: allocates the auxiliary buffer, invokes the recursive
-    // driver, and frees the buffer.  This is the C++11+ variant that
-    // deduces value_type and difference_type from iterator_traits.
+    //   function: performs merge sort on [_first, _last) using [_buffer,
+    // _buffer + (_last - _first)) as scratch.
+    //
+    //   THE PING-PONG.  A merge cannot write into what it reads, so each pass
+    // reads one buffer and writes the other and the two exchange roles.  The
+    // alternative -- merge into scratch, copy back, repeat -- is correct and
+    // copies every element twice per pass instead of once.
+    //
+    //   The two buffers are different types, so the alternation is a branch
+    // over two instantiations rather than a swap of pointers.  That costs one
+    // predictable test per pass, which is log n tests for the whole sort.
+    //
+    //   After the loop the sorted elements are wherever the last pass wrote
+    // them, so the range is written back only when that was the scratch.
     template<typename _RandomIterator,
+             typename _BufferIterator,
              typename _Comparator>
     void merge_sort_apply(_RandomIterator _first,
                           _RandomIterator _last,
-                          _Comparator  _comp)
+                          _BufferIterator _buffer,
+                          _Comparator     _comparator)
     {
-        typedef typename std::iterator_traits<_RandomIterator>::value_type
-            value_type;
         typedef typename std::iterator_traits<_RandomIterator>::difference_type
-            diff_type;
+            difference_type;
 
-        diff_type   size;
-        value_type* buffer;
+        difference_type count;
+        difference_type width;
+        difference_type index;
+        bool            in_buffer;
 
-        size = _last - _first;
+        count = _last - _first;
 
-        // nothing to sort for ranges of 0 or 1 elements
-        if (size <= 1)
+        // a range of 0 or 1 elements is already sorted
+        if (count < 2)
         {
             return;
         }
 
-        buffer = new value_type[static_cast<size_t>(size)];
+        in_buffer = false;
 
-        merge_sort_recurse<_RandomIterator,
-                           value_type,
-                           _Comparator,
-                           diff_type>(_first,
-                                      _last,
-                                      buffer,
-                                      _comp);
-
-        delete[] buffer;
-
-        return;
-    }
-
-    // merge_sort_apply_98
-    //   function: C++98-safe variant that accepts explicit value type
-    // and difference type via pointer hints, bypassing
-    // std::iterator_traits.
-    template<typename _RandomIterator,
-             typename _Comparator,
-             typename _ValueType,
-             typename _DiffType>
-    void merge_sort_apply_98(_RandomIterator   _first,
-                             _RandomIterator   _last,
-                             _Comparator    _comp,
-                             _ValueType*,
-                             _DiffType*)
-    {
-        _DiffType   size;
-        _ValueType* buffer;
-
-        size = static_cast<_DiffType>(_last - _first);
-
-        // nothing to sort for ranges of 0 or 1 elements
-        if (size <= 1)
+        // runs of width 1 are ordered by definition; each pass doubles the
+        // width until one run covers the range
+        for (width = 1; width < count; width *= 2)
         {
-            return;
+            if (!in_buffer)
+            {
+                merge_pass(_first, _buffer, count, width, _comparator);
+            }
+            else
+            {
+                merge_pass(_buffer, _first, count, width, _comparator);
+            }
+
+            in_buffer = !in_buffer;
         }
 
-        buffer = new _ValueType[static_cast<size_t>(size)];
-
-        merge_sort_recurse<_RandomIterator,
-                           _ValueType,
-                           _Comparator,
-                           _DiffType>(_first,
-                                      _last,
-                                      buffer,
-                                      _comp);
-
-        delete[] buffer;
+        // bring the result home only if the last pass left it in the scratch
+        if (in_buffer)
+        {
+            for (index = 0; index < count; ++index)
+            {
+                _first[index] = _buffer[index];
+            }
+        }
 
         return;
     }
@@ -297,59 +141,43 @@ NS_END  // internal
 
 
 ///////////////////////////////////////////////////////////////////////////////
-///                    III. ENTRY POINTS                                    ///
+///                    II.  ENTRY POINTS                                    ///
 ///////////////////////////////////////////////////////////////////////////////
 
 // ----------------------------------------------------------------------------
 // A.  merge_sort(first, last, comp)
 // ----------------------------------------------------------------------------
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
 // merge_sort
 //   function: sorts the range [_first, _last) using merge sort with the
-// comparator _comp.
+// comparator _comparator, acquiring and releasing its own scratch.
 template<typename _RandomIterator,
          typename _Comparator>
 void merge_sort(_RandomIterator _first,
                 _RandomIterator _last,
-                _Comparator  _comp)
+                _Comparator     _comparator)
 {
+    typedef typename std::iterator_traits<_RandomIterator>::value_type
+        value_type;
+
+    // a range of 0 or 1 elements is already sorted, and buying a buffer to
+    // discover that would be the only allocation this header could avoid
+    if ((_last - _first) < 2)
+    {
+        return;
+    }
+
+    // copy-constructed from the range: no default constructor is required of
+    // the element type, and nothing leaks if a comparison throws
+    std::vector<value_type> buffer(_first, _last);
+
     internal::merge_sort_apply(_first,
                                _last,
-                               _comp);
+                               buffer.begin(),
+                               _comparator);
 
     return;
 }
-
-#else  // C++98
-
-// merge_sort
-//   function: sorts the range [_first, _last) using merge sort with the
-// comparator _comp.  The _value_type_hint and _diff_type_hint parameters
-// are used only for type deduction — pass null pointers of the
-// appropriate types.
-//   e.g.  merge_sort(v, v + n, my_comp, (int*)0, (ptrdiff_t*)0);
-template<typename _RandomIterator,
-         typename _Comparator,
-         typename _ValueType,
-         typename _DiffType>
-void merge_sort(_RandomIterator   _first,
-                _RandomIterator   _last,
-                _Comparator    _comp,
-                _ValueType* _value_type_hint,
-                _DiffType*  _diff_type_hint)
-{
-    internal::merge_sort_apply_98(_first,
-                                  _last,
-                                  _comp,
-                                  _value_type_hint,
-                                  _diff_type_hint);
-
-    return;
-}
-
-#endif  // C++11
 
 // ----------------------------------------------------------------------------
 // B.  merge_sort(first, last)      (C++11+)
@@ -368,9 +196,9 @@ void merge_sort(_RandomIterator _first,
     typedef typename std::iterator_traits<_RandomIterator>::value_type
         value_type;
 
-    internal::merge_sort_apply(_first,
-                               _last,
-                               less<value_type>());
+    merge_sort(_first,
+               _last,
+               less<value_type>());
 
     return;
 }
@@ -378,63 +206,64 @@ void merge_sort(_RandomIterator _first,
 #endif  // C++11
 
 // ----------------------------------------------------------------------------
-// C.  merge_sort_ordered(first, last, comp, order)
+// C.  merge_sort_buffered(first, last, comp, buffer)
+//     The caller's scratch; nothing is acquired.
+// ----------------------------------------------------------------------------
+
+// merge_sort_buffered
+//   function: sorts the range [_first, _last) using merge sort with the
+// caller's scratch, which must hold at least (_last - _first) elements and
+// must already hold constructed objects of the element type.
+//
+//   The C++ counterpart of the C module's two-call protocol: there the caller
+// measures and supplies bytes, here it supplies a range.  For a caller sorting
+// repeatedly this reuses one buffer instead of acquiring a new one per call;
+// there is no other difference, and no status to check, because a buffer that
+// is too short is a precondition violation rather than a run-time condition.
+template<typename _RandomIterator,
+         typename _BufferIterator,
+         typename _Comparator>
+void merge_sort_buffered(_RandomIterator _first,
+                         _RandomIterator _last,
+                         _Comparator     _comparator,
+                         _BufferIterator _buffer)
+{
+    internal::merge_sort_apply(_first,
+                               _last,
+                               _buffer,
+                               _comparator);
+
+    return;
+}
+
+// ----------------------------------------------------------------------------
+// D.  merge_sort_ordered(first, last, comp, order)
 //     Wraps the comparator to honour sort_order at runtime.
 // ----------------------------------------------------------------------------
 
-#if D_ENV_LANG_IS_CPP11_OR_HIGHER
-
 // merge_sort_ordered
 //   function: sorts the range [_first, _last) using merge sort, adapting
-// _comp to the requested _order.
+// _comparator to the requested _order.  The C++ counterpart of the C module's
+// _order parameter: there the direction is passed to the call, here it is
+// folded into the comparator, which costs the same and composes better.
 template<typename _RandomIterator,
          typename _Comparator>
-void merge_sort_ordered(_RandomIterator  _first,
-                        _RandomIterator  _last,
-                        _Comparator   _comp,
-                        sort_order _order)
+void merge_sort_ordered(_RandomIterator _first,
+                        _RandomIterator _last,
+                        _Comparator     _comparator,
+                        sort_order      _order)
 {
-    internal::order_comparator<_Comparator> wrapped(_comp, _order);
+    internal::order_comparator<_Comparator> wrapped(_comparator, _order);
 
-    internal::merge_sort_apply(_first,
-                               _last,
-                               wrapped);
+    merge_sort(_first,
+               _last,
+               wrapped);
 
     return;
 }
-
-#else  // C++98
-
-// merge_sort_ordered
-//   function: sorts the range [_first, _last) using merge sort, adapting
-// _comp to the requested _order.  The _value_type_hint and
-// _diff_type_hint parameters are used only for type deduction.
-template<typename _RandomIterator,
-         typename _Comparator,
-         typename _ValueType,
-         typename _DiffType>
-void merge_sort_ordered(_RandomIterator   _first,
-                        _RandomIterator   _last,
-                        _Comparator    _comp,
-                        sort_order  _order,
-                        _ValueType* _value_type_hint,
-                        _DiffType*  _diff_type_hint)
-{
-    internal::order_comparator<_Comparator> wrapped(_comp, _order);
-
-    internal::merge_sort_apply_98(_first,
-                                  _last,
-                                  wrapped,
-                                  _value_type_hint,
-                                  _diff_type_hint);
-
-    return;
-}
-
-#endif  // C++11
 
 
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_UTILITY_SORT_MERGE_
+#endif  // DJINTERP_UTILITY_SORT_MERGE_HPP_
