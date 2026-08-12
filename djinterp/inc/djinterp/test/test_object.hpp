@@ -57,114 +57,19 @@
 #include <type_traits>
 // djinterp
 #include "../core/djinterp.hpp"
-#include "./test_object_common.h"
-#include "./test_common_common.h"
+#include "../c/test/test_object.h"
+#include "../c/test/test_common.h"
+//   test_metadata.hpp IS DELIBERATELY NOT INCLUDED.  It had to be, because a
+// default template argument _MetadataContainer = test_metadata must name a
+// COMPLETE type -- which is the whole mechanism that made metadata optional in
+// C and mandatory in C++. With the association moved to the tree there is no
+// such argument, the include goes, and D_CFG_TEST_METADATA=0 now turns the
+// module off in BOTH forks. Nothing here is conditional on it, so there is no
+// knob-dependent template identity either.
 
 
 NS_DJINTERP
 NS_TEST
-
-
-// =============================================================================
-// I.   METADATA
-// =============================================================================
-
-// kv_row
-//   struct: one metadata row.  The C++ default instantiation of what the
-// kernel spells d_test_kv.
-template<typename _Key, typename _Value>
-struct kv_row
-{
-    _Key    key;
-    _Value  value;
-
-    kv_row() : key(), value() {}
-    kv_row(const _Key& _k, const _Value& _v) : key(_k), value(_v) {}
-};
-
-
-// basic_metadata
-//   class: a flat, back-insertable row sequence queried by linear scan.
-// Agnostic over key, value and backing container.
-//
-//   The scan compares KEYS with _Key's own operator== and never invokes
-// kv_row's relational operators, which is the note the previous revision was
-// careful to make; the kernel's key comparison is a content comparison for
-// the same reason.
-template<typename _Key       = std::string,
-         typename _Value     = std::string,
-         typename _Container = std::vector<kv_row<std::string, std::string> > >
-class basic_metadata
-{
-public:
-    typedef _Key                                key_type;
-    typedef _Value                              mapped_type;
-    typedef typename _Container::value_type     value_type;
-    typedef _Container                          container_type;
-
-    // set
-    //   replaces an existing key in place, or appends.  Returns whether a row
-    // was replaced, so the caller can draw the same distinction the kernel's
-    // REPLACED result draws.
-    bool set(const key_type& _key, const mapped_type& _value)
-    {
-        for (typename _Container::iterator it = m_rows.begin();
-             it != m_rows.end(); ++it)
-        {
-            if (it->key == _key)
-            {
-                it->value = _value;
-
-                return true;
-            }
-        }
-
-        m_rows.push_back(value_type(_key, _value));
-
-        return false;
-    }
-
-    // get
-    //   returns a value-initialised mapped_type on a miss -- the empty string
-    // at the default instantiation, which is what D_TEST_METADATA_MISS is.
-    D_NODISCARD mapped_type get(const key_type& _key) const
-    {
-        for (typename _Container::const_iterator it = m_rows.begin();
-             it != m_rows.end(); ++it)
-        {
-            if (it->key == _key)
-            {
-                return it->value;
-            }
-        }
-
-        return mapped_type();
-    }
-
-    D_NODISCARD bool contains(const key_type& _key) const
-    {
-        for (typename _Container::const_iterator it = m_rows.begin();
-             it != m_rows.end(); ++it)
-        {
-            if (it->key == _key) { return true; }
-        }
-
-        return false;
-    }
-
-    D_NODISCARD std::size_t     count() const { return m_rows.size(); }
-    D_NODISCARD container_type& rows()        { return m_rows; }
-    D_NODISCARD const container_type& rows() const { return m_rows; }
-
-private:
-    container_type m_rows;
-};
-
-
-// test_metadata
-//   type: the all-defaulted metadata container -- the default
-// _MetadataContainer for test_object, and therefore for basic_test.
-typedef basic_metadata<> test_metadata;
 
 
 // =============================================================================
@@ -180,8 +85,7 @@ typedef basic_metadata<> test_metadata;
 // what a parity record compares, while the container is a policy point whose
 // representation is allowed to differ between the languages so long as its
 // protocol does not.
-template<typename    _StatusType        = std::uint8_t,
-         typename    _MetadataContainer = test_metadata,
+template<typename    _StatusType = std::uint8_t,
          typename... _Options>
 struct test_object
 {
@@ -189,12 +93,10 @@ struct test_object
                   "`_StatusType` must be an arithmetic type.");
 
     typedef _StatusType                     status_type;
-    typedef _MetadataContainer              metadata_container_type;
-    typedef typename _MetadataContainer::value_type  metadata_type;
 
     //   The status constants, now READ FROM the shared macros rather than
     // written again.  The previous revision declared them independently and
-    // nothing compared the two sets; test_object_common.h asserts them, and
+    // nothing compared the two sets; test_object.h asserts them, and
     // taking them from the same macros here means there is no second place
     // for them to drift from.
     static D_CONSTEXPR status_type status_passed  =
@@ -252,15 +154,16 @@ struct test_object
 
     explicit operator bool() const { return result(); }
 
-    D_NODISCARD metadata_container_type&       metadata()       { return m_meta; }
-    D_NODISCARD const metadata_container_type& metadata() const { return m_meta; }
+    //   NO metadata() ACCESSOR.  The node no longer owns or refers to a
+    // container; the owning tree keeps the association and hands it out with
+    // whatever ownership it likes -- which, on this side, means RAII rather
+    // than the borrowed pointer the C fork uses.
 
     D_NODISCARD d_test_object*       raw()       { return &m_node; }
     D_NODISCARD const d_test_object* raw() const { return &m_node; }
 
 private:
     d_test_object           m_node;
-    metadata_container_type m_meta;
 };
 
 
@@ -269,10 +172,25 @@ private:
 // =============================================================================
 
 // is_test_evaluable
-//   trait: true iff _Type satisfies the element protocol a runner needs --
-// boolean conversion, status(), result(), type_id(), callable_id(),
-// metadata().  Probed on a const lvalue, so a const-qualified element agrees
-// with its bare form.
+//   trait: true iff _Type is CONTEXTUALLY CONVERTIBLE TO BOOL on a const
+// lvalue.  That is the whole of the check, and the whole of what this trait
+// promises.
+//
+//   IT DOES NOT PROBE status(), result(), type_id(), callable_id() OR
+// metadata(), and this comment used to say it did.  The consequence of the
+// wider claim was concrete: `is_test_evaluable<int>` is true, so a container
+// of ints satisfies `is_test_object_container`, a runner accepts it, and the
+// call to status() fails somewhere else entirely -- with a comment here
+// asserting that could not happen.
+//
+//   THE CHECK IS NOT VACUOUS.  A type with no boolean conversion is correctly
+// rejected, which is what `test/contract/container_ladder.cpp` pins from both
+// sides.  Narrowing it to the full six-member protocol would change what
+// qualifies across every consumer of test_tree and needs a consumer audit
+// first; until then this comment describes the code rather than the intent.
+//
+//   Probed on a const lvalue, so a const-qualified element agrees with its
+// bare form.
 template<typename _Type, typename = void>
 struct is_test_evaluable : std::false_type {};
 
@@ -308,17 +226,11 @@ make_interior(d_test_type_id _type_id)
     return basic_test(_type_id);
 }
 
-// make_interior (named)
-//   Not D_NOEXCEPT: setting a metadata entry may allocate.
-D_NODISCARD inline basic_test
-make_interior(d_test_type_id _type_id, const std::string& _name)
-{
-    basic_test t(_type_id);
-
-    t.metadata().set("name", _name);
-
-    return t;
-}
+//   make_interior(type_id, name) IS GONE, not moved.  It built a node and
+// then wrote the name into the node's own metadata container. With no such
+// container there is nothing here for it to write to, and a version that
+// reached into the tree would put a tree operation in an object header. The
+// naming of an interior node belongs with whatever owns the association.
 
 
 NS_END  // test
