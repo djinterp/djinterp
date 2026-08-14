@@ -9,7 +9,7 @@
 * provided so it composes with set/map's heterogeneous-lookup machinery.
 *
 *
-* path:      /inc/restd/functional/identity.hpp
+* path:      /inc/djinterp/re_std/functional/identity.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

@@ -22,7 +22,7 @@
 * range_v<T> (C++14+) over the trait form range<T>::value.
 *
 *
-* path:      /inc/djinterp/restd/ranges/range.hpp
+* path:      /inc/djinterp/re_std/ranges/range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

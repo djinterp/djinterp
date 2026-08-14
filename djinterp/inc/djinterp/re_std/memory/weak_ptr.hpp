@@ -13,7 +13,7 @@
 * (the restd/memory umbrella does it transitively).
 *
 *
-* path:      /inc/restd/memory/weak_ptr.hpp
+* path:      /inc/djinterp/re_std/memory/weak_ptr.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

@@ -26,7 +26,7 @@
 * integral_constant.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_nothrow_invocable.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_nothrow_invocable.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/

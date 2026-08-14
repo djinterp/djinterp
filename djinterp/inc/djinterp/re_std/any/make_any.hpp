@@ -12,7 +12,7 @@
 * use direct construction via the any value constructors instead.
 *
 *
-* path:      /inc/djinterp/restd/any/make_any.hpp
+* path:      /inc/djinterp/re_std/any/make_any.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/

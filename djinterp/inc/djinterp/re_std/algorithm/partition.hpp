@@ -29,7 +29,7 @@
 *     C++98 the same code path is used since iter_swap exists at C++98.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/partition.hpp
+* path:      /inc/djinterp/re_std/algorithm/partition.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

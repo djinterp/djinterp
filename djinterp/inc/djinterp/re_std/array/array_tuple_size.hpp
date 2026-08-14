@@ -18,7 +18,7 @@
 * specialisation here — no extra work needed.
 *
 *
-* path:      /inc/djinterp/restd/array/array_tuple_size.hpp
+* path:      /inc/djinterp/re_std/array/array_tuple_size.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

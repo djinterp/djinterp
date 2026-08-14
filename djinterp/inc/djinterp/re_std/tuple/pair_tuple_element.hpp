@@ -19,7 +19,7 @@
 *   Same gate as tuple_element (C++11+ variadic templates).
 *
 *
-* path:      /inc/djinterp/restd/utility/pair_tuple_element.hpp
+* path:      /inc/djinterp/re_std/tuple/pair_tuple_element.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

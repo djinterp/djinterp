@@ -36,7 +36,7 @@
 * out_of_range thrown by at / substr / copy.
 *
 *
-* path:      /inc/djinterp/restd/string_view/basic_string_view.hpp
+* path:      /inc/djinterp/re_std/string_view/basic_string_view.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

@@ -8,7 +8,7 @@
 * added in std C++11.
 *
 *
-* path:      /inc/restd/iterator/next.hpp
+* path:      /inc/djinterp/re_std/iterator/next.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

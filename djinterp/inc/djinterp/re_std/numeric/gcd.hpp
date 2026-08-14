@@ -22,7 +22,7 @@
 * added in std C++17; constexpr from inception.
 *
 *
-* path:      /inc/restd/numeric/gcd.hpp
+* path:      /inc/djinterp/re_std/numeric/gcd.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

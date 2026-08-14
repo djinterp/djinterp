@@ -18,7 +18,7 @@
 * ctor and a single named instance. Works on every tier.
 *
 *
-* path:      /inc/djinterp/restd/expected/unexpect.hpp
+* path:      /inc/djinterp/re_std/expected/unexpect.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

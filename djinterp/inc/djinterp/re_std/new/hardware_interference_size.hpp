@@ -39,7 +39,7 @@
 * std waited for C++17. RESTD AHEAD OF STD.
 *
 *
-* path:      /inc/djinterp/restd/new/hardware_interference_size.hpp
+* path:      /inc/djinterp/re_std/new/hardware_interference_size.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

@@ -10,7 +10,7 @@
 *   Out-of-range I produces a compile error (no specialisation matches).
 *
 *
-* path:      /inc/djinterp/restd/variant/variant_alternative.hpp
+* path:      /inc/djinterp/re_std/variant/variant_alternative.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

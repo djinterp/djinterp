@@ -19,7 +19,7 @@
 * consulted — see the basic_string_view notes).
 *
 *
-* path:      /inc/djinterp/restd/string_view/string_view_compare.hpp
+* path:      /inc/djinterp/re_std/string_view/string_view_compare.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

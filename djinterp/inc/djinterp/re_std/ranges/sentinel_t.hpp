@@ -10,7 +10,7 @@
 *   Requires alias templates AND decltype. Available C++11+ only.
 *
 *
-* path:      /inc/djinterp/restd/ranges/sentinel_t.hpp
+* path:      /inc/djinterp/re_std/ranges/sentinel_t.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

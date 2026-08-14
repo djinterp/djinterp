@@ -7,7 +7,7 @@
 * specialization. Equal to (size_t)-1, matching std::dynamic_extent.
 *
 *
-* path:      /inc/restd/span/dynamic_extent.hpp
+* path:      /inc/djinterp/re_std/span/dynamic_extent.hpp
 * link(s):   TBA
 * author(s): restd contributors                        date: 2026.06.04
 ***********************************************************************/

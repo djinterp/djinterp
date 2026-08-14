@@ -23,7 +23,7 @@
 * single static_cast, constexpr-eligible from C++11.
 *
 *
-* path:      /inc/restd/utility/forward_like.hpp
+* path:      /inc/djinterp/re_std/utility/forward_like.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

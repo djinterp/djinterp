@@ -15,7 +15,7 @@
 *   is_nothrow_swappable_with, add_lvalue_reference.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_nothrow_swappable.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_nothrow_swappable.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/

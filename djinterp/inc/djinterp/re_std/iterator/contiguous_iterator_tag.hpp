@@ -18,7 +18,7 @@
 * on those tiers as well).
 *
 *
-* path:      /inc/restd/iterator/contiguous_iterator_tag.hpp
+* path:      /inc/djinterp/re_std/iterator/contiguous_iterator_tag.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

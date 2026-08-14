@@ -14,7 +14,7 @@
 * dangling pointer).
 *
 *
-* path:      /inc/djinterp/restd/variant/variant_get_if.hpp
+* path:      /inc/djinterp/re_std/variant/variant_get_if.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

@@ -16,7 +16,7 @@
 *   Introduced in C++17 alongside <variant>.
 *
 *
-* path:      /inc/restd/utility/in_place_index.hpp
+* path:      /inc/djinterp/re_std/utility/in_place_index.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

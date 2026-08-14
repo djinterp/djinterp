@@ -24,7 +24,7 @@
 * won't compile against it (they shouldn't — there's nothing to read).
 *
 *
-* path:      /inc/restd/iterator/back_insert_iterator.hpp
+* path:      /inc/djinterp/re_std/iterator/back_insert_iterator.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

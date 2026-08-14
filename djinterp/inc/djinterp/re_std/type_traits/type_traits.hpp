@@ -108,8 +108,8 @@
 #include "./is_integral.hpp"
 #include "./is_floating_point.hpp"
 #include "./is_array.hpp"
-//#include "./is_bounded_array.hpp"
-//#include "./is_unbounded_array.hpp"
+#include "./is_bounded_array.hpp"
+#include "./is_unbounded_array.hpp"
 #include "./is_enum.hpp"
 //#include "./is_scoped_enum.hpp"
 #include "./is_union.hpp"
@@ -152,10 +152,10 @@
 //#include "./is_trivial.hpp"
 //#include "./is_trivially_copyable.hpp"
 //#include "./is_standard_layout.hpp"
-//#include "./is_empty.hpp"
-//#include "./is_polymorphic.hpp"
+#include "./is_empty.hpp"
+#include "./is_polymorphic.hpp"
 //#include "./is_abstract.hpp"
-//#include "./is_final.hpp"
+#include "./is_final.hpp"
 //#include "./is_aggregate.hpp"
 //#include "./has_virtual_destructor.hpp"
 //#include "./has_unique_object_representations.hpp"
@@ -215,8 +215,8 @@
 // =============================================================================
 
 #include "./is_same.hpp"
-//#include "./is_base_of.hpp"
-//#include "./is_convertible.hpp"
+#include "./is_base_of.hpp"
+#include "./is_convertible.hpp"
 
 
 // =============================================================================
@@ -234,6 +234,7 @@
 #include "./rank.hpp"
 #include "./extent.hpp"
 #include "./decay.hpp"
+#include "./common_type.hpp"
 
 
 // =============================================================================

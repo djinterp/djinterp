@@ -31,7 +31,7 @@
 * this header includes.
 *
 *
-* path:      /inc/djinterp/restd/compare/weak_ordering.hpp
+* path:      /inc/djinterp/re_std/compare/weak_ordering.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

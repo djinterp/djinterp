@@ -5,7 +5,7 @@
 *   ADL-friendly non-member swap delegating to the member swap.
 *
 *
-* path:      /inc/djinterp/restd/variant/variant_swap.hpp
+* path:      /inc/djinterp/re_std/variant/variant_swap.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

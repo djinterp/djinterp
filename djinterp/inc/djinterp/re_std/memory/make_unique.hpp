@@ -19,7 +19,7 @@
 *   to C++11+.
 *
 *
-* path:      /inc/restd/memory/make_unique.hpp
+* path:      /inc/djinterp/re_std/memory/make_unique.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

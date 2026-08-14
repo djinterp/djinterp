@@ -40,6 +40,7 @@
 #include <cstddef>
 // djinterp
 #include "./tuple.hpp"
+#include "./tuple_get.hpp"      // restd::get<I>(tuple)
 
 
 NS_RESTD

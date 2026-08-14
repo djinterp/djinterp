@@ -4,7 +4,7 @@
 * crend(c) — explicit const reverse iteration end. Pairs with crbegin.
 *
 *
-* path:      /inc/restd/iterator/crend.hpp
+* path:      /inc/djinterp/re_std/iterator/crend.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

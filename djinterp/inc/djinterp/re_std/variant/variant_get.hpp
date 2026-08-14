@@ -19,7 +19,7 @@
 * the alternative list — same approach std uses.
 *
 *
-* path:      /inc/djinterp/restd/variant/variant_get.hpp
+* path:      /inc/djinterp/re_std/variant/variant_get.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

@@ -46,7 +46,7 @@
 // other one's body is parsed. We need the full definition of
 // `is_reference_wrapper` (a forward declaration is not enough for the
 // `::value` access in bullets 2 and 5).
-#include "restd/functional/reference_wrapper.hpp"
+#include "restd/functional/is_reference_wrapper.hpp"
 
 namespace restd
 {

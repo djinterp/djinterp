@@ -18,7 +18,7 @@
 * std::iterator_traits<const T*>::value_type, which is T (not const T).
 *
 *
-* path:      /inc/restd/memory/internal/iter_value.hpp
+* path:      /inc/djinterp/re_std/memory/iter_value.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

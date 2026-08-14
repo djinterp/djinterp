@@ -11,7 +11,7 @@
 *   D_RESTD_HAS_IS_NOTHROW_DESTRUCTIBLE.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_nothrow_destructible.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_nothrow_destructible.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

@@ -13,7 +13,7 @@
 *     remove_extent<int*>::type        -> int*        (pointers untouched)
 *
 *
-* path:      /inc/djinterp/restd/type_traits/remove_extent.hpp
+* path:      /inc/djinterp/re_std/type_traits/remove_extent.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

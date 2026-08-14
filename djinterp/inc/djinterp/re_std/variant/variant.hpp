@@ -66,7 +66,9 @@
 #include "./bad_variant_access.hpp"
 #include "./variant_npos.hpp"
 
-#include "../utility/in_place.hpp"
+#include "../optional/in_place.hpp"
+#include "../utility/in_place_type.hpp"    // in_place_type_t
+#include "../utility/in_place_index.hpp"   // in_place_index_t
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/is_same.hpp"
 #include "../type_traits/is_constructible.hpp"

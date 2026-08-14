@@ -4,7 +4,7 @@
 * function object: division (binary /).
 *
 *
-* path:      /inc/restd/functional/divides.hpp
+* path:      /inc/djinterp/re_std/functional/divides.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

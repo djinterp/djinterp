@@ -10,7 +10,7 @@
 *   no re-declaration; operator<=> arrives from std on C++20+.
 *
 *
-* path:      /inc/restd/system_error/error_code.hpp
+* path:      /inc/djinterp/re_std/system_error/error_code.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

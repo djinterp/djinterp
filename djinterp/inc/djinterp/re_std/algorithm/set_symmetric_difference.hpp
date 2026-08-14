@@ -12,7 +12,7 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/set_symmetric_difference.hpp
+* path:      /inc/djinterp/re_std/algorithm/set_symmetric_difference.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

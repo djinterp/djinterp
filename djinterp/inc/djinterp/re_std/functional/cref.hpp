@@ -7,7 +7,7 @@
 * idempotent.
 *
 *
-* path:      /inc/restd/functional/cref.hpp
+* path:      /inc/djinterp/re_std/functional/cref.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

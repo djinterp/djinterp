@@ -14,7 +14,7 @@
 *     remove_all_extents<int*[5]>::type           -> int*     (only arrays)
 *
 *
-* path:      /inc/djinterp/restd/type_traits/remove_all_extents.hpp
+* path:      /inc/djinterp/re_std/type_traits/remove_all_extents.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

@@ -15,7 +15,7 @@
 * the C++20 forward_iterator concept beyond category derivation.
 *
 *
-* path:      /inc/djinterp/restd/ranges/forward_range.hpp
+* path:      /inc/djinterp/re_std/ranges/forward_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

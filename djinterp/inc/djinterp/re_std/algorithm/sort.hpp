@@ -36,7 +36,7 @@
 *   restd::sort_heap(first, last, comp) and remove the duplicates.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/sort.hpp
+* path:      /inc/djinterp/re_std/algorithm/sort.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

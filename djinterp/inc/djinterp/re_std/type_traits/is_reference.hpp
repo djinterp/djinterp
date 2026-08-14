@@ -13,7 +13,7 @@
 *   Equivalent to is_lvalue_reference<T>::value || is_rvalue_reference<T>::value.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_reference.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_reference.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

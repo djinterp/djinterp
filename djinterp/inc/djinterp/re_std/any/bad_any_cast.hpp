@@ -10,7 +10,7 @@
 *   - neither               -> standalone class (no base, non-virtual what())
 *
 *
-* path:      /inc/djinterp/restd/any/bad_any_cast.hpp
+* path:      /inc/djinterp/re_std/any/bad_any_cast.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/

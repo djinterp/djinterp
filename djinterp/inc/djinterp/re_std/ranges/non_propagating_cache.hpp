@@ -33,7 +33,7 @@
 *       move assign     — resets destination to empty, clears source
 *
 *
-* path:      /inc/djinterp/restd/ranges/non_propagating_cache.hpp
+* path:      /inc/djinterp/re_std/ranges/non_propagating_cache.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

@@ -18,7 +18,7 @@
 * itself.
 *
 *
-* path:      /inc/restd/utility/to_underlying.hpp
+* path:      /inc/djinterp/re_std/utility/to_underlying.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

@@ -23,7 +23,7 @@
 * to it.
 *
 *
-* path:      /inc/djinterp/restd/new/new_handler.hpp
+* path:      /inc/djinterp/re_std/new/new_handler.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

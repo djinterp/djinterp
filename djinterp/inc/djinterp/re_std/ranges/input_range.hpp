@@ -20,7 +20,7 @@
 * concept binding.
 *
 *
-* path:      /inc/djinterp/restd/ranges/input_range.hpp
+* path:      /inc/djinterp/re_std/ranges/input_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

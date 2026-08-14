@@ -16,7 +16,7 @@
 * added in std C++98; constexpr in C++17.
 *
 *
-* path:      /inc/restd/iterator/distance.hpp
+* path:      /inc/djinterp/re_std/iterator/distance.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

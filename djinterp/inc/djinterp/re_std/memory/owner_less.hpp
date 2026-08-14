@@ -26,7 +26,7 @@
 *   does the rest.
 *
 *
-* path:      /inc/restd/memory/owner_less.hpp
+* path:      /inc/djinterp/re_std/memory/owner_less.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

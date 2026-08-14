@@ -75,6 +75,251 @@ struct is_function : false_type
     struct is_function<_R(_Args..., ...)> : true_type
     {};
 
+    // ---------------------------------------------------------------------
+    // cv- and ref-qualified function types
+    // ---------------------------------------------------------------------
+    //   A cv- or ref-qualified function type IS a function type; these are the
+    // types that appear as `_F` when a pointer-to-member-function is
+    // decomposed (`_F _Class::*`), so INVOKE's member-function bullets depend
+    // on them.  Omitting these makes is_function false for every const member
+    // function -- and therefore makes restd::invoke reject it.
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) &&> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) &&> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const &&> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const &&> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) volatile> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) volatile> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) volatile &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) volatile &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) volatile &&> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) volatile &&> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const volatile> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const volatile> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const volatile &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const volatile &> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const volatile &&> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const volatile &&> : true_type
+    {};
+
+#if D_ENV_LANG_IS_CPP17_OR_HIGHER
+
+    // noexcept became part of the type system in C++17, doubling the set.
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) && noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) && noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const && noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const && noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) volatile noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) volatile noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) volatile & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) volatile & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) volatile && noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) volatile && noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const volatile noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const volatile noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const volatile & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const volatile & noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args...) const volatile && noexcept> : true_type
+    {};
+
+    template<typename    _R,
+             typename... _Args>
+    struct is_function<_R(_Args..., ...) const volatile && noexcept> : true_type
+    {};
+
+#endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
+
 #else  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 // =============================================================================

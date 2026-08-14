@@ -20,7 +20,7 @@
 *   Requires variadic templates (C++11+).
 *
 *
-* path:      /inc/djinterp/restd/tuple/tuple_element.hpp
+* path:      /inc/djinterp/re_std/tuple/tuple_element.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/

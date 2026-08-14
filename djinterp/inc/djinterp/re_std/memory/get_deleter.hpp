@@ -19,7 +19,7 @@
 *   typeid.
 *
 *
-* path:      /inc/restd/memory/get_deleter.hpp
+* path:      /inc/djinterp/re_std/memory/get_deleter.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

@@ -19,7 +19,7 @@
 * picked up automatically.
 *
 *
-* path:      /inc/djinterp/restd/array/array_tuple_element.hpp
+* path:      /inc/djinterp/re_std/array/array_tuple_element.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

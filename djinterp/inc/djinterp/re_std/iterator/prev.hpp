@@ -9,7 +9,7 @@
 * added in std C++11.
 *
 *
-* path:      /inc/restd/iterator/prev.hpp
+* path:      /inc/djinterp/re_std/iterator/prev.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

@@ -9,7 +9,7 @@
 * on C++11+; no portable C++98 path exists.
 *
 *
-* path:      /inc/djinterp/restd/exception/nested_exception.hpp
+* path:      /inc/djinterp/re_std/exception/nested_exception.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

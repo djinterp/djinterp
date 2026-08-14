@@ -15,7 +15,7 @@
 * back-port (std::bad_typeid has existed since C++98).
 *
 *
-* path:      /inc/djinterp/restd/typeinfo/bad_typeid.hpp
+* path:      /inc/djinterp/re_std/typeinfo/bad_typeid.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

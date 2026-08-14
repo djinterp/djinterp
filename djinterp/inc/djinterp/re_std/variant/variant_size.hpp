@@ -10,7 +10,7 @@
 *   Cv-qualified specialisations forward to the unqualified primary.
 *
 *
-* path:      /inc/djinterp/restd/variant/variant_size.hpp
+* path:      /inc/djinterp/re_std/variant/variant_size.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

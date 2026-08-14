@@ -10,7 +10,7 @@
 * by `bind`.
 *
 *
-* path:      /inc/restd/functional/is_bind_expression.hpp
+* path:      /inc/djinterp/re_std/functional/is_bind_expression.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

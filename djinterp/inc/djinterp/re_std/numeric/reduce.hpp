@@ -20,7 +20,7 @@
 * added in std C++17.
 *
 *
-* path:      /inc/restd/numeric/reduce.hpp
+* path:      /inc/djinterp/re_std/numeric/reduce.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

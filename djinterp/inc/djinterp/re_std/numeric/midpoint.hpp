@@ -23,7 +23,7 @@
 * added in std C++20.
 *
 *
-* path:      /inc/restd/numeric/midpoint.hpp
+* path:      /inc/djinterp/re_std/numeric/midpoint.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

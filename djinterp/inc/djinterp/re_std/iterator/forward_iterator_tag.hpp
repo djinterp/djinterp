@@ -6,7 +6,7 @@
 * iterators by tag dispatch will also accept forward iterators.
 *
 *
-* path:      /inc/restd/iterator/forward_iterator_tag.hpp
+* path:      /inc/djinterp/re_std/iterator/forward_iterator_tag.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

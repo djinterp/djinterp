@@ -43,7 +43,7 @@
 *   decay, remove_reference, is_same, void_t, restd::declval.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/common_type.hpp
+* path:      /inc/djinterp/re_std/type_traits/common_type.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/

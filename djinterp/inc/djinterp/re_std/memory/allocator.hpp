@@ -50,7 +50,7 @@
 *   restd::addressof            for address().
 *
 *
-* path:      /inc/restd/memory/allocator.hpp
+* path:      /inc/djinterp/re_std/memory/allocator.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

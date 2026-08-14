@@ -13,7 +13,7 @@
 * requires the C++20 array-overload semantics.
 *
 *
-* path:      /inc/restd/memory/destroy_at.hpp
+* path:      /inc/djinterp/re_std/memory/destroy_at.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

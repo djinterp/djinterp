@@ -24,7 +24,7 @@
 *     would surface -Wdeprecated-declarations at the call site).
 *
 *
-* path:      /inc/djinterp/restd/exception/uncaught_exceptions.hpp
+* path:      /inc/djinterp/re_std/exception/uncaught_exceptions.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

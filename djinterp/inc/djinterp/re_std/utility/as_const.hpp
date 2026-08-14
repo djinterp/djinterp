@@ -16,7 +16,7 @@
 * needs only `= delete` and add_const, both available since C++11).
 *
 *
-* path:      /inc/restd/utility/as_const.hpp
+* path:      /inc/djinterp/re_std/utility/as_const.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

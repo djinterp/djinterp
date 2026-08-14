@@ -11,7 +11,7 @@
 * `bad_optional_access`.
 *
 *
-* path:      /inc/restd/functional/bad_function_call.hpp
+* path:      /inc/djinterp/re_std/functional/bad_function_call.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

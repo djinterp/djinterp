@@ -16,7 +16,7 @@
 * compiler intrinsics, which all major compilers have shipped for years.
 *
 *
-* path:      /inc/restd/utility/unreachable.hpp
+* path:      /inc/djinterp/re_std/utility/unreachable.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

@@ -12,7 +12,7 @@
 * whatever cross-type op== they expose.
 *
 *
-* path:      /inc/djinterp/restd/expected/unexpected_compare.hpp
+* path:      /inc/djinterp/re_std/expected/unexpected_compare.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

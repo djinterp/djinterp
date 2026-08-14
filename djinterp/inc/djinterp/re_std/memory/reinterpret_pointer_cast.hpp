@@ -10,7 +10,7 @@
 * available on every C++11+ tier.
 *
 *
-* path:      /inc/restd/memory/reinterpret_pointer_cast.hpp
+* path:      /inc/djinterp/re_std/memory/reinterpret_pointer_cast.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

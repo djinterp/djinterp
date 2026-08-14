@@ -9,7 +9,7 @@
 * inheriting what() from the base.
 *
 *
-* path:      /inc/djinterp/restd/stdexcept/underflow_error.hpp
+* path:      /inc/djinterp/re_std/stdexception/underflow_error.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

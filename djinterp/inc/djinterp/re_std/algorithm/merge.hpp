@@ -16,7 +16,7 @@
 *     *first1 (preserves left-before-right for equivalents).
 *
 *
-* path:      /inc/djinterp/restd/algorithm/merge.hpp
+* path:      /inc/djinterp/re_std/algorithm/merge.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

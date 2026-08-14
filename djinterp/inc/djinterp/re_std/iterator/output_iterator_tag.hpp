@@ -12,7 +12,7 @@
 * of the hierarchy independently when necessary.
 *
 *
-* path:      /inc/restd/iterator/output_iterator_tag.hpp
+* path:      /inc/djinterp/re_std/iterator/output_iterator_tag.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

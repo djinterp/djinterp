@@ -6,7 +6,7 @@
 * (or reverse_iterator<const T*> for arrays).
 *
 *
-* path:      /inc/restd/iterator/crbegin.hpp
+* path:      /inc/djinterp/re_std/iterator/crbegin.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

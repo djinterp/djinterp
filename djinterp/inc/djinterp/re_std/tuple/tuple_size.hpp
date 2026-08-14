@@ -19,7 +19,7 @@
 * bindings.
 *
 *
-* path:      /inc/djinterp/restd/tuple/tuple_size.hpp
+* path:      /inc/djinterp/re_std/tuple/tuple_size.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/

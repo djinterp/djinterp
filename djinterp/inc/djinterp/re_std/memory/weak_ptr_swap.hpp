@@ -5,7 +5,7 @@
 * member swap.
 *
 *
-* path:      /inc/restd/memory/weak_ptr_swap.hpp
+* path:      /inc/djinterp/re_std/memory/weak_ptr_swap.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

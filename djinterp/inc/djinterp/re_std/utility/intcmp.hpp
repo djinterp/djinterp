@@ -37,7 +37,7 @@
 * sequence of partial specs).
 *
 *
-* path:      /inc/restd/utility/intcmp.hpp
+* path:      /inc/djinterp/re_std/utility/intcmp.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.05.09
 ***********************************************************************/

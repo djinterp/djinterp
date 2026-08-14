@@ -10,7 +10,7 @@
 * function to C++98+ tier and the constexpr to C++14+.
 *
 *
-* path:      /inc/restd/numeric/iota.hpp
+* path:      /inc/djinterp/re_std/numeric/iota.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

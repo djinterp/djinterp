@@ -17,7 +17,7 @@
 *     static constexpr instance on C++11/14.
 *
 *
-* path:      /inc/djinterp/restd/ranges/unreachable_sentinel_t.hpp
+* path:      /inc/djinterp/re_std/ranges/unreachable_sentinel_t.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

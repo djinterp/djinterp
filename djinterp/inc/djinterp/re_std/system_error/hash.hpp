@@ -13,7 +13,7 @@
 *   and restd's pointer-hash specialisation).
 *
 *
-* path:      /inc/restd/system_error/hash.hpp
+* path:      /inc/djinterp/re_std/system_error/hash.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

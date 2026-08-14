@@ -11,7 +11,7 @@
 * reinterpret_cast, which is never a constant expression.
 *
 *
-* path:      /inc/restd/span/as_bytes.hpp
+* path:      /inc/djinterp/re_std/span/as_bytes.hpp
 * link(s):   TBA
 * author(s): restd contributors                        date: 2026.06.04
 ***********************************************************************/

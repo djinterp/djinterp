@@ -1,78 +1,59 @@
-/***********************************************************************
-* restd                                                            iterator.hpp
+/******************************************************************************
+* re_std [iterator]                                              iterator.hpp
 *
-* umbrella header for restd's <iterator> implementation.
+*   the `iterator` base class template - DEPRECATED IN C++17, shipped anyway.
 *
-* current contents (Phase 7a + Phase 7b):
-*   tag types:
-*     input_iterator_tag, output_iterator_tag, forward_iterator_tag,
-*     bidirectional_iterator_tag, random_access_iterator_tag,
-*     contiguous_iterator_tag (C++20+).
-*   iterator_traits (primary + raw-pointer specs).
-*   stepping:
-*     advance, distance, next, prev.
-*   range access:
-*     begin, end, cbegin, cend, rbegin, rend, crbegin, crend,
-*     size, empty, data.
-*   adaptors:
-*     reverse_iterator, make_reverse_iterator (Phase 7a),
-*     move_iterator, make_move_iterator (Phase 7b),
-*     back_insert_iterator, back_inserter (Phase 7b),
-*     front_insert_iterator, front_inserter (Phase 7b),
-*     insert_iterator, inserter (Phase 7b).
+*   WHY SHIP A DEPRECATED FACILITY.
+*   Because re_std's job is compiling existing code. Iterators written before
+* C++17 routinely derive from std::iterator to pick up the five member
+* typedefs, and that code does not stop existing when the standard deprecates
+* the base. Omitting it would make re_std unusable for exactly the C++98-era
+* codebases it is aimed at.
 *
-* not yet implemented:
-*   stream iterators: istream_iterator, ostream_iterator,
-*     istreambuf_iterator, ostreambuf_iterator (await <iostream>),
-*   common_iterator, counted_iterator (C++20+ ranges machinery),
-*   concept-based iterator detection (C++20+ concepts).
+*   WHY IT WAS DEPRECATED, so the note is useful rather than just a warning:
+* deriving publicly to obtain typedefs is fragile. The base is not a real
+* interface, its presence perturbs overload resolution and traits like
+* is_base_of, and an iterator that inherits five typedefs it does not
+* deliberately declare is easy to get subtly wrong - a mutable iterator that
+* forgets to override `reference`, for instance. Declaring the five typedefs
+* directly is clearer and is what iterator_traits actually reads.
 *
+*   NOT MARKED [[deprecated]]. The attribute would fire on every use in the
+* legacy code this exists to serve, which is noise rather than information -
+* the user already cannot change that code, or they would not need re_std.
 *
-* path:      /inc/restd/iterator.hpp
-* link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
-***********************************************************************/
+*   STD WAS C++98 (deprecated C++17); re_std IS C++98.
+*
+* path:      /inc/djinterp/re_std/iterator/iterator.hpp
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
+******************************************************************************/
 
-#ifndef RESTD_ITERATOR_
-#define RESTD_ITERATOR_ 1
+#ifndef RESTD_ITERATOR_ITERATOR_
+#define RESTD_ITERATOR_ITERATOR_ 1
 
-#include "djinterp.hpp"
+#include "../../djinterp.hpp"
+#include "../type_traits/type_traits.hpp"
 
-// tag types
-#include "restd/iterator/input_iterator_tag.hpp"
-#include "restd/iterator/output_iterator_tag.hpp"
-#include "restd/iterator/forward_iterator_tag.hpp"
-#include "restd/iterator/bidirectional_iterator_tag.hpp"
-#include "restd/iterator/random_access_iterator_tag.hpp"
-#include "restd/iterator/contiguous_iterator_tag.hpp"
+NS_DJINTERP
+NS_RESTD
 
-// traits
-#include "restd/iterator/iterator_traits.hpp"
+// iterator
+//   struct: supplies the five iterator typedefs to a derived iterator.
+template<typename _Category,
+         typename _Type,
+         typename _Distance  = ptrdiff_t,
+         typename _Pointer   = _Type*,
+         typename _Reference = _Type&>
+struct iterator
+{
+    typedef _Category  iterator_category;
+    typedef _Type      value_type;
+    typedef _Distance  difference_type;
+    typedef _Pointer   pointer;
+    typedef _Reference reference;
+};
 
-// stepping
-#include "restd/iterator/advance.hpp"
-#include "restd/iterator/distance.hpp"
-#include "restd/iterator/next.hpp"
-#include "restd/iterator/prev.hpp"
+NS_END
+NS_END
 
-// range access
-#include "restd/iterator/begin.hpp"
-#include "restd/iterator/end.hpp"
-#include "restd/iterator/cbegin.hpp"
-#include "restd/iterator/cend.hpp"
-#include "restd/iterator/rbegin.hpp"
-#include "restd/iterator/rend.hpp"
-#include "restd/iterator/crbegin.hpp"
-#include "restd/iterator/crend.hpp"
-#include "restd/iterator/size.hpp"
-#include "restd/iterator/empty.hpp"
-#include "restd/iterator/data.hpp"
-
-// adaptors
-#include "restd/iterator/reverse_iterator.hpp"
-#include "restd/iterator/move_iterator.hpp"
-#include "restd/iterator/back_insert_iterator.hpp"
-#include "restd/iterator/front_insert_iterator.hpp"
-#include "restd/iterator/insert_iterator.hpp"
-
-#endif  // RESTD_ITERATOR_
+#endif  // RESTD_ITERATOR_ITERATOR_

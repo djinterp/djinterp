@@ -15,7 +15,7 @@
 * available.
 *
 *
-* path:      /inc/restd/memory/uninitialized_copy_n.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_copy_n.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

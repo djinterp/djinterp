@@ -5,7 +5,7 @@
 * iteration via -- as well as ++. Derives from forward_iterator_tag.
 *
 *
-* path:      /inc/restd/iterator/bidirectional_iterator_tag.hpp
+* path:      /inc/djinterp/re_std/iterator/bidirectional_iterator_tag.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

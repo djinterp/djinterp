@@ -9,7 +9,7 @@
 *   d[i] = bin_op(d[i-1],  unary(src[i-1]))
 *
 *
-* path:      /inc/restd/numeric/transform_exclusive_scan.hpp
+* path:      /inc/djinterp/re_std/numeric/transform_exclusive_scan.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

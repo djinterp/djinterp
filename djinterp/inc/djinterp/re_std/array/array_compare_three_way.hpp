@@ -27,7 +27,7 @@
 *     <compare>        - common_comparison_category_t, strong_ordering
 *
 *
-* path:      /inc/djinterp/restd/array/array_compare_three_way.hpp
+* path:      /inc/djinterp/re_std/array/array_compare_three_way.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

@@ -17,7 +17,7 @@
 *     are observably equivalent.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/sort_heap.hpp
+* path:      /inc/djinterp/re_std/algorithm/sort_heap.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

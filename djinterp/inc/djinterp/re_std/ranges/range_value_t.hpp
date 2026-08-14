@@ -11,7 +11,7 @@
 *   Requires alias templates. Available C++11+ only.
 *
 *
-* path:      /inc/djinterp/restd/ranges/range_value_t.hpp
+* path:      /inc/djinterp/re_std/ranges/range_value_t.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

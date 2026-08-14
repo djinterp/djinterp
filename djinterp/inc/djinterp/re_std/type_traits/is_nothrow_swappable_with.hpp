@@ -26,7 +26,7 @@
 *   is_swappable_with, restd::swap, restd::declval, integral_constant.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_nothrow_swappable_with.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_nothrow_swappable_with.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/

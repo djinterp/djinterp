@@ -9,7 +9,7 @@
 * added in std C++17.
 *
 *
-* path:      /inc/restd/iterator/size.hpp
+* path:      /inc/djinterp/re_std/iterator/size.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

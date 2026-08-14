@@ -8,7 +8,7 @@
 * recognising user-defined placeholder types.
 *
 *
-* path:      /inc/restd/functional/is_placeholder.hpp
+* path:      /inc/djinterp/re_std/functional/is_placeholder.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

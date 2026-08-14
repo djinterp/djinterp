@@ -27,7 +27,7 @@
 *      range_adaptor_closure), so compositions chain.
 *
 *
-* path:      /inc/djinterp/restd/ranges/range_adaptor_closure.hpp
+* path:      /inc/djinterp/re_std/ranges/range_adaptor_closure.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

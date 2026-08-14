@@ -20,7 +20,7 @@
 * C++11+.
 *
 *
-* path:      /inc/restd/memory/assume_aligned.hpp
+* path:      /inc/djinterp/re_std/memory/assume_aligned.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

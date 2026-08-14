@@ -1,91 +1,56 @@
 /******************************************************************************
-* djinterp [restd]                                              make_optional.hpp
+* re_std [optional]                                           make_optional.hpp
 *
-* make_optional factory functions:
-*   Three overloads mirror std::make_optional from C++17:
-*     1. make_optional(T&&)               -- value-deduced single arg
-*     2. make_optional<T>(Args&&...)      -- explicit type, in-place
-*     3. make_optional<T>(initializer_list<U>, Args&&...) -- with il
+*   optional<T> factories.
 *
-*   STANDARD STATUS:
-*   Introduced in C++17. restd provides on C++11+ since the rest of the
-* optional module targets that floor.
+*   Three overloads: deduce from a value, construct in place from an argument
+* pack, and construct in place from an initializer_list plus a pack.  The
+* in-place forms exist because `optional<T>(args...)` cannot express them - a
+* constructor call with several arguments is ambiguous with the converting
+* constructor - which is why std spells them with the in_place tag.
 *
-*   PORTABILITY:
-*   Available on C++11 and later. C++98/03 omits the entire optional
-* module, so make_optional is unavailable there too.
+*   The deducing overload strips cv and reference (decay), so
+* make_optional(x) always yields optional of a value type, never
+* optional<const T&>.
 *
-*
-* path:      /inc/djinterp/restd/optional/make_optional.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
+* path:      /inc/djinterp/re_std/optional/make_optional.hpp
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_OPTIONAL_MAKE_OPTIONAL_
-#define DJINTERP_RESTD_OPTIONAL_MAKE_OPTIONAL_ 1
+#ifndef RESTD_OPTIONAL_MAKE_OPTIONAL_
+#define RESTD_OPTIONAL_MAKE_OPTIONAL_ 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#if    D_ENV_LANG_IS_CPP11_OR_HIGHER \
-    && D_ENV_CPP98_HAS_NEW
-
-#include <initializer_list>
-
-// restd
+#include "../type_traits/type_traits.hpp"
 #include "./optional.hpp"
-#include "../utility/in_place.hpp"
-#include "../type_traits/decay.hpp"
 
-
+NS_DJINTERP
 NS_RESTD
 
+// make_optional
+//   function: an engaged optional holding a decayed copy of value.
+template<typename _Type>
+D_CONSTEXPR optional<typename decay<_Type>::type>
+make_optional(_Type&& value)
+{
+    return optional<typename decay<_Type>::type>(
+        static_cast<_Type&&>(value));
+}
 
-    // make_optional(T&&)
-    //   function: value-deduced overload. The result type is
-    //             optional<decay<T>::type>, and the value is
-    //             forward-constructed in place.
-    template<typename _T>
-    D_CONSTEXPR optional<typename decay<_T>::type>
-    make_optional(_T&& value)
-    {
-        return optional<typename decay<_T>::type>(
-            in_place,
-            static_cast<_T&&>(value));
-    }
+// make_optional
+//   function: an engaged optional whose value is constructed in place.
+template<typename _Type, typename... _Args>
+D_CONSTEXPR optional<_Type> make_optional(_Args&&... args)
+{
+    return optional<_Type>(in_place, static_cast<_Args&&>(args)...);
+}
 
+NS_END
+NS_END
 
-    // make_optional<T>(Args&&...)
-    //   function: explicit-type, in-place constructor. The args are
-    //             forwarded to T's constructor inside the optional.
-    template<typename _T, typename... _Args>
-    D_CONSTEXPR optional<_T>
-    make_optional(_Args&&... args)
-    {
-        return optional<_T>(
-            in_place,
-            static_cast<_Args&&>(args)...);
-    }
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-
-    // make_optional<T>(initializer_list<U>, Args&&...)
-    //   function: explicit-type, in-place constructor accepting an
-    //             initializer_list as the first argument.
-    template<typename _T, typename _U, typename... _Args>
-    D_CONSTEXPR optional<_T>
-    make_optional(std::initializer_list<_U> il, _Args&&... args)
-    {
-        return optional<_T>(
-            in_place,
-            il,
-            static_cast<_Args&&>(args)...);
-    }
-
-
-NS_END  // restd
-
-
-#endif  // CPP11+ && HAS_NEW
-
-#endif  // DJINTERP_RESTD_OPTIONAL_MAKE_OPTIONAL_
+#endif  // RESTD_OPTIONAL_MAKE_OPTIONAL_

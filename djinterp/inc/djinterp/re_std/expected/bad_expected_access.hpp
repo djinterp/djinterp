@@ -19,7 +19,7 @@
 * any expected access failure regardless of E.
 *
 *
-* path:      /inc/djinterp/restd/expected/bad_expected_access.hpp
+* path:      /inc/djinterp/re_std/expected/bad_expected_access.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

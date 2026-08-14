@@ -26,7 +26,7 @@
 *     class-hierarchy idiom (no concepts required).
 *
 *
-* path:      /inc/djinterp/restd/iterator/iter_move.hpp
+* path:      /inc/djinterp/re_std/ranges/iter_move.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

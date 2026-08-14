@@ -27,7 +27,7 @@
 *   is_invocable, invoke_result, is_void, is_convertible, integral_constant.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_invocable_r.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_invocable_r.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/

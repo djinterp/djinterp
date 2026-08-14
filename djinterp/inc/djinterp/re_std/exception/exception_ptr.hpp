@@ -12,7 +12,7 @@
 * takes toward operator new (runtime-provided, not reimplementable).
 *
 *
-* path:      /inc/djinterp/restd/exception/exception_ptr.hpp
+* path:      /inc/djinterp/re_std/exception/exception_ptr.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

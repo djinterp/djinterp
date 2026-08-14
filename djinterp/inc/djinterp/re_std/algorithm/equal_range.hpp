@@ -18,7 +18,7 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/equal_range.hpp
+* path:      /inc/djinterp/re_std/algorithm/equal_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

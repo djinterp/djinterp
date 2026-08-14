@@ -5,7 +5,7 @@
 * member swap. Mirrors any_swap.hpp / unique_ptr_swap.hpp.
 *
 *
-* path:      /inc/restd/memory/shared_ptr_swap.hpp
+* path:      /inc/djinterp/re_std/memory/shared_ptr_swap.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

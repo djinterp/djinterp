@@ -39,7 +39,7 @@
 *   Override by predefining before #include.
 *
 *
-* path:      /inc/djinterp/restd/new/launder.hpp
+* path:      /inc/djinterp/re_std/new/launder.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

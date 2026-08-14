@@ -4,7 +4,7 @@
 * function object: less-than test (<).
 *
 *
-* path:      /inc/restd/functional/less.hpp
+* path:      /inc/djinterp/re_std/functional/less.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

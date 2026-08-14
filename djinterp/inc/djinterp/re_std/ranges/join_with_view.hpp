@@ -43,6 +43,7 @@
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
+#include "../type_traits/common_type.hpp"   // common_type
 #include "../iterator/iterator_traits.hpp"
 #include "./view_interface.hpp"
 #include "./iterator_t.hpp"

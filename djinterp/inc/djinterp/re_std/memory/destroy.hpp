@@ -20,7 +20,7 @@
 * and C++14 the bodies are non-constexpr because they iterate.
 *
 *
-* path:      /inc/restd/memory/destroy.hpp
+* path:      /inc/djinterp/re_std/memory/destroy.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

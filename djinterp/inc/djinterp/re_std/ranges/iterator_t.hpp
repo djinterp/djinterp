@@ -12,7 +12,7 @@
 * <iterator/iterator_traits.hpp> and write iterator_traits<R::iterator>.
 *
 *
-* path:      /inc/djinterp/restd/ranges/iterator_t.hpp
+* path:      /inc/djinterp/re_std/ranges/iterator_t.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

@@ -11,7 +11,7 @@
 *   language cannot form the type before C++11.
 *
 *
-* path:      /inc/restd/initializer_list/initializer_list.hpp
+* path:      /inc/djinterp/re_std/initializer_list/initializer_list.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

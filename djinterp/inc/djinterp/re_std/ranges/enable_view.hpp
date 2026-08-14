@@ -14,7 +14,7 @@
 *     equivalent boolean. The trait works on any conforming compiler.
 *
 *
-* path:      /inc/djinterp/restd/ranges/enable_view.hpp
+* path:      /inc/djinterp/re_std/ranges/enable_view.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

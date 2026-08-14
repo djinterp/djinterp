@@ -18,7 +18,7 @@
 *   - Non-positive _n is a no-op that returns _last.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/shift_left.hpp
+* path:      /inc/djinterp/re_std/algorithm/shift_left.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

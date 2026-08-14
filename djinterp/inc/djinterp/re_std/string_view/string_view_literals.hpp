@@ -16,7 +16,7 @@
 * still matching the standard spelling users expect.
 *
 *
-* path:      /inc/djinterp/restd/string_view/string_view_literals.hpp
+* path:      /inc/djinterp/re_std/string_view/string_view_literals.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

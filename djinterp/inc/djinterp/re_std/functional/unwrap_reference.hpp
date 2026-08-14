@@ -9,7 +9,7 @@
 * `make_tuple`, and `bind_front`.
 *
 *
-* path:      /inc/restd/functional/unwrap_reference.hpp
+* path:      /inc/djinterp/re_std/functional/unwrap_reference.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

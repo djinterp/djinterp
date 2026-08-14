@@ -12,7 +12,7 @@
 * representable in the common type — std requires the same.
 *
 *
-* path:      /inc/restd/numeric/lcm.hpp
+* path:      /inc/djinterp/re_std/numeric/lcm.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

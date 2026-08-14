@@ -35,7 +35,7 @@
 *   share them.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/nth_element.hpp
+* path:      /inc/djinterp/re_std/algorithm/nth_element.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

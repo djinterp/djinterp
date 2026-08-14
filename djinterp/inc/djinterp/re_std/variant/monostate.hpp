@@ -13,7 +13,7 @@
 * and <=).
 *
 *
-* path:      /inc/djinterp/restd/variant/monostate.hpp
+* path:      /inc/djinterp/re_std/variant/monostate.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

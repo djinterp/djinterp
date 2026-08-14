@@ -51,7 +51,7 @@
 #include "./is_void.hpp"
 #include "./is_function.hpp"
 #include "./is_reference.hpp"
-//#include "./is_unbounded_array.hpp"
+#include "./is_unbounded_array.hpp"
 #include "./remove_all_extents.hpp"
 
 

@@ -11,7 +11,7 @@
 * the same use_count as destroying the source.
 *
 *
-* path:      /inc/restd/memory/static_pointer_cast.hpp
+* path:      /inc/djinterp/re_std/memory/static_pointer_cast.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

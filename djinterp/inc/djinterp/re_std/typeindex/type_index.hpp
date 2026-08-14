@@ -22,7 +22,7 @@
 * name are not constant expressions (true of std::type_index too).
 *
 *
-* path:      /inc/restd/typeindex/type_index.hpp
+* path:      /inc/djinterp/re_std/typeindex/type_index.hpp
 * link(s):   TBA
 * author(s): restd contributors                        date: 2026.06.05
 ***********************************************************************/

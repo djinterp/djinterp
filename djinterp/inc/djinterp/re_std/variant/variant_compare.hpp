@@ -20,7 +20,7 @@
 * ambiguity with the compiler-synthesised version.
 *
 *
-* path:      /inc/djinterp/restd/variant/variant_compare.hpp
+* path:      /inc/djinterp/re_std/variant/variant_compare.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

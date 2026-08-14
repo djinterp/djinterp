@@ -10,7 +10,7 @@
 * restd::exception otherwise.
 *
 *
-* path:      /inc/djinterp/restd/exception/bad_exception.hpp
+* path:      /inc/djinterp/re_std/exception/bad_exception.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

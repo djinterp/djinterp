@@ -16,7 +16,7 @@
 * available on C++98/03.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/disjunction.hpp
+* path:      /inc/djinterp/re_std/type_traits/disjunction.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

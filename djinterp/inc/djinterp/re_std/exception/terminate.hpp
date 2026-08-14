@@ -15,7 +15,7 @@
 *     terminate() invoking the slot (default: abort()).
 *
 *
-* path:      /inc/djinterp/restd/exception/terminate.hpp
+* path:      /inc/djinterp/re_std/exception/terminate.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

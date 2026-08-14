@@ -8,7 +8,7 @@
 *   positions, and the destination past-the-end iterator.
 *
 *
-* path:      /inc/restd/memory/uninitialized_move_n.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_move_n.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

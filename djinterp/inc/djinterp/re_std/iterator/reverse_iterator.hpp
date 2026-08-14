@@ -37,7 +37,7 @@
 *     D_ENV_LANG_IS_CPP14_OR_HIGHER.
 *
 *
-* path:      /inc/restd/iterator/reverse_iterator.hpp
+* path:      /inc/djinterp/re_std/iterator/reverse_iterator.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

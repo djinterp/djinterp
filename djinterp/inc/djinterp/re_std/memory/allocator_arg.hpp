@@ -24,7 +24,7 @@
 *   C++98/03 static const      -  internal linkage. Same rationale.
 *
 *
-* path:      /inc/restd/memory/allocator_arg.hpp
+* path:      /inc/djinterp/re_std/memory/allocator_arg.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

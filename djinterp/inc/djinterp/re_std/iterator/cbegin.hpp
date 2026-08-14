@@ -11,7 +11,7 @@
 * added in std C++14.
 *
 *
-* path:      /inc/restd/iterator/cbegin.hpp
+* path:      /inc/djinterp/re_std/iterator/cbegin.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

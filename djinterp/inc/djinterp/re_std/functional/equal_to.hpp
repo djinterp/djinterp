@@ -4,7 +4,7 @@
 * function object: equality test (==).
 *
 *
-* path:      /inc/restd/functional/equal_to.hpp
+* path:      /inc/djinterp/re_std/functional/equal_to.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

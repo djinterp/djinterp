@@ -9,7 +9,7 @@
 * inheriting what() from the base.
 *
 *
-* path:      /inc/djinterp/restd/stdexcept/out_of_range.hpp
+* path:      /inc/djinterp/re_std/stdexception/out_of_range.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

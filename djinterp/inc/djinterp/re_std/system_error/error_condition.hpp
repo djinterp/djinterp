@@ -8,7 +8,7 @@
 *   via ADL on the std operand type, exactly as for error_code.
 *
 *
-* path:      /inc/restd/system_error/error_condition.hpp
+* path:      /inc/djinterp/re_std/system_error/error_condition.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

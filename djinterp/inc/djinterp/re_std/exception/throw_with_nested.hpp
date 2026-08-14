@@ -12,7 +12,7 @@
 * built on nested_exception / current_exception.
 *
 *
-* path:      /inc/djinterp/restd/exception/throw_with_nested.hpp
+* path:      /inc/djinterp/re_std/exception/throw_with_nested.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

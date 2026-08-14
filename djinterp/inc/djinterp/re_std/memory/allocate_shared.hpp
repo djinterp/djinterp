@@ -18,7 +18,7 @@
 * see allocate_shared_for_overwrite.hpp for the default-init variants.
 *
 *
-* path:      /inc/restd/memory/allocate_shared.hpp
+* path:      /inc/djinterp/re_std/memory/allocate_shared.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

@@ -26,7 +26,7 @@
 *            ctor for the named instance pattern; constexpr is C++11.
 *
 *
-* path:      /inc/djinterp/restd/new/destroying_delete.hpp
+* path:      /inc/djinterp/re_std/new/destroying_delete.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

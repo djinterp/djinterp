@@ -4,7 +4,7 @@
 * function object: multiplication (binary *).
 *
 *
-* path:      /inc/restd/functional/multiplies.hpp
+* path:      /inc/djinterp/re_std/functional/multiplies.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

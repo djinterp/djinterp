@@ -4,7 +4,7 @@
 * free-function end(container) — see begin.hpp for design notes.
 *
 *
-* path:      /inc/restd/iterator/end.hpp
+* path:      /inc/djinterp/re_std/iterator/end.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

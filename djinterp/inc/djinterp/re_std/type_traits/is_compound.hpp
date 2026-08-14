@@ -17,7 +17,7 @@
 *     is_compound<void>::value        -> false  (fundamental)
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_compound.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_compound.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

@@ -15,7 +15,7 @@
 * return value: iterator past the last destination written.
 *
 *
-* path:      /inc/restd/numeric/exclusive_scan.hpp
+* path:      /inc/djinterp/re_std/numeric/exclusive_scan.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

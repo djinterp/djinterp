@@ -49,7 +49,7 @@
 *   shared_ptr<T[N]> <-> shared_ptr<U[N]> qualification-only conversions.
 *
 *
-* path:      /inc/restd/memory
+* path:      /inc/djinterp/re_std/memory/memory.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

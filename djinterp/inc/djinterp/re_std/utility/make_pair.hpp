@@ -17,7 +17,7 @@
 * not performed (no reference_wrapper in restd yet).
 *
 *
-* path:      /inc/restd/utility/make_pair.hpp
+* path:      /inc/djinterp/re_std/utility/make_pair.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.04.30
 ***********************************************************************/

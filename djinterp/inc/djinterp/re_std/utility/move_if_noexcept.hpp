@@ -1,68 +1,65 @@
-/***********************************************************************
-* restd                                              move_if_noexcept.hpp
+/******************************************************************************
+* re_std [utility]                                        move_if_noexcept.hpp
 *
-* move-or-copy cast utility:
-*   Returns either an rvalue reference (allowing move) or a const
-* lvalue reference (forcing copy) depending on whether _Type's move
-* constructor is noexcept and whether _Type is copy-constructible.
+*   conditional move:
+*   `move_if_noexcept(x)` returns an rvalue reference to x when moving it
+* cannot throw, and a CONST LVALUE reference otherwise - so a container
+* reallocating its buffer moves when that is safe and falls back to copying
+* when a throwing move would leave it with a half-migrated, unrecoverable
+* state.  This is the strong-exception-guarantee lever behind vector growth.
 *
-*   The rule: if T's move ctor can throw AND T has a copy ctor, return
-* const T& -- forcing a copy that preserves the strong exception
-* guarantee. Otherwise return T&&. This is the cast vector<T>::push_back
-* uses to decide whether to move elements during reallocation.
+*   THE CONDITION IS DELIBERATELY ASYMMETRIC.
+*   It yields T&& when the move is non-throwing OR when the type is not
+* copyable at all.  The second half matters: a move-only type with a throwing
+* move has no copy to fall back to, so refusing to move it would simply not
+* compile.  std makes the same choice - correctness of the guarantee yields to
+* the fact that no alternative exists.
 *
-*   STANDARD STATUS:
-*   Introduced in C++11. Requires rvalue references and the
-* is_nothrow_move_constructible / is_copy_constructible traits.
+*   STD IS C++11; re_std IS C++11.
+*   Rvalue references are the whole mechanism, so this is a hard language
+* ceiling - there is no meaningful C++98 form.  constexpr from C++11.
 *
 *
-* path:      /inc/restd/utility/move_if_noexcept.hpp
+* path:      /inc/djinterp/re_std/utility/move_if_noexcept.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
-***********************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
+******************************************************************************/
 
 #ifndef RESTD_UTILITY_MOVE_IF_NOEXCEPT_
 #define RESTD_UTILITY_MOVE_IF_NOEXCEPT_ 1
 
-#include "djinterp.hpp"
+// re_std
+#include "../type_traits/type_traits.hpp"   // is_nothrow_move_constructible,
+                                            // is_copy_constructible, conditional
 
-#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES \
-    && D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
+#if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#include "../type_traits/conditional.hpp"
-#include "../type_traits/is_nothrow_move_constructible.hpp"
-#include "../type_traits/is_copy_constructible.hpp"
-
+NS_DJINTERP
 NS_RESTD
 
-// =============================================================================
-// MOVE_IF_NOEXCEPT
-// =============================================================================
-
 // move_if_noexcept
-//   function: casts to rvalue ref if T's move is nothrow OR T has no
-//   copy ctor; otherwise casts to const lvalue ref. Single-statement
-//   body so constexpr-eligible from C++11.
+//   function: cast to T&& when moving is non-throwing (or no copy exists),
+// otherwise to const T&.
 template<typename _Type>
-D_CONSTEXPR
+D_NODISCARD D_CONSTEXPR
 typename conditional<
-    !is_nothrow_move_constructible<_Type>::value
-        && is_copy_constructible<_Type>::value,
-    const _Type&,
-    _Type&&
->::type
-move_if_noexcept(_Type& _value) noexcept
-{
-    return static_cast<typename conditional<
-        !is_nothrow_move_constructible<_Type>::value
-            && is_copy_constructible<_Type>::value,
+        (   !is_nothrow_move_constructible<_Type>::value
+         &&  is_copy_constructible<_Type>::value),
         const _Type&,
-        _Type&&
-    >::type>(_value);
+        _Type&&>::type
+move_if_noexcept(_Type& value) D_NOEXCEPT
+{
+    return static_cast<
+        typename conditional<
+            (   !is_nothrow_move_constructible<_Type>::value
+             &&  is_copy_constructible<_Type>::value),
+            const _Type&,
+            _Type&&>::type>(value);
 }
 
-NS_END  // restd
+NS_END  // re_std
+NS_END  // djinterp
 
-#endif  // rvalue refs && variadic templates
+#endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 #endif  // RESTD_UTILITY_MOVE_IF_NOEXCEPT_

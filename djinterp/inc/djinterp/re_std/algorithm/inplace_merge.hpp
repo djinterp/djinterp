@@ -38,7 +38,7 @@
 *     delete the private version and call restd::inplace_merge.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/inplace_merge.hpp
+* path:      /inc/djinterp/re_std/algorithm/inplace_merge.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

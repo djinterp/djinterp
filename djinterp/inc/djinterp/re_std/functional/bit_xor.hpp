@@ -4,7 +4,7 @@
 * function object: bitwise xor (^).
 *
 *
-* path:      /inc/restd/functional/bit_xor.hpp
+* path:      /inc/djinterp/re_std/functional/bit_xor.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

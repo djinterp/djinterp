@@ -21,7 +21,7 @@
 * added in std C++11; size_t-based array overload existed earlier.
 *
 *
-* path:      /inc/restd/iterator/begin.hpp
+* path:      /inc/djinterp/re_std/iterator/begin.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

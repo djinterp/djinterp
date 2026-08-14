@@ -479,6 +479,87 @@ namespace internal
 
 
 // =============================================================================
+// internal: dispatchers for max_size and select_on_container_copy_construction
+//
+// These live outside the class because they need full template-argument
+// freedom (size_type and value_type are not in scope at namespace level
+// otherwise) and they should not be part of the public allocator_traits
+// surface.
+// =============================================================================
+
+namespace internal
+{
+
+    // ---------- max_size dispatch ----------
+
+    template<typename _SizeType, typename _ValueType, typename _A>
+    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+        constexpr
+    #endif
+    typename enable_if
+    <
+        has_member_max_size<_A>::value,
+        _SizeType
+    >::type
+    alloc_max_size_dispatch(const _A& _a, int)
+    {
+        return static_cast<_SizeType>(_a.max_size());
+    }
+
+    template<typename _SizeType, typename _ValueType, typename _A>
+    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+        constexpr
+    #endif
+    typename enable_if
+    <
+        !has_member_max_size<_A>::value,
+        _SizeType
+    >::type
+    alloc_max_size_dispatch(const _A&, ...)
+    {
+        // Fallback formula matches the C++17 wording. size_type is
+        // required to be unsigned, so (size_type)-1 is its max.
+        return static_cast<_SizeType>(-1) / sizeof(_ValueType);
+    }
+
+    // ---------- select_on_container_copy_construction dispatch ----------
+
+    template<typename _A>
+    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+        constexpr
+    #endif
+    typename enable_if
+    <
+        has_member_socc<_A>::value,
+        _A
+    >::type
+    alloc_socc_dispatch(const _A& _a, int)
+    {
+        return _a.select_on_container_copy_construction();
+    }
+
+    template<typename _A>
+    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
+        constexpr
+    #endif
+    typename enable_if
+    <
+        !has_member_socc<_A>::value,
+        _A
+    >::type
+    alloc_socc_dispatch(const _A& _a, ...)
+    {
+        return _a;
+    }
+
+}  // namespace internal
+
+// NOTE: this block must precede allocator_traits: the member functions below
+// name internal::alloc_*_dispatch through a qualified-id whose nested-name-
+// specifier does not depend on a template parameter, so it is looked up at
+// template DEFINITION time, not at instantiation.
+
+// =============================================================================
 // allocator_traits
 // =============================================================================
 
@@ -703,81 +784,6 @@ struct allocator_traits
 };
 
 
-// =============================================================================
-// internal: dispatchers for max_size and select_on_container_copy_construction
-//
-// These live outside the class because they need full template-argument
-// freedom (size_type and value_type are not in scope at namespace level
-// otherwise) and they should not be part of the public allocator_traits
-// surface.
-// =============================================================================
-
-namespace internal
-{
-
-    // ---------- max_size dispatch ----------
-
-    template<typename _SizeType, typename _ValueType, typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        constexpr
-    #endif
-    typename enable_if
-    <
-        has_member_max_size<_A>::value,
-        _SizeType
-    >::type
-    alloc_max_size_dispatch(const _A& _a, int)
-    {
-        return static_cast<_SizeType>(_a.max_size());
-    }
-
-    template<typename _SizeType, typename _ValueType, typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        constexpr
-    #endif
-    typename enable_if
-    <
-        !has_member_max_size<_A>::value,
-        _SizeType
-    >::type
-    alloc_max_size_dispatch(const _A&, ...)
-    {
-        // Fallback formula matches the C++17 wording. size_type is
-        // required to be unsigned, so (size_type)-1 is its max.
-        return static_cast<_SizeType>(-1) / sizeof(_ValueType);
-    }
-
-    // ---------- select_on_container_copy_construction dispatch ----------
-
-    template<typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        constexpr
-    #endif
-    typename enable_if
-    <
-        has_member_socc<_A>::value,
-        _A
-    >::type
-    alloc_socc_dispatch(const _A& _a, int)
-    {
-        return _a.select_on_container_copy_construction();
-    }
-
-    template<typename _A>
-    #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        constexpr
-    #endif
-    typename enable_if
-    <
-        !has_member_socc<_A>::value,
-        _A
-    >::type
-    alloc_socc_dispatch(const _A& _a, ...)
-    {
-        return _a;
-    }
-
-}  // namespace internal
 
 
 }  // namespace restd

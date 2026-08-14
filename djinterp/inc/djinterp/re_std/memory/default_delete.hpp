@@ -17,14 +17,14 @@
 *     constructor uses the array-of-pointer-to-array form
 *     (_U(*)[] -> _T(*)[]) per [unique.ptr.dltr.dflt1]/2.
 *
-* C++98/03 path:
+* path:      /inc/djinterp/re_std/memory/default_delete.hpp
 *   The class itself ships, but the converting constructor is omitted
 * (it requires is_convertible, which is C++11+ in restd). This is
 * sufficient for unique_ptr's basic use; covariant deleter conversions
 * are a C++11+ feature.
 *
 *
-* path:      /inc/restd/memory/default_delete.hpp
+* path:      /inc/djinterp/re_std/memory/default_delete.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

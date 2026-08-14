@@ -39,6 +39,12 @@ NS_INTERNAL
     template<typename _F>
     class not_fn_wrapper
     {
+    private:
+        // declared BEFORE operator(): a trailing return type is not a
+        // complete-class context, so a member declared after it is not
+        // yet visible there.
+        _F m_f;
+
     public:
         template<typename _G>
         D_CONSTEXPR explicit not_fn_wrapper(
@@ -68,8 +74,6 @@ NS_INTERNAL
             return !restd::invoke(m_f, restd::forward<_Args>(_args)...);
         }
 
-    private:
-        _F m_f;
     };
 
 NS_END  // internal

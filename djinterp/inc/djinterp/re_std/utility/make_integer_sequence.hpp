@@ -23,7 +23,7 @@
 * forms the generators as alias templates and we mirror that exactly.
 *
 *
-* path:      /inc/restd/utility/make_integer_sequence.hpp
+* path:      /inc/djinterp/re_std/utility/make_integer_sequence.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

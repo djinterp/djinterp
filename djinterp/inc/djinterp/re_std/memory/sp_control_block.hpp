@@ -39,7 +39,7 @@
 * such a configuration is UNSAFE. Document accordingly.
 *
 *
-* path:      /inc/restd/memory/internal/sp_control_block.hpp
+* path:      /inc/djinterp/re_std/memory/sp_control_block.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

@@ -50,7 +50,7 @@
 *      with caution.
 *
 *
-* path:      /inc/restd/memory/unique_ptr.hpp
+* path:      /inc/djinterp/re_std/memory/unique_ptr.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

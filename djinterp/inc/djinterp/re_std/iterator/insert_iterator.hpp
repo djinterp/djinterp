@@ -18,7 +18,7 @@
 * internal state is non-trivial.
 *
 *
-* path:      /inc/restd/iterator/insert_iterator.hpp
+* path:      /inc/djinterp/re_std/iterator/insert_iterator.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

@@ -19,7 +19,7 @@
 * constexpr to all tiers via the D_CONSTEXPR macro.
 *
 *
-* path:      /inc/restd/iterator/advance.hpp
+* path:      /inc/djinterp/re_std/iterator/advance.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

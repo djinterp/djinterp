@@ -16,7 +16,7 @@
 *     (Phase R1), range_const_reference_t (Phase R23).
 *
 *
-* path:      /inc/djinterp/restd/ranges/constant_range.hpp
+* path:      /inc/djinterp/re_std/ranges/constant_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

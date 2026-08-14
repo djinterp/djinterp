@@ -8,7 +8,7 @@
 * constructed elements being destroyed.
 *
 *
-* path:      /inc/restd/memory/uninitialized_fill.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_fill.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

@@ -17,7 +17,7 @@
 *     avoid relying on the compiler's TCO.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/rotate.hpp
+* path:      /inc/djinterp/re_std/algorithm/rotate.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
