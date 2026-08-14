@@ -1,0 +1,43 @@
+==============================================================================
+ INTERFACE ASSUMPTIONS FOR THE 2026-08-13 <ranges> ADAPTOR BATCH
+==============================================================================
+
+The adaptors added in this batch were written WITHOUT sight of the existing
+<ranges> implementation. Everything they lean on is listed here, in one place,
+so that reconciling them with the real tree is a single mechanical pass rather
+than a hunt through seven files.
+
+Every assumption below is inferred from the names already catalogued on the
+<ranges> data sheet (65 of 78 symbols shipped, Phases R1-R29), so the NAMES are
+known to be right. What is assumed is their SHAPE.
+
+  ASSUMED SHAPE                              INFERRED FROM
+  -----------------------------------------  ------------------------------
+  iterator_t<R>          alias template      sheet lists it at C++11, and
+  sentinel_t<R>          alias template      alias templates are C++11
+  range_reference_t<R>   alias template
+  range_difference_t<R>  alias template
+  range_value_t<R>       alias template
+
+  range<R>::value        TRAIT, not concept  sheet lists the concept layer at
+  input_range<R>::value  TRAIT               C++11; C++20 `concept` cannot
+  forward_range<R>::value                    exist there, so these must be
+  sized_range<R>::value                      trait-shaped with ::value
+  common_range<R>::value
+  view<R>::value
+
+  view_interface<Derived>       CRTP base    sheet, "Core types"
+  range_adaptor_closure<D>      CRTP base    sheet, "Pipe machinery"
+  ranges::begin/end/size        CPO objects  sheet, "Range access CPOs"
+  views::all / all_view<R>      adaptor      sheet, "Range adaptors (C++20)"
+
+IF ANY OF THESE IS SPELLED DIFFERENTLY, the fix is a rename in these files:
+  elements_view.hpp  zip_view.hpp  enumerate_view.hpp  common_view.hpp
+  range_common_reference.hpp
+
+NOT ASSUMED, and deliberately so: none of the new adaptors uses
+movable_box, non_propagating_cache, subrange, or the C++20 iterator concepts.
+Each of those would have been a further guess, and each was avoidable - the
+views here store their bases directly and define their own iterator/sentinel
+pairs. That is why the assumption list is five entries long rather than twenty.
+==============================================================================
