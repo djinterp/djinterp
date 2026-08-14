@@ -12,7 +12,7 @@
 * dependent code still compiles.
 *
 *
-* path:      /inc/djinterp/restd/exception/exception.hpp
+* path:      /inc/djinterp/re_std/exception/exception.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

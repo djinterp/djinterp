@@ -32,7 +32,7 @@
 * to identical code under reasonable optimisation.
 *
 *
-* path:      /inc/restd/utility/cmp.hpp
+* path:      /inc/djinterp/re_std/utility/cmp.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

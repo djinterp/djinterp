@@ -15,7 +15,7 @@
 * compiler-synthesised version).
 *
 *
-* path:      /inc/djinterp/restd/expected/expected_compare.hpp
+* path:      /inc/djinterp/re_std/expected/expected_compare.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

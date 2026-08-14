@@ -26,7 +26,7 @@
 * matching restd's policy of not exposing RTTI types when RTTI is off.
 *
 *
-* path:      /inc/djinterp/restd/typeinfo/type_info.hpp
+* path:      /inc/djinterp/re_std/typeinfo/type_info.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

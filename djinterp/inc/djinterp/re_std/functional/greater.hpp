@@ -4,7 +4,7 @@
 * function object: greater-than test (>).
 *
 *
-* path:      /inc/restd/functional/greater.hpp
+* path:      /inc/djinterp/re_std/functional/greater.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

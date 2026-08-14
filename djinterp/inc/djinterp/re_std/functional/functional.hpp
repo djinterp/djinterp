@@ -8,16 +8,15 @@
 * tight and the dependency graph explicit; this file is for callers
 * that prefer convenience.
 *
-*   Symbols deferred to later milestones (`function`,
-* `move_only_function`, `copyable_function`, `function_ref`, `bind`,
-* `bind_front`, `bind_back`, the `placeholders::_N`, the searchers)
-* are not part of this umbrella because their granular headers do not
-* yet exist.
+*   Symbols deferred to later milestones (`move_only_function`,
+* `copyable_function`, `function_ref`, `bind`, `bind_front`,
+* `bind_back`, the `placeholders::_N`, the searchers) are not part of
+* this umbrella because their granular headers do not yet exist.
 *
 *
-* path:      /inc/restd/functional/functional.hpp
+* path:      /inc/djinterp/re_std/functional/functional.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): restd                                       date: 2026.07.25
 ***********************************************************************/
 
 #ifndef RESTD_FUNCTIONAL_UMBRELLA_
@@ -72,6 +71,11 @@
 
 // exception types -------------------------------------------------------
 #include "restd/functional/bad_function_call.hpp"
+
+// callable wrappers -----------------------------------------------------
+// (function throws bad_function_call above; include order is otherwise
+//  immaterial thanks to the include guards.)
+#include "restd/functional/function.hpp"
 
 // hashing ---------------------------------------------------------------
 #include "restd/functional/hash.hpp"

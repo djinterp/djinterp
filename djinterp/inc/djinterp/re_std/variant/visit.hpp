@@ -35,7 +35,7 @@
 *   - visit<R> (C++20 explicit return type)
 *
 *
-* path:      /inc/djinterp/restd/variant/visit.hpp
+* path:      /inc/djinterp/re_std/variant/visit.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

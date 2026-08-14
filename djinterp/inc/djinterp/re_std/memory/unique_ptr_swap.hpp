@@ -17,7 +17,7 @@
 * and the pragmatic effect on user code is the same.
 *
 *
-* path:      /inc/restd/memory/unique_ptr_swap.hpp
+* path:      /inc/djinterp/re_std/memory/unique_ptr_swap.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

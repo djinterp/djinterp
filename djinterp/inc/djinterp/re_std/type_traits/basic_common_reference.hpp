@@ -49,7 +49,7 @@
 *   None beyond the restd core macros.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/basic_common_reference.hpp
+* path:      /inc/djinterp/re_std/type_traits/basic_common_reference.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/

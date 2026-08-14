@@ -19,7 +19,7 @@
 * Plain function pointers, function objects, and lambdas work today.
 *
 *
-* path:      /inc/djinterp/restd/tuple/apply.hpp
+* path:      /inc/djinterp/re_std/tuple/apply.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/

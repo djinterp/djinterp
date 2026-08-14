@@ -17,7 +17,7 @@
 * empty; code that needs uses_allocator must itself be gated.
 *
 *
-* path:      /inc/restd/memory/uses_allocator.hpp
+* path:      /inc/djinterp/re_std/memory/uses_allocator.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

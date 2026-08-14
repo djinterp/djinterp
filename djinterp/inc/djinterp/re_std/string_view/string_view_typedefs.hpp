@@ -13,7 +13,7 @@
 * u8string_view follows char8_t and is gated on C++20.
 *
 *
-* path:      /inc/djinterp/restd/string_view/string_view_typedefs.hpp
+* path:      /inc/djinterp/re_std/string_view/string_view_typedefs.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

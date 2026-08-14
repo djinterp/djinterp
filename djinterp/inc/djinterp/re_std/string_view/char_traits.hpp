@@ -28,7 +28,7 @@
 * wchar_t's int_type (wint_t) and WEOF. No restd dependencies.
 *
 *
-* path:      /inc/djinterp/restd/string_view/char_traits.hpp
+* path:      /inc/djinterp/re_std/string_view/char_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

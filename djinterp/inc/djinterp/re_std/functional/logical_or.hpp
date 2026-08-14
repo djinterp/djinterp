@@ -4,7 +4,7 @@
 * function object: logical disjunction (||).
 *
 *
-* path:      /inc/restd/functional/logical_or.hpp
+* path:      /inc/djinterp/re_std/functional/logical_or.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

@@ -19,7 +19,7 @@
 * hash so equal-comparing values hash equally.
 *
 *
-* path:      /inc/restd/functional/hash.hpp
+* path:      /inc/djinterp/re_std/functional/hash.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

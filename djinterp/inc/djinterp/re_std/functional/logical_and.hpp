@@ -4,7 +4,7 @@
 * function object: logical conjunction (&&).
 *
 *
-* path:      /inc/restd/functional/logical_and.hpp
+* path:      /inc/djinterp/re_std/functional/logical_and.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

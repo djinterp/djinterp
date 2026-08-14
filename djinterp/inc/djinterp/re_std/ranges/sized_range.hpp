@@ -11,7 +11,7 @@
 * C++14+ variable spelling sized_range_v<T>.
 *
 *
-* path:      /inc/djinterp/restd/ranges/sized_range.hpp
+* path:      /inc/djinterp/re_std/ranges/sized_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

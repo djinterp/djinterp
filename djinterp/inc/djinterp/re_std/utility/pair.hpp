@@ -30,7 +30,7 @@
 *   piecewise_construct: not provided (depends on tuple).
 *
 *
-* path:      /inc/restd/utility/pair.hpp
+* path:      /inc/djinterp/re_std/utility/pair.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.04.30
 ***********************************************************************/

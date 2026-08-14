@@ -12,7 +12,7 @@
 *   Both have been in <new> since C++98. No back-port needed.
 *
 *
-* path:      /inc/djinterp/restd/new/nothrow.hpp
+* path:      /inc/djinterp/re_std/new/nothrow.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

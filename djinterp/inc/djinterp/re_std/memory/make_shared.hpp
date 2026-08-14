@@ -13,7 +13,7 @@
 * see make_shared_for_overwrite.hpp for the default-init variants.
 *
 *
-* path:      /inc/restd/memory/make_shared.hpp
+* path:      /inc/djinterp/re_std/memory/make_shared.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

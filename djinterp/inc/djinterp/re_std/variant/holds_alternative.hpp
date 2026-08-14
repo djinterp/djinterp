@@ -11,7 +11,7 @@
 *     holds_alternative<string>(v) -> false
 *
 *
-* path:      /inc/djinterp/restd/variant/holds_alternative.hpp
+* path:      /inc/djinterp/re_std/variant/holds_alternative.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

@@ -15,7 +15,7 @@
 *   iterator to one past the last destination element written.
 *
 *
-* path:      /inc/restd/numeric/partial_sum.hpp
+* path:      /inc/djinterp/re_std/numeric/partial_sum.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

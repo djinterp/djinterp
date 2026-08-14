@@ -9,7 +9,7 @@
 *   the C++11 trait's ::value.
 *
 *
-* path:      /inc/restd/system_error/is_error_code_enum.hpp
+* path:      /inc/djinterp/re_std/system_error/is_error_code_enum.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

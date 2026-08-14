@@ -19,7 +19,7 @@
 * form below is fine across all tiers >= C++11).
 *
 *
-* path:      /inc/djinterp/restd/tuple/ignore.hpp
+* path:      /inc/djinterp/re_std/tuple/ignore.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/

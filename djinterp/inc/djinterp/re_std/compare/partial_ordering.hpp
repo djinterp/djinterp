@@ -34,7 +34,7 @@
 *   C++11+ (constexpr ctors and static members).
 *
 *
-* path:      /inc/djinterp/restd/compare/partial_ordering.hpp
+* path:      /inc/djinterp/re_std/compare/partial_ordering.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

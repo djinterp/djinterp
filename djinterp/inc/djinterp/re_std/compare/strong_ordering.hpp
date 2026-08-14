@@ -34,7 +34,7 @@
 * which this header includes.
 *
 *
-* path:      /inc/djinterp/restd/compare/strong_ordering.hpp
+* path:      /inc/djinterp/re_std/compare/strong_ordering.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

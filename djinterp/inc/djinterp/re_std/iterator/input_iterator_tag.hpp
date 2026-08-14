@@ -20,7 +20,7 @@
 * overload via standard overload resolution.
 *
 *
-* path:      /inc/restd/iterator/input_iterator_tag.hpp
+* path:      /inc/djinterp/re_std/iterator/input_iterator_tag.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

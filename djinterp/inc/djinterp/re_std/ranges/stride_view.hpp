@@ -26,7 +26,7 @@
 *   restd::views::stride(n)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/restd/ranges/stride_view.hpp
+* path:      /inc/djinterp/re_std/ranges/stride_view.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

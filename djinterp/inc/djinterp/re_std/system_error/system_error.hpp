@@ -9,7 +9,7 @@
 *   as restd::runtime_error / restd::exception.
 *
 *
-* path:      /inc/restd/system_error/system_error.hpp
+* path:      /inc/djinterp/re_std/system_error/system_error.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

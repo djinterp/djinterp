@@ -30,7 +30,7 @@
 * has_op_eq / has_op_lt trait infrastructure.
 *
 *
-* path:      /inc/djinterp/restd/array/array_compare.hpp
+* path:      /inc/djinterp/re_std/array/array_compare.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

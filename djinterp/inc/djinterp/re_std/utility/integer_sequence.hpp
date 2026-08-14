@@ -23,7 +23,7 @@
 * index_sequence) alias templates. Both are C++11+ features.
 *
 *
-* path:      /inc/restd/utility/integer_sequence.hpp
+* path:      /inc/djinterp/re_std/utility/integer_sequence.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

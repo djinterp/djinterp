@@ -11,7 +11,7 @@
 *   Requires alias templates, decltype, conditional. Available C++11+.
 *
 *
-* path:      /inc/djinterp/restd/ranges/borrowed_subrange_t.hpp
+* path:      /inc/djinterp/re_std/ranges/borrowed_subrange_t.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

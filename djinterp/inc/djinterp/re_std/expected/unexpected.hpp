@@ -24,7 +24,7 @@
 * all required.
 *
 *
-* path:      /inc/djinterp/restd/expected/unexpected.hpp
+* path:      /inc/djinterp/re_std/expected/unexpected.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

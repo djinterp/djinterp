@@ -31,6 +31,10 @@
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 #include "restd/utility/forward.hpp"
+#include "restd/functional/is_reference_wrapper.hpp"
+                                    // is_reference_wrapper (+ the fwd decl)
+#include "restd/functional/invoke.hpp"   // restd::invoke -- operator() needs it
+                                    // DECLARED, not merely defined later
 
 namespace restd
 {
@@ -98,36 +102,8 @@ private:
     _Type* m_ptr;
 };
 
-NS_INTERNAL
-
-    // is_reference_wrapper_helper
-    //   trait: primary -- false for arbitrary types.
-    template<typename _Type>
-    struct is_reference_wrapper_helper : false_type
-    {};
-
-    // is_reference_wrapper_helper<reference_wrapper<U>>
-    //   trait: specialization -- true for reference_wrapper.
-    template<typename _U>
-    struct is_reference_wrapper_helper< reference_wrapper<_U> > : true_type
-    {};
-
-NS_END  // internal
-
-// is_reference_wrapper
-//   trait: detects reference_wrapper. Cv-stripped.
-template<typename _Type>
-struct is_reference_wrapper
-    : internal::is_reference_wrapper_helper<typename remove_cv<_Type>::type>
-{};
-
-#if D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
-
-template<typename _Type>
-D_CONSTEXPR bool is_reference_wrapper_v
-    = is_reference_wrapper<_Type>::value;
-
-#endif
+// is_reference_wrapper now lives in is_reference_wrapper.hpp (included
+// above) so that invoke.hpp can use it without this class definition.
 
 // C++17 deduction guide
 #if D_ENV_LANG_IS_CPP17_OR_HIGHER
@@ -137,12 +113,6 @@ reference_wrapper(_Type&) -> reference_wrapper<_Type>;
 
 } // namespace restd
 
-// invoke.hpp uses is_reference_wrapper above; reference_wrapper's
-// operator() uses restd::invoke. invoke.hpp also includes this header
-// at its top so it has the full definition; the include guards make
-// the cycle harmless -- the no-op skip inside whichever file is
-// re-entered means each definition is reached exactly once.
-#include "restd/functional/invoke.hpp"
 
 #endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 

@@ -27,7 +27,7 @@
 * stateless.
 *
 *
-* path:      /inc/djinterp/restd/optional/nullopt.hpp
+* path:      /inc/djinterp/re_std/optional/nullopt.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/

@@ -49,7 +49,7 @@
 * remove_cv, is_reference, is_convertible, void_t, restd::declval.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/common_reference.hpp
+* path:      /inc/djinterp/re_std/type_traits/common_reference.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/

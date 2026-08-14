@@ -13,7 +13,7 @@
 * fixed internal buffer and exposing the const char* constructor only.
 *
 *
-* path:      /inc/djinterp/restd/stdexcept/logic_error.hpp
+* path:      /inc/djinterp/re_std/stdexception/logic_error.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

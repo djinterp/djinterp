@@ -9,7 +9,7 @@
 *   one-tier constexpr back-port. noexcept on every tier.
 *
 *
-* path:      /inc/restd/initializer_list/begin.hpp
+* path:      /inc/djinterp/re_std/initializer_list/begin.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

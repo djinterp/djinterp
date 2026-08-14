@@ -37,7 +37,7 @@
 *     static-constexpr instances (same pattern as iter_move in R22).
 *
 *
-* path:      /inc/djinterp/restd/ranges/ranges_access.hpp
+* path:      /inc/djinterp/re_std/ranges/ranges_access.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

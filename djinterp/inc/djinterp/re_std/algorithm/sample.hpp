@@ -32,7 +32,7 @@
 *     headers).
 *
 *
-* path:      /inc/djinterp/restd/algorithm/sample.hpp
+* path:      /inc/djinterp/re_std/algorithm/sample.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

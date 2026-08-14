@@ -23,7 +23,7 @@
 * otherwise. Users may pre-define it to override detection.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_enum.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_enum.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

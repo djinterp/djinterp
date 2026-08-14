@@ -26,7 +26,7 @@
 * C++11+ only).
 *
 *
-* path:      /inc/djinterp/restd/utility/in_place.hpp
+* path:      /inc/djinterp/re_std/optional/in_place.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/

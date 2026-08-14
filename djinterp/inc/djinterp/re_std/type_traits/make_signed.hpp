@@ -29,7 +29,7 @@
 * and is left to a future refinement.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/make_signed.hpp
+* path:      /inc/djinterp/re_std/type_traits/make_signed.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

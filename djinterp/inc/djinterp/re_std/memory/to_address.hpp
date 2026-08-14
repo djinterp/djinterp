@@ -43,6 +43,13 @@
 
 namespace restd
 {
+// forward declaration -- internal::to_address_impl names restd::to_address in
+// a trailing return type, and that qualified-id is looked up where it is
+// written rather than at instantiation, so it must be declared first.  Only
+// the raw-pointer overload is needed: the impl applies it to p.operator->().
+template<typename _T>
+D_CONSTEXPR _T* to_address(_T* _p) D_NOEXCEPT;
+
 namespace internal
 {
 

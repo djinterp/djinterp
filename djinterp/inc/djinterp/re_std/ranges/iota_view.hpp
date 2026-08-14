@@ -35,7 +35,7 @@
 * is documented in coverage_data.py and not enforced here.
 *
 *
-* path:      /inc/djinterp/restd/ranges/iota_view.hpp
+* path:      /inc/djinterp/re_std/ranges/iota_view.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

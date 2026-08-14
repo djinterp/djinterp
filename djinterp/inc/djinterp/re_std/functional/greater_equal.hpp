@@ -4,7 +4,7 @@
 * function object: greater-or-equal test (>=).
 *
 *
-* path:      /inc/restd/functional/greater_equal.hpp
+* path:      /inc/djinterp/re_std/functional/greater_equal.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

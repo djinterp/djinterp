@@ -56,6 +56,7 @@
 #include "../type_traits/remove_cv.hpp"
 #include "../type_traits/is_array.hpp"
 #include "../utility/integer_sequence.hpp"
+#include "../utility/make_integer_sequence.hpp"   // make_index_sequence
 
 
 NS_RESTD

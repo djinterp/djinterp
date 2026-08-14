@@ -22,7 +22,7 @@
 * common case -- pass-by-value with decay -- works correctly today.
 *
 *
-* path:      /inc/djinterp/restd/tuple/make_tuple.hpp
+* path:      /inc/djinterp/re_std/tuple/make_tuple.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/

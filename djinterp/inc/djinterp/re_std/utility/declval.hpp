@@ -17,7 +17,7 @@
 * restd::declval on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
 *
 *
-* path:      /inc/restd/utility/declval.hpp
+* path:      /inc/djinterp/re_std/utility/declval.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.04.30
 ***********************************************************************/

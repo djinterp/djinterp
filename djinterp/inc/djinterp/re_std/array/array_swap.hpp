@@ -18,7 +18,7 @@
 * Pre-C++20 the qualifier degrades to empty via D_CONSTEXPR_CPP20.
 *
 *
-* path:      /inc/djinterp/restd/array/array_swap.hpp
+* path:      /inc/djinterp/re_std/array/array_swap.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

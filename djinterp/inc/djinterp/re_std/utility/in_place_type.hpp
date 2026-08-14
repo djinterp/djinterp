@@ -19,7 +19,7 @@
 * since variant itself is planned at C++11+.
 *
 *
-* path:      /inc/restd/utility/in_place_type.hpp
+* path:      /inc/djinterp/re_std/utility/in_place_type.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

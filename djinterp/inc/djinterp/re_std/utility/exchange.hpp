@@ -17,7 +17,7 @@
 *   Requires rvalue references; gated accordingly.
 *
 *
-* path:      /inc/restd/utility/exchange.hpp
+* path:      /inc/djinterp/re_std/utility/exchange.hpp
 * link(s):   TBA
 * author(s): restd team                                  date: 2026.05.02
 ***********************************************************************/

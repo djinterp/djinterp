@@ -9,7 +9,7 @@
 * inheriting what() from the base.
 *
 *
-* path:      /inc/djinterp/restd/stdexcept/invalid_argument.hpp
+* path:      /inc/djinterp/re_std/stdexception/invalid_argument.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

@@ -28,7 +28,7 @@
 *     in_place_type / in_place_index are here.
 *
 *
-* path:      /inc/restd/utility.hpp
+* path:      /inc/djinterp/re_std/utility/utility.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.05.09
 ***********************************************************************/

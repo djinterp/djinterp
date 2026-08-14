@@ -27,7 +27,7 @@
 *   Available on C++11 and later.
 *
 *
-* path:      /inc/djinterp/restd/optional/bad_optional_access.hpp
+* path:      /inc/djinterp/re_std/optional/bad_optional_access.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/

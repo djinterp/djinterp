@@ -20,7 +20,7 @@
 *   Requires variadic templates and rvalue references (C++11+).
 *
 *
-* path:      /inc/djinterp/restd/tuple/tie.hpp
+* path:      /inc/djinterp/re_std/tuple/tie.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/

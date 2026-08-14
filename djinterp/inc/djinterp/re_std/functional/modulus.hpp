@@ -4,7 +4,7 @@
 * function object: modulo (binary %).
 *
 *
-* path:      /inc/restd/functional/modulus.hpp
+* path:      /inc/djinterp/re_std/functional/modulus.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

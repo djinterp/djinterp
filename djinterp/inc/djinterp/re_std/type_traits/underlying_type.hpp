@@ -24,7 +24,7 @@
 * available, 0 otherwise. Users may pre-define it to override detection.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/underlying_type.hpp
+* path:      /inc/djinterp/re_std/type_traits/underlying_type.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

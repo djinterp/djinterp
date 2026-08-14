@@ -13,7 +13,7 @@
 *   - constexpr in std from C++20 (P0202); restd lifts to C++14.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/copy.hpp
+* path:      /inc/djinterp/re_std/algorithm/copy.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

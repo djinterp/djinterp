@@ -4,7 +4,7 @@
 * function object: bitwise not (~).
 *
 *
-* path:      /inc/restd/functional/bit_not.hpp
+* path:      /inc/djinterp/re_std/functional/bit_not.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

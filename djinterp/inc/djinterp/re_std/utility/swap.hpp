@@ -28,7 +28,7 @@
 * function is unqualified rather than falsely noexcept.
 *
 *
-* path:      /inc/restd/utility/swap.hpp
+* path:      /inc/djinterp/re_std/utility/swap.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.04.30
 ***********************************************************************/

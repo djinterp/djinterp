@@ -4,7 +4,7 @@
 * cend(c) — explicit const-iteration end. Pairs with cbegin(c).
 *
 *
-* path:      /inc/restd/iterator/cend.hpp
+* path:      /inc/djinterp/re_std/iterator/cend.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

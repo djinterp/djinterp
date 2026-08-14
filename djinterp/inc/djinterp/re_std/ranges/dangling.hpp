@@ -14,7 +14,7 @@
 * construction are implicitly constexpr on C++11+.
 *
 *
-* path:      /inc/djinterp/restd/ranges/dangling.hpp
+* path:      /inc/djinterp/re_std/ranges/dangling.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

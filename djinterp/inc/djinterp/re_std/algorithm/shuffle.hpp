@@ -31,7 +31,7 @@
 *     subtracted from each draw to normalise.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/shuffle.hpp
+* path:      /inc/djinterp/re_std/algorithm/shuffle.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

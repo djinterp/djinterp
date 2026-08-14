@@ -9,7 +9,7 @@
 * C++20.
 *
 *
-* path:      /inc/restd/functional/unwrap_ref_decay.hpp
+* path:      /inc/djinterp/re_std/functional/unwrap_ref_decay.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

@@ -21,7 +21,7 @@
 * placement-new directly.
 *
 *
-* path:      /inc/restd/memory/construct_at.hpp
+* path:      /inc/djinterp/re_std/memory/construct_at.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

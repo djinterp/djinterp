@@ -15,7 +15,7 @@
 * required).
 *
 *
-* path:      /inc/restd/memory/uninitialized_move.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_move.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

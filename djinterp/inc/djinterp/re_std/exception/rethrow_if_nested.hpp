@@ -11,7 +11,7 @@
 * No C++98 path — depends on the nested_exception facility.
 *
 *
-* path:      /inc/djinterp/restd/exception/rethrow_if_nested.hpp
+* path:      /inc/djinterp/re_std/exception/rethrow_if_nested.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

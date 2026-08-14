@@ -16,7 +16,7 @@
 * constexpr to C++14+ on every tier.
 *
 *
-* path:      /inc/restd/numeric/accumulate.hpp
+* path:      /inc/djinterp/re_std/numeric/accumulate.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

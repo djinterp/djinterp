@@ -9,7 +9,7 @@
 *   every tier.
 *
 *
-* path:      /inc/restd/initializer_list/end.hpp
+* path:      /inc/djinterp/re_std/initializer_list/end.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

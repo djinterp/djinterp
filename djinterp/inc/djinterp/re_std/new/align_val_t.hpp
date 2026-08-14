@@ -25,7 +25,7 @@
 * parameter.
 *
 *
-* path:      /inc/djinterp/restd/new/align_val_t.hpp
+* path:      /inc/djinterp/re_std/new/align_val_t.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

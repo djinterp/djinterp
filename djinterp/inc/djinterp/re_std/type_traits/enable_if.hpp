@@ -18,7 +18,7 @@
 *     foo(_T _v);
 *
 *
-* path:      /inc/djinterp/restd/type_traits/enable_if.hpp
+* path:      /inc/djinterp/re_std/type_traits/enable_if.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
@@ -40,8 +40,8 @@ NS_RESTD
 // enable_if
 //   trait: SFINAE primitive. Has member typedef `type` only when
 // `_Condition` is true.
-template<bool      _Condition,
-         typename  _Type = void>
+template<bool     _Condition,
+         typename _Type = void>
 struct enable_if
 {};
 
@@ -63,8 +63,8 @@ struct enable_if<true, _Type>
 
     // enable_if_t
     //   alias: convenience alias for enable_if<_Condition, _Type>::type.
-    template<bool      _Condition,
-             typename  _Type = void>
+    template<bool     _Condition,
+             typename _Type = void>
     using enable_if_t = typename enable_if<_Condition, _Type>::type;
 
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES

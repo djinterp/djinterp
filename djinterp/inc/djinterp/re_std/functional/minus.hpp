@@ -4,7 +4,7 @@
 * function object: subtraction (binary -).
 *
 *
-* path:      /inc/restd/functional/minus.hpp
+* path:      /inc/djinterp/re_std/functional/minus.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

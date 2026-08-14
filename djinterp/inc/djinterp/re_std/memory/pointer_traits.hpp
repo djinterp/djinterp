@@ -33,7 +33,7 @@
 * D_ENV_LANG_IS_CPP11_OR_HIGHER.
 *
 *
-* path:      /inc/restd/memory/pointer_traits.hpp
+* path:      /inc/djinterp/re_std/memory/pointer_traits.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

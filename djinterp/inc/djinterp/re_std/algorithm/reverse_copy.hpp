@@ -12,7 +12,7 @@
 *   - Requires bidirectional input iterators.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/reverse_copy.hpp
+* path:      /inc/djinterp/re_std/algorithm/reverse_copy.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

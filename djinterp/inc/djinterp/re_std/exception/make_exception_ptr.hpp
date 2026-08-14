@@ -9,7 +9,7 @@
 * it depends on current_exception(), which is itself ABI-provided.
 *
 *
-* path:      /inc/djinterp/restd/exception/make_exception_ptr.hpp
+* path:      /inc/djinterp/re_std/exception/make_exception_ptr.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

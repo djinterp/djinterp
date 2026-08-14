@@ -11,7 +11,7 @@
 *     neither               -> standalone class (no base, non-virtual what())
 *
 *
-* path:      /inc/djinterp/restd/variant/bad_variant_access.hpp
+* path:      /inc/djinterp/re_std/variant/bad_variant_access.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

@@ -33,7 +33,7 @@
 *     associative. Use accumulate when iteration order matters.
 *
 *
-* path:      /inc/restd/numeric.hpp
+* path:      /inc/djinterp/re_std/numeric/numeric.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

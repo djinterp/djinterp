@@ -16,7 +16,7 @@
 * are deferred pending restd::ranges (see span umbrella notes).
 *
 *
-* path:      /inc/restd/span/span.hpp
+* path:      /inc/djinterp/re_std/span/span.hpp
 * link(s):   TBA
 * author(s): restd contributors                        date: 2026.06.04
 ***********************************************************************/

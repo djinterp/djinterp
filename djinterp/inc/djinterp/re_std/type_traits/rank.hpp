@@ -12,7 +12,7 @@
 *     rank<int[1][2][3][4]>::value -> 4
 *
 *
-* path:      /inc/djinterp/restd/type_traits/rank.hpp
+* path:      /inc/djinterp/re_std/type_traits/rank.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

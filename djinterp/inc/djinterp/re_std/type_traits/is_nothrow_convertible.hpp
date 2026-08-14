@@ -29,7 +29,7 @@
 *   is_convertible, integral_constant, false_type, restd::declval.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_nothrow_convertible.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_nothrow_convertible.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/

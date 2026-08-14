@@ -39,6 +39,12 @@ NS_INTERNAL
     template<typename _MemberPtr>
     class mem_fn_wrapper
     {
+    private:
+        // declared BEFORE operator(): a trailing return type is not a
+        // complete-class context, so a member declared after it is not
+        // yet visible there.
+        _MemberPtr m_pm;
+
     public:
         D_CONSTEXPR mem_fn_wrapper(
             _MemberPtr _pm
@@ -56,8 +62,6 @@ NS_INTERNAL
             return restd::invoke(m_pm, restd::forward<_Args>(_args)...);
         }
 
-    private:
-        _MemberPtr m_pm;
     };
 
 NS_END  // internal

@@ -18,7 +18,7 @@
 * these specialise, plus the view aliases from this module.
 *
 *
-* path:      /inc/djinterp/restd/string_view/string_view_hash.hpp
+* path:      /inc/djinterp/re_std/string_view/string_view_hash.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/

@@ -28,7 +28,7 @@
 * surface.
 *
 *
-* path:      /inc/djinterp/restd/utility/pair_compare_three_way.hpp
+* path:      /inc/djinterp/re_std/utility/pair_compare_three_way.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

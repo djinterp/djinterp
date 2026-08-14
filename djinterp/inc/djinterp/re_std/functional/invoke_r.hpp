@@ -10,7 +10,7 @@
 * constexpr void functions; from C++14 it is `D_CONSTEXPR`-qualified.
 *
 *
-* path:      /inc/restd/functional/invoke_r.hpp
+* path:      /inc/djinterp/re_std/functional/invoke_r.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

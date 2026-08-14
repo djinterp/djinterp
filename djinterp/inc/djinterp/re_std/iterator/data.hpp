@@ -11,7 +11,7 @@
 * a pointer that does not generalise to the next element via ++.
 *
 *
-* path:      /inc/restd/iterator/data.hpp
+* path:      /inc/djinterp/re_std/iterator/data.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

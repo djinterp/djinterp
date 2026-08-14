@@ -15,7 +15,7 @@
 *     unchanged on both paths.
 *
 *
-* path:      /inc/djinterp/restd/ranges/subrange_kind.hpp
+* path:      /inc/djinterp/re_std/ranges/subrange_kind.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

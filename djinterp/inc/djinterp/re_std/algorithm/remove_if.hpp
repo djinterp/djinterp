@@ -13,7 +13,7 @@
 *   - Forwards through find_if for the skip-prefix scan.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/remove_if.hpp
+* path:      /inc/djinterp/re_std/algorithm/remove_if.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

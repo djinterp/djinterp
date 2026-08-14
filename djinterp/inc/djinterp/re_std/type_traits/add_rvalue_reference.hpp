@@ -21,7 +21,7 @@
 * D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/add_rvalue_reference.hpp
+* path:      /inc/djinterp/re_std/type_traits/add_rvalue_reference.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

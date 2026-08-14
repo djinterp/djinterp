@@ -14,7 +14,7 @@
 * see uninitialized_default_construct.hpp for the contrast.
 *
 *
-* path:      /inc/restd/memory/uninitialized_value_construct.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_value_construct.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

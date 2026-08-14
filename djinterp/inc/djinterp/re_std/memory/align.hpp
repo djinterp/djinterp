@@ -17,7 +17,7 @@
 * added in std C++11; restd matches the C++11 signature.
 *
 *
-* path:      /inc/restd/memory/align.hpp
+* path:      /inc/djinterp/re_std/memory/align.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

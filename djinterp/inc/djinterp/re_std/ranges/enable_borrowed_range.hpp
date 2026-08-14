@@ -15,7 +15,7 @@
 *     compiler.
 *
 *
-* path:      /inc/djinterp/restd/ranges/enable_borrowed_range.hpp
+* path:      /inc/djinterp/re_std/ranges/enable_borrowed_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

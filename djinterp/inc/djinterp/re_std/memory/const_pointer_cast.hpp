@@ -6,7 +6,7 @@
 * sharing ownership with the source shared_ptr.
 *
 *
-* path:      /inc/restd/memory/const_pointer_cast.hpp
+* path:      /inc/djinterp/re_std/memory/const_pointer_cast.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

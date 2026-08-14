@@ -1,60 +1,46 @@
 /******************************************************************************
-* djinterp [restd]                                              optional_swap.hpp
+* re_std [optional]                                          optional_swap.hpp
 *
-* Non-member swap for optional:
-*   Free-function overload that delegates to optional<T>::swap(other).
-* Allows ADL-driven swap calls (the "using std::swap; swap(a, b);" idiom)
-* to find the correct optional swap.
+*   non-member swap for optional<T>.
 *
-*   STANDARD STATUS:
-*   Introduced in C++17 alongside std::optional. Constrained in the
-* standard to participate in overload resolution iff T is move-
-* constructible AND swappable; we omit the constraint here since
-* optional<T>'s member swap will simply fail to compile if those
-* conditions are not met -- failing inside the function body rather
-* than via SFINAE gives a clearer diagnostic.
+*   Constrained on move_constructible AND swappable, matching std.  Both are
+* needed and for different reasons: the engaged/engaged case swaps the
+* contained values (swappable), while the mixed case moves one across and
+* destroys the other (move_constructible).  A type satisfying only one of the
+* two would compile here and then fail inside the body on the other path.
 *
-*   PORTABILITY:
-*   Available on C++11 and later.
-*
-*
-* path:      /inc/djinterp/restd/optional/optional_swap.hpp
-* link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
+* path:      /inc/djinterp/re_std/optional/optional_swap.hpp
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_OPTIONAL_OPTIONAL_SWAP_
-#define DJINTERP_RESTD_OPTIONAL_OPTIONAL_SWAP_ 1
+#ifndef RESTD_OPTIONAL_SWAP_
+#define RESTD_OPTIONAL_SWAP_ 1
 
-// djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 
+#if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#if    D_ENV_LANG_IS_CPP11_OR_HIGHER \
-    && D_ENV_CPP98_HAS_NEW
-
-// restd
+#include "../type_traits/type_traits.hpp"
 #include "./optional.hpp"
 
-
+NS_DJINTERP
 NS_RESTD
 
+// swap
+//   function: exchange the states of two optionals.
+template<typename _Type>
+typename enable_if<   is_move_constructible<_Type>::value
+                   && is_swappable<_Type>::value, void>::type
+swap(optional<_Type>& a, optional<_Type>& b)
+    D_NOEXCEPT_IF(noexcept(a.swap(b)))
+{
+    a.swap(b);
+    return;
+}
 
-    // swap(optional<T>&, optional<T>&)
-    //   function: free-function ADL hook. Delegates to the member
-    //             swap, which carries the noexcept specification
-    //             (so this wrapper inherits it via noexcept(noexcept(...))).
-    template<typename _T>
-    void swap(optional<_T>& a, optional<_T>& b)
-        noexcept(noexcept( a.swap(b) ))
-    {
-        a.swap(b);
-    }
+NS_END
+NS_END
 
+#endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-NS_END  // restd
-
-
-#endif  // CPP11+ && HAS_NEW
-
-#endif  // DJINTERP_RESTD_OPTIONAL_OPTIONAL_SWAP_
+#endif  // RESTD_OPTIONAL_SWAP_

@@ -9,7 +9,7 @@
 * added in std C++17.
 *
 *
-* path:      /inc/restd/iterator/empty.hpp
+* path:      /inc/djinterp/re_std/iterator/empty.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

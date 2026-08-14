@@ -19,7 +19,7 @@
 *     decay<void(&)(int)>::type    -> void(*)(int)
 *
 *
-* path:      /inc/djinterp/restd/type_traits/decay.hpp
+* path:      /inc/djinterp/re_std/type_traits/decay.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

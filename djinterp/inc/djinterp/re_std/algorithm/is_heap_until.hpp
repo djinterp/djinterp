@@ -15,7 +15,7 @@
 *   - Two overloads: default operator< and custom comparator.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/is_heap_until.hpp
+* path:      /inc/djinterp/re_std/algorithm/is_heap_until.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

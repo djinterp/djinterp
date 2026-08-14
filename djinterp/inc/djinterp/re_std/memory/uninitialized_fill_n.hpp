@@ -11,7 +11,7 @@
 *   to discard the return value can do so explicitly.
 *
 *
-* path:      /inc/restd/memory/uninitialized_fill_n.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_fill_n.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

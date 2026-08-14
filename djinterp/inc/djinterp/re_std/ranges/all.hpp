@@ -22,7 +22,7 @@
 *     when R is an rvalue non-view range.
 *
 *
-* path:      /inc/djinterp/restd/ranges/all.hpp
+* path:      /inc/djinterp/re_std/ranges/all.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

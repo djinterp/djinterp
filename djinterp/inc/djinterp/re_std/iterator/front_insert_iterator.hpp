@@ -16,7 +16,7 @@
 *     // dst is now { 3, 2, 1 }
 *
 *
-* path:      /inc/restd/iterator/front_insert_iterator.hpp
+* path:      /inc/djinterp/re_std/iterator/front_insert_iterator.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

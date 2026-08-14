@@ -15,7 +15,7 @@
 *                                                              is preserved)
 *
 *
-* path:      /inc/djinterp/restd/type_traits/remove_pointer.hpp
+* path:      /inc/djinterp/re_std/type_traits/remove_pointer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

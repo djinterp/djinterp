@@ -12,7 +12,7 @@
 *     constexpr (the loop body needs mutable iteration).
 *
 *
-* path:      /inc/djinterp/restd/algorithm/all_of.hpp
+* path:      /inc/djinterp/re_std/algorithm/all_of.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

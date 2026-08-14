@@ -33,7 +33,7 @@
 * Only the dereference semantics change.
 *
 *
-* path:      /inc/restd/iterator/move_iterator.hpp
+* path:      /inc/djinterp/re_std/iterator/move_iterator.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

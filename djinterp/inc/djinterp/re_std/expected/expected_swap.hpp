@@ -10,7 +10,7 @@
 *   constexpr from C++20 (matches std).
 *
 *
-* path:      /inc/djinterp/restd/expected/expected_swap.hpp
+* path:      /inc/djinterp/re_std/expected/expected_swap.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

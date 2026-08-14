@@ -19,7 +19,7 @@
 * to surface this error condition just throw the back-port.
 *
 *
-* path:      /inc/djinterp/restd/new/bad_array_new_length.hpp
+* path:      /inc/djinterp/re_std/new/bad_array_new_length.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

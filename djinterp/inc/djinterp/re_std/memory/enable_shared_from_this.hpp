@@ -29,7 +29,7 @@
 * via several inheritance hops.
 *
 *
-* path:      /inc/restd/memory/enable_shared_from_this.hpp
+* path:      /inc/djinterp/re_std/memory/enable_shared_from_this.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

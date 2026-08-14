@@ -14,7 +14,7 @@
 * to C++14+ where the loop body is permitted.
 *
 *
-* path:      /inc/restd/numeric/inner_product.hpp
+* path:      /inc/djinterp/re_std/numeric/inner_product.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.09
 ***********************************************************************/

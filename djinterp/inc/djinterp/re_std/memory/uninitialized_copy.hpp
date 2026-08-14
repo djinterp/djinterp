@@ -19,7 +19,7 @@
 *   iterator to the past-the-end position in the destination range.
 *
 *
-* path:      /inc/restd/memory/uninitialized_copy.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_copy.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

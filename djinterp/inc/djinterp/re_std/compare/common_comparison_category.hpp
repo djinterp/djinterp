@@ -32,7 +32,7 @@
 *   C++11+ (variadic templates + the three category classes).
 *
 *
-* path:      /inc/djinterp/restd/compare/common_comparison_category.hpp
+* path:      /inc/djinterp/re_std/compare/common_comparison_category.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

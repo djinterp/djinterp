@@ -28,7 +28,7 @@
 *      caveat as unique_ptr.
 *
 *
-* path:      /inc/restd/memory/shared_ptr.hpp
+* path:      /inc/djinterp/re_std/memory/shared_ptr.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

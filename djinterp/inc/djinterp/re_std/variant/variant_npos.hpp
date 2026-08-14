@@ -9,7 +9,7 @@
 *   Value: static_cast<size_t>(-1).
 *
 *
-* path:      /inc/djinterp/restd/variant/variant_npos.hpp
+* path:      /inc/djinterp/re_std/variant/variant_npos.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

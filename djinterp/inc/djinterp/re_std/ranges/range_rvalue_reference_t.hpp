@@ -12,7 +12,7 @@
 *     iter_rvalue_reference_t (Phase R22).
 *
 *
-* path:      /inc/djinterp/restd/ranges/range_rvalue_reference_t.hpp
+* path:      /inc/djinterp/re_std/ranges/range_rvalue_reference_t.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

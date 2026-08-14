@@ -17,7 +17,7 @@
 * xalloc in pre-standard libraries). No back-port needed.
 *
 *
-* path:      /inc/djinterp/restd/new/bad_alloc.hpp
+* path:      /inc/djinterp/re_std/new/bad_alloc.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/

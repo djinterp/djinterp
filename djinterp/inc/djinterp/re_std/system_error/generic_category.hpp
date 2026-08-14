@@ -8,7 +8,7 @@
 *   std::generic_category to preserve that one true identity.
 *
 *
-* path:      /inc/restd/system_error/generic_category.hpp
+* path:      /inc/djinterp/re_std/system_error/generic_category.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

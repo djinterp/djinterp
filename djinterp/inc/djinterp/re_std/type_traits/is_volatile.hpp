@@ -14,7 +14,7 @@
 *     is_volatile<volatile int&>::value    -> false  (refs not cv-qual'able)
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_volatile.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_volatile.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

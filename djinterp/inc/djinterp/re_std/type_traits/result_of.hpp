@@ -33,7 +33,7 @@
 *   invoke_result.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/result_of.hpp
+* path:      /inc/djinterp/re_std/type_traits/result_of.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/

@@ -13,7 +13,7 @@
 *   marked constexpr on C++11+ (single-statement body).
 *
 *
-* path:      /inc/restd/utility/move.hpp
+* path:      /inc/djinterp/re_std/utility/move.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.04.30
 ***********************************************************************/

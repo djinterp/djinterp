@@ -10,7 +10,7 @@
 *   Not constexpr on any tier (reinterpret_cast).
 *
 *
-* path:      /inc/restd/span/as_writable_bytes.hpp
+* path:      /inc/djinterp/re_std/span/as_writable_bytes.hpp
 * link(s):   TBA
 * author(s): restd contributors                        date: 2026.06.04
 ***********************************************************************/

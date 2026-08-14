@@ -19,7 +19,7 @@
 *   marked constexpr on C++11+ (single-statement bodies).
 *
 *
-* path:      /inc/restd/utility/forward.hpp
+* path:      /inc/djinterp/re_std/utility/forward.hpp
 * link(s):   TBA
 * author(s): restd team                                 date: 2026.04.30
 ***********************************************************************/

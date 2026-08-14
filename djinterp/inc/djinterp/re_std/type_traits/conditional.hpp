@@ -9,7 +9,7 @@
 *     typename conditional<sizeof(int) == 4, int, long>::type four_byte;
 *
 *
-* path:      /inc/djinterp/restd/type_traits/conditional.hpp
+* path:      /inc/djinterp/re_std/type_traits/conditional.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

@@ -15,7 +15,7 @@
 * type are silently ignored per the C++ standard's reference rules.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/add_const.hpp
+* path:      /inc/djinterp/re_std/type_traits/add_const.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/

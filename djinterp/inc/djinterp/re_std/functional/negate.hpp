@@ -4,7 +4,7 @@
 * function object: arithmetic negation (unary -).
 *
 *
-* path:      /inc/restd/functional/negate.hpp
+* path:      /inc/djinterp/re_std/functional/negate.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

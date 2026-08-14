@@ -10,7 +10,7 @@
 * between default-init and value-init.
 *
 *
-* path:      /inc/restd/memory/uninitialized_default_construct_n.hpp
+* path:      /inc/djinterp/re_std/memory/uninitialized_default_construct_n.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

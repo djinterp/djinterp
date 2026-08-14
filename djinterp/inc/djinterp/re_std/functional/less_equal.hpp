@@ -4,7 +4,7 @@
 * function object: less-or-equal test (<=).
 *
 *
-* path:      /inc/restd/functional/less_equal.hpp
+* path:      /inc/djinterp/re_std/functional/less_equal.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

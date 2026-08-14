@@ -38,7 +38,7 @@
 *   <cstddef> for std::size_t. No restd traits required.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/aligned_storage.hpp
+* path:      /inc/djinterp/re_std/type_traits/aligned_storage.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/

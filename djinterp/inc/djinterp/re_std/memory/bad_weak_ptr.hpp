@@ -19,7 +19,7 @@
 * what() returns "bad_weak_ptr" on every tier.
 *
 *
-* path:      /inc/restd/memory/bad_weak_ptr.hpp
+* path:      /inc/djinterp/re_std/memory/bad_weak_ptr.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

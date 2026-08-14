@@ -39,7 +39,7 @@
 * remain the only comparison surface.
 *
 *
-* path:      /inc/djinterp/restd/tuple/tuple_compare_three_way.hpp
+* path:      /inc/djinterp/re_std/tuple/tuple_compare_three_way.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

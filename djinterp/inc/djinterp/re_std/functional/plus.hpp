@@ -4,7 +4,7 @@
 * function object: addition (binary +).
 *
 *
-* path:      /inc/restd/functional/plus.hpp
+* path:      /inc/djinterp/re_std/functional/plus.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

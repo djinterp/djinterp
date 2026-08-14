@@ -53,7 +53,7 @@
 * II.   EXPECTED<void, E>  — partial specialisation
 *
 *
-* path:      /inc/djinterp/restd/expected/expected.hpp
+* path:      /inc/djinterp/re_std/expected/expected.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

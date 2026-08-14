@@ -9,7 +9,7 @@
 *   struct-wrapper enum to C++98.
 *
 *
-* path:      /inc/restd/system_error/errc.hpp
+* path:      /inc/djinterp/re_std/system_error/errc.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

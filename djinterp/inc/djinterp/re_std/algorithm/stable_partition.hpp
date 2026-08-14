@@ -35,7 +35,7 @@
 *   - Recursive; stack depth O(log N).
 *
 *
-* path:      /inc/djinterp/restd/algorithm/stable_partition.hpp
+* path:      /inc/djinterp/re_std/algorithm/stable_partition.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

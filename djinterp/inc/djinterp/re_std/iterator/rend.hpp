@@ -4,7 +4,7 @@
 * rend(c) — reverse-iteration end. Pairs with rbegin(c).
 *
 *
-* path:      /inc/restd/iterator/rend.hpp
+* path:      /inc/djinterp/re_std/iterator/rend.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

@@ -47,7 +47,7 @@
 *   iterator_traits<const _T*>     same, with const _T as value_type
 *
 *
-* path:      /inc/restd/iterator/iterator_traits.hpp
+* path:      /inc/djinterp/re_std/iterator/iterator_traits.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.08
 ***********************************************************************/

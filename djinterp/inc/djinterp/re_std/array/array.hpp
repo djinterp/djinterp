@@ -62,7 +62,7 @@
 * III.  DEDUCTION GUIDE (C++17+)
 *
 *
-* path:      /inc/djinterp/restd/array/array.hpp
+* path:      /inc/djinterp/re_std/array/array.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

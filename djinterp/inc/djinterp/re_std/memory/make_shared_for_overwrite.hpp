@@ -15,7 +15,7 @@
 * added in std C++20; restd back-ports unconditionally to C++11+.
 *
 *
-* path:      /inc/restd/memory/make_shared_for_overwrite.hpp
+* path:      /inc/djinterp/re_std/memory/make_shared_for_overwrite.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.02
 ***********************************************************************/

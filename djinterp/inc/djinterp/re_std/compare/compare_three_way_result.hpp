@@ -32,7 +32,7 @@
 * reference are preserved.
 *
 *
-* path:      /inc/djinterp/restd/compare/compare_three_way_result.hpp
+* path:      /inc/djinterp/re_std/compare/compare_three_way_result.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

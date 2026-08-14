@@ -18,7 +18,7 @@
 * delete, so the misuse is impossible to express in the first place.
 *
 *
-* path:      /inc/restd/memory/addressof.hpp
+* path:      /inc/djinterp/re_std/memory/addressof.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.05.01
 ***********************************************************************/

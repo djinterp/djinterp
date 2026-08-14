@@ -24,7 +24,7 @@
 *     form catches the cases that matter).
 *
 *
-* path:      /inc/djinterp/restd/ranges/output_range.hpp
+* path:      /inc/djinterp/re_std/ranges/output_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

@@ -9,7 +9,7 @@
 *   restd::error_category IS std::error_category.
 *
 *
-* path:      /inc/restd/system_error/error_category.hpp
+* path:      /inc/djinterp/re_std/system_error/error_category.hpp
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/

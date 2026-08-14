@@ -10,7 +10,7 @@
 * holder defined alongside logic_error.
 *
 *
-* path:      /inc/djinterp/restd/stdexcept/runtime_error.hpp
+* path:      /inc/djinterp/re_std/stdexception/runtime_error.hpp
 * link(s):   TBA
 * author(s): restd contributors                          date: 2026.06.04
 ***********************************************************************/

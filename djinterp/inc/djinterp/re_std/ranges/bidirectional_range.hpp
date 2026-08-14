@@ -11,7 +11,7 @@
 *   C++11+. Variable spelling C++14+.
 *
 *
-* path:      /inc/djinterp/restd/ranges/bidirectional_range.hpp
+* path:      /inc/djinterp/re_std/ranges/bidirectional_range.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

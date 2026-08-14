@@ -4,7 +4,7 @@
 * function object: bitwise and (&).
 *
 *
-* path:      /inc/restd/functional/bit_and.hpp
+* path:      /inc/djinterp/re_std/functional/bit_and.hpp
 * link(s):   TBA
 * author(s): restd                                       date: 2026.05.07
 ***********************************************************************/

@@ -21,7 +21,7 @@
 * tiers should guard with the same macro before referencing it.
 *
 *
-* path:      /inc/djinterp/restd/compare/compare_three_way.hpp
+* path:      /inc/djinterp/re_std/compare/compare_three_way.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/

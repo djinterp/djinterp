@@ -30,7 +30,7 @@
 * static_assert behaviour.
 *
 *
-* path:      /inc/djinterp/restd/array/array_get.hpp
+* path:      /inc/djinterp/re_std/array/array_get.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/

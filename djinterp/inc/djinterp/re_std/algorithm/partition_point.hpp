@@ -15,7 +15,7 @@
 *     random access, O(N) on forward.
 *
 *
-* path:      /inc/djinterp/restd/algorithm/partition_point.hpp
+* path:      /inc/djinterp/re_std/algorithm/partition_point.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/

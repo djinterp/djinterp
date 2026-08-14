@@ -32,7 +32,7 @@
 * requires C++11+.
 *
 *
-* path:      /inc/djinterp/restd/compare/literal_zero_helper.hpp
+* path:      /inc/djinterp/re_std/compare/literal_zero_helper.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
