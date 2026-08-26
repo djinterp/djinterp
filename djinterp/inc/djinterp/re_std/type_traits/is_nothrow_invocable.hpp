@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                      is_nothrow_invocable.hpp
+* djinterp [re_std]                                     is_nothrow_invocable.hpp
 *
 * is_nothrow_invocable trait:
 *   true_type if is_invocable<F, Args...> is true_type AND the underlying
@@ -18,11 +18,11 @@
 * noexceptness, of the call.
 *
 *   PORTABILITY:
-*   Available on C++11 and later. Standardized in C++17; restd backports
+*   Available on C++11 and later. Standardized in C++17; re_std backports
 * to C++11+.
 *
 *   DEPENDENCIES:
-*   is_invocable, invoke_result (for the dispatcher), restd::declval,
+*   is_invocable, invoke_result (for the dispatcher), re_std::declval,
 * integral_constant.
 *
 *
@@ -31,8 +31,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -40,7 +40,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./integral_constant.hpp"
@@ -75,8 +75,8 @@ NS_RESTD
                   bool,
                   noexcept(
                       invoker::do_invoke(
-                          restd::declval<_F>(),
-                          restd::declval<_Args>()... ) ) >
+                          re_std::declval<_F>(),
+                          re_std::declval<_Args>()... ) ) >
         {};
 
     NS_END  // internal
@@ -103,9 +103,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_

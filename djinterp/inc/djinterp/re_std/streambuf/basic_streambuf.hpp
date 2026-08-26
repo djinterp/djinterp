@@ -52,17 +52,16 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_STREAMBUF_BASIC_STREAMBUF_
-#define RESTD_STREAMBUF_BASIC_STREAMBUF_ 1
+#ifndef DJINTERP_RE_STD_STREAMBUF_BASIC_STREAMBUF_
+#define DJINTERP_RE_STD_STREAMBUF_BASIC_STREAMBUF_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "../type_traits/type_traits.hpp"
 #include "../ios/ios_base.hpp"
 #include "../ios/stream_types.hpp"
 #include "../string_view/char_traits.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // basic_streambuf
@@ -305,6 +304,4 @@ typedef basic_streambuf<char>    streambuf;
 typedef basic_streambuf<wchar_t> wstreambuf;
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_STREAMBUF_BASIC_STREAMBUF_
+#endif  // DJINTERP_RE_STD_STREAMBUF_BASIC_STREAMBUF_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                is_class.hpp
+* djinterp [re_std]                                               is_class.hpp
 *
 * is_class trait header:
 *   Yields true_type if _Type is a class type (struct or non-union
@@ -19,7 +19,7 @@
 * convention used by is_enum.
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_IS_CLASS is defined to 1 when the intrinsic is present,
+*   D_RE_STD_HAS_IS_CLASS is defined to 1 when the intrinsic is present,
 * 0 otherwise. Predefinable: users may #define it before inclusion to
 * override autodetection.
 *
@@ -29,8 +29,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_CLASS_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_CLASS_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_CLASS_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_CLASS_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -40,25 +40,25 @@
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_IS_CLASS  (intrinsic detection)
+// 0.   D_RE_STD_HAS_IS_CLASS  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RESTD_HAS_IS_CLASS
+#ifndef D_RE_STD_HAS_IS_CLASS
     #if defined(__has_builtin)
         #if __has_builtin(__is_class)
-            #define D_RESTD_HAS_IS_CLASS    1
+            #define D_RE_STD_HAS_IS_CLASS    1
         #else
-            #define D_RESTD_HAS_IS_CLASS    0
+            #define D_RE_STD_HAS_IS_CLASS    0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_CLANG) ||                                  \
             defined(D_ENV_COMPILER_MSVC)  ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_IS_CLASS        1
+        #define D_RE_STD_HAS_IS_CLASS        1
     #else
-        #define D_RESTD_HAS_IS_CLASS        0
+        #define D_RE_STD_HAS_IS_CLASS        0
     #endif
-#endif  // D_RESTD_HAS_IS_CLASS
+#endif  // D_RE_STD_HAS_IS_CLASS
 
 
 NS_RESTD
@@ -68,7 +68,7 @@ NS_RESTD
 // I.   IS_CLASS
 // =============================================================================
 
-#if D_RESTD_HAS_IS_CLASS
+#if D_RE_STD_HAS_IS_CLASS
 
     // is_class
     //   trait: true if _Type is a class or struct (not union).
@@ -84,7 +84,7 @@ NS_RESTD
     struct is_class : false_type
     {};
 
-#endif  // D_RESTD_HAS_IS_CLASS
+#endif  // D_RE_STD_HAS_IS_CLASS
 
 
 // =============================================================================
@@ -101,7 +101,7 @@ NS_RESTD
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_CLASS_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_CLASS_

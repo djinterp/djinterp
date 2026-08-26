@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                            tuple_compare.hpp
+* djinterp [re_std]                                           tuple_compare.hpp
 *
 * tuple comparison operators header:
-*   Provides ==, !=, <, <=, >, >= for restd::tuple. Comparison is
+*   Provides ==, !=, <, <=, >, >= for re_std::tuple. Comparison is
 * lexicographic over the elements: tuples are equal iff every pair of
 * corresponding elements compares equal; less iff the first non-equal
 * pair compares less.
@@ -17,16 +17,16 @@
 * operators which work uniformly on C++11 through C++26.
 *
 *   The implementation is recursive and avoids std::tuple_size /
-* std::get of std::tuple, instead using restd's own.
+* std::get of std::tuple, instead using re_std's own.
 *
 *
-* path:      /inc/djinterp/restd/tuple/tuple_compare.hpp
+* path:      /inc/djinterp/re_std/tuple/tuple_compare.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_COMPARE_
-#define DJINTERP_RESTD_TUPLE_TUPLE_COMPARE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -40,7 +40,7 @@
 #include <cstddef>
 // djinterp
 #include "./tuple.hpp"
-#include "./tuple_get.hpp"      // restd::get<I>(tuple)
+#include "./tuple_get.hpp"      // re_std::get<I>(tuple)
 
 
 NS_RESTD
@@ -225,10 +225,10 @@ operator>=(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_COMPARE_
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_

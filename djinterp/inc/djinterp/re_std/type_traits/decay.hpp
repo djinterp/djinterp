@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                   decay.hpp
+* djinterp [re_std]                                                  decay.hpp
 *
 * decay trait header:
 *   Applies the type transformations that occur when an lvalue is passed
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_DECAY_
-#define DJINTERP_RESTD_TYPE_TRAITS_DECAY_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_DECAY_
+#define DJINTERP_RE_STD_TYPE_TRAITS_DECAY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -107,7 +107,7 @@ public:
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_DECAY_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_DECAY_

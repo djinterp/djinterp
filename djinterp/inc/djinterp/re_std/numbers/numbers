@@ -1,0 +1,30 @@
+/******************************************************************************
+* djinterp [re_std]                                                     numbers
+*
+* <numbers> umbrella header:
+*   Aggregates the granular headers under /inc/djinterp/re_std/numbers/.
+* Mirrors the standard <numbers> convenience header and adds no symbols of
+* its own.
+*
+*   All thirteen constants live in numbers.hpp rather than one file each.
+* That is a deliberate departure from the module's usual granularity: the
+* constants are a single indivisible table, every one is two lines, and
+* splitting them would produce thirteen headers whose entire content is a
+* literal. Granularity exists to keep compile-time dependencies narrow,
+* and there is nothing here to narrow.
+*
+*
+* path:      /inc/djinterp/re_std/numbers/numbers
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_NUMBERS_
+#define DJINTERP_RE_STD_NUMBERS_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+#include "./numbers.hpp"
+
+#endif  // DJINTERP_RE_STD_NUMBERS_

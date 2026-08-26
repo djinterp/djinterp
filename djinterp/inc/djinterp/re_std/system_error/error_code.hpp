@@ -1,12 +1,12 @@
 /***********************************************************************
-* restd                                                   error_code.hpp
+* re_std                                                  error_code.hpp
 *
 * the error_code value type (re-export):
 *   error_code pairs an integer value with an error_category reference. Its
-*   value depends on the runtime category singletons, so restd re-exports
+*   value depends on the runtime category singletons, so re_std re-exports
 *   std::error_code (identity preserved). The relational and equality
 *   operators are free functions in namespace std found by ADL on the
-*   (std) operand type, so they keep working under the restd spelling with
+*   (std) operand type, so they keep working under the re_std spelling with
 *   no re-declaration; operator<=> arrives from std on C++20+.
 *
 *
@@ -15,8 +15,8 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_SYSTEM_ERROR_ERROR_CODE_
-#define RESTD_SYSTEM_ERROR_ERROR_CODE_ 1
+#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CODE_
+#define DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CODE_ 1
 
 // djinterp
 #include "djinterp.hpp"
@@ -32,8 +32,8 @@ NS_RESTD
     //   class: identity-preserving re-export of std::error_code.
     using ::std::error_code;
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SYSTEM_ERROR_ERROR_CODE_
+#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CODE_

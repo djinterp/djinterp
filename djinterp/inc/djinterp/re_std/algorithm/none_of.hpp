@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                   none_of.hpp
+* djinterp [re_std]                                                  none_of.hpp
 *
 * none_of algorithm header:
 *   Returns true if the unary predicate _pred holds for no element in
@@ -7,8 +7,8 @@
 * circuits on the first true.
 *
 *   PORTABILITY:
-*   - std::none_of is C++11; restd back-ports to C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - std::none_of is C++11; re_std back-ports to C++98.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/none_of.hpp
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_NONE_OF_
-#define DJINTERP_RESTD_ALGORITHM_NONE_OF_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_NONE_OF_
+#define DJINTERP_RE_STD_ALGORITHM_NONE_OF_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -66,7 +66,7 @@ none_of(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_NONE_OF_
+#endif  // DJINTERP_RE_STD_ALGORITHM_NONE_OF_

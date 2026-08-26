@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                is_nothrow_swappable_with.hpp
+* djinterp [re_std]                               is_nothrow_swappable_with.hpp
 *
 * is_nothrow_swappable_with trait:
 *   true_type if is_swappable_with<_T, _U> is true_type AND both directional
@@ -15,7 +15,7 @@
 *
 *   LOOKUP:
 *   Same lookup rules as is_swappable_with: a using-declaration brings
-* restd::swap into a dedicated detection namespace, and the unqualified call
+* re_std::swap into a dedicated detection namespace, and the unqualified call
 * picks up ADL-found overloads.
 *
 *   PORTABILITY:
@@ -23,7 +23,7 @@
 * the trait.
 *
 *   DEPENDENCIES:
-*   is_swappable_with, restd::swap, restd::declval, integral_constant.
+*   is_swappable_with, re_std::swap, re_std::declval, integral_constant.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_nothrow_swappable_with.hpp
@@ -31,8 +31,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_SWAPPABLE_WITH_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_SWAPPABLE_WITH_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_SWAPPABLE_WITH_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_SWAPPABLE_WITH_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -40,7 +40,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./integral_constant.hpp"
@@ -57,13 +57,13 @@ NS_RESTD
         // nothrow_swappable_lookup
         //   namespace: dedicated lookup context, mirroring swappable_lookup
         //              from is_swappable_with.hpp. The using-declaration on
-        //              restd::swap ensures the noexcept(swap(...)) probe
+        //              re_std::swap ensures the noexcept(swap(...)) probe
         //              evaluates noexceptness against the same swap that
         //              is_swappable_with would have selected.
         namespace nothrow_swappable_lookup
         {
 
-            using restd::swap;
+            using re_std::swap;
 
             // is_nothrow_swappable_with_helper
             //   trait: primary; gated by the boolean value parameter
@@ -85,10 +85,10 @@ NS_RESTD
             struct is_nothrow_swappable_with_helper<_T, _U, true>
                 : integral_constant<
                       bool,
-                      (    noexcept( swap( restd::declval<_T>(),
-                                           restd::declval<_U>() ) )
-                        && noexcept( swap( restd::declval<_U>(),
-                                           restd::declval<_T>() ) ) ) >
+                      (    noexcept( swap( re_std::declval<_T>(),
+                                           re_std::declval<_U>() ) )
+                        && noexcept( swap( re_std::declval<_U>(),
+                                           re_std::declval<_T>() ) ) ) >
             {};
 
         }  // namespace nothrow_swappable_lookup
@@ -119,9 +119,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_SWAPPABLE_WITH_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_SWAPPABLE_WITH_

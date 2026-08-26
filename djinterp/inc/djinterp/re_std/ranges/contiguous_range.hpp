@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                        contiguous_range.hpp
+* djinterp [re_std]                                       contiguous_range.hpp
 *
 * contiguous_range concept-trait header:
 *   Provides the C++20 contiguous_range concept as a SFINAE-detection
@@ -8,17 +8,17 @@
 *
 *   PORTABILITY:
 *   - Requires contiguous_iterator_tag which is shipped C++20+ in
-*     restd's <iterator>. The trait itself is therefore gated on
+*     re_std's <iterator>. The trait itself is therefore gated on
 *     C++20+ language tier; below C++20 the header is empty.
 *   - Variable spelling C++14+ (which combined with the C++20 gate
 *     means: only ever present on C++20+).
 *
 *   DETECTION LIMITATION:
-*   In restd, raw pointers carry iterator_concept = contiguous_iterator_tag
+*   In re_std, raw pointers carry iterator_concept = contiguous_iterator_tag
 * but iterator_category = random_access_iterator_tag. Raw pointers are
 * therefore detected by checking iterator_concept first when it is
 * present (C++20+); user-defined contiguous iterators must explicitly
-* expose iterator_category = contiguous_iterator_tag because restd's
+* expose iterator_category = contiguous_iterator_tag because re_std's
 * iterator_traits primary does not yet pull iterator_concept through
 * (see SYMBOLS_ITERATOR notes on iter_concept). This limitation is
 * tracked in the iterator roadmap.
@@ -29,8 +29,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_CONTIGUOUS_RANGE_
-#define DJINTERP_RESTD_RANGES_CONTIGUOUS_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_CONTIGUOUS_RANGE_
+#define DJINTERP_RE_STD_RANGES_CONTIGUOUS_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -84,10 +84,10 @@ D_CONSTEXPR bool contiguous_range_v = contiguous_range<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // C++20+
 
 
-#endif  // DJINTERP_RESTD_RANGES_CONTIGUOUS_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_CONTIGUOUS_RANGE_

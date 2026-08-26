@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                      shared_ptr.hpp
+* re_std                                                     shared_ptr.hpp
 *
 * shared-ownership smart pointer:
 *   shared_ptr<_T> holds a strong reference to a managed object. The
@@ -18,7 +18,7 @@
 *   2. owner_less ships in 4b.
 *   3. get_deleter ships in 4b.
 *   4. Atomic shared_ptr ops (atomic_load/store/cas) NOT planned —
-*      use std::atomic<shared_ptr<T>> in C++20+ if needed; restd has
+*      use std::atomic<shared_ptr<T>> in C++20+ if needed; re_std has
 *      no <atomic> equivalent.
 *   5. shared_ptr(p, d, alloc) ctor (deleter + allocator together) NOT
 *      yet shipped. shared_ptr(p), shared_ptr(p, d), and the
@@ -30,11 +30,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/shared_ptr.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_SHARED_PTR_
-#define RESTD_MEMORY_SHARED_PTR_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_SHARED_PTR_
+#define DJINTERP_RE_STD_MEMORY_SHARED_PTR_ 1
 
 #include "djinterp.hpp"
 
@@ -47,17 +47,17 @@
         #include <typeinfo>
     #endif
 
-    #include "restd/memory/internal/sp_control_block.hpp"
-    #include "restd/memory/allocator_traits.hpp"
-    #include "restd/memory/default_delete.hpp"
-    #include "restd/memory/unique_ptr.hpp"
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_array.hpp"
-    #include "restd/type_traits/is_convertible.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/memory/sp_control_block.hpp"
+    #include "re_std/memory/allocator_traits.hpp"
+    #include "re_std/memory/default_delete.hpp"
+    #include "re_std/memory/unique_ptr.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_array.hpp"
+    #include "re_std/type_traits/is_convertible.hpp"
+    #include "re_std/utility/move.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // Forward declarations.
@@ -70,10 +70,10 @@ template<typename _T> class enable_shared_from_this;
 // =============================================================================
 
 // Catch-all: called when _Y is not derived from any
-// enable_shared_from_this<U>. Lives in restd:: (not restd::internal::)
+// enable_shared_from_this<U>. Lives in re_std:: (not re_std::internal::)
 // so that unqualified `sp_esft_link(...)` calls in shared_ptr's
 // internals find it via ordinary unqualified lookup. The inline
-// friend in enable_shared_from_this is also in restd:: (members of
+// friend in enable_shared_from_this is also in re_std:: (members of
 // the enclosing namespace), and ADL adds it as a candidate when an
 // argument's associated class set includes enable_shared_from_this<U>.
 // Overload resolution then picks the more-specific friend over the
@@ -122,7 +122,7 @@ public:
         return _r;
     }
 
-    // Public-but-underscored deleter accessor used by restd::get_deleter.
+    // Public-but-underscored deleter accessor used by re_std::get_deleter.
     // Returns a void* to the deleter when the control block holds one
     // of the requested type, else null. Public because get_deleter is
     // a function template and friending it across the boundary is
@@ -135,7 +135,13 @@ public:
         }
     #endif
 
-private:
+public:
+    // NB: this specifier was `private:` and never reopened, which made
+    // every constructor, the destructor, get(), operator*, reset() and
+    // use_count() on the PRIMARY shared_ptr<T> inaccessible -- the class
+    // parsed fine and was simply unusable. The array specialisations
+    // below get this right (they reopen with `public:` after their member
+    // block), which is what the primary was meant to mirror.
     // -------------------------------------------------------------------------
     // construction
     // -------------------------------------------------------------------------
@@ -183,7 +189,7 @@ private:
     >
     shared_ptr(_Y* _p, _D _d)
         : m_ptr(_p)
-        , m_ctrl(new internal::sp_cb_pointer<_Y, _D>(_p, restd::move(_d)))
+        , m_ctrl(new internal::sp_cb_pointer<_Y, _D>(_p, re_std::move(_d)))
     {
         sp_esft_link(m_ctrl, _p, _p);
     }
@@ -193,7 +199,7 @@ private:
     shared_ptr(std::nullptr_t, _D _d)
         : m_ptr(0)
         , m_ctrl(new internal::sp_cb_pointer<element_type, _D>
-                     (0, restd::move(_d)))
+                     (0, re_std::move(_d)))
     {
     }
 
@@ -230,7 +236,7 @@ private:
             try
             {
                 cb_traits::construct(_a_cb, _cb,
-                                     _p, restd::move(_d), _a);
+                                     _p, re_std::move(_d), _a);
             }
             catch (...)
             {
@@ -240,7 +246,7 @@ private:
             }
         #else
             cb_traits::construct(_a_cb, _cb,
-                                 _p, restd::move(_d), _a);
+                                 _p, re_std::move(_d), _a);
         #endif
 
         m_ptr  = _p;
@@ -267,7 +273,7 @@ private:
             {
                 cb_traits::construct(_a_cb, _cb,
                                      static_cast<element_type*>(0),
-                                     restd::move(_d), _a);
+                                     re_std::move(_d), _a);
             }
             catch (...)
             {
@@ -278,7 +284,7 @@ private:
         #else
             cb_traits::construct(_a_cb, _cb,
                                  static_cast<element_type*>(0),
-                                 restd::move(_d), _a);
+                                 re_std::move(_d), _a);
         #endif
 
         m_ctrl = _cb;
@@ -383,7 +389,7 @@ private:
         : m_ptr(_u.get())
         , m_ctrl(_u.get()
             ? new internal::sp_cb_pointer<_Y, _D>
-                  (_u.get(), restd::move(_u.get_deleter()))
+                  (_u.get(), re_std::move(_u.get_deleter()))
             : 0)
     {
         if (_u.get())
@@ -429,7 +435,7 @@ private:
 
     shared_ptr& operator=(shared_ptr&& _r) D_NOEXCEPT
     {
-        shared_ptr(restd::move(_r)).swap(*this);
+        shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -441,7 +447,7 @@ private:
     >::type
     operator=(shared_ptr<_Y>&& _r) D_NOEXCEPT
     {
-        shared_ptr(restd::move(_r)).swap(*this);
+        shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -453,7 +459,7 @@ private:
     >::type
     operator=(unique_ptr<_Y, _D>&& _u)
     {
-        shared_ptr(restd::move(_u)).swap(*this);
+        shared_ptr(re_std::move(_u)).swap(*this);
         return *this;
     }
 
@@ -485,7 +491,7 @@ private:
     >::type
     reset(_Y* _p, _D _d)
     {
-        shared_ptr(_p, restd::move(_d)).swap(*this);
+        shared_ptr(_p, re_std::move(_d)).swap(*this);
     }
 
     void swap(shared_ptr& _r) D_NOEXCEPT
@@ -523,7 +529,7 @@ private:
         return m_ctrl ? static_cast<long>(m_ctrl->use_count()) : 0;
     }
 
-    // unique() is deprecated in std C++17, removed C++20. restd retains.
+    // unique() is deprecated in std C++17, removed C++20. re_std retains.
     bool unique() const D_NOEXCEPT
     {
         return use_count() == 1;
@@ -709,7 +715,7 @@ public:
     >
     shared_ptr(_Y* _p, _D _d)
         : m_ptr(_p)
-        , m_ctrl(new internal::sp_cb_pointer<_Y, _D>(_p, restd::move(_d)))
+        , m_ctrl(new internal::sp_cb_pointer<_Y, _D>(_p, re_std::move(_d)))
     {
     }
 
@@ -810,7 +816,7 @@ public:
 
     shared_ptr& operator=(shared_ptr&& _r) D_NOEXCEPT
     {
-        shared_ptr(restd::move(_r)).swap(*this);
+        shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -933,7 +939,7 @@ public:
 
     shared_ptr& operator=(shared_ptr&& _r) D_NOEXCEPT
     {
-        shared_ptr(restd::move(_r)).swap(*this);
+        shared_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -977,8 +983,8 @@ public:
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_SHARED_PTR_
+#endif  // DJINTERP_RE_STD_MEMORY_SHARED_PTR_

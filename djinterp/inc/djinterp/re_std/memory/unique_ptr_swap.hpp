@@ -1,12 +1,12 @@
 /***********************************************************************
-* restd                                                 unique_ptr_swap.hpp
+* re_std                                                unique_ptr_swap.hpp
 *
 * non-member ADL swap overload for unique_ptr:
-*   restd::swap(_lhs, _rhs) delegates to _lhs.swap(_rhs).
+*   re_std::swap(_lhs, _rhs) delegates to _lhs.swap(_rhs).
 *
-* this is the unique_ptr-specific swap; the generic restd::swap (in
-* restd/utility/swap.hpp) is the fallback. ADL plus the standard
-* two-step swap idiom (`using restd::swap; swap(a, b);`) routes calls
+* this is the unique_ptr-specific swap; the generic re_std::swap (in
+* re_std/utility/swap.hpp) is the fallback. ADL plus the standard
+* two-step swap idiom (`using re_std::swap; swap(a, b);`) routes calls
 * on unique_ptr through this overload before considering the generic.
 *
 * this overload is constrained to types where the deleter is move-
@@ -19,21 +19,21 @@
 *
 * path:      /inc/djinterp/re_std/memory/unique_ptr_swap.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_UNIQUE_PTR_SWAP_
-#define RESTD_MEMORY_UNIQUE_PTR_SWAP_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_SWAP_
+#define DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_SWAP_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/unique_ptr.hpp"
+    #include "re_std/memory/unique_ptr.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // swap
@@ -49,8 +49,8 @@ D_CONSTEXPR_INLINE void swap
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_UNIQUE_PTR_SWAP_
+#endif  // DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_SWAP_

@@ -22,11 +22,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_CONCEPTS_STRICT_WEAK_ORDER_
-#define RESTD_CONCEPTS_STRICT_WEAK_ORDER_ 1
+#ifndef DJINTERP_RE_STD_CONCEPTS_STRICT_WEAK_ORDER_
+#define DJINTERP_RE_STD_CONCEPTS_STRICT_WEAK_ORDER_ 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -34,7 +34,6 @@
 #include "../type_traits/type_traits.hpp"
 #include "../concepts/relation.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // strict_weak_order
@@ -43,8 +42,6 @@ template<typename _Rel, typename _TypeA, typename _TypeB>
 concept strict_weak_order = relation<_Rel, _TypeA, _TypeB>;
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_CONCEPTS_STRICT_WEAK_ORDER_
+#endif  // DJINTERP_RE_STD_CONCEPTS_STRICT_WEAK_ORDER_

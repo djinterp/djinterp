@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  pop_heap.hpp
+* djinterp [re_std]                                                 pop_heap.hpp
 *
 * pop_heap algorithm header:
 *   Swaps the root (*_first) with the last element (*(_last - 1)) of
@@ -13,14 +13,14 @@
 * (one move per level instead of three reads + writes per swap), then
 * place the saved value into the final hole position. Hole-walking is
 * ~30% faster on heaps of non-trivial element types and is what
-* libstdc++/libc++ ship. restd's swap-based form is simpler and
+* libstdc++/libc++ ship. re_std's swap-based form is simpler and
 * matches the private _sift_down_ helpers already used in sort.hpp,
 * partial_sort.hpp, etc.; a perf-pass refactor can introduce the
 * hole-walking form later.
 *
 *   PORTABILITY:
 *   - std::pop_heap is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Requires RandomAccessIterator.
 *   - Two overloads: default operator< and custom comparator.
 *
@@ -30,12 +30,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_POP_HEAP_
-#define DJINTERP_RESTD_ALGORITHM_POP_HEAP_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_POP_HEAP_
+#define DJINTERP_RE_STD_ALGORITHM_POP_HEAP_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -131,7 +131,7 @@ pop_heap(
 
 
 // pop_heap (default operator<)
-//   function: as above with restd::less<value_type>().
+//   function: as above with re_std::less<value_type>().
 template<typename _RandomIt>
 D_CONSTEXPR_CPP14 void
 pop_heap(
@@ -140,11 +140,11 @@ pop_heap(
 )
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    pop_heap(_first, _last, restd::less<_Value>());
+    pop_heap(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_POP_HEAP_
+#endif  // DJINTERP_RE_STD_ALGORITHM_POP_HEAP_

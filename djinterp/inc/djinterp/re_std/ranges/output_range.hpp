@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            output_range.hpp
+* djinterp [re_std]                                           output_range.hpp
 *
 * output_range header:
 *   Provides the C++20 output_range concept as a SFINAE trait. The
@@ -7,7 +7,7 @@
 * output_iterator<iterator_t<R>, T>. Since the C++20 output_iterator
 * concept itself decomposes into input_or_output_iterator +
 * indirectly_writable, and the latter is "can be assigned via
-* *it = t", restd checks the assignment expression directly.
+* *it = t", re_std checks the assignment expression directly.
 *
 *   The two-parameter form is awkward in the trait-struct style
 * compared to the one-parameter range concepts shipped in Phase R2,
@@ -29,8 +29,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_OUTPUT_RANGE_
-#define DJINTERP_RESTD_RANGES_OUTPUT_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_OUTPUT_RANGE_
+#define DJINTERP_RE_STD_RANGES_OUTPUT_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -102,10 +102,10 @@ D_CONSTEXPR bool output_range_v = output_range<_R, _T>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_OUTPUT_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_OUTPUT_RANGE_

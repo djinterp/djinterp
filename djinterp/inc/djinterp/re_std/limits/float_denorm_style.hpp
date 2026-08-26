@@ -1,11 +1,11 @@
 /***********************************************************************
-* restd                                           float_denorm_style.hpp
+* re_std                                          float_denorm_style.hpp
 *
 * the float_denorm_style subnormal-support enumeration:
 *   the plain enumeration naming a floating-point type's subnormal (denormal)
 *   support, used as numeric_limits<T>::has_denorm. A plain enum (matching std)
 *   so it works on C++98. std deprecated this enum and has_denorm in C++23;
-*   restd still provides it for portability and does not attach a deprecation
+*   re_std still provides it for portability and does not attach a deprecation
 *   attribute. C++98 baseline.
 *
 *
@@ -14,8 +14,8 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_LIMITS_FLOAT_DENORM_STYLE_
-#define RESTD_LIMITS_FLOAT_DENORM_STYLE_ 1
+#ifndef DJINTERP_RE_STD_LIMITS_FLOAT_DENORM_STYLE_
+#define DJINTERP_RE_STD_LIMITS_FLOAT_DENORM_STYLE_ 1
 
 // djinterp
 #include "djinterp.hpp"
@@ -32,6 +32,6 @@ NS_RESTD
         denorm_present       = 1
     };
 
-NS_END  // restd
+NS_END  // re_std
 
-#endif  // RESTD_LIMITS_FLOAT_DENORM_STYLE_
+#endif  // DJINTERP_RE_STD_LIMITS_FLOAT_DENORM_STYLE_

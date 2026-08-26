@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                      array_tuple_element.hpp
+* djinterp [re_std]                                     array_tuple_element.hpp
 *
 * array tuple_element specialization header:
-*   Specialises restd::tuple_element for array<_Type, _Size>:
+*   Specialises re_std::tuple_element for array<_Type, _Size>:
 *
 *     tuple_element<_Index, array<_Type, _Size>>::type == _Type
 *
@@ -13,7 +13,7 @@
 *
 *   CV-QUALIFIED ARRAYS:
 *   The primary tuple_element template ships cv-qualified passthrough
-* specialisations per LWG 2762 (already in restd::utility), so
+* specialisations per LWG 2762 (already in re_std::utility), so
 * tuple_element<_I, array<_Type, _Size> const>::type is
 *   tuple_element<_I, array<_Type, _Size>>::type const  ==  _Type const,
 * picked up automatically.
@@ -24,14 +24,14 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_TUPLE_ELEMENT_
-#define DJINTERP_RESTD_ARRAY_TUPLE_ELEMENT_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_TUPLE_ELEMENT_
+#define DJINTERP_RE_STD_ARRAY_TUPLE_ELEMENT_ 1
 
 #include <cstddef>
 
 #include "../../core/djinterp.hpp"
 #include "./array.hpp"
-#include "../utility/tuple_element.hpp"
+#include "../tuple/tuple_element.hpp"
 
 
 NS_RESTD
@@ -50,14 +50,14 @@ struct tuple_element<_Index, array<_Type, _Size> >
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
     static_assert(_Index < _Size,
-        "restd::tuple_element<I, array<T, N>>: I must be less than N");
+        "re_std::tuple_element<I, array<T, N>>: I must be less than N");
 #endif
 
     typedef _Type type;
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ARRAY_TUPLE_ELEMENT_
+#endif  // DJINTERP_RE_STD_ARRAY_TUPLE_ELEMENT_

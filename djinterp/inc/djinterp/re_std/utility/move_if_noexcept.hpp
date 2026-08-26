@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_UTILITY_MOVE_IF_NOEXCEPT_
-#define RESTD_UTILITY_MOVE_IF_NOEXCEPT_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_MOVE_IF_NOEXCEPT_
+#define DJINTERP_RE_STD_UTILITY_MOVE_IF_NOEXCEPT_ 1
 
 // re_std
 #include "../type_traits/type_traits.hpp"   // is_nothrow_move_constructible,
@@ -34,7 +34,6 @@
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-NS_DJINTERP
 NS_RESTD
 
 // move_if_noexcept
@@ -58,8 +57,6 @@ move_if_noexcept(_Type& value) D_NOEXCEPT
 }
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif  // RESTD_UTILITY_MOVE_IF_NOEXCEPT_
+#endif  // DJINTERP_RE_STD_UTILITY_MOVE_IF_NOEXCEPT_

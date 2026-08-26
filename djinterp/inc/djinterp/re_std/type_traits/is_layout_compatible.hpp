@@ -20,7 +20,7 @@
 * after cv-stripping are always layout-compatible, so that case still reports
 * true.  Everything else reports false.  The result is therefore never a false
 * POSITIVE - code that guards a reinterpret_cast on this trait stays correct -
-* but it may be a false NEGATIVE.  Test D_RESTD_HAS_IS_LAYOUT_COMPATIBLE to
+* but it may be a false NEGATIVE.  Test D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE to
 * find out which answer you are getting.
 *
 *   PRECONDITION:
@@ -33,8 +33,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.12
 ******************************************************************************/
 
-#ifndef RESTD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_
-#define RESTD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_ 1
 
 // re_std
 #include "./type_traits.hpp"    // integral_constant, is_same, remove_cv
@@ -44,7 +44,7 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_IS_LAYOUT_COMPATIBLE
+// D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
 //   constant: 1 if the __is_layout_compatible builtin is available.
 //
 //   __has_builtin is the primary probe and is deliberately tried first: it is
@@ -55,28 +55,27 @@
 // still, so a single family-wide version check would be wrong for it.  The
 // version arms below are conservative floors for compilers whose __has_builtin
 // either does not exist or does not answer for type traits.
-#ifndef D_RESTD_HAS_IS_LAYOUT_COMPATIBLE
+#ifndef D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_layout_compatible)
-            #define D_RESTD_HAS_IS_LAYOUT_COMPATIBLE  1
+            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
         #endif
     #endif
 
-    #ifndef D_RESTD_HAS_IS_LAYOUT_COMPATIBLE
+    #ifndef D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
         #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
               D_ENV_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
-            #define D_RESTD_HAS_IS_LAYOUT_COMPATIBLE  1
+            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
         #elif ( defined(D_ENV_COMPILER_MSVC) &&                               \
                 D_ENV_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
-            #define D_RESTD_HAS_IS_LAYOUT_COMPATIBLE  1
+            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  1
         #else
-            #define D_RESTD_HAS_IS_LAYOUT_COMPATIBLE  0
+            #define D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE  0
         #endif
-    #endif  // D_RESTD_HAS_IS_LAYOUT_COMPATIBLE (fallback)
-#endif  // D_RESTD_HAS_IS_LAYOUT_COMPATIBLE (outer guard)
+    #endif  // D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE (fallback)
+#endif  // D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE (outer guard)
 
 
-NS_DJINTERP
 NS_RESTD
 
 NS_INTERNAL
@@ -85,7 +84,7 @@ NS_INTERNAL
     //   trait: classification core for is_layout_compatible.  The builtin
     // already disregards cv-qualification on both operands, so the intrinsic
     // arm forwards its arguments untouched.
-#if D_RESTD_HAS_IS_LAYOUT_COMPATIBLE
+#if D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
 
     template<typename _TypeA,
              typename _TypeB>
@@ -106,7 +105,7 @@ NS_INTERNAL
                   typename remove_cv<_TypeB>::type>
     {};
 
-#endif  // D_RESTD_HAS_IS_LAYOUT_COMPATIBLE
+#endif  // D_RE_STD_HAS_IS_LAYOUT_COMPATIBLE
 
 NS_END  // internal
 
@@ -128,6 +127,4 @@ struct is_layout_compatible
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_LAYOUT_COMPATIBLE_

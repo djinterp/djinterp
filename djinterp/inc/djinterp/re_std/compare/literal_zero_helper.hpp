@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                       literal_zero_helper.hpp
+* djinterp [re_std]                                      literal_zero_helper.hpp
 *
 * literal_zero_helper internal type:
 *   Pseudo-type accepted ONLY when its argument is the literal 0.
@@ -37,8 +37,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_LITERAL_ZERO_HELPER_
-#define DJINTERP_RESTD_COMPARE_LITERAL_ZERO_HELPER_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_LITERAL_ZERO_HELPER_
+#define DJINTERP_RE_STD_COMPARE_LITERAL_ZERO_HELPER_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -80,10 +80,10 @@ public:
 NS_END  // internal
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_LITERAL_ZERO_HELPER_
+#endif  // DJINTERP_RE_STD_COMPARE_LITERAL_ZERO_HELPER_

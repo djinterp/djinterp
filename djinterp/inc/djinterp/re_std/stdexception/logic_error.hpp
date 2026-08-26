@@ -1,44 +1,44 @@
 /***********************************************************************
-* restd                                                   logic_error.hpp
+* re_std                                                  logic_error.hpp
 *
 * logic_error:
 *   base of the "errors detectable before the program runs" branch of
 * the <stdexcept> hierarchy (derives from exception). Runtime-provided
 * — the what() string is stored with reference-counted ABI machinery —
-* so restd re-exports std::logic_error when <stdexcept> is available,
-* preserving type identity (catch(std::logic_error&) catches restd's,
-* and both are catchable as restd::exception / std::exception). When
+* so re_std re-exports std::logic_error when <stdexcept> is available,
+* preserving type identity (catch(std::logic_error&) catches re_std's,
+* and both are catchable as re_std::exception / std::exception). When
 * <stdexcept> is unavailable (freestanding), a minimal standalone class
-* deriving from restd::exception is provided, storing the message in a
+* deriving from re_std::exception is provided, storing the message in a
 * fixed internal buffer and exposing the const char* constructor only.
 *
 *
 * path:      /inc/djinterp/re_std/stdexception/logic_error.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.06.04
+* author(s): re_std contributors                         date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_STDEXCEPT_LOGIC_ERROR_
-#define RESTD_STDEXCEPT_LOGIC_ERROR_ 1
+#ifndef DJINTERP_RE_STD_STDEXCEPT_LOGIC_ERROR_
+#define DJINTERP_RE_STD_STDEXCEPT_LOGIC_ERROR_ 1
 
-#include "../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "../exception/exception.hpp"
 
 #if D_ENV_CPP98_HAS_STDEXCEPT
 
     #include <stdexcept>
 
-namespace restd
+namespace re_std
 {
     // logic_error
     //   class: using-declaration from std::logic_error.
     using std::logic_error;
 
-} // namespace restd
+} // namespace re_std
 
 #else // freestanding fallback (no <stdexcept>)
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -73,7 +73,7 @@ namespace internal
 } // namespace internal
 
     // logic_error
-    //   class: standalone fallback deriving from restd::exception.
+    //   class: standalone fallback deriving from re_std::exception.
     //   Exposes the const char* constructor only (no <string> dependency).
     class logic_error : public exception
     {
@@ -94,8 +94,8 @@ namespace internal
         internal::fixed_message m_msg;
     };
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP98_HAS_STDEXCEPT
 
-#endif // RESTD_STDEXCEPT_LOGIC_ERROR_
+#endif  // DJINTERP_RE_STD_STDEXCEPT_LOGIC_ERROR_

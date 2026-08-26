@@ -25,10 +25,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_MEMORY_SMART_POINTER_HASH_
-#define RESTD_MEMORY_SMART_POINTER_HASH_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_SMART_POINTER_HASH_
+#define DJINTERP_RE_STD_MEMORY_SMART_POINTER_HASH_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -37,7 +37,6 @@
 #include "./shared_ptr.hpp"
 #include "./unique_ptr.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // hash<shared_ptr<_Type>>
@@ -70,8 +69,7 @@ struct hash<unique_ptr<_Type, _Deleter> >
 };
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_SMART_POINTER_HASH_
+#endif  // DJINTERP_RE_STD_MEMORY_SMART_POINTER_HASH_

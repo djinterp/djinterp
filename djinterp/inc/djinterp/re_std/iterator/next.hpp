@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                               next.hpp
+* re_std                                                              next.hpp
 *
 * next(_it, _n=1) returns a copy of _it advanced by _n positions.
 * Convenience wrapper around advance() that takes the iterator by
@@ -10,22 +10,22 @@
 *
 * path:      /inc/djinterp/re_std/iterator/next.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_NEXT_
-#define RESTD_ITERATOR_NEXT_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_NEXT_
+#define DJINTERP_RE_STD_ITERATOR_NEXT_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/iterator/iterator_traits.hpp"
-    #include "restd/iterator/advance.hpp"
+    #include "re_std/iterator/iterator_traits.hpp"
+    #include "re_std/iterator/advance.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _It>
@@ -35,13 +35,13 @@ D_CONSTEXPR _It next
     typename iterator_traits<_It>::difference_type _n = 1
 )
 {
-    restd::advance(_it, _n);
+    re_std::advance(_it, _n);
     return _it;
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_NEXT_
+#endif  // DJINTERP_RE_STD_ITERATOR_NEXT_

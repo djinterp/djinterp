@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                     all.hpp
+* djinterp [re_std]                                                    all.hpp
 *
 * views::all + all_t header:
 *   Provides the C++20 views::all customisation-point-object entry
@@ -27,8 +27,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_ALL_
-#define DJINTERP_RESTD_RANGES_ALL_ 1
+#ifndef DJINTERP_RE_STD_RANGES_ALL_
+#define DJINTERP_RE_STD_RANGES_ALL_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -160,10 +160,10 @@ namespace views
 #endif  // alias templates
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_ALL_
+#endif  // DJINTERP_RE_STD_RANGES_ALL_

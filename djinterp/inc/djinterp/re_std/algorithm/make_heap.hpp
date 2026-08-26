@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 make_heap.hpp
+* djinterp [re_std]                                                make_heap.hpp
 *
 * make_heap algorithm header:
 *   Rearranges [_first, _last) into a max-heap per operator< (or _comp).
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::make_heap is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Requires RandomAccessIterator.
 *   - Two overloads: default operator< and custom comparator.
 *
@@ -19,12 +19,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_MAKE_HEAP_
-#define DJINTERP_RESTD_ALGORITHM_MAKE_HEAP_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_MAKE_HEAP_
+#define DJINTERP_RE_STD_ALGORITHM_MAKE_HEAP_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -123,7 +123,7 @@ make_heap(
 
 
 // make_heap (default operator<)
-//   function: as above with restd::less<value_type>().
+//   function: as above with re_std::less<value_type>().
 template<typename _RandomIt>
 D_CONSTEXPR_CPP14 void
 make_heap(
@@ -132,11 +132,11 @@ make_heap(
 )
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    make_heap(_first, _last, restd::less<_Value>());
+    make_heap(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_MAKE_HEAP_
+#endif  // DJINTERP_RE_STD_ALGORITHM_MAKE_HEAP_

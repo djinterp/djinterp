@@ -30,17 +30,16 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_IOS_STREAM_TYPES_
-#define RESTD_IOS_STREAM_TYPES_ 1
+#ifndef DJINTERP_RE_STD_IOS_STREAM_TYPES_
+#define DJINTERP_RE_STD_IOS_STREAM_TYPES_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "../type_traits/type_traits.hpp"
 
 //   mbstate_t is a C library type; <cwchar> is the portable spelling and is
 // available in C++98.
 #include <cwchar>
 
-NS_DJINTERP
 NS_RESTD
 
 // streamoff
@@ -136,6 +135,5 @@ typedef fpos<std::mbstate_t> u16streampos;
 typedef fpos<std::mbstate_t> u32streampos;
 
 NS_END
-NS_END
 
-#endif  // RESTD_IOS_STREAM_TYPES_
+#endif  // DJINTERP_RE_STD_IOS_STREAM_TYPES_

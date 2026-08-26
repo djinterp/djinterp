@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          destroying_delete.hpp
+* djinterp [re_std]                                         destroying_delete.hpp
 *
 * destroying_delete_t tag header:
 *   C++20 destroying_delete_t is a tag type used to mark class-scope
@@ -31,8 +31,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_DESTROYING_DELETE_
-#define DJINTERP_RESTD_DESTROYING_DELETE_ 1
+#ifndef DJINTERP_RE_STD_DESTROYING_DELETE_
+#define DJINTERP_RE_STD_DESTROYING_DELETE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -67,7 +67,7 @@ struct destroying_delete_t
 inline constexpr destroying_delete_t destroying_delete{};
 #else
 // Pre-C++17: holder-template pattern. Same trick used for
-// restd::unexpect and restd::in_place.
+// re_std::unexpect and re_std::in_place.
 namespace internal
 {
     template<typename _Dummy>
@@ -86,10 +86,10 @@ static const destroying_delete_t& destroying_delete
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_DESTROYING_DELETE_
+#endif  // DJINTERP_RE_STD_DESTROYING_DELETE_

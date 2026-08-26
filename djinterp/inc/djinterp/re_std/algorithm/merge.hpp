@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                     merge.hpp
+* djinterp [re_std]                                                    merge.hpp
 *
 * merge algorithm header:
 *   Merges two sorted input ranges into a single sorted output range.
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::merge is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Two overloads: default operator< and custom comparator.
 *   - Stability hinges on a NON-strict comparison test: write *first2
 *     only when it is STRICTLY less than *first1; otherwise write
@@ -21,8 +21,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_MERGE_
-#define DJINTERP_RESTD_ALGORITHM_MERGE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_MERGE_
+#define DJINTERP_RE_STD_ALGORITHM_MERGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -147,7 +147,7 @@ merge(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_MERGE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_MERGE_

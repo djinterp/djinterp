@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                  range_const_reference_t.hpp
+* djinterp [re_std]                                 range_const_reference_t.hpp
 *
 * range_const_reference_t header:
 *   Provides the C++23 range_const_reference_t<R> alias —
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGE_CONST_REFERENCE_T_
-#define DJINTERP_RESTD_RANGES_RANGE_CONST_REFERENCE_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGE_CONST_REFERENCE_T_
+#define DJINTERP_RE_STD_RANGES_RANGE_CONST_REFERENCE_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -45,10 +45,10 @@ using range_const_reference_t = typename range_const_reference<_R>::type;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGE_CONST_REFERENCE_T_
+#endif  // DJINTERP_RE_STD_RANGES_RANGE_CONST_REFERENCE_T_

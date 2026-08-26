@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                     make_shared.hpp
+* re_std                                                    make_shared.hpp
 *
 * single-allocation factory for shared_ptr.
 *
@@ -15,11 +15,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/make_shared.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_MAKE_SHARED_
-#define RESTD_MEMORY_MAKE_SHARED_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_MAKE_SHARED_
+#define DJINTERP_RE_STD_MEMORY_MAKE_SHARED_ 1
 
 #include "djinterp.hpp"
 
@@ -29,17 +29,17 @@
     #include <cstddef>
     #include <new>
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/memory/internal/sp_control_block.hpp"
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_array.hpp"
-    #include "restd/type_traits/is_bounded_array.hpp"
-    #include "restd/type_traits/is_unbounded_array.hpp"
-    #include "restd/type_traits/remove_extent.hpp"
-    #include "restd/utility/forward.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/memory/sp_control_block.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_array.hpp"
+    #include "re_std/type_traits/is_bounded_array.hpp"
+    #include "re_std/type_traits/is_unbounded_array.hpp"
+    #include "re_std/type_traits/remove_extent.hpp"
+    #include "re_std/utility/forward.hpp"
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -73,7 +73,7 @@ typename enable_if
 make_shared(_Args&&... _args)
 {
     typedef internal::sp_cb_inplace<_T> cb_t;
-    cb_t* _cb = new cb_t(restd::forward<_Args>(_args)...);
+    cb_t* _cb = new cb_t(re_std::forward<_Args>(_args)...);
     return shared_ptr<_T>::_sp_internal_from_cb(_cb->get(), _cb);
 }
 
@@ -284,8 +284,8 @@ make_shared(const typename remove_extent<_T>::type& _u)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_MAKE_SHARED_
+#endif  // DJINTERP_RE_STD_MEMORY_MAKE_SHARED_

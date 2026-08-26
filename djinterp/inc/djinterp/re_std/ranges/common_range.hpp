@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            common_range.hpp
+* djinterp [re_std]                                           common_range.hpp
 *
 * common_range concept-trait header:
 *   Provides the C++20 common_range concept as a SFINAE-detection
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_COMMON_RANGE_
-#define DJINTERP_RESTD_RANGES_COMMON_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_COMMON_RANGE_
+#define DJINTERP_RE_STD_RANGES_COMMON_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -83,10 +83,10 @@ D_CONSTEXPR bool common_range_v = common_range<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_COMMON_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_COMMON_RANGE_

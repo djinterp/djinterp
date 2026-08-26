@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              uninitialized_copy_n.hpp
+* re_std                                             uninitialized_copy_n.hpp
 *
 * like uninitialized_copy, but takes a count instead of a sentinel:
 *   copies _n elements from _first into uninitialised storage at
@@ -8,20 +8,20 @@
 * return value:
 *   pair<_InputIt, _ForwardIt> — the input iterator advanced _n
 *   positions, and the destination past-the-end iterator. The pair
-*   form was added with std::make_pair-style return; restd uses
-*   restd::pair.
+*   form was added with std::make_pair-style return; re_std uses
+*   re_std::pair.
 *
-* added in std C++11; restd back-ports to C++98+ where pair is
+* added in std C++11; re_std back-ports to C++98+ where pair is
 * available.
 *
 *
 * path:      /inc/djinterp/re_std/memory/uninitialized_copy_n.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_UNINITIALIZED_COPY_N_
-#define RESTD_MEMORY_UNINITIALIZED_COPY_N_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_N_
+#define DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_N_ 1
 
 #include "djinterp.hpp"
 
@@ -30,13 +30,13 @@
     #include <cstddef>
     #include <new>
 
-    #include "restd/memory/addressof.hpp"
-    #include "restd/memory/destroy_at.hpp"
-    #include "restd/memory/internal/iter_value.hpp"
-    #include "restd/utility/pair.hpp"
+    #include "re_std/memory/addressof.hpp"
+    #include "re_std/memory/destroy_at.hpp"
+    #include "re_std/memory/iter_value.hpp"
+    #include "re_std/utility/pair.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _InputIt, typename _Size, typename _ForwardIt>
@@ -56,7 +56,7 @@ pair<_InputIt, _ForwardIt> uninitialized_copy_n
         {
             for (; _n > 0; ++_first, (void)++_current, --_n)
             {
-                ::new (static_cast<void*>(restd::addressof(*_current)))
+                ::new (static_cast<void*>(re_std::addressof(*_current)))
                     _T(*_first);
             }
             return pair<_InputIt, _ForwardIt>(_first, _current);
@@ -65,14 +65,14 @@ pair<_InputIt, _ForwardIt> uninitialized_copy_n
         {
             for (; _d_first != _current; ++_d_first)
             {
-                restd::destroy_at(restd::addressof(*_d_first));
+                re_std::destroy_at(re_std::addressof(*_d_first));
             }
             throw;
         }
     #else
         for (; _n > 0; ++_first, (void)++_current, --_n)
         {
-            ::new (static_cast<void*>(restd::addressof(*_current)))
+            ::new (static_cast<void*>(re_std::addressof(*_current)))
                 _T(*_first);
         }
         return pair<_InputIt, _ForwardIt>(_first, _current);
@@ -80,8 +80,8 @@ pair<_InputIt, _ForwardIt> uninitialized_copy_n
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_CPP98_HAS_NEW
 
-#endif  // RESTD_MEMORY_UNINITIALIZED_COPY_N_
+#endif  // DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_N_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                  basic_common_reference.hpp
+* djinterp [re_std]                                 basic_common_reference.hpp
 *
 * basic_common_reference customization-point trait:
 *   The user-extensible hook used by common_reference at bullet 2 of its
@@ -26,10 +26,10 @@
 *              typename _Y,
 *              template<typename> class _TQual,
 *              template<typename> class _UQual>
-*     struct restd::basic_common_reference< MyPtr<_X>, MyPtr<_Y>,
+*     struct re_std::basic_common_reference< MyPtr<_X>, MyPtr<_Y>,
 *                                           _TQual, _UQual >
 *     {
-*         typedef MyPtr<typename restd::common_reference<
+*         typedef MyPtr<typename re_std::common_reference<
 *                          _TQual<_X>, _UQual<_Y> >::type> type;
 *     };
 *
@@ -41,12 +41,12 @@
 *
 *   PORTABILITY:
 *   Available on C++11 and later. The trait was standardized in C++20;
-* restd backports to C++11+ since the implementation needs only template
-* template parameters (a C++98 feature) and the rest of restd's C++11
+* re_std backports to C++11+ since the implementation needs only template
+* template parameters (a C++98 feature) and the rest of re_std's C++11
 * baseline.
 *
 *   DEPENDENCIES:
-*   None beyond the restd core macros.
+*   None beyond the re_std core macros.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/basic_common_reference.hpp
@@ -54,8 +54,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_
-#define DJINTERP_RESTD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -80,9 +80,9 @@ NS_RESTD
     {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_BASIC_COMMON_REFERENCE_

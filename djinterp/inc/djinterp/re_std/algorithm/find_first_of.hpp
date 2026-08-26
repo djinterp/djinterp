@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             find_first_of.hpp
+* djinterp [re_std]                                            find_first_of.hpp
 *
 * find_first_of algorithm header:
 *   Returns the first iterator in [_first1, _last1) whose element
@@ -12,7 +12,7 @@
 *   - O(N*M) naive scan. The needle is not preprocessed; callers wanting
 *     better complexity should use a searcher (default_searcher /
 *     boyer_moore_searcher in <functional>) with the search overload.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/find_first_of.hpp
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FIND_FIRST_OF_
-#define DJINTERP_RESTD_ALGORITHM_FIND_FIRST_OF_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_FIRST_OF_
+#define DJINTERP_RE_STD_ALGORITHM_FIND_FIRST_OF_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -109,7 +109,7 @@ find_first_of(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FIND_FIRST_OF_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_FIRST_OF_

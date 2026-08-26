@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                     string_view_typedefs.hpp
+* djinterp [re_std]                                    string_view_typedefs.hpp
 *
 * string_view alias header:
 *   The standard convenience aliases of basic_string_view for the
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   string_view / wstring_view / u16string_view / u32string_view are
-* available from C++11 in restd (std introduced them in C++17).
+* available from C++11 in re_std (std introduced them in C++17).
 * u8string_view follows char8_t and is gated on C++20.
 *
 *
@@ -18,8 +18,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_TYPEDEFS_
-#define DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_TYPEDEFS_ 1
+#ifndef DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_TYPEDEFS_
+#define DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_TYPEDEFS_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -59,10 +59,10 @@ typedef basic_string_view<char8_t>   u8string_view;
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_TYPEDEFS_
+#endif  // DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_TYPEDEFS_

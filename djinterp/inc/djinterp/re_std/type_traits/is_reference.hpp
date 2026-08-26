@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            is_reference.hpp
+* djinterp [re_std]                                           is_reference.hpp
 *
 * is_reference trait header:
 *   Detects whether a type is any reference type - either an lvalue
@@ -18,8 +18,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_REFERENCE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_REFERENCE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_REFERENCE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_REFERENCE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -71,7 +71,7 @@ struct is_reference<_Type&> : true_type
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_REFERENCE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_REFERENCE_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              variant_get_if.hpp
+* djinterp [re_std]                                             variant_get_if.hpp
 *
 * variant get_if<I>/get_if<T> header:
 *   Non-throwing access: returns a pointer to the active alternative
@@ -19,8 +19,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_GET_IF_
-#define DJINTERP_RESTD_VARIANT_GET_IF_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_GET_IF_
+#define DJINTERP_RE_STD_VARIANT_GET_IF_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -91,10 +91,10 @@ get_if(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VARIANT_GET_IF_
+#endif  // DJINTERP_RE_STD_VARIANT_GET_IF_

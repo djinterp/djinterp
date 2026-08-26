@@ -1,37 +1,37 @@
 /***********************************************************************
-* restd                                                              crend.hpp
+* re_std                                                             crend.hpp
 *
 * crend(c) — explicit const reverse iteration end. Pairs with crbegin.
 *
 *
 * path:      /inc/djinterp/re_std/iterator/crend.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_CREND_
-#define RESTD_ITERATOR_CREND_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_CREND_
+#define DJINTERP_RE_STD_ITERATOR_CREND_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/iterator/rend.hpp"
+    #include "re_std/iterator/rend.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _C>
-D_CONSTEXPR auto crend(const _C& _c) -> decltype(restd::rend(_c))
+D_CONSTEXPR auto crend(const _C& _c) -> decltype(re_std::rend(_c))
 {
-    return restd::rend(_c);
+    return re_std::rend(_c);
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_CREND_
+#endif  // DJINTERP_RE_STD_ITERATOR_CREND_

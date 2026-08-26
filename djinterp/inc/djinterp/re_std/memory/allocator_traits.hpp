@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                allocator_traits.hpp
+* re_std                                               allocator_traits.hpp
 *
 * uniform allocator interface:
 *   allocator_traits<_Alloc> normalises an allocator type so that
@@ -31,9 +31,9 @@
 *   deallocate(a, p, n)      a.deallocate(p, n)
 *   construct(a, p, args...) a.construct(p, args...) if defined
 *                              else ::new ((void*)p) U(args...)
-*                              (or restd::construct_at on C++20+)
+*                              (or re_std::construct_at on C++20+)
 *   destroy(a, p)            a.destroy(p) if defined
-*                              else restd::destroy_at(p)
+*                              else re_std::destroy_at(p)
 *   max_size(a)              a.max_size() if defined
 *                              else (size_type)-1 / sizeof(value_type)
 *   select_on_container_copy_construction(a)
@@ -51,13 +51,13 @@
 *                      ship alongside the rest of the C++23 surface.
 *
 *
-* path:      /inc/restd/memory/allocator_traits.hpp
+* path:      /inc/re_std/memory/allocator_traits.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ALLOCATOR_TRAITS_
-#define RESTD_MEMORY_ALLOCATOR_TRAITS_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATOR_TRAITS_
+#define DJINTERP_RE_STD_MEMORY_ALLOCATOR_TRAITS_ 1
 
 #include "djinterp.hpp"
 
@@ -65,24 +65,24 @@
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
     #include <cstddef>  // size_t
-    #include "restd/memory/pointer_traits.hpp"
-    #include "restd/memory/destroy_at.hpp"
-    #include "restd/type_traits/integral_constant.hpp"
-    #include "restd/type_traits/void_t.hpp"
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_empty.hpp"
-    #include "restd/type_traits/make_unsigned.hpp"
-    #include "restd/utility/declval.hpp"
-    #include "restd/utility/forward.hpp"
+    #include "re_std/memory/pointer_traits.hpp"
+    #include "re_std/memory/destroy_at.hpp"
+    #include "re_std/type_traits/integral_constant.hpp"
+    #include "re_std/type_traits/void_t.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_empty.hpp"
+    #include "re_std/type_traits/make_unsigned.hpp"
+    #include "re_std/utility/declval.hpp"
+    #include "re_std/utility/forward.hpp"
 
     #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-        #include "restd/memory/construct_at.hpp"
+        #include "re_std/memory/construct_at.hpp"
     #elif D_ENV_CPP98_HAS_NEW
         #include <new>  // placement new
     #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -366,10 +366,10 @@ namespace internal
         <
             decltype
             (
-                restd::declval<_A&>().allocate
+                re_std::declval<_A&>().allocate
                 (
-                    restd::declval<_Size>(),
-                    restd::declval<_CVPtr>()
+                    re_std::declval<_Size>(),
+                    re_std::declval<_CVPtr>()
                 )
             )
         >::type
@@ -392,10 +392,10 @@ namespace internal
         static auto try_call(int)
             -> decltype
                (
-                   (void)restd::declval<_A1&>().construct
+                   (void)re_std::declval<_A1&>().construct
                    (
-                       restd::declval<_P1>(),
-                       restd::declval<_A1rgs>()...
+                       re_std::declval<_P1>(),
+                       re_std::declval<_A1rgs>()...
                    ),
                    true_type()
                );
@@ -422,7 +422,7 @@ namespace internal
         _A, _P,
         typename void_t
         <
-            decltype(restd::declval<_A&>().destroy(restd::declval<_P>()))
+            decltype(re_std::declval<_A&>().destroy(re_std::declval<_P>()))
         >::type
     >
         : true_type
@@ -443,7 +443,7 @@ namespace internal
         _A,
         typename void_t
         <
-            decltype(restd::declval<const _A&>().max_size())
+            decltype(re_std::declval<const _A&>().max_size())
         >::type
     >
         : true_type
@@ -466,7 +466,7 @@ namespace internal
         <
             decltype
             (
-                restd::declval<const _A&>()
+                re_std::declval<const _A&>()
                     .select_on_container_copy_construction()
             )
         >::type
@@ -681,7 +681,7 @@ struct allocator_traits
     // Two overloads, dispatched on whether _Alloc has a member construct.
     //
     // The fallback is `::new((void*)p) U(args...)` on C++11..C++17 and
-    // `restd::construct_at(p, args...)` on C++20+. The C++20 standard
+    // `re_std::construct_at(p, args...)` on C++20+. The C++20 standard
     // mandated the construct_at form so that constexpr-allocator code
     // can trace through allocator_traits without hitting a non-
     // constexpr placement-new expression.
@@ -698,7 +698,7 @@ struct allocator_traits
     >::type
     construct(_Alloc& _a, _U* _p, _Args&&... _args)
     {
-        _a.construct(_p, restd::forward<_Args>(_args)...);
+        _a.construct(_p, re_std::forward<_Args>(_args)...);
     }
 
     template<typename _U, typename... _Args>
@@ -714,10 +714,10 @@ struct allocator_traits
     construct(_Alloc&, _U* _p, _Args&&... _args)
     {
         #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-            restd::construct_at(_p, restd::forward<_Args>(_args)...);
+            re_std::construct_at(_p, re_std::forward<_Args>(_args)...);
         #else
             ::new (static_cast<void*>(_p))
-                _U(restd::forward<_Args>(_args)...);
+                _U(re_std::forward<_Args>(_args)...);
         #endif
     }
 
@@ -752,7 +752,7 @@ struct allocator_traits
     >::type
     destroy(_Alloc&, _U* _p)
     {
-        restd::destroy_at(_p);
+        re_std::destroy_at(_p);
     }
 
     // -------------------------------------------------------------------------
@@ -786,8 +786,8 @@ struct allocator_traits
 
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_ALLOCATOR_TRAITS_
+#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATOR_TRAITS_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               equal_range.hpp
+* djinterp [re_std]                                              equal_range.hpp
 *
 * equal_range algorithm header:
 *   Returns a pair (lower_bound, upper_bound) bounding the subrange of
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::equal_range is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - The classical implementation drops out of the binary search on
 *     the first probe whose value is neither less than nor greater than
 *     _value, then runs lower_bound on the left half and upper_bound on
@@ -23,12 +23,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_EQUAL_RANGE_
-#define DJINTERP_RESTD_ALGORITHM_EQUAL_RANGE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_EQUAL_RANGE_
+#define DJINTERP_RE_STD_ALGORITHM_EQUAL_RANGE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./lower_bound.hpp"
 #include "./upper_bound.hpp"
 #include "../iterator/iterator_traits.hpp"
@@ -71,12 +71,12 @@ equal_range(
 {
     typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
 
-    _Diff _len = restd::distance(_first, _last);
+    _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
         _ForwardIt _mid  = _first;
-        restd::advance(_mid, _half);
+        re_std::advance(_mid, _half);
 
         if (*_mid < _value)
         {
@@ -92,14 +92,14 @@ equal_range(
         {
             // *_mid equivalent to _value; pivot to two bounded scans
             _ForwardIt _left_end = _first;
-            restd::advance(_left_end, _half);
-            _ForwardIt _lo = restd::lower_bound(_first, _left_end, _value);
+            re_std::advance(_left_end, _half);
+            _ForwardIt _lo = re_std::lower_bound(_first, _left_end, _value);
 
             _ForwardIt _right_begin = _mid;
             ++_right_begin;
             _ForwardIt _right_end = _first;
-            restd::advance(_right_end, _len);
-            _ForwardIt _hi = restd::upper_bound(_right_begin, _right_end,
+            re_std::advance(_right_end, _len);
+            _ForwardIt _hi = re_std::upper_bound(_right_begin, _right_end,
                                                 _value);
 
             return pair<_ForwardIt, _ForwardIt>(_lo, _hi);
@@ -128,12 +128,12 @@ equal_range(
 {
     typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
 
-    _Diff _len = restd::distance(_first, _last);
+    _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
         _ForwardIt _mid  = _first;
-        restd::advance(_mid, _half);
+        re_std::advance(_mid, _half);
 
         if (_comp(*_mid, _value))
         {
@@ -148,15 +148,15 @@ equal_range(
         else
         {
             _ForwardIt _left_end = _first;
-            restd::advance(_left_end, _half);
-            _ForwardIt _lo = restd::lower_bound(_first, _left_end,
+            re_std::advance(_left_end, _half);
+            _ForwardIt _lo = re_std::lower_bound(_first, _left_end,
                                                 _value, _comp);
 
             _ForwardIt _right_begin = _mid;
             ++_right_begin;
             _ForwardIt _right_end = _first;
-            restd::advance(_right_end, _len);
-            _ForwardIt _hi = restd::upper_bound(_right_begin, _right_end,
+            re_std::advance(_right_end, _len);
+            _ForwardIt _hi = re_std::upper_bound(_right_begin, _right_end,
                                                 _value, _comp);
 
             return pair<_ForwardIt, _ForwardIt>(_lo, _hi);
@@ -166,7 +166,7 @@ equal_range(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_EQUAL_RANGE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_EQUAL_RANGE_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                      is_lvalue_reference.hpp
+* djinterp [re_std]                                     is_lvalue_reference.hpp
 *
 * is_lvalue_reference trait header:
 *   Detects whether a type is an lvalue reference (T&). Rvalue
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_LVALUE_REFERENCE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_LVALUE_REFERENCE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_LVALUE_REFERENCE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_LVALUE_REFERENCE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -61,7 +61,7 @@ struct is_lvalue_reference<_Type&> : true_type
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_LVALUE_REFERENCE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_LVALUE_REFERENCE_

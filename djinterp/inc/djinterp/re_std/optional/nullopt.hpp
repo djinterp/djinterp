@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [restd]                                                   nullopt.hpp
+* djinterp [re_std]                                                  nullopt.hpp
 *
 * nullopt_t / nullopt:
 *   The disengaged-optional tag. `nullopt` is the value used to denote
 * "no value present" when constructing or assigning to an optional<T>:
-*     restd::optional<int> opt = restd::nullopt;
-*     opt = restd::nullopt;
-*     if (opt == restd::nullopt) { ... }
+*     re_std::optional<int> opt = re_std::nullopt;
+*     opt = re_std::nullopt;
+*     if (opt == re_std::nullopt) { ... }
 *
 *   nullopt_t is intentionally non-default-constructible from {} alone --
 * its constructor takes a private tag struct so that brace-initialization
@@ -14,8 +14,8 @@
 * construct a nullopt_t. This matches the standard's design.
 *
 *   STANDARD STATUS:
-*   Introduced in C++17 alongside std::optional. restd provides it on
-* C++11+, since restd's optional port targets C++11+ (lower tiers omit
+*   Introduced in C++17 alongside std::optional. re_std provides it on
+* C++11+, since re_std's optional port targets C++11+ (lower tiers omit
 * the entire optional module).
 *
 *   PORTABILITY:
@@ -32,8 +32,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_OPTIONAL_NULLOPT_
-#define DJINTERP_RESTD_OPTIONAL_NULLOPT_ 1
+#ifndef DJINTERP_RE_STD_OPTIONAL_NULLOPT_
+#define DJINTERP_RE_STD_OPTIONAL_NULLOPT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -80,9 +80,9 @@ NS_RESTD
     D_CONSTEXPR nullopt_t nullopt{nullopt_t::construct_tag_{}};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_OPTIONAL_NULLOPT_
+#endif  // DJINTERP_RE_STD_OPTIONAL_NULLOPT_

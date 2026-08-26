@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                     any.hpp
+* djinterp [re_std]                                                    any.hpp
 *
 *   Constexpr-friendly type-erased value container. A portable alternative
 * to std::any with compile-time evaluation support for small trivial types.
@@ -35,7 +35,7 @@
 *   - C++11:    SBO via SFINAE-dispatched template constructors,
 *     explicit operator bool, noexcept. Not constexpr.
 *   - C++14+:   constexpr SBO construction and retrieval.
-*   - Enum SBO gated on D_RESTD_HAS_IS_ENUM / D_RESTD_HAS_UNDERLYING_TYPE.
+*   - Enum SBO gated on D_RE_STD_HAS_IS_ENUM / D_RE_STD_HAS_UNDERLYING_TYPE.
 *   - Move semantics gated on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
 *   - Heap path gated on D_ENV_CPP98_HAS_NEW.
 *   - Emplace gated on D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES.
@@ -45,7 +45,7 @@
 *     env_cpp98.h        - header availability (new, utility)
 *     env_cpp_features.h - fine-grained feature detection
 *     djinterp.hpp       - D_CONSTEXPR, D_STATIC, D_INLINE, namespaces
-*     type_traits.hpp    - restd type traits (no <type_traits> dependency)
+*     type_traits.hpp    - re_std type traits (no <type_traits> dependency)
 *
 *
 * TABLE OF CONTENTS
@@ -63,8 +63,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.06
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ANY_
-#define DJINTERP_RESTD_ANY_ 1
+#ifndef DJINTERP_RE_STD_ANY_
+#define DJINTERP_RE_STD_ANY_ 1
 
 // std
 #include <cstddef>
@@ -82,7 +82,7 @@
     #include <utility>
 #endif
 
-// restd
+// re_std
 //#include "../type_traits/type_traits.hpp"
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -266,7 +266,7 @@ NS_INTERNAL
     };
 
     // enum types (stored via underlying integral)
-#if D_RESTD_HAS_IS_ENUM && D_RESTD_HAS_UNDERLYING_TYPE
+#if D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
     template<typename _Type>
     struct any_category_of<_Type,
         typename enable_if<
@@ -280,7 +280,7 @@ NS_INTERNAL
               ? DAnyCategory::cat_signed
               : DAnyCategory::cat_unsigned );
     };
-#endif  // D_RESTD_HAS_IS_ENUM && D_RESTD_HAS_UNDERLYING_TYPE
+#endif  // D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
 
     // non-const pointer (not function pointer)
     template<typename _Type>
@@ -699,7 +699,7 @@ public:
     //  construction: enum
     // -----------------------------------------------------------------
 
-#if D_RESTD_HAS_IS_ENUM && D_RESTD_HAS_UNDERLYING_TYPE
+#if D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
     template<typename _Type,
              typename enable_if<
                  is_enum<_Type>::value,
@@ -722,7 +722,7 @@ public:
           m_heap_ops(D_NULLPTR)
 #endif
     {}
-#endif  // D_RESTD_HAS_IS_ENUM && D_RESTD_HAS_UNDERLYING_TYPE
+#endif  // D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
 
     // -----------------------------------------------------------------
     //  construction: non-const pointer (not function pointer)
@@ -1377,7 +1377,7 @@ public:
     //  SBO - enum
     // -----------------------------------------------------------------
 
-#if D_RESTD_HAS_IS_ENUM && D_RESTD_HAS_UNDERLYING_TYPE
+#if D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
     template<typename _Type,
              typename enable_if<
                  is_enum<_Type>::value,
@@ -1391,7 +1391,7 @@ public:
                 typename underlying_type<_Type>::type>(
                     m_sbo.v_unsigned));
     }
-#endif  // D_RESTD_HAS_IS_ENUM && D_RESTD_HAS_UNDERLYING_TYPE
+#endif  // D_RE_STD_HAS_IS_ENUM && D_RE_STD_HAS_UNDERLYING_TYPE
 
     // -----------------------------------------------------------------
     //  SBO - non-const pointer
@@ -1740,7 +1740,7 @@ private:
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ANY_
+#endif  // DJINTERP_RE_STD_ANY_

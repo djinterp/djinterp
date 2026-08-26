@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                               numeric_limits.hpp
+* re_std                                              numeric_limits.hpp
 *
 * the numeric_limits<T> trait for every fundamental arithmetic type:
 *   a self-contained numeric_limits with per-type specialisations for bool, the
@@ -9,7 +9,7 @@
 *   char / wchar_t are handled automatically with no <climits> value dependency;
 *   floating-point limits read the compiler-predefined macros (falling back to
 *   <cfloat>), and infinity / NaN use compiler builtins. Works on C++98 up; the
-*   C++11 lowest() observer is back-ported to every tier (RESTD AHEAD OF STD).
+*   C++11 lowest() observer is back-ported to every tier (RE_STD AHEAD OF STD).
 *
 *
 * path:      /inc/djinterp/re_std/limits/numeric_limits.hpp
@@ -17,168 +17,168 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_LIMITS_NUMERIC_LIMITS_
-#define RESTD_LIMITS_NUMERIC_LIMITS_ 1
+#ifndef DJINTERP_RE_STD_LIMITS_NUMERIC_LIMITS_
+#define DJINTERP_RE_STD_LIMITS_NUMERIC_LIMITS_ 1
 
 // djinterp
 #include "djinterp.hpp"
-// restd
+// re_std
 #include "float_round_style.hpp"
 #include "float_denorm_style.hpp"
 
 // ---- value sources -------------------------------------------------------
 //   Primary path: compiler-predefined macros (zero standard headers, the
-// restd ideal). Fallback path: the C fundamental-limits headers
+// re_std ideal). Fallback path: the C fundamental-limits headers
 // <climits> / <cfloat> on compilers that do not predefine them (e.g. MSVC).
 #if defined(__CHAR_BIT__)
-    #define D_RESTD_CHAR_BIT __CHAR_BIT__
+    #define D_RE_STD_CHAR_BIT __CHAR_BIT__
 #else
     #include <climits>
-    #define D_RESTD_CHAR_BIT CHAR_BIT
+    #define D_RE_STD_CHAR_BIT CHAR_BIT
 #endif
 
 #if defined(__FLT_MANT_DIG__)
-    #define D_RESTD_FLT_MANT_DIG  __FLT_MANT_DIG__
-    #define D_RESTD_FLT_DIG  __FLT_DIG__
-    #define D_RESTD_FLT_MIN_EXP  __FLT_MIN_EXP__
-    #define D_RESTD_FLT_MIN_10_EXP  __FLT_MIN_10_EXP__
-    #define D_RESTD_FLT_MAX_EXP  __FLT_MAX_EXP__
-    #define D_RESTD_FLT_MAX_10_EXP  __FLT_MAX_10_EXP__
-    #define D_RESTD_FLT_MAX  __FLT_MAX__
-    #define D_RESTD_FLT_MIN  __FLT_MIN__
-    #define D_RESTD_FLT_EPSILON  __FLT_EPSILON__
-    #define D_RESTD_FLT_DENORM_MIN  __FLT_DENORM_MIN__
+    #define D_RE_STD_FLT_MANT_DIG  __FLT_MANT_DIG__
+    #define D_RE_STD_FLT_DIG  __FLT_DIG__
+    #define D_RE_STD_FLT_MIN_EXP  __FLT_MIN_EXP__
+    #define D_RE_STD_FLT_MIN_10_EXP  __FLT_MIN_10_EXP__
+    #define D_RE_STD_FLT_MAX_EXP  __FLT_MAX_EXP__
+    #define D_RE_STD_FLT_MAX_10_EXP  __FLT_MAX_10_EXP__
+    #define D_RE_STD_FLT_MAX  __FLT_MAX__
+    #define D_RE_STD_FLT_MIN  __FLT_MIN__
+    #define D_RE_STD_FLT_EPSILON  __FLT_EPSILON__
+    #define D_RE_STD_FLT_DENORM_MIN  __FLT_DENORM_MIN__
     #if defined(__FLT_HAS_INFINITY__)
-        #define D_RESTD_FLT_HAS_INF  __FLT_HAS_INFINITY__
+        #define D_RE_STD_FLT_HAS_INF  __FLT_HAS_INFINITY__
     #else
-        #define D_RESTD_FLT_HAS_INF  1
+        #define D_RE_STD_FLT_HAS_INF  1
     #endif
     #if defined(__FLT_HAS_QUIET_NAN__)
-        #define D_RESTD_FLT_HAS_QNAN  __FLT_HAS_QUIET_NAN__
+        #define D_RE_STD_FLT_HAS_QNAN  __FLT_HAS_QUIET_NAN__
     #else
-        #define D_RESTD_FLT_HAS_QNAN  1
+        #define D_RE_STD_FLT_HAS_QNAN  1
     #endif
     #if defined(__FLT_HAS_DENORM__)
-        #define D_RESTD_FLT_HAS_DENORM  __FLT_HAS_DENORM__
+        #define D_RE_STD_FLT_HAS_DENORM  __FLT_HAS_DENORM__
     #else
-        #define D_RESTD_FLT_HAS_DENORM  1
+        #define D_RE_STD_FLT_HAS_DENORM  1
     #endif
-    #define D_RESTD_DBL_MANT_DIG  __DBL_MANT_DIG__
-    #define D_RESTD_DBL_DIG  __DBL_DIG__
-    #define D_RESTD_DBL_MIN_EXP  __DBL_MIN_EXP__
-    #define D_RESTD_DBL_MIN_10_EXP  __DBL_MIN_10_EXP__
-    #define D_RESTD_DBL_MAX_EXP  __DBL_MAX_EXP__
-    #define D_RESTD_DBL_MAX_10_EXP  __DBL_MAX_10_EXP__
-    #define D_RESTD_DBL_MAX  __DBL_MAX__
-    #define D_RESTD_DBL_MIN  __DBL_MIN__
-    #define D_RESTD_DBL_EPSILON  __DBL_EPSILON__
-    #define D_RESTD_DBL_DENORM_MIN  __DBL_DENORM_MIN__
+    #define D_RE_STD_DBL_MANT_DIG  __DBL_MANT_DIG__
+    #define D_RE_STD_DBL_DIG  __DBL_DIG__
+    #define D_RE_STD_DBL_MIN_EXP  __DBL_MIN_EXP__
+    #define D_RE_STD_DBL_MIN_10_EXP  __DBL_MIN_10_EXP__
+    #define D_RE_STD_DBL_MAX_EXP  __DBL_MAX_EXP__
+    #define D_RE_STD_DBL_MAX_10_EXP  __DBL_MAX_10_EXP__
+    #define D_RE_STD_DBL_MAX  __DBL_MAX__
+    #define D_RE_STD_DBL_MIN  __DBL_MIN__
+    #define D_RE_STD_DBL_EPSILON  __DBL_EPSILON__
+    #define D_RE_STD_DBL_DENORM_MIN  __DBL_DENORM_MIN__
     #if defined(__DBL_HAS_INFINITY__)
-        #define D_RESTD_DBL_HAS_INF  __DBL_HAS_INFINITY__
+        #define D_RE_STD_DBL_HAS_INF  __DBL_HAS_INFINITY__
     #else
-        #define D_RESTD_DBL_HAS_INF  1
+        #define D_RE_STD_DBL_HAS_INF  1
     #endif
     #if defined(__DBL_HAS_QUIET_NAN__)
-        #define D_RESTD_DBL_HAS_QNAN  __DBL_HAS_QUIET_NAN__
+        #define D_RE_STD_DBL_HAS_QNAN  __DBL_HAS_QUIET_NAN__
     #else
-        #define D_RESTD_DBL_HAS_QNAN  1
+        #define D_RE_STD_DBL_HAS_QNAN  1
     #endif
     #if defined(__DBL_HAS_DENORM__)
-        #define D_RESTD_DBL_HAS_DENORM  __DBL_HAS_DENORM__
+        #define D_RE_STD_DBL_HAS_DENORM  __DBL_HAS_DENORM__
     #else
-        #define D_RESTD_DBL_HAS_DENORM  1
+        #define D_RE_STD_DBL_HAS_DENORM  1
     #endif
-    #define D_RESTD_LDBL_MANT_DIG  __LDBL_MANT_DIG__
-    #define D_RESTD_LDBL_DIG  __LDBL_DIG__
-    #define D_RESTD_LDBL_MIN_EXP  __LDBL_MIN_EXP__
-    #define D_RESTD_LDBL_MIN_10_EXP  __LDBL_MIN_10_EXP__
-    #define D_RESTD_LDBL_MAX_EXP  __LDBL_MAX_EXP__
-    #define D_RESTD_LDBL_MAX_10_EXP  __LDBL_MAX_10_EXP__
-    #define D_RESTD_LDBL_MAX  __LDBL_MAX__
-    #define D_RESTD_LDBL_MIN  __LDBL_MIN__
-    #define D_RESTD_LDBL_EPSILON  __LDBL_EPSILON__
-    #define D_RESTD_LDBL_DENORM_MIN  __LDBL_DENORM_MIN__
+    #define D_RE_STD_LDBL_MANT_DIG  __LDBL_MANT_DIG__
+    #define D_RE_STD_LDBL_DIG  __LDBL_DIG__
+    #define D_RE_STD_LDBL_MIN_EXP  __LDBL_MIN_EXP__
+    #define D_RE_STD_LDBL_MIN_10_EXP  __LDBL_MIN_10_EXP__
+    #define D_RE_STD_LDBL_MAX_EXP  __LDBL_MAX_EXP__
+    #define D_RE_STD_LDBL_MAX_10_EXP  __LDBL_MAX_10_EXP__
+    #define D_RE_STD_LDBL_MAX  __LDBL_MAX__
+    #define D_RE_STD_LDBL_MIN  __LDBL_MIN__
+    #define D_RE_STD_LDBL_EPSILON  __LDBL_EPSILON__
+    #define D_RE_STD_LDBL_DENORM_MIN  __LDBL_DENORM_MIN__
     #if defined(__LDBL_HAS_INFINITY__)
-        #define D_RESTD_LDBL_HAS_INF  __LDBL_HAS_INFINITY__
+        #define D_RE_STD_LDBL_HAS_INF  __LDBL_HAS_INFINITY__
     #else
-        #define D_RESTD_LDBL_HAS_INF  1
+        #define D_RE_STD_LDBL_HAS_INF  1
     #endif
     #if defined(__LDBL_HAS_QUIET_NAN__)
-        #define D_RESTD_LDBL_HAS_QNAN  __LDBL_HAS_QUIET_NAN__
+        #define D_RE_STD_LDBL_HAS_QNAN  __LDBL_HAS_QUIET_NAN__
     #else
-        #define D_RESTD_LDBL_HAS_QNAN  1
+        #define D_RE_STD_LDBL_HAS_QNAN  1
     #endif
     #if defined(__LDBL_HAS_DENORM__)
-        #define D_RESTD_LDBL_HAS_DENORM  __LDBL_HAS_DENORM__
+        #define D_RE_STD_LDBL_HAS_DENORM  __LDBL_HAS_DENORM__
     #else
-        #define D_RESTD_LDBL_HAS_DENORM  1
+        #define D_RE_STD_LDBL_HAS_DENORM  1
     #endif
 #else
     #include <cfloat>
-    #define D_RESTD_FLT_MANT_DIG  FLT_MANT_DIG
-    #define D_RESTD_FLT_DIG  FLT_DIG
-    #define D_RESTD_FLT_MIN_EXP  FLT_MIN_EXP
-    #define D_RESTD_FLT_MIN_10_EXP  FLT_MIN_10_EXP
-    #define D_RESTD_FLT_MAX_EXP  FLT_MAX_EXP
-    #define D_RESTD_FLT_MAX_10_EXP  FLT_MAX_10_EXP
-    #define D_RESTD_FLT_MAX  FLT_MAX
-    #define D_RESTD_FLT_MIN  FLT_MIN
-    #define D_RESTD_FLT_EPSILON  FLT_EPSILON
+    #define D_RE_STD_FLT_MANT_DIG  FLT_MANT_DIG
+    #define D_RE_STD_FLT_DIG  FLT_DIG
+    #define D_RE_STD_FLT_MIN_EXP  FLT_MIN_EXP
+    #define D_RE_STD_FLT_MIN_10_EXP  FLT_MIN_10_EXP
+    #define D_RE_STD_FLT_MAX_EXP  FLT_MAX_EXP
+    #define D_RE_STD_FLT_MAX_10_EXP  FLT_MAX_10_EXP
+    #define D_RE_STD_FLT_MAX  FLT_MAX
+    #define D_RE_STD_FLT_MIN  FLT_MIN
+    #define D_RE_STD_FLT_EPSILON  FLT_EPSILON
     #if defined(FLT_TRUE_MIN)
-        #define D_RESTD_FLT_DENORM_MIN  FLT_TRUE_MIN
+        #define D_RE_STD_FLT_DENORM_MIN  FLT_TRUE_MIN
     #else
-        #define D_RESTD_FLT_DENORM_MIN  FLT_MIN  // degraded: no subnormal min
+        #define D_RE_STD_FLT_DENORM_MIN  FLT_MIN  // degraded: no subnormal min
     #endif
-    #define D_RESTD_FLT_HAS_INF     1
-    #define D_RESTD_FLT_HAS_QNAN    1
-    #define D_RESTD_FLT_HAS_DENORM  1
-    #define D_RESTD_DBL_MANT_DIG  DBL_MANT_DIG
-    #define D_RESTD_DBL_DIG  DBL_DIG
-    #define D_RESTD_DBL_MIN_EXP  DBL_MIN_EXP
-    #define D_RESTD_DBL_MIN_10_EXP  DBL_MIN_10_EXP
-    #define D_RESTD_DBL_MAX_EXP  DBL_MAX_EXP
-    #define D_RESTD_DBL_MAX_10_EXP  DBL_MAX_10_EXP
-    #define D_RESTD_DBL_MAX  DBL_MAX
-    #define D_RESTD_DBL_MIN  DBL_MIN
-    #define D_RESTD_DBL_EPSILON  DBL_EPSILON
+    #define D_RE_STD_FLT_HAS_INF     1
+    #define D_RE_STD_FLT_HAS_QNAN    1
+    #define D_RE_STD_FLT_HAS_DENORM  1
+    #define D_RE_STD_DBL_MANT_DIG  DBL_MANT_DIG
+    #define D_RE_STD_DBL_DIG  DBL_DIG
+    #define D_RE_STD_DBL_MIN_EXP  DBL_MIN_EXP
+    #define D_RE_STD_DBL_MIN_10_EXP  DBL_MIN_10_EXP
+    #define D_RE_STD_DBL_MAX_EXP  DBL_MAX_EXP
+    #define D_RE_STD_DBL_MAX_10_EXP  DBL_MAX_10_EXP
+    #define D_RE_STD_DBL_MAX  DBL_MAX
+    #define D_RE_STD_DBL_MIN  DBL_MIN
+    #define D_RE_STD_DBL_EPSILON  DBL_EPSILON
     #if defined(DBL_TRUE_MIN)
-        #define D_RESTD_DBL_DENORM_MIN  DBL_TRUE_MIN
+        #define D_RE_STD_DBL_DENORM_MIN  DBL_TRUE_MIN
     #else
-        #define D_RESTD_DBL_DENORM_MIN  DBL_MIN  // degraded: no subnormal min
+        #define D_RE_STD_DBL_DENORM_MIN  DBL_MIN  // degraded: no subnormal min
     #endif
-    #define D_RESTD_DBL_HAS_INF     1
-    #define D_RESTD_DBL_HAS_QNAN    1
-    #define D_RESTD_DBL_HAS_DENORM  1
-    #define D_RESTD_LDBL_MANT_DIG  LDBL_MANT_DIG
-    #define D_RESTD_LDBL_DIG  LDBL_DIG
-    #define D_RESTD_LDBL_MIN_EXP  LDBL_MIN_EXP
-    #define D_RESTD_LDBL_MIN_10_EXP  LDBL_MIN_10_EXP
-    #define D_RESTD_LDBL_MAX_EXP  LDBL_MAX_EXP
-    #define D_RESTD_LDBL_MAX_10_EXP  LDBL_MAX_10_EXP
-    #define D_RESTD_LDBL_MAX  LDBL_MAX
-    #define D_RESTD_LDBL_MIN  LDBL_MIN
-    #define D_RESTD_LDBL_EPSILON  LDBL_EPSILON
+    #define D_RE_STD_DBL_HAS_INF     1
+    #define D_RE_STD_DBL_HAS_QNAN    1
+    #define D_RE_STD_DBL_HAS_DENORM  1
+    #define D_RE_STD_LDBL_MANT_DIG  LDBL_MANT_DIG
+    #define D_RE_STD_LDBL_DIG  LDBL_DIG
+    #define D_RE_STD_LDBL_MIN_EXP  LDBL_MIN_EXP
+    #define D_RE_STD_LDBL_MIN_10_EXP  LDBL_MIN_10_EXP
+    #define D_RE_STD_LDBL_MAX_EXP  LDBL_MAX_EXP
+    #define D_RE_STD_LDBL_MAX_10_EXP  LDBL_MAX_10_EXP
+    #define D_RE_STD_LDBL_MAX  LDBL_MAX
+    #define D_RE_STD_LDBL_MIN  LDBL_MIN
+    #define D_RE_STD_LDBL_EPSILON  LDBL_EPSILON
     #if defined(LDBL_TRUE_MIN)
-        #define D_RESTD_LDBL_DENORM_MIN  LDBL_TRUE_MIN
+        #define D_RE_STD_LDBL_DENORM_MIN  LDBL_TRUE_MIN
     #else
-        #define D_RESTD_LDBL_DENORM_MIN  LDBL_MIN  // degraded: no subnormal min
+        #define D_RE_STD_LDBL_DENORM_MIN  LDBL_MIN  // degraded: no subnormal min
     #endif
-    #define D_RESTD_LDBL_HAS_INF     1
-    #define D_RESTD_LDBL_HAS_QNAN    1
-    #define D_RESTD_LDBL_HAS_DENORM  1
+    #define D_RE_STD_LDBL_HAS_INF     1
+    #define D_RE_STD_LDBL_HAS_QNAN    1
+    #define D_RE_STD_LDBL_HAS_DENORM  1
 #endif
 
 // infinity / NaN need compiler builtins (no portable header source).
 #if defined(__has_builtin)
     #if __has_builtin(__builtin_huge_valf)
-        #define D_RESTD_LIMITS_BUILTINS 1
+        #define D_RE_STD_LIMITS_BUILTINS 1
     #endif
 #endif
-#if !defined(D_RESTD_LIMITS_BUILTINS)
+#if !defined(D_RE_STD_LIMITS_BUILTINS)
     #if ( defined(__GNUC__) || defined(__clang__) )
-        #define D_RESTD_LIMITS_BUILTINS 1
+        #define D_RE_STD_LIMITS_BUILTINS 1
     #else
-        #define D_RESTD_LIMITS_BUILTINS 0
+        #define D_RE_STD_LIMITS_BUILTINS 0
     #endif
 #endif
 
@@ -253,7 +253,7 @@ NS_INTERNAL
         static D_CONSTEXPR const bool is_exact   = true;
         static D_CONSTEXPR const int  radix      = 2;
         static D_CONSTEXPR const int  digits =
-            ( static_cast<int>(sizeof(_Type) * D_RESTD_CHAR_BIT) - (is_signed ? 1 : 0) );
+            ( static_cast<int>(sizeof(_Type) * D_RE_STD_CHAR_BIT) - (is_signed ? 1 : 0) );
         static D_CONSTEXPR const int  digits10     = digits * 643 / 2136;
         static D_CONSTEXPR const int  max_digits10 = 0;
         static D_CONSTEXPR const int  min_exponent   = 0;
@@ -277,7 +277,7 @@ NS_INTERNAL
             // all `digits` value-bits set, masked out of an all-ones widest uint.
             return static_cast<_Type>(
                 ( ~static_cast<limits_widest_uint>(0) ) >>
-                ( static_cast<int>(sizeof(limits_widest_uint)) * D_RESTD_CHAR_BIT - digits ) );
+                ( static_cast<int>(sizeof(limits_widest_uint)) * D_RE_STD_CHAR_BIT - digits ) );
         }
         static D_CONSTEXPR _Type min() D_NOEXCEPT
         {
@@ -443,18 +443,18 @@ NS_END  // internal
         static D_CONSTEXPR const bool is_integer  = false;
         static D_CONSTEXPR const bool is_exact    = false;
         static D_CONSTEXPR const int  radix       = 2;
-        static D_CONSTEXPR const int  digits       = D_RESTD_FLT_MANT_DIG;
-        static D_CONSTEXPR const int  digits10     = D_RESTD_FLT_DIG;
-        static D_CONSTEXPR const int  max_digits10 = 2 + D_RESTD_FLT_MANT_DIG * 643 / 2136;
-        static D_CONSTEXPR const int  min_exponent   = D_RESTD_FLT_MIN_EXP;
-        static D_CONSTEXPR const int  min_exponent10 = D_RESTD_FLT_MIN_10_EXP;
-        static D_CONSTEXPR const int  max_exponent   = D_RESTD_FLT_MAX_EXP;
-        static D_CONSTEXPR const int  max_exponent10 = D_RESTD_FLT_MAX_10_EXP;
-        static D_CONSTEXPR const bool has_infinity      = ( D_RESTD_FLT_HAS_INF  != 0 );
-        static D_CONSTEXPR const bool has_quiet_NaN     = ( D_RESTD_FLT_HAS_QNAN != 0 );
-        static D_CONSTEXPR const bool has_signaling_NaN = ( D_RESTD_FLT_HAS_QNAN != 0 );
+        static D_CONSTEXPR const int  digits       = D_RE_STD_FLT_MANT_DIG;
+        static D_CONSTEXPR const int  digits10     = D_RE_STD_FLT_DIG;
+        static D_CONSTEXPR const int  max_digits10 = 2 + D_RE_STD_FLT_MANT_DIG * 643 / 2136;
+        static D_CONSTEXPR const int  min_exponent   = D_RE_STD_FLT_MIN_EXP;
+        static D_CONSTEXPR const int  min_exponent10 = D_RE_STD_FLT_MIN_10_EXP;
+        static D_CONSTEXPR const int  max_exponent   = D_RE_STD_FLT_MAX_EXP;
+        static D_CONSTEXPR const int  max_exponent10 = D_RE_STD_FLT_MAX_10_EXP;
+        static D_CONSTEXPR const bool has_infinity      = ( D_RE_STD_FLT_HAS_INF  != 0 );
+        static D_CONSTEXPR const bool has_quiet_NaN     = ( D_RE_STD_FLT_HAS_QNAN != 0 );
+        static D_CONSTEXPR const bool has_signaling_NaN = ( D_RE_STD_FLT_HAS_QNAN != 0 );
         static D_CONSTEXPR const float_denorm_style has_denorm =
-            ( D_RESTD_FLT_HAS_DENORM != 0 ) ? denorm_present : denorm_absent;
+            ( D_RE_STD_FLT_HAS_DENORM != 0 ) ? denorm_present : denorm_absent;
         static D_CONSTEXPR const bool has_denorm_loss = false;
         static D_CONSTEXPR const bool is_iec559  = true;
         static D_CONSTEXPR const bool is_bounded = true;
@@ -463,18 +463,18 @@ NS_END  // internal
         static D_CONSTEXPR const bool tinyness_before = false;
         static D_CONSTEXPR const float_round_style round_style = round_to_nearest;
 
-        static D_CONSTEXPR float min()         D_NOEXCEPT { return D_RESTD_FLT_MIN; }
-        static D_CONSTEXPR float max()         D_NOEXCEPT { return D_RESTD_FLT_MAX; }
-        static D_CONSTEXPR float lowest()      D_NOEXCEPT { return -D_RESTD_FLT_MAX; }
-        static D_CONSTEXPR float epsilon()     D_NOEXCEPT { return D_RESTD_FLT_EPSILON; }
+        static D_CONSTEXPR float min()         D_NOEXCEPT { return D_RE_STD_FLT_MIN; }
+        static D_CONSTEXPR float max()         D_NOEXCEPT { return D_RE_STD_FLT_MAX; }
+        static D_CONSTEXPR float lowest()      D_NOEXCEPT { return -D_RE_STD_FLT_MAX; }
+        static D_CONSTEXPR float epsilon()     D_NOEXCEPT { return D_RE_STD_FLT_EPSILON; }
         static D_CONSTEXPR float round_error() D_NOEXCEPT { return static_cast<float>(0.5); }
-        static D_CONSTEXPR float denorm_min()  D_NOEXCEPT { return D_RESTD_FLT_DENORM_MIN; }
-#if D_RESTD_LIMITS_BUILTINS
+        static D_CONSTEXPR float denorm_min()  D_NOEXCEPT { return D_RE_STD_FLT_DENORM_MIN; }
+#if D_RE_STD_LIMITS_BUILTINS
         static D_CONSTEXPR float infinity()      D_NOEXCEPT { return __builtin_huge_valf(); }
         static D_CONSTEXPR float quiet_NaN()     D_NOEXCEPT { return __builtin_nanf(""); }
         static D_CONSTEXPR float signaling_NaN() D_NOEXCEPT { return __builtin_nansf(""); }
 #else
-        static D_CONSTEXPR float infinity()      D_NOEXCEPT { return D_RESTD_FLT_MAX; }
+        static D_CONSTEXPR float infinity()      D_NOEXCEPT { return D_RE_STD_FLT_MAX; }
         static D_CONSTEXPR float quiet_NaN()     D_NOEXCEPT { return static_cast<float>(0); }
         static D_CONSTEXPR float signaling_NaN() D_NOEXCEPT { return static_cast<float>(0); }
 #endif
@@ -492,18 +492,18 @@ NS_END  // internal
         static D_CONSTEXPR const bool is_integer  = false;
         static D_CONSTEXPR const bool is_exact    = false;
         static D_CONSTEXPR const int  radix       = 2;
-        static D_CONSTEXPR const int  digits       = D_RESTD_DBL_MANT_DIG;
-        static D_CONSTEXPR const int  digits10     = D_RESTD_DBL_DIG;
-        static D_CONSTEXPR const int  max_digits10 = 2 + D_RESTD_DBL_MANT_DIG * 643 / 2136;
-        static D_CONSTEXPR const int  min_exponent   = D_RESTD_DBL_MIN_EXP;
-        static D_CONSTEXPR const int  min_exponent10 = D_RESTD_DBL_MIN_10_EXP;
-        static D_CONSTEXPR const int  max_exponent   = D_RESTD_DBL_MAX_EXP;
-        static D_CONSTEXPR const int  max_exponent10 = D_RESTD_DBL_MAX_10_EXP;
-        static D_CONSTEXPR const bool has_infinity      = ( D_RESTD_DBL_HAS_INF  != 0 );
-        static D_CONSTEXPR const bool has_quiet_NaN     = ( D_RESTD_DBL_HAS_QNAN != 0 );
-        static D_CONSTEXPR const bool has_signaling_NaN = ( D_RESTD_DBL_HAS_QNAN != 0 );
+        static D_CONSTEXPR const int  digits       = D_RE_STD_DBL_MANT_DIG;
+        static D_CONSTEXPR const int  digits10     = D_RE_STD_DBL_DIG;
+        static D_CONSTEXPR const int  max_digits10 = 2 + D_RE_STD_DBL_MANT_DIG * 643 / 2136;
+        static D_CONSTEXPR const int  min_exponent   = D_RE_STD_DBL_MIN_EXP;
+        static D_CONSTEXPR const int  min_exponent10 = D_RE_STD_DBL_MIN_10_EXP;
+        static D_CONSTEXPR const int  max_exponent   = D_RE_STD_DBL_MAX_EXP;
+        static D_CONSTEXPR const int  max_exponent10 = D_RE_STD_DBL_MAX_10_EXP;
+        static D_CONSTEXPR const bool has_infinity      = ( D_RE_STD_DBL_HAS_INF  != 0 );
+        static D_CONSTEXPR const bool has_quiet_NaN     = ( D_RE_STD_DBL_HAS_QNAN != 0 );
+        static D_CONSTEXPR const bool has_signaling_NaN = ( D_RE_STD_DBL_HAS_QNAN != 0 );
         static D_CONSTEXPR const float_denorm_style has_denorm =
-            ( D_RESTD_DBL_HAS_DENORM != 0 ) ? denorm_present : denorm_absent;
+            ( D_RE_STD_DBL_HAS_DENORM != 0 ) ? denorm_present : denorm_absent;
         static D_CONSTEXPR const bool has_denorm_loss = false;
         static D_CONSTEXPR const bool is_iec559  = true;
         static D_CONSTEXPR const bool is_bounded = true;
@@ -512,18 +512,18 @@ NS_END  // internal
         static D_CONSTEXPR const bool tinyness_before = false;
         static D_CONSTEXPR const float_round_style round_style = round_to_nearest;
 
-        static D_CONSTEXPR double min()         D_NOEXCEPT { return D_RESTD_DBL_MIN; }
-        static D_CONSTEXPR double max()         D_NOEXCEPT { return D_RESTD_DBL_MAX; }
-        static D_CONSTEXPR double lowest()      D_NOEXCEPT { return -D_RESTD_DBL_MAX; }
-        static D_CONSTEXPR double epsilon()     D_NOEXCEPT { return D_RESTD_DBL_EPSILON; }
+        static D_CONSTEXPR double min()         D_NOEXCEPT { return D_RE_STD_DBL_MIN; }
+        static D_CONSTEXPR double max()         D_NOEXCEPT { return D_RE_STD_DBL_MAX; }
+        static D_CONSTEXPR double lowest()      D_NOEXCEPT { return -D_RE_STD_DBL_MAX; }
+        static D_CONSTEXPR double epsilon()     D_NOEXCEPT { return D_RE_STD_DBL_EPSILON; }
         static D_CONSTEXPR double round_error() D_NOEXCEPT { return static_cast<double>(0.5); }
-        static D_CONSTEXPR double denorm_min()  D_NOEXCEPT { return D_RESTD_DBL_DENORM_MIN; }
-#if D_RESTD_LIMITS_BUILTINS
+        static D_CONSTEXPR double denorm_min()  D_NOEXCEPT { return D_RE_STD_DBL_DENORM_MIN; }
+#if D_RE_STD_LIMITS_BUILTINS
         static D_CONSTEXPR double infinity()      D_NOEXCEPT { return __builtin_huge_val(); }
         static D_CONSTEXPR double quiet_NaN()     D_NOEXCEPT { return __builtin_nan(""); }
         static D_CONSTEXPR double signaling_NaN() D_NOEXCEPT { return __builtin_nans(""); }
 #else
-        static D_CONSTEXPR double infinity()      D_NOEXCEPT { return D_RESTD_DBL_MAX; }
+        static D_CONSTEXPR double infinity()      D_NOEXCEPT { return D_RE_STD_DBL_MAX; }
         static D_CONSTEXPR double quiet_NaN()     D_NOEXCEPT { return static_cast<double>(0); }
         static D_CONSTEXPR double signaling_NaN() D_NOEXCEPT { return static_cast<double>(0); }
 #endif
@@ -541,18 +541,18 @@ NS_END  // internal
         static D_CONSTEXPR const bool is_integer  = false;
         static D_CONSTEXPR const bool is_exact    = false;
         static D_CONSTEXPR const int  radix       = 2;
-        static D_CONSTEXPR const int  digits       = D_RESTD_LDBL_MANT_DIG;
-        static D_CONSTEXPR const int  digits10     = D_RESTD_LDBL_DIG;
-        static D_CONSTEXPR const int  max_digits10 = 2 + D_RESTD_LDBL_MANT_DIG * 643 / 2136;
-        static D_CONSTEXPR const int  min_exponent   = D_RESTD_LDBL_MIN_EXP;
-        static D_CONSTEXPR const int  min_exponent10 = D_RESTD_LDBL_MIN_10_EXP;
-        static D_CONSTEXPR const int  max_exponent   = D_RESTD_LDBL_MAX_EXP;
-        static D_CONSTEXPR const int  max_exponent10 = D_RESTD_LDBL_MAX_10_EXP;
-        static D_CONSTEXPR const bool has_infinity      = ( D_RESTD_LDBL_HAS_INF  != 0 );
-        static D_CONSTEXPR const bool has_quiet_NaN     = ( D_RESTD_LDBL_HAS_QNAN != 0 );
-        static D_CONSTEXPR const bool has_signaling_NaN = ( D_RESTD_LDBL_HAS_QNAN != 0 );
+        static D_CONSTEXPR const int  digits       = D_RE_STD_LDBL_MANT_DIG;
+        static D_CONSTEXPR const int  digits10     = D_RE_STD_LDBL_DIG;
+        static D_CONSTEXPR const int  max_digits10 = 2 + D_RE_STD_LDBL_MANT_DIG * 643 / 2136;
+        static D_CONSTEXPR const int  min_exponent   = D_RE_STD_LDBL_MIN_EXP;
+        static D_CONSTEXPR const int  min_exponent10 = D_RE_STD_LDBL_MIN_10_EXP;
+        static D_CONSTEXPR const int  max_exponent   = D_RE_STD_LDBL_MAX_EXP;
+        static D_CONSTEXPR const int  max_exponent10 = D_RE_STD_LDBL_MAX_10_EXP;
+        static D_CONSTEXPR const bool has_infinity      = ( D_RE_STD_LDBL_HAS_INF  != 0 );
+        static D_CONSTEXPR const bool has_quiet_NaN     = ( D_RE_STD_LDBL_HAS_QNAN != 0 );
+        static D_CONSTEXPR const bool has_signaling_NaN = ( D_RE_STD_LDBL_HAS_QNAN != 0 );
         static D_CONSTEXPR const float_denorm_style has_denorm =
-            ( D_RESTD_LDBL_HAS_DENORM != 0 ) ? denorm_present : denorm_absent;
+            ( D_RE_STD_LDBL_HAS_DENORM != 0 ) ? denorm_present : denorm_absent;
         static D_CONSTEXPR const bool has_denorm_loss = false;
         static D_CONSTEXPR const bool is_iec559  = true;
         static D_CONSTEXPR const bool is_bounded = true;
@@ -561,18 +561,18 @@ NS_END  // internal
         static D_CONSTEXPR const bool tinyness_before = false;
         static D_CONSTEXPR const float_round_style round_style = round_to_nearest;
 
-        static D_CONSTEXPR long double min()         D_NOEXCEPT { return D_RESTD_LDBL_MIN; }
-        static D_CONSTEXPR long double max()         D_NOEXCEPT { return D_RESTD_LDBL_MAX; }
-        static D_CONSTEXPR long double lowest()      D_NOEXCEPT { return -D_RESTD_LDBL_MAX; }
-        static D_CONSTEXPR long double epsilon()     D_NOEXCEPT { return D_RESTD_LDBL_EPSILON; }
+        static D_CONSTEXPR long double min()         D_NOEXCEPT { return D_RE_STD_LDBL_MIN; }
+        static D_CONSTEXPR long double max()         D_NOEXCEPT { return D_RE_STD_LDBL_MAX; }
+        static D_CONSTEXPR long double lowest()      D_NOEXCEPT { return -D_RE_STD_LDBL_MAX; }
+        static D_CONSTEXPR long double epsilon()     D_NOEXCEPT { return D_RE_STD_LDBL_EPSILON; }
         static D_CONSTEXPR long double round_error() D_NOEXCEPT { return static_cast<long double>(0.5); }
-        static D_CONSTEXPR long double denorm_min()  D_NOEXCEPT { return D_RESTD_LDBL_DENORM_MIN; }
-#if D_RESTD_LIMITS_BUILTINS
+        static D_CONSTEXPR long double denorm_min()  D_NOEXCEPT { return D_RE_STD_LDBL_DENORM_MIN; }
+#if D_RE_STD_LIMITS_BUILTINS
         static D_CONSTEXPR long double infinity()      D_NOEXCEPT { return __builtin_huge_vall(); }
         static D_CONSTEXPR long double quiet_NaN()     D_NOEXCEPT { return __builtin_nanl(""); }
         static D_CONSTEXPR long double signaling_NaN() D_NOEXCEPT { return __builtin_nansl(""); }
 #else
-        static D_CONSTEXPR long double infinity()      D_NOEXCEPT { return D_RESTD_LDBL_MAX; }
+        static D_CONSTEXPR long double infinity()      D_NOEXCEPT { return D_RE_STD_LDBL_MAX; }
         static D_CONSTEXPR long double quiet_NaN()     D_NOEXCEPT { return static_cast<long double>(0); }
         static D_CONSTEXPR long double signaling_NaN() D_NOEXCEPT { return static_cast<long double>(0); }
 #endif
@@ -595,48 +595,48 @@ NS_END  // internal
     {
     };
 
-NS_END  // restd
+NS_END  // re_std
 
-#undef D_RESTD_CHAR_BIT
-#undef D_RESTD_FLT_MANT_DIG
-#undef D_RESTD_FLT_DIG
-#undef D_RESTD_FLT_MIN_EXP
-#undef D_RESTD_FLT_MIN_10_EXP
-#undef D_RESTD_FLT_MAX_EXP
-#undef D_RESTD_FLT_MAX_10_EXP
-#undef D_RESTD_FLT_MAX
-#undef D_RESTD_FLT_MIN
-#undef D_RESTD_FLT_EPSILON
-#undef D_RESTD_FLT_DENORM_MIN
-#undef D_RESTD_FLT_HAS_INF
-#undef D_RESTD_FLT_HAS_QNAN
-#undef D_RESTD_FLT_HAS_DENORM
-#undef D_RESTD_DBL_MANT_DIG
-#undef D_RESTD_DBL_DIG
-#undef D_RESTD_DBL_MIN_EXP
-#undef D_RESTD_DBL_MIN_10_EXP
-#undef D_RESTD_DBL_MAX_EXP
-#undef D_RESTD_DBL_MAX_10_EXP
-#undef D_RESTD_DBL_MAX
-#undef D_RESTD_DBL_MIN
-#undef D_RESTD_DBL_EPSILON
-#undef D_RESTD_DBL_DENORM_MIN
-#undef D_RESTD_DBL_HAS_INF
-#undef D_RESTD_DBL_HAS_QNAN
-#undef D_RESTD_DBL_HAS_DENORM
-#undef D_RESTD_LDBL_MANT_DIG
-#undef D_RESTD_LDBL_DIG
-#undef D_RESTD_LDBL_MIN_EXP
-#undef D_RESTD_LDBL_MIN_10_EXP
-#undef D_RESTD_LDBL_MAX_EXP
-#undef D_RESTD_LDBL_MAX_10_EXP
-#undef D_RESTD_LDBL_MAX
-#undef D_RESTD_LDBL_MIN
-#undef D_RESTD_LDBL_EPSILON
-#undef D_RESTD_LDBL_DENORM_MIN
-#undef D_RESTD_LDBL_HAS_INF
-#undef D_RESTD_LDBL_HAS_QNAN
-#undef D_RESTD_LDBL_HAS_DENORM
-#undef D_RESTD_LIMITS_BUILTINS
+#undef D_RE_STD_CHAR_BIT
+#undef D_RE_STD_FLT_MANT_DIG
+#undef D_RE_STD_FLT_DIG
+#undef D_RE_STD_FLT_MIN_EXP
+#undef D_RE_STD_FLT_MIN_10_EXP
+#undef D_RE_STD_FLT_MAX_EXP
+#undef D_RE_STD_FLT_MAX_10_EXP
+#undef D_RE_STD_FLT_MAX
+#undef D_RE_STD_FLT_MIN
+#undef D_RE_STD_FLT_EPSILON
+#undef D_RE_STD_FLT_DENORM_MIN
+#undef D_RE_STD_FLT_HAS_INF
+#undef D_RE_STD_FLT_HAS_QNAN
+#undef D_RE_STD_FLT_HAS_DENORM
+#undef D_RE_STD_DBL_MANT_DIG
+#undef D_RE_STD_DBL_DIG
+#undef D_RE_STD_DBL_MIN_EXP
+#undef D_RE_STD_DBL_MIN_10_EXP
+#undef D_RE_STD_DBL_MAX_EXP
+#undef D_RE_STD_DBL_MAX_10_EXP
+#undef D_RE_STD_DBL_MAX
+#undef D_RE_STD_DBL_MIN
+#undef D_RE_STD_DBL_EPSILON
+#undef D_RE_STD_DBL_DENORM_MIN
+#undef D_RE_STD_DBL_HAS_INF
+#undef D_RE_STD_DBL_HAS_QNAN
+#undef D_RE_STD_DBL_HAS_DENORM
+#undef D_RE_STD_LDBL_MANT_DIG
+#undef D_RE_STD_LDBL_DIG
+#undef D_RE_STD_LDBL_MIN_EXP
+#undef D_RE_STD_LDBL_MIN_10_EXP
+#undef D_RE_STD_LDBL_MAX_EXP
+#undef D_RE_STD_LDBL_MAX_10_EXP
+#undef D_RE_STD_LDBL_MAX
+#undef D_RE_STD_LDBL_MIN
+#undef D_RE_STD_LDBL_EPSILON
+#undef D_RE_STD_LDBL_DENORM_MIN
+#undef D_RE_STD_LDBL_HAS_INF
+#undef D_RE_STD_LDBL_HAS_QNAN
+#undef D_RE_STD_LDBL_HAS_DENORM
+#undef D_RE_STD_LIMITS_BUILTINS
 
-#endif  // RESTD_LIMITS_NUMERIC_LIMITS_
+#endif  // DJINTERP_RE_STD_LIMITS_NUMERIC_LIMITS_

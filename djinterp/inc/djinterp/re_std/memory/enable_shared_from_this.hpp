@@ -1,11 +1,11 @@
 /***********************************************************************
-* restd                                       enable_shared_from_this.hpp
+* re_std                                      enable_shared_from_this.hpp
 *
 * CRTP base for types that need to obtain a shared_ptr to themselves:
 *
-*     class Foo : public restd::enable_shared_from_this<Foo>
+*     class Foo : public re_std::enable_shared_from_this<Foo>
 *     {
-*         restd::shared_ptr<Foo> bar()
+*         re_std::shared_ptr<Foo> bar()
 *         {
 *             return shared_from_this();
 *         }
@@ -22,7 +22,7 @@
 * shared_ptr's ctor calls sp_esft_link(cb, ptr, ptr), ADL on ptr's
 * type finds this friend ONLY if the pointee derives from
 * enable_shared_from_this<U> for some U. Otherwise, only the variadic
-* catch-all in restd::internal:: matches, and the call is a no-op.
+* catch-all in re_std::internal:: matches, and the call is a no-op.
 *
 * This is the same idiom libstdc++ uses for std::enable_shared_from_this.
 * It correctly handles cases where T derives from enable_shared_from_this<U>
@@ -31,22 +31,22 @@
 *
 * path:      /inc/djinterp/re_std/memory/enable_shared_from_this.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ENABLE_SHARED_FROM_THIS_
-#define RESTD_MEMORY_ENABLE_SHARED_FROM_THIS_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_
+#define DJINTERP_RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/memory/weak_ptr.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/memory/weak_ptr.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -124,8 +124,8 @@ public:
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_ENABLE_SHARED_FROM_THIS_
+#endif  // DJINTERP_RE_STD_MEMORY_ENABLE_SHARED_FROM_THIS_

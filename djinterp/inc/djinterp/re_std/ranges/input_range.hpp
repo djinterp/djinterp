@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             input_range.hpp
+* djinterp [re_std]                                            input_range.hpp
 *
 * input_range concept-trait header:
 *   Provides the C++20 input_range concept as a SFINAE-detection
@@ -12,7 +12,7 @@
 *   SIMPLIFICATION:
 *   The C++20 input_range concept binds to the input_iterator concept,
 * which checks more than iterator_category derivation (dereferenceable,
-* equality_comparable, ...). Restd approximates with iterator_category
+* equality_comparable, ...). Re_std approximates with iterator_category
 * derivation alone — a conservative check that accepts all well-formed
 * input iterators but may also accept malformed types that nominally
 * expose input_iterator_tag without satisfying the operational
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_INPUT_RANGE_
-#define DJINTERP_RESTD_RANGES_INPUT_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_INPUT_RANGE_
+#define DJINTERP_RE_STD_RANGES_INPUT_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -85,10 +85,10 @@ D_CONSTEXPR bool input_range_v = input_range<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_INPUT_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_INPUT_RANGE_

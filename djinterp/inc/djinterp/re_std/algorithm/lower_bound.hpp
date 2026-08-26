@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               lower_bound.hpp
+* djinterp [re_std]                                              lower_bound.hpp
 *
 * lower_bound algorithm header:
 *   Binary search on a partitioned/sorted range [_first, _last).
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::lower_bound is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14 (the
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14 (the
 *     mutable len/half locals need relaxed constexpr).
 *   - Works on forward iterators in O(log N) comparisons but O(N)
 *     stepping; on random access it is O(log N) overall.
@@ -21,12 +21,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_LOWER_BOUND_
-#define DJINTERP_RESTD_ALGORITHM_LOWER_BOUND_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_LOWER_BOUND_
+#define DJINTERP_RE_STD_ALGORITHM_LOWER_BOUND_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 #include "../iterator/advance.hpp"
 #include "../iterator/distance.hpp"
@@ -67,12 +67,12 @@ lower_bound(
 {
     typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
 
-    _Diff _len = restd::distance(_first, _last);
+    _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
         _ForwardIt _mid  = _first;
-        restd::advance(_mid, _half);
+        re_std::advance(_mid, _half);
         if (*_mid < _value)
         {
             _first = _mid;
@@ -108,12 +108,12 @@ lower_bound(
 {
     typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
 
-    _Diff _len = restd::distance(_first, _last);
+    _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
         _ForwardIt _mid  = _first;
-        restd::advance(_mid, _half);
+        re_std::advance(_mid, _half);
         if (_comp(*_mid, _value))
         {
             _first = _mid;
@@ -129,7 +129,7 @@ lower_bound(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_LOWER_BOUND_
+#endif  // DJINTERP_RE_STD_ALGORITHM_LOWER_BOUND_

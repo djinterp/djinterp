@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                              align.hpp
+* re_std                                                             align.hpp
 *
 * runtime alignment helper:
 *   align(_alignment, _size, _ptr, _space) attempts to advance _ptr
@@ -14,16 +14,16 @@
 *
 * _alignment must be a power of two — undefined behaviour otherwise.
 *
-* added in std C++11; restd matches the C++11 signature.
+* added in std C++11; re_std matches the C++11 signature.
 *
 *
 * path:      /inc/djinterp/re_std/memory/align.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ALIGN_
-#define RESTD_MEMORY_ALIGN_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ALIGN_
+#define DJINTERP_RE_STD_MEMORY_ALIGN_ 1
 
 #include "djinterp.hpp"
 
@@ -31,7 +31,7 @@
 #include <cstdint>
 
 
-namespace restd
+namespace re_std
 {
 
 inline void* align(std::size_t _alignment,
@@ -57,6 +57,6 @@ inline void* align(std::size_t _alignment,
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_MEMORY_ALIGN_
+#endif  // DJINTERP_RE_STD_MEMORY_ALIGN_

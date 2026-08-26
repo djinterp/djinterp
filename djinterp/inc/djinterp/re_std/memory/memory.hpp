@@ -1,7 +1,7 @@
 /***********************************************************************
-* restd                                                            memory
+* re_std                                                           memory
 *
-* umbrella header for restd::memory. Includes every granular module in
+* umbrella header for re_std::memory. Includes every granular module in
 * the memory group. Users may include this file to mirror the
 * `#include <memory>` ergonomic of the standard library, or include
 * the granular files directly for finer dependency control.
@@ -51,60 +51,60 @@
 *
 * path:      /inc/djinterp/re_std/memory/memory.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_
-#define RESTD_MEMORY_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_
+#define DJINTERP_RE_STD_MEMORY_ 1
 
-#include "restd/memory/addressof.hpp"
-#include "restd/memory/pointer_traits.hpp"
-#include "restd/memory/construct_at.hpp"
-#include "restd/memory/destroy_at.hpp"
-#include "restd/memory/destroy.hpp"
-#include "restd/memory/default_delete.hpp"
-#include "restd/memory/allocator_arg.hpp"
-#include "restd/memory/uses_allocator.hpp"
-#include "restd/memory/bad_weak_ptr.hpp"
+#include "re_std/memory/addressof.hpp"
+#include "re_std/memory/pointer_traits.hpp"
+#include "re_std/memory/construct_at.hpp"
+#include "re_std/memory/destroy_at.hpp"
+#include "re_std/memory/destroy.hpp"
+#include "re_std/memory/default_delete.hpp"
+#include "re_std/memory/allocator_arg.hpp"
+#include "re_std/memory/uses_allocator.hpp"
+#include "re_std/memory/bad_weak_ptr.hpp"
 
-#include "restd/memory/allocator.hpp"
-#include "restd/memory/allocator_traits.hpp"
+#include "re_std/memory/allocator.hpp"
+#include "re_std/memory/allocator_traits.hpp"
 
-#include "restd/memory/unique_ptr.hpp"
-#include "restd/memory/unique_ptr_swap.hpp"
-#include "restd/memory/make_unique.hpp"
+#include "re_std/memory/unique_ptr.hpp"
+#include "re_std/memory/unique_ptr_swap.hpp"
+#include "re_std/memory/make_unique.hpp"
 
-#include "restd/memory/shared_ptr.hpp"
-#include "restd/memory/weak_ptr.hpp"
-#include "restd/memory/enable_shared_from_this.hpp"
-#include "restd/memory/make_shared.hpp"
-#include "restd/memory/allocate_shared.hpp"
+#include "re_std/memory/shared_ptr.hpp"
+#include "re_std/memory/weak_ptr.hpp"
+#include "re_std/memory/enable_shared_from_this.hpp"
+#include "re_std/memory/make_shared.hpp"
+#include "re_std/memory/allocate_shared.hpp"
 
-#include "restd/memory/static_pointer_cast.hpp"
-#include "restd/memory/dynamic_pointer_cast.hpp"
-#include "restd/memory/const_pointer_cast.hpp"
-#include "restd/memory/reinterpret_pointer_cast.hpp"
-#include "restd/memory/owner_less.hpp"
-#include "restd/memory/get_deleter.hpp"
-#include "restd/memory/shared_ptr_swap.hpp"
-#include "restd/memory/weak_ptr_swap.hpp"
+#include "re_std/memory/static_pointer_cast.hpp"
+#include "re_std/memory/dynamic_pointer_cast.hpp"
+#include "re_std/memory/const_pointer_cast.hpp"
+#include "re_std/memory/reinterpret_pointer_cast.hpp"
+#include "re_std/memory/owner_less.hpp"
+#include "re_std/memory/get_deleter.hpp"
+#include "re_std/memory/shared_ptr_swap.hpp"
+#include "re_std/memory/weak_ptr_swap.hpp"
 
-#include "restd/memory/uninitialized_copy.hpp"
-#include "restd/memory/uninitialized_copy_n.hpp"
-#include "restd/memory/uninitialized_fill.hpp"
-#include "restd/memory/uninitialized_fill_n.hpp"
-#include "restd/memory/uninitialized_default_construct.hpp"
-#include "restd/memory/uninitialized_default_construct_n.hpp"
-#include "restd/memory/uninitialized_value_construct.hpp"
-#include "restd/memory/uninitialized_value_construct_n.hpp"
-#include "restd/memory/uninitialized_move.hpp"
-#include "restd/memory/uninitialized_move_n.hpp"
+#include "re_std/memory/uninitialized_copy.hpp"
+#include "re_std/memory/uninitialized_copy_n.hpp"
+#include "re_std/memory/uninitialized_fill.hpp"
+#include "re_std/memory/uninitialized_fill_n.hpp"
+#include "re_std/memory/uninitialized_default_construct.hpp"
+#include "re_std/memory/uninitialized_default_construct_n.hpp"
+#include "re_std/memory/uninitialized_value_construct.hpp"
+#include "re_std/memory/uninitialized_value_construct_n.hpp"
+#include "re_std/memory/uninitialized_move.hpp"
+#include "re_std/memory/uninitialized_move_n.hpp"
 
-#include "restd/memory/make_shared_for_overwrite.hpp"
-#include "restd/memory/allocate_shared_for_overwrite.hpp"
+#include "re_std/memory/make_shared_for_overwrite.hpp"
+#include "re_std/memory/allocate_shared_for_overwrite.hpp"
 
-#include "restd/memory/align.hpp"
-#include "restd/memory/to_address.hpp"
-#include "restd/memory/assume_aligned.hpp"
+#include "re_std/memory/align.hpp"
+#include "re_std/memory/to_address.hpp"
+#include "re_std/memory/assume_aligned.hpp"
 
-#endif  // RESTD_MEMORY_
+#endif  // DJINTERP_RE_STD_MEMORY_

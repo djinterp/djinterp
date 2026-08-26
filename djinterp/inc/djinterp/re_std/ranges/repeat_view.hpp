@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             repeat_view.hpp
+* djinterp [re_std]                                            repeat_view.hpp
 *
 * repeat_view header:
 *   Provides the C++23 repeat adaptor. repeat_view<T, Bound> yields
@@ -16,7 +16,7 @@
 *     constructible T leaves the box empty (dereferencing iterators
 *     on such a view is UB until the value ctor populates the box).
 *     The C++23 spec achieves the same with its exposition-only
-*     movable-box; restd's is the version shipped in R22.
+*     movable-box; re_std's is the version shipped in R22.
 *   - Specialises enable_borrowed_range to true on both forms —
 *     the iterators carry their position by value (and a pointer to
 *     the shared T inside the view); they remain valid past the
@@ -27,8 +27,8 @@
 *     view lifetime).
 *
 *   COLOCATED:
-*   restd::views::repeat(value, n) — bounded.
-*   restd::views::repeat(value)    — unbounded.
+*   re_std::views::repeat(value, n) — bounded.
+*   re_std::views::repeat(value)    — unbounded.
 *
 *
 * path:      /inc/djinterp/re_std/ranges/repeat_view.hpp
@@ -36,8 +36,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_REPEAT_VIEW_
-#define DJINTERP_RESTD_RANGES_REPEAT_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_REPEAT_VIEW_
+#define DJINTERP_RE_STD_RANGES_REPEAT_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -356,14 +356,14 @@ public:
             return *m_value;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        D_CONSTEXPR_CPP14 inline iterator&
         operator++()
         {
             ++m_pos;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator
+        D_CONSTEXPR_CPP14 inline iterator
         operator++(int)
         {
             iterator tmp = *this;
@@ -371,14 +371,14 @@ public:
             return tmp;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        D_CONSTEXPR_CPP14 inline iterator&
         operator--()
         {
             --m_pos;
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        D_CONSTEXPR_CPP14 inline iterator&
         operator+=(
             difference_type _n
         )
@@ -387,7 +387,7 @@ public:
             return *this;
         }
 
-        D_CONSTEXPR_INLINE iterator&
+        D_CONSTEXPR_CPP14 inline iterator&
         operator-=(
             difference_type _n
         )
@@ -523,10 +523,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_REPEAT_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_REPEAT_VIEW_

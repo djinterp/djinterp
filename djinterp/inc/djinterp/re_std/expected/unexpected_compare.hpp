@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                        unexpected_compare.hpp
+* djinterp [re_std]                                       unexpected_compare.hpp
 *
 * unexpected comparison header:
 *   Provides operator== for two unexpected<E1> / unexpected<E2> wrappers.
-* C++20 standard synthesises operator!= from this; restd ships it
+* C++20 standard synthesises operator!= from this; re_std ships it
 * explicitly on every tier so C++11–C++17 code can rely on it.
 *
 *   ELEMENT-TYPE REQUIREMENT:
@@ -17,8 +17,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UNEXPECTED_COMPARE_
-#define DJINTERP_RESTD_UNEXPECTED_COMPARE_ 1
+#ifndef DJINTERP_RE_STD_UNEXPECTED_COMPARE_
+#define DJINTERP_RE_STD_UNEXPECTED_COMPARE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -80,10 +80,10 @@ operator!=(
 #endif  // !C++20
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_UNEXPECTED_COMPARE_
+#endif  // DJINTERP_RE_STD_UNEXPECTED_COMPARE_

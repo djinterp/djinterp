@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                        accumulate.hpp
+* re_std                                                       accumulate.hpp
 *
 * accumulate(_first, _last, _init [, _op]) folds [_first, _last) into
 * the accumulator _init via _op (default: operator+). Strict left-fold
@@ -12,23 +12,23 @@
 * in iteration order. reduce() may reorder evaluations and so requires
 * an associative-and-commutative op.
 *
-* added in std C++98; constexpr in C++20. restd back-ports the
+* added in std C++98; constexpr in C++20. re_std back-ports the
 * constexpr to C++14+ on every tier.
 *
 *
 * path:      /inc/djinterp/re_std/numeric/accumulate.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_ACCUMULATE_
-#define RESTD_NUMERIC_ACCUMULATE_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_ACCUMULATE_
+#define DJINTERP_RE_STD_NUMERIC_ACCUMULATE_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include "restd/utility/move.hpp"
+    #include "re_std/utility/move.hpp"
 #endif
 
 
@@ -41,7 +41,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Default-op (operator+) overload.
@@ -58,7 +58,7 @@ D_CONSTEXPR_CPP14 _T accumulate
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
             // Move the running total through each step so user-defined
             // _T types with non-trivial copy can move-fold.
-            _init = restd::move(_init) + *_first;
+            _init = re_std::move(_init) + *_first;
         #else
             _init = _init + *_first;
         #endif
@@ -79,7 +79,7 @@ D_CONSTEXPR_CPP14 _T accumulate
     for (; _first != _last; ++_first)
     {
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            _init = _op(restd::move(_init), *_first);
+            _init = _op(re_std::move(_init), *_first);
         #else
             _init = _op(_init, *_first);
         #endif
@@ -88,6 +88,6 @@ D_CONSTEXPR_CPP14 _T accumulate
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_NUMERIC_ACCUMULATE_
+#endif  // DJINTERP_RE_STD_NUMERIC_ACCUMULATE_

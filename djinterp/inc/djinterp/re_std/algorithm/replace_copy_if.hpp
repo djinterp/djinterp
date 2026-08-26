@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                           replace_copy_if.hpp
+* djinterp [re_std]                                          replace_copy_if.hpp
 *
 * replace_copy_if algorithm header:
 *   Out-of-place sibling of replace_if. Copies elements from
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::replace_copy_if is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/replace_copy_if.hpp
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_REPLACE_COPY_IF_
-#define DJINTERP_RESTD_ALGORITHM_REPLACE_COPY_IF_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_REPLACE_COPY_IF_
+#define DJINTERP_RE_STD_ALGORITHM_REPLACE_COPY_IF_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -76,7 +76,7 @@ replace_copy_if(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_REPLACE_COPY_IF_
+#endif  // DJINTERP_RE_STD_ALGORITHM_REPLACE_COPY_IF_

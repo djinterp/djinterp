@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                       partial_sum.hpp
+* re_std                                                      partial_sum.hpp
 *
 * partial_sum(_first, _last, _d_first [, _op]) writes the running fold
 * (default: operator+) of [_first, _last) into _d_first:
@@ -17,18 +17,18 @@
 *
 * path:      /inc/djinterp/re_std/numeric/partial_sum.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_PARTIAL_SUM_
-#define RESTD_NUMERIC_PARTIAL_SUM_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_PARTIAL_SUM_
+#define DJINTERP_RE_STD_NUMERIC_PARTIAL_SUM_ 1
 
 #include "djinterp.hpp"
 
-#include "restd/iterator/iterator_traits.hpp"
+#include "re_std/iterator/iterator_traits.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include "restd/utility/move.hpp"
+    #include "re_std/utility/move.hpp"
 #endif
 
 
@@ -41,7 +41,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Default-op overload (operator+).
@@ -61,7 +61,7 @@ D_CONSTEXPR_CPP14 _OutputIt partial_sum
     for (++_first, (void)++_d_first; _first != _last; ++_first, (void)++_d_first)
     {
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            _acc = restd::move(_acc) + *_first;
+            _acc = re_std::move(_acc) + *_first;
         #else
             _acc = _acc + *_first;
         #endif
@@ -88,7 +88,7 @@ D_CONSTEXPR_CPP14 _OutputIt partial_sum
     for (++_first, (void)++_d_first; _first != _last; ++_first, (void)++_d_first)
     {
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            _acc = _op(restd::move(_acc), *_first);
+            _acc = _op(re_std::move(_acc), *_first);
         #else
             _acc = _op(_acc, *_first);
         #endif
@@ -98,6 +98,6 @@ D_CONSTEXPR_CPP14 _OutputIt partial_sum
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_NUMERIC_PARTIAL_SUM_
+#endif  // DJINTERP_RE_STD_NUMERIC_PARTIAL_SUM_

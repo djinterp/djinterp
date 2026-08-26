@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             single_view.hpp
+* djinterp [re_std]                                            single_view.hpp
 *
 * single_view header:
 *   Provides the C++20 single-element view. single_view<T> wraps one
@@ -12,7 +12,7 @@
 *   - Stores the wrapped value by direct member rather than the C++20
 *     'movable-box' wrapper. The movable-box exists to satisfy the
 *     C++20 'movable' requirement on view types that may contain
-*     non-default-constructible objects; restd's view trait already
+*     non-default-constructible objects; re_std's view trait already
 *     simplifies the movable/default-init checks, so the direct-
 *     storage form is consistent with the rest of the back-port.
 *   - Does NOT specialise enable_borrowed_range — single_view owns
@@ -20,7 +20,7 @@
 *     single_view would be a use-after-free.
 *
 *   COLOCATED:
-*   restd::views::single(t) — function template returning
+*   re_std::views::single(t) — function template returning
 * single_view<decay_t<T>>{static_cast<T&&>(t)}. Mirrors C++20
 * std::views::single as a constructor function.
 *
@@ -30,8 +30,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_SINGLE_VIEW_
-#define DJINTERP_RESTD_RANGES_SINGLE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_SINGLE_VIEW_
+#define DJINTERP_RE_STD_RANGES_SINGLE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -92,7 +92,7 @@ public:
 
 
     // begin / end / data — pointer pair to the held value.
-    D_CONSTEXPR _Type*
+    D_CONSTEXPR_CPP14 _Type*
     begin()
     D_NOEXCEPT
     {
@@ -106,7 +106,7 @@ public:
         return &m_value;
     }
 
-    D_CONSTEXPR _Type*
+    D_CONSTEXPR_CPP14 _Type*
     end()
     D_NOEXCEPT
     {
@@ -120,7 +120,7 @@ public:
         return (&m_value) + 1;
     }
 
-    D_CONSTEXPR _Type*
+    D_CONSTEXPR_CPP14 _Type*
     data()
     D_NOEXCEPT
     {
@@ -179,10 +179,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_SINGLE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_SINGLE_VIEW_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                        is_unbounded_array.hpp
+* djinterp [re_std]                                       is_unbounded_array.hpp
 *
 * is_unbounded_array trait header:
 *   is_unbounded_array<T>::value is true iff T is an array type of UNKNOWN
@@ -10,13 +10,13 @@
 *   C++11 baseline.  The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_unbounded_array.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_unbounded_array.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_UNBOUNDED_ARRAY_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_UNBOUNDED_ARRAY_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_UNBOUNDED_ARRAY_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_UNBOUNDED_ARRAY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -58,7 +58,7 @@ D_CONSTEXPR bool is_unbounded_array_v = is_unbounded_array<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_UNBOUNDED_ARRAY_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_UNBOUNDED_ARRAY_

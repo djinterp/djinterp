@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                  transform_reduce.hpp
+* re_std                                                 transform_reduce.hpp
 *
 * generalisation of reduce that fuses a transformation step:
 *
@@ -13,25 +13,25 @@
 *       == reduce(transform([first..last), unary_op), init, reduce_op)
 *
 * like reduce(), the reduce_op is required to be associative AND
-* commutative; restd's implementation is currently serial.
+* commutative; re_std's implementation is currently serial.
 *
 * added in std C++17.
 *
 *
 * path:      /inc/djinterp/re_std/numeric/transform_reduce.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_TRANSFORM_REDUCE_
-#define RESTD_NUMERIC_TRANSFORM_REDUCE_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_TRANSFORM_REDUCE_
+#define DJINTERP_RE_STD_NUMERIC_TRANSFORM_REDUCE_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/utility/move.hpp"
+    #include "re_std/utility/move.hpp"
 
 
 #ifndef D_CONSTEXPR_CPP14
@@ -43,7 +43,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Two-range, custom ops.
@@ -61,7 +61,7 @@ D_CONSTEXPR_CPP14 _T transform_reduce
 {
     for (; _first1 != _last1; ++_first1, (void)++_first2)
     {
-        _init = _reduce(restd::move(_init),
+        _init = _reduce(re_std::move(_init),
                         _transform(*_first1, *_first2));
     }
     return _init;
@@ -79,7 +79,7 @@ D_CONSTEXPR_CPP14 _T transform_reduce
 {
     for (; _first1 != _last1; ++_first1, (void)++_first2)
     {
-        _init = restd::move(_init) + (*_first1 * *_first2);
+        _init = re_std::move(_init) + (*_first1 * *_first2);
     }
     return _init;
 }
@@ -98,14 +98,14 @@ D_CONSTEXPR_CPP14 _T transform_reduce
 {
     for (; _first != _last; ++_first)
     {
-        _init = _reduce(restd::move(_init), _transform(*_first));
+        _init = _reduce(re_std::move(_init), _transform(*_first));
     }
     return _init;
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_NUMERIC_TRANSFORM_REDUCE_
+#endif  // DJINTERP_RE_STD_NUMERIC_TRANSFORM_REDUCE_

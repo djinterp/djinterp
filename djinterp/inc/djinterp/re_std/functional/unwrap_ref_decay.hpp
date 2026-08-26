@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              unwrap_ref_decay.hpp
+* re_std                                             unwrap_ref_decay.hpp
 *
 * trait: composition of `decay` and `unwrap_reference`.
 *   First decays `_Type` (strips refs / cv / array-to-pointer / function-
@@ -11,20 +11,20 @@
 *
 * path:      /inc/djinterp/re_std/functional/unwrap_ref_decay.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_UNWRAP_REF_DECAY_
-#define RESTD_FUNCTIONAL_UNWRAP_REF_DECAY_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_UNWRAP_REF_DECAY_
+#define DJINTERP_RE_STD_FUNCTIONAL_UNWRAP_REF_DECAY_ 1
 
 #include "djinterp.hpp"
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#include "restd/type_traits/type_traits.hpp"
-#include "restd/functional/unwrap_reference.hpp"
+#include "re_std/type_traits/type_traits.hpp"
+#include "re_std/functional/unwrap_reference.hpp"
 
-namespace restd
+namespace re_std
 {
 
 // unwrap_ref_decay
@@ -41,8 +41,8 @@ using unwrap_ref_decay_t = typename unwrap_ref_decay<_Type>::type;
 
 #endif
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif // RESTD_FUNCTIONAL_UNWRAP_REF_DECAY_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_UNWRAP_REF_DECAY_

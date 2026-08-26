@@ -1,17 +1,17 @@
 /******************************************************************************
-* djinterp [restd]                                          ranges_access.hpp
+* djinterp [re_std]                                         ranges_access.hpp
 *
 * ranges access CPO header:
 *   Provides the C++20 ranges::begin / end / cbegin / cend / rbegin /
 * rend / crbegin / crend / size / ssize / empty / data / cdata
 * customisation point objects (niebloids). All 13 live in the
-* nested namespace restd::ranges:: to avoid colliding with the
-* existing flat-namespace restd::begin et al. ordinary-template
+* nested namespace re_std::ranges:: to avoid colliding with the
+* existing flat-namespace re_std::begin et al. ordinary-template
 * overloads shipped in <iterator>.
 *
 *   FILE ORGANISATION:
 *   This is a single-file batch for all 13 CPOs — a deliberate
-* deviation from restd's usual one-file-per-symbol convention. The
+* deviation from re_std's usual one-file-per-symbol convention. The
 * CPOs share design heavily (priority-based dispatch with poison-
 * pill ADL discovery) and the cross-references between them (cbegin
 * uses begin; ssize uses size; empty uses size and begin/end; data
@@ -42,8 +42,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGES_ACCESS_
-#define DJINTERP_RESTD_RANGES_RANGES_ACCESS_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGES_ACCESS_
+#define DJINTERP_RE_STD_RANGES_RANGES_ACCESS_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -424,7 +424,7 @@ namespace _data_fn
     }
 
     // priority<1>: address of *begin (contiguous range fallback).
-    // Strictly speaking C++20 uses to_address; for restd this works
+    // Strictly speaking C++20 uses to_address; for re_std this works
     // when begin yields a pointer or pointer-like iterator.
     template<typename _R>
     D_CONSTEXPR_INLINE
@@ -790,10 +790,10 @@ static D_CONSTEXPR _cdata_fn::fn cdata = _cdata_fn::fn();
 }  // namespace ranges
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGES_ACCESS_
+#endif  // DJINTERP_RE_STD_RANGES_RANGES_ACCESS_

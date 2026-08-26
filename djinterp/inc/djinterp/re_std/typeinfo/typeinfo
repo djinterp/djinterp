@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [restd]                                                    typeinfo
+* djinterp [re_std]                                                   typeinfo
 *
 * typeinfo umbrella header:
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/restd/typeinfo/. Mirrors the standard <typeinfo> header.
+* /inc/djinterp/re_std/typeinfo/. Mirrors the standard <typeinfo> header.
 * The whole module is a strategic re-export: type_info, bad_cast, and
 * bad_typeid are compiler-and-runtime-provided RTTI types that cannot be
-* reimplemented portably, so restd surfaces the std types in-namespace
+* reimplemented portably, so re_std surfaces the std types in-namespace
 * via identity-preserving using-declarations. This umbrella adds no
 * symbols of its own.
 *
@@ -15,7 +15,7 @@
 * (RTTI availability). On a -fno-rtti build the module expands to
 * nothing. type_info::hash_code() (C++11) and the C++23 constant-
 * evaluation support for type_info comparisons ride along from the std
-* type with no restd involvement.
+* type with no re_std involvement.
 *
 *
 * TABLE OF CONTENTS
@@ -25,13 +25,13 @@
 * III.  bad_typeid
 *
 *
-* path:      /inc/djinterp/restd/typeinfo/typeinfo
+* path:      /inc/djinterp/re_std/typeinfo/typeinfo
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPEINFO_
-#define DJINTERP_RESTD_TYPEINFO_ 1
+#ifndef DJINTERP_RE_STD_TYPEINFO_
+#define DJINTERP_RE_STD_TYPEINFO_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -58,4 +58,4 @@
 #include "./bad_typeid.hpp"
 
 
-#endif  // DJINTERP_RESTD_TYPEINFO_
+#endif  // DJINTERP_RE_STD_TYPEINFO_

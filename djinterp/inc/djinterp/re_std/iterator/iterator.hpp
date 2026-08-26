@@ -28,13 +28,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_ITERATOR_ITERATOR_
-#define RESTD_ITERATOR_ITERATOR_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_ITERATOR_
+#define DJINTERP_RE_STD_ITERATOR_ITERATOR_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "../type_traits/type_traits.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // iterator
@@ -54,6 +53,5 @@ struct iterator
 };
 
 NS_END
-NS_END
 
-#endif  // RESTD_ITERATOR_ITERATOR_
+#endif  // DJINTERP_RE_STD_ITERATOR_ITERATOR_

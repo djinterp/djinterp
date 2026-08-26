@@ -20,12 +20,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_ITERATOR_DEFAULT_SENTINEL_
-#define RESTD_ITERATOR_DEFAULT_SENTINEL_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_DEFAULT_SENTINEL_
+#define DJINTERP_RE_STD_ITERATOR_DEFAULT_SENTINEL_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // default_sentinel_t
@@ -37,6 +36,5 @@ struct default_sentinel_t {};
 D_INLINE_VAR D_CONSTEXPR default_sentinel_t default_sentinel = default_sentinel_t();
 
 NS_END
-NS_END
 
-#endif  // RESTD_ITERATOR_DEFAULT_SENTINEL_
+#endif  // DJINTERP_RE_STD_ITERATOR_DEFAULT_SENTINEL_

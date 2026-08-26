@@ -24,11 +24,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_BIND_FRONT_
-#define RESTD_FUNCTIONAL_BIND_FRONT_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_BIND_FRONT_
+#define DJINTERP_RE_STD_FUNCTIONAL_BIND_FRONT_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -37,7 +37,6 @@
 #include "../tuple/tuple.hpp"
 #include "./invoke.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 NS_INTERNAL
@@ -103,8 +102,6 @@ bind_front(_Func&& func, _Bound&&... bound)
 }
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_FUNCTIONAL_BIND_FRONT_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_BIND_FRONT_

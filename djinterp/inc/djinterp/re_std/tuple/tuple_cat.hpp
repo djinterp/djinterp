@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              tuple_cat.hpp
+* djinterp [re_std]                                             tuple_cat.hpp
 *
 * tuple_cat factory header:
 *   Concatenates any number of tuple-like objects into a single tuple
@@ -11,8 +11,9 @@
 *       -> tuple<int, char, double, const char*>
 *
 *   IMPLEMENTATION:
-*   Uses an internal index_sequence machinery (private to this header
-* to avoid polluting restd:: with utilities that std puts in <utility>).
+*   Uses re_std::index_sequence / make_index_sequence from <utility>,
+* shared with apply, to_array and make_from_tuple rather than kept
+* private to this header.
 * The recursive cat reduces the variadic input to two tuples at a
 * time and dispatches to a make_from_indices that gathers all
 * elements into a single new tuple.
@@ -26,8 +27,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_CAT_
-#define DJINTERP_RESTD_TUPLE_TUPLE_CAT_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_CAT_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_CAT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -41,6 +42,8 @@
 #include <cstddef>
 // djinterp
 #include "./tuple.hpp"
+#include "../utility/integer_sequence.hpp"
+#include "../utility/make_integer_sequence.hpp"
 #include "./tuple_size.hpp"
 #include "./tuple_element.hpp"
 #include "./tuple_get.hpp"
@@ -52,28 +55,17 @@ NS_RESTD
 
 
 // =============================================================================
-// I.   INTERNAL: index_sequence
+// I.   INTERNAL HELPERS
 // =============================================================================
-// A small index_sequence implementation private to tuple_cat. When
-// restd::utility lands with the public version, this will switch to
-// re-using that.
+// The private index_seq / make_index_seq pair that used to live here has
+// been retired in favour of re_std::index_sequence and
+// re_std::make_index_sequence from <utility> (completed 2026-08-25).
+// The public versions are linear-depth rather than the O(N) recursion
+// this header carried, and sharing them means apply, to_array, make_from_tuple
+// and tuple_cat all instantiate the SAME specialisations instead of four
+// mutually incompatible copies.
 
 NS_INTERNAL
-
-    template<std::size_t... _Is>
-    struct index_seq {};
-
-    template<std::size_t _N,
-             std::size_t... _Is>
-    struct make_index_seq
-        : make_index_seq<_N - 1, _N - 1, _Is...>
-    {};
-
-    template<std::size_t... _Is>
-    struct make_index_seq<0, _Is...>
-    {
-        typedef index_seq<_Is...> type;
-    };
 
 
     // build_indexed_tuple
@@ -86,7 +78,7 @@ NS_INTERNAL
               typename remove_reference<_Tup>::type>::type...>
     build_indexed_tuple(
         _Tup&&         _t,
-        index_seq<_Is...>
+        re_std::index_sequence<_Is...>
     )
     {
         return tuple<typename tuple_element<_Is,
@@ -112,8 +104,8 @@ NS_INTERNAL
     tuple_cat_impl_2(
         _A&&             _a,
         _B&&             _b,
-        index_seq<_IA...>,
-        index_seq<_IB...>)
+        re_std::index_sequence<_IA...>,
+        re_std::index_sequence<_IB...>)
     {
         return tuple<
             typename tuple_element<_IA,
@@ -152,15 +144,15 @@ tuple_cat(
     -> decltype(
         internal::build_indexed_tuple(
             static_cast<_A&&>(_a),
-            typename internal::make_index_seq<
+            re_std::make_index_sequence<
                 tuple_size<typename remove_reference<_A>::type>::value
-            >::type()))
+            >()))
 {
     return internal::build_indexed_tuple(
         static_cast<_A&&>(_a),
-        typename internal::make_index_seq<
+        re_std::make_index_sequence<
             tuple_size<typename remove_reference<_A>::type>::value
-        >::type());
+        >());
 }
 
 // tuple_cat(t, u)
@@ -177,53 +169,69 @@ tuple_cat(
         internal::tuple_cat_impl_2(
             static_cast<_A&&>(_a),
             static_cast<_B&&>(_b),
-            typename internal::make_index_seq<
+            re_std::make_index_sequence<
                 tuple_size<typename remove_reference<_A>::type>::value
-            >::type(),
-            typename internal::make_index_seq<
+            >(),
+            re_std::make_index_sequence<
                 tuple_size<typename remove_reference<_B>::type>::value
-            >::type()))
+            >()))
 {
     return internal::tuple_cat_impl_2(
         static_cast<_A&&>(_a),
         static_cast<_B&&>(_b),
-        typename internal::make_index_seq<
+        re_std::make_index_sequence<
             tuple_size<typename remove_reference<_A>::type>::value
-        >::type(),
-        typename internal::make_index_seq<
+        >(),
+        re_std::make_index_sequence<
             tuple_size<typename remove_reference<_B>::type>::value
-        >::type());
+        >());
 }
 
-// tuple_cat(a, b, rest...)
-//   function: N-argument case (N > 2): pair-wise reduction.
+// tuple_cat(a, b, c, rest...)
+//   function: N-argument case (N >= 3): pair-wise reduction.
+//
+//   Spelled with an explicit THIRD parameter rather than as
+// (a, b, rest...) with a variadic tail. That earlier shape was also a
+// viable candidate for a TWO-argument call, so the inner
+// `tuple_cat(tuple_cat(a,b))` in its own trailing return type
+// re-selected this same template, re-instantiated its own return type,
+// and recursed until the compiler hit its instantiation-depth limit.
+// Requiring a third named argument removes it from the two-argument
+// overload set entirely, so the reduction terminates on the 2-arg
+// overload above. A structural fix rather than an enable_if, because
+// the trailing return type is what recurses -- an enable_if in the
+// return type would still have to name tuple_cat to compute it.
 template<typename    _A,
          typename    _B,
+         typename    _C,
          typename... _Rest>
 D_CONSTEXPR
 auto
 tuple_cat(
     _A&&        _a,
     _B&&        _b,
+    _C&&        _c,
     _Rest&&...  _rest
 )
     -> decltype(
         tuple_cat(
             tuple_cat(static_cast<_A&&>(_a),
                       static_cast<_B&&>(_b)),
+            static_cast<_C&&>(_c),
             static_cast<_Rest&&>(_rest)...))
 {
     return tuple_cat(
         tuple_cat(static_cast<_A&&>(_a),
                   static_cast<_B&&>(_b)),
+        static_cast<_C&&>(_c),
         static_cast<_Rest&&>(_rest)...);
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_CAT_
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_CAT_

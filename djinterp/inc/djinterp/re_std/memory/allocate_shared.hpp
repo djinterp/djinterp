@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                allocate_shared.hpp
+* re_std                                               allocate_shared.hpp
 *
 * allocator-aware single-allocation factory for shared_ptr.
 *
@@ -20,11 +20,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/allocate_shared.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ALLOCATE_SHARED_
-#define RESTD_MEMORY_ALLOCATE_SHARED_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_
+#define DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_ 1
 
 #include "djinterp.hpp"
 
@@ -34,19 +34,19 @@
     #include <cstddef>
     #include <new>
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/memory/allocator_traits.hpp"
-    #include "restd/memory/internal/sp_control_block.hpp"
-    #include "restd/memory/make_shared.hpp"           // for array_extent
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_array.hpp"
-    #include "restd/type_traits/is_bounded_array.hpp"
-    #include "restd/type_traits/is_unbounded_array.hpp"
-    #include "restd/type_traits/remove_extent.hpp"
-    #include "restd/utility/forward.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/memory/allocator_traits.hpp"
+    #include "re_std/memory/sp_control_block.hpp"
+    #include "re_std/memory/make_shared.hpp"           // for array_extent
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_array.hpp"
+    #include "re_std/type_traits/is_bounded_array.hpp"
+    #include "re_std/type_traits/is_unbounded_array.hpp"
+    #include "re_std/type_traits/remove_extent.hpp"
+    #include "re_std/utility/forward.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // ---------------------------------------------------------------------
@@ -72,7 +72,7 @@ allocate_shared(const _Alloc& _alloc, _Args&&... _args)
         try
         {
             cb_traits::construct(_a_cb, _cb, _alloc,
-                                 restd::forward<_Args>(_args)...);
+                                 re_std::forward<_Args>(_args)...);
         }
         catch (...)
         {
@@ -81,7 +81,7 @@ allocate_shared(const _Alloc& _alloc, _Args&&... _args)
         }
     #else
         cb_traits::construct(_a_cb, _cb, _alloc,
-                             restd::forward<_Args>(_args)...);
+                             re_std::forward<_Args>(_args)...);
     #endif
 
     return shared_ptr<_T>::_sp_internal_from_cb(_cb->get(), _cb);
@@ -304,8 +304,8 @@ allocate_shared(const _Alloc& _alloc,
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_ALLOCATE_SHARED_
+#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_

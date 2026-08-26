@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              is_heap_until.hpp
+* djinterp [re_std]                                             is_heap_until.hpp
 *
 * is_heap_until algorithm header:
 *   Returns the largest prefix iterator end such that [_first, end) is
@@ -9,8 +9,8 @@
 * strictly greater than its parent).
 *
 *   PORTABILITY:
-*   - std::is_heap_until is C++11; restd back-ports to C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - std::is_heap_until is C++11; re_std back-ports to C++98.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Requires RandomAccessIterator.
 *   - Two overloads: default operator< and custom comparator.
 *
@@ -20,12 +20,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_IS_HEAP_UNTIL_
-#define DJINTERP_RESTD_ALGORITHM_IS_HEAP_UNTIL_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_IS_HEAP_UNTIL_
+#define DJINTERP_RE_STD_ALGORITHM_IS_HEAP_UNTIL_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 
 
@@ -105,7 +105,7 @@ is_heap_until(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_IS_HEAP_UNTIL_
+#endif  // DJINTERP_RE_STD_ALGORITHM_IS_HEAP_UNTIL_

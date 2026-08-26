@@ -1,24 +1,24 @@
 /***********************************************************************
-* restd                                                        negate.hpp
+* re_std                                                       negate.hpp
 *
 * function object: arithmetic negation (unary -).
 *
 *
 * path:      /inc/djinterp/re_std/functional/negate.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_NEGATE_
-#define RESTD_FUNCTIONAL_NEGATE_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_NEGATE_
+#define DJINTERP_RE_STD_FUNCTIONAL_NEGATE_ 1
 
 #include "djinterp.hpp"
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-    #include "restd/utility/forward.hpp"
+    #include "re_std/utility/forward.hpp"
 #endif
 
-namespace restd
+namespace re_std
 {
 
 // negate
@@ -58,14 +58,14 @@ struct negate<void>
     D_CONSTEXPR auto
     operator()(
         _T&& _x
-    ) const -> decltype(-restd::forward<_T>(_x))
+    ) const -> decltype(-re_std::forward<_T>(_x))
     {
-        return -restd::forward<_T>(_x);
+        return -re_std::forward<_T>(_x);
     }
 };
 
 #endif // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
-} // namespace restd
+} // namespace re_std
 
-#endif // RESTD_FUNCTIONAL_NEGATE_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_NEGATE_

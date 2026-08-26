@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             binary_search.hpp
+* djinterp [re_std]                                            binary_search.hpp
 *
 * binary_search algorithm header:
 *   Returns true if _value occurs in the sorted/partitioned range
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::binary_search is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Two overloads: default operator< and custom comparator.
 *
 *
@@ -18,12 +18,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_BINARY_SEARCH_
-#define DJINTERP_RESTD_ALGORITHM_BINARY_SEARCH_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_BINARY_SEARCH_
+#define DJINTERP_RE_STD_ALGORITHM_BINARY_SEARCH_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./lower_bound.hpp"
 
 
@@ -60,7 +60,7 @@ binary_search(
     const _Type& _value
 )
 {
-    _first = restd::lower_bound(_first, _last, _value);
+    _first = re_std::lower_bound(_first, _last, _value);
     return (_first != _last) && !(_value < *_first);
 }
 
@@ -82,12 +82,12 @@ binary_search(
     _Compare     _comp
 )
 {
-    _first = restd::lower_bound(_first, _last, _value, _comp);
+    _first = re_std::lower_bound(_first, _last, _value, _comp);
     return (_first != _last) && !_comp(_value, *_first);
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_BINARY_SEARCH_
+#endif  // DJINTERP_RE_STD_ALGORITHM_BINARY_SEARCH_

@@ -1,16 +1,16 @@
 /******************************************************************************
-* djinterp [restd]                                                 bad_cast.hpp
+* djinterp [re_std]                                                bad_cast.hpp
 *
 * bad_cast exception header:
-*   Surfaces restd::bad_cast as a using-declaration for std::bad_cast —
+*   Surfaces re_std::bad_cast as a using-declaration for std::bad_cast —
 * the exception thrown when a reference dynamic_cast fails. It is
 * runtime-provided (the dynamic_cast machinery throws it directly), so
-* restd re-exports rather than reimplements. Type identity is preserved:
-* restd::bad_cast IS std::bad_cast, so a catch on either spelling catches
+* re_std re-exports rather than reimplements. Type identity is preserved:
+* re_std::bad_cast IS std::bad_cast, so a catch on either spelling catches
 * a throw of the other, and the exception thrown by a language-level
-* dynamic_cast is caught by catch (const restd::bad_cast&).
+* dynamic_cast is caught by catch (const re_std::bad_cast&).
 *
-*   This is the canonical base that restd's own bad_*_access exceptions
+*   This is the canonical base that re_std's own bad_*_access exceptions
 * (bad_any_cast, bad_expected_access, bad_variant_access) inherit from on
 * their Tier-1 (typeinfo-available) path.
 *
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPEINFO_BAD_CAST_
-#define DJINTERP_RESTD_TYPEINFO_BAD_CAST_ 1
+#ifndef DJINTERP_RE_STD_TYPEINFO_BAD_CAST_
+#define DJINTERP_RE_STD_TYPEINFO_BAD_CAST_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -46,10 +46,10 @@ NS_RESTD
 // implementation-defined message.
 using ::std::bad_cast;
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP98_HAS_TYPEINFO
 
 
-#endif  // DJINTERP_RESTD_TYPEINFO_BAD_CAST_
+#endif  // DJINTERP_RE_STD_TYPEINFO_BAD_CAST_

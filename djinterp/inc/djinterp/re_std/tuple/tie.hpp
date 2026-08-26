@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                       tie.hpp
+* djinterp [re_std]                                                      tie.hpp
 *
 * tie factory header:
 *   Creates a tuple of lvalue references to its arguments. Used
@@ -9,7 +9,7 @@
 *     tie(a, b) = make_tuple(42, 17);
 *     // now a == 42, b == 17
 *
-*   tie can also collaborate with the restd::ignore object to skip
+*   tie can also collaborate with the re_std::ignore object to skip
 * elements:
 *
 *     int a, c;
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TIE_
-#define DJINTERP_RESTD_TUPLE_TIE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TIE_
+#define DJINTERP_RE_STD_TUPLE_TIE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -61,10 +61,10 @@ tie(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TIE_
+#endif  // DJINTERP_RE_STD_TUPLE_TIE_

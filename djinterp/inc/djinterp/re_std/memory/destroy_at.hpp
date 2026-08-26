@@ -1,37 +1,37 @@
 /***********************************************************************
-* restd                                                     destroy_at.hpp
+* re_std                                                    destroy_at.hpp
 *
 * explicit destructor call, normalised to look like a function call:
-*   restd::destroy_at(_p) calls _p->~_T(). For arrays (C++20+),
+*   re_std::destroy_at(_p) calls _p->~_T(). For arrays (C++20+),
 * destroys each element in turn, in undefined order, then unwinds.
 *
 * portability:
-*   restd back-ports the function to C++11+. constexpr from C++20+
+*   re_std back-ports the function to C++11+. constexpr from C++20+
 * (matches std). The array overload is only meaningful when
-* restd::is_array is available and the call expression `_p[i]` is
+* re_std::is_array is available and the call expression `_p[i]` is
 * well-formed for array element access on a pointer-to-array, which
 * requires the C++20 array-overload semantics.
 *
 *
 * path:      /inc/djinterp/re_std/memory/destroy_at.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_DESTROY_AT_
-#define RESTD_MEMORY_DESTROY_AT_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_DESTROY_AT_
+#define DJINTERP_RE_STD_MEMORY_DESTROY_AT_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/addressof.hpp"
-    #include "restd/type_traits/is_array.hpp"
-    #include "restd/type_traits/enable_if.hpp"
+    #include "re_std/memory/addressof.hpp"
+    #include "re_std/type_traits/is_array.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -66,15 +66,15 @@ destroy_at(_T* _p)
     {
         for (auto& _elem : *_p)
         {
-            restd::destroy_at(restd::addressof(_elem));
+            re_std::destroy_at(re_std::addressof(_elem));
         }
     }
 
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_DESTROY_AT_
+#endif  // DJINTERP_RE_STD_MEMORY_DESTROY_AT_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                         lazy_split_view.hpp
+* djinterp [re_std]                                        lazy_split_view.hpp
 *
 * lazy_split_view header:
 *   Provides the C++20 lazy_split_view adaptor. lazy_split_view<V, T>
@@ -37,8 +37,8 @@
 *     to forward (clamped — input iterators allowed too).
 *
 *   COLOCATED:
-*   restd::views::lazy_split(r, delim) — direct form.
-*   restd::views::lazy_split(delim)    — bound form for pipe syntax.
+*   re_std::views::lazy_split(r, delim) — direct form.
+*   re_std::views::lazy_split(delim)    — bound form for pipe syntax.
 *
 *
 * path:      /inc/djinterp/re_std/ranges/lazy_split_view.hpp
@@ -46,8 +46,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_LAZY_SPLIT_VIEW_
-#define DJINTERP_RESTD_RANGES_LAZY_SPLIT_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_LAZY_SPLIT_VIEW_
+#define DJINTERP_RE_STD_RANGES_LAZY_SPLIT_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -517,8 +517,8 @@ public:
     {
         return outer_iterator(
             this,
-            restd::begin(const_cast<_View&>(m_base)),
-            restd::end(const_cast<_View&>(m_base))
+            re_std::begin(const_cast<_View&>(m_base)),
+            re_std::end(const_cast<_View&>(m_base))
         );
     }
 
@@ -611,10 +611,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_LAZY_SPLIT_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_LAZY_SPLIT_VIEW_

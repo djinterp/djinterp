@@ -1,11 +1,11 @@
 /******************************************************************************
-* djinterp [restd]                                                 strong_order.hpp
+* djinterp [re_std]                                                strong_order.hpp
 *
 * strong_order customisation point object header:
 *   Per [cmp.alg]: a niebloid that produces a strong_ordering result
 * for the inputs. Dispatch hierarchy (from most-specific to least):
 *
-*     (a) Floating-point special case — NOT YET SHIPPED in restd
+*     (a) Floating-point special case — NOT YET SHIPPED in re_std
 *         (see PORTABILITY below).
 *     (b) ADL strong_order(t, u) returning a value that constructs
 *         strong_ordering.
@@ -14,13 +14,13 @@
 *
 *   The std-mandated FP special case yields a strong_ordering result
 * even for floating-point inputs that compare unordered (NaN), by
-* imposing a deterministic total order on the bit-pattern. Restd
+* imposing a deterministic total order on the bit-pattern. Re_std
 * defers this to a future C5 phase — currently FP inputs route through
 * path (c), which returns the partial_ordering from built-in <=>;
 * that partial_ordering will fail the implicit conversion to
 * strong_ordering when the value is `unordered`, surfacing as a
 * compile error or runtime mismatch. Users wanting FP strong_order
-* on restd should guard against NaN inputs themselves.
+* on re_std should guard against NaN inputs themselves.
 *
 *   IMPLEMENTATION:
 *   Mirrors the priority<N> + ADL-poison-pill pattern used by the
@@ -38,8 +38,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_STRONG_ORDER_
-#define DJINTERP_RESTD_COMPARE_STRONG_ORDER_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_STRONG_ORDER_
+#define DJINTERP_RE_STD_COMPARE_STRONG_ORDER_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -153,10 +153,10 @@ namespace _strong_order_cpo_obj
 inline constexpr _strong_order_cpo_obj::strong_order_fn strong_order = {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_STRONG_ORDER_
+#endif  // DJINTERP_RE_STD_COMPARE_STRONG_ORDER_

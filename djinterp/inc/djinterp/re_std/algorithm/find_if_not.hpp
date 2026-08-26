@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               find_if_not.hpp
+* djinterp [re_std]                                              find_if_not.hpp
 *
 * find_if_not algorithm header:
 *   Linear search for the first element in [_first, _last) for which
@@ -7,9 +7,9 @@
 * _last on no-match.
 *
 *   PORTABILITY:
-*   - std::find_if_not is C++11; restd back-ports to C++98 (pure
+*   - std::find_if_not is C++11; re_std back-ports to C++98 (pure
 *     predicate negation; no language blocker).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/find_if_not.hpp
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FIND_IF_NOT_
-#define DJINTERP_RESTD_ALGORITHM_FIND_IF_NOT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_IF_NOT_
+#define DJINTERP_RE_STD_ALGORITHM_FIND_IF_NOT_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -67,7 +67,7 @@ find_if_not(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FIND_IF_NOT_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_IF_NOT_

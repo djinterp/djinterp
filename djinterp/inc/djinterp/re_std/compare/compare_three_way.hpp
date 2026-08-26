@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          compare_three_way.hpp
+* djinterp [re_std]                                         compare_three_way.hpp
 *
 * compare_three_way function object header:
 *   Per [cmp.object]: a stateless function object whose call operator
@@ -26,8 +26,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_COMPARE_THREE_WAY_
-#define DJINTERP_RESTD_COMPARE_COMPARE_THREE_WAY_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_
+#define DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -71,10 +71,10 @@ struct compare_three_way
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_COMPARE_THREE_WAY_
+#endif  // DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_

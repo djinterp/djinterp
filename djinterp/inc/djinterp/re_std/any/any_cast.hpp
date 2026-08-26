@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                                any_cast.hpp
+* djinterp [re_std]                                               any_cast.hpp
 *
 * any_cast header:
-*   Provides type-safe access to the value stored in a restd::any.
+*   Provides type-safe access to the value stored in a re_std::any.
 * Five overloads mirror the C++17 std::any_cast interface:
 *   - any_cast<T>(any*)        -> T*         (nullptr on mismatch)
 *   - any_cast<T>(const any*)  -> const T*   (nullptr on mismatch)
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ANY_CAST_
-#define DJINTERP_RESTD_ANY_CAST_ 1
+#ifndef DJINTERP_RE_STD_ANY_CAST_
+#define DJINTERP_RE_STD_ANY_CAST_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -205,7 +205,7 @@ any_cast(
 #endif  // exception availability
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ANY_CAST_
+#endif  // DJINTERP_RE_STD_ANY_CAST_

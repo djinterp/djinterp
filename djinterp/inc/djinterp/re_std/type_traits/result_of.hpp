@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                result_of.hpp
+* djinterp [re_std]                                               result_of.hpp
 *
 * result_of trait:
 *   The function-call-syntax variant of invoke_result. result_of<F(Args...)>
@@ -8,7 +8,7 @@
 *
 *   STANDARD STATUS:
 *   Introduced in C++11. Deprecated in C++17 in favor of invoke_result.
-* Removed from std in C++20. restd provides it on all C++11+ tiers per
+* Removed from std in C++20. re_std provides it on all C++11+ tiers per
 * the project's "available where the language permits" policy: code
 * targeting C++11/14 may still use it, and porting code that already
 * uses result_of should not be blocked by the std deprecation. When
@@ -38,8 +38,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_RESULT_OF_
-#define DJINTERP_RESTD_TYPE_TRAITS_RESULT_OF_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_RESULT_OF_
+#define DJINTERP_RE_STD_TYPE_TRAITS_RESULT_OF_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -47,7 +47,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./invoke_result.hpp"
 
 
@@ -79,9 +79,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_RESULT_OF_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_RESULT_OF_

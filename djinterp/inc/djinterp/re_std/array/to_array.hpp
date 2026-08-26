@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                to_array.hpp
+* djinterp [re_std]                                               to_array.hpp
 *
 * to_array factory header:
 *   Provides the two C++20 to_array overloads:
@@ -12,20 +12,20 @@
 * overload) or moving (rvalue overload) each element.
 *
 *   PORTABILITY:
-*   to_array entered the standard in C++20; restd back-ports it to
+*   to_array entered the standard in C++20; re_std back-ports it to
 * C++11 via index_sequence expansion. Requires:
 *   - rvalue references (C++11+)
 *   - variadic templates (C++11+)
-*   - index_sequence + make_index_sequence (C++14+ in std; restd
+*   - index_sequence + make_index_sequence (C++14+ in std; re_std
 *     ships these in <utility> back-ported to C++11)
 *
 *   The implementation is constexpr from C++11 (matching std's C++20
-* introduction-as-constexpr) — restd is ahead of std on tier
+* introduction-as-constexpr) — re_std is ahead of std on tier
 * availability but offers the same constexpr-ness from intro.
 *
 *   MULTIDIMENSIONAL ARRAYS:
 *   _Type may not itself be an array type — to_array on a 2-D array
-* is ill-formed per [array.creation]. restd enforces this via
+* is ill-formed per [array.creation]. re_std enforces this via
 * static_assert.
 *
 *   Uses:
@@ -35,18 +35,18 @@
 *     utility/integer_sequence.hpp - index_sequence machinery
 *
 *
-* path:      /inc/djinterp/restd/array/to_array.hpp
+* path:      /inc/djinterp/re_std/array/to_array.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TO_ARRAY_
-#define DJINTERP_RESTD_TO_ARRAY_ 1
+#ifndef DJINTERP_RE_STD_TO_ARRAY_
+#define DJINTERP_RE_STD_TO_ARRAY_ 1
 
 #include "../../core/djinterp.hpp"
 
 // gate: to_array requires variadic templates + rvalue references +
-// index_sequence — effectively the same set as restd::make_any.
+// index_sequence — effectively the same set as re_std::make_any.
 #if ( D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&                            \
       D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES )
 
@@ -70,13 +70,13 @@ NS_INTERNAL
     template<typename    _Type,
              std::size_t _N,
              std::size_t... _Is>
-    D_CONSTEXPR array<typename restd::remove_cv<_Type>::type, _N>
+    D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
     to_array_lvalue(
         _Type (&_src)[_N],
-        restd::index_sequence<_Is...>
+        re_std::index_sequence<_Is...>
     )
     {
-        return array<typename restd::remove_cv<_Type>::type, _N>{
+        return array<typename re_std::remove_cv<_Type>::type, _N>{
             { _src[_Is]... }
         };
     }
@@ -87,13 +87,13 @@ NS_INTERNAL
     template<typename    _Type,
              std::size_t _N,
              std::size_t... _Is>
-    D_CONSTEXPR array<typename restd::remove_cv<_Type>::type, _N>
+    D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
     to_array_rvalue(
         _Type (&&_src)[_N],
-        restd::index_sequence<_Is...>
+        re_std::index_sequence<_Is...>
     )
     {
-        return array<typename restd::remove_cv<_Type>::type, _N>{
+        return array<typename re_std::remove_cv<_Type>::type, _N>{
             { static_cast<_Type&&>(_src[_Is])... }
         };
     }
@@ -110,18 +110,18 @@ NS_END  // internal
 // C-style array, copying each element.
 template<typename    _Type,
          std::size_t _N>
-D_CONSTEXPR array<typename restd::remove_cv<_Type>::type, _N>
+D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
 to_array(
     _Type (&_src)[_N]
 )
 {
     // multidimensional input forbidden per [array.creation]/p2.
-    static_assert(!restd::is_array<_Type>::value,
-        "restd::to_array: source array element type may not itself be an array");
+    static_assert(!re_std::is_array<_Type>::value,
+        "re_std::to_array: source array element type may not itself be an array");
 
     return internal::to_array_lvalue(
         _src,
-        restd::make_index_sequence<_N>{});
+        re_std::make_index_sequence<_N>{});
 }
 
 
@@ -134,24 +134,24 @@ to_array(
 // C-style array rvalue, moving each element.
 template<typename    _Type,
          std::size_t _N>
-D_CONSTEXPR array<typename restd::remove_cv<_Type>::type, _N>
+D_CONSTEXPR array<typename re_std::remove_cv<_Type>::type, _N>
 to_array(
     _Type (&&_src)[_N]
 )
 {
-    static_assert(!restd::is_array<_Type>::value,
-        "restd::to_array: source array element type may not itself be an array");
+    static_assert(!re_std::is_array<_Type>::value,
+        "re_std::to_array: source array element type may not itself be an array");
 
     return internal::to_array_rvalue(
         static_cast<_Type (&&)[_N]>(_src),
-        restd::make_index_sequence<_N>{});
+        re_std::make_index_sequence<_N>{});
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // VARIADIC_TEMPLATES && RVALUE_REFERENCES
 
 
-#endif  // DJINTERP_RESTD_TO_ARRAY_
+#endif  // DJINTERP_RE_STD_TO_ARRAY_

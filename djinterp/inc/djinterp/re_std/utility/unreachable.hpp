@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                   unreachable.hpp
+* re_std                                                  unreachable.hpp
 *
 * unreachable-code marker:
 *   Marks a code path as logically unreachable. Behaviour if reached
@@ -12,17 +12,17 @@
 * to satisfy [[noreturn]] without invoking UB-on-fall-through.
 *
 *   STANDARD STATUS:
-*   Introduced in C++23. restd back-ports to C++11+ via the existing
+*   Introduced in C++23. re_std back-ports to C++11+ via the existing
 * compiler intrinsics, which all major compilers have shipped for years.
 *
 *
 * path:      /inc/djinterp/re_std/utility/unreachable.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
+* author(s): re_std team                                 date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_UNREACHABLE_
-#define RESTD_UTILITY_UNREACHABLE_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_UNREACHABLE_
+#define DJINTERP_RE_STD_UTILITY_UNREACHABLE_ 1
 
 #include "djinterp.hpp"
 
@@ -55,8 +55,8 @@ NS_RESTD
     #endif
 }
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_UTILITY_UNREACHABLE_
+#endif  // DJINTERP_RE_STD_UTILITY_UNREACHABLE_

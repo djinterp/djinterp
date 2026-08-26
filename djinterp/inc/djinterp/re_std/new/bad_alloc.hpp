@@ -1,14 +1,14 @@
 /******************************************************************************
-* djinterp [restd]                                                  bad_alloc.hpp
+* djinterp [re_std]                                                 bad_alloc.hpp
 *
 * bad_alloc re-export header:
-*   restd::bad_alloc is a using-alias for std::bad_alloc — the
+*   re_std::bad_alloc is a using-alias for std::bad_alloc — the
 * exception thrown by the global operator new when memory allocation
 * fails. The standard library's runtime supplies the actual
-* implementation; restd's role here is namespace-consistency so
-* other restd modules can write
+* implementation; re_std's role here is namespace-consistency so
+* other re_std modules can write
 *
-*     throw restd::bad_alloc();
+*     throw re_std::bad_alloc();
 *
 * rather than crossing namespaces.
 *
@@ -22,8 +22,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_BAD_ALLOC_
-#define DJINTERP_RESTD_BAD_ALLOC_ 1
+#ifndef DJINTERP_RE_STD_BAD_ALLOC_
+#define DJINTERP_RE_STD_BAD_ALLOC_ 1
 
 #include "../../core/djinterp.hpp"
 #include <new>
@@ -37,13 +37,13 @@ NS_RESTD
 // ===========================================================================
 
 // using-declaration; works across all standards. Drags std::bad_alloc
-// into the restd namespace by name without copying or aliasing — the
+// into the re_std namespace by name without copying or aliasing — the
 // type identity is preserved (catch on std::bad_alloc& still catches
-// restd::bad_alloc and vice versa).
+// re_std::bad_alloc and vice versa).
 using std::bad_alloc;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_BAD_ALLOC_
+#endif  // DJINTERP_RE_STD_BAD_ALLOC_

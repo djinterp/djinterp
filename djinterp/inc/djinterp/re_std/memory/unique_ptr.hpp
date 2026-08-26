@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                      unique_ptr.hpp
+* re_std                                                     unique_ptr.hpp
 *
 * exclusive-ownership smart pointer:
 *   unique_ptr<_T, _D>      single object
@@ -11,8 +11,8 @@
 * assignment, or release()+reset() pairs.
 *
 * deleter selection:
-*   _D defaults to restd::default_delete<_T> for the single form and
-*   restd::default_delete<_T[]> for the array form.
+*   _D defaults to re_std::default_delete<_T> for the single form and
+*   re_std::default_delete<_T[]> for the array form.
 *
 * pointer type detection:
 *   pointer = _D::pointer if defined, else _T*. The detection idiom is
@@ -31,18 +31,18 @@
 *   1. NO EMPTY-BASE OPTIMISATION. The deleter is held by value as a
 *      member, not as a private base. sizeof(unique_ptr<T>) is therefore
 *      sizeof(T*) + sizeof(D) + alignment padding, not sizeof(T*) for
-*      stateless deleters. Will be revisited when restd ships a
+*      stateless deleters. Will be revisited when re_std ships a
 *      compressed_pair helper.
 *
 *   2. Comparison operators use raw operator< rather than less<CT>.
 *      Std mandates less<common_type_t<P1,P2>> for total order on
 *      pointers; raw < gives the same result on every flat-memory
-*      architecture in production today. Will be fixed when restd
+*      architecture in production today. Will be fixed when re_std
 *      ships <functional>.
 *
 *   3. operator<=> deferred (needs <compare>).
 *
-*   4. hash<unique_ptr> deferred (needs restd::hash).
+*   4. hash<unique_ptr> deferred (needs re_std::hash).
 *
 *   5. Reference deleters (_D = X&) work for the simple cases but the
 *      full constructor-overload table for reference _D per
@@ -52,11 +52,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/unique_ptr.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_UNIQUE_PTR_
-#define RESTD_MEMORY_UNIQUE_PTR_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_
+#define DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_ 1
 
 #include "djinterp.hpp"
 
@@ -65,21 +65,21 @@
 
     #include <cstddef>  // size_t, ptrdiff_t, nullptr_t
 
-    #include "restd/memory/default_delete.hpp"
-    #include "restd/type_traits/integral_constant.hpp"
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_array.hpp"
-    #include "restd/type_traits/is_convertible.hpp"
-    #include "restd/type_traits/is_reference.hpp"
-    #include "restd/type_traits/is_same.hpp"
-    #include "restd/type_traits/remove_reference.hpp"
-    #include "restd/type_traits/add_lvalue_reference.hpp"
-    #include "restd/type_traits/void_t.hpp"
-    #include "restd/utility/move.hpp"
-    #include "restd/utility/forward.hpp"
+    #include "re_std/memory/default_delete.hpp"
+    #include "re_std/type_traits/integral_constant.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_array.hpp"
+    #include "re_std/type_traits/is_convertible.hpp"
+    #include "re_std/type_traits/is_reference.hpp"
+    #include "re_std/type_traits/is_same.hpp"
+    #include "re_std/type_traits/remove_reference.hpp"
+    #include "re_std/type_traits/add_lvalue_reference.hpp"
+    #include "re_std/type_traits/void_t.hpp"
+    #include "re_std/utility/move.hpp"
+    #include "re_std/utility/forward.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -203,14 +203,14 @@ public:
         typename remove_reference<_D>::type&&    _d
     ) D_NOEXCEPT
         : m_ptr(_p)
-        , m_del(restd::move(_d))
+        , m_del(re_std::move(_d))
     {
     }
 
     // Move ctor.
     unique_ptr(unique_ptr&& _other) D_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(restd::forward<_D>(_other.m_del))
+        , m_del(re_std::forward<_D>(_other.m_del))
     {
     }
 
@@ -246,7 +246,7 @@ public:
     >
     unique_ptr(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(restd::forward<_E>(_other.get_deleter()))
+        , m_del(re_std::forward<_E>(_other.get_deleter()))
     {
     }
 
@@ -269,7 +269,7 @@ public:
     unique_ptr& operator=(unique_ptr&& _other) D_NOEXCEPT
     {
         reset(_other.release());
-        m_del = restd::forward<_D>(_other.m_del);
+        m_del = re_std::forward<_D>(_other.m_del);
         return *this;
     }
 
@@ -287,7 +287,7 @@ public:
     operator=(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
     {
         reset(_other.release());
-        m_del = restd::forward<_E>(_other.get_deleter());
+        m_del = re_std::forward<_E>(_other.get_deleter());
         return *this;
     }
 
@@ -356,16 +356,16 @@ public:
     void swap(unique_ptr& _other) D_NOEXCEPT
     {
         // Manual two-step swap for the pointer; for the deleter we use
-        // restd::swap when it lands. For now this is correct for any
+        // re_std::swap when it lands. For now this is correct for any
         // movable deleter.
         pointer _tmp_p = m_ptr;
         m_ptr = _other.m_ptr;
         _other.m_ptr = _tmp_p;
 
         // Deleter swap via move-construct + move-assign.
-        deleter_type _tmp_d = restd::move(m_del);
-        m_del = restd::move(_other.m_del);
-        _other.m_del = restd::move(_tmp_d);
+        deleter_type _tmp_d = re_std::move(m_del);
+        m_del = re_std::move(_other.m_del);
+        _other.m_del = re_std::move(_tmp_d);
     }
 };
 
@@ -473,13 +473,13 @@ public:
         typename remove_reference<_D>::type&&    _d
     ) D_NOEXCEPT
         : m_ptr(_p)
-        , m_del(restd::move(_d))
+        , m_del(re_std::move(_d))
     {
     }
 
     unique_ptr(unique_ptr&& _other) D_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(restd::forward<_D>(_other.m_del))
+        , m_del(re_std::forward<_D>(_other.m_del))
     {
     }
 
@@ -516,7 +516,7 @@ public:
     >
     unique_ptr(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
         : m_ptr(_other.release())
-        , m_del(restd::forward<_E>(_other.get_deleter()))
+        , m_del(re_std::forward<_E>(_other.get_deleter()))
     {
     }
 
@@ -535,7 +535,7 @@ public:
     unique_ptr& operator=(unique_ptr&& _other) D_NOEXCEPT
     {
         reset(_other.release());
-        m_del = restd::forward<_D>(_other.m_del);
+        m_del = re_std::forward<_D>(_other.m_del);
         return *this;
     }
 
@@ -554,7 +554,7 @@ public:
     operator=(unique_ptr<_U, _E>&& _other) D_NOEXCEPT
     {
         reset(_other.release());
-        m_del = restd::forward<_E>(_other.get_deleter());
+        m_del = re_std::forward<_E>(_other.get_deleter());
         return *this;
     }
 
@@ -639,9 +639,9 @@ public:
         m_ptr = _other.m_ptr;
         _other.m_ptr = _tmp_p;
 
-        deleter_type _tmp_d = restd::move(m_del);
-        m_del = restd::move(_other.m_del);
-        _other.m_del = restd::move(_tmp_d);
+        deleter_type _tmp_d = re_std::move(m_del);
+        m_del = re_std::move(_other.m_del);
+        _other.m_del = re_std::move(_tmp_d);
     }
 };
 
@@ -652,7 +652,7 @@ public:
 //
 // Note: per [unique.ptr.special]/4-9, the relational operators are
 // specified in terms of less<common_type_t<P1,P2>>. We use raw operator<
-// here pending restd::less; this gives the same result on every flat-
+// here pending re_std::less; this gives the same result on every flat-
 // memory architecture in production today.
 
 template<typename _T1, typename _D1, typename _T2, typename _D2>
@@ -841,8 +841,8 @@ inline bool operator>=
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_UNIQUE_PTR_
+#endif  // DJINTERP_RE_STD_MEMORY_UNIQUE_PTR_

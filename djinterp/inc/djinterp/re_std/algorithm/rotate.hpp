@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    rotate.hpp
+* djinterp [re_std]                                                   rotate.hpp
 *
 * rotate algorithm header:
 *   Performs a left rotation on [_first, _last) such that the element
@@ -8,12 +8,12 @@
 * i.e. _first + (_last - _middle).
 *
 *   PORTABILITY:
-*   - std::rotate is C++98 but returned void until C++11. restd ships
+*   - std::rotate is C++98 but returned void until C++11. re_std ships
 *     the C++11 (iterator-returning) signature on every tier.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Algorithm: the forward-iterator-only swap-walk from
 *     [Stepanov & McJones, "Elements of Programming"]. The natural form
-*     is tail-recursive; restd converts to an outer while(true) loop to
+*     is tail-recursive; re_std converts to an outer while(true) loop to
 *     avoid relying on the compiler's TCO.
 *
 *
@@ -22,12 +22,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_ROTATE_
-#define DJINTERP_RESTD_ALGORITHM_ROTATE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_ROTATE_
+#define DJINTERP_RE_STD_ALGORITHM_ROTATE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 
 
@@ -120,7 +120,7 @@ rotate(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_ROTATE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_ROTATE_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                         partial_sort_copy.hpp
+* djinterp [re_std]                                        partial_sort_copy.hpp
 *
 * partial_sort_copy algorithm header:
 *   Copies the smallest min(N, M) elements of [_first, _last) into
@@ -19,7 +19,7 @@
 *
 *   PORTABILITY:
 *   - std::partial_sort_copy is C++98.
-*   - constexpr in std from C++26; restd does NOT lift (mirrors std).
+*   - constexpr in std from C++26; re_std does NOT lift (mirrors std).
 *   - Input may be a forward iterator; output must be random access.
 *   - Two overloads: default operator< and custom comparator.
 *
@@ -34,12 +34,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_PARTIAL_SORT_COPY_
-#define DJINTERP_RESTD_ALGORITHM_PARTIAL_SORT_COPY_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_COPY_
+#define DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_COPY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -161,7 +161,7 @@ partial_sort_copy(
 
 
 // partial_sort_copy (default operator<)
-//   function: as above with restd::less<value_type>().
+//   function: as above with re_std::less<value_type>().
 template<typename _InputIt,
          typename _RandomIt>
 _RandomIt
@@ -174,11 +174,11 @@ partial_sort_copy(
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
     return partial_sort_copy(_first, _last, _d_first, _d_last,
-                             restd::less<_Value>());
+                             re_std::less<_Value>());
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_PARTIAL_SORT_COPY_
+#endif  // DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_COPY_

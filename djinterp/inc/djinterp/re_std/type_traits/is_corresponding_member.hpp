@@ -30,7 +30,7 @@
 *   Member offsets within a common initial sequence are not derivable from the
 * type system, so there is no sound non-trivial subset.  Without the builtin
 * the function exists and returns false unconditionally - never a false
-* positive - and D_RESTD_HAS_IS_CORRESPONDING_MEMBER is 0 so callers can tell.
+* positive - and D_RE_STD_HAS_IS_CORRESPONDING_MEMBER is 0 so callers can tell.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_corresponding_member.hpp
@@ -38,8 +38,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.12
 ******************************************************************************/
 
-#ifndef RESTD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_
-#define RESTD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_ 1
 
 // re_std
 #include "./type_traits.hpp"
@@ -49,38 +49,37 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_IS_CORRESPONDING_MEMBER
+// D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
 //   constant: 1 if the __builtin_is_corresponding_member builtin is
 // available.  Detected independently of the rest of the family for the same
 // reason as its three siblings: vendors shipped these four at different times.
-#ifndef D_RESTD_HAS_IS_CORRESPONDING_MEMBER
+#ifndef D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_is_corresponding_member)
-            #define D_RESTD_HAS_IS_CORRESPONDING_MEMBER  1
+            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
         #endif
     #endif
 
-    #ifndef D_RESTD_HAS_IS_CORRESPONDING_MEMBER
+    #ifndef D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
         #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
               D_ENV_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
-            #define D_RESTD_HAS_IS_CORRESPONDING_MEMBER  1
+            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
         #elif ( defined(D_ENV_COMPILER_MSVC) &&                               \
                 D_ENV_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
-            #define D_RESTD_HAS_IS_CORRESPONDING_MEMBER  1
+            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  1
         #else
-            #define D_RESTD_HAS_IS_CORRESPONDING_MEMBER  0
+            #define D_RE_STD_HAS_IS_CORRESPONDING_MEMBER  0
         #endif
-    #endif  // D_RESTD_HAS_IS_CORRESPONDING_MEMBER (fallback)
-#endif  // D_RESTD_HAS_IS_CORRESPONDING_MEMBER (outer guard)
+    #endif  // D_RE_STD_HAS_IS_CORRESPONDING_MEMBER (fallback)
+#endif  // D_RE_STD_HAS_IS_CORRESPONDING_MEMBER (outer guard)
 
 
-NS_DJINTERP
 NS_RESTD
 
 // is_corresponding_member
 //   function: true if m1 and m2 name members at the same position in the
 // common initial sequence of _StructA and _StructB.
-#if D_RESTD_HAS_IS_CORRESPONDING_MEMBER
+#if D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
 
     template<typename _StructA,
              typename _StructB,
@@ -110,9 +109,7 @@ NS_RESTD
         return false;
     }
 
-#endif  // D_RESTD_HAS_IS_CORRESPONDING_MEMBER
+#endif  // D_RE_STD_HAS_IS_CORRESPONDING_MEMBER
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_CORRESPONDING_MEMBER_

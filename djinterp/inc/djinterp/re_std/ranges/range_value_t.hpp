@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          range_value_t.hpp
+* djinterp [re_std]                                         range_value_t.hpp
 *
 * range_value_t alias template header:
 *   Yields the value type of a range — equivalent to the value_type
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGE_VALUE_T_
-#define DJINTERP_RESTD_RANGES_RANGE_VALUE_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGE_VALUE_T_
+#define DJINTERP_RE_STD_RANGES_RANGE_VALUE_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -38,19 +38,19 @@ NS_RESTD
 // range_value_t
 //   alias: the value type of _Range. Equivalent to
 // iterator_traits<iterator_t<_Range>>::value_type.
-// note: in C++20 std this is iter_value_t<iterator_t<R>>. restd
+// note: in C++20 std this is iter_value_t<iterator_t<R>>. re_std
 // routes through iterator_traits directly because iter_value_t is
-// not yet shipped in restd's <iterator> surface; the result type
+// not yet shipped in re_std's <iterator> surface; the result type
 // is the same.
 template<typename _Range>
 using range_value_t =
     typename iterator_traits<iterator_t<_Range> >::value_type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGE_VALUE_T_
+#endif  // DJINTERP_RE_STD_RANGES_RANGE_VALUE_T_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                   shuffle.hpp
+* djinterp [re_std]                                                  shuffle.hpp
 *
 * shuffle algorithm header:
 *   Permutes the elements of [_first, _last) uniformly at random using
@@ -11,15 +11,15 @@
 *   - URBG::min()        - static, returns smallest possible output
 *   - URBG::max()        - static, returns largest possible output
 *   - g()                - returns a value in [URBG::min(), URBG::max()]
-*   Any callable satisfying this contract is accepted; restd does NOT
+*   Any callable satisfying this contract is accepted; re_std does NOT
 *   require <random>. For C++11+ users the standard engines
 *   (std::mt19937 et al.) work out of the box.
 *
 *   PORTABILITY:
-*   - std::shuffle is C++11. restd back-ports to C++98 by relaxing the
+*   - std::shuffle is C++11. re_std back-ports to C++98 by relaxing the
 *     URBG parameter from forwarding reference to lvalue reference;
 *     callers on C++98 supply a named URBG object (no temporaries).
-*   - constexpr in std from C++26; restd does NOT add constexpr (URBG
+*   - constexpr in std from C++26; re_std does NOT add constexpr (URBG
 *     state mutation is the canonical constexpr-hostile operation).
 *   - Requires RandomAccessIterator (uses indexed access via subtraction
 *     and operator+).
@@ -36,12 +36,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SHUFFLE_
-#define DJINTERP_RESTD_ALGORITHM_SHUFFLE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SHUFFLE_
+#define DJINTERP_RE_STD_ALGORITHM_SHUFFLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 
@@ -129,7 +129,7 @@ shuffle(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SHUFFLE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SHUFFLE_

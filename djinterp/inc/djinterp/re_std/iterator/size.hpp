@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                               size.hpp
+* re_std                                                              size.hpp
 *
 * size(c) returns c.size() for containers, or the extent N for raw
 * arrays of size N. The array overload returns std::size_t (the
@@ -11,11 +11,11 @@
 *
 * path:      /inc/djinterp/re_std/iterator/size.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_SIZE_
-#define RESTD_ITERATOR_SIZE_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_SIZE_
+#define DJINTERP_RE_STD_ITERATOR_SIZE_ 1
 
 #include "djinterp.hpp"
 
@@ -25,7 +25,7 @@
     #include <cstddef>
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _C>
@@ -41,8 +41,8 @@ D_CONSTEXPR std::size_t size(const _T (&)[_N]) D_NOEXCEPT
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_SIZE_
+#endif  // DJINTERP_RE_STD_ITERATOR_SIZE_

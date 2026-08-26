@@ -1,16 +1,16 @@
 /***********************************************************************
-* restd                                                                end.hpp
+* re_std                                                               end.hpp
 *
 * free-function end(container) — see begin.hpp for design notes.
 *
 *
 * path:      /inc/djinterp/re_std/iterator/end.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_END_
-#define RESTD_ITERATOR_END_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_END_
+#define DJINTERP_RE_STD_ITERATOR_END_ 1
 
 #include "djinterp.hpp"
 
@@ -21,7 +21,7 @@
     #include <initializer_list>
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _C>
@@ -49,8 +49,8 @@ D_CONSTEXPR const _E* end(std::initializer_list<_E> _il) D_NOEXCEPT
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_END_
+#endif  // DJINTERP_RE_STD_ITERATOR_END_

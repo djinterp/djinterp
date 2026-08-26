@@ -1,7 +1,7 @@
 /***********************************************************************
-* restd                                                            numeric.hpp
+* re_std                                                           numeric.hpp
 *
-* umbrella header for restd's <numeric> implementation.
+* umbrella header for re_std's <numeric> implementation.
 *
 * current contents:
 *   serial folds:
@@ -25,9 +25,9 @@
 *
 * design notes:
 *   - reduce() and the scan family REQUIRE associative ops; the
-*     standard permits parallel reordering. restd's implementations
+*     standard permits parallel reordering. re_std's implementations
 *     are currently serial. Calling code that respects the
-*     associativity contract will not need to change when restd
+*     associativity contract will not need to change when re_std
 *     grows parallel infrastructure.
 *   - accumulate() is a strict left-fold; its op need NOT be
 *     associative. Use accumulate when iteration order matters.
@@ -35,27 +35,27 @@
 *
 * path:      /inc/djinterp/re_std/numeric/numeric.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_
-#define RESTD_NUMERIC_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_
+#define DJINTERP_RE_STD_NUMERIC_ 1
 
 #include "djinterp.hpp"
 
-#include "restd/numeric/accumulate.hpp"
-#include "restd/numeric/inner_product.hpp"
-#include "restd/numeric/partial_sum.hpp"
-#include "restd/numeric/adjacent_difference.hpp"
-#include "restd/numeric/iota.hpp"
-#include "restd/numeric/gcd.hpp"
-#include "restd/numeric/lcm.hpp"
-#include "restd/numeric/midpoint.hpp"
-#include "restd/numeric/reduce.hpp"
-#include "restd/numeric/transform_reduce.hpp"
-#include "restd/numeric/inclusive_scan.hpp"
-#include "restd/numeric/exclusive_scan.hpp"
-#include "restd/numeric/transform_inclusive_scan.hpp"
-#include "restd/numeric/transform_exclusive_scan.hpp"
+#include "re_std/numeric/accumulate.hpp"
+#include "re_std/numeric/inner_product.hpp"
+#include "re_std/numeric/partial_sum.hpp"
+#include "re_std/numeric/adjacent_difference.hpp"
+#include "re_std/numeric/iota.hpp"
+#include "re_std/numeric/gcd.hpp"
+#include "re_std/numeric/lcm.hpp"
+#include "re_std/numeric/midpoint.hpp"
+#include "re_std/numeric/reduce.hpp"
+#include "re_std/numeric/transform_reduce.hpp"
+#include "re_std/numeric/inclusive_scan.hpp"
+#include "re_std/numeric/exclusive_scan.hpp"
+#include "re_std/numeric/transform_inclusive_scan.hpp"
+#include "re_std/numeric/transform_exclusive_scan.hpp"
 
-#endif  // RESTD_NUMERIC_
+#endif  // DJINTERP_RE_STD_NUMERIC_

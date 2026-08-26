@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  for_each.hpp
+* djinterp [re_std]                                                 for_each.hpp
 *
 * for_each algorithm header:
 *   Applies _f to every element in [_first, _last) in sequence. Returns
@@ -8,11 +8,11 @@
 *
 *   PORTABILITY:
 *   - std::for_each is C++98. C++11 changed the return to std::move(f);
-*     observably equivalent for non-throwing functors. restd returns by
+*     observably equivalent for non-throwing functors. re_std returns by
 *     value on every tier to keep the C++98 path move-free.
 *   - Sequential ordering is guaranteed only for this (no-policy)
 *     overload; the C++17 ExecutionPolicy overload (deferred) drops it.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/for_each.hpp
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FOR_EACH_
-#define DJINTERP_RESTD_ALGORITHM_FOR_EACH_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FOR_EACH_
+#define DJINTERP_RE_STD_ALGORITHM_FOR_EACH_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -68,7 +68,7 @@ for_each(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FOR_EACH_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FOR_EACH_

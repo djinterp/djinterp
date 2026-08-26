@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 partition.hpp
+* djinterp [re_std]                                                partition.hpp
 *
 * partition algorithm header:
 *   Rearranges the elements of [_first, _last) so that every element
@@ -19,12 +19,12 @@
 *     outset).
 *   - std::partition requires only ForwardIterator in C++11+ and was
 *     ForwardIterator-only-with-Bidirectional-fast-path before that.
-*     restd ships the BidirectionalIterator path on every tier
+*     re_std ships the BidirectionalIterator path on every tier
 *     (DEVIATION FROM STD C++11+); the forward-only flavour is rotate-
 *     based and adds substantial complexity for a niche use case.
 *     Forward-only callers will get a compile error on the back-cursor
 *     decrement.
-*   - constexpr in std from C++26; restd lifts to C++14.
+*   - constexpr in std from C++26; re_std lifts to C++14.
 *   - C++11+ uses iter_swap (which delegates to swap with ADL); on
 *     C++98 the same code path is used since iter_swap exists at C++98.
 *
@@ -34,12 +34,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_PARTITION_
-#define DJINTERP_RESTD_ALGORITHM_PARTITION_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_PARTITION_
+#define DJINTERP_RE_STD_ALGORITHM_PARTITION_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 
 
@@ -108,7 +108,7 @@ partition(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_PARTITION_
+#endif  // DJINTERP_RE_STD_ALGORITHM_PARTITION_

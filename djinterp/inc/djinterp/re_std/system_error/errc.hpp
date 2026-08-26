@@ -1,11 +1,11 @@
 /***********************************************************************
-* restd                                                         errc.hpp
+* re_std                                                        errc.hpp
 *
 * the errc scoped enumeration (re-export):
 *   errc is a C++11 scoped enumeration whose enumerators mirror the POSIX
 *   errno constants and which is the canonical error_code_enum recognised by
 *   make_error_code. It is meaningful only alongside the runtime category
-*   machinery, so restd re-exports std::errc rather than back-porting a
+*   machinery, so re_std re-exports std::errc rather than back-porting a
 *   struct-wrapper enum to C++98.
 *
 *
@@ -14,8 +14,8 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_SYSTEM_ERROR_ERRC_
-#define RESTD_SYSTEM_ERROR_ERRC_ 1
+#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_ERRC_
+#define DJINTERP_RE_STD_SYSTEM_ERROR_ERRC_ 1
 
 // djinterp
 #include "djinterp.hpp"
@@ -31,8 +31,8 @@ NS_RESTD
     //   enum: identity-preserving re-export of the std::errc scoped enum.
     using ::std::errc;
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SYSTEM_ERROR_ERRC_
+#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_ERRC_

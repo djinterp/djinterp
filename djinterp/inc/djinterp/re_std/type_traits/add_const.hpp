@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               add_const.hpp
+* djinterp [re_std]                                              add_const.hpp
 *
 * add_const trait header:
 *   Adds a top-level const-qualifier to a type. Yields member typedef
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_ADD_CONST_
-#define DJINTERP_RESTD_TYPE_TRAITS_ADD_CONST_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ADD_CONST_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ADD_CONST_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -60,7 +60,7 @@ struct add_const
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_ADD_CONST_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ADD_CONST_

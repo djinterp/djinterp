@@ -17,17 +17,16 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_OPTIONAL_MAKE_OPTIONAL_
-#define RESTD_OPTIONAL_MAKE_OPTIONAL_ 1
+#ifndef DJINTERP_RE_STD_OPTIONAL_MAKE_OPTIONAL_
+#define DJINTERP_RE_STD_OPTIONAL_MAKE_OPTIONAL_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./optional.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // make_optional
@@ -49,8 +48,7 @@ D_CONSTEXPR optional<_Type> make_optional(_Args&&... args)
 }
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_OPTIONAL_MAKE_OPTIONAL_
+#endif  // DJINTERP_RE_STD_OPTIONAL_MAKE_OPTIONAL_

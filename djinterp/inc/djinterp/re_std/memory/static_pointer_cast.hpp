@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              static_pointer_cast.hpp
+* re_std                                             static_pointer_cast.hpp
 *
 * shared_ptr cast that uses static_cast on the underlying pointer.
 * Use when the conversion is known safe at compile time (e.g. unrelated
@@ -13,22 +13,22 @@
 *
 * path:      /inc/djinterp/re_std/memory/static_pointer_cast.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_STATIC_POINTER_CAST_
-#define RESTD_MEMORY_STATIC_POINTER_CAST_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_STATIC_POINTER_CAST_
+#define DJINTERP_RE_STD_MEMORY_STATIC_POINTER_CAST_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/utility/move.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // Const-ref overload — always available.
@@ -39,7 +39,7 @@ shared_ptr<_T> static_pointer_cast(const shared_ptr<_U>& _r) D_NOEXCEPT
     return shared_ptr<_T>(_r, static_cast<_E*>(_r.get()));
 }
 
-// Rvalue overload — std added in C++20; restd offers it whenever
+// Rvalue overload — std added in C++20; re_std offers it whenever
 // rvalue references are available, since the underlying machinery
 // (rvalue aliasing ctor) is the same on every C++11+ tier.
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
@@ -49,14 +49,14 @@ shared_ptr<_T> static_pointer_cast(const shared_ptr<_U>& _r) D_NOEXCEPT
     {
         typedef typename shared_ptr<_T>::element_type _E;
         _E* _p = static_cast<_E*>(_r.get());
-        return shared_ptr<_T>(restd::move(_r), _p);
+        return shared_ptr<_T>(re_std::move(_r), _p);
     }
 
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_STATIC_POINTER_CAST_
+#endif  // DJINTERP_RE_STD_MEMORY_STATIC_POINTER_CAST_

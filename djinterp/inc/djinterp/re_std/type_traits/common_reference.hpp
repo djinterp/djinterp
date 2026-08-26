@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                         common_reference.hpp
+* djinterp [re_std]                                        common_reference.hpp
 *
 * common_reference trait:
 *   The C++20 generalization of common_type that preserves reference
@@ -42,11 +42,11 @@
 * D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES (the trait's signature uses
 * template-template parameters that take a single type and yield a type --
 * that requires alias templates, since the qualifier-applying templates
-* are typically alias templates). Standardized in C++20; restd backports.
+* are typically alias templates). Standardized in C++20; re_std backports.
 *
 *   DEPENDENCIES:
 *   common_type, basic_common_reference, decay, remove_reference,
-* remove_cv, is_reference, is_convertible, void_t, restd::declval.
+* remove_cv, is_reference, is_convertible, void_t, re_std::declval.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/common_reference.hpp
@@ -54,8 +54,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_COMMON_REFERENCE_
-#define DJINTERP_RESTD_TYPE_TRAITS_COMMON_REFERENCE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_COMMON_REFERENCE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_COMMON_REFERENCE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -64,7 +64,7 @@
 #if    D_ENV_LANG_IS_CPP11_OR_HIGHER \
     && D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
-// restd
+// re_std
 #include "./common_type.hpp"
 #include "./basic_common_reference.hpp"
 #include "./decay.hpp"
@@ -126,15 +126,15 @@ NS_RESTD
         struct cond_res<
             _X,
             _Y,
-            restd::void_t<decltype(
+            re_std::void_t<decltype(
                 false
-                ? restd::declval<_X(&)()>()()
-                : restd::declval<_Y(&)()>()() )> >
+                ? re_std::declval<_X(&)()>()()
+                : re_std::declval<_Y(&)()>()() )> >
         {
             typedef decltype(
                 false
-                ? restd::declval<_X(&)()>()()
-                : restd::declval<_Y(&)()>()() ) type;
+                ? re_std::declval<_X(&)()>()()
+                : re_std::declval<_Y(&)()>()() ) type;
         };
 
         // remove_cvref_local
@@ -195,7 +195,7 @@ NS_RESTD
         struct common_ref_LL_inner<
             _X,
             _Y,
-            restd::void_t<typename cond_res<
+            re_std::void_t<typename cond_res<
                 typename copy_cv<_Y, _X>::type&,
                 typename copy_cv<_X, _Y>::type& >::type> >
         {
@@ -306,7 +306,7 @@ NS_RESTD
         template<typename _T1, typename _T2>
         struct common_reference_sub1<
             _T1, _T2,
-            restd::void_t<typename common_ref<_T1, _T2>::type> >
+            re_std::void_t<typename common_ref<_T1, _T2>::type> >
         {
             typedef typename common_ref<_T1, _T2>::type type;
         };
@@ -320,7 +320,7 @@ NS_RESTD
         template<typename _T1, typename _T2>
         struct common_reference_sub2<
             _T1, _T2,
-            restd::void_t<typename basic_common_reference<
+            re_std::void_t<typename basic_common_reference<
                 typename remove_cvref_local<_T1>::type,
                 typename remove_cvref_local<_T2>::type,
                 xref<_T1>::template apply,
@@ -342,7 +342,7 @@ NS_RESTD
         template<typename _T1, typename _T2>
         struct common_reference_sub3<
             _T1, _T2,
-            restd::void_t<typename common_type<_T1, _T2>::type> >
+            re_std::void_t<typename common_type<_T1, _T2>::type> >
         {
             typedef typename common_type<_T1, _T2>::type type;
         };
@@ -356,7 +356,7 @@ NS_RESTD
         template<typename _T1, typename _T2>
         struct common_reference_sub4<
             _T1, _T2,
-            restd::void_t<typename cond_res<_T1, _T2>::type> >
+            re_std::void_t<typename cond_res<_T1, _T2>::type> >
         {
             typedef typename cond_res<_T1, _T2>::type type;
         };
@@ -370,7 +370,7 @@ NS_RESTD
         template<typename _T1, typename _T2>
         struct common_reference_2_4<
             _T1, _T2,
-            restd::void_t<typename common_reference_sub3<_T1, _T2>::type> >
+            re_std::void_t<typename common_reference_sub3<_T1, _T2>::type> >
             : common_reference_sub3<_T1, _T2>
         {};
 
@@ -383,7 +383,7 @@ NS_RESTD
         template<typename _T1, typename _T2>
         struct common_reference_2_3<
             _T1, _T2,
-            restd::void_t<typename common_reference_sub2<_T1, _T2>::type> >
+            re_std::void_t<typename common_reference_sub2<_T1, _T2>::type> >
             : common_reference_sub2<_T1, _T2>
         {};
 
@@ -396,7 +396,7 @@ NS_RESTD
         template<typename _T1, typename _T2>
         struct common_reference_2_2<
             _T1, _T2,
-            restd::void_t<typename common_reference_sub1<_T1, _T2>::type> >
+            re_std::void_t<typename common_reference_sub1<_T1, _T2>::type> >
             : common_reference_sub1<_T1, _T2>
         {};
 
@@ -409,7 +409,7 @@ NS_RESTD
 
         template<typename _CR, typename... _Rest>
         struct common_reference_n_impl<
-            restd::void_t<typename _CR::type>,
+            re_std::void_t<typename _CR::type>,
             _CR,
             _Rest...>
             : common_reference<typename _CR::type, _Rest...>
@@ -453,9 +453,9 @@ NS_RESTD
     using common_reference_t = typename common_reference<_Ts...>::type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // CPP11+ && ALIAS_TEMPLATES
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_COMMON_REFERENCE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_COMMON_REFERENCE_

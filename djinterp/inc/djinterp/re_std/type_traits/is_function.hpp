@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             is_function.hpp
+* djinterp [re_std]                                            is_function.hpp
 *
 * is_function trait header:
 *   Detects whether a type is a function type (NOT a function pointer,
@@ -19,7 +19,7 @@
 *   - C++98/03: explicit specializations for arities 0 through 10, each
 *     with and without C-style ellipsis. Functions with more than 10
 *     parameters are not detected on C++98/03. This is sufficient for
-*     all current restd consumers; extend as needed.
+*     all current re_std consumers; extend as needed.
 *
 *   Note: this primary trait does NOT handle ref-qualified or cv-
 * qualified function types (e.g. void() const, void() &). Those are
@@ -27,13 +27,13 @@
 * extension may add them.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_function.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_function.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_FUNCTION_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_FUNCTION_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNCTION_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNCTION_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -82,7 +82,7 @@ struct is_function : false_type
     // types that appear as `_F` when a pointer-to-member-function is
     // decomposed (`_F _Class::*`), so INVOKE's member-function bullets depend
     // on them.  Omitting these makes is_function false for every const member
-    // function -- and therefore makes restd::invoke reject it.
+    // function -- and therefore makes re_std::invoke reject it.
 
     template<typename    _R,
              typename... _Args>
@@ -437,7 +437,7 @@ struct is_function : false_type
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_FUNCTION_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_FUNCTION_

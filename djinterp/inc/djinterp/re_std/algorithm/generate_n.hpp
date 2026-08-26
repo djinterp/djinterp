@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                generate_n.hpp
+* djinterp [re_std]                                               generate_n.hpp
 *
 * generate_n algorithm header:
 *   Assigns the result of successive _g() calls to the first _n
@@ -8,8 +8,8 @@
 *
 *   PORTABILITY:
 *   - std::generate_n is C++98 but did not return an iterator until
-*     C++11; restd ships the C++11 signature on every tier.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*     C++11; re_std ships the C++11 signature on every tier.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/generate_n.hpp
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_GENERATE_N_
-#define DJINTERP_RESTD_ALGORITHM_GENERATE_N_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_GENERATE_N_
+#define DJINTERP_RE_STD_ALGORITHM_GENERATE_N_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -66,7 +66,7 @@ generate_n(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_GENERATE_N_
+#endif  // DJINTERP_RE_STD_ALGORITHM_GENERATE_N_

@@ -1,9 +1,9 @@
 /***********************************************************************
-* restd                                              error_condition.hpp
+* re_std                                             error_condition.hpp
 *
 * the error_condition portable-condition type (re-export):
 *   error_condition is the platform-independent counterpart of error_code,
-*   also bound to the runtime category singletons, so restd re-exports
+*   also bound to the runtime category singletons, so re_std re-exports
 *   std::error_condition (identity preserved). Comparison operators arrive
 *   via ADL on the std operand type, exactly as for error_code.
 *
@@ -13,8 +13,8 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_SYSTEM_ERROR_ERROR_CONDITION_
-#define RESTD_SYSTEM_ERROR_ERROR_CONDITION_ 1
+#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CONDITION_
+#define DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CONDITION_ 1
 
 // djinterp
 #include "djinterp.hpp"
@@ -30,8 +30,8 @@ NS_RESTD
     //   class: identity-preserving re-export of std::error_condition.
     using ::std::error_condition;
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SYSTEM_ERROR_ERROR_CONDITION_
+#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_ERROR_CONDITION_

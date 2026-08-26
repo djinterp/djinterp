@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                     borrowed_iterator_t.hpp
+* djinterp [re_std]                                    borrowed_iterator_t.hpp
 *
 * borrowed_iterator_t alias template header:
 *   Yields iterator_t<_Range> when _Range is a borrowed_range (i.e.
@@ -18,8 +18,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_BORROWED_ITERATOR_T_
-#define DJINTERP_RESTD_RANGES_BORROWED_ITERATOR_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_BORROWED_ITERATOR_T_
+#define DJINTERP_RE_STD_RANGES_BORROWED_ITERATOR_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -45,7 +45,7 @@ NS_RESTD
 // (cv-stripped, ref-stripped) value type; otherwise dangling.
 // note: the lvalue-reference branch is detected via is_reference.
 // The C++20 standard expresses this via the borrowed_range concept;
-// restd unfolds it manually.
+// re_std unfolds it manually.
 template<typename _Range>
 using borrowed_iterator_t =
     typename conditional<
@@ -60,10 +60,10 @@ using borrowed_iterator_t =
     >::type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_BORROWED_ITERATOR_T_
+#endif  // DJINTERP_RE_STD_RANGES_BORROWED_ITERATOR_T_

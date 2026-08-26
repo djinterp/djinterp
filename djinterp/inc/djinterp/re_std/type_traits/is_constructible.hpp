@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          is_constructible.hpp
+* djinterp [re_std]                                         is_constructible.hpp
 *
 * is_constructible trait header:
 *   Yields true_type if a hypothetical variable definition
@@ -21,7 +21,7 @@
 * on D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES.
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_IS_CONSTRUCTIBLE.
+*   D_RE_STD_HAS_IS_CONSTRUCTIBLE.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_constructible.hpp
@@ -29,8 +29,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_CONSTRUCTIBLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_CONSTRUCTIBLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_CONSTRUCTIBLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_CONSTRUCTIBLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -48,25 +48,25 @@
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_IS_CONSTRUCTIBLE  (intrinsic detection)
+// 0.   D_RE_STD_HAS_IS_CONSTRUCTIBLE  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RESTD_HAS_IS_CONSTRUCTIBLE
+#ifndef D_RE_STD_HAS_IS_CONSTRUCTIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_constructible)
-            #define D_RESTD_HAS_IS_CONSTRUCTIBLE    1
+            #define D_RE_STD_HAS_IS_CONSTRUCTIBLE    1
         #else
-            #define D_RESTD_HAS_IS_CONSTRUCTIBLE    0
+            #define D_RE_STD_HAS_IS_CONSTRUCTIBLE    0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_CLANG) ||                                  \
             defined(D_ENV_COMPILER_MSVC)  ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_IS_CONSTRUCTIBLE        1
+        #define D_RE_STD_HAS_IS_CONSTRUCTIBLE        1
     #else
-        #define D_RESTD_HAS_IS_CONSTRUCTIBLE        0
+        #define D_RE_STD_HAS_IS_CONSTRUCTIBLE        0
     #endif
-#endif  // D_RESTD_HAS_IS_CONSTRUCTIBLE
+#endif  // D_RE_STD_HAS_IS_CONSTRUCTIBLE
 
 
 NS_RESTD
@@ -76,7 +76,7 @@ NS_RESTD
 // I.   IS_CONSTRUCTIBLE
 // =============================================================================
 
-#if D_RESTD_HAS_IS_CONSTRUCTIBLE
+#if D_RE_STD_HAS_IS_CONSTRUCTIBLE
 
     // is_constructible (intrinsic)
     template<typename    _Type,
@@ -127,7 +127,7 @@ NS_RESTD
     {};
 
 
-#endif  // D_RESTD_HAS_IS_CONSTRUCTIBLE
+#endif  // D_RE_STD_HAS_IS_CONSTRUCTIBLE
 
 
 // =============================================================================
@@ -144,10 +144,10 @@ NS_RESTD
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_CONSTRUCTIBLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_CONSTRUCTIBLE_

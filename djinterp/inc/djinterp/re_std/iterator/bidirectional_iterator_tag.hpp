@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                         bidirectional_iterator_tag.hpp
+* re_std                                        bidirectional_iterator_tag.hpp
 *
 * tag for bidirectional iterators — multi-pass, both-direction
 * iteration via -- as well as ++. Derives from forward_iterator_tag.
@@ -7,17 +7,17 @@
 *
 * path:      /inc/djinterp/re_std/iterator/bidirectional_iterator_tag.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_BIDIRECTIONAL_ITERATOR_TAG_
-#define RESTD_ITERATOR_BIDIRECTIONAL_ITERATOR_TAG_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_BIDIRECTIONAL_ITERATOR_TAG_
+#define DJINTERP_RE_STD_ITERATOR_BIDIRECTIONAL_ITERATOR_TAG_ 1
 
 #include "djinterp.hpp"
-#include "restd/iterator/forward_iterator_tag.hpp"
+#include "re_std/iterator/forward_iterator_tag.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 struct bidirectional_iterator_tag : public forward_iterator_tag
@@ -25,6 +25,6 @@ struct bidirectional_iterator_tag : public forward_iterator_tag
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_ITERATOR_BIDIRECTIONAL_ITERATOR_TAG_
+#endif  // DJINTERP_RE_STD_ITERATOR_BIDIRECTIONAL_ITERATOR_TAG_

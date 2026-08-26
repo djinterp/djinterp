@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          view_interface.hpp
+* djinterp [re_std]                                         view_interface.hpp
 *
 * view_interface CRTP base header:
 *   Provides the C++20 CRTP base class that supplies a uniform set of
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_VIEW_INTERFACE_
-#define DJINTERP_RESTD_RANGES_VIEW_INTERFACE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_VIEW_INTERFACE_
+#define DJINTERP_RE_STD_RANGES_VIEW_INTERFACE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -56,7 +56,7 @@ private:
     // derived (mutable)
     //   function: CRTP downcast helper. Returns a reference to the
     // most-derived object.
-    D_CONSTEXPR _Derived&
+    D_CONSTEXPR_CPP14 _Derived&
     derived()
     D_NOEXCEPT
     {
@@ -78,7 +78,7 @@ public:
     //   function: true iff begin() == end(). Available whenever the
     // derived range supports forward-iterator comparison between its
     // iterator and sentinel.
-    D_CONSTEXPR bool
+    D_CONSTEXPR_CPP14 bool
     empty()
     {
         return (derived().begin() == derived().end());
@@ -97,7 +97,7 @@ public:
     // contains at least one element. explicit on C++11+; on C++98
     // the safe-bool idiom would be required, but view_interface is
     // gated out on C++98 anyway.
-    D_CONSTEXPR explicit
+    D_CONSTEXPR_CPP14 explicit
     operator bool()
     {
         return !empty();
@@ -115,7 +115,7 @@ public:
     //   function: end() - begin(). Available when the iterator type
     // is sized_sentinel_for the sentinel (i.e. supports the
     // arithmetic). Instantiation is lazy.
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     size()
         -> decltype(derived().end() - derived().begin())
@@ -135,7 +135,7 @@ public:
 
     // front
     //   function: *begin(). Precondition: !empty().
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     front()
         -> decltype(*derived().begin())
@@ -157,7 +157,7 @@ public:
     //   function: *(end() - 1). Requires the iterator type to be
     // bidirectional and end() to be reachable / decrementable from.
     // Precondition: !empty().
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     back()
         -> decltype(*(--derived().end()))
@@ -185,7 +185,7 @@ public:
     // or unsigned indexing (matching the C++20 size_t / ptrdiff_t
     // tolerance of subscript).
     template<typename _Index>
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     operator[](_Index _n)
         -> decltype(derived().begin()[_n])
@@ -208,8 +208,8 @@ public:
     //   function: pointer to the underlying buffer. Available only
     // when the derived range exposes a .data() member or its begin()
     // is a raw pointer. The C++20 version constrains via
-    // contiguous_iterator; restd defers that check to the lazy
-    // expansion of derived().begin() through restd::to_address —
+    // contiguous_iterator; re_std defers that check to the lazy
+    // expansion of derived().begin() through re_std::to_address —
     // which is supplied by <memory>, not gated here, so callers on
     // a non-contiguous range will see the error at the to_address
     // call site once <memory> is in the include set.
@@ -217,7 +217,7 @@ public:
     // intentionally NOT used because that traps on proxy iterators.
     // Derived views with a meaningful .data() are expected to
     // shadow this member directly.
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     data()
         -> decltype(&(*derived().begin()))
@@ -241,10 +241,10 @@ public:
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_VIEW_INTERFACE_
+#endif  // DJINTERP_RE_STD_RANGES_VIEW_INTERFACE_

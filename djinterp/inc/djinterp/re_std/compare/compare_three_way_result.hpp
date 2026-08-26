@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                  compare_three_way_result.hpp
+* djinterp [re_std]                                 compare_three_way_result.hpp
 *
 * compare_three_way_result trait header:
 *   Per [cmp.result]: yields the type of `t <=> u` where t and u are
@@ -37,8 +37,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_COMPARE_THREE_WAY_RESULT_
-#define DJINTERP_RESTD_COMPARE_COMPARE_THREE_WAY_RESULT_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_
+#define DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -78,22 +78,22 @@ NS_INTERNAL
         struct ctwr_impl<_T, _U,
                          typename void_t<
                              decltype(
-                                 restd::declval<
+                                 re_std::declval<
                                      const typename remove_reference<_T>::type&
                                  >()
                                  <=>
-                                 restd::declval<
+                                 re_std::declval<
                                      const typename remove_reference<_U>::type&
                                  >()
                              )
                          >::type>
         {
             typedef decltype(
-                        restd::declval<
+                        re_std::declval<
                             const typename remove_reference<_T>::type&
                         >()
                         <=>
-                        restd::declval<
+                        re_std::declval<
                             const typename remove_reference<_U>::type&
                         >()
                     ) type;
@@ -129,10 +129,10 @@ struct compare_three_way_result
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_COMPARE_THREE_WAY_RESULT_
+#endif  // DJINTERP_RE_STD_COMPARE_COMPARE_THREE_WAY_RESULT_

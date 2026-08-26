@@ -34,11 +34,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_FUNCTION_REF_
-#define RESTD_FUNCTIONAL_FUNCTION_REF_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_REF_
+#define DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_REF_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -47,7 +47,6 @@
 #include "../memory/addressof.hpp"
 #include "./invoke.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // function_ref
@@ -186,8 +185,6 @@ public:
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_FUNCTIONAL_FUNCTION_REF_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_REF_

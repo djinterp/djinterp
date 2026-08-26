@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    ignore.hpp
+* djinterp [re_std]                                                   ignore.hpp
 *
 * ignore object header:
 *   A sink object whose assignment operator accepts and discards any
@@ -11,7 +11,7 @@
 *
 *   IMPLEMENTATION:
 *   The standard does not name the type explicitly (it is exposition-
-* only as `unspecified`). restd uses `internal::ignore_t` and exposes
+* only as `unspecified`). re_std uses `internal::ignore_t` and exposes
 * a `const` instance named `ignore` at namespace scope.
 *
 *   PORTABILITY:
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_IGNORE_
-#define DJINTERP_RESTD_TUPLE_IGNORE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_IGNORE_
+#define DJINTERP_RE_STD_TUPLE_IGNORE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -71,10 +71,10 @@ NS_END  // internal
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_TUPLE_IGNORE_
+#endif  // DJINTERP_RE_STD_TUPLE_IGNORE_

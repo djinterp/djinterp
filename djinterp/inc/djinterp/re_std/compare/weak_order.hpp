@@ -1,11 +1,11 @@
 /******************************************************************************
-* djinterp [restd]                                                  weak_order.hpp
+* djinterp [re_std]                                                 weak_order.hpp
 *
 * weak_order customisation point object header:
 *   Per [cmp.alg]: a niebloid that produces a weak_ordering result
 * for the inputs. Dispatch hierarchy:
 *
-*     (a) Floating-point special case — NOT YET SHIPPED in restd
+*     (a) Floating-point special case — NOT YET SHIPPED in re_std
 *         (deferred; same scope notes as strong_order).
 *     (b) ADL weak_order(t, u) returning a value that constructs
 *         weak_ordering.
@@ -26,8 +26,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_WEAK_ORDER_
-#define DJINTERP_RESTD_COMPARE_WEAK_ORDER_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_WEAK_ORDER_
+#define DJINTERP_RE_STD_COMPARE_WEAK_ORDER_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -121,10 +121,10 @@ namespace _weak_order_cpo_obj
 inline constexpr _weak_order_cpo_obj::weak_order_fn weak_order = {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_WEAK_ORDER_
+#endif  // DJINTERP_RE_STD_COMPARE_WEAK_ORDER_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          partial_ordering.hpp
+* djinterp [re_std]                                         partial_ordering.hpp
 *
 * partial_ordering class header:
 *   The weakest of the three C++20 comparison categories. Represents
@@ -39,8 +39,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_PARTIAL_ORDERING_
-#define DJINTERP_RESTD_COMPARE_PARTIAL_ORDERING_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_PARTIAL_ORDERING_
+#define DJINTERP_RE_STD_COMPARE_PARTIAL_ORDERING_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -233,10 +233,10 @@ D_CONSTEXPR_INLINE const partial_ordering partial_ordering::greater    = partial
 D_CONSTEXPR_INLINE const partial_ordering partial_ordering::unordered  = partial_ordering( 2);
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_PARTIAL_ORDERING_
+#endif  // DJINTERP_RE_STD_COMPARE_PARTIAL_ORDERING_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          as_rvalue_view.hpp
+* djinterp [re_std]                                         as_rvalue_view.hpp
 *
 * as_rvalue_view header:
 *   Provides the C++23 rvalue-projection adaptor. as_rvalue_view<V>
@@ -20,7 +20,7 @@
 *     beyond the underlying iterator.
 *
 *   PIPE SYNTAX:
-*   Colocates restd::views::as_rvalue as a range_adaptor_closure
+*   Colocates re_std::views::as_rvalue as a range_adaptor_closure
 * instance. Both forms work:
 *       views::as_rvalue(vec)   // direct
 *       vec | views::as_rvalue  // pipe
@@ -31,8 +31,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_AS_RVALUE_VIEW_
-#define DJINTERP_RESTD_RANGES_AS_RVALUE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_AS_RVALUE_VIEW_
+#define DJINTERP_RE_STD_RANGES_AS_RVALUE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -78,7 +78,7 @@ private:
 
     // rvalue_ref_t
     //   alias: the rvalue-reference projection of the underlying
-    // iterator's reference type, routed through restd::iter_move
+    // iterator's reference type, routed through re_std::iter_move
     // (Phase R22). This both honours user customisations of
     // iter_move via ADL on the iterator type and gives us a single
     // point of truth for the rvalue projection (the same one used
@@ -140,12 +140,12 @@ public:
 
 
         // operator*
-        //   function: routes through restd::iter_move so user
+        //   function: routes through re_std::iter_move so user
         // customisations are picked up via ADL.
         D_CONSTEXPR reference
         operator*() const
         {
-            return restd::iter_move(m_it);
+            return re_std::iter_move(m_it);
         }
 
 
@@ -382,10 +382,10 @@ public:
 
 
     // begin / end
-    D_CONSTEXPR iterator
+    D_CONSTEXPR_CPP14 iterator
     begin()
     {
-        return iterator(restd::begin(m_base));
+        return iterator(re_std::begin(m_base));
     }
 
     D_CONSTEXPR
@@ -393,13 +393,13 @@ public:
     begin() const
         -> iterator
     {
-        return iterator(restd::begin(m_base));
+        return iterator(re_std::begin(m_base));
     }
 
-    D_CONSTEXPR sentinel
+    D_CONSTEXPR_CPP14 sentinel
     end()
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 
     D_CONSTEXPR
@@ -407,25 +407,25 @@ public:
     end() const
         -> sentinel
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 
 
     // size — forwards to base when sized.
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     size()
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        return restd::size(m_base);
+        return re_std::size(m_base);
     }
 
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        return restd::size(m_base);
+        return re_std::size(m_base);
     }
 };
 
@@ -477,10 +477,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_AS_RVALUE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_AS_RVALUE_VIEW_

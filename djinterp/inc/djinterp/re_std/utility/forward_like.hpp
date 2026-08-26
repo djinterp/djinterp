@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                  forward_like.hpp
+* re_std                                                 forward_like.hpp
 *
 * forwarding cast that follows another type's category:
 *   forward_like<T>(x) returns x with a value category and constness
@@ -14,7 +14,7 @@
 * self parameter onto member values.
 *
 *   STANDARD STATUS:
-*   Introduced in C++23 (P2445R1). restd back-ports to C++11+.
+*   Introduced in C++23 (P2445R1). re_std back-ports to C++11+.
 *
 *   IMPLEMENTATION:
 *   The C++23 specification uses if-constexpr; we compute the same
@@ -25,11 +25,11 @@
 *
 * path:      /inc/djinterp/re_std/utility/forward_like.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
+* author(s): re_std team                                 date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_FORWARD_LIKE_
-#define RESTD_UTILITY_FORWARD_LIKE_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_FORWARD_LIKE_
+#define DJINTERP_RE_STD_UTILITY_FORWARD_LIKE_ 1
 
 #include "djinterp.hpp"
 
@@ -88,8 +88,8 @@ forward_like(_U&& _value) noexcept
     >(_value);
 }
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif  // RESTD_UTILITY_FORWARD_LIKE_
+#endif  // DJINTERP_RE_STD_UTILITY_FORWARD_LIKE_

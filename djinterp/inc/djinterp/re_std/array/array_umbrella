@@ -1,10 +1,10 @@
 /******************************************************************************
-* djinterp [restd]                                                       array
+* djinterp [re_std]                                                      array
 *
 * array umbrella header:
 *   Convenience header that #includes every granular module under
-* restd/array/. Matches the project convention: user code may
-* #include "restd/array" instead of pulling in each piece directly.
+* re_std/array/. Matches the project convention: user code may
+* #include "re_std/array" instead of pulling in each piece directly.
 *
 *   Per-symbol headers (preferred for build-time minimisation):
 *
@@ -20,13 +20,13 @@
 *     array_tuple_element.hpp         - tuple_element<I, array>
 *
 *
-* path:      /inc/djinterp/restd/array
+* path:      /inc/djinterp/re_std/array
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_UMBRELLA_
-#define DJINTERP_RESTD_ARRAY_UMBRELLA_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_UMBRELLA_
+#define DJINTERP_RE_STD_ARRAY_UMBRELLA_ 1
 
 #include "./array/array.hpp"
 #include "./array/array_get.hpp"
@@ -38,4 +38,4 @@
 #include "./array/array_tuple_element.hpp"
 
 
-#endif  // DJINTERP_RESTD_ARRAY_UMBRELLA_
+#endif  // DJINTERP_RE_STD_ARRAY_UMBRELLA_

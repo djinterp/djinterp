@@ -43,14 +43,13 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_NUMERIC_MIDPOINT_FLOATING_
-#define RESTD_NUMERIC_MIDPOINT_FLOATING_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_MIDPOINT_FLOATING_
+#define DJINTERP_RE_STD_NUMERIC_MIDPOINT_FLOATING_ 1
 
 // re_std
-#include "../limits/limits.hpp"             // numeric_limits
+#include "../limits/limits"             // numeric_limits
 #include "../type_traits/type_traits.hpp"   // enable_if, is_floating_point
 
-NS_DJINTERP
 NS_RESTD
 
 NS_INTERNAL
@@ -96,6 +95,4 @@ midpoint(_Float a, _Float b) D_NOEXCEPT
 }
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_NUMERIC_MIDPOINT_FLOATING_
+#endif  // DJINTERP_RE_STD_NUMERIC_MIDPOINT_FLOATING_

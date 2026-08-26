@@ -1,16 +1,16 @@
 /******************************************************************************
-* djinterp [restd]                                                           new
+* djinterp [re_std]                                                          new
 *
 * new umbrella header:
 *   Convenience header that #includes every granular module under
-* restd/new/.
+* re_std/new/.
 *
-*   restd's <new> implementation is mostly strategic re-export:
+*   re_std's <new> implementation is mostly strategic re-export:
 * the actual operator new / operator delete machinery is runtime-
-* provided and CANNOT be reimplemented portably. What restd ships:
+* provided and CANNOT be reimplemented portably. What re_std ships:
 *
 *     - Namespace-consistent aliases for the std types so other
-*       restd modules can write `throw restd::bad_alloc()` instead
+*       re_std modules can write `throw re_std::bad_alloc()` instead
 *       of crossing namespaces.
 *     - Targeted back-ports of the C++17 additions (launder,
 *       align_val_t, hardware_*_interference_size) to earlier tiers.
@@ -30,18 +30,18 @@
 *     destroying_delete.hpp               - C++20 back-port (gated C++11+)
 *
 *   Placement new is a language operator, not a function — `#include
-* <new>` directly gives you the operator overloads. restd does not
+* <new>` directly gives you the operator overloads. re_std does not
 * and cannot reimplement them; user code that needs placement new
 * should `#include <new>` directly.
 *
 *
-* path:      /inc/djinterp/restd/new
+* path:      /inc/djinterp/re_std/new
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_NEW_UMBRELLA_
-#define DJINTERP_RESTD_NEW_UMBRELLA_ 1
+#ifndef DJINTERP_RE_STD_NEW_UMBRELLA_
+#define DJINTERP_RE_STD_NEW_UMBRELLA_ 1
 
 #include "./new/bad_alloc.hpp"
 #include "./new/bad_array_new_length.hpp"
@@ -53,4 +53,4 @@
 #include "./new/destroying_delete.hpp"
 
 
-#endif  // DJINTERP_RESTD_NEW_UMBRELLA_
+#endif  // DJINTERP_RE_STD_NEW_UMBRELLA_

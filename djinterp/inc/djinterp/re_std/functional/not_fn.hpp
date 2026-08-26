@@ -1,34 +1,34 @@
 /***********************************************************************
-* restd                                                       not_fn.hpp
+* re_std                                                      not_fn.hpp
 *
 * function: returns a callable that negates the result of `_F`.
 *   `not_fn(f)(args...)` is `!invoke(f, args...)`. Replaces the
 * deprecated C++98 `not1` / `not2` adaptors. Standard surface is C++17;
-* restd back-ports it on top of `restd::invoke`.
+* re_std back-ports it on top of `re_std::invoke`.
 *
 *   Min standard: C++11. Standard made it constexpr in C++20 (P1065);
-* restd makes the call operator constexpr from C++11 (single-return
+* re_std makes the call operator constexpr from C++11 (single-return
 * body).
 *
 *
-* path:      /inc/restd/functional/not_fn.hpp
+* path:      /inc/re_std/functional/not_fn.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_NOT_FN_
-#define RESTD_FUNCTIONAL_NOT_FN_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_NOT_FN_
+#define DJINTERP_RE_STD_FUNCTIONAL_NOT_FN_ 1
 
 #include "djinterp.hpp"
 
 #if (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&  \
      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES)
 
-#include "restd/type_traits/type_traits.hpp"
-#include "restd/utility/forward.hpp"
-#include "restd/functional/invoke.hpp"
+#include "re_std/type_traits/type_traits.hpp"
+#include "re_std/utility/forward.hpp"
+#include "re_std/functional/invoke.hpp"
 
-namespace restd
+namespace re_std
 {
 
 NS_INTERNAL
@@ -50,7 +50,7 @@ NS_INTERNAL
         D_CONSTEXPR explicit not_fn_wrapper(
             _G&& _g
         )
-            : m_f(restd::forward<_G>(_g))
+            : m_f(re_std::forward<_G>(_g))
         {}
 
         // call: lvalue this
@@ -58,9 +58,9 @@ NS_INTERNAL
         D_CONSTEXPR auto
         operator()(
             _Args&&... _args
-        ) -> decltype(!restd::invoke(m_f, restd::forward<_Args>(_args)...))
+        ) -> decltype(!re_std::invoke(m_f, re_std::forward<_Args>(_args)...))
         {
-            return !restd::invoke(m_f, restd::forward<_Args>(_args)...);
+            return !re_std::invoke(m_f, re_std::forward<_Args>(_args)...);
         }
 
         // call: const lvalue this
@@ -68,10 +68,10 @@ NS_INTERNAL
         D_CONSTEXPR auto
         operator()(
             _Args&&... _args
-        ) const -> decltype(!restd::invoke(m_f,
-                                           restd::forward<_Args>(_args)...))
+        ) const -> decltype(!re_std::invoke(m_f,
+                                           re_std::forward<_Args>(_args)...))
         {
-            return !restd::invoke(m_f, restd::forward<_Args>(_args)...);
+            return !re_std::invoke(m_f, re_std::forward<_Args>(_args)...);
         }
 
     };
@@ -87,11 +87,11 @@ not_fn(
 )
 {
     return internal::not_fn_wrapper<typename decay<_F>::type>(
-        restd::forward<_F>(_f));
+        re_std::forward<_F>(_f));
 }
 
-} // namespace restd
+} // namespace re_std
 
 #endif // variadic templates + rvalue references
 
-#endif // RESTD_FUNCTIONAL_NOT_FN_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_NOT_FN_

@@ -31,7 +31,7 @@
 * degraded `false` would silently report "no dangling reference" on a compiler
 * that cannot tell, disarming the check.  When the builtin is missing the trait
 * is NOT DECLARED - test
-* D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY before naming it.  See
+* D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY before naming it.  See
 * reference_constructs_from_temporary.hpp for the full argument, including why
 * Clang's older __reference_binds_to_temporary is deliberately NOT used as a
 * fallback (P2255R2 records it as a partial implementation that misses the
@@ -54,8 +54,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_
-#define RESTD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_
+#define DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_ 1
 
 // re_std
 #include "./type_traits.hpp"    // integral_constant
@@ -65,7 +65,7 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+// D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
 //   constant: 1 if the __reference_converts_from_temporary builtin is
 // available.  When 0, re_std::reference_converts_from_temporary DOES NOT EXIST.
 //
@@ -74,27 +74,26 @@
 // symbol, and Clang has already demonstrated that P2255R2's two builtins can
 // diverge in behaviour (LLVM issue #114344).  Only a GCC floor is asserted
 // behind __has_builtin, for the same reason as the sibling.
-#ifndef D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+#ifndef D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
     #if defined(__has_builtin)
         #if __has_builtin(__reference_converts_from_temporary)
-            #define D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
+            #define D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
         #endif
     #endif
 
-    #ifndef D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+    #ifndef D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
         #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
               D_ENV_COMPILER_VERSION_AT_LEAST(13, 0, 0) )
-            #define D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
+            #define D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  1
         #else
-            #define D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  0
+            #define D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY  0
         #endif
-    #endif  // D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (fallback)
-#endif  // D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (outer guard)
+    #endif  // D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (fallback)
+#endif  // D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY (outer guard)
 
 
-#if D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
+#if D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
 
-NS_DJINTERP
 NS_RESTD
 
 // reference_converts_from_temporary
@@ -116,8 +115,6 @@ struct reference_converts_from_temporary
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 NS_END  // re_std
-NS_END  // djinterp
+#endif  // D_RE_STD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
 
-#endif  // D_RESTD_HAS_REFERENCE_CONVERTS_FROM_TEMPORARY
-
-#endif  // RESTD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONVERTS_FROM_TEMPORARY_

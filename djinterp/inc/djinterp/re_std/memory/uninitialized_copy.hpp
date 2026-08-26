@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                uninitialized_copy.hpp
+* re_std                                               uninitialized_copy.hpp
 *
 * copy elements from [first, last) into raw uninitialized storage at
 * d_first, constructing each destination element via copy-construction.
@@ -21,11 +21,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/uninitialized_copy.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_UNINITIALIZED_COPY_
-#define RESTD_MEMORY_UNINITIALIZED_COPY_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_
+#define DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_ 1
 
 #include "djinterp.hpp"
 
@@ -33,12 +33,12 @@
 
     #include <new>
 
-    #include "restd/memory/addressof.hpp"
-    #include "restd/memory/destroy_at.hpp"
-    #include "restd/iterator/iterator_traits.hpp"
+    #include "re_std/memory/addressof.hpp"
+    #include "re_std/memory/destroy_at.hpp"
+    #include "re_std/iterator/iterator_traits.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _InputIt, typename _ForwardIt>
@@ -58,7 +58,7 @@ _ForwardIt uninitialized_copy
         {
             for (; _first != _last; ++_first, (void)++_current)
             {
-                ::new (static_cast<void*>(restd::addressof(*_current)))
+                ::new (static_cast<void*>(re_std::addressof(*_current)))
                     _T(*_first);
             }
             return _current;
@@ -68,7 +68,7 @@ _ForwardIt uninitialized_copy
             // Roll back any constructions that already succeeded.
             for (; _d_first != _current; ++_d_first)
             {
-                restd::destroy_at(restd::addressof(*_d_first));
+                re_std::destroy_at(re_std::addressof(*_d_first));
             }
             throw;
         }
@@ -77,7 +77,7 @@ _ForwardIt uninitialized_copy
         // the program. The loop body is the same.
         for (; _first != _last; ++_first, (void)++_current)
         {
-            ::new (static_cast<void*>(restd::addressof(*_current)))
+            ::new (static_cast<void*>(re_std::addressof(*_current)))
                 _T(*_first);
         }
         return _current;
@@ -85,8 +85,8 @@ _ForwardIt uninitialized_copy
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_CPP98_HAS_NEW
 
-#endif  // RESTD_MEMORY_UNINITIALIZED_COPY_
+#endif  // DJINTERP_RE_STD_MEMORY_UNINITIALIZED_COPY_

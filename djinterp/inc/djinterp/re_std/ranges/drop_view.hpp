@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               drop_view.hpp
+* djinterp [re_std]                                              drop_view.hpp
 *
 * drop_view header:
 *   Provides the C++20 suffix adaptor. drop_view<V> skips the first N
@@ -16,13 +16,13 @@
 *     underlying iterator N times on its first call, stores the
 *     result in a mutable cache, and returns the cached value on
 *     subsequent calls. The cache uses a small optional-style
-*     wrapper rather than std::optional (not yet shipped in restd).
+*     wrapper rather than std::optional (not yet shipped in re_std).
 *   - For input-only ranges, drop_view is single-pass: the cached
 *     iterator can be used at most once for iteration. This matches
 *     the C++20 contract.
 *
 *   COLOCATED:
-*   restd::views::drop(r, n).
+*   re_std::views::drop(r, n).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/drop_view.hpp
@@ -30,8 +30,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_DROP_VIEW_
-#define DJINTERP_RESTD_RANGES_DROP_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_DROP_VIEW_
+#define DJINTERP_RE_STD_RANGES_DROP_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -69,7 +69,7 @@ public:
 
 private:
     // ---- mutable cache for the first-call advance ----
-    // We don't have restd::optional yet, so we use a manual
+    // We don't have re_std::optional yet, so we use a manual
     // initialised-flag + storage pair. The cache is mutable so
     // begin() const can populate it.
     _View                       m_base;
@@ -119,8 +119,8 @@ public:
     {
         if (!m_cache_init)
         {
-            iterator_t<_View> it = restd::begin(m_base);
-            sentinel_t<_View> e  = restd::end(m_base);
+            iterator_t<_View> it = re_std::begin(m_base);
+            sentinel_t<_View> e  = re_std::end(m_base);
             difference_type   n  = m_count;
             while (n > 0 && it != e)
             {
@@ -138,7 +138,7 @@ public:
     sentinel_t<_View>
     end()
     {
-        return restd::end(m_base);
+        return re_std::end(m_base);
     }
 
 
@@ -149,10 +149,10 @@ public:
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        typedef decltype(restd::size(m_base)) size_type;
-        size_type s = restd::size(m_base);
+        typedef decltype(re_std::size(m_base)) size_type;
+        size_type s = re_std::size(m_base);
         size_type n = static_cast<size_type>(m_count);
         return (s > n) ? (s - n) : static_cast<size_type>(0);
     }
@@ -246,10 +246,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_DROP_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_DROP_VIEW_

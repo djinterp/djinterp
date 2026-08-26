@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               partial_order.hpp
+* djinterp [re_std]                                              partial_order.hpp
 *
 * partial_order customisation point object header:
 *   Per [cmp.alg]: a niebloid that produces a partial_ordering result
@@ -32,8 +32,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_PARTIAL_ORDER_
-#define DJINTERP_RESTD_COMPARE_PARTIAL_ORDER_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_PARTIAL_ORDER_
+#define DJINTERP_RE_STD_COMPARE_PARTIAL_ORDER_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -127,10 +127,10 @@ namespace _partial_order_cpo_obj
 inline constexpr _partial_order_cpo_obj::partial_order_fn partial_order = {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_PARTIAL_ORDER_
+#endif  // DJINTERP_RE_STD_COMPARE_PARTIAL_ORDER_

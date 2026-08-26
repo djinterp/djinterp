@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             add_pointer.hpp
+* djinterp [re_std]                                            add_pointer.hpp
 *
 * add_pointer trait header:
 *   Yields the pointer-to form of _Type, stripping any top-level
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_ADD_POINTER_
-#define DJINTERP_RESTD_TYPE_TRAITS_ADD_POINTER_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ADD_POINTER_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ADD_POINTER_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -63,7 +63,7 @@ struct add_pointer
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_ADD_POINTER_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ADD_POINTER_

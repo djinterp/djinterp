@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            movable_box.hpp
+* djinterp [re_std]                                           movable_box.hpp
 *
 * movable_box header:
 *   Provides the C++20/23 exposition-only "movable-box" utility.
@@ -14,7 +14,7 @@
 * the view non-assignable, violating the view concept. movable_box
 * simulates assignment by destroying and reconstructing the held T.
 *
-*   APPLICATIONS IN RESTD:
+*   APPLICATIONS IN RE_STD:
 *   - Future repeat_view enhancement: wrap the stored value in
 *     movable_box<T> so the view can be default-constructed even
 *     when T isn't default-constructible (the box's default state
@@ -24,9 +24,9 @@
 *     movable_box for proper assignability semantics.
 *
 *   PORTABILITY:
-*   - C++11+; depends on restd::optional (shipped).
+*   - C++11+; depends on re_std::optional (shipped).
 *   - Simplified relative to the C++23 spec: the spec uses different
-*     paths for is_copy_assignable etc. for efficiency; restd takes
+*     paths for is_copy_assignable etc. for efficiency; re_std takes
 *     the destroy-and-reconstruct path uniformly.
 *
 *
@@ -35,8 +35,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_MOVABLE_BOX_
-#define DJINTERP_RESTD_RANGES_MOVABLE_BOX_ 1
+#ifndef DJINTERP_RE_STD_RANGES_MOVABLE_BOX_
+#define DJINTERP_RE_STD_RANGES_MOVABLE_BOX_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -71,7 +71,10 @@ public:
     // default ctor — leaves the box empty UNLESS _T is default-
     // constructible, in which case the contained _T is created.
     // The dispatch is SFINAE-lazy (well-formed only when valid).
-    D_CONSTEXPR
+    // D_CONSTEXPR_CPP14, not D_CONSTEXPR: C++11 requires a constexpr
+    // constructor to have an EMPTY body, and this one dispatches
+    // through _default_init(). Relaxed constexpr from C++14 permits it.
+    D_CONSTEXPR_CPP14
     movable_box()
         : m_value()
     {
@@ -241,10 +244,10 @@ private:
 
 
 NS_END  // internal
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_MOVABLE_BOX_
+#endif  // DJINTERP_RE_STD_RANGES_MOVABLE_BOX_

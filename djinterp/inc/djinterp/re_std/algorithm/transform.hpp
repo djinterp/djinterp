@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 transform.hpp
+* djinterp [re_std]                                                transform.hpp
 *
 * transform algorithm header:
 *   Applies an operation to one or two ranges and writes the results
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::transform is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/transform.hpp
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_TRANSFORM_
-#define DJINTERP_RESTD_ALGORITHM_TRANSFORM_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_TRANSFORM_
+#define DJINTERP_RE_STD_ALGORITHM_TRANSFORM_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -99,7 +99,7 @@ transform(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_TRANSFORM_
+#endif  // DJINTERP_RE_STD_ALGORITHM_TRANSFORM_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               unique_copy.hpp
+* djinterp [re_std]                                              unique_copy.hpp
 *
 * unique_copy algorithm header:
 *   Out-of-place sibling of unique. Copies elements from
@@ -12,7 +12,7 @@
 *   IMPLEMENTATION NOTE:
 *   std::unique_copy dispatches between three forms (based on whether
 *   the input or output is a forward iterator) to decide where to
-*   remember the "previous" value. restd takes the simplest correct
+*   remember the "previous" value. re_std takes the simplest correct
 *   approach for every case: save the previous value in a local. This
 *   imposes the requirement that the value type be copy-constructible
 *   and copy-assignable (and for C++11+, optionally move-assignable),
@@ -21,7 +21,7 @@
 *
 *   PORTABILITY:
 *   - std::unique_copy is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - The local saved-value pattern naturally uses copy semantics; no
 *     conditional move dance.
 *
@@ -31,12 +31,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_UNIQUE_COPY_
-#define DJINTERP_RESTD_ALGORITHM_UNIQUE_COPY_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_UNIQUE_COPY_
+#define DJINTERP_RE_STD_ALGORITHM_UNIQUE_COPY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 
 
@@ -145,7 +145,7 @@ unique_copy(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_UNIQUE_COPY_
+#endif  // DJINTERP_RE_STD_ALGORITHM_UNIQUE_COPY_

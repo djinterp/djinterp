@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                shift_left.hpp
+* djinterp [re_std]                                               shift_left.hpp
 *
 * shift_left algorithm header:
 *   Shifts the elements of [_first, _last) leftward by _n positions.
@@ -10,11 +10,11 @@
 * range length.
 *
 *   PORTABILITY:
-*   - std::shift_left is C++20; restd back-ports to C++98 (no language
+*   - std::shift_left is C++20; re_std back-ports to C++98 (no language
 *     blocker — the algorithm is just a forward walk with assignment).
 *   - C++11+ uses move assignment for the shifted elements; C++98 uses
 *     copy assignment (gated on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES).
-*   - constexpr in std from C++20; restd lifts to C++14.
+*   - constexpr in std from C++20; re_std lifts to C++14.
 *   - Non-positive _n is a no-op that returns _last.
 *
 *
@@ -23,12 +23,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SHIFT_LEFT_
-#define DJINTERP_RESTD_ALGORITHM_SHIFT_LEFT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SHIFT_LEFT_
+#define DJINTERP_RE_STD_ALGORITHM_SHIFT_LEFT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
     #include "../utility/move.hpp"
@@ -93,7 +93,7 @@ shift_left(
     while (_source != _last)
     {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        *_dest = restd::move(*_source);
+        *_dest = re_std::move(*_source);
 #else
         *_dest = *_source;
 #endif
@@ -105,7 +105,7 @@ shift_left(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SHIFT_LEFT_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SHIFT_LEFT_

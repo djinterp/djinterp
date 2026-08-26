@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                        remove_reference.hpp
+* djinterp [re_std]                                       remove_reference.hpp
 *
 * remove_reference trait header:
 *   Removes one level of reference (lvalue or rvalue) from a type. CV-
@@ -22,8 +22,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_REMOVE_REFERENCE_
-#define DJINTERP_RESTD_TYPE_TRAITS_REMOVE_REFERENCE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -79,7 +79,7 @@ struct remove_reference<_Type&>
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_REMOVE_REFERENCE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_REFERENCE_

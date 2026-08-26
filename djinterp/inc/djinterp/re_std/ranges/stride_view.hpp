@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             stride_view.hpp
+* djinterp [re_std]                                            stride_view.hpp
 *
 * stride_view header:
 *   Provides the C++23 stride adaptor. stride_view<V> yields every
@@ -22,8 +22,8 @@
 *     after the move.
 *
 *   COLOCATED:
-*   restd::views::stride(r, n) — direct form.
-*   restd::views::stride(n)    — bound form for pipe syntax.
+*   re_std::views::stride(r, n) — direct form.
+*   re_std::views::stride(n)    — bound form for pipe syntax.
 *
 *
 * path:      /inc/djinterp/re_std/ranges/stride_view.hpp
@@ -31,8 +31,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_STRIDE_VIEW_
-#define DJINTERP_RESTD_RANGES_STRIDE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_STRIDE_VIEW_
+#define DJINTERP_RE_STD_RANGES_STRIDE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -89,7 +89,7 @@ public:
         // _bidi_clamp
         //   trait: passthrough — R29 lifted the previous bidi
         //   clamp so RA underlyings yield an RA stride iterator.
-        // Retained as a single seam should a future restd version
+        // Retained as a single seam should a future re_std version
         // need to clamp again (e.g. for spec compliance on a
         // contiguous-only underlying).
         template<typename _Cat>
@@ -498,13 +498,13 @@ public:
     D_CONSTEXPR iterator
     begin()
     {
-        return iterator(restd::begin(m_base), restd::end(m_base), m_step);
+        return iterator(re_std::begin(m_base), re_std::end(m_base), m_step);
     }
 
     D_CONSTEXPR sentinel
     end()
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 
 
@@ -514,10 +514,10 @@ public:
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        typedef decltype(restd::size(m_base)) size_type;
-        size_type s    = restd::size(m_base);
+        typedef decltype(re_std::size(m_base)) size_type;
+        size_type s    = re_std::size(m_base);
         size_type step = static_cast<size_type>(m_step);
         return (s + step - 1) / step;  // ceiling division
     }
@@ -607,10 +607,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_STRIDE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_STRIDE_VIEW_

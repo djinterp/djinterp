@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                               string_view
+* djinterp [re_std]                                              string_view
 *
 * string_view umbrella header:
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/restd/string_view/. Mirrors the standard <string_view>
+* /inc/djinterp/re_std/string_view/. Mirrors the standard <string_view>
 * convenience header. This umbrella adds no symbols of its own.
 *
 *   GRANULARITY:
@@ -28,13 +28,13 @@
 * VI.   LITERAL OPERATORS
 *
 *
-* path:      /inc/djinterp/restd/string_view/string_view
+* path:      /inc/djinterp/re_std/string_view/string_view
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_STRING_VIEW_
-#define DJINTERP_RESTD_STRING_VIEW_ 1
+#ifndef DJINTERP_RE_STD_STRING_VIEW_
+#define DJINTERP_RE_STD_STRING_VIEW_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -82,4 +82,4 @@
 #include "./string_view_literals.hpp"
 
 
-#endif  // DJINTERP_RESTD_STRING_VIEW_
+#endif  // DJINTERP_RE_STD_STRING_VIEW_

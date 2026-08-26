@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          stable_partition.hpp
+* djinterp [re_std]                                         stable_partition.hpp
 *
 * stable_partition algorithm header:
 *   Like partition, but preserves the relative order within each half:
@@ -27,9 +27,9 @@
 *
 *   PORTABILITY:
 *   - std::stable_partition is C++98 but typically uses get_temporary_buffer
-*     for O(N) when allocation succeeds. restd is allocator-free and
+*     for O(N) when allocation succeeds. re_std is allocator-free and
 *     always runs the O(N log N) rotate-based path.
-*   - constexpr in std from C++26; restd does NOT add constexpr —
+*   - constexpr in std from C++26; re_std does NOT add constexpr —
 *     rotate's stack-recursion depth is data-dependent (matches std).
 *   - Requires BidirectionalIterator.
 *   - Recursive; stack depth O(log N).
@@ -40,12 +40,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_STABLE_PARTITION_
-#define DJINTERP_RESTD_ALGORITHM_STABLE_PARTITION_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_STABLE_PARTITION_
+#define DJINTERP_RE_STD_ALGORITHM_STABLE_PARTITION_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./rotate.hpp"
 #include "../iterator/iterator_traits.hpp"
 
@@ -253,7 +253,7 @@ stable_partition(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_STABLE_PARTITION_
+#endif  // DJINTERP_RE_STD_ALGORITHM_STABLE_PARTITION_

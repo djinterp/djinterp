@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          variant_alternative.hpp
+* djinterp [re_std]                                         variant_alternative.hpp
 *
 * variant_alternative trait header:
 *   variant_alternative<I, V>::type yields the I-th alternative
@@ -15,8 +15,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_ALTERNATIVE_
-#define DJINTERP_RESTD_VARIANT_ALTERNATIVE_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_ALTERNATIVE_
+#define DJINTERP_RE_STD_VARIANT_ALTERNATIVE_ 1
 
 #include <cstddef>
 #include "../../core/djinterp.hpp"
@@ -67,7 +67,7 @@ template<std::size_t _I,
 struct variant_alternative<_I, variant<_Types...> >
 {
     static_assert(_I < sizeof...(_Types),
-                  "restd::variant_alternative: index out of bounds");
+                  "re_std::variant_alternative: index out of bounds");
     typedef typename internal::type_at<_I, _Types...>::type type;
 };
 
@@ -111,10 +111,10 @@ using variant_alternative_t = typename variant_alternative<_I, _V>::type;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VARIANT_ALTERNATIVE_
+#endif  // DJINTERP_RE_STD_VARIANT_ALTERNATIVE_

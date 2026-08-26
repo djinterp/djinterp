@@ -1,14 +1,14 @@
 /******************************************************************************
-* djinterp [restd]                                               bad_typeid.hpp
+* djinterp [re_std]                                              bad_typeid.hpp
 *
 * bad_typeid exception header:
-*   Surfaces restd::bad_typeid as a using-declaration for
+*   Surfaces re_std::bad_typeid as a using-declaration for
 * std::bad_typeid — the exception thrown when typeid is applied to a
 * dereferenced null pointer of polymorphic type. It is runtime-provided
-* (the typeid machinery throws it), so restd re-exports rather than
-* reimplements. Type identity is preserved: restd::bad_typeid IS
+* (the typeid machinery throws it), so re_std re-exports rather than
+* reimplements. Type identity is preserved: re_std::bad_typeid IS
 * std::bad_typeid, so a language-level typeid throw is caught by
-* catch (const restd::bad_typeid&) and vice versa.
+* catch (const re_std::bad_typeid&) and vice versa.
 *
 *   PORTABILITY:
 *   Gated on D_ENV_CPP98_HAS_TYPEINFO. C++98 baseline; nothing to
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPEINFO_BAD_TYPEID_
-#define DJINTERP_RESTD_TYPEINFO_BAD_TYPEID_ 1
+#ifndef DJINTERP_RE_STD_TYPEINFO_BAD_TYPEID_
+#define DJINTERP_RE_STD_TYPEINFO_BAD_TYPEID_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -42,10 +42,10 @@ NS_RESTD
 // polymorphic type; what() returns an implementation-defined message.
 using ::std::bad_typeid;
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP98_HAS_TYPEINFO
 
 
-#endif  // DJINTERP_RESTD_TYPEINFO_BAD_TYPEID_
+#endif  // DJINTERP_RE_STD_TYPEINFO_BAD_TYPEID_

@@ -17,10 +17,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_TYPEINDEX_TYPE_INDEX_HASH_
-#define RESTD_TYPEINDEX_TYPE_INDEX_HASH_ 1
+#ifndef DJINTERP_RE_STD_TYPEINDEX_TYPE_INDEX_HASH_
+#define DJINTERP_RE_STD_TYPEINDEX_TYPE_INDEX_HASH_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -28,7 +28,6 @@
 #include "../functional/hash.hpp"
 #include "./type_index.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // hash<type_index>
@@ -46,8 +45,7 @@ struct hash<type_index>
 };
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_TYPEINDEX_TYPE_INDEX_HASH_
+#endif  // DJINTERP_RE_STD_TYPEINDEX_TYPE_INDEX_HASH_

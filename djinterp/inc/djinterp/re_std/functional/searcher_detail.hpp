@@ -38,18 +38,17 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_SEARCHER_DETAIL_
-#define RESTD_FUNCTIONAL_SEARCHER_DETAIL_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_SEARCHER_DETAIL_
+#define DJINTERP_RE_STD_FUNCTIONAL_SEARCHER_DETAIL_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./hash.hpp"
 
-NS_DJINTERP
 NS_RESTD
 NS_INTERNAL
 
@@ -234,8 +233,6 @@ public:
 
 NS_END  // internal
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_FUNCTIONAL_SEARCHER_DETAIL_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_SEARCHER_DETAIL_

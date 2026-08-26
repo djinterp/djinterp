@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    unique.hpp
+* djinterp [re_std]                                                   unique.hpp
 *
 * unique algorithm header:
 *   In-place elimination of consecutive duplicates from [_first, _last).
@@ -10,9 +10,9 @@
 *
 *   PORTABILITY:
 *   - std::unique is C++98. C++11 strengthened the kept-element
-*     transfer from copy to move. restd matches per-tier (copy on
+*     transfer from copy to move. re_std matches per-tier (copy on
 *     C++98/03, move on C++11+ via D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/unique.hpp
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_UNIQUE_
-#define DJINTERP_RESTD_ALGORITHM_UNIQUE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_UNIQUE_
+#define DJINTERP_RE_STD_ALGORITHM_UNIQUE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -79,7 +79,7 @@ unique(
             if (_result != _it)
             {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-                *_result = restd::move(*_it);
+                *_result = re_std::move(*_it);
 #else
                 *_result = *_it;
 #endif
@@ -125,7 +125,7 @@ unique(
             if (_result != _it)
             {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-                *_result = restd::move(*_it);
+                *_result = re_std::move(*_it);
 #else
                 *_result = *_it;
 #endif
@@ -138,7 +138,7 @@ unique(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_UNIQUE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_UNIQUE_

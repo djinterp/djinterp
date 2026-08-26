@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                   assume_aligned.hpp
+* re_std                                                  assume_aligned.hpp
 *
 * alignment-promise helper:
 *   assume_aligned<_N>(_p) is a hint to the compiler that the pointer
@@ -16,17 +16,17 @@
 *   3. plain return _p (no-op fallback — semantically correct, just
 *      no optimization hint)
 *
-* added in std C++20; restd back-ports the helper unconditionally on
+* added in std C++20; re_std back-ports the helper unconditionally on
 * C++11+.
 *
 *
 * path:      /inc/djinterp/re_std/memory/assume_aligned.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ASSUME_ALIGNED_
-#define RESTD_MEMORY_ASSUME_ALIGNED_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ASSUME_ALIGNED_
+#define DJINTERP_RE_STD_MEMORY_ASSUME_ALIGNED_ 1
 
 #include "djinterp.hpp"
 
@@ -36,7 +36,7 @@
     #include <cstddef>
 
 
-namespace restd
+namespace re_std
 {
 
 template<std::size_t _N, typename _T>
@@ -59,8 +59,8 @@ D_CONSTEXPR _T* assume_aligned(_T* _p) D_NOEXCEPT
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_ASSUME_ALIGNED_
+#endif  // DJINTERP_RE_STD_MEMORY_ASSUME_ALIGNED_

@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                       basic_string_view.hpp
+* djinterp [re_std]                                      basic_string_view.hpp
 *
 * non-owning character view header:
-*   Provides restd::basic_string_view<_CharT, _Traits> — a read-only
+*   Provides re_std::basic_string_view<_CharT, _Traits> — a read-only
 * (pointer, length) view over a contiguous character sequence, owning
 * nothing. Mirrors the std::basic_string_view interface: the full
 * element-access / capacity / iterator surface, the modifiers
@@ -10,10 +10,10 @@
 * six find-family operations, and the prefix/suffix/substring queries
 * (starts_with / ends_with / contains).
 *
-*   RESTD AHEAD OF STD:
-*   std::basic_string_view landed in C++17; restd back-ports the C++17
+*   RE_STD AHEAD OF STD:
+*   std::basic_string_view landed in C++17; re_std back-ports the C++17
 * interface to C++11. starts_with / ends_with (std C++20) and contains
-* (std C++23) are likewise available from C++11 in restd. The whole
+* (std C++23) are likewise available from C++11 in re_std. The whole
 * surface becomes constexpr at C++14 (relaxed constexpr — the find /
 * compare loops and the mutating modifiers) versus the standard's
 * C++17: trivial observers (size, data, operator[], begin/end, front,
@@ -41,8 +41,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_STRING_VIEW_BASIC_STRING_VIEW_
-#define DJINTERP_RESTD_STRING_VIEW_BASIC_STRING_VIEW_ 1
+#ifndef DJINTERP_RE_STD_STRING_VIEW_BASIC_STRING_VIEW_
+#define DJINTERP_RE_STD_STRING_VIEW_BASIC_STRING_VIEW_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -130,7 +130,7 @@ public:
     typedef const _CharT&                            const_reference;
     typedef const _CharT*                            const_iterator;
     typedef const_iterator                           iterator;
-    typedef restd::reverse_iterator<const_iterator>  const_reverse_iterator;
+    typedef re_std::reverse_iterator<const_iterator>  const_reverse_iterator;
     typedef const_reverse_iterator                   reverse_iterator;
     typedef std::size_t                              size_type;
     typedef std::ptrdiff_t                           difference_type;
@@ -261,7 +261,7 @@ public:
     {
         if (_pos >= m_size)
         {
-            internal::sv_throw_out_of_range("restd::basic_string_view::at");
+            internal::sv_throw_out_of_range("re_std::basic_string_view::at");
         }
         return m_data[_pos];
     }
@@ -323,7 +323,7 @@ public:
     {
         if (_pos > m_size)
         {
-            internal::sv_throw_out_of_range("restd::basic_string_view::copy");
+            internal::sv_throw_out_of_range("re_std::basic_string_view::copy");
         }
         size_type _rlen = m_size - _pos;
         if (_count < _rlen)
@@ -344,7 +344,7 @@ public:
     {
         if (_pos > m_size)
         {
-            internal::sv_throw_out_of_range("restd::basic_string_view::substr");
+            internal::sv_throw_out_of_range("re_std::basic_string_view::substr");
         }
         size_type _rlen = m_size - _pos;
         if (_count < _rlen)
@@ -887,10 +887,10 @@ basic_string_view<_CharT, _Traits>::npos;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_STRING_VIEW_BASIC_STRING_VIEW_
+#endif  // DJINTERP_RE_STD_STRING_VIEW_BASIC_STRING_VIEW_

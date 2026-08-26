@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                new_handler.hpp
+* djinterp [re_std]                                               new_handler.hpp
 *
 * new_handler facility header:
 *   The new-handler is the function called by operator new when
@@ -8,10 +8,10 @@
 * free memory, retries the allocation, or terminates.
 *
 *   STRATEGY:
-*     restd::new_handler        - typedef for std::new_handler.
-*     restd::set_new_handler    - pass-through to std::set_new_handler;
+*     re_std::new_handler        - typedef for std::new_handler.
+*     re_std::set_new_handler    - pass-through to std::set_new_handler;
 *                                 C++98+.
-*     restd::get_new_handler    - C++11+ in std. Back-ported to C++98
+*     re_std::get_new_handler    - C++11+ in std. Back-ported to C++98
 *                                 via a wrapper that remembers the
 *                                 last value passed to set_new_handler.
 *
@@ -28,8 +28,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_NEW_HANDLER_
-#define DJINTERP_RESTD_NEW_HANDLER_ 1
+#ifndef DJINTERP_RE_STD_NEW_HANDLER_
+#define DJINTERP_RE_STD_NEW_HANDLER_ 1
 
 #include "../../core/djinterp.hpp"
 #include <new>
@@ -118,9 +118,9 @@ get_new_handler() D_NOEXCEPT
 
 #else
 
-// C++98 back-port: returns the last value passed to restd::set_new_handler.
+// C++98 back-port: returns the last value passed to re_std::set_new_handler.
 // Caveat: if user code calls std::set_new_handler directly (instead of
-// restd::set_new_handler), the back-port will not see the update.
+// re_std::set_new_handler), the back-port will not see the update.
 inline new_handler
 get_new_handler() throw()
 {
@@ -130,7 +130,7 @@ get_new_handler() throw()
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_NEW_HANDLER_
+#endif  // DJINTERP_RE_STD_NEW_HANDLER_

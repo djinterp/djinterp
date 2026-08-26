@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              const_pointer_cast.hpp
+* re_std                                             const_pointer_cast.hpp
 *
 * shared_ptr cast that uses const_cast on the underlying pointer.
 * Used to drop or add cv-qualification on the element type while
@@ -8,22 +8,22 @@
 *
 * path:      /inc/djinterp/re_std/memory/const_pointer_cast.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_CONST_POINTER_CAST_
-#define RESTD_MEMORY_CONST_POINTER_CAST_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_CONST_POINTER_CAST_
+#define DJINTERP_RE_STD_MEMORY_CONST_POINTER_CAST_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/utility/move.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _T, typename _U>
@@ -40,14 +40,14 @@ shared_ptr<_T> const_pointer_cast(const shared_ptr<_U>& _r) D_NOEXCEPT
     {
         typedef typename shared_ptr<_T>::element_type _E;
         _E* _p = const_cast<_E*>(_r.get());
-        return shared_ptr<_T>(restd::move(_r), _p);
+        return shared_ptr<_T>(re_std::move(_r), _p);
     }
 
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_CONST_POINTER_CAST_
+#endif  // DJINTERP_RE_STD_MEMORY_CONST_POINTER_CAST_

@@ -1,8 +1,8 @@
 /***********************************************************************
-* restd                                                       declval.hpp
+* re_std                                                      declval.hpp
 *
 * unevaluated-context value utility:
-*   Provides restd::declval<T>(), a declared-only function template
+*   Provides re_std::declval<T>(), a declared-only function template
 * that returns an "instance" of T usable inside unevaluated contexts
 * (decltype, sizeof, noexcept). Never invoked at runtime; calling
 * declval is ill-formed.
@@ -14,16 +14,16 @@
 *
 *   Requires rvalue references (C++11+). On standards without rvalue
 * references, no symbol is defined; callers must gate their use of
-* restd::declval on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
+* re_std::declval on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
 *
 *
 * path:      /inc/djinterp/re_std/utility/declval.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.04.30
+* author(s): re_std team                                date: 2026.04.30
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_DECLVAL_
-#define RESTD_UTILITY_DECLVAL_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_DECLVAL_
+#define DJINTERP_RE_STD_UTILITY_DECLVAL_ 1
 
 #include "djinterp.hpp"
 
@@ -44,8 +44,8 @@ NS_RESTD
 template<typename _Type>
 typename add_rvalue_reference<_Type>::type declval() noexcept;
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif  // RESTD_UTILITY_DECLVAL_
+#endif  // DJINTERP_RE_STD_UTILITY_DECLVAL_

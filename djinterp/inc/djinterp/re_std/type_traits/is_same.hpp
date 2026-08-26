@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 is_same.hpp
+* djinterp [re_std]                                                is_same.hpp
 *
 * is_same trait header:
 *   Compares two types for exact identity, including cv-qualification
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_SAME_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_SAME_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_SAME_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_SAME_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -64,7 +64,7 @@ struct is_same<_A, _A> : true_type
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_SAME_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_SAME_

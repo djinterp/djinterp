@@ -1,8 +1,8 @@
 /***********************************************************************
-* restd                                                      addressof.hpp
+* re_std                                                     addressof.hpp
 *
 * obtain a true pointer to an object, bypassing operator& overloads:
-*   restd::addressof(_x) returns the address of _x as a _Type*, ignoring
+*   re_std::addressof(_x) returns the address of _x as a _Type*, ignoring
 * any user-defined operator& on _Type. Three implementation tiers, picked
 * by capability detection:
 *
@@ -20,11 +20,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/addressof.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ADDRESSOF_
-#define RESTD_MEMORY_ADDRESSOF_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ADDRESSOF_
+#define DJINTERP_RE_STD_MEMORY_ADDRESSOF_ 1
 
 #include "djinterp.hpp"
 
@@ -33,38 +33,38 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_BUILTIN_ADDRESSOF
+// D_RE_STD_HAS_BUILTIN_ADDRESSOF
 //   constant: 1 if __builtin_addressof is available. Required for the
 //   constexpr path; the reinterpret_cast fallback is never constexpr
 //   because it crosses the implicitly-volatile boundary.
-#ifndef D_RESTD_HAS_BUILTIN_ADDRESSOF
+#ifndef D_RE_STD_HAS_BUILTIN_ADDRESSOF
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_addressof)
-            #define D_RESTD_HAS_BUILTIN_ADDRESSOF  1
+            #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  1
         #else
-            #define D_RESTD_HAS_BUILTIN_ADDRESSOF  0
+            #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC) &&                                    \
             D_ENV_COMPILER_VERSION_AT_LEAST(7, 0, 0) )
-        #define D_RESTD_HAS_BUILTIN_ADDRESSOF  1
+        #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  1
     #elif ( defined(D_ENV_COMPILER_MSVC) &&                                   \
             D_ENV_COMPILER_VERSION_AT_LEAST(19, 0, 0) )
         // MSVC 2015+ (_MSC_VER 1900+) supplies it under the same name.
-        #define D_RESTD_HAS_BUILTIN_ADDRESSOF  1
+        #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  1
     #else
-        #define D_RESTD_HAS_BUILTIN_ADDRESSOF  0
+        #define D_RE_STD_HAS_BUILTIN_ADDRESSOF  0
     #endif
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
 // addressof
 // =============================================================================
 
-#if D_RESTD_HAS_BUILTIN_ADDRESSOF
+#if D_RE_STD_HAS_BUILTIN_ADDRESSOF
 
     // addressof
     //   function: returns the actual address of _v, ignoring any
@@ -75,7 +75,7 @@ namespace restd
         return __builtin_addressof(_v);
     }
 
-#else  // !D_RESTD_HAS_BUILTIN_ADDRESSOF
+#else  // !D_RE_STD_HAS_BUILTIN_ADDRESSOF
 
     // addressof
     //   function: portable fallback. Casts through char& to defeat any
@@ -93,7 +93,7 @@ namespace restd
         );
     }
 
-#endif  // D_RESTD_HAS_BUILTIN_ADDRESSOF
+#endif  // D_RE_STD_HAS_BUILTIN_ADDRESSOF
 
 
 // =============================================================================
@@ -110,6 +110,6 @@ namespace restd
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_MEMORY_ADDRESSOF_
+#endif  // DJINTERP_RE_STD_MEMORY_ADDRESSOF_

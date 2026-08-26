@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                     count.hpp
+* djinterp [re_std]                                                    count.hpp
 *
 * count algorithm header:
 *   Returns the number of elements in [_first, _last) that compare equal
@@ -9,7 +9,7 @@
 *   PORTABILITY:
 *   - std::count is C++98.
 *   - Return type is iterator_traits<It>::difference_type (signed).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14 (the
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14 (the
 *     mutable accumulator requires relaxed constexpr).
 *
 *
@@ -18,12 +18,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_COUNT_
-#define DJINTERP_RESTD_ALGORITHM_COUNT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_COUNT_
+#define DJINTERP_RE_STD_ALGORITHM_COUNT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 
 
@@ -73,7 +73,7 @@ count(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_COUNT_
+#endif  // DJINTERP_RE_STD_ALGORITHM_COUNT_

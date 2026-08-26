@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 is_sorted.hpp
+* djinterp [re_std]                                                is_sorted.hpp
 *
 * is_sorted algorithm header:
 *   Returns true if [_first, _last) is sorted in non-descending order
@@ -8,8 +8,8 @@
 * out-of-order element is _last iff the range is sorted).
 *
 *   PORTABILITY:
-*   - std::is_sorted is C++11; restd back-ports to C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - std::is_sorted is C++11; re_std back-ports to C++98.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Two overloads: default operator< and custom comparator.
 *
 *
@@ -18,12 +18,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_IS_SORTED_
-#define DJINTERP_RESTD_ALGORITHM_IS_SORTED_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_IS_SORTED_
+#define DJINTERP_RE_STD_ALGORITHM_IS_SORTED_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./is_sorted_until.hpp"
 
 
@@ -56,7 +56,7 @@ is_sorted(
     _ForwardIt _last
 )
 {
-    return restd::is_sorted_until(_first, _last) == _last;
+    return re_std::is_sorted_until(_first, _last) == _last;
 }
 
 
@@ -75,11 +75,11 @@ is_sorted(
     _Compare   _comp
 )
 {
-    return restd::is_sorted_until(_first, _last, _comp) == _last;
+    return re_std::is_sorted_until(_first, _last, _comp) == _last;
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_IS_SORTED_
+#endif  // DJINTERP_RE_STD_ALGORITHM_IS_SORTED_

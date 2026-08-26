@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                   allocate_shared_for_overwrite.hpp
+* re_std                                  allocate_shared_for_overwrite.hpp
 *
 * default-init allocator-aware variant:
 *   allocate_shared_for_overwrite<_T>(alloc)
@@ -12,11 +12,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/allocate_shared_for_overwrite.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_
-#define RESTD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_
+#define DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_ 1
 
 #include "djinterp.hpp"
 
@@ -26,18 +26,18 @@
     #include <cstddef>
     #include <new>
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/memory/allocator_traits.hpp"
-    #include "restd/memory/internal/sp_control_block.hpp"
-    #include "restd/memory/make_shared.hpp"               // for array_extent
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_array.hpp"
-    #include "restd/type_traits/is_bounded_array.hpp"
-    #include "restd/type_traits/is_unbounded_array.hpp"
-    #include "restd/type_traits/remove_extent.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/memory/allocator_traits.hpp"
+    #include "re_std/memory/sp_control_block.hpp"
+    #include "re_std/memory/make_shared.hpp"               // for array_extent
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_array.hpp"
+    #include "re_std/type_traits/is_bounded_array.hpp"
+    #include "re_std/type_traits/is_unbounded_array.hpp"
+    #include "re_std/type_traits/remove_extent.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // allocate_shared_for_overwrite<_T>(alloc)  -  non-array form
@@ -187,8 +187,8 @@ allocate_shared_for_overwrite(const _Alloc& _alloc)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_
+#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATE_SHARED_FOR_OVERWRITE_

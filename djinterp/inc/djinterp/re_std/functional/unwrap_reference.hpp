@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              unwrap_reference.hpp
+* re_std                                             unwrap_reference.hpp
 *
 * trait: yields `T&` if `_Type` is `reference_wrapper<T>`; otherwise
 *   yields `_Type` unchanged.
@@ -11,19 +11,19 @@
 *
 * path:      /inc/djinterp/re_std/functional/unwrap_reference.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_UNWRAP_REFERENCE_
-#define RESTD_FUNCTIONAL_UNWRAP_REFERENCE_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_UNWRAP_REFERENCE_
+#define DJINTERP_RE_STD_FUNCTIONAL_UNWRAP_REFERENCE_ 1
 
 #include "djinterp.hpp"
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#include "restd/functional/reference_wrapper.hpp"
+#include "re_std/functional/reference_wrapper.hpp"
 
-namespace restd
+namespace re_std
 {
 
 // unwrap_reference
@@ -49,8 +49,8 @@ using unwrap_reference_t = typename unwrap_reference<_Type>::type;
 
 #endif
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif // RESTD_FUNCTIONAL_UNWRAP_REFERENCE_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_UNWRAP_REFERENCE_

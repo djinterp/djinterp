@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                  uninitialized_value_construct_n.hpp
+* re_std                                 uninitialized_value_construct_n.hpp
 *
 * sized variant of uninitialized_value_construct.
 *
@@ -8,11 +8,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/uninitialized_value_construct_n.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_UNINITIALIZED_VALUE_CONSTRUCT_N_
-#define RESTD_MEMORY_UNINITIALIZED_VALUE_CONSTRUCT_N_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_UNINITIALIZED_VALUE_CONSTRUCT_N_
+#define DJINTERP_RE_STD_MEMORY_UNINITIALIZED_VALUE_CONSTRUCT_N_ 1
 
 #include "djinterp.hpp"
 
@@ -20,12 +20,12 @@
 
     #include <new>
 
-    #include "restd/memory/addressof.hpp"
-    #include "restd/memory/destroy_at.hpp"
-    #include "restd/memory/internal/iter_value.hpp"
+    #include "re_std/memory/addressof.hpp"
+    #include "re_std/memory/destroy_at.hpp"
+    #include "re_std/memory/iter_value.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _ForwardIt, typename _Size>
@@ -44,7 +44,7 @@ _ForwardIt uninitialized_value_construct_n
         {
             for (; _n > 0; ++_current, --_n)
             {
-                ::new (static_cast<void*>(restd::addressof(*_current))) _T();
+                ::new (static_cast<void*>(re_std::addressof(*_current))) _T();
             }
             return _current;
         }
@@ -52,22 +52,22 @@ _ForwardIt uninitialized_value_construct_n
         {
             for (; _first != _current; ++_first)
             {
-                restd::destroy_at(restd::addressof(*_first));
+                re_std::destroy_at(re_std::addressof(*_first));
             }
             throw;
         }
     #else
         for (; _n > 0; ++_current, --_n)
         {
-            ::new (static_cast<void*>(restd::addressof(*_current))) _T();
+            ::new (static_cast<void*>(re_std::addressof(*_current))) _T();
         }
         return _current;
     #endif
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_CPP98_HAS_NEW
 
-#endif  // RESTD_MEMORY_UNINITIALIZED_VALUE_CONSTRUCT_N_
+#endif  // DJINTERP_RE_STD_MEMORY_UNINITIALIZED_VALUE_CONSTRUCT_N_

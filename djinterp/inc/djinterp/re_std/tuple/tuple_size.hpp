@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                tuple_size.hpp
+* djinterp [re_std]                                               tuple_size.hpp
 *
 * tuple_size trait header:
 *   Yields the number of elements in a tuple-like type as a
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_SIZE_
-#define DJINTERP_RESTD_TUPLE_TUPLE_SIZE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_SIZE_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_SIZE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -65,7 +65,7 @@ template<typename _Tuple>
 struct tuple_size;
 
 // tuple_size<tuple<_Types...>>
-//   trait: yields sizeof...(_Types) for the restd::tuple specialization.
+//   trait: yields sizeof...(_Types) for the re_std::tuple specialization.
 template<typename... _Types>
 struct tuple_size<tuple<_Types...> >
     : integral_constant<std::size_t, sizeof...(_Types)>
@@ -102,10 +102,10 @@ struct tuple_size<const volatile _Tuple>
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_SIZE_
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_SIZE_

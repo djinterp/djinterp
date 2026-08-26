@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    launder.hpp
+* djinterp [re_std]                                                   launder.hpp
 *
 * std::launder back-port:
 *   Per [ptr.launder], launder(p) is the standard's way of obtaining
@@ -33,7 +33,7 @@
 * compile-time-evaluable.
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_LAUNDER_INTRINSIC
+*   D_RE_STD_HAS_LAUNDER_INTRINSIC
 *     - 1 if a compiler builtin is available (the safe path is taken).
 *     - 0 if only the identity fallback is available (best-effort).
 *   Override by predefining before #include.
@@ -44,8 +44,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_LAUNDER_
-#define DJINTERP_RESTD_LAUNDER_ 1
+#ifndef DJINTERP_RE_STD_LAUNDER_
+#define DJINTERP_RE_STD_LAUNDER_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -54,18 +54,18 @@
 // 0.   DETECTION
 // ===========================================================================
 
-#ifndef D_RESTD_HAS_LAUNDER_INTRINSIC
+#ifndef D_RE_STD_HAS_LAUNDER_INTRINSIC
     // GCC 7+ ships __builtin_launder; Clang since 3.6.
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_launder)
-            #define D_RESTD_HAS_LAUNDER_INTRINSIC 1
+            #define D_RE_STD_HAS_LAUNDER_INTRINSIC 1
         #else
-            #define D_RESTD_HAS_LAUNDER_INTRINSIC 0
+            #define D_RE_STD_HAS_LAUNDER_INTRINSIC 0
         #endif
     #elif defined(__GNUC__) && (__GNUC__ >= 7)
-        #define D_RESTD_HAS_LAUNDER_INTRINSIC 1
+        #define D_RE_STD_HAS_LAUNDER_INTRINSIC 1
     #else
-        #define D_RESTD_HAS_LAUNDER_INTRINSIC 0
+        #define D_RE_STD_HAS_LAUNDER_INTRINSIC 0
     #endif
 #endif
 
@@ -107,7 +107,7 @@ launder(
     _Type* _p
 ) D_NOEXCEPT
 {
-#if D_RESTD_HAS_LAUNDER_INTRINSIC
+#if D_RE_STD_HAS_LAUNDER_INTRINSIC
     return __builtin_launder(_p);
 #else
     return _p;
@@ -117,7 +117,7 @@ launder(
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_LAUNDER_
+#endif  // DJINTERP_RE_STD_LAUNDER_

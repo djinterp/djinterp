@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                           cmp.hpp
+* re_std                                                          cmp.hpp
 *
 * sign-aware integer comparisons:
 *   The six cmp_* functions plus in_range, all introduced in C++20.
@@ -20,9 +20,9 @@
 *                         using the cmp_less rules.
 *
 *   STANDARD STATUS:
-*   C++20. restd back-ports to C++11+. Use of the trait surface
+*   C++20. re_std back-ports to C++11+. Use of the trait surface
 * (make_unsigned, numeric_limits replacements) is restricted to what
-* restd already ships -- in particular, integral_constant-based
+* re_std already ships -- in particular, integral_constant-based
 * overload selection rather than C++17's if-constexpr.
 *
 *   IMPLEMENTATION NOTE:
@@ -34,11 +34,11 @@
 *
 * path:      /inc/djinterp/re_std/utility/cmp.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
+* author(s): re_std team                                 date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_CMP_
-#define RESTD_UTILITY_CMP_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_CMP_
+#define DJINTERP_RE_STD_UTILITY_CMP_ 1
 
 #include "djinterp.hpp"
 
@@ -223,8 +223,8 @@ D_CONSTEXPR bool in_range(_T _t) noexcept
                        ~static_cast<typename make_unsigned<_R>::type>(0)));
 }
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_UTILITY_CMP_
+#endif  // DJINTERP_RE_STD_UTILITY_CMP_

@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                       iter_value.hpp
+* re_std                                                      iter_value.hpp
 *
 * minimal iterator-value-type helper for use inside <memory>:
 *   internal::iter_value<It>::type yields the value_type associated with
@@ -10,7 +10,7 @@
 *   - class iterators that expose a value_type member typedef
 *   - raw pointers (T*, const T*, T* const, const T* const)
 *
-* restd's full iterator_traits will land when <iterator> is implemented;
+* re_std's full iterator_traits will land when <iterator> is implemented;
 * at that point this helper will be replaced and code that uses it will
 * be updated to depend on the public trait.
 *
@@ -20,16 +20,16 @@
 *
 * path:      /inc/djinterp/re_std/memory/iter_value.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_INTERNAL_ITER_VALUE_
-#define RESTD_MEMORY_INTERNAL_ITER_VALUE_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_INTERNAL_ITER_VALUE_
+#define DJINTERP_RE_STD_MEMORY_INTERNAL_ITER_VALUE_ 1
 
 #include "djinterp.hpp"
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -56,6 +56,6 @@ struct iter_value<const _T*>
 
 
 }  // namespace internal
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_MEMORY_INTERNAL_ITER_VALUE_
+#endif  // DJINTERP_RE_STD_MEMORY_INTERNAL_ITER_VALUE_

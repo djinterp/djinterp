@@ -1,27 +1,27 @@
 /***********************************************************************
-* restd                                                          cref.hpp
+* re_std                                                         cref.hpp
 *
 * function: factory producing `reference_wrapper<const _Type>`.
-*   The const counterpart to `restd::ref`. The overload set is
+*   The const counterpart to `re_std::ref`. The overload set is
 * identical: lvalue-accepting, rvalue-deleted, and reference_wrapper-
 * idempotent.
 *
 *
 * path:      /inc/djinterp/re_std/functional/cref.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_CREF_
-#define RESTD_FUNCTIONAL_CREF_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_CREF_
+#define DJINTERP_RE_STD_FUNCTIONAL_CREF_ 1
 
 #include "djinterp.hpp"
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#include "restd/functional/reference_wrapper.hpp"
+#include "re_std/functional/reference_wrapper.hpp"
 
-namespace restd
+namespace re_std
 {
 
 // cref
@@ -51,8 +51,8 @@ cref(
     return reference_wrapper<const _Type>(_v.get());
 }
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif // RESTD_FUNCTIONAL_CREF_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_CREF_

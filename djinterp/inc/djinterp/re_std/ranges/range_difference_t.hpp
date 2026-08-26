@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                     range_difference_t.hpp
+* djinterp [re_std]                                    range_difference_t.hpp
 *
 * range_difference_t alias template header:
 *   Yields the difference type of a range — the signed integer type
@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGE_DIFFERENCE_T_
-#define DJINTERP_RESTD_RANGES_RANGE_DIFFERENCE_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGE_DIFFERENCE_T_
+#define DJINTERP_RE_STD_RANGES_RANGE_DIFFERENCE_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -38,7 +38,7 @@ NS_RESTD
 //   alias: the signed integer difference type of _Range.
 // Equivalent to iterator_traits<iterator_t<_Range>>::difference_type.
 // note: in C++20 std this is iter_difference_t<iterator_t<R>>; the
-// route through iterator_traits is equivalent because restd's
+// route through iterator_traits is equivalent because re_std's
 // iterator_traits primary mirrors the std primary (cf.
 // SYMBOLS_ITERATOR notes on iterator_traits).
 template<typename _Range>
@@ -46,10 +46,10 @@ using range_difference_t =
     typename iterator_traits<iterator_t<_Range> >::difference_type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGE_DIFFERENCE_T_
+#endif  // DJINTERP_RE_STD_RANGES_RANGE_DIFFERENCE_T_

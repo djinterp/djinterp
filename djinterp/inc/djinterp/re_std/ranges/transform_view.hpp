@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          transform_view.hpp
+* djinterp [re_std]                                         transform_view.hpp
 *
 * transform_view header:
 *   Provides the C++20 lazy-projection adaptor. transform_view<V, F>
@@ -22,14 +22,14 @@
 *   SIMPLIFICATION RELATIVE TO C++20:
 *   The C++20 spec sets iterator_category to a strict combination
 * of the underlying iterator's category AND whether F returns a
-* reference. Restd retains the underlying iterator_category
+* reference. Re_std retains the underlying iterator_category
 * unchanged. For pure functions this is correct; for impure F that
 * returns a prvalue, the resulting iterator may report a stronger
 * category than it strictly models. Sufficient for SFINAE constraint
 * use; not a strict iterator-concept binding.
 *
 *   COLOCATED:
-*   restd::views::transform(r, f).
+*   re_std::views::transform(r, f).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/transform_view.hpp
@@ -37,8 +37,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_TRANSFORM_VIEW_
-#define DJINTERP_RESTD_RANGES_TRANSFORM_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_TRANSFORM_VIEW_
+#define DJINTERP_RE_STD_RANGES_TRANSFORM_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -402,13 +402,13 @@ public:
     D_CONSTEXPR iterator
     begin()
     {
-        return iterator(this, restd::begin(m_base));
+        return iterator(this, re_std::begin(m_base));
     }
 
     D_CONSTEXPR sentinel
     end()
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 
 
@@ -416,9 +416,9 @@ public:
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        return restd::size(m_base);
+        return re_std::size(m_base);
     }
 };
 
@@ -509,10 +509,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_TRANSFORM_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_TRANSFORM_VIEW_

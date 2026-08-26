@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                   insert_iterator.hpp
+* re_std                                                  insert_iterator.hpp
 *
 * output-iterator adaptor that inserts at a tracked position via
 * container.insert(iter, value). Unlike back/front_inserter, this
@@ -20,11 +20,11 @@
 *
 * path:      /inc/djinterp/re_std/iterator/insert_iterator.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_INSERT_ITERATOR_
-#define RESTD_ITERATOR_INSERT_ITERATOR_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_INSERT_ITERATOR_
+#define DJINTERP_RE_STD_ITERATOR_INSERT_ITERATOR_ 1
 
 #include "djinterp.hpp"
 
@@ -33,11 +33,11 @@
 
     #include <cstddef>
 
-    #include "restd/iterator/output_iterator_tag.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/iterator/output_iterator_tag.hpp"
+    #include "re_std/utility/move.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _Container>
@@ -74,7 +74,7 @@ public:
     insert_iterator&
     operator=(typename _Container::value_type&& _value)
     {
-        iter = container->insert(iter, restd::move(_value));
+        iter = container->insert(iter, re_std::move(_value));
         ++iter;
         return *this;
     }
@@ -95,8 +95,8 @@ inserter(_Container& _c, typename _Container::iterator _i)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_INSERT_ITERATOR_
+#endif  // DJINTERP_RE_STD_ITERATOR_INSERT_ITERATOR_

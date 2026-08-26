@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    fill_n.hpp
+* djinterp [re_std]                                                   fill_n.hpp
 *
 * fill_n algorithm header:
 *   Assigns _value to the first _n elements of the range starting at
@@ -8,10 +8,10 @@
 *
 *   PORTABILITY:
 *   - std::fill_n is C++98 but did not return an iterator until C++11.
-*     restd ships the C++11 (iterator-returning) signature on every
+*     re_std ships the C++11 (iterator-returning) signature on every
 *     tier; users wanting the void-returning C++98 form can ignore the
 *     return.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/fill_n.hpp
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FILL_N_
-#define DJINTERP_RESTD_ALGORITHM_FILL_N_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FILL_N_
+#define DJINTERP_RE_STD_ALGORITHM_FILL_N_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -68,7 +68,7 @@ fill_n(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FILL_N_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FILL_N_

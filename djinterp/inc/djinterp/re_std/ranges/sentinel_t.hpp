@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              sentinel_t.hpp
+* djinterp [re_std]                                             sentinel_t.hpp
 *
 * sentinel_t alias template header:
 *   Yields the sentinel type of a range: the return type of end()
@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_SENTINEL_T_
-#define DJINTERP_RESTD_RANGES_SENTINEL_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_SENTINEL_T_
+#define DJINTERP_RE_STD_RANGES_SENTINEL_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -36,17 +36,17 @@ NS_RESTD
 
 // sentinel_t
 //   alias: the sentinel type of _Range, deduced as the return type
-// of restd::end on an lvalue of _Range.
+// of re_std::end on an lvalue of _Range.
 // note: for legacy ranges (where end() returns the iterator type)
 // sentinel_t<R> is the same as iterator_t<R>.
 template<typename _Range>
-using sentinel_t = decltype(restd::end(declval<_Range&>()));
+using sentinel_t = decltype(re_std::end(declval<_Range&>()));
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_SENTINEL_T_
+#endif  // DJINTERP_RE_STD_RANGES_SENTINEL_T_

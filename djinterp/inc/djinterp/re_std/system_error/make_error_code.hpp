@@ -1,10 +1,10 @@
 /***********************************************************************
-* restd                                              make_error_code.hpp
+* re_std                                             make_error_code.hpp
 *
 * the make_error_code factory (re-export):
 *   builds an error_code from an errc value (and, where their headers are
 *   included, from future_errc / io_errc). The mapping to generic_category()
-*   is runtime-provided, so restd re-exports std::make_error_code; only the
+*   is runtime-provided, so re_std re-exports std::make_error_code; only the
 *   overloads whose enums are in scope participate in the using-set.
 *
 *
@@ -13,8 +13,8 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_SYSTEM_ERROR_MAKE_ERROR_CODE_
-#define RESTD_SYSTEM_ERROR_MAKE_ERROR_CODE_ 1
+#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_
+#define DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_ 1
 
 // djinterp
 #include "djinterp.hpp"
@@ -30,8 +30,8 @@ NS_RESTD
     //   function: re-export of std::make_error_code (errc overload).
     using ::std::make_error_code;
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SYSTEM_ERROR_MAKE_ERROR_CODE_
+#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_MAKE_ERROR_CODE_

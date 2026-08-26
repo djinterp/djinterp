@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                     random_access_range.hpp
+* djinterp [re_std]                                    random_access_range.hpp
 *
 * random_access_range concept-trait header:
 *   Provides the C++20 random_access_range concept as a SFINAE-
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANDOM_ACCESS_RANGE_
-#define DJINTERP_RESTD_RANGES_RANDOM_ACCESS_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANDOM_ACCESS_RANGE_
+#define DJINTERP_RE_STD_RANGES_RANDOM_ACCESS_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -72,10 +72,10 @@ D_CONSTEXPR bool random_access_range_v = random_access_range<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANDOM_ACCESS_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_RANDOM_ACCESS_RANGE_

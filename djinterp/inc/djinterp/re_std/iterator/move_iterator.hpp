@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                      move_iterator.hpp
+* re_std                                                     move_iterator.hpp
 *
 * iterator adaptor that wraps a base iterator and modifies dereference
 * to yield rvalue references (xvalues) instead of lvalue references,
@@ -18,7 +18,7 @@
 *
 *   This matches the C++17 std::move_iterator behaviour exactly. Pre-
 *   C++17 std unconditionally applied the && cast and broke proxies;
-*   restd does not reproduce that footgun.
+*   re_std does not reproduce that footgun.
 *
 * surface:
 *   - default ctor, value ctor, converting copy ctor from
@@ -35,19 +35,19 @@
 *
 * path:      /inc/djinterp/re_std/iterator/move_iterator.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_MOVE_ITERATOR_
-#define RESTD_ITERATOR_MOVE_ITERATOR_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_MOVE_ITERATOR_
+#define DJINTERP_RE_STD_ITERATOR_MOVE_ITERATOR_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/iterator/iterator_traits.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/iterator/iterator_traits.hpp"
+    #include "re_std/utility/move.hpp"
 
 
 // D_CONSTEXPR_CPP14 — `constexpr` on C++14+, empty on C++11.
@@ -62,7 +62,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -73,8 +73,8 @@ namespace internal
     //   strip the reference and add &&. Otherwise pass the value type
     //   through unchanged (proxy iterator case).
     //
-    //   Implementation note: we do this without restd::is_reference or
-    //   restd::remove_reference traits, since this header tries to
+    //   Implementation note: we do this without re_std::is_reference or
+    //   re_std::remove_reference traits, since this header tries to
     //   minimise its own dependency surface. The trick: a partial
     //   specialisation matches "T&"; the primary catches everything
     //   else (value types).
@@ -301,8 +301,8 @@ D_CONSTEXPR move_iterator<_Iter> make_move_iterator(_Iter _it)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_MOVE_ITERATOR_
+#endif  // DJINTERP_RE_STD_ITERATOR_MOVE_ITERATOR_

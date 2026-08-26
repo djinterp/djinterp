@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                        weak_ptr.hpp
+* re_std                                                       weak_ptr.hpp
 *
 * non-owning observer of a shared_ptr-managed object:
 *   weak_ptr<_T> tracks an object without keeping it alive. Use lock()
@@ -10,29 +10,29 @@
 *   shared_ptr.hpp forward-declares weak_ptr, but its ctor from
 * weak_ptr (shared_ptr<T>(const weak_ptr<U>&)) and owner_before(weak)
 * are defined here. Code that uses those needs to #include this file
-* (the restd/memory umbrella does it transitively).
+* (the re_std/memory umbrella does it transitively).
 *
 *
 * path:      /inc/djinterp/re_std/memory/weak_ptr.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_WEAK_PTR_
-#define RESTD_MEMORY_WEAK_PTR_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_WEAK_PTR_
+#define DJINTERP_RE_STD_MEMORY_WEAK_PTR_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/memory/bad_weak_ptr.hpp"
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_convertible.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/memory/bad_weak_ptr.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_convertible.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -205,7 +205,7 @@ public:
 
     weak_ptr& operator=(weak_ptr&& _r) D_NOEXCEPT
     {
-        weak_ptr(restd::move(_r)).swap(*this);
+        weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -217,7 +217,7 @@ public:
     >::type
     operator=(weak_ptr<_Y>&& _r) D_NOEXCEPT
     {
-        weak_ptr(restd::move(_r)).swap(*this);
+        weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -415,7 +415,7 @@ public:
 
     weak_ptr& operator=(weak_ptr&& _r) D_NOEXCEPT
     {
-        weak_ptr(restd::move(_r)).swap(*this);
+        weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -515,7 +515,7 @@ public:
 
     weak_ptr& operator=(weak_ptr&& _r) D_NOEXCEPT
     {
-        weak_ptr(restd::move(_r)).swap(*this);
+        weak_ptr(re_std::move(_r)).swap(*this);
         return *this;
     }
 
@@ -546,8 +546,8 @@ public:
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_WEAK_PTR_
+#endif  // DJINTERP_RE_STD_MEMORY_WEAK_PTR_

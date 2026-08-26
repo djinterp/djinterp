@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          forward_as_tuple.hpp
+* djinterp [re_std]                                         forward_as_tuple.hpp
 *
 * forward_as_tuple factory header:
 *   Constructs a tuple of forwarding references to its arguments.
@@ -22,8 +22,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_FORWARD_AS_TUPLE_
-#define DJINTERP_RESTD_TUPLE_FORWARD_AS_TUPLE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_FORWARD_AS_TUPLE_
+#define DJINTERP_RE_STD_TUPLE_FORWARD_AS_TUPLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -59,10 +59,10 @@ forward_as_tuple(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_FORWARD_AS_TUPLE_
+#endif  // DJINTERP_RE_STD_TUPLE_FORWARD_AS_TUPLE_

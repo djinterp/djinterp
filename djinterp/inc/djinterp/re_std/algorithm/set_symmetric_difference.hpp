@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                  set_symmetric_difference.hpp
+* djinterp [re_std]                                 set_symmetric_difference.hpp
 *
 * set_symmetric_difference algorithm header:
 *   Multiset symmetric difference (range1 XOR range2). For each value,
@@ -8,7 +8,7 @@
 *
 *   PORTABILITY:
 *   - std::set_symmetric_difference is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Two overloads: default operator< and custom comparator.
 *
 *
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SET_SYMMETRIC_DIFFERENCE_
-#define DJINTERP_RESTD_ALGORITHM_SET_SYMMETRIC_DIFFERENCE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SET_SYMMETRIC_DIFFERENCE_
+#define DJINTERP_RE_STD_ALGORITHM_SET_SYMMETRIC_DIFFERENCE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -154,7 +154,7 @@ set_symmetric_difference(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SET_SYMMETRIC_DIFFERENCE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SET_SYMMETRIC_DIFFERENCE_

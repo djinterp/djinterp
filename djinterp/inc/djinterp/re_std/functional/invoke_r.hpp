@@ -1,10 +1,10 @@
 /***********************************************************************
-* restd                                                     invoke_r.hpp
+* re_std                                                    invoke_r.hpp
 *
 * function: invoke with an explicit return type.
 *   `invoke_r<R>(f, args...)` is `invoke(f, args...)` with the result
 * implicitly converted to `R` (or discarded if `R` is `void`). Standard
-* surface is C++23; restd back-ports it on top of `restd::invoke`.
+* surface is C++23; re_std back-ports it on top of `re_std::invoke`.
 *
 *   The void overload is not `constexpr` on C++11 because C++11 forbids
 * constexpr void functions; from C++14 it is `D_CONSTEXPR`-qualified.
@@ -12,22 +12,22 @@
 *
 * path:      /inc/djinterp/re_std/functional/invoke_r.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_INVOKE_R_
-#define RESTD_FUNCTIONAL_INVOKE_R_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_INVOKE_R_
+#define DJINTERP_RE_STD_FUNCTIONAL_INVOKE_R_ 1
 
 #include "djinterp.hpp"
 
 #if (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&  \
      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES)
 
-#include "restd/type_traits/type_traits.hpp"
-#include "restd/utility/forward.hpp"
-#include "restd/functional/invoke.hpp"
+#include "re_std/type_traits/type_traits.hpp"
+#include "re_std/utility/forward.hpp"
+#include "re_std/functional/invoke.hpp"
 
-namespace restd
+namespace re_std
 {
 
 // invoke_r
@@ -43,8 +43,8 @@ invoke_r(
     _Args&&... _args
 )
 {
-    return restd::invoke(restd::forward<_F>(_f),
-                         restd::forward<_Args>(_args)...);
+    return re_std::invoke(re_std::forward<_F>(_f),
+                         re_std::forward<_Args>(_args)...);
 }
 
 // invoke_r
@@ -61,12 +61,12 @@ invoke_r(
     _Args&&... _args
 )
 {
-    static_cast<void>(restd::invoke(restd::forward<_F>(_f),
-                                    restd::forward<_Args>(_args)...));
+    static_cast<void>(re_std::invoke(re_std::forward<_F>(_f),
+                                    re_std::forward<_Args>(_args)...));
 }
 
-} // namespace restd
+} // namespace re_std
 
 #endif // variadic templates + rvalue references
 
-#endif // RESTD_FUNCTIONAL_INVOKE_R_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_INVOKE_R_

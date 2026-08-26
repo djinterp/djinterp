@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                variant_get.hpp
+* djinterp [re_std]                                               variant_get.hpp
 *
 * variant get<I>/get<T> header:
 *   Type-safe access to a variant's active alternative. Throws
@@ -24,8 +24,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_GET_
-#define DJINTERP_RESTD_VARIANT_GET_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_GET_
+#define DJINTERP_RE_STD_VARIANT_GET_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -157,10 +157,10 @@ get(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VARIANT_GET_
+#endif  // DJINTERP_RE_STD_VARIANT_GET_

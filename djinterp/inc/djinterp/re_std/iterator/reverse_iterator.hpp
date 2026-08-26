@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                   reverse_iterator.hpp
+* re_std                                                  reverse_iterator.hpp
 *
 * iterator adaptor that wraps a bidirectional (or random-access)
 * iterator and presents the inverse traversal: ++r is conceptually
@@ -39,21 +39,21 @@
 *
 * path:      /inc/djinterp/re_std/iterator/reverse_iterator.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_REVERSE_ITERATOR_
-#define RESTD_ITERATOR_REVERSE_ITERATOR_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_REVERSE_ITERATOR_
+#define DJINTERP_RE_STD_ITERATOR_REVERSE_ITERATOR_ 1
 
 #include "djinterp.hpp"
 
-#include "restd/iterator/iterator_traits.hpp"
+#include "re_std/iterator/iterator_traits.hpp"
 
 
 // D_CONSTEXPR_CPP14 — `constexpr` on C++14+, empty on C++11.
 //   Used for the mutating-then-returning-this ops in reverse_iterator.
 //   Local definition pending an entry in the global qualifier macro
-//   table (RESTD_AGENT_README.md). Guarded so this file compiles
+//   table (RE_STD_AGENT_README.md). Guarded so this file compiles
 //   whether or not the global macro lands.
 #ifndef D_CONSTEXPR_CPP14
     #if D_ENV_LANG_IS_CPP14_OR_HIGHER
@@ -64,7 +64,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _Iter>
@@ -267,6 +267,6 @@ D_CONSTEXPR reverse_iterator<_Iter> make_reverse_iterator(_Iter _it)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_ITERATOR_REVERSE_ITERATOR_
+#endif  // DJINTERP_RE_STD_ITERATOR_REVERSE_ITERATOR_

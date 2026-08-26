@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                             front_insert_iterator.hpp
+* re_std                                            front_insert_iterator.hpp
 *
 * mirror of back_insert_iterator, but calls push_front instead of
 * push_back. Useful for any container that supports push_front
@@ -12,17 +12,17 @@
 *
 *     std::list<int> src = { 1, 2, 3 };
 *     std::list<int> dst;
-*     restd::copy(src.begin(), src.end(), restd::front_inserter(dst));
+*     re_std::copy(src.begin(), src.end(), re_std::front_inserter(dst));
 *     // dst is now { 3, 2, 1 }
 *
 *
 * path:      /inc/djinterp/re_std/iterator/front_insert_iterator.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_FRONT_INSERT_ITERATOR_
-#define RESTD_ITERATOR_FRONT_INSERT_ITERATOR_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_
+#define DJINTERP_RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_ 1
 
 #include "djinterp.hpp"
 
@@ -31,11 +31,11 @@
 
     #include <cstddef>
 
-    #include "restd/iterator/output_iterator_tag.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/iterator/output_iterator_tag.hpp"
+    #include "re_std/utility/move.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _Container>
@@ -66,7 +66,7 @@ public:
     front_insert_iterator&
     operator=(typename _Container::value_type&& _value)
     {
-        container->push_front(restd::move(_value));
+        container->push_front(re_std::move(_value));
         return *this;
     }
 
@@ -85,8 +85,8 @@ front_insert_iterator<_Container> front_inserter(_Container& _c)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_FRONT_INSERT_ITERATOR_
+#endif  // DJINTERP_RE_STD_ITERATOR_FRONT_INSERT_ITERATOR_

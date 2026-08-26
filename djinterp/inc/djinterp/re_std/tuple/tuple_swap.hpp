@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [restd]                                              tuple_swap.hpp
+* djinterp [re_std]                                             tuple_swap.hpp
 *
 * tuple swap header:
-*   ADL-friendly non-member swap overload for restd::tuple. Delegates
+*   ADL-friendly non-member swap overload for re_std::tuple. Delegates
 * to tuple's swap member.
 *
 *     tuple<int, char> a(1, 'x'), b(2, 'y');
-*     swap(a, b);   // ADL picks restd::swap(tuple&, tuple&)
+*     swap(a, b);   // ADL picks re_std::swap(tuple&, tuple&)
 *
 *   PORTABILITY:
 *   Requires variadic templates and rvalue references (C++11+).
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_SWAP_
-#define DJINTERP_RESTD_TUPLE_TUPLE_SWAP_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_SWAP_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_SWAP_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -40,7 +40,7 @@ NS_RESTD
 // =============================================================================
 
 // swap
-//   function: ADL-friendly swap for restd::tuple. Forwards to the
+//   function: ADL-friendly swap for re_std::tuple. Forwards to the
 // member swap.
 template<typename... _Types>
 void
@@ -55,10 +55,10 @@ swap(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_SWAP_
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_SWAP_

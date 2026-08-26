@@ -38,9 +38,9 @@
 *   So when the builtin is missing the trait is NOT DECLARED AT ALL.  Naming it
 * is then a clear, immediate, localised compile error at the point of use
 * rather than a silent wrong answer, and
-* D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY lets callers guard:
+* D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY lets callers guard:
 *
-*     #if D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
+*     #if D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
 *         static_assert(!re_std::reference_constructs_from_temporary<T, U>::value,
 *                       "would dangle");
 *     #endif
@@ -68,8 +68,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_TYPE_TRAITS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY_
-#define RESTD_TYPE_TRAITS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY_
+#define DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY_ 1
 
 // re_std
 #include "./type_traits.hpp"    // integral_constant
@@ -79,7 +79,7 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
+// D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
 //   constant: 1 if the __reference_constructs_from_temporary builtin is
 // available.  When 0, re_std::reference_constructs_from_temporary DOES NOT
 // EXIST - test this macro before naming the trait.
@@ -90,27 +90,26 @@
 // issue #114344, function types) and asserting a floor for a compiler whose
 // behaviour has not been verified here would turn a safe omission into a
 // wrong answer.  __has_builtin answers correctly for both.
-#ifndef D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
+#ifndef D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
     #if defined(__has_builtin)
         #if __has_builtin(__reference_constructs_from_temporary)
-            #define D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY  1
+            #define D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY  1
         #endif
     #endif
 
-    #ifndef D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
+    #ifndef D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
         #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
               D_ENV_COMPILER_VERSION_AT_LEAST(13, 0, 0) )
-            #define D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY  1
+            #define D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY  1
         #else
-            #define D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY  0
+            #define D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY  0
         #endif
-    #endif  // D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY (fallback)
-#endif  // D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY (outer guard)
+    #endif  // D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY (fallback)
+#endif  // D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY (outer guard)
 
 
-#if D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
+#if D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
 
-NS_DJINTERP
 NS_RESTD
 
 // reference_constructs_from_temporary
@@ -132,8 +131,6 @@ struct reference_constructs_from_temporary
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 NS_END  // re_std
-NS_END  // djinterp
+#endif  // D_RE_STD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
 
-#endif  // D_RESTD_HAS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY
-
-#endif  // RESTD_TYPE_TRAITS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REFERENCE_CONSTRUCTS_FROM_TEMPORARY_

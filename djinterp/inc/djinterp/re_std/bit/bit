@@ -1,0 +1,92 @@
+/******************************************************************************
+* djinterp [re_std]                                                         bit
+*
+* <bit> umbrella header:
+*   Aggregates the granular per-symbol headers under
+* /inc/djinterp/re_std/bit/. Mirrors the standard <bit> convenience header
+* and adds no symbols of its own.
+*
+*   THE CONSTRAINT IS THE SUBTLE PART:
+*   Every counting, rotating and power-of-two function here is restricted
+* to the UNSIGNED INTEGER TYPES -- and that set deliberately excludes
+* bool, char, char8_t, char16_t, char32_t and wchar_t, several of which
+* are unsigned on common platforms. bit_internal.hpp spells the set out
+* rather than deriving it from is_unsigned, because a trait-derived test
+* would admit bool and char and would do so platform-dependently.
+*
+*   byteswap is the exception: it takes any integral type, signed and
+* character types included.
+*
+*   TABLE OF CONTENTS
+*   =================
+*   I.    BYTE ORDER
+*   II.   BIT_CAST
+*   III.  COUNTING
+*   IV.   POWER-OF-TWO QUERIES
+*   V.    ROTATION
+*   VI.   BYTESWAP
+*
+*
+* path:      /inc/djinterp/re_std/bit/bit
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_BIT_
+#define DJINTERP_RE_STD_BIT_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+// =============================================================================
+// I.   BYTE ORDER
+// =============================================================================
+
+#include "./endian.hpp"
+
+
+// =============================================================================
+// II.  BIT_CAST
+// =============================================================================
+
+#include "./bit_cast.hpp"
+
+
+// =============================================================================
+// III. COUNTING
+// =============================================================================
+
+#include "./bit_width.hpp"
+#include "./countl_zero.hpp"
+#include "./countl_one.hpp"
+#include "./countr_zero.hpp"
+#include "./countr_one.hpp"
+#include "./popcount.hpp"
+
+
+// =============================================================================
+// IV.  POWER-OF-TWO QUERIES
+// =============================================================================
+
+#include "./has_single_bit.hpp"
+#include "./bit_floor.hpp"
+#include "./bit_ceil.hpp"
+
+
+// =============================================================================
+// V.   ROTATION
+// =============================================================================
+
+#include "./rotl.hpp"
+#include "./rotr.hpp"
+
+
+// =============================================================================
+// VI.  BYTESWAP
+// =============================================================================
+
+#include "./byteswap.hpp"
+
+
+#endif  // DJINTERP_RE_STD_BIT_

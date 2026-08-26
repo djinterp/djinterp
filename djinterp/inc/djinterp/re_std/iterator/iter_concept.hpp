@@ -27,10 +27,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_ITERATOR_ITER_CONCEPT_
-#define RESTD_ITERATOR_ITER_CONCEPT_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_ITER_CONCEPT_
+#define DJINTERP_RE_STD_ITERATOR_ITER_CONCEPT_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -38,7 +38,6 @@
 #include "./iterator_traits.hpp"
 #include "./iterator_tags.hpp"
 
-NS_DJINTERP
 NS_RESTD
 NS_INTERNAL
 
@@ -88,8 +87,7 @@ NS_INTERNAL
 
 NS_END
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_ITER_CONCEPT_
+#endif  // DJINTERP_RE_STD_ITERATOR_ITER_CONCEPT_

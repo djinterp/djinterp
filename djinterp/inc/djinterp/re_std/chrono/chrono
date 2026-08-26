@@ -1,0 +1,110 @@
+/******************************************************************************
+* djinterp [re_std]                                                       chrono
+*
+* <chrono> umbrella header:
+*   Aggregates the granular headers under /inc/djinterp/re_std/chrono/.
+* Mirrors the standard <chrono> convenience header and adds no symbols of
+* its own.
+*
+*   WHAT THIS MODULE COVERS -- THE DURATION AND CLOCK CORE:
+*
+*     duration<Rep, Period>          the tick count + compile-time period
+*     duration_values                the rep's zero / lowest / highest
+*     treat_as_floating_point        the implicit-conversion opt-out
+*     duration_cast                  explicit, truncating toward zero
+*     floor / ceil / round / abs     the C++17 rounding set, back-ported
+*     nanoseconds .. hours           C++11 typedefs
+*     days / weeks / months / years  C++20 typedefs, back-ported
+*     time_point<Clock, Duration>    a clock-tagged offset from an epoch
+*     time_point_cast
+*     system_clock                   wall clock, Unix epoch, not steady
+*     steady_clock                   monotonic, for intervals
+*     high_resolution_clock          a typedef for one of the above
+*     is_clock                       C++20 trait, back-ported
+*     the literals                   1s, 250ms, 2h, ...
+*
+*   WHAT THIS MODULE DOES NOT COVER -- THE C++20 CALENDAR AND TIME ZONES:
+*   year, month, day, weekday, year_month_day and the rest of the civil
+* calendar; the operator/ date-composition syntax; hh_mm_ss; the
+* utc_clock / tai_clock / gps_clock / file_clock family and clock_cast;
+* time_zone, zoned_time and the tzdb; and the <format> integration. None
+* of it is present, and none of it is approximated.
+*
+*   That is the same call made for <bitset>, whose string constructor and
+* stream operators are absent rather than half-built: a partial calendar
+* is worse than no calendar, because year_month_day that is right about
+* leap years and wrong about the Gregorian reform is a bug that reaches
+* production. The time-zone half additionally needs a tzdata source,
+* which is a deployment dependency rather than a coding problem. Both are
+* tracked as a separate roadmap entry.
+*
+*   The consequence to know: days, months and years here are FIXED-LENGTH
+* durations. `t + years(1)` advances by 31556952 seconds, the mean
+* Gregorian year -- it does not give the same date next year. See
+* duration_typedefs.hpp.
+*
+*   WHERE re_std IS AHEAD OF std IN THIS MODULE:
+*     - floor / ceil / round / abs      C++17 -> C++11
+*     - days / weeks / months / years   C++20 -> C++11
+*     - is_clock                        C++20 -> C++11
+*     - sys_time / sys_seconds / sys_days  C++20 -> C++11
+*     - the duration and time_point mutators are constexpr from C++14,
+*       where std waited for C++17
+*
+*   std::chrono is itself C++11, so the module's floor is C++11 and there
+* is no back-port win on the core types. What re_std adds there is one
+* implementation with one behaviour -- including a documented, honest
+* answer for steady_clock::is_steady on platforms without a monotonic
+* source, where implementations otherwise differ.
+*
+*
+* path:      /inc/djinterp/re_std/chrono/chrono
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_CHRONO_
+#define DJINTERP_RE_STD_CHRONO_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+// -- duration ---------------------------------------------------------------
+#include "./duration_fwd.hpp"
+#include "./treat_as_floating_point.hpp"
+#include "./duration_values.hpp"
+#include "./duration_cast_impl.hpp"
+#include "./duration.hpp"
+#include "./duration_common_type.hpp"
+#include "./duration_cast.hpp"
+#include "./duration_arithmetic.hpp"
+#include "./duration_compare.hpp"
+#include "./duration_compare_three_way.hpp"
+#include "./duration_typedefs.hpp"
+
+// -- time_point -------------------------------------------------------------
+#include "./time_point.hpp"
+#include "./time_point_common_type.hpp"
+#include "./time_point_cast.hpp"
+#include "./time_point_arithmetic.hpp"
+#include "./time_point_compare.hpp"
+#include "./time_point_compare_three_way.hpp"
+
+// -- clocks -----------------------------------------------------------------
+#include "./system_clock.hpp"
+#include "./steady_clock.hpp"
+#include "./high_resolution_clock.hpp"
+#include "./is_clock.hpp"
+
+// -- rounding ---------------------------------------------------------------
+#include "./floor.hpp"
+#include "./ceil.hpp"
+#include "./round.hpp"
+#include "./abs.hpp"
+
+// -- literals ---------------------------------------------------------------
+#include "./chrono_literals.hpp"
+
+
+#endif  // DJINTERP_RE_STD_CHRONO_

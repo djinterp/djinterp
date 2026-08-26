@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            remove_extent.hpp
+* djinterp [re_std]                                           remove_extent.hpp
 *
 * remove_extent trait header:
 *   Strips one level of array dimensioning from a type. If _Type is an
@@ -18,8 +18,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_REMOVE_EXTENT_
-#define DJINTERP_RESTD_TYPE_TRAITS_REMOVE_EXTENT_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_EXTENT_
+#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_EXTENT_ 1
 
 // std
 #include <cstddef>
@@ -74,7 +74,7 @@ struct remove_extent<_Type[_N]>
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_REMOVE_EXTENT_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_EXTENT_

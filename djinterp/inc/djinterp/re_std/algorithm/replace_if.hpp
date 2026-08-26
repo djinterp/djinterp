@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                replace_if.hpp
+* djinterp [re_std]                                               replace_if.hpp
 *
 * replace_if algorithm header:
 *   Walks [_first, _last) and replaces every element for which _pred
@@ -7,7 +7,7 @@
 *
 *   PORTABILITY:
 *   - std::replace_if is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/replace_if.hpp
@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_REPLACE_IF_
-#define DJINTERP_RESTD_ALGORITHM_REPLACE_IF_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_REPLACE_IF_
+#define DJINTERP_RE_STD_ALGORITHM_REPLACE_IF_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -65,7 +65,7 @@ replace_if(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_REPLACE_IF_
+#endif  // DJINTERP_RE_STD_ALGORITHM_REPLACE_IF_

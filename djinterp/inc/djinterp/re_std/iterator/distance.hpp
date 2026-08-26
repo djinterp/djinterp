@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                           distance.hpp
+* re_std                                                          distance.hpp
 *
 * distance(_first, _last) returns the number of increments needed to
 * go from _first to _last.
@@ -18,20 +18,20 @@
 *
 * path:      /inc/djinterp/re_std/iterator/distance.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_DISTANCE_
-#define RESTD_ITERATOR_DISTANCE_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_DISTANCE_
+#define DJINTERP_RE_STD_ITERATOR_DISTANCE_ 1
 
 #include "djinterp.hpp"
 
-#include "restd/iterator/iterator_traits.hpp"
-#include "restd/iterator/input_iterator_tag.hpp"
-#include "restd/iterator/random_access_iterator_tag.hpp"
+#include "re_std/iterator/iterator_traits.hpp"
+#include "re_std/iterator/input_iterator_tag.hpp"
+#include "re_std/iterator/random_access_iterator_tag.hpp"
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -78,6 +78,6 @@ distance(_It _first, _It _last)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_ITERATOR_DISTANCE_
+#endif  // DJINTERP_RE_STD_ITERATOR_DISTANCE_

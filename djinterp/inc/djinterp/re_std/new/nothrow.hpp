@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                                    nothrow.hpp
+* djinterp [re_std]                                                   nothrow.hpp
 *
 * nothrow tag + constant header:
-*   restd::nothrow_t (tag type) and restd::nothrow (constant) are
+*   re_std::nothrow_t (tag type) and re_std::nothrow (constant) are
 * using-declarations from std::. The non-throwing operator-new
 * overload `operator new(size_t, nothrow_t const&)` is the only
 * common use — the rest of the standard's nothrow infrastructure
@@ -17,8 +17,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_NOTHROW_
-#define DJINTERP_RESTD_NOTHROW_ 1
+#ifndef DJINTERP_RE_STD_NOTHROW_
+#define DJINTERP_RE_STD_NOTHROW_ 1
 
 #include "../../core/djinterp.hpp"
 #include <new>
@@ -35,7 +35,7 @@ using std::nothrow_t;
 using std::nothrow;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_NOTHROW_
+#endif  // DJINTERP_RE_STD_NOTHROW_

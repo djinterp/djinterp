@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                       compare
+* djinterp [re_std]                                                      compare
 *
 * compare umbrella header (extension-less, mirrors std's <compare>):
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/restd/compare/.
+* /inc/djinterp/re_std/compare/.
 *
 *   GRANULARITY:
 *   Every public symbol lives in its own .hpp file under this directory.
@@ -12,7 +12,7 @@
 *   PORTABILITY:
 *   The C++20 <compare> header is gated on the operator<=> language
 * feature when used with std's three-way-comparison machinery; the
-* restd::compare ordering category classes themselves are usable on
+* re_std::compare ordering category classes themselves are usable on
 * C++11+ as plain classes (with all comparison-vs-literal-0
 * operators). The header expands to nothing on C++98/03.
 *
@@ -45,13 +45,13 @@
 *         compare_partial_order_fallback
 *
 *
-* path:      /inc/djinterp/restd/compare/compare
+* path:      /inc/djinterp/re_std/compare/compare
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_UMBRELLA_
-#define DJINTERP_RESTD_COMPARE_UMBRELLA_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_UMBRELLA_
+#define DJINTERP_RE_STD_COMPARE_UMBRELLA_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -75,7 +75,7 @@
 
 // IV. Function objects + niebloids (Phase C4) — all gated on C++20
 //     inside the individual files since their bodies use operator<=>.
-#include "./compare_three_way.hpp"
+#include "../compare/compare_three_way.hpp"
 #include "./strong_order.hpp"
 #include "./weak_order.hpp"
 #include "./partial_order.hpp"
@@ -84,4 +84,4 @@
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_UMBRELLA_
+#endif  // DJINTERP_RE_STD_COMPARE_UMBRELLA_

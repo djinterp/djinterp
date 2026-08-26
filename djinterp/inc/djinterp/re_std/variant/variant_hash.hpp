@@ -28,10 +28,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_VARIANT_VARIANT_HASH_
-#define RESTD_VARIANT_VARIANT_HASH_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_VARIANT_HASH_
+#define DJINTERP_RE_STD_VARIANT_VARIANT_HASH_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -39,7 +39,6 @@
 #include "../functional/hash.hpp"
 #include "./variant.hpp"
 
-NS_DJINTERP
 NS_RESTD
 NS_INTERNAL
 
@@ -100,8 +99,7 @@ struct hash<variant<_Types...> >
 };
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_VARIANT_VARIANT_HASH_
+#endif  // DJINTERP_RE_STD_VARIANT_VARIANT_HASH_

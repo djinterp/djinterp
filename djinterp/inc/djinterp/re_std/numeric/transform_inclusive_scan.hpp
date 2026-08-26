@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                          transform_inclusive_scan.hpp
+* re_std                                         transform_inclusive_scan.hpp
 *
 * like inclusive_scan but applies _unary_op to each input before
 * folding via _bin_op:
@@ -14,18 +14,18 @@
 *
 * path:      /inc/djinterp/re_std/numeric/transform_inclusive_scan.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_
-#define RESTD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_
+#define DJINTERP_RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/utility/move.hpp"
+    #include "re_std/utility/move.hpp"
 
 
 #ifndef D_CONSTEXPR_CPP14
@@ -37,7 +37,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Without explicit init.
@@ -58,7 +58,7 @@ D_CONSTEXPR_CPP14 _OutputIt transform_inclusive_scan
     for (++_first, (void)++_d_first; _first != _last;
          ++_first, (void)++_d_first)
     {
-        _acc = _bin_op(restd::move(_acc), _unary_op(*_first));
+        _acc = _bin_op(re_std::move(_acc), _unary_op(*_first));
         *_d_first = _acc;
     }
     return _d_first;
@@ -79,15 +79,15 @@ D_CONSTEXPR_CPP14 _OutputIt transform_inclusive_scan
 {
     for (; _first != _last; ++_first, (void)++_d_first)
     {
-        _init = _bin_op(restd::move(_init), _unary_op(*_first));
+        _init = _bin_op(re_std::move(_init), _unary_op(*_first));
         *_d_first = _init;
     }
     return _d_first;
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_
+#endif  // DJINTERP_RE_STD_NUMERIC_TRANSFORM_INCLUSIVE_SCAN_

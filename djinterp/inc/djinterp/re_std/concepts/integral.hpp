@@ -22,18 +22,17 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_CONCEPTS_INTEGRAL_
-#define RESTD_CONCEPTS_INTEGRAL_ 1
+#ifndef DJINTERP_RE_STD_CONCEPTS_INTEGRAL_
+#define DJINTERP_RE_STD_CONCEPTS_INTEGRAL_ 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 // re_std
 #include "../type_traits/type_traits.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // integral
@@ -42,8 +41,6 @@ template<typename _Type>
 concept integral = is_integral<_Type>::value;
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_CONCEPTS_INTEGRAL_
+#endif  // DJINTERP_RE_STD_CONCEPTS_INTEGRAL_

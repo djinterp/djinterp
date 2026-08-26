@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                           forward_range.hpp
+* djinterp [re_std]                                          forward_range.hpp
 *
 * forward_range concept-trait header:
 *   Provides the C++20 forward_range concept as a SFINAE-detection
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_FORWARD_RANGE_
-#define DJINTERP_RESTD_RANGES_FORWARD_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_FORWARD_RANGE_
+#define DJINTERP_RE_STD_RANGES_FORWARD_RANGE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -77,10 +77,10 @@ D_CONSTEXPR bool forward_range_v = forward_range<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_FORWARD_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_FORWARD_RANGE_

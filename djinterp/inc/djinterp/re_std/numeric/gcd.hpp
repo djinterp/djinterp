@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                               gcd.hpp
+* re_std                                                              gcd.hpp
 *
 * gcd(_a, _b) returns the greatest common divisor of |_a| and |_b|.
 *
@@ -24,11 +24,11 @@
 *
 * path:      /inc/djinterp/re_std/numeric/gcd.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_GCD_
-#define RESTD_NUMERIC_GCD_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_GCD_
+#define DJINTERP_RE_STD_NUMERIC_GCD_ 1
 
 #include "djinterp.hpp"
 
@@ -47,7 +47,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -87,11 +87,11 @@ D_CONSTEXPR_CPP14 typename std::common_type<_M, _N>::type
 gcd(_M _a, _N _b) D_NOEXCEPT
 {
     static_assert(std::is_integral<_M>::value && std::is_integral<_N>::value,
-                  "restd::gcd requires integer arguments");
+                  "re_std::gcd requires integer arguments");
     static_assert(!std::is_same<typename std::remove_cv<_M>::type, bool>::value,
-                  "restd::gcd does not accept bool");
+                  "re_std::gcd does not accept bool");
     static_assert(!std::is_same<typename std::remove_cv<_N>::type, bool>::value,
-                  "restd::gcd does not accept bool");
+                  "re_std::gcd does not accept bool");
 
     typedef typename std::common_type<_M, _N>::type           _R;
     typedef typename std::make_unsigned<_R>::type             _UR;
@@ -102,8 +102,8 @@ gcd(_M _a, _N _b) D_NOEXCEPT
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_NUMERIC_GCD_
+#endif  // DJINTERP_RE_STD_NUMERIC_GCD_

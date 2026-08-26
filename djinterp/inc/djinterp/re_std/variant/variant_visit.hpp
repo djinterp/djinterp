@@ -38,11 +38,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_VARIANT_VARIANT_VISIT_
-#define RESTD_VARIANT_VARIANT_VISIT_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_VARIANT_VISIT_
+#define DJINTERP_RE_STD_VARIANT_VARIANT_VISIT_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -52,7 +52,6 @@
 #include "./variant.hpp"
 #include "./bad_variant_access.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 NS_INTERNAL
@@ -212,8 +211,6 @@ _Result visit(_Visitor&& visitor, _Variants&&... variants)
 }
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_VARIANT_VARIANT_VISIT_
+#endif  // DJINTERP_RE_STD_VARIANT_VARIANT_VISIT_

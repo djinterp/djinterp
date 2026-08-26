@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    search.hpp
+* djinterp [re_std]                                                   search.hpp
 *
 * search algorithm header:
 *   Finds the first occurrence of [_first2, _last2) as a subsequence
@@ -20,7 +20,7 @@
 *     <functional> and are deferred there; users may supply their own
 *     conforming searcher today.
 *   - O(N*M) naive scan in the equality / predicate forms.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/search.hpp
@@ -28,8 +28,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SEARCH_
-#define DJINTERP_RESTD_ALGORITHM_SEARCH_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SEARCH_
+#define DJINTERP_RE_STD_ALGORITHM_SEARCH_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -182,7 +182,7 @@ search(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SEARCH_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SEARCH_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               remove_copy.hpp
+* djinterp [re_std]                                              remove_copy.hpp
 *
 * remove_copy algorithm header:
 *   Out-of-place sibling of remove. Copies elements from
@@ -11,7 +11,7 @@
 *   - std::remove_copy is C++98.
 *   - Pure copy semantics (writes to a separate output range); no
 *     conditional move dance like in-place remove.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/remove_copy.hpp
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_REMOVE_COPY_
-#define DJINTERP_RESTD_ALGORITHM_REMOVE_COPY_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_REMOVE_COPY_
+#define DJINTERP_RE_STD_ALGORITHM_REMOVE_COPY_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -73,7 +73,7 @@ remove_copy(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_REMOVE_COPY_
+#endif  // DJINTERP_RE_STD_ALGORITHM_REMOVE_COPY_

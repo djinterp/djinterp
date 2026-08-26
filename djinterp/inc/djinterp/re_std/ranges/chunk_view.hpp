@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              chunk_view.hpp
+* djinterp [re_std]                                             chunk_view.hpp
 *
 * chunk_view header:
 *   Provides the C++23 chunk adaptor. chunk_view<V> partitions an
@@ -25,8 +25,8 @@
 *     is alive.
 *
 *   COLOCATED:
-*   restd::views::chunk(r, n) — direct form.
-*   restd::views::chunk(n)    — bound form for pipe syntax.
+*   re_std::views::chunk(r, n) — direct form.
+*   re_std::views::chunk(n)    — bound form for pipe syntax.
 *
 *
 * path:      /inc/djinterp/re_std/ranges/chunk_view.hpp
@@ -34,8 +34,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_CHUNK_VIEW_
-#define DJINTERP_RESTD_RANGES_CHUNK_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_CHUNK_VIEW_
+#define DJINTERP_RE_STD_RANGES_CHUNK_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -463,13 +463,13 @@ public:
     iterator
     begin()
     {
-        return iterator(restd::begin(m_base), restd::end(m_base), m_n);
+        return iterator(re_std::begin(m_base), re_std::end(m_base), m_n);
     }
 
     D_CONSTEXPR sentinel
     end()
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 
 
@@ -479,10 +479,10 @@ public:
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        typedef decltype(restd::size(m_base)) size_type;
-        size_type s = restd::size(m_base);
+        typedef decltype(re_std::size(m_base)) size_type;
+        size_type s = re_std::size(m_base);
         size_type n = static_cast<size_type>(m_n);
         return (s + n - 1) / n;
     }
@@ -572,10 +572,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_CHUNK_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_CHUNK_VIEW_

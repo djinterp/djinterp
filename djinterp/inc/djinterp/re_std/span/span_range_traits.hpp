@@ -26,10 +26,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_SPAN_RANGE_TRAITS_
-#define RESTD_SPAN_RANGE_TRAITS_ 1
+#ifndef DJINTERP_RE_STD_SPAN_RANGE_TRAITS_
+#define DJINTERP_RE_STD_SPAN_RANGE_TRAITS_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -38,7 +38,6 @@
 #include "../ranges/enable_view.hpp"
 #include "./span.hpp"
 
-NS_DJINTERP
 NS_RESTD
 D_NAMESPACE(ranges)
 
@@ -58,8 +57,7 @@ D_NAMESPACE(ranges)
 
 NS_END  // ranges
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SPAN_RANGE_TRAITS_
+#endif  // DJINTERP_RE_STD_SPAN_RANGE_TRAITS_

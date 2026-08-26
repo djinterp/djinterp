@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             filter_view.hpp
+* djinterp [re_std]                                            filter_view.hpp
 *
 * filter_view header:
 *   Provides the C++20 lazy-filtering adaptor. filter_view<V, Pred>
@@ -16,7 +16,7 @@
 *     consequence filter_view::iterator does not satisfy
 *     borrowed_range — outliving the parent dangles.
 *   - begin() is lazily cached: the first call scans forward from
-*     restd::begin(base) until Pred returns true, and subsequent
+*     re_std::begin(base) until Pred returns true, and subsequent
 *     calls return the cached iterator. The cache is mutable so
 *     begin() can be const-callable.
 *   - Iterator category is clamped to at-most bidirectional. C++20
@@ -26,7 +26,7 @@
 *     evaluations in O(1).
 *
 *   COLOCATED:
-*   restd::views::filter(r, pred).
+*   re_std::views::filter(r, pred).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/filter_view.hpp
@@ -34,8 +34,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_FILTER_VIEW_
-#define DJINTERP_RESTD_RANGES_FILTER_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_FILTER_VIEW_
+#define DJINTERP_RE_STD_RANGES_FILTER_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -115,8 +115,8 @@ private:
         {
             return;
         }
-        iterator_t<_View> it = restd::begin(m_base);
-        sentinel_t<_View> e  = restd::end(m_base);
+        iterator_t<_View> it = re_std::begin(m_base);
+        sentinel_t<_View> e  = re_std::end(m_base);
         while (it != e && !(*m_pred)(*it))
         {
             ++it;
@@ -206,7 +206,7 @@ public:
         iterator&
         operator++()
         {
-            sentinel_t<_View> e = restd::end(m_parent->m_base);
+            sentinel_t<_View> e = re_std::end(m_parent->m_base);
             ++m_it;
             while (m_it != e && !(*(m_parent->m_pred))(*m_it))
             {
@@ -392,7 +392,7 @@ public:
     sentinel
     end() const
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 };
 
@@ -481,10 +481,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_FILTER_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_FILTER_VIEW_

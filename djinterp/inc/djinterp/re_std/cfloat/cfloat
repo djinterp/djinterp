@@ -1,0 +1,52 @@
+/******************************************************************************
+* djinterp [re_std]                                                      cfloat
+*
+* <cfloat> umbrella header:
+*   Aggregates the granular headers under /inc/djinterp/re_std/cfloat/.
+* Mirrors the standard <cfloat> convenience header and adds no symbols of
+* its own.
+*
+*   Like <climits>, this module is macro-only and therefore contributes no
+* re_std:: names. What it contributes is availability: after including it,
+* the C++17 macro set (the *_DECIMAL_DIG, *_TRUE_MIN and *_HAS_SUBNORM
+* families C++17 adopted from C11) is present on any compiler that
+* publishes the corresponding builtins, including libraries that predate
+* C++17. See cfloat.hpp for what happens where it cannot be.
+*
+*   The full set surfaced here, per type T in { FLT, DBL, LDBL }:
+*
+*     FLT_RADIX, FLT_ROUNDS, FLT_EVAL_METHOD, DECIMAL_DIG
+*     T_MANT_DIG, T_DIG, T_DECIMAL_DIG
+*     T_MIN_EXP, T_MAX_EXP, T_MIN_10_EXP, T_MAX_10_EXP
+*     T_MIN, T_MAX, T_EPSILON, T_TRUE_MIN, T_HAS_SUBNORM
+*
+*   Two traps worth naming, because both are silent:
+*
+*     - T_MIN is the smallest positive NORMAL value, not the smallest
+*       positive value. T_TRUE_MIN is the latter. For double they differ
+*       by sixteen orders of magnitude.
+*     - FLT_ROUNDS is not a constant expression. It reflects the current
+*       rounding mode, which fesetround() can change at run time, so it
+*       cannot be used in #if or static_assert. Every other macro here
+*       can.
+*
+*   For anything outside a preprocessor conditional, re_std::numeric_limits
+* <T> from <limits> is the better answer -- typed, namespaced, constexpr,
+* and uniform across every floating-point type.
+*
+*
+* path:      /inc/djinterp/re_std/cfloat/cfloat
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_CFLOAT_
+#define DJINTERP_RE_STD_CFLOAT_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+#include "./cfloat.hpp"
+
+
+#endif  // DJINTERP_RE_STD_CFLOAT_

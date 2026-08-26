@@ -13,17 +13,16 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_OPTIONAL_SWAP_
-#define RESTD_OPTIONAL_SWAP_ 1
+#ifndef DJINTERP_RE_STD_OPTIONAL_SWAP_
+#define DJINTERP_RE_STD_OPTIONAL_SWAP_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
 #include "./optional.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // swap
@@ -39,8 +38,7 @@ swap(optional<_Type>& a, optional<_Type>& b)
 }
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_OPTIONAL_SWAP_
+#endif  // DJINTERP_RE_STD_OPTIONAL_SWAP_

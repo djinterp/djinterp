@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                           is_sorted_until.hpp
+* djinterp [re_std]                                          is_sorted_until.hpp
 *
 * is_sorted_until algorithm header:
 *   Returns the first iterator it in [_first, _last) such that the
@@ -8,8 +8,8 @@
 * whole range is sorted.
 *
 *   PORTABILITY:
-*   - std::is_sorted_until is C++11; restd back-ports to C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - std::is_sorted_until is C++11; re_std back-ports to C++98.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Two overloads: default operator< and custom comparator.
 *
 *
@@ -18,8 +18,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_IS_SORTED_UNTIL_
-#define DJINTERP_RESTD_ALGORITHM_IS_SORTED_UNTIL_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_IS_SORTED_UNTIL_
+#define DJINTERP_RE_STD_ALGORITHM_IS_SORTED_UNTIL_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -110,7 +110,7 @@ is_sorted_until(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_IS_SORTED_UNTIL_
+#endif  // DJINTERP_RE_STD_ALGORITHM_IS_SORTED_UNTIL_

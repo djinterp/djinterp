@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                    inclusive_scan.hpp
+* re_std                                                   inclusive_scan.hpp
 *
 * inclusive_scan is the parallel-friendly prefix-fold:
 *   d[0] = src[0]
@@ -20,19 +20,19 @@
 *
 * path:      /inc/djinterp/re_std/numeric/inclusive_scan.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_INCLUSIVE_SCAN_
-#define RESTD_NUMERIC_INCLUSIVE_SCAN_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_INCLUSIVE_SCAN_
+#define DJINTERP_RE_STD_NUMERIC_INCLUSIVE_SCAN_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/iterator/iterator_traits.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/iterator/iterator_traits.hpp"
+    #include "re_std/utility/move.hpp"
 
 
 #ifndef D_CONSTEXPR_CPP14
@@ -44,7 +44,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Default-op (operator+).
@@ -63,7 +63,7 @@ D_CONSTEXPR_CPP14 _OutputIt inclusive_scan
     for (++_first, (void)++_d_first; _first != _last;
          ++_first, (void)++_d_first)
     {
-        _acc = restd::move(_acc) + *_first;
+        _acc = re_std::move(_acc) + *_first;
         *_d_first = _acc;
     }
     return _d_first;
@@ -86,7 +86,7 @@ D_CONSTEXPR_CPP14 _OutputIt inclusive_scan
     for (++_first, (void)++_d_first; _first != _last;
          ++_first, (void)++_d_first)
     {
-        _acc = _op(restd::move(_acc), *_first);
+        _acc = _op(re_std::move(_acc), *_first);
         *_d_first = _acc;
     }
     return _d_first;
@@ -107,15 +107,15 @@ D_CONSTEXPR_CPP14 _OutputIt inclusive_scan
 {
     for (; _first != _last; ++_first, (void)++_d_first)
     {
-        _init = _op(restd::move(_init), *_first);
+        _init = _op(re_std::move(_init), *_first);
         *_d_first = _init;
     }
     return _d_first;
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_NUMERIC_INCLUSIVE_SCAN_
+#endif  // DJINTERP_RE_STD_NUMERIC_INCLUSIVE_SCAN_

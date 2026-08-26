@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                      sort.hpp
+* djinterp [re_std]                                                     sort.hpp
 *
 * sort algorithm header:
 *   Sorts the elements of [_first, _last) in non-descending order per
@@ -33,7 +33,7 @@
 *   The heapsort fallback inlines _sort_sift_down_ and _sort_heap_sort_
 *   here rather than depending on the public make_heap/sort_heap (which
 *   ship in a later batch). Once those land this file should call
-*   restd::sort_heap(first, last, comp) and remove the duplicates.
+*   re_std::sort_heap(first, last, comp) and remove the duplicates.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/sort.hpp
@@ -41,12 +41,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SORT_
-#define DJINTERP_RESTD_ALGORITHM_SORT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SORT_
+#define DJINTERP_RE_STD_ALGORITHM_SORT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -55,8 +55,12 @@
 #endif
 
 
-NS_RESTD
 
+
+NS_RESTD
+//   Opened here 2026-08-25. This file previously began its namespaced
+// content with no NS_RESTD, so everything above the first NS_END lived
+// at GLOBAL SCOPE and that NS_END closed a namespace never opened.
 
 // ===========================================================================
 // 0.   INTERNAL HELPERS
@@ -105,7 +109,7 @@ _sort_insertion_(
     for (; _i != _last; ++_i)
     {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        _Value _value = restd::move(*_i);
+        _Value _value = re_std::move(*_i);
 #else
         _Value _value = *_i;
 #endif
@@ -120,7 +124,7 @@ _sort_insertion_(
                 break;
             }
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-            *_j = restd::move(*_prev);
+            *_j = re_std::move(*_prev);
 #else
             *_j = *_prev;
 #endif
@@ -128,10 +132,12 @@ _sort_insertion_(
         }
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        *_j = restd::move(_value);
+        *_j = re_std::move(_value);
 #else
         *_j = _value;
 #endif
+
+
     }
 }
 
@@ -335,7 +341,7 @@ _sort_introsort_loop_(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 // ===========================================================================
@@ -374,7 +380,7 @@ sort(
 
 // sort (default operator<)
 //   function: sorts [_first, _last) per operator<. Equivalent to
-// calling the comparator overload with restd::less<value_type>().
+// calling the comparator overload with re_std::less<value_type>().
 template<typename _RandomIt>
 void
 sort(
@@ -383,11 +389,12 @@ sort(
 )
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    sort(_first, _last, restd::less<_Value>());
+    sort(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // restd
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SORT_
+NS_END  // re_std   (added 2026-08-25 -- was never closed)
+
+#endif  // DJINTERP_RE_STD_ALGORITHM_SORT_

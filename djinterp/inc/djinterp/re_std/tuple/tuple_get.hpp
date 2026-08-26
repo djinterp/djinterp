@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                              tuple_get.hpp
+* djinterp [re_std]                                             tuple_get.hpp
 *
 * tuple get<> overloads:
-*   Index-based and type-based element access for restd::tuple.
+*   Index-based and type-based element access for re_std::tuple.
 *
 *   INDEX-BASED (C++11+):
 *     get<0>(tup)      -> reference to the first element.
@@ -27,8 +27,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_GET_
-#define DJINTERP_RESTD_TUPLE_TUPLE_GET_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_GET_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_GET_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -290,10 +290,10 @@ get(
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_GET_
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_GET_

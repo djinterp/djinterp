@@ -28,10 +28,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_RANGES_ADJACENT_VIEW_
-#define RESTD_RANGES_ADJACENT_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_ADJACENT_VIEW_
+#define DJINTERP_RE_STD_RANGES_ADJACENT_VIEW_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -44,7 +44,6 @@
 #include "./range_access.hpp"
 #include "./view_interface.hpp"
 
-NS_DJINTERP
 NS_RESTD
 D_NAMESPACE(ranges)
 
@@ -250,8 +249,7 @@ public:
 
 NS_END  // ranges
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_RANGES_ADJACENT_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_ADJACENT_VIEW_

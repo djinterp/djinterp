@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                    exclusive_scan.hpp
+* re_std                                                   exclusive_scan.hpp
 *
 * exclusive_scan writes the running fold up to but EXCLUDING the
 * corresponding input:
@@ -17,18 +17,18 @@
 *
 * path:      /inc/djinterp/re_std/numeric/exclusive_scan.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_EXCLUSIVE_SCAN_
-#define RESTD_NUMERIC_EXCLUSIVE_SCAN_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_EXCLUSIVE_SCAN_
+#define DJINTERP_RE_STD_NUMERIC_EXCLUSIVE_SCAN_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/utility/move.hpp"
+    #include "re_std/utility/move.hpp"
 
 
 #ifndef D_CONSTEXPR_CPP14
@@ -40,7 +40,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Default-op (operator+).
@@ -56,8 +56,8 @@ D_CONSTEXPR_CPP14 _OutputIt exclusive_scan
     while (_first != _last)
     {
         _T _next = _init + *_first;
-        *_d_first = restd::move(_init);
-        _init = restd::move(_next);
+        *_d_first = re_std::move(_init);
+        _init = re_std::move(_next);
         ++_first;
         ++_d_first;
     }
@@ -78,8 +78,8 @@ D_CONSTEXPR_CPP14 _OutputIt exclusive_scan
     while (_first != _last)
     {
         _T _next = _op(_init, *_first);
-        *_d_first = restd::move(_init);
-        _init = restd::move(_next);
+        *_d_first = re_std::move(_init);
+        _init = re_std::move(_next);
         ++_first;
         ++_d_first;
     }
@@ -87,8 +87,8 @@ D_CONSTEXPR_CPP14 _OutputIt exclusive_scan
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_NUMERIC_EXCLUSIVE_SCAN_
+#endif  // DJINTERP_RE_STD_NUMERIC_EXCLUSIVE_SCAN_

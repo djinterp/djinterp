@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            tuple_element.hpp
+* djinterp [re_std]                                           tuple_element.hpp
 *
 * tuple_element trait header:
 *   Yields the type of the _I-th element of a tuple-like type. Per
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_ELEMENT_
-#define DJINTERP_RESTD_TUPLE_TUPLE_ELEMENT_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_ELEMENT_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_ELEMENT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -129,10 +129,10 @@ struct tuple_element<_I, const volatile _Tuple>
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_ELEMENT_
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_ELEMENT_

@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                                array_get.hpp
+* djinterp [re_std]                                               array_get.hpp
 *
 * array get header:
-*   Provides the four value-category overloads of restd::get<I>(array):
+*   Provides the four value-category overloads of re_std::get<I>(array):
 *
 *     get<I>(      array<T, N>&  )  ->       T&
 *     get<I>(const array<T, N>&  )  -> const T&
@@ -35,8 +35,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_GET_
-#define DJINTERP_RESTD_ARRAY_GET_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_GET_
+#define DJINTERP_RE_STD_ARRAY_GET_ 1
 
 #include <cstddef>
 
@@ -73,7 +73,7 @@ get(
 ) D_NOEXCEPT
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static_assert(_Index < _Size, "restd::get<I>(array): I out of bounds");
+    static_assert(_Index < _Size, "re_std::get<I>(array): I out of bounds");
 #endif
     return array<_Type, _Size>::_storage::ptr(_a._M_elems)[_Index];
 }
@@ -90,7 +90,7 @@ get(
 ) D_NOEXCEPT
 {
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    static_assert(_Index < _Size, "restd::get<I>(array): I out of bounds");
+    static_assert(_Index < _Size, "re_std::get<I>(array): I out of bounds");
 #endif
     return array<_Type, _Size>::_storage::ptr(_a._M_elems)[_Index];
 }
@@ -116,7 +116,7 @@ get(
     array<_Type, _Size>&& _a
 ) D_NOEXCEPT
 {
-    static_assert(_Index < _Size, "restd::get<I>(array): I out of bounds");
+    static_assert(_Index < _Size, "re_std::get<I>(array): I out of bounds");
     return static_cast<_Type&&>(
         array<_Type, _Size>::_storage::ptr(_a._M_elems)[_Index]);
 }
@@ -132,7 +132,7 @@ get(
     array<_Type, _Size> const&& _a
 ) D_NOEXCEPT
 {
-    static_assert(_Index < _Size, "restd::get<I>(array): I out of bounds");
+    static_assert(_Index < _Size, "re_std::get<I>(array): I out of bounds");
     return static_cast<_Type const&&>(
         array<_Type, _Size>::_storage::ptr(_a._M_elems)[_Index]);
 }
@@ -140,7 +140,7 @@ get(
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ARRAY_GET_
+#endif  // DJINTERP_RE_STD_ARRAY_GET_

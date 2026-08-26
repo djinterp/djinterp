@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                             type_traits.hpp
+* djinterp [re_std]                                            type_traits.hpp
 *
 * type_traits umbrella header:
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/restd/type_traits/. Mirrors the standard <type_traits>
+* /inc/djinterp/re_std/type_traits/. Mirrors the standard <type_traits>
 * convenience header.
 *
 *   GRANULARITY:
@@ -33,13 +33,13 @@
 * XIV.  LOGICAL OPERATORS
 *
 *
-* path:      /inc/djinterp/restd/type_traits/type_traits.hpp
+* path:      /inc/djinterp/re_std/type_traits/type_traits.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_
-#define DJINTERP_RESTD_TYPE_TRAITS_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -111,7 +111,7 @@
 #include "./is_bounded_array.hpp"
 #include "./is_unbounded_array.hpp"
 #include "./is_enum.hpp"
-//#include "./is_scoped_enum.hpp"
+#include "./is_scoped_enum.hpp"
 #include "./is_union.hpp"
 #include "./is_class.hpp"
 #include "./is_pointer.hpp"
@@ -149,16 +149,16 @@
 // IX.  TYPE-PROPERTY QUERIES (intrinsic-backed)
 // =============================================================================
 
-//#include "./is_trivial.hpp"
-//#include "./is_trivially_copyable.hpp"
-//#include "./is_standard_layout.hpp"
+#include "./is_trivial.hpp"
+#include "./is_trivially_copyable.hpp"
+#include "./is_standard_layout.hpp"
 #include "./is_empty.hpp"
 #include "./is_polymorphic.hpp"
-//#include "./is_abstract.hpp"
+#include "./is_abstract.hpp"
 #include "./is_final.hpp"
-//#include "./is_aggregate.hpp"
-//#include "./has_virtual_destructor.hpp"
-//#include "./has_unique_object_representations.hpp"
+#include "./is_aggregate.hpp"
+#include "./has_virtual_destructor.hpp"
+#include "./has_unique_object_representations.hpp"
 
 
 // =============================================================================
@@ -245,5 +245,54 @@
 #include "./disjunction.hpp"
 #include "./negation.hpp"
 
+// =============================================================================
+// XV.  SWAPPABLE, INVOCABLE, REFERENCE AND STORAGE TRAITS
+// =============================================================================
+//
+//   These headers all existed under type_traits/ but were never included
+// here, so `#include "re_std/type_traits/type_traits.hpp"` -- the module's
+// documented entry point -- did not surface them. Each is catalogued as
+// shipped and each compiles standalone; withholding them is what made
+// optional/optional.hpp fail on is_nothrow_swappable and
+// utility/pair.hpp note that the trait "re_std does not yet [have]".
+//
+//   Wired in 2026-08-25. Grouped by family rather than folded into the
+// sections above so the addition is legible in a diff.
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_
+// -- swappable --------------------------------------------------------------
+#include "./is_swappable.hpp"
+#include "./is_swappable_with.hpp"
+#include "./is_nothrow_swappable.hpp"
+#include "./is_nothrow_swappable_with.hpp"
+
+// -- invocable --------------------------------------------------------------
+#include "./invoke_result.hpp"
+#include "./is_invocable.hpp"
+#include "./is_invocable_r.hpp"
+#include "./is_nothrow_invocable.hpp"
+#include "./is_nothrow_invocable_r.hpp"
+#include "./result_of.hpp"
+
+// -- conversion -------------------------------------------------------------
+#include "./is_nothrow_convertible.hpp"
+
+// -- common reference -------------------------------------------------------
+#include "./basic_common_reference.hpp"
+#include "./common_reference.hpp"
+
+// -- layout and interconvertibility -----------------------------------------
+#include "./is_layout_compatible.hpp"
+#include "./is_corresponding_member.hpp"
+#include "./is_pointer_interconvertible_base_of.hpp"
+#include "./is_pointer_interconvertible_with_class.hpp"
+
+// -- reference binding ------------------------------------------------------
+#include "./reference_constructs_from_temporary.hpp"
+#include "./reference_converts_from_temporary.hpp"
+
+// -- storage (both deprecated in C++23; surfaced for existing callers) -------
+#include "./aligned_storage.hpp"
+#include "./aligned_union.hpp"
+
+
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_

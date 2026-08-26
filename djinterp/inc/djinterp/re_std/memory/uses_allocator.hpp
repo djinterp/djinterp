@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                 uses_allocator.hpp
+* re_std                                                uses_allocator.hpp
 *
 * trait detecting allocator-aware types:
 *   uses_allocator<_T, _Alloc>::value is true iff _T defines a nested
@@ -13,29 +13,29 @@
 *
 * C++11+ floor:
 *   The detection requires void_t-style SFINAE on a nested type, plus
-* is_convertible. Both are C++11+ in restd. On C++98/03 the header is
+* is_convertible. Both are C++11+ in re_std. On C++98/03 the header is
 * empty; code that needs uses_allocator must itself be gated.
 *
 *
 * path:      /inc/djinterp/re_std/memory/uses_allocator.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_USES_ALLOCATOR_
-#define RESTD_MEMORY_USES_ALLOCATOR_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_USES_ALLOCATOR_
+#define DJINTERP_RE_STD_MEMORY_USES_ALLOCATOR_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/type_traits/integral_constant.hpp"
-    #include "restd/type_traits/is_convertible.hpp"
-    #include "restd/type_traits/void_t.hpp"
+    #include "re_std/type_traits/integral_constant.hpp"
+    #include "re_std/type_traits/is_convertible.hpp"
+    #include "re_std/type_traits/void_t.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -103,8 +103,8 @@ struct uses_allocator<_T, _Alloc, true>
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_USES_ALLOCATOR_
+#endif  // DJINTERP_RE_STD_MEMORY_USES_ALLOCATOR_

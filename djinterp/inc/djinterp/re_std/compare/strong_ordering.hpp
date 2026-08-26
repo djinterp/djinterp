@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                           strong_ordering.hpp
+* djinterp [re_std]                                          strong_ordering.hpp
 *
 * strong_ordering class header:
 *   The strongest C++20 comparison category. Represents a total
@@ -39,8 +39,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_STRONG_ORDERING_
-#define DJINTERP_RESTD_COMPARE_STRONG_ORDERING_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_STRONG_ORDERING_
+#define DJINTERP_RE_STD_COMPARE_STRONG_ORDERING_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -240,10 +240,10 @@ D_CONSTEXPR_INLINE const strong_ordering strong_ordering::equivalent = strong_or
 D_CONSTEXPR_INLINE const strong_ordering strong_ordering::greater    = strong_ordering( 1);
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_STRONG_ORDERING_
+#endif  // DJINTERP_RE_STD_COMPARE_STRONG_ORDERING_
