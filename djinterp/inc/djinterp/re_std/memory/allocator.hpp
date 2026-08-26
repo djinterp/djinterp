@@ -1,21 +1,21 @@
 /***********************************************************************
-* restd                                                       allocator.hpp
+* re_std                                                      allocator.hpp
 *
 * the canonical default allocator:
-*   restd::allocator<_T> allocates raw memory via ::operator new and
+*   re_std::allocator<_T> allocates raw memory via ::operator new and
 * releases it via ::operator delete. It is stateless: any two instances
 * compare equal, and rebinding to a different element type produces an
 * allocator that is also equal to all others.
 *
-* surface (per C++ standard, with restd's "retain even when deprecated"
+* surface (per C++ standard, with re_std's "retain even when deprecated"
 * policy):
 *   value_type, size_type, difference_type
 *   pointer, const_pointer, reference, const_reference
-*       (deprecated in std C++17, removed in std C++20; restd retains)
+*       (deprecated in std C++17, removed in std C++20; re_std retains)
 *   propagate_on_container_move_assignment  (C++11+)
-*   is_always_equal                         (C++17+, restd back-ports to C++11+)
+*   is_always_equal                         (C++17+, re_std back-ports to C++11+)
 *   rebind<_U>::other                       (deprecated in std C++17,
-*                                            removed in std C++20; restd
+*                                            removed in std C++20; re_std
 *                                            retains for back-compat)
 *   ctors:
 *     allocator() noexcept
@@ -47,33 +47,33 @@
 *                               degrades to returning 0 on failure when
 *                               <new> is unavailable, since it cannot
 *                               throw bad_alloc.
-*   restd::addressof            for address().
+*   re_std::addressof            for address().
 *
 *
 * path:      /inc/djinterp/re_std/memory/allocator.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ALLOCATOR_
-#define RESTD_MEMORY_ALLOCATOR_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATOR_
+#define DJINTERP_RE_STD_MEMORY_ALLOCATOR_ 1
 
 #include "djinterp.hpp"
 #include <cstddef>  // size_t, ptrdiff_t
 
-#include "restd/memory/addressof.hpp"
+#include "re_std/memory/addressof.hpp"
 
 #if D_ENV_CPP98_HAS_NEW
     #include <new>  // ::operator new, ::operator delete, bad_alloc
 #endif
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include "restd/type_traits/integral_constant.hpp"
-    #include "restd/utility/forward.hpp"
+    #include "re_std/type_traits/integral_constant.hpp"
+    #include "re_std/utility/forward.hpp"
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -93,7 +93,7 @@ public:
     typedef std::size_t     size_type;
     typedef std::ptrdiff_t  difference_type;
 
-    // Deprecated in std C++17, removed in std C++20. Restd retains for
+    // Deprecated in std C++17, removed in std C++20. Re_std retains for
     // portability with code that names them directly.
     typedef _T*             pointer;
     typedef const _T*       const_pointer;
@@ -106,7 +106,7 @@ public:
     #endif
 
     // C++98-style rebind nested struct. Retained on every tier so that
-    // C++98 code (and restd::allocator_traits's substitution fallback)
+    // C++98 code (and re_std::allocator_traits's substitution fallback)
     // can name allocator<U>::rebind<V>::other portably.
     template<typename _U>
     struct rebind
@@ -147,12 +147,12 @@ public:
 
     pointer       address(reference _r)       const D_NOEXCEPT
     {
-        return restd::addressof(_r);
+        return re_std::addressof(_r);
     }
 
     const_pointer address(const_reference _r) const D_NOEXCEPT
     {
-        return restd::addressof(_r);
+        return re_std::addressof(_r);
     }
 
     // -------------------------------------------------------------------------
@@ -241,7 +241,7 @@ public:
         void construct(_U* _p, _Args&&... _args)
         {
             ::new (static_cast<void*>(_p))
-                _U(restd::forward<_Args>(_args)...);
+                _U(re_std::forward<_Args>(_args)...);
         }
 
         template<typename _U>
@@ -277,7 +277,7 @@ public:
 //   provides the rebind machinery so that code generic in the element
 //   type can name allocator<void>::rebind<T>::other.
 //
-//   Deprecated in std C++17, removed in std C++20. Restd retains for
+//   Deprecated in std C++17, removed in std C++20. Re_std retains for
 //   back-compat with code that names it directly.
 template<>
 class allocator<void>
@@ -345,6 +345,6 @@ D_CONSTEXPR_INLINE bool operator!=
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_MEMORY_ALLOCATOR_
+#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATOR_

@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                           ref.hpp
+* re_std                                                          ref.hpp
 *
 * function: factory producing `reference_wrapper<_Type>`.
 *   Two overloads: one accepting an lvalue (returns a wrapper to it)
@@ -10,19 +10,19 @@
 *
 * path:      /inc/djinterp/re_std/functional/ref.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_REF_
-#define RESTD_FUNCTIONAL_REF_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_REF_
+#define DJINTERP_RE_STD_FUNCTIONAL_REF_ 1
 
 #include "djinterp.hpp"
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#include "restd/functional/reference_wrapper.hpp"
+#include "re_std/functional/reference_wrapper.hpp"
 
-namespace restd
+namespace re_std
 {
 
 // ref
@@ -52,8 +52,8 @@ ref(
     return _v;
 }
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif // RESTD_FUNCTIONAL_REF_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_REF_

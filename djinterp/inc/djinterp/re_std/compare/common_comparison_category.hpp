@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                  common_comparison_category.hpp
+* djinterp [re_std]                                 common_comparison_category.hpp
 *
 * common_comparison_category meta-function header:
 *   Per [cmp.common]: yields the weakest common comparison category
@@ -37,8 +37,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_COMMON_COMPARISON_CATEGORY_
-#define DJINTERP_RESTD_COMPARE_COMMON_COMPARISON_CATEGORY_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_
+#define DJINTERP_RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -191,10 +191,10 @@ struct common_comparison_category<_T, _Rest...>
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // C++11+ && variadic templates
 
 
-#endif  // DJINTERP_RESTD_COMPARE_COMMON_COMPARISON_CATEGORY_
+#endif  // DJINTERP_RE_STD_COMPARE_COMMON_COMPARISON_CATEGORY_

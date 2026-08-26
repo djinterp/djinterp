@@ -39,11 +39,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_ITERATOR_COUNTED_ITERATOR_
-#define RESTD_ITERATOR_COUNTED_ITERATOR_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_COUNTED_ITERATOR_
+#define DJINTERP_RE_STD_ITERATOR_COUNTED_ITERATOR_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -53,7 +53,6 @@
 #include "./iterator_traits.hpp"
 #include "./default_sentinel.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // counted_iterator
@@ -233,8 +232,6 @@ D_CONSTEXPR bool operator!=(default_sentinel_t, const counted_iterator<_Iter>& a
 { return a.count() != 0; }
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_COUNTED_ITERATOR_
+#endif  // DJINTERP_RE_STD_ITERATOR_COUNTED_ITERATOR_

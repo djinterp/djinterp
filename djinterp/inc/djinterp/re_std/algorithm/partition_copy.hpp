@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            partition_copy.hpp
+* djinterp [re_std]                                           partition_copy.hpp
 *
 * partition_copy algorithm header:
 *   Copies each element of [_first, _last) into one of two output
@@ -8,9 +8,9 @@
 * element written in each output.
 *
 *   PORTABILITY:
-*   - std::partition_copy is C++11; restd back-ports to C++98 (no
+*   - std::partition_copy is C++11; re_std back-ports to C++98 (no
 *     language blocker — predicate plus conditional output).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/partition_copy.hpp
@@ -18,12 +18,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_PARTITION_COPY_
-#define DJINTERP_RESTD_ALGORITHM_PARTITION_COPY_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_PARTITION_COPY_
+#define DJINTERP_RE_STD_ALGORITHM_PARTITION_COPY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../utility/pair.hpp"
 
 
@@ -82,7 +82,7 @@ partition_copy(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_PARTITION_COPY_
+#endif  // DJINTERP_RE_STD_ALGORITHM_PARTITION_COPY_

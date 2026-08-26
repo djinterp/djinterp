@@ -1,24 +1,24 @@
 /***********************************************************************
-* restd                                                 initializer_list
+* re_std                                                initializer_list
 *
-* umbrella header for the restd initializer_list module:
+* umbrella header for the re_std initializer_list module:
 *   pulls in every granular module of <initializer_list>: the
 *   initializer_list type re-export and the non-member begin / end.
 *   Including the umbrella is the easy default; users who need only one
 *   symbol may include the corresponding granular header instead.
 *
 *
-* path:      /inc/restd/initializer_list
+* path:      /inc/re_std/initializer_list
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_INITIALIZER_LIST_
-#define RESTD_INITIALIZER_LIST_ 1
+#ifndef DJINTERP_RE_STD_INITIALIZER_LIST_
+#define DJINTERP_RE_STD_INITIALIZER_LIST_ 1
 
-// restd :: initializer_list
+// re_std :: initializer_list
 #include "initializer_list/initializer_list.hpp"
 #include "initializer_list/begin.hpp"
 #include "initializer_list/end.hpp"
 
-#endif  // RESTD_INITIALIZER_LIST_
+#endif  // DJINTERP_RE_STD_INITIALIZER_LIST_

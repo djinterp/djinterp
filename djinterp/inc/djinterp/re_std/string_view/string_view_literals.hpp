@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                     string_view_literals.hpp
+* djinterp [re_std]                                    string_view_literals.hpp
 *
 * string_view literal operators header:
 *   The operator""sv user-defined literals, one per built-in character
-* type, living in restd::literals::string_view_literals (a doubly
+* type, living in re_std::literals::string_view_literals (a doubly
 * inline namespace, mirroring std). Each yields the matching view type
 * over the literal's data and length, with no allocation.
 *
@@ -21,8 +21,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_LITERALS_
-#define DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_LITERALS_ 1
+#ifndef DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_LITERALS_
+#define DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_LITERALS_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -123,10 +123,10 @@ operator""sv(
 }  // namespace string_view_literals
 }  // namespace literals
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_LITERALS_
+#endif  // DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_LITERALS_

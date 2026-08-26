@@ -1,19 +1,19 @@
 /***********************************************************************
-* restd                                              dynamic_extent.hpp
+* re_std                                             dynamic_extent.hpp
 *
 * the dynamic_extent constant:
 *   Sentinel size used as the default second template argument of
-* restd::span, selecting the run-time-sized (rather than fixed-extent)
+* re_std::span, selecting the run-time-sized (rather than fixed-extent)
 * specialization. Equal to (size_t)-1, matching std::dynamic_extent.
 *
 *
 * path:      /inc/djinterp/re_std/span/dynamic_extent.hpp
 * link(s):   TBA
-* author(s): restd contributors                        date: 2026.06.04
+* author(s): re_std contributors                       date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_SPAN_DYNAMIC_EXTENT_
-#define RESTD_SPAN_DYNAMIC_EXTENT_ 1
+#ifndef DJINTERP_RE_STD_SPAN_DYNAMIC_EXTENT_
+#define DJINTERP_RE_STD_SPAN_DYNAMIC_EXTENT_ 1
 
 #include "djinterp.hpp"
 
@@ -21,7 +21,7 @@
 
 #include <cstddef>  // size_t
 
-namespace restd
+namespace re_std
 {
 
     // dynamic_extent
@@ -38,8 +38,8 @@ namespace restd
     D_CONSTEXPR std::size_t dynamic_extent = static_cast<std::size_t>(-1);
 #endif
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SPAN_DYNAMIC_EXTENT_
+#endif  // DJINTERP_RE_STD_SPAN_DYNAMIC_EXTENT_

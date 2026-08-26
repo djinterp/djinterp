@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              integer_sequence.hpp
+* re_std                                             integer_sequence.hpp
 *
 * compile-time integer pack:
 *   integer_sequence<T, Is...> wraps a parameter pack of compile-time
@@ -25,11 +25,11 @@
 *
 * path:      /inc/djinterp/re_std/utility/integer_sequence.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
+* author(s): re_std team                                 date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_INTEGER_SEQUENCE_
-#define RESTD_UTILITY_INTEGER_SEQUENCE_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_INTEGER_SEQUENCE_
+#define DJINTERP_RE_STD_UTILITY_INTEGER_SEQUENCE_ 1
 
 #include "djinterp.hpp"
 
@@ -74,8 +74,8 @@ struct integer_sequence
 
 #endif
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
-#endif  // RESTD_UTILITY_INTEGER_SEQUENCE_
+#endif  // DJINTERP_RE_STD_UTILITY_INTEGER_SEQUENCE_

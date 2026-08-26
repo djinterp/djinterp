@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    all_of.hpp
+* djinterp [re_std]                                                   all_of.hpp
 *
 * all_of algorithm header:
 *   Returns true if the unary predicate _pred holds for every element in
@@ -7,8 +7,8 @@
 * circuits on the first false.
 *
 *   PORTABILITY:
-*   - std::all_of is C++11; restd back-ports to C++98 (no language blocker).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14 via relaxed
+*   - std::all_of is C++11; re_std back-ports to C++98 (no language blocker).
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14 via relaxed
 *     constexpr (the loop body needs mutable iteration).
 *
 *
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_ALL_OF_
-#define DJINTERP_RESTD_ALGORITHM_ALL_OF_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_ALL_OF_
+#define DJINTERP_RE_STD_ALGORITHM_ALL_OF_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -70,7 +70,7 @@ all_of(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_ALL_OF_
+#endif  // DJINTERP_RE_STD_ALGORITHM_ALL_OF_

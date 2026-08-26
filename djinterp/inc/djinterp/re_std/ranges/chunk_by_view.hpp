@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                           chunk_by_view.hpp
+* djinterp [re_std]                                          chunk_by_view.hpp
 *
 * chunk_by_view header:
 *   Provides the C++23 predicate-driven chunking adaptor.
@@ -20,8 +20,8 @@
 *   - Yields subranges by value (subrange is cheap — two iterators).
 *
 *   COLOCATED:
-*   restd::views::chunk_by(r, pred) — direct form.
-*   restd::views::chunk_by(pred)    — bound form for pipe syntax.
+*   re_std::views::chunk_by(r, pred) — direct form.
+*   re_std::views::chunk_by(pred)    — bound form for pipe syntax.
 *
 *
 * path:      /inc/djinterp/re_std/ranges/chunk_by_view.hpp
@@ -29,8 +29,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_CHUNK_BY_VIEW_
-#define DJINTERP_RESTD_RANGES_CHUNK_BY_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_CHUNK_BY_VIEW_
+#define DJINTERP_RE_STD_RANGES_CHUNK_BY_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -121,7 +121,7 @@ public:
         void
         find_chunk_end()
         {
-            sentinel_t<_View> base_end = restd::end(m_parent->m_base);
+            sentinel_t<_View> base_end = re_std::end(m_parent->m_base);
             if (m_start == base_end)
             {
                 m_chunk_end = m_start;
@@ -373,13 +373,13 @@ public:
     iterator
     begin() const
     {
-        return iterator(this, restd::begin(m_base), restd::begin(m_base));
+        return iterator(this, re_std::begin(m_base), re_std::begin(m_base));
     }
 
     D_CONSTEXPR sentinel
     end() const
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 };
 
@@ -465,10 +465,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_CHUNK_BY_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_CHUNK_BY_VIEW_

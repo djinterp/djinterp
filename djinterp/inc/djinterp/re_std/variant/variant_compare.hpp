@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              variant_compare.hpp
+* djinterp [re_std]                                             variant_compare.hpp
 *
 * variant comparison operators header:
 *   The six legacy relational operators for two same-type variants
@@ -15,7 +15,7 @@
 *     - Else (same index, both valued): defer to the held alternative's
 *                                      own op== / op<.
 *
-*   Operator!= is synthesised from op== by C++20; restd ships it
+*   Operator!= is synthesised from op== by C++20; re_std ships it
 * explicitly on every tier and gates it out on C++20+ to avoid
 * ambiguity with the compiler-synthesised version.
 *
@@ -25,8 +25,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_COMPARE_
-#define DJINTERP_RESTD_VARIANT_COMPARE_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_COMPARE_
+#define DJINTERP_RE_STD_VARIANT_COMPARE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -166,10 +166,10 @@ operator>=(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VARIANT_COMPARE_
+#endif  // DJINTERP_RE_STD_VARIANT_COMPARE_

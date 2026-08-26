@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              adjacent_difference.hpp
+* re_std                                             adjacent_difference.hpp
 *
 * adjacent_difference(_first, _last, _d_first [, _op]) writes the
 * sequence
@@ -15,18 +15,18 @@
 *
 * path:      /inc/djinterp/re_std/numeric/adjacent_difference.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_ADJACENT_DIFFERENCE_
-#define RESTD_NUMERIC_ADJACENT_DIFFERENCE_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_ADJACENT_DIFFERENCE_
+#define DJINTERP_RE_STD_NUMERIC_ADJACENT_DIFFERENCE_ 1
 
 #include "djinterp.hpp"
 
-#include "restd/iterator/iterator_traits.hpp"
+#include "re_std/iterator/iterator_traits.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include "restd/utility/move.hpp"
+    #include "re_std/utility/move.hpp"
 #endif
 
 
@@ -39,7 +39,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Default-op overload (operator-).
@@ -63,8 +63,8 @@ D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
         _T _cur = *_first;
         // *d = cur - prev
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            *_d_first = _cur - restd::move(_prev);
-            _prev = restd::move(_cur);
+            *_d_first = _cur - re_std::move(_prev);
+            _prev = re_std::move(_cur);
         #else
             *_d_first = _cur - _prev;
             _prev = _cur;
@@ -94,8 +94,8 @@ D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
     {
         _T _cur = *_first;
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            *_d_first = _op(_cur, restd::move(_prev));
-            _prev = restd::move(_cur);
+            *_d_first = _op(_cur, re_std::move(_prev));
+            _prev = re_std::move(_cur);
         #else
             *_d_first = _op(_cur, _prev);
             _prev = _cur;
@@ -105,6 +105,6 @@ D_CONSTEXPR_CPP14 _OutputIt adjacent_difference
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_NUMERIC_ADJACENT_DIFFERENCE_
+#endif  // DJINTERP_RE_STD_NUMERIC_ADJACENT_DIFFERENCE_

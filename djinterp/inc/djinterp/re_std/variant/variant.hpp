@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                                    variant.hpp
+* djinterp [re_std]                                                   variant.hpp
 *
-*   restd's back-port of std::variant<Ts...> — type-safe sum type
-* (discriminated union). C++17 in std; restd targets C++11+.
+*   re_std's back-port of std::variant<Ts...> — type-safe sum type
+* (discriminated union). C++17 in std; re_std targets C++11+.
 *
 *   STORAGE MODEL:
 *   Recursive-union storage (same pattern as libc++ and Microsoft
@@ -26,7 +26,7 @@
 *   FORWARDING CTOR — SIMPLIFICATION:
 *   The standard's "imaginary function overload set" (P0608) picks
 * the alternative whose construction from the forwarded argument
-* would not be a narrowing conversion. restd's back-port simplifies:
+* would not be a narrowing conversion. re_std's back-port simplifies:
 * selects the FIRST alternative T_i such that
 * is_constructible<T_i, Arg> is true. Common cases (an integer
 * constructs the int alternative, a string-literal constructs the
@@ -46,13 +46,13 @@
 *   - constexpr — not constexpr at this phase (back-port simplification)
 *
 *
-* path:      /inc/djinterp/restd/variant/variant.hpp
+* path:      /inc/djinterp/re_std/variant/variant.hpp
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_
-#define DJINTERP_RESTD_VARIANT_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_
+#define DJINTERP_RE_STD_VARIANT_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -190,7 +190,7 @@ NS_INTERNAL
     struct index_of<_T, _Head, _Tail...>
     {
         static const std::size_t value =
-            restd::is_same<_T, _Head>::value
+            re_std::is_same<_T, _Head>::value
                 ? 0
                 : 1 + index_of<_T, _Tail...>::value;
     };
@@ -215,7 +215,7 @@ NS_INTERNAL
     struct first_constructible<_U, _Head, _Tail...>
     {
         static const std::size_t value =
-            restd::is_constructible<_Head, _U>::value
+            re_std::is_constructible<_Head, _U>::value
                 ? 0
                 : 1 + first_constructible<_U, _Tail...>::value;
     };
@@ -240,8 +240,8 @@ NS_INTERNAL
     struct exact_match<_U, _Head, _Tail...>
     {
         static const std::size_t value =
-            restd::is_same<
-                typename restd::decay<_U>::type, _Head
+            re_std::is_same<
+                typename re_std::decay<_U>::type, _Head
             >::value
                 ? 0
                 : 1 + exact_match<_U, _Tail...>::value;
@@ -287,7 +287,7 @@ template<typename... _Types>
 class variant
 {
     static_assert(sizeof...(_Types) > 0,
-                  "restd::variant must have at least one alternative");
+                  "re_std::variant must have at least one alternative");
 
 public:
     // =================================================================
@@ -297,8 +297,8 @@ public:
     // (1) default ctor — value-initialises the FIRST alternative.
     //   Requires the first alternative to be default-constructible.
     template<typename _T0 = typename internal::va_type_at<0, _Types...>::type,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_T0>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_T0>::value
              >::type>
     variant()
         : m_storage(), m_index(0)
@@ -334,8 +334,8 @@ public:
     //   preferred, falls back to first-constructible. Documented
     //   divergence from std's full "imaginary function" rule.
     template<typename _U,
-             typename = typename restd::enable_if<
-                 !restd::is_same<typename restd::decay<_U>::type, variant>::value &&
+             typename = typename re_std::enable_if<
+                 !re_std::is_same<typename re_std::decay<_U>::type, variant>::value &&
                  (internal::best_match<_U, _Types...>::value
                     < sizeof...(_Types))
              >::type>
@@ -353,9 +353,9 @@ public:
     // (5) in_place_type ctor
     template<typename _T,
              typename... _Args,
-             typename = typename restd::enable_if<
+             typename = typename re_std::enable_if<
                  (internal::index_of<_T, _Types...>::value < sizeof...(_Types)) &&
-                 restd::is_constructible<_T, _Args...>::value
+                 re_std::is_constructible<_T, _Args...>::value
              >::type>
     explicit variant(in_place_type_t<_T>, _Args&&... _args)
         : m_storage(),
@@ -370,9 +370,9 @@ public:
     template<std::size_t _I,
              typename... _Args,
              typename _T = typename internal::va_type_at<_I, _Types...>::type,
-             typename = typename restd::enable_if<
+             typename = typename re_std::enable_if<
                  (_I < sizeof...(_Types)) &&
-                 restd::is_constructible<_T, _Args...>::value
+                 re_std::is_constructible<_T, _Args...>::value
              >::type>
     explicit variant(in_place_index_t<_I>, _Args&&... _args)
         : m_storage(), m_index(_I)
@@ -428,8 +428,8 @@ public:
 
     // forwarding-from-U assignment
     template<typename _U,
-             typename = typename restd::enable_if<
-                 !restd::is_same<typename restd::decay<_U>::type, variant>::value &&
+             typename = typename re_std::enable_if<
+                 !re_std::is_same<typename re_std::decay<_U>::type, variant>::value &&
                  (internal::best_match<_U, _Types...>::value
                     < sizeof...(_Types))
              >::type>
@@ -661,10 +661,10 @@ private:
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VARIANT_
+#endif  // DJINTERP_RE_STD_VARIANT_

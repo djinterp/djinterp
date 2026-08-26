@@ -1,21 +1,21 @@
 /***********************************************************************
-* restd                                                          version
+* re_std                                                         version
 *
-* restd's <version>. The standard <version> (C++20) is the aggregator of
-* every __cpp_lib_* library feature-test macro. restd surfaces those by
+* re_std's <version>. The standard <version> (C++20) is the aggregator of
+* every __cpp_lib_* library feature-test macro. re_std surfaces those by
 * including the platform <version> when the language is C++20 or later —
 * the __cpp_lib_* macros describe std's library and cannot be
 * reimplemented, so they are surfaced unchanged (an identity re-export).
 *
 * Before C++20 there is no aggregator header; the per-feature __cpp_lib_*
-* macros (C++17) live in their individual headers. restd's own capability
-* signalling pre-C++20 is the D_RESTD_* / D_ENV_* detection table in
+* macros (C++17) live in their individual headers. re_std's own capability
+* signalling pre-C++20 is the D_RE_STD_* / D_ENV_* detection table in
 * <djinterp>, NOT __cpp_lib_* — this header is intentionally a no-op there.
 *
-* path:      /inc/restd/version
+* path:      /inc/re_std/version
 ***********************************************************************/
-#ifndef RESTD_VERSION_
-#define RESTD_VERSION_ 1
+#ifndef DJINTERP_RE_STD_VERSION_
+#define DJINTERP_RE_STD_VERSION_ 1
 #include "djinterp.hpp"
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 #  if defined(__has_include)
@@ -26,4 +26,4 @@
 #    include <version>
 #  endif
 #endif
-#endif  // RESTD_VERSION_
+#endif  // DJINTERP_RE_STD_VERSION_

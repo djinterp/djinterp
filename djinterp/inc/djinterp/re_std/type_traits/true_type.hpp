@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               true_type.hpp
+* djinterp [re_std]                                              true_type.hpp
 *
 * true_type typedef header:
 *   Provides the true_type typedef as integral_constant<bool, true>. Used
@@ -11,8 +11,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_TRUE_TYPE_
-#define DJINTERP_RESTD_TYPE_TRAITS_TRUE_TYPE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_TRUE_TYPE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_TRUE_TYPE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -32,7 +32,7 @@ NS_RESTD
 typedef integral_constant<bool, true> true_type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_TRUE_TYPE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_TRUE_TYPE_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               upper_bound.hpp
+* djinterp [re_std]                                              upper_bound.hpp
 *
 * upper_bound algorithm header:
 *   Binary search on a partitioned/sorted range [_first, _last).
@@ -10,7 +10,7 @@
 *
 *   PORTABILITY:
 *   - std::upper_bound is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - O(log N) comparisons; O(log N) overall on random access, O(N)
 *     stepping on forward.
 *   - Two overloads: default operator< and custom comparator.
@@ -21,12 +21,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_UPPER_BOUND_
-#define DJINTERP_RESTD_ALGORITHM_UPPER_BOUND_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_UPPER_BOUND_
+#define DJINTERP_RE_STD_ALGORITHM_UPPER_BOUND_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 #include "../iterator/advance.hpp"
 #include "../iterator/distance.hpp"
@@ -67,12 +67,12 @@ upper_bound(
 {
     typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
 
-    _Diff _len = restd::distance(_first, _last);
+    _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
         _ForwardIt _mid  = _first;
-        restd::advance(_mid, _half);
+        re_std::advance(_mid, _half);
         if (_value < *_mid)
         {
             _len = _half;
@@ -107,12 +107,12 @@ upper_bound(
 {
     typedef typename iterator_traits<_ForwardIt>::difference_type _Diff;
 
-    _Diff _len = restd::distance(_first, _last);
+    _Diff _len = re_std::distance(_first, _last);
     while (_len > 0)
     {
         _Diff      _half = _len / 2;
         _ForwardIt _mid  = _first;
-        restd::advance(_mid, _half);
+        re_std::advance(_mid, _half);
         if (_comp(_value, *_mid))
         {
             _len = _half;
@@ -128,7 +128,7 @@ upper_bound(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_UPPER_BOUND_
+#endif  // DJINTERP_RE_STD_ALGORITHM_UPPER_BOUND_

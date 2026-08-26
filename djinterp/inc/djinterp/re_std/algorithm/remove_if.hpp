@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 remove_if.hpp
+* djinterp [re_std]                                                remove_if.hpp
 *
 * remove_if algorithm header:
 *   In-place compaction. Walks [_first, _last) and pulls every element
@@ -8,8 +8,8 @@
 *
 *   PORTABILITY:
 *   - std::remove_if is C++98. C++11 strengthened to move assignment.
-*     restd matches per-tier (copy on C++98, move on C++11+).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*     re_std matches per-tier (copy on C++98, move on C++11+).
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Forwards through find_if for the skip-prefix scan.
 *
 *
@@ -18,12 +18,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_REMOVE_IF_
-#define DJINTERP_RESTD_ALGORITHM_REMOVE_IF_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_REMOVE_IF_
+#define DJINTERP_RE_STD_ALGORITHM_REMOVE_IF_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./find_if.hpp"
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
     #include "../utility/move.hpp"
@@ -64,7 +64,7 @@ remove_if(
 )
 {
     // skip the matchless prefix
-    _first = restd::find_if(_first, _last, _pred);
+    _first = re_std::find_if(_first, _last, _pred);
     if (_first == _last)
     {
         return _first;
@@ -78,7 +78,7 @@ remove_if(
         if (!_pred(*_it))
         {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-            *_first = restd::move(*_it);
+            *_first = re_std::move(*_it);
 #else
             *_first = *_it;
 #endif
@@ -90,7 +90,7 @@ remove_if(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_REMOVE_IF_
+#endif  // DJINTERP_RE_STD_ALGORITHM_REMOVE_IF_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               stable_sort.hpp
+* djinterp [re_std]                                              stable_sort.hpp
 *
 * stable_sort algorithm header:
 *   Sorts the elements of [_first, _last) in non-descending order per
@@ -30,7 +30,7 @@
 *   The in-place merge is O((n1 + n2) * log(min(n1, n2))) — strictly
 * worse than the O(n1 + n2) buffered merge that std::stable_sort uses
 * when allocation succeeds. Net: O(N log^2 N) versus the buffered
-* O(N log N). restd accepts the trade for allocator independence.
+* O(N log N). re_std accepts the trade for allocator independence.
 *
 *   PORTABILITY:
 *   - std::stable_sort is C++98.
@@ -44,7 +44,7 @@
 *   Inlines _stable_lower_bound_ and _stable_upper_bound_ here rather
 *   than depending on the public binary-search algorithms (shipped in a
 *   later batch). Once those land this file should call
-*   restd::lower_bound and restd::upper_bound directly.
+*   re_std::lower_bound and re_std::upper_bound directly.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/stable_sort.hpp
@@ -52,12 +52,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_STABLE_SORT_
-#define DJINTERP_RESTD_ALGORITHM_STABLE_SORT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_STABLE_SORT_
+#define DJINTERP_RE_STD_ALGORITHM_STABLE_SORT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./rotate.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -66,8 +66,12 @@
 #endif
 
 
-NS_RESTD
 
+
+NS_RESTD
+//   Opened here 2026-08-25. This file previously began its namespaced
+// content with no NS_RESTD, so everything above the first NS_END lived
+// at GLOBAL SCOPE and that NS_END closed a namespace never opened.
 
 // ===========================================================================
 // 0.   INTERNAL HELPERS
@@ -99,7 +103,7 @@ _stable_insertion_sort_(
     for (; _i != _last; ++_i)
     {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        _Value _value = restd::move(*_i);
+        _Value _value = re_std::move(*_i);
 #else
         _Value _value = *_i;
 #endif
@@ -117,7 +121,7 @@ _stable_insertion_sort_(
                 break;
             }
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-            *_j = restd::move(*_prev);
+            *_j = re_std::move(*_prev);
 #else
             *_j = *_prev;
 #endif
@@ -125,10 +129,12 @@ _stable_insertion_sort_(
         }
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        *_j = restd::move(_value);
+        *_j = re_std::move(_value);
 #else
         *_j = _value;
 #endif
+
+
     }
 }
 
@@ -352,7 +358,7 @@ _stable_sort_impl_(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 // ===========================================================================
@@ -388,11 +394,12 @@ stable_sort(
 )
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    stable_sort(_first, _last, restd::less<_Value>());
+    stable_sort(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // restd
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_STABLE_SORT_
+NS_END  // re_std   (added 2026-08-25 -- was never closed)
+
+#endif  // DJINTERP_RE_STD_ALGORITHM_STABLE_SORT_

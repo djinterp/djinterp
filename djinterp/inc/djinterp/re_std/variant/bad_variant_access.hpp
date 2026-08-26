@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          bad_variant_access.hpp
+* djinterp [re_std]                                         bad_variant_access.hpp
 *
 * bad_variant_access exception header:
 *   Thrown by get<I>/get<T> when the requested alternative is not
@@ -16,8 +16,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_BAD_VARIANT_ACCESS_
-#define DJINTERP_RESTD_BAD_VARIANT_ACCESS_ 1
+#ifndef DJINTERP_RE_STD_BAD_VARIANT_ACCESS_
+#define DJINTERP_RE_STD_BAD_VARIANT_ACCESS_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -78,10 +78,10 @@ public:
 #endif  // D_ENV_CPP98_HAS_TYPEINFO / D_ENV_CPP98_HAS_EXCEPTION
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_BAD_VARIANT_ACCESS_
+#endif  // DJINTERP_RE_STD_BAD_VARIANT_ACCESS_

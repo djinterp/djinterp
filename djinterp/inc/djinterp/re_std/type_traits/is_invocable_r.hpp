@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            is_invocable_r.hpp
+* djinterp [re_std]                                           is_invocable_r.hpp
 *
 * is_invocable_r trait:
 *   true_type if INVOKE<R>(F, Args...) is well-formed in unevaluated
@@ -20,7 +20,7 @@
 * yields the answer.
 *
 *   PORTABILITY:
-*   Available on C++11 and later. Standardized in C++17; restd backports
+*   Available on C++11 and later. Standardized in C++17; re_std backports
 * to C++11+.
 *
 *   DEPENDENCIES:
@@ -32,8 +32,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_INVOCABLE_R_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_INVOCABLE_R_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -41,7 +41,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./integral_constant.hpp"
@@ -111,9 +111,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_INVOCABLE_R_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_R_

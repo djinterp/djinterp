@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                   range.hpp
+* djinterp [re_std]                                                  range.hpp
 *
 * range concept-trait header:
 *   Provides the C++20 range concept as a SFINAE-detection trait.
-* range<T>::value is true iff restd::begin and restd::end are both
+* range<T>::value is true iff re_std::begin and re_std::end are both
 * well-formed when applied to an lvalue of type T.
 *
 *   PORTABILITY:
@@ -16,7 +16,7 @@
 *
 *   NAMING:
 *   Matches the C++20 concept name std::ranges::range. On a future
-* C++20-enabled restd build the trait struct will be replaced by an
+* C++20-enabled re_std build the trait struct will be replaced by an
 * actual `concept range = ...` declaration in the same name slot;
 * until then user code should prefer the portable variable spelling
 * range_v<T> (C++14+) over the trait form range<T>::value.
@@ -27,8 +27,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGE_
-#define DJINTERP_RESTD_RANGES_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGE_
+#define DJINTERP_RE_STD_RANGES_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -73,7 +73,7 @@ NS_END  // internal
 // ===========================================================================
 
 // range
-//   trait: true when restd::begin and restd::end are well-formed
+//   trait: true when re_std::begin and re_std::end are well-formed
 // on lvalues of _Type. Matches the C++20 ranges::range concept.
 template<typename _Type>
 struct range
@@ -95,10 +95,10 @@ D_CONSTEXPR bool range_v = range<_Type>::value;
 #endif  // variable templates
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_RANGE_

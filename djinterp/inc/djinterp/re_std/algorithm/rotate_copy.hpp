@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               rotate_copy.hpp
+* djinterp [re_std]                                              rotate_copy.hpp
 *
 * rotate_copy algorithm header:
 *   Out-of-place sibling of rotate. Copies [_middle, _last) followed
@@ -8,7 +8,7 @@
 *
 *   PORTABILITY:
 *   - std::rotate_copy is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Composes copy() twice — once for the [middle, last) prefix of the
 *     output, once for the [first, middle) suffix. Implemented inline
 *     to avoid the include dependency on copy.hpp; the loops are
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_ROTATE_COPY_
-#define DJINTERP_RESTD_ALGORITHM_ROTATE_COPY_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_ROTATE_COPY_
+#define DJINTERP_RE_STD_ALGORITHM_ROTATE_COPY_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -76,7 +76,7 @@ rotate_copy(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_ROTATE_COPY_
+#endif  // DJINTERP_RE_STD_ALGORITHM_ROTATE_COPY_

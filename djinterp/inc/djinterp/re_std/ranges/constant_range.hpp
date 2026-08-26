@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            constant_range.hpp
+* djinterp [re_std]                                           constant_range.hpp
 *
 * constant_range header:
 *   Provides the C++23 constant_range concept as a SFINAE trait.
@@ -21,8 +21,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_CONSTANT_RANGE_
-#define DJINTERP_RESTD_RANGES_CONSTANT_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_CONSTANT_RANGE_
+#define DJINTERP_RE_STD_RANGES_CONSTANT_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -65,10 +65,10 @@ D_CONSTEXPR bool constant_range_v = constant_range<_R>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_CONSTANT_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_CONSTANT_RANGE_

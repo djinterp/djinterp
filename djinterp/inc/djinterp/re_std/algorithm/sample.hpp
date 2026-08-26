@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    sample.hpp
+* djinterp [re_std]                                                   sample.hpp
 *
 * sample algorithm header:
 *   Selects _n elements from [_first, _last) uniformly at random and
@@ -19,10 +19,10 @@
 *   The std::sample contract matches this split exactly.
 *
 *   URBG REQUIREMENTS:
-*   Same as shuffle (see shuffle.hpp). Restd does not require <random>.
+*   Same as shuffle (see shuffle.hpp). Re_std does not require <random>.
 *
 *   PORTABILITY:
-*   - std::sample is C++17; restd back-ports to C++98 with lvalue-ref
+*   - std::sample is C++17; re_std back-ports to C++98 with lvalue-ref
 *     URBG (callers supply a named URBG object).
 *   - C++11+ uses move when writing into the output for the reservoir
 *     variant; C++98 uses copy.
@@ -37,12 +37,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SAMPLE_
-#define DJINTERP_RESTD_ALGORITHM_SAMPLE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SAMPLE_
+#define DJINTERP_RE_STD_ALGORITHM_SAMPLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 #include "../iterator/input_iterator_tag.hpp"
 #include "../iterator/forward_iterator_tag.hpp"
@@ -234,7 +234,7 @@ sample(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SAMPLE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SAMPLE_

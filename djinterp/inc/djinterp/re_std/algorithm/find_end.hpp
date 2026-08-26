@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  find_end.hpp
+* djinterp [re_std]                                                 find_end.hpp
 *
 * find_end algorithm header:
 *   Returns an iterator to the beginning of the LAST occurrence of
@@ -15,7 +15,7 @@
 *     returns _first1 on an empty needle.
 *   - O(N*M) naive scan. Boyer-Moore-style preprocessing is a separate
 *     facility (default_searcher / boyer_moore_searcher in <functional>).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/find_end.hpp
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FIND_END_
-#define DJINTERP_RESTD_ALGORITHM_FIND_END_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_END_
+#define DJINTERP_RE_STD_ALGORITHM_FIND_END_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -150,7 +150,7 @@ find_end(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FIND_END_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_END_

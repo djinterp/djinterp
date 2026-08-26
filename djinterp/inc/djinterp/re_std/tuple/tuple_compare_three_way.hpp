@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                    tuple_compare_three_way.hpp
+* djinterp [re_std]                                   tuple_compare_three_way.hpp
 *
 * tuple operator<=> header:
-*   Adds the C++20 three-way comparison operator to restd::tuple.
+*   Adds the C++20 three-way comparison operator to re_std::tuple.
 * Returns the common_comparison_category over all element-wise <=>
 * results; lexicographic semantics matching the existing classic
 * operators in tuple_compare.hpp.
@@ -44,8 +44,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_COMPARE_THREE_WAY_
-#define DJINTERP_RESTD_TUPLE_TUPLE_COMPARE_THREE_WAY_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -127,14 +127,14 @@ template<typename... _A,
          typename... _B>
     requires (sizeof...(_A) == sizeof...(_B))
 constexpr common_comparison_category_t<
-              decltype(restd::declval<const _A&>() <=> restd::declval<const _B&>())...>
+              decltype(re_std::declval<const _A&>() <=> re_std::declval<const _B&>())...>
 operator<=>(
     const tuple<_A...>& _lhs,
     const tuple<_B...>& _rhs
 )
 {
     typedef common_comparison_category_t<
-                decltype(restd::declval<const _A&>() <=> restd::declval<const _B&>())...
+                decltype(re_std::declval<const _A&>() <=> re_std::declval<const _B&>())...
             > _R;
     return internal::tuple_3way_impl<0, sizeof...(_A), _R>(
         _lhs,
@@ -143,10 +143,10 @@ operator<=>(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_COMPARE_THREE_WAY_
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_COMPARE_THREE_WAY_

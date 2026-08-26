@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    copy_n.hpp
+* djinterp [re_std]                                                   copy_n.hpp
 *
 * copy_n algorithm header:
 *   Copies the first _n elements starting at _first into the output
@@ -7,8 +7,8 @@
 * element written. Non-positive _n is a no-op (returns _d_first).
 *
 *   PORTABILITY:
-*   - std::copy_n is C++11; restd back-ports to C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - std::copy_n is C++11; re_std back-ports to C++98.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/copy_n.hpp
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_COPY_N_
-#define DJINTERP_RESTD_ALGORITHM_COPY_N_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_COPY_N_
+#define DJINTERP_RE_STD_ALGORITHM_COPY_N_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -65,7 +65,7 @@ copy_n(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_COPY_N_
+#endif  // DJINTERP_RE_STD_ALGORITHM_COPY_N_

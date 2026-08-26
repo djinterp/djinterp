@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              false_type.hpp
+* djinterp [re_std]                                             false_type.hpp
 *
 * false_type typedef header:
 *   Provides the false_type typedef as integral_constant<bool, false>.
@@ -11,8 +11,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_FALSE_TYPE_
-#define DJINTERP_RESTD_TYPE_TRAITS_FALSE_TYPE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_FALSE_TYPE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_FALSE_TYPE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -32,7 +32,7 @@ NS_RESTD
 typedef integral_constant<bool, false> false_type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_FALSE_TYPE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_FALSE_TYPE_

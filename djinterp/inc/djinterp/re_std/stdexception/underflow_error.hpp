@@ -1,43 +1,43 @@
 /***********************************************************************
-* restd                                         underflow_error.hpp
+* re_std                                        underflow_error.hpp
 *
 * underflow_error:
 *   <stdexcept> class derived from runtime_error; reported on arithmetic underflow. Runtime-provided,
-* so restd re-exports std::underflow_error when <stdexcept> is available (type
+* so re_std re-exports std::underflow_error when <stdexcept> is available (type
 * identity preserved) and degrades to a standalone class deriving from
-* restd::runtime_error otherwise, forwarding the const char* constructor and
+* re_std::runtime_error otherwise, forwarding the const char* constructor and
 * inheriting what() from the base.
 *
 *
 * path:      /inc/djinterp/re_std/stdexception/underflow_error.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.06.04
+* author(s): re_std contributors                         date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_STDEXCEPT_UNDERFLOW_ERROR_
-#define RESTD_STDEXCEPT_UNDERFLOW_ERROR_ 1
+#ifndef DJINTERP_RE_STD_STDEXCEPT_UNDERFLOW_ERROR_
+#define DJINTERP_RE_STD_STDEXCEPT_UNDERFLOW_ERROR_ 1
 
-#include "../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "runtime_error.hpp"
 
 #if D_ENV_CPP98_HAS_STDEXCEPT
 
     #include <stdexcept>
 
-namespace restd
+namespace re_std
 {
     // underflow_error
     //   class: using-declaration from std::underflow_error.
     using std::underflow_error;
 
-} // namespace restd
+} // namespace re_std
 
 #else // freestanding fallback
 
-namespace restd
+namespace re_std
 {
     // underflow_error
-    //   class: standalone fallback deriving from restd::runtime_error;
+    //   class: standalone fallback deriving from re_std::runtime_error;
     //   forwards the const char* constructor, inherits what().
     class underflow_error : public runtime_error
     {
@@ -50,8 +50,8 @@ namespace restd
         {}
     };
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP98_HAS_STDEXCEPT
 
-#endif // RESTD_STDEXCEPT_UNDERFLOW_ERROR_
+#endif  // DJINTERP_RE_STD_STDEXCEPT_UNDERFLOW_ERROR_

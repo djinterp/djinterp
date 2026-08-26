@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              slide_view.hpp
+* djinterp [re_std]                                             slide_view.hpp
 *
 * slide_view header:
 *   Provides the C++23 sliding-window adaptor. slide_view<V> yields
@@ -28,8 +28,8 @@
 *     flag.
 *
 *   COLOCATED:
-*   restd::views::slide(r, n) — direct form.
-*   restd::views::slide(n)    — bound form for pipe syntax.
+*   re_std::views::slide(r, n) — direct form.
+*   re_std::views::slide(n)    — bound form for pipe syntax.
 *
 *
 * path:      /inc/djinterp/re_std/ranges/slide_view.hpp
@@ -37,8 +37,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_SLIDE_VIEW_
-#define DJINTERP_RESTD_RANGES_SLIDE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_SLIDE_VIEW_
+#define DJINTERP_RE_STD_RANGES_SLIDE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -508,7 +508,7 @@ public:
     iterator
     begin()
     {
-        return iterator(restd::begin(m_base), restd::end(m_base), m_n);
+        return iterator(re_std::begin(m_base), re_std::end(m_base), m_n);
     }
 
     D_CONSTEXPR sentinel
@@ -524,10 +524,10 @@ public:
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        typedef decltype(restd::size(m_base)) size_type;
-        size_type s = restd::size(m_base);
+        typedef decltype(re_std::size(m_base)) size_type;
+        size_type s = re_std::size(m_base);
         size_type n = static_cast<size_type>(m_n);
         return (s >= n) ? (s - n + 1) : static_cast<size_type>(0);
     }
@@ -617,10 +617,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_SLIDE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_SLIDE_VIEW_

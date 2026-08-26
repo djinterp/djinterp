@@ -23,11 +23,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_CONCEPTS_REGULAR_INVOCABLE_
-#define RESTD_CONCEPTS_REGULAR_INVOCABLE_ 1
+#ifndef DJINTERP_RE_STD_CONCEPTS_REGULAR_INVOCABLE_
+#define DJINTERP_RE_STD_CONCEPTS_REGULAR_INVOCABLE_ 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -35,7 +35,6 @@
 #include "../type_traits/type_traits.hpp"
 #include "../concepts/invocable.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // regular_invocable
@@ -45,8 +44,6 @@ template<typename _Func, typename... _Args>
 concept regular_invocable = invocable<_Func, _Args...>;
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_CONCEPTS_REGULAR_INVOCABLE_
+#endif  // DJINTERP_RE_STD_CONCEPTS_REGULAR_INVOCABLE_

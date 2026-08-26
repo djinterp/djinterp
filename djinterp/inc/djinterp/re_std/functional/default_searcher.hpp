@@ -26,15 +26,14 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_DEFAULT_SEARCHER_
-#define RESTD_FUNCTIONAL_DEFAULT_SEARCHER_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_
+#define DJINTERP_RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "../type_traits/type_traits.hpp"
 #include "../utility/pair.hpp"
 #include "./equal_to.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // default_searcher
@@ -84,6 +83,5 @@ public:
 };
 
 NS_END
-NS_END
 
-#endif  // RESTD_FUNCTIONAL_DEFAULT_SEARCHER_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_DEFAULT_SEARCHER_

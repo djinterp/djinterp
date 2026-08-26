@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                      find.hpp
+* djinterp [re_std]                                                     find.hpp
 *
 * find algorithm header:
 *   Linear search for the first element in [_first, _last) equal to
@@ -7,7 +7,7 @@
 *
 *   PORTABILITY:
 *   - std::find is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/find.hpp
@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FIND_
-#define DJINTERP_RESTD_ALGORITHM_FIND_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FIND_
+#define DJINTERP_RE_STD_ALGORITHM_FIND_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -65,7 +65,7 @@ find(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FIND_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FIND_

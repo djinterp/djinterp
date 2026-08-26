@@ -1,10 +1,10 @@
 /******************************************************************************
-* djinterp [restd]                                                       expected
+* djinterp [re_std]                                                      expected
 *
 * expected umbrella header:
 *   Convenience header that #includes every granular module under
-* restd/expected/. Matches the project convention: user code may
-* #include "restd/expected" instead of pulling in each piece directly.
+* re_std/expected/. Matches the project convention: user code may
+* #include "re_std/expected" instead of pulling in each piece directly.
 *
 *   Per-symbol headers:
 *
@@ -23,13 +23,13 @@
 * members (all C++11 features).
 *
 *
-* path:      /inc/djinterp/restd/expected
+* path:      /inc/djinterp/re_std/expected
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_EXPECTED_UMBRELLA_
-#define DJINTERP_RESTD_EXPECTED_UMBRELLA_ 1
+#ifndef DJINTERP_RE_STD_EXPECTED_UMBRELLA_
+#define DJINTERP_RE_STD_EXPECTED_UMBRELLA_ 1
 
 #include "./expected/unexpect.hpp"
 #include "./expected/bad_expected_access.hpp"
@@ -40,4 +40,4 @@
 #include "./expected/expected_swap.hpp"
 
 
-#endif  // DJINTERP_RESTD_EXPECTED_UMBRELLA_
+#endif  // DJINTERP_RE_STD_EXPECTED_UMBRELLA_

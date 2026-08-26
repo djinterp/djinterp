@@ -35,11 +35,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_PLACEHOLDERS_
-#define RESTD_FUNCTIONAL_PLACEHOLDERS_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_PLACEHOLDERS_
+#define DJINTERP_RE_STD_FUNCTIONAL_PLACEHOLDERS_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -51,7 +51,6 @@
 #include "./is_placeholder.hpp"
 #include "./is_bind_expression.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 NS_INTERNAL
@@ -183,8 +182,6 @@ D_NAMESPACE(placeholders)
 NS_END  // placeholders
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_FUNCTIONAL_PLACEHOLDERS_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_PLACEHOLDERS_

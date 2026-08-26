@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            is_partitioned.hpp
+* djinterp [re_std]                                           is_partitioned.hpp
 *
 * is_partitioned algorithm header:
 *   Returns true if [_first, _last) is partitioned w.r.t. _pred — that
@@ -8,9 +8,9 @@
 * ranges.
 *
 *   PORTABILITY:
-*   - std::is_partitioned is C++11; restd back-ports to C++98 (no
+*   - std::is_partitioned is C++11; re_std back-ports to C++98 (no
 *     language blocker — just two linear scans).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/is_partitioned.hpp
@@ -18,8 +18,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_IS_PARTITIONED_
-#define DJINTERP_RESTD_ALGORITHM_IS_PARTITIONED_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_IS_PARTITIONED_
+#define DJINTERP_RE_STD_ALGORITHM_IS_PARTITIONED_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -77,7 +77,7 @@ is_partitioned(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_IS_PARTITIONED_
+#endif  // DJINTERP_RE_STD_ALGORITHM_IS_PARTITIONED_

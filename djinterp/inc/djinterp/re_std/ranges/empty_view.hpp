@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              empty_view.hpp
+* djinterp [re_std]                                             empty_view.hpp
 *
 * empty_view header:
 *   Provides the C++20 zero-element view. empty_view<T> models a
@@ -16,7 +16,7 @@
 *     null pointers it yields are trivially borrowed.
 *
 *   COLOCATED:
-*   restd::views::empty<T>() — function template that returns an
+*   re_std::views::empty<T>() — function template that returns an
 * empty_view<T>{}. The C++20 spelling is the variable template
 * views::empty<T> (no parens); the function form is portable across
 * C++11–17 and equally cheap (returns an empty class by value).
@@ -27,8 +27,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_EMPTY_VIEW_
-#define DJINTERP_RESTD_RANGES_EMPTY_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_EMPTY_VIEW_
+#define DJINTERP_RE_STD_RANGES_EMPTY_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -142,10 +142,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_EMPTY_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_EMPTY_VIEW_

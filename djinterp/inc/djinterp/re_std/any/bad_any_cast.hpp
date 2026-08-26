@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            bad_any_cast.hpp
+* djinterp [re_std]                                           bad_any_cast.hpp
 *
 * bad_any_cast exception header:
 *   Provides the exception type thrown by any_cast when the requested type
@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_BAD_ANY_CAST_
-#define DJINTERP_RESTD_BAD_ANY_CAST_ 1
+#ifndef DJINTERP_RE_STD_BAD_ANY_CAST_
+#define DJINTERP_RE_STD_BAD_ANY_CAST_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -97,7 +97,7 @@ public:
 #endif  // D_ENV_CPP98_HAS_TYPEINFO / D_ENV_CPP98_HAS_EXCEPTION
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_BAD_ANY_CAST_
+#endif  // DJINTERP_RE_STD_BAD_ANY_CAST_

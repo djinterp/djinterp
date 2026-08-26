@@ -1,8 +1,8 @@
 /***********************************************************************
-* restd                                                    get_deleter.hpp
+* re_std                                                   get_deleter.hpp
 *
 * extract a typed pointer to a shared_ptr's stored deleter:
-*   _D* d = restd::get_deleter<_D>(_sp);
+*   _D* d = re_std::get_deleter<_D>(_sp);
 *
 * returns a non-null pointer when:
 *   - _sp owns an object via a control block that stores a deleter
@@ -21,11 +21,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/get_deleter.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_GET_DELETER_
-#define RESTD_MEMORY_GET_DELETER_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_GET_DELETER_
+#define DJINTERP_RE_STD_MEMORY_GET_DELETER_ 1
 
 #include "djinterp.hpp"
 
@@ -34,10 +34,10 @@
 
     #include <typeinfo>
 
-    #include "restd/memory/shared_ptr.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _D, typename _T>
@@ -47,8 +47,8 @@ _D* get_deleter(const shared_ptr<_T>& _p) D_NOEXCEPT
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // C++11+ && typeinfo
 
-#endif  // RESTD_MEMORY_GET_DELETER_
+#endif  // DJINTERP_RE_STD_MEMORY_GET_DELETER_

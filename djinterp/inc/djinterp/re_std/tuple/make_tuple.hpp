@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              make_tuple.hpp
+* djinterp [re_std]                                             make_tuple.hpp
 *
 * make_tuple factory header:
 *   Creates a tuple object, deducing element types from the arguments
@@ -15,11 +15,16 @@
 *     int n; auto t = make_tuple(ref(n));
 *       -> tuple<int&>          (reference_wrapper unwrap)
 *
-*   PORTABILITY:
-*   restd does not yet implement reference_wrapper, so the unwrap path
-* is currently a no-op (decay only). When restd::reference_wrapper
-* lands, this header will be updated to honour the unwrap rule. The
-* common case -- pass-by-value with decay -- works correctly today.
+*   REFERENCE_WRAPPER UNWRAP (completed 2026-08-25):
+*   The unwrap rule is now honoured via re_std::unwrap_ref_decay, so
+*
+*       int n = 0;
+*       auto t = make_tuple(re_std::ref(n), 1);
+*       get<0>(t) = 42;                 // writes through to n
+*
+* behaves as [tuple.creation] requires. tie() remains the right tool
+* for building a tuple of references from named lvalues; make_tuple +
+* ref is the composable form.
 *
 *
 * path:      /inc/djinterp/re_std/tuple/make_tuple.hpp
@@ -27,8 +32,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_MAKE_TUPLE_
-#define DJINTERP_RESTD_TUPLE_MAKE_TUPLE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_MAKE_TUPLE_
+#define DJINTERP_RE_STD_TUPLE_MAKE_TUPLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -41,6 +46,8 @@
 // djinterp
 #include "./tuple.hpp"
 #include "../type_traits/decay.hpp"
+// decay + reference_wrapper unwrap, per [tuple.creation]/p2
+#include "../functional/unwrap_ref_decay.hpp"
 
 
 NS_RESTD
@@ -53,14 +60,14 @@ NS_RESTD
 NS_INTERNAL
 
     // make_tuple_decay
-    //   helper: applies decay to _T. A reference_wrapper-aware
-    // specialisation will be added when restd::reference_wrapper
-    // lands; for now this is plain decay, matching the common
-    // pass-by-value case.
+    //   helper: the [tuple.creation] Vi computation -- decay, then
+    // collapse reference_wrapper<X> to X&. Kept as a named alias
+    // rather than using unwrap_ref_decay directly at the call site so
+    // the standard's Vi notation stays visible in the signature.
     template<typename _T>
     struct make_tuple_decay
     {
-        typedef typename decay<_T>::type type;
+        typedef typename re_std::unwrap_ref_decay<_T>::type type;
     };
 
 NS_END  // internal
@@ -68,8 +75,8 @@ NS_END  // internal
 
 // make_tuple
 //   function: creates a tuple from forwarded arguments. Element types
-// are computed via internal::make_tuple_decay (which is currently
-// equivalent to decay).
+// are computed via internal::make_tuple_decay, i.e. decay followed by
+// reference_wrapper unwrap.
 template<typename... _Types>
 D_CONSTEXPR
 tuple<typename internal::make_tuple_decay<_Types>::type...>
@@ -82,10 +89,10 @@ make_tuple(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_MAKE_TUPLE_
+#endif  // DJINTERP_RE_STD_TUPLE_MAKE_TUPLE_

@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                    tuple.hpp
+* djinterp [re_std]                                                   tuple.hpp
 *
 * tuple class header:
 *   Fixed-size collection of heterogeneous values. A generalisation of
-* `pair` to N elements. The restd::tuple is layout-compatible with
+* `pair` to N elements. The re_std::tuple is layout-compatible with
 * a recursive-inheritance scheme: tuple<T0, T1, T2> derives from
 * tuple<T1, T2> derives from tuple<T2> derives from tuple<>.
 *
@@ -52,8 +52,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_TUPLE_
-#define DJINTERP_RESTD_TUPLE_TUPLE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_TUPLE_
+#define DJINTERP_RE_STD_TUPLE_TUPLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -82,7 +82,31 @@
 #include "../type_traits/remove_reference.hpp"
 
 
+// =============================================================================
+// 0.   COMPATIBILITY
+// =============================================================================
+// In C++11 a constexpr member function is IMPLICITLY const. That makes the
+// non-const and const accessor pairs below (head / head_ref / tail_ref)
+// collapse into two functions differing only in return type -- ill-formed,
+// and it took every tuple down on the C++11 tier. C++14 dropped the
+// implicit const, so the non-const halves are gated to C++14 and are
+// simply non-constexpr on C++11.
+#ifndef D_CONSTEXPR_CPP14
+    #if D_ENV_LANG_IS_CPP14_OR_HIGHER
+        #define D_CONSTEXPR_CPP14 constexpr
+    #else
+        #define D_CONSTEXPR_CPP14
+    #endif
+#endif
 NS_RESTD
+//   Opened here 2026-08-25. This file previously began its
+// namespaced content with no NS_RESTD, so everything above the
+// first NS_END lived at GLOBAL SCOPE and that NS_END closed a
+// namespace that was never opened.
+
+
+
+
 
 
 // =============================================================================
@@ -98,7 +122,7 @@ template<typename _T1,
 struct pair;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 NS_RESTD
@@ -148,7 +172,7 @@ NS_INTERNAL
             : _T(static_cast<_U&&>(_v))
         {}
 
-        D_CONSTEXPR
+        D_CONSTEXPR_CPP14
         _T&
         head() D_NOEXCEPT
         {
@@ -189,7 +213,7 @@ NS_INTERNAL
             : m_value(static_cast<_U&&>(_v))
         {}
 
-        D_CONSTEXPR
+        D_CONSTEXPR_CPP14
         _T&
         head() D_NOEXCEPT
         {
@@ -390,6 +414,21 @@ public:
         return *this;
     }
 
+    // Copy constructor, EXPLICITLY DEFAULTED.
+    //
+    //   Declaring the move assignment operator above suppresses the
+    // implicit copy constructor -- it is defined as DELETED, not merely
+    // left undeclared -- so without this line no re_std::tuple was
+    // copyable at all. The class still parses and every use site fails
+    // instead, which is why it went unnoticed. (Copy ASSIGNMENT is
+    // hand-written further up and was unaffected, which is why tuple
+    // looked half-working rather than obviously broken.)
+    //
+    //   Defaulting is right here: each base is copyable exactly when its
+    // element is, so the generated definition inherits the correct
+    // constrained behaviour rather than over-promising.
+    tuple(const tuple&) = default;
+
     template<typename    _UHead,
              typename... _UTail>
     typename enable_if<
@@ -424,10 +463,18 @@ public:
     //   Assigns head from pair.first and the single-element tail's
     // head from pair.second. SFINAE-restricted to sizeof...(_Tail)
     // == 1 so it does not match for other arities.
-    template<typename _U1,
-             typename _U2>
+    // NOTE: the arity test is routed through _N, a template parameter of
+    // THIS member, not through sizeof...(_Tail) directly. A condition that
+    // depends only on the enclosing class's parameters is already fixed by
+    // the time the member is declared, so enable_if<false, ...> becomes a
+    // hard error instead of quietly removing the overload -- which made
+    // every tuple<A,B> ill-formed on instantiation, and took tuple_cat
+    // down with it.
+    template<typename    _U1,
+             typename    _U2,
+             std::size_t _N = sizeof...(_Tail)>
     typename enable_if<
-        sizeof...(_Tail) == 1,
+        _N == 1,
         tuple&
     >::type
     operator=(
@@ -440,10 +487,11 @@ public:
     }
 
     // Pair-converting move assignment (2-element tuples only).
-    template<typename _U1,
-             typename _U2>
+    template<typename    _U1,
+             typename    _U2,
+             std::size_t _N = sizeof...(_Tail)>
     typename enable_if<
-        sizeof...(_Tail) == 1,
+        _N == 1,
         tuple&
     >::type
     operator=(
@@ -477,7 +525,7 @@ public:
     // sibling tuple instantiations. NOT part of the public API.
     // ---------------------------------------------------------------
 
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     _Head&
     head_ref() D_NOEXCEPT
     {
@@ -491,7 +539,7 @@ public:
         return _head_base::head();
     }
 
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     _tail_base&
     tail_ref() D_NOEXCEPT
     {
@@ -507,10 +555,11 @@ public:
 };
 
 
-NS_END  // restd
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_TUPLE_
+NS_END  // re_std   (added 2026-08-25 -- was never closed)
+
+#endif  // DJINTERP_RE_STD_TUPLE_TUPLE_

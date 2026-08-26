@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                      range_reference_t.hpp
+* djinterp [re_std]                                     range_reference_t.hpp
 *
 * range_reference_t alias template header:
 *   Yields the reference type of a range — the type of *it for an
@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGE_REFERENCE_T_
-#define DJINTERP_RESTD_RANGES_RANGE_REFERENCE_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGE_REFERENCE_T_
+#define DJINTERP_RE_STD_RANGES_RANGE_REFERENCE_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -41,16 +41,16 @@ NS_RESTD
 // note: in C++20 std this is iter_reference_t<iterator_t<R>>, which
 // is defined as decltype(*declval<I&>()). The iterator_traits route
 // is equivalent for every iterator whose traits primary is
-// detection-based (restd's, and std's C++17+).
+// detection-based (re_std's, and std's C++17+).
 template<typename _Range>
 using range_reference_t =
     typename iterator_traits<iterator_t<_Range> >::reference;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGE_REFERENCE_T_
+#endif  // DJINTERP_RE_STD_RANGES_RANGE_REFERENCE_T_

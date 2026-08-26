@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              is_invocable.hpp
+* djinterp [re_std]                                             is_invocable.hpp
 *
 * is_invocable trait:
 *   true_type if INVOKE(F, Args...) is a well-formed expression in
@@ -14,7 +14,7 @@
 * INVOKE expression."
 *
 *   PORTABILITY:
-*   Available on C++11 and later. Standardized in C++17; restd backports
+*   Available on C++11 and later. Standardized in C++17; re_std backports
 * to C++11+.
 *
 *   DEPENDENCIES:
@@ -26,8 +26,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_INVOCABLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_INVOCABLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -35,7 +35,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./void_t.hpp"
@@ -65,7 +65,7 @@ NS_RESTD
         template<typename _F,
                  typename... _Args>
         struct is_invocable_impl<
-            restd::void_t<typename invoke_result<_F, _Args...>::type>,
+            re_std::void_t<typename invoke_result<_F, _Args...>::type>,
             _F, _Args...>
             : true_type
         {};
@@ -91,9 +91,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_INVOCABLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_INVOCABLE_

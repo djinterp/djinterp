@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                            advance.hpp
+* re_std                                                           advance.hpp
 *
 * advance(_it, _n) moves _it forward (or backward, if _n is negative
 * and the iterator is bidirectional or stronger) by _n steps.
@@ -15,27 +15,27 @@
 *   be non-negative — the standard does not define negative advance
 *   for these. We don't enforce this at compile time.
 *
-* added in std C++98; constexpr in C++17. restd back-ports the
+* added in std C++98; constexpr in C++17. re_std back-ports the
 * constexpr to all tiers via the D_CONSTEXPR macro.
 *
 *
 * path:      /inc/djinterp/re_std/iterator/advance.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_ADVANCE_
-#define RESTD_ITERATOR_ADVANCE_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_ADVANCE_
+#define DJINTERP_RE_STD_ITERATOR_ADVANCE_ 1
 
 #include "djinterp.hpp"
 
-#include "restd/iterator/iterator_traits.hpp"
-#include "restd/iterator/input_iterator_tag.hpp"
-#include "restd/iterator/bidirectional_iterator_tag.hpp"
-#include "restd/iterator/random_access_iterator_tag.hpp"
+#include "re_std/iterator/iterator_traits.hpp"
+#include "re_std/iterator/input_iterator_tag.hpp"
+#include "re_std/iterator/bidirectional_iterator_tag.hpp"
+#include "re_std/iterator/random_access_iterator_tag.hpp"
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -105,6 +105,6 @@ D_CONSTEXPR void advance(_It& _it, _Distance _n)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_ITERATOR_ADVANCE_
+#endif  // DJINTERP_RE_STD_ITERATOR_ADVANCE_

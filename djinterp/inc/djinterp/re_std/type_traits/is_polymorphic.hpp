@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            is_polymorphic.hpp
+* djinterp [re_std]                                           is_polymorphic.hpp
 *
 * is_polymorphic trait header:
 *   is_polymorphic<T>::value is true iff T is a class type declaring or
@@ -9,13 +9,13 @@
 *   C++11 baseline.  The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_polymorphic.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_polymorphic.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_POLYMORPHIC_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_POLYMORPHIC_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_POLYMORPHIC_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_POLYMORPHIC_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -25,25 +25,25 @@
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_IS_POLYMORPHIC  (intrinsic detection)
+// 0.   D_RE_STD_HAS_IS_POLYMORPHIC  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RESTD_HAS_IS_POLYMORPHIC
+#ifndef D_RE_STD_HAS_IS_POLYMORPHIC
     #if defined(__has_builtin)
         #if __has_builtin(__is_polymorphic)
-            #define D_RESTD_HAS_IS_POLYMORPHIC  1
+            #define D_RE_STD_HAS_IS_POLYMORPHIC  1
         #else
-            #define D_RESTD_HAS_IS_POLYMORPHIC  0
+            #define D_RE_STD_HAS_IS_POLYMORPHIC  0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_CLANG) ||                                  \
             defined(D_ENV_COMPILER_MSVC)  ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_IS_POLYMORPHIC      1
+        #define D_RE_STD_HAS_IS_POLYMORPHIC      1
     #else
-        #define D_RESTD_HAS_IS_POLYMORPHIC      0
+        #define D_RE_STD_HAS_IS_POLYMORPHIC      0
     #endif
-#endif  // D_RESTD_HAS_IS_POLYMORPHIC
+#endif  // D_RE_STD_HAS_IS_POLYMORPHIC
 
 
 NS_RESTD
@@ -53,7 +53,7 @@ NS_RESTD
 // I.   IS_POLYMORPHIC
 // =============================================================================
 
-#if D_RESTD_HAS_IS_POLYMORPHIC
+#if D_RE_STD_HAS_IS_POLYMORPHIC
 
 // is_polymorphic
 //   trait: intrinsic-backed -- a class with a virtual function.
@@ -70,7 +70,7 @@ template<typename _Type>
 struct is_polymorphic : false_type
 {};
 
-#endif  // D_RESTD_HAS_IS_POLYMORPHIC
+#endif  // D_RE_STD_HAS_IS_POLYMORPHIC
 
 
 // =============================================================================
@@ -85,7 +85,7 @@ D_CONSTEXPR bool is_polymorphic_v = is_polymorphic<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_POLYMORPHIC_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_POLYMORPHIC_

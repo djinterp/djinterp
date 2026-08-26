@@ -1,13 +1,13 @@
 /******************************************************************************
-* djinterp [restd]                                            range_size_t.hpp
+* djinterp [re_std]                                           range_size_t.hpp
 *
 * range_size_t alias template header:
 *   Yields the size type of a range — the unsigned integer type
-* returned by restd::size on an lvalue of the range type.
+* returned by re_std::size on an lvalue of the range type.
 *
 *   PORTABILITY:
 *   Requires alias templates AND decltype. Available C++11+ only,
-* and only when restd::size is reachable for _Range (the range must
+* and only when re_std::size is reachable for _Range (the range must
 * be a sized_range — either expose .size() or have known compile-time
 * extent).
 *
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGE_SIZE_T_
-#define DJINTERP_RESTD_RANGES_RANGE_SIZE_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGE_SIZE_T_
+#define DJINTERP_RE_STD_RANGES_RANGE_SIZE_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -38,18 +38,18 @@ NS_RESTD
 
 // range_size_t
 //   alias: the size type of _Range, deduced as the return type of
-// restd::size on an lvalue of _Range.
-// note: only valid when restd::size(declval<_Range&>()) is a
+// re_std::size on an lvalue of _Range.
+// note: only valid when re_std::size(declval<_Range&>()) is a
 // well-formed expression. For ranges that don't expose .size(),
 // instantiating this alias is an error.
 template<typename _Range>
-using range_size_t = decltype(restd::size(declval<_Range&>()));
+using range_size_t = decltype(re_std::size(declval<_Range&>()));
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGE_SIZE_T_
+#endif  // DJINTERP_RE_STD_RANGES_RANGE_SIZE_T_

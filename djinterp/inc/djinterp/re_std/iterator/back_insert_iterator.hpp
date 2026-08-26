@@ -1,16 +1,16 @@
 /***********************************************************************
-* restd                                              back_insert_iterator.hpp
+* re_std                                             back_insert_iterator.hpp
 *
 * output-iterator adaptor that turns assignment-through-dereference
 * into push_back on a container:
 *
-*     auto it = restd::back_inserter(my_vector);
+*     auto it = re_std::back_inserter(my_vector);
 *     *it = 42;     // calls my_vector.push_back(42)
 *     ++it;         // no-op
 *
 * the canonical use is plumbing into algorithms that write results:
 *
-*     restd::copy(src.begin(), src.end(), restd::back_inserter(dst));
+*     re_std::copy(src.begin(), src.end(), re_std::back_inserter(dst));
 *
 * surface:
 *   - operator*  -> *this    (the assignment-target hack)
@@ -26,11 +26,11 @@
 *
 * path:      /inc/djinterp/re_std/iterator/back_insert_iterator.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_BACK_INSERT_ITERATOR_
-#define RESTD_ITERATOR_BACK_INSERT_ITERATOR_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_BACK_INSERT_ITERATOR_
+#define DJINTERP_RE_STD_ITERATOR_BACK_INSERT_ITERATOR_ 1
 
 #include "djinterp.hpp"
 
@@ -39,11 +39,11 @@
 
     #include <cstddef>
 
-    #include "restd/iterator/output_iterator_tag.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/iterator/output_iterator_tag.hpp"
+    #include "re_std/utility/move.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _Container>
@@ -75,7 +75,7 @@ public:
     back_insert_iterator&
     operator=(typename _Container::value_type&& _value)
     {
-        container->push_back(restd::move(_value));
+        container->push_back(re_std::move(_value));
         return *this;
     }
 
@@ -95,8 +95,8 @@ back_insert_iterator<_Container> back_inserter(_Container& _c)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_BACK_INSERT_ITERATOR_
+#endif  // DJINTERP_RE_STD_ITERATOR_BACK_INSERT_ITERATOR_

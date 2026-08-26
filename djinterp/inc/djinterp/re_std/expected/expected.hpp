@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                   expected.hpp
+* djinterp [re_std]                                                  expected.hpp
 *
-*   restd's back-port of std::expected<T, E> — a discriminated union
+*   re_std's back-port of std::expected<T, E> — a discriminated union
 * holding either a value (type _T) or an unexpected error (type _E).
-* C++23 in std; restd targets C++11+ for runtime correctness, with
+* C++23 in std; re_std targets C++11+ for runtime correctness, with
 * constexpr promoted to C++20 (where placement-new becomes constexpr-
 * accessible via std::construct_at).
 *
@@ -18,17 +18,17 @@
 *
 *   TRIVIALITY:
 *   std::expected is conditionally trivially copyable / movable /
-* destructible when _T and _E both are. restd's back-port always
+* destructible when _T and _E both are. re_std's back-port always
 * provides user-defined special-member functions — correctness over
 * triviality. This loses some optimisation (an empty expected<int, int>
-* won't be trivially copyable in restd; it will in std). Documented;
+* won't be trivially copyable in re_std; it will in std). Documented;
 * may be addressed in a follow-up phase via conditional inheritance
 * (the same trick libc++ uses).
 *
 *   MONADIC OPERATIONS:
 *   and_then, or_else, transform, transform_error are implemented
 * using direct call-syntax (static_cast<F&&>(f)(args)) rather than
-* restd::invoke (which is blocked on the <functional> phase). This
+* re_std::invoke (which is blocked on the <functional> phase). This
 * supports function objects, lambdas, and free function pointers
 * but NOT pointer-to-member-functions. PMF callers must wrap their
 * callable; std::expected behaves the same way without invoke.
@@ -58,8 +58,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_EXPECTED_
-#define DJINTERP_RESTD_EXPECTED_ 1
+#ifndef DJINTERP_RE_STD_EXPECTED_
+#define DJINTERP_RE_STD_EXPECTED_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -76,7 +76,7 @@
 #include "./bad_expected_access.hpp"
 #include "./unexpected.hpp"
 
-#include "../utility/in_place.hpp"
+#include "../optional/in_place.hpp"
 
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/is_same.hpp"
@@ -136,8 +136,8 @@ public:
     // (1) default ctor — value-initialises _T.
     //   Requires _T to be default-constructible.
     template<typename _U = _T,
-             typename = typename restd::enable_if<
-                 restd::is_default_constructible<_U>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_default_constructible<_U>::value
              >::type>
     D_CONSTEXPR_CPP20 expected()
         : m_storage(), m_has_value(true)
@@ -162,8 +162,8 @@ public:
     // (3) move ctor
     D_CONSTEXPR_CPP20 expected(expected&& _other)
         D_NOEXCEPT_IF(
-            restd::is_nothrow_move_constructible<_T>::value &&
-            restd::is_nothrow_move_constructible<_E>::value)
+            re_std::is_nothrow_move_constructible<_T>::value &&
+            re_std::is_nothrow_move_constructible<_E>::value)
         : m_storage(), m_has_value(_other.m_has_value)
     {
         if (_other.m_has_value)
@@ -182,11 +182,11 @@ public:
     //   Constructs the value from a forwarded _U; gated to avoid
     // hijacking the copy/move ctors and the unexpected/in_place ctors.
     template<typename _U = _T,
-             typename = typename restd::enable_if<
-                 !restd::is_same<typename restd::decay<_U>::type, expected>::value &&
-                 !restd::is_same<typename restd::decay<_U>::type, in_place_t>::value &&
-                 !restd::is_same<typename restd::decay<_U>::type, unexpect_t>::value &&
-                 restd::is_constructible<_T, _U>::value
+             typename = typename re_std::enable_if<
+                 !re_std::is_same<typename re_std::decay<_U>::type, expected>::value &&
+                 !re_std::is_same<typename re_std::decay<_U>::type, in_place_t>::value &&
+                 !re_std::is_same<typename re_std::decay<_U>::type, unexpect_t>::value &&
+                 re_std::is_constructible<_T, _U>::value
              >::type>
     D_CONSTEXPR_CPP20 expected(_U&& _v)
         : m_storage(), m_has_value(true)
@@ -197,8 +197,8 @@ public:
 
     // (5) unexpected copy ctor — wrap an error.
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G const&>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G const&>::value
              >::type>
     D_CONSTEXPR_CPP20 expected(unexpected<_G> const& _u)
         : m_storage(), m_has_value(false)
@@ -208,8 +208,8 @@ public:
 
     // (6) unexpected move ctor
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G>::value
              >::type>
     D_CONSTEXPR_CPP20 expected(unexpected<_G>&& _u)
         : m_storage(), m_has_value(false)
@@ -220,8 +220,8 @@ public:
 
     // (7) in_place ctor — emplaces value from forwarded args.
     template<typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_T, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_T, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit expected(in_place_t, _Args&&... _args)
         : m_storage(), m_has_value(true)
@@ -233,8 +233,8 @@ public:
     // (8) in_place + initializer_list ctor
     template<typename _U,
              typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_T, std::initializer_list<_U>&, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_T, std::initializer_list<_U>&, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit expected(
         in_place_t,
@@ -249,8 +249,8 @@ public:
 
     // (9) unexpect ctor — emplaces error from forwarded args.
     template<typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit expected(unexpect_t, _Args&&... _args)
         : m_storage(), m_has_value(false)
@@ -262,8 +262,8 @@ public:
     // (10) unexpect + initializer_list ctor
     template<typename _U,
              typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, std::initializer_list<_U>&, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, std::initializer_list<_U>&, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit expected(
         unexpect_t,
@@ -321,8 +321,8 @@ public:
         expected&& _other
     )
     D_NOEXCEPT_IF(
-        restd::is_nothrow_move_constructible<_T>::value &&
-        restd::is_nothrow_move_constructible<_E>::value)
+        re_std::is_nothrow_move_constructible<_T>::value &&
+        re_std::is_nothrow_move_constructible<_E>::value)
     {
         if (this != &_other)
         {
@@ -344,9 +344,9 @@ public:
 
     // forwarding-from-U assignment
     template<typename _U = _T,
-             typename = typename restd::enable_if<
-                 !restd::is_same<typename restd::decay<_U>::type, expected>::value &&
-                 restd::is_constructible<_T, _U>::value
+             typename = typename re_std::enable_if<
+                 !re_std::is_same<typename re_std::decay<_U>::type, expected>::value &&
+                 re_std::is_constructible<_T, _U>::value
              >::type>
     D_CONSTEXPR_CPP20 expected&
     operator=(
@@ -362,8 +362,8 @@ public:
 
     // unexpected copy assignment
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G const&>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G const&>::value
              >::type>
     D_CONSTEXPR_CPP20 expected&
     operator=(
@@ -378,8 +378,8 @@ public:
 
     // unexpected move assignment
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G>::value
              >::type>
     D_CONSTEXPR_CPP20 expected&
     operator=(
@@ -694,11 +694,11 @@ public:
     D_CONSTEXPR_CPP20 auto
     transform(
         _F&& _f
-    ) & -> expected<typename restd::remove_cv<
+    ) & -> expected<typename re_std::remove_cv<
                         decltype(static_cast<_F&&>(_f)(std::declval<_T&>()))
                     >::type, _E>
     {
-        typedef expected<typename restd::remove_cv<
+        typedef expected<typename re_std::remove_cv<
                             decltype(static_cast<_F&&>(_f)(std::declval<_T&>()))
                         >::type, _E> _ret_t;
         return m_has_value
@@ -710,11 +710,11 @@ public:
     D_CONSTEXPR auto
     transform(
         _F&& _f
-    ) const & -> expected<typename restd::remove_cv<
+    ) const & -> expected<typename re_std::remove_cv<
                               decltype(static_cast<_F&&>(_f)(std::declval<_T const&>()))
                           >::type, _E>
     {
-        typedef expected<typename restd::remove_cv<
+        typedef expected<typename re_std::remove_cv<
                             decltype(static_cast<_F&&>(_f)(std::declval<_T const&>()))
                         >::type, _E> _ret_t;
         return m_has_value
@@ -730,11 +730,11 @@ public:
     D_CONSTEXPR_CPP20 auto
     transform_error(
         _F&& _f
-    ) & -> expected<_T, typename restd::remove_cv<
+    ) & -> expected<_T, typename re_std::remove_cv<
                             decltype(static_cast<_F&&>(_f)(std::declval<_E&>()))
                         >::type>
     {
-        typedef expected<_T, typename restd::remove_cv<
+        typedef expected<_T, typename re_std::remove_cv<
                             decltype(static_cast<_F&&>(_f)(std::declval<_E&>()))
                         >::type> _ret_t;
         return m_has_value
@@ -746,11 +746,11 @@ public:
     D_CONSTEXPR auto
     transform_error(
         _F&& _f
-    ) const & -> expected<_T, typename restd::remove_cv<
+    ) const & -> expected<_T, typename re_std::remove_cv<
                               decltype(static_cast<_F&&>(_f)(std::declval<_E const&>()))
                           >::type>
     {
-        typedef expected<_T, typename restd::remove_cv<
+        typedef expected<_T, typename re_std::remove_cv<
                             decltype(static_cast<_F&&>(_f)(std::declval<_E const&>()))
                         >::type> _ret_t;
         return m_has_value
@@ -861,7 +861,7 @@ public:
 
     // (3) move ctor
     D_CONSTEXPR_CPP20 expected(expected&& _other)
-        D_NOEXCEPT_IF(restd::is_nothrow_move_constructible<_E>::value)
+        D_NOEXCEPT_IF(re_std::is_nothrow_move_constructible<_E>::value)
         : m_storage(), m_has_value(_other.m_has_value)
     {
         if (!_other.m_has_value)
@@ -873,8 +873,8 @@ public:
 
     // (5) unexpected copy ctor
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G const&>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G const&>::value
              >::type>
     D_CONSTEXPR_CPP20 expected(unexpected<_G> const& _u)
         : m_storage(), m_has_value(false)
@@ -884,8 +884,8 @@ public:
 
     // (6) unexpected move ctor
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G>::value
              >::type>
     D_CONSTEXPR_CPP20 expected(unexpected<_G>&& _u)
         : m_storage(), m_has_value(false)
@@ -901,8 +901,8 @@ public:
 
     // (9) unexpect ctor
     template<typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit expected(unexpect_t, _Args&&... _args)
         : m_storage(), m_has_value(false)
@@ -914,8 +914,8 @@ public:
     // (10) unexpect + initializer_list ctor
     template<typename _U,
              typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, std::initializer_list<_U>&, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, std::initializer_list<_U>&, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit expected(
         unexpect_t,
@@ -963,7 +963,7 @@ public:
     operator=(
         expected&& _other
     )
-    D_NOEXCEPT_IF(restd::is_nothrow_move_constructible<_E>::value)
+    D_NOEXCEPT_IF(re_std::is_nothrow_move_constructible<_E>::value)
     {
         if (this != &_other)
         {
@@ -979,8 +979,8 @@ public:
     }
 
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G const&>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G const&>::value
              >::type>
     D_CONSTEXPR_CPP20 expected&
     operator=(
@@ -994,8 +994,8 @@ public:
     }
 
     template<typename _G,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _G>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _G>::value
              >::type>
     D_CONSTEXPR_CPP20 expected&
     operator=(
@@ -1172,11 +1172,11 @@ public:
     D_CONSTEXPR_CPP20 auto
     transform(
         _F&& _f
-    ) & -> expected<typename restd::remove_cv<
+    ) & -> expected<typename re_std::remove_cv<
                         decltype(static_cast<_F&&>(_f)())
                     >::type, _E>
     {
-        typedef expected<typename restd::remove_cv<
+        typedef expected<typename re_std::remove_cv<
                             decltype(static_cast<_F&&>(_f)())
                         >::type, _E> _ret_t;
         return m_has_value
@@ -1189,11 +1189,11 @@ public:
     D_CONSTEXPR_CPP20 auto
     transform_error(
         _F&& _f
-    ) & -> expected<void, typename restd::remove_cv<
+    ) & -> expected<void, typename re_std::remove_cv<
                               decltype(static_cast<_F&&>(_f)(std::declval<_E&>()))
                           >::type>
     {
-        typedef expected<void, typename restd::remove_cv<
+        typedef expected<void, typename re_std::remove_cv<
                                   decltype(static_cast<_F&&>(_f)(std::declval<_E&>()))
                               >::type> _ret_t;
         return m_has_value
@@ -1234,10 +1234,10 @@ private:
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_EXPECTED_
+#endif  // DJINTERP_RE_STD_EXPECTED_

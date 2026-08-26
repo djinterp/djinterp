@@ -1,13 +1,13 @@
 /******************************************************************************
-* djinterp [restd]                                             sized_range.hpp
+* djinterp [re_std]                                            sized_range.hpp
 *
 * sized_range concept-trait header:
 *   Provides the C++20 sized_range concept as a SFINAE-detection
-* trait. sized_range<T>::value is true iff range<T> AND restd::size
+* trait. sized_range<T>::value is true iff range<T> AND re_std::size
 * is well-formed when applied to an lvalue of type T.
 *
 *   PORTABILITY:
-*   C++11+ (via range + decltype detection on restd::size).
+*   C++11+ (via range + decltype detection on re_std::size).
 * C++14+ variable spelling sized_range_v<T>.
 *
 *
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_SIZED_RANGE_
-#define DJINTERP_RESTD_RANGES_SIZED_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_SIZED_RANGE_
+#define DJINTERP_RE_STD_RANGES_SIZED_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -36,7 +36,7 @@ NS_RESTD
 NS_INTERNAL
 
 // has_size
-//   trait: SFINAE on restd::size(declval<T&>()).
+//   trait: SFINAE on re_std::size(declval<T&>()).
 template<typename _Type,
          typename = void>
 struct has_size
@@ -45,7 +45,7 @@ struct has_size
 
 template<typename _Type>
 struct has_size<_Type,
-                void_t<decltype(restd::size(declval<_Type&>()))> >
+                void_t<decltype(re_std::size(declval<_Type&>()))> >
     : true_type
 {};
 
@@ -79,10 +79,10 @@ D_CONSTEXPR bool sized_range_v = sized_range<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_SIZED_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_SIZED_RANGE_

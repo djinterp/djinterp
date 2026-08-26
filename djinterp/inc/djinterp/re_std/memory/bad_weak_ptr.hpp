@@ -1,13 +1,13 @@
 /***********************************************************************
-* restd                                                   bad_weak_ptr.hpp
+* re_std                                                  bad_weak_ptr.hpp
 *
 * exception type thrown by the shared_ptr(weak_ptr) constructor when
 * the weak_ptr has already expired:
-*   restd::shared_ptr<T> p(my_weak_ptr);  // throws bad_weak_ptr
+*   re_std::shared_ptr<T> p(my_weak_ptr);  // throws bad_weak_ptr
 *                                          // if my_weak_ptr is expired
 *
-* tiered implementation, mirroring restd::bad_any_cast and
-* restd::bad_optional_access:
+* tiered implementation, mirroring re_std::bad_any_cast and
+* re_std::bad_optional_access:
 *
 *   D_ENV_CPP98_HAS_EXCEPTION = 1   inherits std::exception, what()
 *                                   is virtual + override + noexcept.
@@ -21,11 +21,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/bad_weak_ptr.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_BAD_WEAK_PTR_
-#define RESTD_MEMORY_BAD_WEAK_PTR_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_BAD_WEAK_PTR_
+#define DJINTERP_RE_STD_MEMORY_BAD_WEAK_PTR_ 1
 
 #include "djinterp.hpp"
 
@@ -35,7 +35,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -87,6 +87,6 @@ namespace restd
 #endif  // D_ENV_CPP98_HAS_EXCEPTION
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_MEMORY_BAD_WEAK_PTR_
+#endif  // DJINTERP_RE_STD_MEMORY_BAD_WEAK_PTR_

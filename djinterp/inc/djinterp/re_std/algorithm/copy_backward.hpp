@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             copy_backward.hpp
+* djinterp [re_std]                                            copy_backward.hpp
 *
 * copy_backward algorithm header:
 *   Copies elements from [_first, _last) into the range ending at
@@ -11,7 +11,7 @@
 *
 *   PORTABILITY:
 *   - std::copy_backward is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/copy_backward.hpp
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_COPY_BACKWARD_
-#define DJINTERP_RESTD_ALGORITHM_COPY_BACKWARD_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_COPY_BACKWARD_
+#define DJINTERP_RE_STD_ALGORITHM_COPY_BACKWARD_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -70,7 +70,7 @@ copy_backward(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_COPY_BACKWARD_
+#endif  // DJINTERP_RE_STD_ALGORITHM_COPY_BACKWARD_

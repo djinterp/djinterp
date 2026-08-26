@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          is_convertible.hpp
+* djinterp [re_std]                                         is_convertible.hpp
 *
 * is_convertible trait header:
 *   is_convertible<_From, _To>::value is true iff the imaginary function
@@ -17,13 +17,13 @@
 *   C++11 baseline (decltype + declval).  The _v spelling is C++14+.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_convertible.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_convertible.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_CONVERTIBLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_CONVERTIBLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -91,7 +91,7 @@ D_CONSTEXPR bool is_convertible_v = is_convertible<_From, _To>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_CONVERTIBLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_CONVERTIBLE_

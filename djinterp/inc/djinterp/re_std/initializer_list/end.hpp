@@ -1,10 +1,10 @@
 /***********************************************************************
-* restd                                                          end.hpp
+* re_std                                                         end.hpp
 *
 * non-member end for initializer_list:
 *   returns a pointer one past the last element of an initializer_list.
 *   Like begin, std makes the non-member end constexpr only from C++14;
-*   restd qualifies it constexpr from C++11 (initializer_list::end() is
+*   re_std qualifies it constexpr from C++11 (initializer_list::end() is
 *   constexpr in C++11) — a one-tier constexpr back-port. noexcept on
 *   every tier.
 *
@@ -14,15 +14,15 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_INITIALIZER_LIST_END_
-#define RESTD_INITIALIZER_LIST_END_ 1
+#ifndef DJINTERP_RE_STD_INITIALIZER_LIST_END_
+#define DJINTERP_RE_STD_INITIALIZER_LIST_END_ 1
 
 // djinterp
 #include "djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "initializer_list.hpp"
 
 NS_RESTD
@@ -38,8 +38,8 @@ NS_RESTD
         return _il.end();
     }
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_INITIALIZER_LIST_END_
+#endif  // DJINTERP_RE_STD_INITIALIZER_LIST_END_

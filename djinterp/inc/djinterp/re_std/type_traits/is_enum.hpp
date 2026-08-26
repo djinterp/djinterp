@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 is_enum.hpp
+* djinterp [re_std]                                                is_enum.hpp
 *
 * is_enum trait header:
 *   Detects whether a type is an enumeration (scoped or unscoped).
@@ -19,7 +19,7 @@
 * the SBO (still functional, just no SBO for enums).
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_IS_ENUM is set to 1 if the intrinsic is available, 0
+*   D_RE_STD_HAS_IS_ENUM is set to 1 if the intrinsic is available, 0
 * otherwise. Users may pre-define it to override detection.
 *
 *
@@ -28,8 +28,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_ENUM_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_ENUM_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_ENUM_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_ENUM_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -39,18 +39,18 @@
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_IS_ENUM DETECTION
+// 0.   D_RE_STD_HAS_IS_ENUM DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_IS_ENUM
+// D_RE_STD_HAS_IS_ENUM
 //   constant: 1 if the __is_enum compiler intrinsic is available, 0
 // otherwise. Users may pre-define to override.
-#ifndef D_RESTD_HAS_IS_ENUM
+#ifndef D_RE_STD_HAS_IS_ENUM
     #if defined(__has_builtin)
         #if __has_builtin(__is_enum)
-            #define D_RESTD_HAS_IS_ENUM 1
+            #define D_RE_STD_HAS_IS_ENUM 1
         #else
-            #define D_RESTD_HAS_IS_ENUM 0
+            #define D_RE_STD_HAS_IS_ENUM 0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC) ||                                   \
             defined(D_ENV_COMPILER_CLANG) ||                                 \
@@ -58,11 +58,11 @@
             defined(D_ENV_COMPILER_INTEL) )
         // __is_enum has been universally supported on these vendors for
         // long enough that further version gating is unnecessary in
-        // practice. Override D_RESTD_HAS_IS_ENUM if you encounter a
+        // practice. Override D_RE_STD_HAS_IS_ENUM if you encounter a
         // toolchain that lacks it.
-        #define D_RESTD_HAS_IS_ENUM 1
+        #define D_RE_STD_HAS_IS_ENUM 1
     #else
-        #define D_RESTD_HAS_IS_ENUM 0
+        #define D_RE_STD_HAS_IS_ENUM 0
     #endif
 #endif
 
@@ -74,7 +74,7 @@ NS_RESTD
 // I.   IS_ENUM
 // =============================================================================
 
-#if D_RESTD_HAS_IS_ENUM
+#if D_RE_STD_HAS_IS_ENUM
 
     // is_enum
     //   trait: true if _Type is an enumeration. Uses __is_enum builtin.
@@ -90,7 +90,7 @@ NS_RESTD
     struct is_enum : false_type
     {};
 
-#endif  // D_RESTD_HAS_IS_ENUM
+#endif  // D_RE_STD_HAS_IS_ENUM
 
 
 // =============================================================================
@@ -107,7 +107,7 @@ NS_RESTD
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_ENUM_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_ENUM_

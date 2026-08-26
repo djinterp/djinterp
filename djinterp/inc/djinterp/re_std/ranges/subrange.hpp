@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                subrange.hpp
+* djinterp [re_std]                                               subrange.hpp
 *
 * subrange class template header:
 *   Provides the C++20 iterator/sentinel pair view. subrange<I, S, K>
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_SUBRANGE_
-#define DJINTERP_RESTD_RANGES_SUBRANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_SUBRANGE_
+#define DJINTERP_RE_STD_RANGES_SUBRANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -356,10 +356,10 @@ struct enable_borrowed_range<subrange<_Iter, _Sent, _Kind> >
 {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_SUBRANGE_
+#endif  // DJINTERP_RE_STD_RANGES_SUBRANGE_

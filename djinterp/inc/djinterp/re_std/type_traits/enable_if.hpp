@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               enable_if.hpp
+* djinterp [re_std]                                              enable_if.hpp
 *
 * enable_if trait header:
 *   Defines member typedef `type` as `_Type` when `_Condition` is true.
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_ENABLE_IF_
-#define DJINTERP_RESTD_TYPE_TRAITS_ENABLE_IF_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ENABLE_IF_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ENABLE_IF_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -70,7 +70,7 @@ struct enable_if<true, _Type>
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_ENABLE_IF_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ENABLE_IF_

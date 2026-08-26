@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  extent.hpp
+* djinterp [re_std]                                                 extent.hpp
 *
 * extent trait header:
 *   Yields the size of the _Index-th dimension of _Type as a
@@ -22,8 +22,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_EXTENT_
-#define DJINTERP_RESTD_TYPE_TRAITS_EXTENT_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_EXTENT_
+#define DJINTERP_RE_STD_TYPE_TRAITS_EXTENT_ 1
 
 // std
 #include <cstddef>
@@ -94,7 +94,7 @@ struct extent<_Type[_N], _Index>
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_EXTENT_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_EXTENT_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                      bad_array_new_length.hpp
+* djinterp [re_std]                                     bad_array_new_length.hpp
 *
 * bad_array_new_length header:
 *   Exception thrown by array form of operator new when the total
@@ -8,14 +8,14 @@
 *
 *   STRATEGY:
 *   C++11+: using-declaration from std::bad_array_new_length.
-*   C++98:  back-port — class deriving from restd::bad_alloc
+*   C++98:  back-port — class deriving from re_std::bad_alloc
 *           (which is just std::bad_alloc) with what() override.
 *
 *   NOTE:
 *   The C++98 back-port cannot be thrown automatically by the
 * compiler's array-new path (that's runtime-provided), but user
 * code that explicitly throws bad_array_new_length will work on
-* C++98 the same way it does on C++11+. restd modules that want
+* C++98 the same way it does on C++11+. re_std modules that want
 * to surface this error condition just throw the back-port.
 *
 *
@@ -24,8 +24,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_BAD_ARRAY_NEW_LENGTH_
-#define DJINTERP_RESTD_BAD_ARRAY_NEW_LENGTH_ 1
+#ifndef DJINTERP_RE_STD_BAD_ARRAY_NEW_LENGTH_
+#define DJINTERP_RE_STD_BAD_ARRAY_NEW_LENGTH_ 1
 
 #include "../../core/djinterp.hpp"
 #include "./bad_alloc.hpp"
@@ -62,7 +62,7 @@ public:
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_BAD_ARRAY_NEW_LENGTH_
+#endif  // DJINTERP_RE_STD_BAD_ARRAY_NEW_LENGTH_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                is_trivially_destructible.hpp
+* djinterp [re_std]                               is_trivially_destructible.hpp
 *
 * is_trivially_destructible trait header:
 *   Yields true_type if _Type is destructible AND its destructor is
@@ -8,7 +8,7 @@
 * false_type otherwise.
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE.
+*   D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_trivially_destructible.hpp
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_TRIVIALLY_DESTRUCTIBLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_TRIVIALLY_DESTRUCTIBLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_DESTRUCTIBLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_DESTRUCTIBLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -31,24 +31,24 @@
 #include "./false_type.hpp"
 
 
-#ifndef D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE
+#ifndef D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_trivially_destructible)
-            #define D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE   1
-            #define D_RESTD_TRIVIALLY_DESTR_(T) __is_trivially_destructible(T)
+            #define D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE   1
+            #define D_RE_STD_TRIVIALLY_DESTR_(T) __is_trivially_destructible(T)
         #elif __has_builtin(__has_trivial_destructor)
-            #define D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE   1
-            #define D_RESTD_TRIVIALLY_DESTR_(T) __has_trivial_destructor(T)
+            #define D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE   1
+            #define D_RE_STD_TRIVIALLY_DESTR_(T) __has_trivial_destructor(T)
         #else
-            #define D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE   0
+            #define D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE   0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_MSVC)  ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE       1
-        #define D_RESTD_TRIVIALLY_DESTR_(T)     __has_trivial_destructor(T)
+        #define D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE       1
+        #define D_RE_STD_TRIVIALLY_DESTR_(T)     __has_trivial_destructor(T)
     #else
-        #define D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE       0
+        #define D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE       0
     #endif
 #endif
 
@@ -60,11 +60,11 @@ NS_RESTD
 // I.   IS_TRIVIALLY_DESTRUCTIBLE
 // =============================================================================
 
-#if D_RESTD_HAS_IS_TRIVIALLY_DESTRUCTIBLE
+#if D_RE_STD_HAS_IS_TRIVIALLY_DESTRUCTIBLE
 
     template<typename _Type>
     struct is_trivially_destructible
-        : integral_constant<bool, D_RESTD_TRIVIALLY_DESTR_(_Type)>
+        : integral_constant<bool, D_RE_STD_TRIVIALLY_DESTR_(_Type)>
     {};
 
 #else
@@ -89,10 +89,10 @@ NS_RESTD
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_TRIVIALLY_DESTRUCTIBLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_TRIVIALLY_DESTRUCTIBLE_

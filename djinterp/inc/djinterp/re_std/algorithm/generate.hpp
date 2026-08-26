@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  generate.hpp
+* djinterp [re_std]                                                 generate.hpp
 *
 * generate algorithm header:
 *   Assigns the result of successive _g() calls to every element of
@@ -8,7 +8,7 @@
 *
 *   PORTABILITY:
 *   - std::generate is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/generate.hpp
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_GENERATE_
-#define DJINTERP_RESTD_ALGORITHM_GENERATE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_GENERATE_
+#define DJINTERP_RE_STD_ALGORITHM_GENERATE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -61,7 +61,7 @@ generate(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_GENERATE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_GENERATE_

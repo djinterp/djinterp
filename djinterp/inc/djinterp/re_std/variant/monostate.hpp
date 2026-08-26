@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  monostate.hpp
+* djinterp [re_std]                                                 monostate.hpp
 *
 * monostate header:
 *   Empty trivial unit type. Used as the first alternative in a
@@ -18,8 +18,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_MONOSTATE_
-#define DJINTERP_RESTD_MONOSTATE_ 1
+#ifndef DJINTERP_RE_STD_MONOSTATE_
+#define DJINTERP_RE_STD_MONOSTATE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -53,10 +53,10 @@ D_CONSTEXPR inline bool operator<=(monostate, monostate) D_NOEXCEPT { return tru
 D_CONSTEXPR inline bool operator>=(monostate, monostate) D_NOEXCEPT { return true;  }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_MONOSTATE_
+#endif  // DJINTERP_RE_STD_MONOSTATE_

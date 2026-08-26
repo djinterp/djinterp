@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  count_if.hpp
+* djinterp [re_std]                                                 count_if.hpp
 *
 * count_if algorithm header:
 *   Returns the number of elements in [_first, _last) for which the
@@ -9,7 +9,7 @@
 *   PORTABILITY:
 *   - std::count_if is C++98.
 *   - Return type is iterator_traits<It>::difference_type (signed).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/count_if.hpp
@@ -17,12 +17,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_COUNT_IF_
-#define DJINTERP_RESTD_ALGORITHM_COUNT_IF_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_COUNT_IF_
+#define DJINTERP_RE_STD_ALGORITHM_COUNT_IF_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 
 
@@ -72,7 +72,7 @@ count_if(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_COUNT_IF_
+#endif  // DJINTERP_RE_STD_ALGORITHM_COUNT_IF_

@@ -1,13 +1,13 @@
 /******************************************************************************
-* djinterp [restd]                                               array_swap.hpp
+* djinterp [re_std]                                              array_swap.hpp
 *
 * array swap specialization header:
-*   Provides a non-member swap overload for restd::array. ADL-friendly;
+*   Provides a non-member swap overload for re_std::array. ADL-friendly;
 * delegates to the array::swap member function (element-wise swap).
 *
 *   CONSTRAINT:
 *   std::swap-for-array is constrained on is_swappable_v<_Type> from
-* C++17. restd omits the constraint — _Type's swappability is
+* C++17. re_std omits the constraint — _Type's swappability is
 * enforced naturally at instantiation of the member swap (which
 * uses copy-assign of _Type, requiring CopyAssignable). This is a
 * slight relaxation vs std but avoids dragging in is_swappable
@@ -23,8 +23,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_SWAP_
-#define DJINTERP_RESTD_ARRAY_SWAP_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_SWAP_
+#define DJINTERP_RE_STD_ARRAY_SWAP_ 1
 
 #include <cstddef>
 
@@ -66,7 +66,7 @@ swap(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ARRAY_SWAP_
+#endif  // DJINTERP_RE_STD_ARRAY_SWAP_

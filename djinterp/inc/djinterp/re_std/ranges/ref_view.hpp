@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                ref_view.hpp
+* djinterp [re_std]                                               ref_view.hpp
 *
 * ref_view header:
 *   Provides the C++20 reference-wrapping range adaptor. ref_view<R>
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_REF_VIEW_
-#define DJINTERP_RESTD_RANGES_REF_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_REF_VIEW_
+#define DJINTERP_RE_STD_RANGES_REF_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -92,17 +92,17 @@ public:
     D_CONSTEXPR
     auto
     begin() const
-        -> decltype(restd::begin(*m_range))
+        -> decltype(re_std::begin(*m_range))
     {
-        return restd::begin(*m_range);
+        return re_std::begin(*m_range);
     }
 
     D_CONSTEXPR
     auto
     end() const
-        -> decltype(restd::end(*m_range))
+        -> decltype(re_std::end(*m_range))
     {
-        return restd::end(*m_range);
+        return re_std::end(*m_range);
     }
 
 
@@ -112,25 +112,25 @@ public:
     D_CONSTEXPR
     auto
     empty() const
-        -> decltype(restd::empty(*m_range))
+        -> decltype(re_std::empty(*m_range))
     {
-        return restd::empty(*m_range);
+        return re_std::empty(*m_range);
     }
 
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(*m_range))
+        -> decltype(re_std::size(*m_range))
     {
-        return restd::size(*m_range);
+        return re_std::size(*m_range);
     }
 
     D_CONSTEXPR
     auto
     data() const
-        -> decltype(restd::data(*m_range))
+        -> decltype(re_std::data(*m_range))
     {
-        return restd::data(*m_range);
+        return re_std::data(*m_range);
     }
 };
 
@@ -149,10 +149,10 @@ struct enable_borrowed_range<ref_view<_Range> >
 {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_REF_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_REF_VIEW_

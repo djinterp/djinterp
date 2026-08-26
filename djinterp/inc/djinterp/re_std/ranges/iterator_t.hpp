@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              iterator_t.hpp
+* djinterp [re_std]                                             iterator_t.hpp
 *
 * iterator_t alias template header:
 *   Yields the iterator type of a range: the return type of begin()
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_ITERATOR_T_
-#define DJINTERP_RESTD_RANGES_ITERATOR_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_ITERATOR_T_
+#define DJINTERP_RE_STD_RANGES_ITERATOR_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -38,18 +38,18 @@ NS_RESTD
 
 // iterator_t
 //   alias: the iterator type of _Range, deduced as the return type
-// of restd::begin on an lvalue of _Range. Matches C++20
+// of re_std::begin on an lvalue of _Range. Matches C++20
 // std::ranges::iterator_t.
 // note: takes the begin of an lvalue (declval<_Range&>()) rather
 // than an rvalue, exactly as the standard prescribes.
 template<typename _Range>
-using iterator_t = decltype(restd::begin(declval<_Range&>()));
+using iterator_t = decltype(re_std::begin(declval<_Range&>()));
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_ITERATOR_T_
+#endif  // DJINTERP_RE_STD_RANGES_ITERATOR_T_

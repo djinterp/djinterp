@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               swap_ranges.hpp
+* djinterp [re_std]                                              swap_ranges.hpp
 *
 * swap_ranges algorithm header:
 *   Exchanges elements in [_first1, _last1) with the parallel range
@@ -8,7 +8,7 @@
 *
 *   PORTABILITY:
 *   - std::swap_ranges is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/swap_ranges.hpp
@@ -16,12 +16,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SWAP_RANGES_
-#define DJINTERP_RESTD_ALGORITHM_SWAP_RANGES_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SWAP_RANGES_
+#define DJINTERP_RE_STD_ALGORITHM_SWAP_RANGES_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 
 
@@ -67,7 +67,7 @@ swap_ranges(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SWAP_RANGES_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SWAP_RANGES_

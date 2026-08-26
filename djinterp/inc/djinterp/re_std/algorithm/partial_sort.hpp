@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              partial_sort.hpp
+* djinterp [re_std]                                             partial_sort.hpp
 *
 * partial_sort algorithm header:
 *   Rearranges [_first, _last) so that the smallest (_middle - _first)
@@ -35,12 +35,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_PARTIAL_SORT_
-#define DJINTERP_RESTD_ALGORITHM_PARTIAL_SORT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_
+#define DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -160,7 +160,7 @@ partial_sort(
 
 
 // partial_sort (default operator<)
-//   function: as above with restd::less<value_type>().
+//   function: as above with re_std::less<value_type>().
 template<typename _RandomIt>
 void
 partial_sort(
@@ -170,11 +170,11 @@ partial_sort(
 )
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    partial_sort(_first, _middle, _last, restd::less<_Value>());
+    partial_sort(_first, _middle, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_PARTIAL_SORT_
+#endif  // DJINTERP_RE_STD_ALGORITHM_PARTIAL_SORT_

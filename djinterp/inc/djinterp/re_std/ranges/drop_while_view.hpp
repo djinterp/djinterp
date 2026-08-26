@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                         drop_while_view.hpp
+* djinterp [re_std]                                        drop_while_view.hpp
 *
 * drop_while_view header:
 *   Provides the C++20 predicate-suffix adaptor. drop_while_view<V, Pred>
@@ -11,13 +11,13 @@
 *   - C++11+; CRTP + view_interface.
 *   - Same lazy-cache pattern as drop_view, with a predicate stopping
 *     condition instead of a count. mutable cache + init-flag pair
-*     since restd::optional is not yet shipped.
+*     since re_std::optional is not yet shipped.
 *   - Note that drop_while_view, unlike take_while_view, IS naturally
 *     a common-range candidate when V is itself common — begin and
 *     end both return iterator/sentinel types directly from V.
 *
 *   COLOCATED:
-*   restd::views::drop_while(r, pred).
+*   re_std::views::drop_while(r, pred).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/drop_while_view.hpp
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_DROP_WHILE_VIEW_
-#define DJINTERP_RESTD_RANGES_DROP_WHILE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_DROP_WHILE_VIEW_
+#define DJINTERP_RE_STD_RANGES_DROP_WHILE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -77,8 +77,8 @@ private:
         {
             return;
         }
-        iterator_t<_View> it = restd::begin(m_base);
-        sentinel_t<_View> e  = restd::end(m_base);
+        iterator_t<_View> it = re_std::begin(m_base);
+        sentinel_t<_View> e  = re_std::end(m_base);
         while (it != e && (*m_pred)(*it))
         {
             ++it;
@@ -144,9 +144,9 @@ public:
     D_CONSTEXPR
     auto
     end() const
-        -> decltype(restd::end(m_base))
+        -> decltype(re_std::end(m_base))
     {
-        return restd::end(m_base);
+        return re_std::end(m_base);
     }
 };
 
@@ -232,10 +232,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_DROP_WHILE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_DROP_WHILE_VIEW_

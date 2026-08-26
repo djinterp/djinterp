@@ -1,11 +1,11 @@
 /******************************************************************************
-* djinterp [restd]                                               iota_view.hpp
+* djinterp [re_std]                                              iota_view.hpp
 *
 * iota_view header:
 *   Provides the C++20 arithmetic-sequence view. iota_view<W, W>
 * generates the half-open interval [start, bound) by repeated
 * operator++ on a stored W value. The most common use is iterating
-* an integer range without an explicit container — restd::views::
+* an integer range without an explicit container — re_std::views::
 * iota(0, 10) yields the values 0..9 lazily.
 *
 *   PORTABILITY:
@@ -24,8 +24,8 @@
 *                take_view / take_while_view / similar to terminate.
 *
 *   COLOCATED:
-*   restd::views::iota(start, bound) — bounded form.
-*   restd::views::iota(start)        — unbounded form.
+*   re_std::views::iota(start, bound) — bounded form.
+*   re_std::views::iota(start)        — unbounded form.
 *
 *   DIFFERENCE TYPE:
 *   The nested iterator's difference_type is std::ptrdiff_t rather
@@ -40,8 +40,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_IOTA_VIEW_
-#define DJINTERP_RESTD_RANGES_IOTA_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_IOTA_VIEW_
+#define DJINTERP_RE_STD_RANGES_IOTA_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -606,10 +606,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_IOTA_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_IOTA_VIEW_

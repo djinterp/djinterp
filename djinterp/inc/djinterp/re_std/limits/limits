@@ -1,23 +1,23 @@
 /***********************************************************************
-* restd                                                           limits
+* re_std                                                          limits
 *
-* umbrella header for the restd limits module:
+* umbrella header for the re_std limits module:
 *   pulls in numeric_limits<T> and the two rounding/denormal enumerations.
 *   Including the umbrella is the easy default; users who need only one symbol
 *   may include its granular header instead.
 *
 *
-* path:      /inc/restd/limits
+* path:      /inc/re_std/limits
 * link(s):   TBA
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_LIMITS_
-#define RESTD_LIMITS_ 1
+#ifndef DJINTERP_RE_STD_LIMITS_
+#define DJINTERP_RE_STD_LIMITS_ 1
 
-// restd :: limits
+// re_std :: limits
 #include "limits/float_round_style.hpp"
 #include "limits/float_denorm_style.hpp"
 #include "limits/numeric_limits.hpp"
 
-#endif  // RESTD_LIMITS_
+#endif  // DJINTERP_RE_STD_LIMITS_

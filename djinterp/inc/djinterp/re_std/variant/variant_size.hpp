@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                variant_size.hpp
+* djinterp [re_std]                                               variant_size.hpp
 *
 * variant_size trait header:
 *   variant_size<V> yields the number of alternatives in V as a
@@ -15,8 +15,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_SIZE_
-#define DJINTERP_RESTD_VARIANT_SIZE_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_SIZE_
+#define DJINTERP_RE_STD_VARIANT_SIZE_ 1
 
 #include <cstddef>
 #include "../../core/djinterp.hpp"
@@ -51,7 +51,7 @@ struct variant_size;
 
 template<typename... _Types>
 struct variant_size<variant<_Types...> >
-    : restd::integral_constant<std::size_t, sizeof...(_Types)>
+    : re_std::integral_constant<std::size_t, sizeof...(_Types)>
 {};
 
 
@@ -61,17 +61,17 @@ struct variant_size<variant<_Types...> >
 
 template<typename _V>
 struct variant_size<_V const>
-    : restd::integral_constant<std::size_t, variant_size<_V>::value>
+    : re_std::integral_constant<std::size_t, variant_size<_V>::value>
 {};
 
 template<typename _V>
 struct variant_size<_V volatile>
-    : restd::integral_constant<std::size_t, variant_size<_V>::value>
+    : re_std::integral_constant<std::size_t, variant_size<_V>::value>
 {};
 
 template<typename _V>
 struct variant_size<_V const volatile>
-    : restd::integral_constant<std::size_t, variant_size<_V>::value>
+    : re_std::integral_constant<std::size_t, variant_size<_V>::value>
 {};
 
 
@@ -87,10 +87,10 @@ D_CONSTEXPR std::size_t variant_size_v = variant_size<_V>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VARIANT_SIZE_
+#endif  // DJINTERP_RE_STD_VARIANT_SIZE_

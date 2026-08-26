@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                 in_place_type.hpp
+* re_std                                                in_place_type.hpp
 *
 * in_place_type tag type and variable:
 *   Disambiguating tag for type-tagged in-place construction in
@@ -15,17 +15,17 @@
 * explicitly.
 *
 *   STANDARD STATUS:
-*   Introduced in C++17 alongside <variant>. restd back-ports to C++11+
+*   Introduced in C++17 alongside <variant>. re_std back-ports to C++11+
 * since variant itself is planned at C++11+.
 *
 *
 * path:      /inc/djinterp/re_std/utility/in_place_type.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
+* author(s): re_std team                                 date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_IN_PLACE_TYPE_
-#define RESTD_UTILITY_IN_PLACE_TYPE_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_IN_PLACE_TYPE_
+#define DJINTERP_RE_STD_UTILITY_IN_PLACE_TYPE_ 1
 
 #include "djinterp.hpp"
 
@@ -64,8 +64,8 @@ struct in_place_type_t
 
 #endif
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_UTILITY_IN_PLACE_TYPE_
+#endif  // DJINTERP_RE_STD_UTILITY_IN_PLACE_TYPE_

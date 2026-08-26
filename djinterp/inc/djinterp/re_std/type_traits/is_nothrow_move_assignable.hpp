@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                is_nothrow_move_assignable.hpp
+* djinterp [re_std]                               is_nothrow_move_assignable.hpp
 *
 * is_nothrow_move_assignable trait header:
 *   Equivalent to is_nothrow_assignable<_Type&, _Type&&>.
@@ -10,8 +10,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_MOVE_ASSIGNABLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_MOVE_ASSIGNABLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_MOVE_ASSIGNABLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_MOVE_ASSIGNABLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -57,10 +57,10 @@ struct is_nothrow_move_assignable
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_MOVE_ASSIGNABLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_MOVE_ASSIGNABLE_

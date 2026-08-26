@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                       integral_constant.hpp
+* djinterp [re_std]                                      integral_constant.hpp
 *
 * integral_constant trait header:
 *   Wraps a compile-time constant of arithmetic type. Base class for all
-* boolean traits in restd. Provides:
+* boolean traits in re_std. Provides:
 *   - static const _Type value         - the wrapped constant.
 *   - typedef _Type     value_type     - the constant's type.
 *   - typedef integral_constant<_Type, _Value> type
@@ -25,8 +25,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_INTEGRAL_CONSTANT_
-#define DJINTERP_RESTD_TYPE_TRAITS_INTEGRAL_CONSTANT_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_INTEGRAL_CONSTANT_
+#define DJINTERP_RE_STD_TYPE_TRAITS_INTEGRAL_CONSTANT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -96,7 +96,7 @@ struct integral_constant
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_INTEGRAL_CONSTANT_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_INTEGRAL_CONSTANT_

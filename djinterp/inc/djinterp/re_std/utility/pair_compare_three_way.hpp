@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                     pair_compare_three_way.hpp
+* djinterp [re_std]                                    pair_compare_three_way.hpp
 *
 * pair operator<=> header:
-*   Adds the C++20 three-way comparison operator to restd::pair.
+*   Adds the C++20 three-way comparison operator to re_std::pair.
 * Returns the common_comparison_category of the two element-wise
 * <=> results; lexicographic semantics (first element first, then
 * second on equivalence).
@@ -24,7 +24,7 @@
 *   PORTABILITY:
 *   Entire file gated on D_ENV_LANG_IS_CPP20_OR_HIGHER. On C++11-17
 * the existing classic six comparison operators on pair (shipped
-* as part of the original restd::pair) remain the only comparison
+* as part of the original re_std::pair) remain the only comparison
 * surface.
 *
 *
@@ -33,8 +33,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UTILITY_PAIR_COMPARE_THREE_WAY_
-#define DJINTERP_RESTD_UTILITY_PAIR_COMPARE_THREE_WAY_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_
+#define DJINTERP_RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -66,16 +66,16 @@ template<typename _T1,
          typename _U1,
          typename _U2>
 constexpr common_comparison_category_t<
-              decltype(restd::declval<const _T1&>() <=> restd::declval<const _U1&>()),
-              decltype(restd::declval<const _T2&>() <=> restd::declval<const _U2&>())>
+              decltype(re_std::declval<const _T1&>() <=> re_std::declval<const _U1&>()),
+              decltype(re_std::declval<const _T2&>() <=> re_std::declval<const _U2&>())>
 operator<=>(
     const pair<_T1, _T2>& _lhs,
     const pair<_U1, _U2>& _rhs
 )
 {
     typedef common_comparison_category_t<
-                decltype(restd::declval<const _T1&>() <=> restd::declval<const _U1&>()),
-                decltype(restd::declval<const _T2&>() <=> restd::declval<const _U2&>())
+                decltype(re_std::declval<const _T1&>() <=> re_std::declval<const _U1&>()),
+                decltype(re_std::declval<const _T2&>() <=> re_std::declval<const _U2&>())
             > _R;
     _R _r = static_cast<_R>(_lhs.first <=> _rhs.first);
     if (_r != 0)
@@ -86,10 +86,10 @@ operator<=>(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_UTILITY_PAIR_COMPARE_THREE_WAY_
+#endif  // DJINTERP_RE_STD_UTILITY_PAIR_COMPARE_THREE_WAY_

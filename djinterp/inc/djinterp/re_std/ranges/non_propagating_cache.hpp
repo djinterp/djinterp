@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                    non_propagating_cache.hpp
+* djinterp [re_std]                                   non_propagating_cache.hpp
 *
 * non_propagating_cache header:
 *   Provides the C++20 exposition-only "non-propagating-cache"
@@ -16,7 +16,7 @@
 * original view's storage and would be a dangling pointer after
 * a copy/move. The non-propagating semantics enforce this safely.
 *
-*   APPLICATIONS IN RESTD:
+*   APPLICATIONS IN RE_STD:
 *   - Future join_view enhancement: remove the static_assert that
 *     rejects prvalue inner ranges (R8). Wrap the active inner in a
 *     non_propagating_cache<remove_reference<inner_t>>.
@@ -25,7 +25,7 @@
 *     cleaner copy semantics.
 *
 *   PORTABILITY:
-*   - C++11+; depends on restd::optional (shipped).
+*   - C++11+; depends on re_std::optional (shipped).
 *   - The semantics are exactly as the C++20 exposition spec:
 *       copy ctor       — resets destination to empty
 *       move ctor       — resets destination to empty, clears source
@@ -38,8 +38,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_NON_PROPAGATING_CACHE_
-#define DJINTERP_RESTD_RANGES_NON_PROPAGATING_CACHE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_NON_PROPAGATING_CACHE_
+#define DJINTERP_RE_STD_RANGES_NON_PROPAGATING_CACHE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -194,10 +194,10 @@ public:
 
 
 NS_END  // internal
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_NON_PROPAGATING_CACHE_
+#endif  // DJINTERP_RE_STD_RANGES_NON_PROPAGATING_CACHE_

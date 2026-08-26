@@ -57,11 +57,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_CONCEPTS_RANGES_SWAP_
-#define RESTD_CONCEPTS_RANGES_SWAP_ 1
+#ifndef DJINTERP_RE_STD_CONCEPTS_RANGES_SWAP_
+#define DJINTERP_RE_STD_CONCEPTS_RANGES_SWAP_ 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -70,7 +70,6 @@
 #include "./move_constructible.hpp"
 #include "./assignable_from.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 D_NAMESPACE(ranges)      // no NS_RANGES macro in djinterp.hpp — see header note
@@ -160,8 +159,6 @@ NS_END  // internal
 NS_END  // ranges
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_CONCEPTS_RANGES_SWAP_
+#endif  // DJINTERP_RE_STD_CONCEPTS_RANGES_SWAP_

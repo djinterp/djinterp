@@ -1,7 +1,7 @@
 /***********************************************************************
-* restd                                                          utility.hpp
+* re_std                                                         utility.hpp
 *
-* umbrella header for restd's <utility> implementation.
+* umbrella header for re_std's <utility> implementation.
 *
 * current contents:
 *   foundational (shipped earlier):
@@ -15,14 +15,14 @@
 *
 * not yet implemented:
 *   - move_if_noexcept   -- needs is_copy_constructible (not yet
-*                            in restd's type_traits foundation).
+*                            in re_std's type_traits foundation).
 *
 * design notes:
 *   - integer_sequence's recursive fallback is O(N) instantiation
 *     depth; the builtin path (Clang/MSVC __make_integer_seq, GCC
 *     __integer_pack) is O(1) and is preferred when available.
 *   - cmp_* uses std::is_signed and std::make_unsigned (justified
-*     localised exception); restd::make_unsigned not yet shipped.
+*     localised exception); re_std::make_unsigned not yet shipped.
 *   - in_place_t / in_place themselves live in <optional> per the
 *     project's earlier sequencing (optional shipped first); only
 *     in_place_type / in_place_index are here.
@@ -30,30 +30,30 @@
 *
 * path:      /inc/djinterp/re_std/utility/utility.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.05.09
+* author(s): re_std team                                date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_
-#define RESTD_UTILITY_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_
+#define DJINTERP_RE_STD_UTILITY_ 1
 
 #include "djinterp.hpp"
 
 // ---- foundational ----
-#include "restd/utility/swap.hpp"
-#include "restd/utility/move.hpp"
-#include "restd/utility/forward.hpp"
-#include "restd/utility/declval.hpp"
-#include "restd/utility/pair.hpp"
-#include "restd/utility/make_pair.hpp"
+#include "re_std/utility/swap.hpp"
+#include "re_std/utility/move.hpp"
+#include "re_std/utility/forward.hpp"
+#include "re_std/utility/declval.hpp"
+#include "re_std/utility/pair.hpp"
+#include "re_std/utility/make_pair.hpp"
 
 // ---- tail (Phase 9, 2026-05-09) ----
-#include "restd/utility/exchange.hpp"
-#include "restd/utility/as_const.hpp"
-#include "restd/utility/to_underlying.hpp"
-#include "restd/utility/integer_sequence.hpp"
-#include "restd/utility/intcmp.hpp"
-#include "restd/utility/unreachable.hpp"
-#include "restd/utility/forward_like.hpp"
-#include "restd/utility/in_place_type.hpp"
+#include "re_std/utility/exchange.hpp"
+#include "re_std/utility/as_const.hpp"
+#include "re_std/utility/to_underlying.hpp"
+#include "re_std/utility/integer_sequence.hpp"
+#include "re_std/utility/intcmp.hpp"
+#include "re_std/utility/unreachable.hpp"
+#include "re_std/utility/forward_like.hpp"
+#include "re_std/utility/in_place_type.hpp"
 
-#endif  // RESTD_UTILITY_
+#endif  // DJINTERP_RE_STD_UTILITY_

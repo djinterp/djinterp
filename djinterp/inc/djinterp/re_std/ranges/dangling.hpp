@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                dangling.hpp
+* djinterp [re_std]                                               dangling.hpp
 *
 * dangling tag header:
 *   Provides the placeholder type returned in lieu of an iterator or
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_DANGLING_
-#define DJINTERP_RESTD_RANGES_DANGLING_ 1
+#ifndef DJINTERP_RE_STD_RANGES_DANGLING_
+#define DJINTERP_RE_STD_RANGES_DANGLING_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -38,8 +38,8 @@ NS_RESTD
 // not a borrowed_range. Carries no state; its sole purpose is to
 // prevent users from inadvertently holding an iterator into a range
 // that has already been destroyed.
-// note: declared in the top-level restd namespace (matching std::ranges::
-// dangling). The C++20 surface for using-decls in restd::ranges:: is
+// note: declared in the top-level re_std namespace (matching std::ranges::
+// dangling). The C++20 surface for using-decls in re_std::ranges:: is
 // re-exported by the umbrella header.
 class dangling
 {
@@ -71,7 +71,7 @@ public:
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_RANGES_DANGLING_
+#endif  // DJINTERP_RE_STD_RANGES_DANGLING_

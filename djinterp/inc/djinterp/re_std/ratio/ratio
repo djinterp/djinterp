@@ -1,0 +1,71 @@
+/******************************************************************************
+* djinterp [re_std]                                                       ratio
+*
+* <ratio> umbrella header:
+*   Aggregates the granular per-symbol headers under
+* /inc/djinterp/re_std/ratio/. Mirrors the standard <ratio> convenience
+* header and adds no symbols of its own.
+*
+*   WHAT THIS MODULE IS FOR:
+*   <ratio> exists almost entirely to serve <chrono>. duration<Rep,
+* Period> carries its tick period as a ratio, and every duration_cast is
+* a ratio_divide resolved at compile time. Nothing here is meant to be
+* used at run time -- there is no ratio object to construct.
+*
+*   TABLE OF CONTENTS
+*   =================
+*   I.    THE CLASS
+*   II.   ARITHMETIC
+*   III.  COMPARISON
+*   IV.   SI PREFIX TYPEDEFS
+*
+*
+* path:      /inc/djinterp/re_std/ratio/ratio
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_RATIO_
+#define DJINTERP_RE_STD_RATIO_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+// =============================================================================
+// I.   THE CLASS
+// =============================================================================
+
+#include "./ratio.hpp"
+
+
+// =============================================================================
+// II.  ARITHMETIC
+// =============================================================================
+
+#include "./ratio_add.hpp"
+#include "./ratio_subtract.hpp"
+#include "./ratio_multiply.hpp"
+#include "./ratio_divide.hpp"
+
+
+// =============================================================================
+// III. COMPARISON
+// =============================================================================
+
+#include "./ratio_equal.hpp"
+#include "./ratio_not_equal.hpp"
+#include "./ratio_less.hpp"
+#include "./ratio_less_equal.hpp"
+#include "./ratio_greater.hpp"
+#include "./ratio_greater_equal.hpp"
+
+
+// =============================================================================
+// IV.  SI PREFIX TYPEDEFS
+// =============================================================================
+
+#include "./ratio_typedefs.hpp"
+
+
+#endif  // DJINTERP_RE_STD_RATIO_

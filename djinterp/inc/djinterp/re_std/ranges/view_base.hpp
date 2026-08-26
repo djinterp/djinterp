@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                view_base.hpp
+* djinterp [re_std]                                               view_base.hpp
 *
 * view_base tag header:
 *   Provides the empty marker class historically used to opt a type
@@ -11,7 +11,7 @@
 *   Standalone empty class. Available unconditionally on C++98+.
 *   The base-class mechanism is the original C++20 opt-in. C++20
 * shipped a derived_from<view_base> + enable_view variable-template
-* customisation point; restd mirrors both (variable template lives in
+* customisation point; re_std mirrors both (variable template lives in
 * enable_view.hpp).
 *
 *
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_VIEW_BASE_
-#define DJINTERP_RESTD_RANGES_VIEW_BASE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_VIEW_BASE_
+#define DJINTERP_RE_STD_RANGES_VIEW_BASE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -44,7 +44,7 @@ class view_base
 {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_RANGES_VIEW_BASE_
+#endif  // DJINTERP_RE_STD_RANGES_VIEW_BASE_

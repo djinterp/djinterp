@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  search_n.hpp
+* djinterp [re_std]                                                 search_n.hpp
 *
 * search_n algorithm header:
 *   Returns an iterator to the first element of the first run of
@@ -15,7 +15,7 @@
 *   - Uses operator< on _count for the counted loop; _Size needs only
 *     integral-like comparison-with-zero and decrement (or, here,
 *     incrementing a running counter).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/search_n.hpp
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SEARCH_N_
-#define DJINTERP_RESTD_ALGORITHM_SEARCH_N_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SEARCH_N_
+#define DJINTERP_RE_STD_ALGORITHM_SEARCH_N_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -169,7 +169,7 @@ search_n(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SEARCH_N_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SEARCH_N_

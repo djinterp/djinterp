@@ -1,16 +1,16 @@
 /***********************************************************************
-* restd                                                        destroy.hpp
+* re_std                                                       destroy.hpp
 *
 * range destruction:
-*   restd::destroy(_first, _last) calls destroy_at on each element of
+*   re_std::destroy(_first, _last) calls destroy_at on each element of
 * the half-open range [_first, _last).
 *
-*   restd::destroy_n(_first, _n) calls destroy_at on each of the
+*   re_std::destroy_n(_first, _n) calls destroy_at on each of the
 * first _n elements starting at _first, and returns the iterator just
 * past the last destroyed element.
 *
 * portability:
-*   Both functions are C++17 in std. restd back-ports to C++11+
+*   Both functions are C++17 in std. re_std back-ports to C++11+
 * (the implementations dereference forward iterators and take
 * addresses, which is fine on any C++ compiler, but destroy_at itself
 * needs C++11+).
@@ -22,22 +22,22 @@
 *
 * path:      /inc/djinterp/re_std/memory/destroy.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_DESTROY_
-#define RESTD_MEMORY_DESTROY_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_DESTROY_
+#define DJINTERP_RE_STD_MEMORY_DESTROY_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/addressof.hpp"
-    #include "restd/memory/destroy_at.hpp"
+    #include "re_std/memory/addressof.hpp"
+    #include "re_std/memory/destroy_at.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -54,7 +54,7 @@ namespace restd
     {
         for (; _first != _last; ++_first)
         {
-            restd::destroy_at(restd::addressof(*_first));
+            re_std::destroy_at(re_std::addressof(*_first));
         }
     }
 
@@ -65,7 +65,7 @@ namespace restd
     {
         for (; _first != _last; ++_first)
         {
-            restd::destroy_at(restd::addressof(*_first));
+            re_std::destroy_at(re_std::addressof(*_first));
         }
     }
 
@@ -86,7 +86,7 @@ namespace restd
     {
         for (; _n > 0; (void)++_first, --_n)
         {
-            restd::destroy_at(restd::addressof(*_first));
+            re_std::destroy_at(re_std::addressof(*_first));
         }
         return _first;
     }
@@ -98,7 +98,7 @@ namespace restd
     {
         for (; _n > 0; (void)++_first, --_n)
         {
-            restd::destroy_at(restd::addressof(*_first));
+            re_std::destroy_at(re_std::addressof(*_first));
         }
         return _first;
     }
@@ -106,8 +106,8 @@ namespace restd
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_DESTROY_
+#endif  // DJINTERP_RE_STD_MEMORY_DESTROY_

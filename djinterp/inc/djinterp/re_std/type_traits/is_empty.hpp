@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  is_empty.hpp
+* djinterp [re_std]                                                 is_empty.hpp
 *
 * is_empty trait header:
 *   is_empty<T>::value is true iff T is a class type with no non-static data
@@ -9,13 +9,13 @@
 *   C++11 baseline.  The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_empty.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_empty.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_EMPTY_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_EMPTY_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_EMPTY_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_EMPTY_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -25,25 +25,25 @@
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_IS_EMPTY  (intrinsic detection)
+// 0.   D_RE_STD_HAS_IS_EMPTY  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RESTD_HAS_IS_EMPTY
+#ifndef D_RE_STD_HAS_IS_EMPTY
     #if defined(__has_builtin)
         #if __has_builtin(__is_empty)
-            #define D_RESTD_HAS_IS_EMPTY  1
+            #define D_RE_STD_HAS_IS_EMPTY  1
         #else
-            #define D_RESTD_HAS_IS_EMPTY  0
+            #define D_RE_STD_HAS_IS_EMPTY  0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_CLANG) ||                                  \
             defined(D_ENV_COMPILER_MSVC)  ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_IS_EMPTY      1
+        #define D_RE_STD_HAS_IS_EMPTY      1
     #else
-        #define D_RESTD_HAS_IS_EMPTY      0
+        #define D_RE_STD_HAS_IS_EMPTY      0
     #endif
-#endif  // D_RESTD_HAS_IS_EMPTY
+#endif  // D_RE_STD_HAS_IS_EMPTY
 
 
 NS_RESTD
@@ -53,7 +53,7 @@ NS_RESTD
 // I.   IS_EMPTY
 // =============================================================================
 
-#if D_RESTD_HAS_IS_EMPTY
+#if D_RE_STD_HAS_IS_EMPTY
 
 // is_empty
 //   trait: intrinsic-backed -- a class type occupying no storage of its own.
@@ -70,7 +70,7 @@ template<typename _Type>
 struct is_empty : false_type
 {};
 
-#endif  // D_RESTD_HAS_IS_EMPTY
+#endif  // D_RE_STD_HAS_IS_EMPTY
 
 
 // =============================================================================
@@ -85,7 +85,7 @@ D_CONSTEXPR bool is_empty_v = is_empty<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_EMPTY_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_EMPTY_

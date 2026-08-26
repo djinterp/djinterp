@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            alignment_of.hpp
+* djinterp [re_std]                                           alignment_of.hpp
 *
 * alignment_of trait header:
 *   Yields the alignment requirement of _Type as a `std::size_t` value.
@@ -13,7 +13,7 @@
 *     alignment_of<int[3]>::value       -> alignment_of element type
 *
 *   PORTABILITY:
-*   The detection macro D_RESTD_HAS_ALIGNOF reflects whether a usable
+*   The detection macro D_RE_STD_HAS_ALIGNOF reflects whether a usable
 * alignof or compiler intrinsic is available. When neither is present,
 * the trait is omitted; consumer code must gate on that macro.
 *
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_ALIGNMENT_OF_
-#define DJINTERP_RESTD_TYPE_TRAITS_ALIGNMENT_OF_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ALIGNMENT_OF_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ALIGNMENT_OF_ 1
 
 // std
 #include <cstddef>
@@ -34,28 +34,28 @@
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_ALIGNOF / RESOLUTION
+// 0.   D_RE_STD_HAS_ALIGNOF / RESOLUTION
 // =============================================================================
 
-#ifndef D_RESTD_HAS_ALIGNOF
+#ifndef D_RE_STD_HAS_ALIGNOF
     #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-        #define D_RESTD_HAS_ALIGNOF             1
-        #define D_RESTD_ALIGNOF_(T)             alignof(T)
+        #define D_RE_STD_HAS_ALIGNOF             1
+        #define D_RE_STD_ALIGNOF_(T)             alignof(T)
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_CLANG) ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_ALIGNOF             1
-        #define D_RESTD_ALIGNOF_(T)             __alignof__(T)
+        #define D_RE_STD_HAS_ALIGNOF             1
+        #define D_RE_STD_ALIGNOF_(T)             __alignof__(T)
     #elif defined(D_ENV_COMPILER_MSVC)
-        #define D_RESTD_HAS_ALIGNOF             1
-        #define D_RESTD_ALIGNOF_(T)             __alignof(T)
+        #define D_RE_STD_HAS_ALIGNOF             1
+        #define D_RE_STD_ALIGNOF_(T)             __alignof(T)
     #else
-        #define D_RESTD_HAS_ALIGNOF             0
+        #define D_RE_STD_HAS_ALIGNOF             0
     #endif
-#endif  // D_RESTD_HAS_ALIGNOF
+#endif  // D_RE_STD_HAS_ALIGNOF
 
 
-#if D_RESTD_HAS_ALIGNOF
+#if D_RE_STD_HAS_ALIGNOF
 
 
 NS_RESTD
@@ -69,7 +69,7 @@ NS_RESTD
 //   trait: yields the alignment requirement of _Type as ::value.
 template<typename _Type>
 struct alignment_of
-    : integral_constant<std::size_t, D_RESTD_ALIGNOF_(_Type)>
+    : integral_constant<std::size_t, D_RE_STD_ALIGNOF_(_Type)>
 {};
 
 
@@ -87,10 +87,10 @@ struct alignment_of
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // D_RESTD_HAS_ALIGNOF
+#endif  // D_RE_STD_HAS_ALIGNOF
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_ALIGNMENT_OF_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ALIGNMENT_OF_

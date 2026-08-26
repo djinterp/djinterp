@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                        tuple
+* djinterp [re_std]                                                       tuple
 *
 * tuple umbrella header (extension-less, mirrors std's <tuple>):
 *   Aggregates the granular per-symbol headers under
-* /inc/djinterp/restd/tuple/.
+* /inc/djinterp/re_std/tuple/.
 *
 *   GRANULARITY:
 *   Every public symbol lives in its own .hpp file under this directory.
@@ -27,13 +27,13 @@
 * IX.   IGNORE OBJECT
 *
 *
-* path:      /inc/djinterp/restd/tuple/tuple
+* path:      /inc/djinterp/re_std/tuple/tuple
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_UMBRELLA_
-#define DJINTERP_RESTD_TUPLE_UMBRELLA_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_UMBRELLA_
+#define DJINTERP_RE_STD_TUPLE_UMBRELLA_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -107,4 +107,4 @@
 #include "./ignore.hpp"
 
 
-#endif  // DJINTERP_RESTD_TUPLE_UMBRELLA_
+#endif  // DJINTERP_RE_STD_TUPLE_UMBRELLA_

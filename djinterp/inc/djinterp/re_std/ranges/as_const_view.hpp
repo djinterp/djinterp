@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [restd]                                           as_const_view.hpp
+* djinterp [re_std]                                          as_const_view.hpp
 *
 * as_const_view header:
 *   Provides the C++23 const-projection adaptor. as_const_view<V>
 * presents an underlying view V with each element exposed as a
 * const reference.
 *
-*   This R22 rewrite delegates to restd::basic_const_iterator
+*   This R22 rewrite delegates to re_std::basic_const_iterator
 * (shipped as part of the R22 internal-utilities batch); the R19
 * original used a hand-rolled iterator with direct static_cast and
 * duplicated the full iterator surface. The new implementation is
@@ -18,11 +18,11 @@
 *
 *   PORTABILITY:
 *   - C++11+; CRTP + view_interface + delegation to
-*     restd::basic_const_iterator.
+*     re_std::basic_const_iterator.
 *   - enable_borrowed_range inherits from the underlying view.
 *
 *   COLOCATED:
-*   restd::views::as_const(r).
+*   re_std::views::as_const(r).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/as_const_view.hpp
@@ -30,8 +30,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_AS_CONST_VIEW_
-#define DJINTERP_RESTD_RANGES_AS_CONST_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_AS_CONST_VIEW_
+#define DJINTERP_RE_STD_RANGES_AS_CONST_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -99,46 +99,46 @@ public:
     // directly. The cross-type == / != on basic_const_iterator
     // makes this work whether or not the underlying view is a
     // common_range.
-    D_CONSTEXPR iterator
+    D_CONSTEXPR_CPP14 iterator
     begin()
     {
-        return iterator(restd::begin(m_base));
+        return iterator(re_std::begin(m_base));
     }
 
     D_CONSTEXPR iterator
     begin() const
     {
-        return iterator(restd::begin(m_base));
+        return iterator(re_std::begin(m_base));
     }
 
-    D_CONSTEXPR sentinel
+    D_CONSTEXPR_CPP14 sentinel
     end()
     {
-        return restd::end(m_base);
+        return re_std::end(m_base);
     }
 
     D_CONSTEXPR sentinel
     end() const
     {
-        return restd::end(m_base);
+        return re_std::end(m_base);
     }
 
 
     // -------- size --------
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     size()
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        return restd::size(m_base);
+        return re_std::size(m_base);
     }
 
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        return restd::size(m_base);
+        return re_std::size(m_base);
     }
 };
 
@@ -183,10 +183,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_AS_CONST_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_AS_CONST_VIEW_

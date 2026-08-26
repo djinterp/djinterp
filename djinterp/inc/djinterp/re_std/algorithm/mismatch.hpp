@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  mismatch.hpp
+* djinterp [re_std]                                                 mismatch.hpp
 *
 * mismatch algorithm header:
 *   Walks two ranges in parallel and returns the first position where
@@ -11,10 +11,10 @@
 *
 *   PORTABILITY:
 *   - std::mismatch is C++98 for the 3-arg forms; the 4-arg forms (with
-*     a second end iterator) were added in C++14. restd back-ports the
+*     a second end iterator) were added in C++14. re_std back-ports the
 *     4-arg forms to C++98 (no language blocker).
-*   - Return type is restd::pair<_InputIt1, _InputIt2>.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - Return type is re_std::pair<_InputIt1, _InputIt2>.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/mismatch.hpp
@@ -22,12 +22,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_MISMATCH_
-#define DJINTERP_RESTD_ALGORITHM_MISMATCH_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_MISMATCH_
+#define DJINTERP_RE_STD_ALGORITHM_MISMATCH_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../utility/pair.hpp"
 
 
@@ -165,7 +165,7 @@ mismatch(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_MISMATCH_
+#endif  // DJINTERP_RE_STD_ALGORITHM_MISMATCH_

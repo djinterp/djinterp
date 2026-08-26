@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                     borrowed_subrange_t.hpp
+* djinterp [re_std]                                    borrowed_subrange_t.hpp
 *
 * borrowed_subrange_t alias template header:
 *   Yields subrange<iterator_t<_Range>> when _Range is a
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_BORROWED_SUBRANGE_T_
-#define DJINTERP_RESTD_RANGES_BORROWED_SUBRANGE_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_BORROWED_SUBRANGE_T_
+#define DJINTERP_RE_STD_RANGES_BORROWED_SUBRANGE_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -56,10 +56,10 @@ using borrowed_subrange_t =
     >::type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_BORROWED_SUBRANGE_T_
+#endif  // DJINTERP_RE_STD_RANGES_BORROWED_SUBRANGE_T_

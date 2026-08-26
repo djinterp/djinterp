@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 push_heap.hpp
+* djinterp [re_std]                                                push_heap.hpp
 *
 * push_heap algorithm header:
 *   Treats [_first, _last - 1) as a max-heap and inserts *(_last - 1)
@@ -8,7 +8,7 @@
 *
 *   PORTABILITY:
 *   - std::push_heap is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Requires RandomAccessIterator.
 *   - Two overloads: default operator< and custom comparator.
 *   - Implementation uses iter_swap-based sift-up; see header comment in
@@ -20,12 +20,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_PUSH_HEAP_
-#define DJINTERP_RESTD_ALGORITHM_PUSH_HEAP_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_PUSH_HEAP_
+#define DJINTERP_RE_STD_ALGORITHM_PUSH_HEAP_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -110,7 +110,7 @@ push_heap(
 
 
 // push_heap (default operator<)
-//   function: as above with restd::less<value_type>().
+//   function: as above with re_std::less<value_type>().
 template<typename _RandomIt>
 D_CONSTEXPR_CPP14 void
 push_heap(
@@ -119,11 +119,11 @@ push_heap(
 )
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    push_heap(_first, _last, restd::less<_Value>());
+    push_heap(_first, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_PUSH_HEAP_
+#endif  // DJINTERP_RE_STD_ALGORITHM_PUSH_HEAP_

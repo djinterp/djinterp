@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             move_backward.hpp
+* djinterp [re_std]                                            move_backward.hpp
 *
 * move_backward algorithm header:
 *   Moves elements from [_first, _last) into the range ending at
@@ -11,7 +11,7 @@
 *   PORTABILITY:
 *   - std::move_backward is C++11. Same rationale as move (algorithm):
 *     gated on rvalue references; not back-ported to C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/move_backward.hpp
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_MOVE_BACKWARD_
-#define DJINTERP_RESTD_ALGORITHM_MOVE_BACKWARD_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_MOVE_BACKWARD_
+#define DJINTERP_RE_STD_ALGORITHM_MOVE_BACKWARD_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -31,7 +31,7 @@
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-// restd
+// re_std
 #include "../utility/move.hpp"
 
 
@@ -72,17 +72,17 @@ move_backward(
     {
         --_last;
         --_d_last;
-        *_d_last = restd::move(*_last);
+        *_d_last = re_std::move(*_last);
     }
 
     return _d_last;
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_MOVE_BACKWARD_
+#endif  // DJINTERP_RE_STD_ALGORITHM_MOVE_BACKWARD_

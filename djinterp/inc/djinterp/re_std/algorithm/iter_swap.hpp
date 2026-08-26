@@ -1,15 +1,15 @@
 /******************************************************************************
-* djinterp [restd]                                                 iter_swap.hpp
+* djinterp [re_std]                                                iter_swap.hpp
 *
 * iter_swap algorithm header:
 *   Swaps the values pointed to by two iterators. Uses the ADL-friendly
-* idiom (using restd::swap; swap(*a, *b);) so that a user-defined
+* idiom (using re_std::swap; swap(*a, *b);) so that a user-defined
 * swap for the value type, if found by ADL, is preferred over
-* restd::swap.
+* re_std::swap.
 *
 *   PORTABILITY:
 *   - std::iter_swap is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/iter_swap.hpp
@@ -17,12 +17,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_ITER_SWAP_
-#define DJINTERP_RESTD_ALGORITHM_ITER_SWAP_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_ITER_SWAP_
+#define DJINTERP_RE_STD_ALGORITHM_ITER_SWAP_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../utility/swap.hpp"
 
 
@@ -49,7 +49,7 @@ NS_RESTD
 // iter_swap
 //   function: exchanges *_a and *_b. The unqualified swap call picks
 // up user-supplied swap overloads via ADL, falling back to
-// restd::swap if none is found.
+// re_std::swap if none is found.
 template<typename _ForwardIt1,
          typename _ForwardIt2>
 D_CONSTEXPR_CPP14 void
@@ -58,12 +58,12 @@ iter_swap(
     _ForwardIt2 _b
 )
 {
-    using restd::swap;
+    using re_std::swap;
     swap(*_a, *_b);
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_ITER_SWAP_
+#endif  // DJINTERP_RE_STD_ALGORITHM_ITER_SWAP_

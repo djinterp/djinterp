@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                                make_any.hpp
+* djinterp [re_std]                                               make_any.hpp
 *
 * make_any factory header:
-*   Provides factory functions for constructing restd::any objects
+*   Provides factory functions for constructing re_std::any objects
 * with emplaced values. Mirrors the C++17 std::make_any interface:
 *   - make_any<T>(args...)                   - forwards to T constructor
 *   - make_any<T>(initializer_list, args...) - initializer_list overload
@@ -17,8 +17,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_MAKE_ANY_
-#define DJINTERP_RESTD_MAKE_ANY_ 1
+#ifndef DJINTERP_RE_STD_MAKE_ANY_
+#define DJINTERP_RE_STD_MAKE_ANY_ 1
 
 #include "../../core/djinterp.hpp"
 #include "./any.hpp"
@@ -72,10 +72,10 @@ make_any(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RESTD_MAKE_ANY_
+#endif  // DJINTERP_RE_STD_MAKE_ANY_

@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                             expected_swap.hpp
+* djinterp [re_std]                                            expected_swap.hpp
 *
 * expected swap specialization header:
-*   Provides non-member swap overloads for restd::expected and
-* restd::unexpected. ADL-friendly; delegate to the member swap on
+*   Provides non-member swap overloads for re_std::expected and
+* re_std::unexpected. ADL-friendly; delegate to the member swap on
 * each.
 *
 *   CONSTEXPR:
@@ -15,8 +15,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_EXPECTED_SWAP_
-#define DJINTERP_RESTD_EXPECTED_SWAP_ 1
+#ifndef DJINTERP_RE_STD_EXPECTED_SWAP_
+#define DJINTERP_RE_STD_EXPECTED_SWAP_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -88,10 +88,10 @@ swap(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_EXPECTED_SWAP_
+#endif  // DJINTERP_RE_STD_EXPECTED_SWAP_

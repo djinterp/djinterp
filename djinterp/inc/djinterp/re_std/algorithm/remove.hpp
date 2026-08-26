@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                    remove.hpp
+* djinterp [re_std]                                                   remove.hpp
 *
 * remove algorithm header:
 *   In-place compaction. Walks [_first, _last) and pulls every element
@@ -9,10 +9,10 @@
 *
 *   PORTABILITY:
 *   - std::remove is C++98. C++11 strengthened the kept-element transfer
-*     from copy assignment to move assignment. restd honours the same
+*     from copy assignment to move assignment. re_std honours the same
 *     evolution: copy on C++98/03, move on C++11+ (gated on
 *     D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Implementation forwards through find for the skip-prefix scan, so
 *     this header includes find.hpp.
 *
@@ -22,12 +22,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_REMOVE_
-#define DJINTERP_RESTD_ALGORITHM_REMOVE_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_REMOVE_
+#define DJINTERP_RE_STD_ALGORITHM_REMOVE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./find.hpp"
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
     #include "../utility/move.hpp"
@@ -70,7 +70,7 @@ remove(
 )
 {
     // skip the matchless prefix
-    _first = restd::find(_first, _last, _value);
+    _first = re_std::find(_first, _last, _value);
     if (_first == _last)
     {
         return _first;
@@ -86,7 +86,7 @@ remove(
         if (!(*_it == _value))
         {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-            *_first = restd::move(*_it);
+            *_first = re_std::move(*_it);
 #else
             *_first = *_it;
 #endif
@@ -98,7 +98,7 @@ remove(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_REMOVE_
+#endif  // DJINTERP_RE_STD_ALGORITHM_REMOVE_

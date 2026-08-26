@@ -1,7 +1,7 @@
 /******************************************************************************
-* djinterp [restd]                                                     array.hpp
+* djinterp [re_std]                                                    array.hpp
 *
-*   Fixed-size, contiguous, aggregate sequence container — restd's
+*   Fixed-size, contiguous, aggregate sequence container — re_std's
 * portable reimplementation of std::array<T, N>. Wraps a C-style array
 * of _Size elements of type _Type and exposes the standard container
 * interface (iterators, element access, capacity, fill, swap).
@@ -9,7 +9,7 @@
 *   AGGREGATE GUARANTEE:
 *   array is a structural aggregate on every supported tier. The only
 * non-static data member, _M_elems, is public to permit brace-init
-* (`restd::array<int, 3> a = {1, 2, 3};`) on C++98/03 where neither
+* (`re_std::array<int, 3> a = {1, 2, 3};`) on C++98/03 where neither
 * CTAD nor designated init exists. There are no user-declared
 * constructors, no virtual functions, and no private/protected data
 * members — the four standard aggregate requirements per [dcl.init.aggr].
@@ -40,7 +40,7 @@
 *   iterator and const_iterator are plain pointers (T*, const T*) —
 * matches libstdc++/libc++ practice and avoids dragging in a custom
 * iterator-wrapper type. reverse_iterator and const_reverse_iterator
-* are restd::reverse_iterator<iterator>/<const_iterator>; this is the
+* are re_std::reverse_iterator<iterator>/<const_iterator>; this is the
 * only inter-module dependency in the class itself.
 *
 *   COMPARISON OPERATORS, NON-MEMBER swap, to_array, get<I>, and the
@@ -67,8 +67,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_
-#define DJINTERP_RESTD_ARRAY_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_
+#define DJINTERP_RE_STD_ARRAY_ 1
 
 // std
 #include <cstddef>
@@ -76,7 +76,7 @@
 // djinterp
 #include "../../core/djinterp.hpp"
 
-// restd
+// re_std
 #include "../iterator/reverse_iterator.hpp"
 #include "../type_traits/is_same.hpp"
 #include "../type_traits/enable_if.hpp"
@@ -236,8 +236,8 @@ struct array
     typedef _Type const*                                const_iterator;
     typedef std::size_t                                 size_type;
     typedef std::ptrdiff_t                              difference_type;
-    typedef restd::reverse_iterator<iterator>           reverse_iterator;
-    typedef restd::reverse_iterator<const_iterator>     const_reverse_iterator;
+    typedef re_std::reverse_iterator<iterator>           reverse_iterator;
+    typedef re_std::reverse_iterator<const_iterator>     const_reverse_iterator;
 
     // =================================================================
     // STORAGE
@@ -522,7 +522,7 @@ void
 array<_Type, _Size>::_throw_out_of_range()
 {
 #if D_ENV_CPP98_HAS_STDEXCEPT
-    throw std::out_of_range("restd::array::at: index out of range");
+    throw std::out_of_range("re_std::array::at: index out of range");
 #elif D_ENV_CPP98_HAS_EXCEPTION
     throw std::exception();
 #else
@@ -540,7 +540,7 @@ array<_Type, _Size>::_throw_out_of_range()
 // CTAD is a C++17 language feature; the deduction guide is
 // unavailable on earlier tiers (the language itself cannot deduce
 // class template arguments). The guide enables
-//   `restd::array a = {1, 2, 3};`
+//   `re_std::array a = {1, 2, 3};`
 // to deduce array<int, 3>.
 //   The standard's guide includes a homogeneity check: every
 // element type must be the same as the first, otherwise the guide
@@ -556,8 +556,8 @@ template<typename    _Type,
          typename... _Rest>
 array(_Type, _Rest...)
     -> array<
-           typename restd::enable_if<
-               (restd::is_same<_Type, _Rest>::value && ...),
+           typename re_std::enable_if<
+               (re_std::is_same<_Type, _Rest>::value && ...),
                _Type
            >::type,
            1 + sizeof...(_Rest)>;
@@ -565,7 +565,7 @@ array(_Type, _Rest...)
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ARRAY_
+#endif  // DJINTERP_RE_STD_ARRAY_

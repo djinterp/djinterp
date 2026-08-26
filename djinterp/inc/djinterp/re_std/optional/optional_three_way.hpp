@@ -23,19 +23,18 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_OPTIONAL_THREE_WAY_
-#define RESTD_OPTIONAL_THREE_WAY_ 1
+#ifndef DJINTERP_RE_STD_OPTIONAL_THREE_WAY_
+#define DJINTERP_RE_STD_OPTIONAL_THREE_WAY_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
-#include "../compare/compare.hpp"
+#include "../compare/compare"
 #include "./optional.hpp"
 #include "./nullopt.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // operator<=>
@@ -75,8 +74,7 @@ operator<=>(const optional<_Type>& a, const _Other& b)
 }
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_OPTIONAL_THREE_WAY_
+#endif  // DJINTERP_RE_STD_OPTIONAL_THREE_WAY_

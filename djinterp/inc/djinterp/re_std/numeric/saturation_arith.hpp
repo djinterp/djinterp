@@ -48,15 +48,14 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_NUMERIC_SATURATION_ARITH_
-#define RESTD_NUMERIC_SATURATION_ARITH_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_SATURATION_ARITH_
+#define DJINTERP_RE_STD_NUMERIC_SATURATION_ARITH_ 1
 
 // re_std
-#include "../limits/limits.hpp"             // numeric_limits
+#include "../limits/limits"             // numeric_limits
 #include "../type_traits/type_traits.hpp"   // enable_if, is_same, is_signed,
                                             // make_unsigned, remove_cv
 
-NS_DJINTERP
 NS_RESTD
 
 NS_INTERNAL
@@ -300,6 +299,4 @@ div_sat(_Int a, _Int b) D_NOEXCEPT
 }
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_NUMERIC_SATURATION_ARITH_
+#endif  // DJINTERP_RE_STD_NUMERIC_SATURATION_ARITH_

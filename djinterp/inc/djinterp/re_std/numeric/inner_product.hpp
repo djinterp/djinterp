@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                     inner_product.hpp
+* re_std                                                    inner_product.hpp
 *
 * inner_product(_first1, _last1, _first2, _init [, _op1, _op2])
 * computes the generalized inner product of two ranges:
@@ -10,23 +10,23 @@
 *
 * default: _op1 = operator+, _op2 = operator*  (standard dot product).
 *
-* added in std C++98; constexpr in C++20. restd back-ports constexpr
+* added in std C++98; constexpr in C++20. re_std back-ports constexpr
 * to C++14+ where the loop body is permitted.
 *
 *
 * path:      /inc/djinterp/re_std/numeric/inner_product.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_INNER_PRODUCT_
-#define RESTD_NUMERIC_INNER_PRODUCT_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_INNER_PRODUCT_
+#define DJINTERP_RE_STD_NUMERIC_INNER_PRODUCT_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include "restd/utility/move.hpp"
+    #include "re_std/utility/move.hpp"
 #endif
 
 
@@ -39,7 +39,7 @@
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // Default-op overload (operator+ / operator*).
@@ -55,7 +55,7 @@ D_CONSTEXPR_CPP14 _T inner_product
     for (; _first1 != _last1; ++_first1, (void)++_first2)
     {
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            _init = restd::move(_init) + (*_first1 * *_first2);
+            _init = re_std::move(_init) + (*_first1 * *_first2);
         #else
             _init = _init + (*_first1 * *_first2);
         #endif
@@ -79,7 +79,7 @@ D_CONSTEXPR_CPP14 _T inner_product
     for (; _first1 != _last1; ++_first1, (void)++_first2)
     {
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-            _init = _op1(restd::move(_init), _op2(*_first1, *_first2));
+            _init = _op1(re_std::move(_init), _op2(*_first1, *_first2));
         #else
             _init = _op1(_init, _op2(*_first1, *_first2));
         #endif
@@ -88,6 +88,6 @@ D_CONSTEXPR_CPP14 _T inner_product
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_NUMERIC_INNER_PRODUCT_
+#endif  // DJINTERP_RE_STD_NUMERIC_INNER_PRODUCT_

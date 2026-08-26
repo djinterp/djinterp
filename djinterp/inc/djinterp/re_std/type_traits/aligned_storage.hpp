@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            aligned_storage.hpp
+* djinterp [re_std]                                           aligned_storage.hpp
 *
 * aligned_storage trait:
 *   Yields `type` as a POD type suitable for use as uninitialized storage
@@ -11,7 +11,7 @@
 *   Introduced in C++11. Deprecated in C++23 (P1413R3) on the grounds
 * that users can equivalently write a small struct directly:
 *     struct buf { alignas(N) unsigned char data[Len]; };
-* restd retains the trait on all C++11+ tiers per project policy
+* re_std retains the trait on all C++11+ tiers per project policy
 * ("available where the language permits"). Migrating new code to the
 * equivalent struct form is encouraged when feasible.
 *
@@ -35,7 +35,7 @@
 * C++03 fallback but are not implemented here.
 *
 *   DEPENDENCIES:
-*   <cstddef> for std::size_t. No restd traits required.
+*   <cstddef> for std::size_t. No re_std traits required.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/aligned_storage.hpp
@@ -43,8 +43,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_ALIGNED_STORAGE_
-#define DJINTERP_RESTD_TYPE_TRAITS_ALIGNED_STORAGE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -108,9 +108,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_ALIGNED_STORAGE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_STORAGE_

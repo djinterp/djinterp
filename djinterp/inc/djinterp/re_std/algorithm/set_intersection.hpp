@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          set_intersection.hpp
+* djinterp [re_std]                                         set_intersection.hpp
 *
 * set_intersection algorithm header:
 *   Multiset intersection of two sorted ranges. For each value, the
@@ -9,7 +9,7 @@
 *
 *   PORTABILITY:
 *   - std::set_intersection is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Two overloads: default operator< and custom comparator.
 *
 *
@@ -18,8 +18,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SET_INTERSECTION_
-#define DJINTERP_RESTD_ALGORITHM_SET_INTERSECTION_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SET_INTERSECTION_
+#define DJINTERP_RE_STD_ALGORITHM_SET_INTERSECTION_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -123,7 +123,7 @@ set_intersection(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SET_INTERSECTION_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SET_INTERSECTION_

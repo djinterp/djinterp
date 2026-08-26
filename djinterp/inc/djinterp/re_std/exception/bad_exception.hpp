@@ -1,44 +1,44 @@
 /***********************************************************************
-* restd                                                 bad_exception.hpp
+* re_std                                                bad_exception.hpp
 *
 * the bad_exception type:
-*   restd::bad_exception is thrown by the runtime when exception
+*   re_std::bad_exception is thrown by the runtime when exception
 * handling itself fails (e.g. a dynamic-exception-specification
 * violation, or an exception escaping during unwinding pre-C++17). It
-* is runtime/ABI-defined, so restd re-exports std::bad_exception when
+* is runtime/ABI-defined, so re_std re-exports std::bad_exception when
 * available and degrades to a standalone class deriving from
-* restd::exception otherwise.
+* re_std::exception otherwise.
 *
 *
 * path:      /inc/djinterp/re_std/exception/bad_exception.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.06.04
+* author(s): re_std contributors                         date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_EXCEPTION_BAD_EXCEPTION_
-#define RESTD_EXCEPTION_BAD_EXCEPTION_ 1
+#ifndef DJINTERP_RE_STD_EXCEPTION_BAD_EXCEPTION_
+#define DJINTERP_RE_STD_EXCEPTION_BAD_EXCEPTION_ 1
 
-#include "../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "exception.hpp"
 
 #if D_ENV_CPP98_HAS_EXCEPTION
 
     #include <exception>
 
-namespace restd
+namespace re_std
 {
     // bad_exception
     //   class: using-declaration from std::bad_exception.
     using std::bad_exception;
 
-} // namespace restd
+} // namespace re_std
 
 #else // freestanding fallback
 
-namespace restd
+namespace re_std
 {
     // bad_exception
-    //   class: standalone fallback deriving from restd::exception.
+    //   class: standalone fallback deriving from re_std::exception.
     class bad_exception : public exception
     {
     public:
@@ -54,8 +54,8 @@ namespace restd
         }
     };
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP98_HAS_EXCEPTION
 
-#endif // RESTD_EXCEPTION_BAD_EXCEPTION_
+#endif  // DJINTERP_RE_STD_EXCEPTION_BAD_EXCEPTION_

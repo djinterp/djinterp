@@ -39,11 +39,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_FUNC_STORAGE_
-#define RESTD_FUNCTIONAL_FUNC_STORAGE_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_FUNC_STORAGE_
+#define DJINTERP_RE_STD_FUNCTIONAL_FUNC_STORAGE_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -52,7 +52,6 @@
 #include "../memory/addressof.hpp"
 #include "./invoke.hpp"
 
-NS_DJINTERP
 NS_RESTD
 NS_INTERNAL
 
@@ -226,8 +225,6 @@ const func_ops func_ops_holder<_Target, false>::value =
 
 NS_END  // internal
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_FUNCTIONAL_FUNC_STORAGE_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_FUNC_STORAGE_

@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                      optional
+* djinterp [re_std]                                                     optional
 *
 * <optional> umbrella header:
 *   Convenience aggregator that pulls in every granular module of the
-* restd optional implementation. Users may include this header to get
+* re_std optional implementation. Users may include this header to get
 * the full optional surface (matching the experience of std's
 * `#include <optional>`), or include individual granular headers from
 * the `optional/` subdirectory for more precise dependency control.
@@ -21,16 +21,16 @@
 * optional.hpp; it is not exposed here as a top-level optional concern.
 *
 *   STANDARD STATUS:
-*   Mirrors std::<optional> from C++17. restd provides on C++11+.
+*   Mirrors std::<optional> from C++17. re_std provides on C++11+.
 *
 *
-* path:      /inc/djinterp/restd/optional
+* path:      /inc/djinterp/re_std/optional
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_OPTIONAL_
-#define DJINTERP_RESTD_OPTIONAL_ 1
+#ifndef DJINTERP_RE_STD_OPTIONAL_
+#define DJINTERP_RE_STD_OPTIONAL_ 1
 
 #include "./optional/nullopt.hpp"
 #include "./optional/bad_optional_access.hpp"
@@ -38,4 +38,4 @@
 #include "./optional/make_optional.hpp"
 #include "./optional/optional_swap.hpp"
 
-#endif  // DJINTERP_RESTD_OPTIONAL_
+#endif  // DJINTERP_RE_STD_OPTIONAL_

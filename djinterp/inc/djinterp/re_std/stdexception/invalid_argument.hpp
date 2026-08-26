@@ -1,43 +1,43 @@
 /***********************************************************************
-* restd                                        invalid_argument.hpp
+* re_std                                       invalid_argument.hpp
 *
 * invalid_argument:
 *   <stdexcept> class derived from logic_error; reported for an argument value that is invalid for the operation. Runtime-provided,
-* so restd re-exports std::invalid_argument when <stdexcept> is available (type
+* so re_std re-exports std::invalid_argument when <stdexcept> is available (type
 * identity preserved) and degrades to a standalone class deriving from
-* restd::logic_error otherwise, forwarding the const char* constructor and
+* re_std::logic_error otherwise, forwarding the const char* constructor and
 * inheriting what() from the base.
 *
 *
 * path:      /inc/djinterp/re_std/stdexception/invalid_argument.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.06.04
+* author(s): re_std contributors                         date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_STDEXCEPT_INVALID_ARGUMENT_
-#define RESTD_STDEXCEPT_INVALID_ARGUMENT_ 1
+#ifndef DJINTERP_RE_STD_STDEXCEPT_INVALID_ARGUMENT_
+#define DJINTERP_RE_STD_STDEXCEPT_INVALID_ARGUMENT_ 1
 
-#include "../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "logic_error.hpp"
 
 #if D_ENV_CPP98_HAS_STDEXCEPT
 
     #include <stdexcept>
 
-namespace restd
+namespace re_std
 {
     // invalid_argument
     //   class: using-declaration from std::invalid_argument.
     using std::invalid_argument;
 
-} // namespace restd
+} // namespace re_std
 
 #else // freestanding fallback
 
-namespace restd
+namespace re_std
 {
     // invalid_argument
-    //   class: standalone fallback deriving from restd::logic_error;
+    //   class: standalone fallback deriving from re_std::logic_error;
     //   forwards the const char* constructor, inherits what().
     class invalid_argument : public logic_error
     {
@@ -50,8 +50,8 @@ namespace restd
         {}
     };
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP98_HAS_STDEXCEPT
 
-#endif // RESTD_STDEXCEPT_INVALID_ARGUMENT_
+#endif  // DJINTERP_RE_STD_STDEXCEPT_INVALID_ARGUMENT_

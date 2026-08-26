@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                     make_unique.hpp
+* re_std                                                    make_unique.hpp
 *
 * factory functions for unique_ptr:
 *   make_unique<_T>(_args...)       single _T,         value-initialized
@@ -14,18 +14,18 @@
 * standard's = delete spec, with less code.
 *
 * C++11+ floor:
-*   make_unique was added in C++14, restd back-ports to C++11.
-*   make_unique_for_overwrite was added in C++20, restd back-ports
+*   make_unique was added in C++14, re_std back-ports to C++11.
+*   make_unique_for_overwrite was added in C++20, re_std back-ports
 *   to C++11+.
 *
 *
 * path:      /inc/djinterp/re_std/memory/make_unique.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_MAKE_UNIQUE_
-#define RESTD_MEMORY_MAKE_UNIQUE_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_MAKE_UNIQUE_
+#define DJINTERP_RE_STD_MEMORY_MAKE_UNIQUE_ 1
 
 #include "djinterp.hpp"
 
@@ -34,15 +34,15 @@
 
     #include <cstddef>  // size_t
 
-    #include "restd/memory/unique_ptr.hpp"
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_array.hpp"
-    #include "restd/type_traits/is_unbounded_array.hpp"
-    #include "restd/type_traits/remove_extent.hpp"
-    #include "restd/utility/forward.hpp"
+    #include "re_std/memory/unique_ptr.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_array.hpp"
+    #include "re_std/type_traits/is_unbounded_array.hpp"
+    #include "re_std/type_traits/remove_extent.hpp"
+    #include "re_std/utility/forward.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -60,7 +60,7 @@ typename enable_if
 >::type
 make_unique(_Args&&... _args)
 {
-    return unique_ptr<_T>(new _T(restd::forward<_Args>(_args)...));
+    return unique_ptr<_T>(new _T(re_std::forward<_Args>(_args)...));
 }
 
 
@@ -95,7 +95,7 @@ make_unique(std::size_t _n)
 // uninitialised memory. The expectation is that the caller will
 // immediately overwrite every element.
 //
-// std added this in C++20. restd back-ports to C++11+.
+// std added this in C++20. re_std back-ports to C++11+.
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER  // (already true here, kept for clarity)
 
@@ -129,8 +129,8 @@ make_unique(std::size_t _n)
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_MAKE_UNIQUE_
+#endif  // DJINTERP_RE_STD_MEMORY_MAKE_UNIQUE_

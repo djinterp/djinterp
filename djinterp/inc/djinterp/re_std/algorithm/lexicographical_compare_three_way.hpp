@@ -29,18 +29,17 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_ALGORITHM_LEX_COMPARE_THREE_WAY_
-#define RESTD_ALGORITHM_LEX_COMPARE_THREE_WAY_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_LEX_COMPARE_THREE_WAY_
+#define DJINTERP_RE_STD_ALGORITHM_LEX_COMPARE_THREE_WAY_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 #include "../type_traits/type_traits.hpp"
-#include "../compare/compare.hpp"
+#include "../compare/compare"
 #include "../functional/compare_three_way.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // lexicographical_compare_three_way
@@ -92,8 +91,7 @@ D_CONSTEXPR auto lexicographical_compare_three_way(_InputIt1 first1,
 }
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_ALGORITHM_LEX_COMPARE_THREE_WAY_
+#endif  // DJINTERP_RE_STD_ALGORITHM_LEX_COMPARE_THREE_WAY_

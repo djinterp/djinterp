@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                                  pair_get.hpp
+* djinterp [re_std]                                                 pair_get.hpp
 *
 * pair get<> overloads:
-*   Index-based and type-based element access for restd::pair, mirroring
+*   Index-based and type-based element access for re_std::pair, mirroring
 * the tuple_get surface. With this header in scope, pair fully
 * participates in the tuple protocol — structured bindings work
 * (auto [a, b] = somepair), apply/make_from_tuple accept pair, and
@@ -33,8 +33,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UTILITY_PAIR_GET_
-#define DJINTERP_RESTD_UTILITY_PAIR_GET_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_PAIR_GET_
+#define DJINTERP_RE_STD_UTILITY_PAIR_GET_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -49,7 +49,7 @@
 // std
 #include <cstddef>
 // djinterp
-#include "./pair.hpp"
+#include "../utility/pair.hpp"
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/is_same.hpp"
 
@@ -346,10 +346,10 @@ get(
 #endif  // D_ENV_LANG_IS_CPP14_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
 
-#endif  // DJINTERP_RESTD_UTILITY_PAIR_GET_
+#endif  // DJINTERP_RE_STD_UTILITY_PAIR_GET_

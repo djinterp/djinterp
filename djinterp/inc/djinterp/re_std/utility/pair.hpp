@@ -1,12 +1,12 @@
 /***********************************************************************
-* restd                                                          pair.hpp
+* re_std                                                         pair.hpp
 *
 * heterogeneous two-value aggregate:
-*   Provides restd::pair<T1, T2>, the canonical heterogeneous pair.
+*   Provides re_std::pair<T1, T2>, the canonical heterogeneous pair.
 * Holds two public members `first` and `second`. The full set of
 * comparison operators (==, !=, <, <=, >, >=) and a non-member swap
 * are also defined here; tuple_size / tuple_element specializations
-* are not provided (no <tuple> exists in restd yet).
+* are not provided (no <tuple> exists in re_std yet).
 *
 *   Tiered implementation:
 *     C++11+   adds the perfect-forwarding ctor, move ctor, and
@@ -32,11 +32,11 @@
 *
 * path:      /inc/djinterp/re_std/utility/pair.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.04.30
+* author(s): re_std team                                date: 2026.04.30
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_PAIR_
-#define RESTD_UTILITY_PAIR_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_PAIR_
+#define DJINTERP_RE_STD_UTILITY_PAIR_ 1
 
 #include "djinterp.hpp"
 #include "../utility/swap.hpp"
@@ -112,19 +112,28 @@ struct pair
     template<typename _U1, typename _U2>
     D_CONSTEXPR pair(_U1&& _x,
                      _U2&& _y)
-        : first(restd::forward<_U1>(_x)),
-          second(restd::forward<_U2>(_y))
+        : first(re_std::forward<_U1>(_x)),
+          second(re_std::forward<_U2>(_y))
     {}
 
   #if D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
     // pair(pair&&)
     //   ctor: move ctor with conditional noexcept.
+    //
+    //   Members are forwarded as _T1&& / _T2&& rather than passed through
+    // re_std::move. For an ordinary object type the two are identical, but
+    // when _T1 is a REFERENCE type -- pair<int&, int>, which make_pair
+    // produces from a reference_wrapper argument -- move() yields int&&,
+    // and an int&& cannot initialise the int& member. Reference collapsing
+    // makes _T1&& collapse back to int&, so this spelling handles both
+    // cases. (C++17 hid the bug behind guaranteed copy elision; C++11 and
+    // C++14 still run this constructor.)
     D_CONSTEXPR pair(pair&& _other) noexcept(
         is_nothrow_move_constructible<_T1>::value &&
         is_nothrow_move_constructible<_T2>::value)
-        : first(restd::move(_other.first)),
-          second(restd::move(_other.second))
+        : first(static_cast<_T1&&>(_other.first)),
+          second(static_cast<_T2&&>(_other.second))
     {}
 
     // pair(pair<U1,U2>&&)
@@ -133,8 +142,8 @@ struct pair
     D_CONSTEXPR pair(pair<_U1, _U2>&& _other) noexcept(
         is_nothrow_move_constructible<_T1>::value &&
         is_nothrow_move_constructible<_T2>::value)
-        : first(restd::move(_other.first)),
-          second(restd::move(_other.second))
+        : first(re_std::move(_other.first)),
+          second(re_std::move(_other.second))
     {}
 
   #else  // rvalue refs without variadic templates -- no nothrow-ctor trait
@@ -143,16 +152,16 @@ struct pair
     //   ctor: move ctor (no noexcept -- is_nothrow_move_constructible
     //   unavailable without variadic templates).
     D_CONSTEXPR pair(pair&& _other)
-        : first(restd::move(_other.first)),
-          second(restd::move(_other.second))
+        : first(re_std::move(_other.first)),
+          second(re_std::move(_other.second))
     {}
 
     // pair(pair<U1,U2>&&)
     //   ctor: converting move ctor (no noexcept).
     template<typename _U1, typename _U2>
     D_CONSTEXPR pair(pair<_U1, _U2>&& _other)
-        : first(restd::move(_other.first)),
-          second(restd::move(_other.second))
+        : first(re_std::move(_other.first)),
+          second(re_std::move(_other.second))
     {}
 
   #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
@@ -190,8 +199,8 @@ struct pair
         is_nothrow_move_assignable<_T1>::value &&
         is_nothrow_move_assignable<_T2>::value)
     {
-        first = restd::move(_other.first);
-        second = restd::move(_other.second);
+        first = re_std::move(_other.first);
+        second = re_std::move(_other.second);
         return *this;
     }
 
@@ -202,8 +211,8 @@ struct pair
         is_nothrow_move_assignable<_T1>::value &&
         is_nothrow_move_assignable<_T2>::value)
     {
-        first = restd::move(_other.first);
-        second = restd::move(_other.second);
+        first = re_std::move(_other.first);
+        second = re_std::move(_other.second);
         return *this;
     }
 
@@ -215,12 +224,12 @@ struct pair
 
     // swap
     //   function: member-wise swap with another pair. No noexcept --
-    //   would need is_nothrow_swappable, which restd does not yet
+    //   would need is_nothrow_swappable, which re_std does not yet
     //   provide.
     void swap(pair& _other)
     {
-        restd::swap(first, _other.first);
-        restd::swap(second, _other.second);
+        re_std::swap(first, _other.first);
+        re_std::swap(second, _other.second);
         return;
     }
 };
@@ -302,6 +311,6 @@ void swap(pair<_T1, _T2>& _lhs,
     return;
 }
 
-NS_END  // restd
+NS_END  // re_std
 
-#endif  // RESTD_UTILITY_PAIR_
+#endif  // DJINTERP_RE_STD_UTILITY_PAIR_

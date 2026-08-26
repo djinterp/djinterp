@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              is_compound.hpp
+* djinterp [re_std]                                             is_compound.hpp
 *
 * is_compound trait header:
 *   Yields true_type if _Type is a compound type, false_type otherwise.
@@ -22,8 +22,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_COMPOUND_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_COMPOUND_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_COMPOUND_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_COMPOUND_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -60,7 +60,7 @@ struct is_compound
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_COMPOUND_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_COMPOUND_

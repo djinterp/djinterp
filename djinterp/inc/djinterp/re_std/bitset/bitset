@@ -1,0 +1,30 @@
+/******************************************************************************
+* djinterp [re_std]                                                      bitset
+*
+* <bitset> umbrella header:
+*   Aggregates the granular headers under /inc/djinterp/re_std/bitset/.
+*
+*   SCOPE NOTE -- READ THIS BEFORE USING IT:
+*   Three parts of std::bitset are ABSENT because their dependencies have
+* not shipped: the std::string constructor, to_string, and the stream
+* insertion / extraction operators. The const char* constructor is
+* provided and covers the common case. See bitset.hpp for the full list.
+* They are absent rather than approximated -- a substitute API would be
+* worse than a missing one.
+*
+*
+* path:      /inc/djinterp/re_std/bitset/bitset
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_BITSET_
+#define DJINTERP_RE_STD_BITSET_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+#include "./bitset.hpp"
+#include "./bitset_hash.hpp"
+
+#endif  // DJINTERP_RE_STD_BITSET_

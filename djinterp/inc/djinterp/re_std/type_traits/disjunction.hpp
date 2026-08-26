@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             disjunction.hpp
+* djinterp [re_std]                                            disjunction.hpp
 *
 * disjunction trait header:
 *   Variadic logical OR over type traits. Inherits from the first trait
@@ -21,8 +21,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_DISJUNCTION_
-#define DJINTERP_RESTD_TYPE_TRAITS_DISJUNCTION_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_DISJUNCTION_
+#define DJINTERP_RE_STD_TYPE_TRAITS_DISJUNCTION_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -82,10 +82,10 @@ struct disjunction<_B1, _Bn...>
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates && variadic templates
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_DISJUNCTION_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_DISJUNCTION_

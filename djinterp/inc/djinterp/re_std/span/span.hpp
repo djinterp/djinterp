@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                         span.hpp
+* re_std                                                        span.hpp
 *
 * class template span:
 *   Non-owning view over a contiguous sequence of objects. Mirrors
@@ -13,16 +13,16 @@
 * return members are constexpr; reverse-iterator factories become
 * constexpr from C++17, matching std::reverse_iterator's constexpr-ness).
 * The contiguous-range constructor and the ranges borrowed/view opt-ins
-* are deferred pending restd::ranges (see span umbrella notes).
+* are deferred pending re_std::ranges (see span umbrella notes).
 *
 *
 * path:      /inc/djinterp/re_std/span/span.hpp
 * link(s):   TBA
-* author(s): restd contributors                        date: 2026.06.04
+* author(s): re_std contributors                       date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_SPAN_SPAN_
-#define RESTD_SPAN_SPAN_ 1
+#ifndef DJINTERP_RE_STD_SPAN_SPAN_
+#define DJINTERP_RE_STD_SPAN_SPAN_ 1
 
 #include "djinterp.hpp"
 
@@ -30,11 +30,11 @@
 
 #include <cstddef>  // size_t, ptrdiff_t
 
-#include "restd/type_traits/type_traits.hpp"   // enable_if, is_convertible, remove_cv
-#include "restd/array/array.hpp"               // array (for the array constructors)
-#include "restd/iterator/reverse_iterator.hpp" // reverse_iterator (for rbegin/rend)
+#include "re_std/type_traits/type_traits.hpp"   // enable_if, is_convertible, remove_cv
+#include "re_std/array/array.hpp"               // array (for the array constructors)
+#include "re_std/iterator/reverse_iterator.hpp" // reverse_iterator (for rbegin/rend)
 
-#include "restd/span/dynamic_extent.hpp"
+#include "re_std/span/dynamic_extent.hpp"
 
 // reverse-iterator factories are constexpr only where the underlying
 // reverse_iterator is constexpr-constructible (C++17 in std).
@@ -44,7 +44,7 @@
 #  define D_SPAN_REV_CONSTEXPR
 #endif
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -123,7 +123,7 @@ public:
     typedef _Type&                                 reference;
     typedef const _Type&                           const_reference;
     typedef _Type*                                 iterator;
-    typedef restd::reverse_iterator<iterator>      reverse_iterator;
+    typedef re_std::reverse_iterator<iterator>      reverse_iterator;
 
     // extent
     //   constant: the compile-time extent (dynamic_extent when run-time).
@@ -137,7 +137,7 @@ public:
     //   function: default ctor. Participates only when a zero-length span
     //   is representable (_Extent == 0 or dynamic_extent), matching std.
     template<std::size_t _E = _Extent,
-             typename restd::enable_if<(_E == dynamic_extent || _E == 0),
+             typename re_std::enable_if<(_E == dynamic_extent || _E == 0),
                                        int>::type = 0>
     D_CONSTEXPR
     span() noexcept : m_store()
@@ -159,7 +159,7 @@ public:
     // span(_Type (&)[N])
     //   function: view of a C array. Extent must match when fixed.
     template<std::size_t _N,
-             typename restd::enable_if<(_Extent == dynamic_extent
+             typename re_std::enable_if<(_Extent == dynamic_extent
                                         || _Extent == _N),
                                        int>::type = 0>
     D_CONSTEXPR
@@ -167,12 +167,12 @@ public:
     {}
 
     // span(array<_U, N>&)
-    //   function: view of a restd::array. _U(*)[] must be convertible to
+    //   function: view of a re_std::array. _U(*)[] must be convertible to
     //   element_type(*)[] (the qualification-conversion rule std uses).
     template<typename _U, std::size_t _N,
-             typename restd::enable_if<
+             typename re_std::enable_if<
                  (_Extent == dynamic_extent || _Extent == _N)
-                 && restd::is_convertible<_U (*)[],
+                 && re_std::is_convertible<_U (*)[],
                                           element_type (*)[]>::value,
                  int>::type = 0>
     D_CONSTEXPR
@@ -182,9 +182,9 @@ public:
     // span(const array<_U, N>&)
     //   function: const overload of the array ctor.
     template<typename _U, std::size_t _N,
-             typename restd::enable_if<
+             typename re_std::enable_if<
                  (_Extent == dynamic_extent || _Extent == _N)
-                 && restd::is_convertible<const _U (*)[],
+                 && re_std::is_convertible<const _U (*)[],
                                           element_type (*)[]>::value,
                  int>::type = 0>
     D_CONSTEXPR
@@ -194,10 +194,10 @@ public:
     // span(const span<_U, N>&)
     //   function: converting / extent-erasing copy from another span.
     template<typename _U, std::size_t _N,
-             typename restd::enable_if<
+             typename re_std::enable_if<
                  (_Extent == dynamic_extent || _N == dynamic_extent
                   || _Extent == _N)
-                 && restd::is_convertible<_U (*)[],
+                 && re_std::is_convertible<_U (*)[],
                                           element_type (*)[]>::value,
                  int>::type = 0>
     D_CONSTEXPR
@@ -368,10 +368,10 @@ span(_Type*, _Type*) -> span<_Type>;
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-}  // namespace restd
+}  // namespace re_std
 
 #undef D_SPAN_REV_CONSTEXPR
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SPAN_SPAN_
+#endif  // DJINTERP_RE_STD_SPAN_SPAN_

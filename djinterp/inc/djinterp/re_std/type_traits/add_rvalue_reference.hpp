@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                   add_rvalue_reference.hpp
+* djinterp [re_std]                                  add_rvalue_reference.hpp
 *
 * add_rvalue_reference trait header:
 *   Yields the rvalue-reference form of _Type. If _Type is `void` (any
@@ -26,8 +26,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_
-#define DJINTERP_RESTD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -105,7 +105,7 @@ NS_RESTD
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ADD_RVALUE_REFERENCE_

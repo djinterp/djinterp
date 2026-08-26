@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                          swap.hpp
+* re_std                                                         swap.hpp
 *
 * generic swap algorithm:
 *   Exchanges the values of two objects of the same type. Provides
@@ -14,7 +14,7 @@
 *     C++98/03 copy-based, no qualifiers
 *
 *   This is the GENERIC swap. Type-specific overloads (such as
-* restd::swap(any&, any&) in any/any_swap.hpp) are found via ADL or
+* re_std::swap(any&, any&) in any/any_swap.hpp) are found via ADL or
 * unqualified-name lookup and take precedence per the usual two-step
 * swap idiom.
 *
@@ -30,11 +30,11 @@
 *
 * path:      /inc/djinterp/re_std/utility/swap.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.04.30
+* author(s): re_std team                                date: 2026.04.30
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_SWAP_
-#define RESTD_UTILITY_SWAP_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_SWAP_
+#define DJINTERP_RE_STD_UTILITY_SWAP_ 1
 
 #include "djinterp.hpp"
 
@@ -67,9 +67,9 @@ NS_RESTD
             is_nothrow_move_constructible<_Type>::value &&
             is_nothrow_move_assignable<_Type>::value)
         {
-            _Type _tmp(restd::move(_lhs));
-            _lhs = restd::move(_rhs);
-            _rhs = restd::move(_tmp);
+            _Type _tmp(re_std::move(_lhs));
+            _lhs = re_std::move(_rhs);
+            _rhs = re_std::move(_tmp);
             return;
         }
 
@@ -82,9 +82,9 @@ NS_RESTD
         D_CONSTEXPR void swap(_Type& _lhs,
                               _Type& _rhs)
         {
-            _Type _tmp(restd::move(_lhs));
-            _lhs = restd::move(_rhs);
-            _rhs = restd::move(_tmp);
+            _Type _tmp(re_std::move(_lhs));
+            _lhs = re_std::move(_rhs);
+            _rhs = re_std::move(_tmp);
             return;
         }
 
@@ -102,9 +102,9 @@ NS_RESTD
             is_nothrow_move_constructible<_Type>::value &&
             is_nothrow_move_assignable<_Type>::value)
         {
-            _Type _tmp(restd::move(_lhs));
-            _lhs = restd::move(_rhs);
-            _rhs = restd::move(_tmp);
+            _Type _tmp(re_std::move(_lhs));
+            _lhs = re_std::move(_rhs);
+            _rhs = re_std::move(_tmp);
             return;
         }
 
@@ -115,9 +115,9 @@ NS_RESTD
         void swap(_Type& _lhs,
                   _Type& _rhs)
         {
-            _Type _tmp(restd::move(_lhs));
-            _lhs = restd::move(_rhs);
-            _rhs = restd::move(_tmp);
+            _Type _tmp(re_std::move(_lhs));
+            _lhs = re_std::move(_rhs);
+            _rhs = re_std::move(_tmp);
             return;
         }
 
@@ -148,7 +148,7 @@ NS_RESTD
     // swap (C++14+ array overload: constexpr)
     //   function: element-wise exchanges two arrays of the same extent.
     //   No noexcept clause: would need is_nothrow_swappable, which
-    //   restd does not yet provide.
+    //   re_std does not yet provide.
     template<typename _Type, std::size_t _Size>
     D_CONSTEXPR void swap(_Type (&_lhs)[_Size],
                           _Type (&_rhs)[_Size])
@@ -190,6 +190,6 @@ NS_RESTD
 
 #endif
 
-NS_END  // restd
+NS_END  // re_std
 
-#endif  // RESTD_UTILITY_SWAP_
+#endif  // DJINTERP_RE_STD_UTILITY_SWAP_

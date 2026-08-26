@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                       is_swappable_with.hpp
+* djinterp [re_std]                                      is_swappable_with.hpp
 *
 * is_swappable_with trait:
 *   true_type if swap(declval<_T>(), declval<_U>()) and the reverse call are
@@ -7,8 +7,8 @@
 *
 *   LOOKUP:
 *   The unqualified swap() call participates in argument-dependent lookup, and
-* restd::swap is brought into the detection namespace via using-declaration so
-* that user types relying on the generic restd swap fallback are correctly
+* re_std::swap is brought into the detection namespace via using-declaration so
+* that user types relying on the generic re_std swap fallback are correctly
 * reported as swappable. This mirrors the "using std::swap; swap(t, u);" rule
 * from [swappable.requirements] in the C++ standard.
 *
@@ -20,11 +20,11 @@
 * fallback.
 *
 *   DEPENDENCIES:
-*   restd::swap from /inc/djinterp/restd/utility/swap.hpp and restd::declval
-* from /inc/djinterp/restd/utility/declval.hpp must be declared before this
+*   re_std::swap from /inc/djinterp/re_std/utility/swap.hpp and re_std::declval
+* from /inc/djinterp/re_std/utility/declval.hpp must be declared before this
 * header is included. If the utility headers are not yet present in the
 * tree, this file will fail to compile at the using-declaration on the line
-* `using restd::swap;`.
+* `using re_std::swap;`.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_swappable_with.hpp
@@ -32,8 +32,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_SWAPPABLE_WITH_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_SWAPPABLE_WITH_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -41,7 +41,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./void_t.hpp"
@@ -55,16 +55,16 @@ NS_RESTD
     NS_INTERNAL
 
         // swappable_lookup
-        //   namespace: dedicated lookup context that brings restd::swap into
+        //   namespace: dedicated lookup context that brings re_std::swap into
         //              scope. Inside this namespace, an unqualified call to
-        //              swap(t, u) finds restd::swap (via the using-declaration)
+        //              swap(t, u) finds re_std::swap (via the using-declaration)
         //              and any ADL-found overload from the namespaces of _T
         //              or _U, exactly matching the standard's lookup rules
         //              for [swappable].
         namespace swappable_lookup
         {
 
-            using restd::swap;
+            using re_std::swap;
 
             // is_swappable_with_helper
             //   trait: primary; default to false_type when the swap
@@ -87,11 +87,11 @@ NS_RESTD
             struct is_swappable_with_helper<
                 _T,
                 _U,
-                restd::void_t<
-                    decltype( swap( restd::declval<_T>(),
-                                    restd::declval<_U>() ) ),
-                    decltype( swap( restd::declval<_U>(),
-                                    restd::declval<_T>() ) )
+                re_std::void_t<
+                    decltype( swap( re_std::declval<_T>(),
+                                    re_std::declval<_U>() ) ),
+                    decltype( swap( re_std::declval<_U>(),
+                                    re_std::declval<_T>() ) )
                     > >
                 : true_type
             {};
@@ -124,9 +124,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_SWAPPABLE_WITH_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_WITH_

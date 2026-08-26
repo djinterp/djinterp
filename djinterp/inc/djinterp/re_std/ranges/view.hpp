@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                   view.hpp
+* djinterp [re_std]                                                  view.hpp
 *
 * view concept-trait header:
 *   Provides the C++20 view concept as a SFINAE-detection trait.
@@ -11,9 +11,9 @@
 *
 *   SIMPLIFICATIONS RELATIVE TO C++20:
 *   - The C++20 'movable' concept requires move_constructible AND
-*     swappable AND assignable_from<T&, T>. Restd approximates
+*     swappable AND assignable_from<T&, T>. Re_std approximates
 *     'movable' with 'move_constructible' alone — assignable_from is
-*     not yet a separate trait in restd, and swap is universally
+*     not yet a separate trait in re_std, and swap is universally
 *     available. The simplification is conservative (every C++20
 *     movable type passes; some edge cases at the boundary may
 *     differ on hostile types).
@@ -27,8 +27,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_VIEW_
-#define DJINTERP_RESTD_RANGES_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_VIEW_
+#define DJINTERP_RE_STD_RANGES_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -74,10 +74,10 @@ D_CONSTEXPR bool view_v = view<_Type>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates + C++11
 
 
-#endif  // DJINTERP_RESTD_RANGES_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_VIEW_

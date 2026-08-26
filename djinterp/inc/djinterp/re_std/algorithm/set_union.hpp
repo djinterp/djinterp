@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                 set_union.hpp
+* djinterp [re_std]                                                set_union.hpp
 *
 * set_union algorithm header:
 *   Multiset union of two sorted ranges into a third. For elements
@@ -10,7 +10,7 @@
 *
 *   PORTABILITY:
 *   - std::set_union is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Two overloads: default operator< and custom comparator.
 *
 *
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SET_UNION_
-#define DJINTERP_RESTD_ALGORITHM_SET_UNION_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SET_UNION_
+#define DJINTERP_RE_STD_ALGORITHM_SET_UNION_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -161,7 +161,7 @@ set_union(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SET_UNION_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SET_UNION_

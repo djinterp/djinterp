@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                            bad_function_call.hpp
+* re_std                                           bad_function_call.hpp
 *
 * exception type thrown by `function::operator()` when the wrapper is
 *   empty.
@@ -13,11 +13,11 @@
 *
 * path:      /inc/djinterp/re_std/functional/bad_function_call.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_BAD_FUNCTION_CALL_
-#define RESTD_FUNCTIONAL_BAD_FUNCTION_CALL_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_
+#define DJINTERP_RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_ 1
 
 #include "djinterp.hpp"
 
@@ -25,7 +25,7 @@
     #include <exception>
 #endif
 
-namespace restd
+namespace re_std
 {
 
 #if D_ENV_CPP98_HAS_EXCEPTION
@@ -81,6 +81,6 @@ public:
 
 #endif // D_ENV_CPP98_HAS_EXCEPTION
 
-} // namespace restd
+} // namespace re_std
 
-#endif // RESTD_FUNCTIONAL_BAD_FUNCTION_CALL_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_BAD_FUNCTION_CALL_

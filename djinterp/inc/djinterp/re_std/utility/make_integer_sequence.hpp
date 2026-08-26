@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                         make_integer_sequence.hpp
+* re_std                                        make_integer_sequence.hpp
 *
 * integer_sequence generator and helpers:
 *   Three aliases that build integer_sequence values:
@@ -25,11 +25,11 @@
 *
 * path:      /inc/djinterp/re_std/utility/make_integer_sequence.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
+* author(s): re_std team                                 date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_MAKE_INTEGER_SEQUENCE_
-#define RESTD_UTILITY_MAKE_INTEGER_SEQUENCE_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_MAKE_INTEGER_SEQUENCE_
+#define DJINTERP_RE_STD_UTILITY_MAKE_INTEGER_SEQUENCE_ 1
 
 #include "djinterp.hpp"
 
@@ -43,24 +43,24 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_MAKE_INTEGER_SEQ
+// D_RE_STD_HAS_MAKE_INTEGER_SEQ
 //   constant: 1 if the compiler provides a builtin that produces an
 //   integer_sequence in a single instantiation. Recognises Clang's
 //   __make_integer_seq and GCC's __integer_pack.
-#ifndef D_RESTD_HAS_MAKE_INTEGER_SEQ
+#ifndef D_RE_STD_HAS_MAKE_INTEGER_SEQ
     #if defined(__has_builtin)
         #if __has_builtin(__make_integer_seq)
-            #define D_RESTD_HAS_MAKE_INTEGER_SEQ 1
+            #define D_RE_STD_HAS_MAKE_INTEGER_SEQ 1
         #elif __has_builtin(__integer_pack)
-            #define D_RESTD_HAS_MAKE_INTEGER_SEQ 1
+            #define D_RE_STD_HAS_MAKE_INTEGER_SEQ 1
         #else
-            #define D_RESTD_HAS_MAKE_INTEGER_SEQ 0
+            #define D_RE_STD_HAS_MAKE_INTEGER_SEQ 0
         #endif
     #elif defined(D_ENV_COMPILER_GCC) \
         && D_ENV_COMPILER_VERSION_AT_LEAST(8, 0, 0)
-        #define D_RESTD_HAS_MAKE_INTEGER_SEQ 1
+        #define D_RE_STD_HAS_MAKE_INTEGER_SEQ 1
     #else
-        #define D_RESTD_HAS_MAKE_INTEGER_SEQ 0
+        #define D_RE_STD_HAS_MAKE_INTEGER_SEQ 0
     #endif
 #endif
 
@@ -71,7 +71,7 @@ NS_RESTD
 // MAKE_INTEGER_SEQUENCE -- intrinsic-backed when available
 // =============================================================================
 
-#if D_RESTD_HAS_MAKE_INTEGER_SEQ
+#if D_RE_STD_HAS_MAKE_INTEGER_SEQ
 
     #if defined(__has_builtin) && __has_builtin(__make_integer_seq)
 
@@ -164,8 +164,8 @@ using make_index_sequence = make_integer_sequence<std::size_t, _Count>;
 template<typename... _Types>
 using index_sequence_for = make_index_sequence<sizeof...(_Types)>;
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // variadic && alias templates
 
-#endif  // RESTD_UTILITY_MAKE_INTEGER_SEQUENCE_
+#endif  // DJINTERP_RE_STD_UTILITY_MAKE_INTEGER_SEQUENCE_

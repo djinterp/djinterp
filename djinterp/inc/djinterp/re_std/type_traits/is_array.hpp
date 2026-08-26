@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                is_array.hpp
+* djinterp [re_std]                                               is_array.hpp
 *
 * is_array trait header:
 *   Detects whether a type is a C-style array, bounded or unbounded.
@@ -21,8 +21,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_ARRAY_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_ARRAY_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_ARRAY_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_ARRAY_ 1
 
 // 
 #include <cstddef>
@@ -73,7 +73,7 @@ struct is_array<_Type[_N]> : true_type
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_ARRAY_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_ARRAY_

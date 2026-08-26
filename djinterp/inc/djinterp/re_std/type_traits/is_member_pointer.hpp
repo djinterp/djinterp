@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                       is_member_pointer.hpp
+* djinterp [re_std]                                      is_member_pointer.hpp
 *
 * is_member_pointer trait header:
 *   Yields true_type if _Type (after cv-stripping) is a pointer-to-member
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_MEMBER_POINTER_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_MEMBER_POINTER_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_MEMBER_POINTER_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_MEMBER_POINTER_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -73,7 +73,7 @@ struct is_member_pointer
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_MEMBER_POINTER_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_MEMBER_POINTER_

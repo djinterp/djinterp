@@ -27,7 +27,7 @@
 * not derivable from the type system, so there is NO sound non-trivial subset
 * here.  Without the builtin the function still exists and returns false
 * unconditionally - never a false positive, always safe to guard a cast on -
-* and D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS is 0 so callers can
+* and D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS is 0 so callers can
 * tell.  Clang shipped the two layout-compatibility TRAITS well before this
 * FUNCTION's builtin, so this arm is live on real compilers, not theoretical.
 *
@@ -38,8 +38,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.12
 ******************************************************************************/
 
-#ifndef RESTD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS_
-#define RESTD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS_ 1
 
 // re_std
 #include "./type_traits.hpp"
@@ -49,40 +49,39 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
+// D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
 //   constant: 1 if the __builtin_is_pointer_interconvertible_with_class
 // builtin is available.  Detected independently of the layout-compatibility
 // TRAITS: this builtin has historically lagged them on Clang, so folding all
 // four into one macro would silently disable a working trait or enable a
 // missing one.
-#ifndef D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
+#ifndef D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
     #if defined(__has_builtin)
         #if __has_builtin(__builtin_is_pointer_interconvertible_with_class)
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  1
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  1
         #endif
     #endif
 
-    #ifndef D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
+    #ifndef D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
         #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
               D_ENV_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  1
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  1
         #elif ( defined(D_ENV_COMPILER_MSVC) &&                               \
                 D_ENV_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  1
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  1
         #else
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  0
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS  0
         #endif
-    #endif  // D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS (fallback)
-#endif  // D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS (outer guard)
+    #endif  // D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS (fallback)
+#endif  // D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS (outer guard)
 
 
-NS_DJINTERP
 NS_RESTD
 
 // is_pointer_interconvertible_with_class
 //   function: true if an object of type _Struct is pointer-interconvertible
 // with the subobject named by mp.
-#if D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
+#if D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
 
     template<typename _Struct,
              typename _Member>
@@ -106,9 +105,7 @@ NS_RESTD
         return false;
     }
 
-#endif  // D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
+#endif  // D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_WITH_CLASS_

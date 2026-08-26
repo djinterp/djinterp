@@ -23,7 +23,7 @@
 * NEGATIVE.  Note the subset arm leans on is_class, which itself degrades to
 * false without __is_class - so on a compiler missing both builtins this trait
 * is uniformly false, which is still sound.  Test
-* D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF for the real thing.
+* D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF for the real thing.
 *
 *   PRECONDITION:
 *   _Derived shall be a complete type when it is a non-union class type.  This
@@ -36,8 +36,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.12
 ******************************************************************************/
 
-#ifndef RESTD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_BASE_OF_
-#define RESTD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_BASE_OF_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_BASE_OF_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_BASE_OF_ 1
 
 // re_std
 #include "./type_traits.hpp"    // integral_constant, is_class, is_same, remove_cv
@@ -47,33 +47,32 @@
 // INTRINSIC DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
+// D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
 //   constant: 1 if the __is_pointer_interconvertible_base_of builtin is
 // available.  Detected independently of the other three members of the
 // layout-compatibility family - vendors have shipped them at different times,
 // and a family-wide macro would mis-report on at least one live compiler.
-#ifndef D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
+#ifndef D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
     #if defined(__has_builtin)
         #if __has_builtin(__is_pointer_interconvertible_base_of)
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  1
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  1
         #endif
     #endif
 
-    #ifndef D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
+    #ifndef D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
         #if ( defined(D_ENV_COMPILER_GCC) &&                                  \
               D_ENV_COMPILER_VERSION_AT_LEAST(12, 0, 0) )
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  1
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  1
         #elif ( defined(D_ENV_COMPILER_MSVC) &&                               \
                 D_ENV_COMPILER_VERSION_AT_LEAST(19, 29, 0) )
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  1
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  1
         #else
-            #define D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  0
+            #define D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF  0
         #endif
-    #endif  // D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF (fallback)
-#endif  // D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF (outer guard)
+    #endif  // D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF (fallback)
+#endif  // D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF (outer guard)
 
 
-NS_DJINTERP
 NS_RESTD
 
 NS_INTERNAL
@@ -82,7 +81,7 @@ NS_INTERNAL
     //   trait: classification core for is_pointer_interconvertible_base_of.
     // The builtin disregards cv-qualification on both operands, so the
     // intrinsic arm forwards its arguments untouched.
-#if D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
+#if D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
 
     template<typename _Base,
              typename _Derived>
@@ -106,7 +105,7 @@ NS_INTERNAL
                           typename remove_cv<_Derived>::type>::value )>
     {};
 
-#endif  // D_RESTD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
+#endif  // D_RE_STD_HAS_IS_POINTER_INTERCONVERTIBLE_BASE_OF
 
 NS_END  // internal
 
@@ -129,6 +128,4 @@ struct is_pointer_interconvertible_base_of
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_BASE_OF_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_POINTER_INTERCONVERTIBLE_BASE_OF_

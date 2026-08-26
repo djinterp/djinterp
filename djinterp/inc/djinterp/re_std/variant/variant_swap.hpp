@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               variant_swap.hpp
+* djinterp [re_std]                                              variant_swap.hpp
 *
 * variant swap header:
 *   ADL-friendly non-member swap delegating to the member swap.
@@ -10,8 +10,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_SWAP_
-#define DJINTERP_RESTD_VARIANT_SWAP_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_SWAP_
+#define DJINTERP_RE_STD_VARIANT_SWAP_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -36,10 +36,10 @@ swap(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VARIANT_SWAP_
+#endif  // DJINTERP_RE_STD_VARIANT_SWAP_

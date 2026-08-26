@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                    is_nothrow_invocable_r.hpp
+* djinterp [re_std]                                   is_nothrow_invocable_r.hpp
 *
 * is_nothrow_invocable_r trait:
 *   true_type if is_invocable_r<R, F, Args...> is true_type AND the entire
@@ -21,11 +21,11 @@
 *
 *   PORTABILITY:
 *   Available on C++11 and later. Standardized in C++17 (initially LFTS,
-* merged in C++17); restd backports to C++11+.
+* merged in C++17); re_std backports to C++11+.
 *
 *   DEPENDENCIES:
 *   is_invocable_r, invoke_result (for the dispatcher), is_void,
-* is_nothrow_convertible (Group B), restd::declval, integral_constant.
+* is_nothrow_convertible (Group B), re_std::declval, integral_constant.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_nothrow_invocable_r.hpp
@@ -33,8 +33,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_R_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_R_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_R_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_R_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -42,7 +42,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./integral_constant.hpp"
@@ -120,8 +120,8 @@ NS_RESTD
                   bool,
                   (    noexcept(
                            invoker::do_invoke(
-                               restd::declval<_F>(),
-                               restd::declval<_Args>()... ) )
+                               re_std::declval<_F>(),
+                               re_std::declval<_Args>()... ) )
                     && is_nothrow_invocable_r_conv<
                            is_void<_R>::value,
                            _R, _F, _Args... >::value ) >
@@ -153,9 +153,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_R_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_INVOCABLE_R_

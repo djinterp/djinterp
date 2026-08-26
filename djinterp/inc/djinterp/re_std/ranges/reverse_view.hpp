@@ -1,10 +1,10 @@
 /******************************************************************************
-* djinterp [restd]                                            reverse_view.hpp
+* djinterp [re_std]                                           reverse_view.hpp
 *
 * reverse_view header:
 *   Provides the C++20 reversal adaptor. reverse_view<V> presents
 * the elements of an underlying bidirectional, common_range V in
-* reverse order. Implemented as a thin wrapper around restd::
+* reverse order. Implemented as a thin wrapper around re_std::
 * reverse_iterator (shipped <iterator> Phase 7b).
 *
 *   PORTABILITY:
@@ -13,7 +13,7 @@
 *     The C++20 spec accepts non-common ranges by internally caching
 *     ranges::next(begin(base), end(base)) to obtain an iterator at
 *     the end position, then wrapping it; this path requires
-*     common_iterator (deferred in <iterator> Phase 7c), so restd's
+*     common_iterator (deferred in <iterator> Phase 7c), so re_std's
 *     reverse_view does NOT support non-common ranges. For those,
 *     pipe through common_view (also deferred) once it ships, or
 *     materialise to a subrange<iterator_t<V>, iterator_t<V>> with
@@ -25,7 +25,7 @@
 *     exactly as long as V's underlying iterators are valid.
 *
 *   COLOCATED:
-*   restd::views::reverse(r).
+*   re_std::views::reverse(r).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/reverse_view.hpp
@@ -33,8 +33,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_REVERSE_VIEW_
-#define DJINTERP_RESTD_RANGES_REVERSE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_REVERSE_VIEW_
+#define DJINTERP_RE_STD_RANGES_REVERSE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -98,50 +98,50 @@ public:
     // begin
     //   function: reverse_iterator(end(base)). Requires base to be
     // a common_range so end returns an iterator_t<_View>.
-    D_CONSTEXPR iterator
+    D_CONSTEXPR_CPP14 iterator
     begin()
     {
-        return iterator(restd::end(m_base));
+        return iterator(re_std::end(m_base));
     }
 
     D_CONSTEXPR iterator
     begin() const
     {
-        return iterator(restd::end(m_base));
+        return iterator(re_std::end(m_base));
     }
 
 
     // end
     //   function: reverse_iterator(begin(base)).
-    D_CONSTEXPR iterator
+    D_CONSTEXPR_CPP14 iterator
     end()
     {
-        return iterator(restd::begin(m_base));
+        return iterator(re_std::begin(m_base));
     }
 
     D_CONSTEXPR iterator
     end() const
     {
-        return iterator(restd::begin(m_base));
+        return iterator(re_std::begin(m_base));
     }
 
 
     // size
     //   function: forwards to the underlying view when sized.
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     size()
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        return restd::size(m_base);
+        return re_std::size(m_base);
     }
 
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_base))
+        -> decltype(re_std::size(m_base))
     {
-        return restd::size(m_base);
+        return re_std::size(m_base);
     }
 };
 
@@ -193,10 +193,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_REVERSE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_REVERSE_VIEW_

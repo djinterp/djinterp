@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                in_place_index.hpp
+* re_std                                               in_place_index.hpp
 *
 * in_place_index tag type and variable:
 *   Disambiguating tag for index-tagged in-place construction in
@@ -18,11 +18,11 @@
 *
 * path:      /inc/djinterp/re_std/utility/in_place_index.hpp
 * link(s):   TBA
-* author(s): restd team                                  date: 2026.05.02
+* author(s): re_std team                                 date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_IN_PLACE_INDEX_
-#define RESTD_UTILITY_IN_PLACE_INDEX_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_IN_PLACE_INDEX_
+#define DJINTERP_RE_STD_UTILITY_IN_PLACE_INDEX_ 1
 
 #include "djinterp.hpp"
 
@@ -58,8 +58,8 @@ struct in_place_index_t
 
 #endif
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_UTILITY_IN_PLACE_INDEX_
+#endif  // DJINTERP_RE_STD_UTILITY_IN_PLACE_INDEX_

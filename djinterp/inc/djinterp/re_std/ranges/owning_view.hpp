@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             owning_view.hpp
+* djinterp [re_std]                                            owning_view.hpp
 *
 * owning_view header:
 *   Provides the C++20 ownership-wrapping range adaptor. owning_view<R>
@@ -13,7 +13,7 @@
 *     qualified member functions, available C++11+.
 *   - Move-only by design — the copy ctor and copy assignment
 *     operator are deleted. The C++20 contract makes copyability
-*     conditional on whether _Range is copyable; restd takes the
+*     conditional on whether _Range is copyable; re_std takes the
 *     conservative deletion to avoid surprising silent copies of
 *     potentially expensive ranges.
 *   - enable_borrowed_range<owning_view<R>> inherits from
@@ -26,8 +26,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_OWNING_VIEW_
-#define DJINTERP_RESTD_RANGES_OWNING_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_OWNING_VIEW_
+#define DJINTERP_RE_STD_RANGES_OWNING_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -91,7 +91,7 @@ public:
     // base (mutable lvalue)
     //   function: returns a reference to the held range. ref-
     // qualified to provide accurate value categories.
-    D_CONSTEXPR _Range&
+    D_CONSTEXPR_CPP14 _Range&
     base() &
     D_NOEXCEPT
     {
@@ -109,7 +109,7 @@ public:
     // base (rvalue)
     //   function: returns an rvalue reference suitable for moving
     // the underlying range out of an expiring owning_view.
-    D_CONSTEXPR _Range&&
+    D_CONSTEXPR_CPP14 _Range&&
     base() &&
     D_NOEXCEPT
     {
@@ -127,86 +127,86 @@ public:
 
     // begin / end — forward to the underlying range. Both lvalue
     // and const-lvalue overloads provided.
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     begin()
-        -> decltype(restd::begin(m_range))
+        -> decltype(re_std::begin(m_range))
     {
-        return restd::begin(m_range);
+        return re_std::begin(m_range);
     }
 
     D_CONSTEXPR
     auto
     begin() const
-        -> decltype(restd::begin(m_range))
+        -> decltype(re_std::begin(m_range))
     {
-        return restd::begin(m_range);
+        return re_std::begin(m_range);
     }
 
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     end()
-        -> decltype(restd::end(m_range))
+        -> decltype(re_std::end(m_range))
     {
-        return restd::end(m_range);
+        return re_std::end(m_range);
     }
 
     D_CONSTEXPR
     auto
     end() const
-        -> decltype(restd::end(m_range))
+        -> decltype(re_std::end(m_range))
     {
-        return restd::end(m_range);
+        return re_std::end(m_range);
     }
 
 
     // empty / size / data — forward; SFINAE on the underlying.
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     empty()
-        -> decltype(restd::empty(m_range))
+        -> decltype(re_std::empty(m_range))
     {
-        return restd::empty(m_range);
+        return re_std::empty(m_range);
     }
 
     D_CONSTEXPR
     auto
     empty() const
-        -> decltype(restd::empty(m_range))
+        -> decltype(re_std::empty(m_range))
     {
-        return restd::empty(m_range);
+        return re_std::empty(m_range);
     }
 
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     size()
-        -> decltype(restd::size(m_range))
+        -> decltype(re_std::size(m_range))
     {
-        return restd::size(m_range);
+        return re_std::size(m_range);
     }
 
     D_CONSTEXPR
     auto
     size() const
-        -> decltype(restd::size(m_range))
+        -> decltype(re_std::size(m_range))
     {
-        return restd::size(m_range);
+        return re_std::size(m_range);
     }
 
-    D_CONSTEXPR
+    D_CONSTEXPR_CPP14
     auto
     data()
-        -> decltype(restd::data(m_range))
+        -> decltype(re_std::data(m_range))
     {
-        return restd::data(m_range);
+        return re_std::data(m_range);
     }
 
     D_CONSTEXPR
     auto
     data() const
-        -> decltype(restd::data(m_range))
+        -> decltype(re_std::data(m_range))
     {
-        return restd::data(m_range);
+        return re_std::data(m_range);
     }
 };
 
@@ -228,10 +228,10 @@ struct enable_borrowed_range<owning_view<_Range> >
 {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_OWNING_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_OWNING_VIEW_

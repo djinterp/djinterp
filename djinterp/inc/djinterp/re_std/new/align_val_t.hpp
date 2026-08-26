@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                align_val_t.hpp
+* djinterp [re_std]                                               align_val_t.hpp
 *
 * align_val_t header:
 *   Strong typedef for an alignment value. Used by C++17's over-
@@ -20,7 +20,7 @@
 *
 *   The operator new overloads taking align_val_t are NOT shipped —
 * they're runtime-provided when std supports them (C++17+) and
-* nonexistent earlier. restd surfaces the TYPE for clarity in
+* nonexistent earlier. re_std surfaces the TYPE for clarity in
 * user-facing APIs that need to express alignment as a strong
 * parameter.
 *
@@ -30,8 +30,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALIGN_VAL_T_
-#define DJINTERP_RESTD_ALIGN_VAL_T_ 1
+#ifndef DJINTERP_RE_STD_ALIGN_VAL_T_
+#define DJINTERP_RE_STD_ALIGN_VAL_T_ 1
 
 #include <cstddef>
 #include "../../core/djinterp.hpp"
@@ -75,7 +75,7 @@ struct align_val_t
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALIGN_VAL_T_
+#endif  // DJINTERP_RE_STD_ALIGN_VAL_T_

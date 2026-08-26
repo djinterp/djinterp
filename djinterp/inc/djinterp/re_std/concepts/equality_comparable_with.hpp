@@ -24,11 +24,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_CONCEPTS_EQUALITY_COMPARABLE_WITH_
-#define RESTD_CONCEPTS_EQUALITY_COMPARABLE_WITH_ 1
+#ifndef DJINTERP_RE_STD_CONCEPTS_EQUALITY_COMPARABLE_WITH_
+#define DJINTERP_RE_STD_CONCEPTS_EQUALITY_COMPARABLE_WITH_ 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -37,7 +37,6 @@
 #include "../concepts/equality_comparable.hpp"
 #include "../concepts/common_reference_with.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // equality_comparable_with
@@ -57,8 +56,6 @@ concept equality_comparable_with
     && internal::weakly_equality_comparable_with<_TypeA, _TypeB>;
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_CONCEPTS_EQUALITY_COMPARABLE_WITH_
+#endif  // DJINTERP_RE_STD_CONCEPTS_EQUALITY_COMPARABLE_WITH_

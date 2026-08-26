@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                          pair_tuple_size.hpp
+* djinterp [re_std]                                         pair_tuple_size.hpp
 *
 * tuple_size<pair> specialisation header:
-*   Specialises restd::tuple_size for restd::pair so that
+*   Specialises re_std::tuple_size for re_std::pair so that
 * tuple_size<pair<T1, T2>>::value == 2. This enables structured
 * bindings on pair (auto [a, b] = somepair) and lets pair flow through
 * generic tuple-protocol code such as apply, make_from_tuple, and the
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UTILITY_PAIR_TUPLE_SIZE_
-#define DJINTERP_RESTD_UTILITY_PAIR_TUPLE_SIZE_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_PAIR_TUPLE_SIZE_
+#define DJINTERP_RE_STD_UTILITY_PAIR_TUPLE_SIZE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -37,7 +37,7 @@
 // std
 #include <cstddef>
 // djinterp
-#include "./pair.hpp"
+#include "../utility/pair.hpp"
 #include "../tuple/tuple_size.hpp"
 #include "../type_traits/integral_constant.hpp"
 
@@ -58,10 +58,10 @@ struct tuple_size<pair<_T1, _T2> >
 {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RESTD_UTILITY_PAIR_TUPLE_SIZE_
+#endif  // DJINTERP_RE_STD_UTILITY_PAIR_TUPLE_SIZE_

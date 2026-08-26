@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              common_type.hpp
+* djinterp [re_std]                                             common_type.hpp
 *
 * common_type trait:
 *   The "type all of the inputs share" computation, used most prominently
@@ -21,7 +21,7 @@
 *   If T1 or T2 is not yet decayed, recurse: the result is
 * common_type<decay<T1>::type, decay<T2>::type>::type.
 *
-*   restd applies the P0898R3 fallback rule on all C++11+ tiers, even though
+*   re_std applies the P0898R3 fallback rule on all C++11+ tiers, even though
 * it was only standardized in C++20 -- the implementation needs only C++11
 * features.
 *
@@ -29,9 +29,9 @@
 *   This trait is a customization point. Users may specialize the binary
 * form (full or partial specialization) to extend behavior:
 *     template<>
-*     struct restd::common_type<MyA, MyB>
+*     struct re_std::common_type<MyA, MyB>
 *     { typedef Result type; };
-*   Such specializations override restd's default partial spec by being
+*   Such specializations override re_std's default partial spec by being
 * more specific in partial-order ranking. Per the standard, users should
 * only specialize for cv-unqualified non-reference types.
 *
@@ -40,7 +40,7 @@
 * decltype, declval, variadic templates).
 *
 *   DEPENDENCIES:
-*   decay, remove_reference, is_same, void_t, restd::declval.
+*   decay, remove_reference, is_same, void_t, re_std::declval.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/common_type.hpp
@@ -48,8 +48,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_COMMON_TYPE_
-#define DJINTERP_RESTD_TYPE_TRAITS_COMMON_TYPE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_COMMON_TYPE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_COMMON_TYPE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -57,7 +57,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./decay.hpp"
 #include "./remove_reference.hpp"
 #include "./is_same.hpp"
@@ -101,11 +101,11 @@ NS_RESTD
         struct common_type_2_direct<
             _T1,
             _T2,
-            restd::void_t<decltype(
-                false ? restd::declval<_T1>() : restd::declval<_T2>() )> >
+            re_std::void_t<decltype(
+                false ? re_std::declval<_T1>() : re_std::declval<_T2>() )> >
         {
             typedef typename decay<decltype(
-                false ? restd::declval<_T1>() : restd::declval<_T2>()
+                false ? re_std::declval<_T1>() : re_std::declval<_T2>()
                 )>::type type;
         };
 
@@ -128,16 +128,16 @@ NS_RESTD
         struct common_type_2_fallback<
             _T1,
             _T2,
-            restd::void_t<decltype(
+            re_std::void_t<decltype(
                 false
-                ? restd::declval<typename remove_reference<_T1>::type const&>()
-                : restd::declval<typename remove_reference<_T2>::type const&>()
+                ? re_std::declval<typename remove_reference<_T1>::type const&>()
+                : re_std::declval<typename remove_reference<_T2>::type const&>()
                 )> >
         {
             typedef typename decay<decltype(
                 false
-                ? restd::declval<typename remove_reference<_T1>::type const&>()
-                : restd::declval<typename remove_reference<_T2>::type const&>()
+                ? re_std::declval<typename remove_reference<_T1>::type const&>()
+                : re_std::declval<typename remove_reference<_T2>::type const&>()
                 )>::type type;
         };
 
@@ -159,7 +159,7 @@ NS_RESTD
         struct common_type_2_resolve<
             _T1,
             _T2,
-            restd::void_t<typename common_type_2_direct<_T1, _T2>::type> >
+            re_std::void_t<typename common_type_2_direct<_T1, _T2>::type> >
             : common_type_2_direct<_T1, _T2>
         {};
 
@@ -211,7 +211,7 @@ NS_RESTD
         template<typename _CT,
                  typename... _Rest>
         struct common_type_n_impl<
-            restd::void_t<typename _CT::type>,
+            re_std::void_t<typename _CT::type>,
             _CT,
             _Rest...>
             : common_type<typename _CT::type, _Rest...>
@@ -260,9 +260,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_COMMON_TYPE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_COMMON_TYPE_

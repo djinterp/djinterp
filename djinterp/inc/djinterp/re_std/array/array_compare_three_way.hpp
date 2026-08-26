@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                  array_compare_three_way.hpp
+* djinterp [re_std]                                 array_compare_three_way.hpp
 *
 * array three-way comparison header:
-*   Provides operator<=> for restd::array. C++20-only — the spaceship
+*   Provides operator<=> for re_std::array. C++20-only — the spaceship
 * operator is a language feature with no back-port. The result type
 * is the element-wise three-way comparison result of _Type with
 * itself (typically std::strong_ordering for arithmetic types).
@@ -11,12 +11,12 @@
 *   Lexicographic three-way comparison. Iterates element-wise via
 * an if-constexpr-driven recursive helper (internal::array_3way_impl);
 * the identity for the empty case is strong_ordering::equal cast to
-* the result type, matching restd::tuple's three-way overload.
+* the result type, matching re_std::tuple's three-way overload.
 *
 *   ELEMENT-TYPE REQUIREMENT:
 *   _Type must satisfy three_way_comparable — i.e. it must have its
 * own operator<=>. The C++20 standard specifies a synth-three-way
-* fallback (compose <=> from < and == when <=> is absent); restd
+* fallback (compose <=> from < and == when <=> is absent); re_std
 * deliberately omits it here, matching the same back-port
 * simplification made in tuple/tuple_compare_three_way.hpp. Element
 * types without operator<=> produce a compile error at the decltype
@@ -32,8 +32,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_COMPARE_THREE_WAY_
-#define DJINTERP_RESTD_ARRAY_COMPARE_THREE_WAY_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_COMPARE_THREE_WAY_
+#define DJINTERP_RE_STD_ARRAY_COMPARE_THREE_WAY_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -94,10 +94,10 @@ operator<=>(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_ARRAY_COMPARE_THREE_WAY_
+#endif  // DJINTERP_RE_STD_ARRAY_COMPARE_THREE_WAY_

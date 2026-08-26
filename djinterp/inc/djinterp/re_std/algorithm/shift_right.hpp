@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               shift_right.hpp
+* djinterp [re_std]                                              shift_right.hpp
 *
 * shift_right algorithm header:
 *   Shifts the elements of [_first, _last) rightward by _n positions.
@@ -9,14 +9,14 @@
 * if _n >= the range length.
 *
 *   PORTABILITY:
-*   - std::shift_right is C++20 and requires only ForwardIterator. restd
+*   - std::shift_right is C++20 and requires only ForwardIterator. re_std
 *     requires a BIDIRECTIONAL iterator (DEVIATION FROM STD) because the
 *     forward-only algorithm is essentially a hidden rotate; the
 *     additional complexity is judged not worth the niche use case here.
 *     Forward-only callers will get a hard compile error on --_last.
 *   - C++11+ uses move assignment; C++98 uses copy
 *     (gated on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES).
-*   - constexpr in std from C++20; restd lifts to C++14.
+*   - constexpr in std from C++20; re_std lifts to C++14.
 *   - Non-positive _n is a no-op that returns _first.
 *
 *
@@ -25,12 +25,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_SHIFT_RIGHT_
-#define DJINTERP_RESTD_ALGORITHM_SHIFT_RIGHT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_SHIFT_RIGHT_
+#define DJINTERP_RE_STD_ALGORITHM_SHIFT_RIGHT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "../iterator/iterator_traits.hpp"
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
     #include "../utility/move.hpp"
@@ -105,7 +105,7 @@ shift_right(
         --_src;
         --_dst;
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        *_dst = restd::move(*_src);
+        *_dst = re_std::move(*_src);
 #else
         *_dst = *_src;
 #endif
@@ -115,7 +115,7 @@ shift_right(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_SHIFT_RIGHT_
+#endif  // DJINTERP_RE_STD_ALGORITHM_SHIFT_RIGHT_

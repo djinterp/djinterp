@@ -29,15 +29,14 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_UTILITY_PIECEWISE_CONSTRUCT_
-#define RESTD_UTILITY_PIECEWISE_CONSTRUCT_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_PIECEWISE_CONSTRUCT_
+#define DJINTERP_RE_STD_UTILITY_PIECEWISE_CONSTRUCT_ 1
 
 // re_std
 #include "../type_traits/type_traits.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-NS_DJINTERP
 NS_RESTD
 
 // piecewise_construct_t
@@ -62,8 +61,6 @@ D_INLINE_VAR D_CONSTEXPR piecewise_construct_t piecewise_construct
     = piecewise_construct_t();
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_UTILITY_PIECEWISE_CONSTRUCT_
+#endif  // DJINTERP_RE_STD_UTILITY_PIECEWISE_CONSTRUCT_

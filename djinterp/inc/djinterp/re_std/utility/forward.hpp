@@ -1,8 +1,8 @@
 /***********************************************************************
-* restd                                                       forward.hpp
+* re_std                                                      forward.hpp
 *
 * perfect-forwarding cast utility:
-*   Provides restd::forward, the canonical cast used in forwarding
+*   Provides re_std::forward, the canonical cast used in forwarding
 * references to preserve value category. Two overloads:
 *
 *     forward<T>(lvalue_ref) -> static_cast<T&&>(arg)        // lvalue overload
@@ -14,18 +14,18 @@
 *
 *   Requires rvalue references (C++11+). On standards without rvalue
 * references, no symbol is defined; callers must gate their use of
-* restd::forward on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
+* re_std::forward on D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES.
 *
 *   marked constexpr on C++11+ (single-statement bodies).
 *
 *
 * path:      /inc/djinterp/re_std/utility/forward.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.04.30
+* author(s): re_std team                                date: 2026.04.30
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_FORWARD_
-#define RESTD_UTILITY_FORWARD_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_FORWARD_
+#define DJINTERP_RE_STD_UTILITY_FORWARD_ 1
 
 #include "djinterp.hpp"
 
@@ -59,12 +59,12 @@ D_CONSTEXPR
 _Type&& forward(typename remove_reference<_Type>::type&& _value) noexcept
 {
     static_assert(!is_lvalue_reference<_Type>::value,
-                  "restd::forward: cannot forward an rvalue as an lvalue");
+                  "re_std::forward: cannot forward an rvalue as an lvalue");
     return static_cast<_Type&&>(_value);
 }
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-#endif  // RESTD_UTILITY_FORWARD_
+#endif  // DJINTERP_RE_STD_UTILITY_FORWARD_

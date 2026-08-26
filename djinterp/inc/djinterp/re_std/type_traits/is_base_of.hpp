@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              is_base_of.hpp
+* djinterp [re_std]                                             is_base_of.hpp
 *
 * is_base_of trait header:
 *   is_base_of<_Base, _Derived>::value is true iff _Base is a base class of
@@ -20,13 +20,13 @@
 *   C++11 baseline.  The _v spelling is C++14+, as elsewhere.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_base_of.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_base_of.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.27
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_BASE_OF_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_BASE_OF_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_BASE_OF_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_BASE_OF_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -39,25 +39,25 @@
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_IS_BASE_OF  (intrinsic detection)
+// 0.   D_RE_STD_HAS_IS_BASE_OF  (intrinsic detection)
 // =============================================================================
 
-#ifndef D_RESTD_HAS_IS_BASE_OF
+#ifndef D_RE_STD_HAS_IS_BASE_OF
     #if defined(__has_builtin)
         #if __has_builtin(__is_base_of)
-            #define D_RESTD_HAS_IS_BASE_OF  1
+            #define D_RE_STD_HAS_IS_BASE_OF  1
         #else
-            #define D_RESTD_HAS_IS_BASE_OF  0
+            #define D_RE_STD_HAS_IS_BASE_OF  0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_CLANG) ||                                  \
             defined(D_ENV_COMPILER_MSVC)  ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_IS_BASE_OF      1
+        #define D_RE_STD_HAS_IS_BASE_OF      1
     #else
-        #define D_RESTD_HAS_IS_BASE_OF      0
+        #define D_RE_STD_HAS_IS_BASE_OF      0
     #endif
-#endif  // D_RESTD_HAS_IS_BASE_OF
+#endif  // D_RE_STD_HAS_IS_BASE_OF
 
 
 NS_RESTD
@@ -67,7 +67,7 @@ NS_RESTD
 // I.   IS_BASE_OF
 // =============================================================================
 
-#if D_RESTD_HAS_IS_BASE_OF
+#if D_RE_STD_HAS_IS_BASE_OF
 
 // is_base_of
 //   trait: true if _Base is a base of _Derived, or they are the same class.
@@ -125,7 +125,7 @@ struct is_base_of
                 typename remove_cv<_Derived>::type>::value ) )>
 {};
 
-#endif  // D_RESTD_HAS_IS_BASE_OF
+#endif  // D_RE_STD_HAS_IS_BASE_OF
 
 
 // =============================================================================
@@ -141,7 +141,7 @@ D_CONSTEXPR bool is_base_of_v = is_base_of<_Base, _Derived>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_BASE_OF_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_BASE_OF_

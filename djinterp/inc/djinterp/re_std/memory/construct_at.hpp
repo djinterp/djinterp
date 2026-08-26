@@ -1,15 +1,15 @@
 /***********************************************************************
-* restd                                                   construct_at.hpp
+* re_std                                                  construct_at.hpp
 *
 * placement-new wrapper, normalised to look like a function call:
-*   restd::construct_at(_p, _args...) is equivalent to
-*   ::new (static_cast<void*>(_p)) _T(restd::forward<_Args>(_args)...).
+*   re_std::construct_at(_p, _args...) is equivalent to
+*   ::new (static_cast<void*>(_p)) _T(re_std::forward<_Args>(_args)...).
 * The C++20 std introduces this so that constexpr-allocator code can
 * construct objects at known addresses without writing the placement-new
 * expression directly (which is not constexpr until C++20).
 *
 * portability:
-*   restd back-ports the function to C++11+. The constexpr qualification
+*   re_std back-ports the function to C++11+. The constexpr qualification
 * is honest: it is applied only on C++20+, where the compiler is
 * required to permit placement new in constant expressions. On C++11
 * through C++17 the function is plain, matching what the language
@@ -23,11 +23,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/construct_at.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_CONSTRUCT_AT_
-#define RESTD_MEMORY_CONSTRUCT_AT_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_CONSTRUCT_AT_
+#define DJINTERP_RE_STD_MEMORY_CONSTRUCT_AT_ 1
 
 #include "djinterp.hpp"
 
@@ -40,10 +40,10 @@
     #else
 
         #include <new>
-        #include "restd/utility/forward.hpp"
+        #include "re_std/utility/forward.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -60,7 +60,7 @@ namespace restd
     constexpr _T* construct_at(_T* _p, _Args&&... _args)
     {
         return ::new (static_cast<void*>(_p))
-            _T(restd::forward<_Args>(_args)...);
+            _T(re_std::forward<_Args>(_args)...);
     }
 
 #else
@@ -69,16 +69,16 @@ namespace restd
     _T* construct_at(_T* _p, _Args&&... _args)
     {
         return ::new (static_cast<void*>(_p))
-            _T(restd::forward<_Args>(_args)...);
+            _T(re_std::forward<_Args>(_args)...);
     }
 
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
     #endif  // D_ENV_CPP98_HAS_NEW
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_CONSTRUCT_AT_
+#endif  // DJINTERP_RE_STD_MEMORY_CONSTRUCT_AT_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                for_each_n.hpp
+* djinterp [re_std]                                               for_each_n.hpp
 *
 * for_each_n algorithm header:
 *   Counted variant of for_each. Invokes _f on the first _n elements
@@ -7,9 +7,9 @@
 * element (i.e. _first + _n).
 *
 *   PORTABILITY:
-*   - std::for_each_n is C++17; restd back-ports to C++98 (just a
+*   - std::for_each_n is C++17; re_std back-ports to C++98 (just a
 *     counted loop; no language blocker).
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - The (void) cast on the iterator-increment guards against
 *     operator-comma overloads on weird proxy iterators (matches
 *     libstdc++ idiom).
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FOR_EACH_N_
-#define DJINTERP_RESTD_ALGORITHM_FOR_EACH_N_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FOR_EACH_N_
+#define DJINTERP_RE_STD_ALGORITHM_FOR_EACH_N_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -69,7 +69,7 @@ for_each_n(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FOR_EACH_N_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FOR_EACH_N_

@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                              sp_control_block.hpp
+* re_std                                             sp_control_block.hpp
 *
 * shared_ptr / weak_ptr control block hierarchy and atomic counters.
 *
@@ -30,7 +30,7 @@
 *   sp_cb_pointer_alloc            for shared_ptr(p, d, alloc) ctors.
 *
 * atomic refcounts:
-*   D_RESTD_HAS_SP_ATOMICS         1 when compiler supports __atomic_*
+*   D_RE_STD_HAS_SP_ATOMICS         1 when compiler supports __atomic_*
 *                                  builtins. GCC, Clang, Intel are
 *                                  detected. MSVC support TODO.
 *
@@ -41,11 +41,11 @@
 *
 * path:      /inc/djinterp/re_std/memory/sp_control_block.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_
-#define RESTD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_
+#define DJINTERP_RE_STD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_ 1
 
 #include "djinterp.hpp"
 
@@ -62,32 +62,32 @@
         #include <new>
     #endif
 
-    #include "restd/memory/allocator_traits.hpp"
-    #include "restd/utility/forward.hpp"
-    #include "restd/utility/move.hpp"
+    #include "re_std/memory/allocator_traits.hpp"
+    #include "re_std/utility/forward.hpp"
+    #include "re_std/utility/move.hpp"
 
 
 // =============================================================================
-// D_RESTD_HAS_SP_ATOMICS
+// D_RE_STD_HAS_SP_ATOMICS
 // =============================================================================
 
-#ifndef D_RESTD_HAS_SP_ATOMICS
+#ifndef D_RE_STD_HAS_SP_ATOMICS
     #if defined(__has_builtin)
         #if __has_builtin(__atomic_fetch_add) && __has_builtin(__atomic_load_n)
-            #define D_RESTD_HAS_SP_ATOMICS 1
+            #define D_RE_STD_HAS_SP_ATOMICS 1
         #else
-            #define D_RESTD_HAS_SP_ATOMICS 0
+            #define D_RE_STD_HAS_SP_ATOMICS 0
         #endif
     #elif defined(D_ENV_COMPILER_GCC) || defined(D_ENV_COMPILER_INTEL)
-        #define D_RESTD_HAS_SP_ATOMICS 1
+        #define D_RE_STD_HAS_SP_ATOMICS 1
     #else
         // MSVC requires _Interlocked* — different surface, deferred.
-        #define D_RESTD_HAS_SP_ATOMICS 0
+        #define D_RE_STD_HAS_SP_ATOMICS 0
     #endif
 #endif
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -98,7 +98,7 @@ namespace internal
 
 typedef long sp_count_t;
 
-#if D_RESTD_HAS_SP_ATOMICS
+#if D_RE_STD_HAS_SP_ATOMICS
 
     inline sp_count_t sp_atomic_load(const sp_count_t* _p) D_NOEXCEPT
     {
@@ -138,7 +138,7 @@ typedef long sp_count_t;
         }
     }
 
-#else  // !D_RESTD_HAS_SP_ATOMICS
+#else  // !D_RE_STD_HAS_SP_ATOMICS
 
     // Fallback: plain int ops. Single-thread only.
 
@@ -171,7 +171,7 @@ typedef long sp_count_t;
         return true;
     }
 
-#endif  // D_RESTD_HAS_SP_ATOMICS
+#endif  // D_RE_STD_HAS_SP_ATOMICS
 
 
 // =============================================================================
@@ -265,7 +265,7 @@ class sp_cb_pointer : public sp_control_block_base
 public:
     sp_cb_pointer(_U* _p, _D _d)
         : m_ptr(_p)
-        , m_del(restd::move(_d))
+        , m_del(re_std::move(_d))
     {
     }
 
@@ -320,7 +320,7 @@ public:
     explicit sp_cb_inplace(_Args&&... _args)
     {
         ::new (static_cast<void*>(&m_storage[0]))
-            _U(restd::forward<_Args>(_args)...);
+            _U(re_std::forward<_Args>(_args)...);
     }
 
     // For make_shared_for_overwrite: default-initialise (no parens).
@@ -369,7 +369,7 @@ public:
         : m_alloc(_a)
     {
         ::new (static_cast<void*>(&m_storage[0]))
-            _U(restd::forward<_Args>(_args)...);
+            _U(re_std::forward<_Args>(_args)...);
     }
 
     // For allocate_shared_for_overwrite: default-initialise (no parens).
@@ -424,7 +424,7 @@ class sp_cb_pointer_alloc : public sp_control_block_base
 public:
     sp_cb_pointer_alloc(_U* _p, _D _d, const _Alloc& _a)
         : m_ptr(_p)
-        , m_del(restd::move(_d))
+        , m_del(re_std::move(_d))
         , m_alloc(_a)
     {
     }
@@ -589,8 +589,8 @@ public:
 
 
 }  // namespace internal
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_
+#endif  // DJINTERP_RE_STD_MEMORY_INTERNAL_SP_CONTROL_BLOCK_

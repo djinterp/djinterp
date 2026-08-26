@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  unexpect.hpp
+* djinterp [re_std]                                                 unexpect.hpp
 *
 * unexpect tag header:
 *   Provides unexpect_t and the unexpect constant — the tag-dispatch
@@ -23,8 +23,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UNEXPECT_
-#define DJINTERP_RESTD_UNEXPECT_ 1
+#ifndef DJINTERP_RE_STD_UNEXPECT_
+#define DJINTERP_RE_STD_UNEXPECT_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -60,7 +60,7 @@ struct unexpect_t
 
 // unexpect
 //   constant: the singleton instance of unexpect_t. Usage:
-//     expected<int, std::error_code> e(restd::unexpect, ec);
+//     expected<int, std::error_code> e(re_std::unexpect, ec);
 //
 // note: defined inline-static when C++17 inline-variables are available;
 // otherwise a plain extern declaration paired with the definition the
@@ -87,10 +87,10 @@ static const unexpect_t& unexpect = internal::unexpect_holder<void>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_UNEXPECT_
+#endif  // DJINTERP_RE_STD_UNEXPECT_

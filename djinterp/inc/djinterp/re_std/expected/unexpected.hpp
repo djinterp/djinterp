@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                unexpected.hpp
+* djinterp [re_std]                                               unexpected.hpp
 *
 * unexpected wrapper header:
 *   Provides unexpected<E> — a typed wrapper around an error value of
@@ -29,8 +29,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UNEXPECTED_
-#define DJINTERP_RESTD_UNEXPECTED_ 1
+#ifndef DJINTERP_RE_STD_UNEXPECTED_
+#define DJINTERP_RE_STD_UNEXPECTED_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -38,8 +38,10 @@
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 #include <initializer_list>
+// std (std::swap, for the two-step swap idiom below)
+#include <utility>
 
-#include "../utility/in_place.hpp"
+#include "../optional/in_place.hpp"
 #include "../type_traits/enable_if.hpp"
 #include "../type_traits/is_constructible.hpp"
 #include "../type_traits/is_same.hpp"
@@ -87,10 +89,10 @@ public:
     //   Selected when _Err is something other than unexpected itself
     // and in_place_t, and _E is constructible from _Err.
     template<typename _Err = _E,
-             typename = typename restd::enable_if<
-                 !restd::is_same<typename restd::decay<_Err>::type, unexpected>::value &&
-                 !restd::is_same<typename restd::decay<_Err>::type, in_place_t>::value &&
-                 restd::is_constructible<_E, _Err>::value
+             typename = typename re_std::enable_if<
+                 !re_std::is_same<typename re_std::decay<_Err>::type, unexpected>::value &&
+                 !re_std::is_same<typename re_std::decay<_Err>::type, in_place_t>::value &&
+                 re_std::is_constructible<_E, _Err>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit unexpected(_Err&& _err)
         : m_error(static_cast<_Err&&>(_err))
@@ -98,8 +100,8 @@ public:
 
     // (2) in_place ctor — emplaces _E from forwarded args.
     template<typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit unexpected(in_place_t, _Args&&... _args)
         : m_error(static_cast<_Args&&>(_args)...)
@@ -109,8 +111,8 @@ public:
     // an initializer_list plus optional extra args (e.g. std::vector).
     template<typename _U,
              typename... _Args,
-             typename = typename restd::enable_if<
-                 restd::is_constructible<_E, std::initializer_list<_U>&, _Args...>::value
+             typename = typename re_std::enable_if<
+                 re_std::is_constructible<_E, std::initializer_list<_U>&, _Args...>::value
              >::type>
     D_CONSTEXPR_CPP20 explicit unexpected(
         in_place_t,
@@ -191,10 +193,10 @@ unexpected(_E) -> unexpected<_E>;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_UNEXPECTED_
+#endif  // DJINTERP_RE_STD_UNEXPECTED_

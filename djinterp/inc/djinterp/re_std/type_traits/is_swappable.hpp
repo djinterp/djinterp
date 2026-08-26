@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            is_swappable.hpp
+* djinterp [re_std]                                           is_swappable.hpp
 *
 * is_swappable trait:
 *   true_type if objects of type _Type can be swapped with each other via
@@ -22,7 +22,7 @@
 * is_swappable_with.
 *
 *   DEPENDENCIES:
-*   is_swappable_with (transitive: requires restd::swap, restd::declval).
+*   is_swappable_with (transitive: requires re_std::swap, re_std::declval).
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_swappable.hpp
@@ -30,8 +30,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_SWAPPABLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_SWAPPABLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -39,7 +39,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./is_swappable_with.hpp"
 #include "./add_lvalue_reference.hpp"
 
@@ -67,9 +67,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_SWAPPABLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_SWAPPABLE_

@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [restd]                                         string_view_hash.hpp
+* djinterp [re_std]                                        string_view_hash.hpp
 *
 * string_view hash support header:
-*   restd::hash specialisations for the five view aliases. Per the
+*   re_std::hash specialisations for the five view aliases. Per the
 * standard, hashing a string_view yields the same value as hashing the
-* equivalent basic_string — but restd::string does not exist yet, so
+* equivalent basic_string — but re_std::string does not exist yet, so
 * these specialisations are self-contained: a simple polynomial roll
-* over the character units. The value is therefore stable within restd
+* over the character units. The value is therefore stable within re_std
 * but is NOT required to agree with any std::hash<std::string_view>.
 *
 *   PORTABILITY:
@@ -14,7 +14,7 @@
 * port). The char8_t / u8string_view specialisation is gated on C++20.
 *
 *   DEPENDENCIES:
-*   ../functional/hash.hpp for the primary restd::hash template that
+*   ../functional/hash.hpp for the primary re_std::hash template that
 * these specialise, plus the view aliases from this module.
 *
 *
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_HASH_
-#define DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_HASH_ 1
+#ifndef DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_HASH_
+#define DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_HASH_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -55,7 +55,7 @@ NS_INTERNAL
     //   function: polynomial roll over the character units of _v,
     // widening each through its unsigned counterpart so the high bit
     // never sign-extends. Self-contained so <string_view> has no run-
-    // time hash dependency beyond the restd::hash primary template.
+    // time hash dependency beyond the re_std::hash primary template.
     template<typename _CharT,
              typename _Traits>
     inline std::size_t
@@ -149,10 +149,10 @@ struct hash<u8string_view>
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_HASH_
+#endif  // DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_HASH_

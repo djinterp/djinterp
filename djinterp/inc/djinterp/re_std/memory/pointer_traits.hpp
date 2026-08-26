@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                 pointer_traits.hpp
+* re_std                                                pointer_traits.hpp
 *
 * uniform interface for pointer-like types:
 *   pointer_traits<_Ptr> exposes a fixed set of typedefs and the
@@ -23,7 +23,7 @@
 *   element_type     = _T
 *   difference_type  = ptrdiff_t
 *   rebind<_U>       = _U*
-*   pointer_to(_r)   = restd::addressof(_r), constexpr.
+*   pointer_to(_r)   = re_std::addressof(_r), constexpr.
 *
 * C++11+ floor:
 *   The primary template needs alias templates (rebind), variadic
@@ -35,24 +35,24 @@
 *
 * path:      /inc/djinterp/re_std/memory/pointer_traits.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_POINTER_TRAITS_
-#define RESTD_MEMORY_POINTER_TRAITS_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_POINTER_TRAITS_
+#define DJINTERP_RE_STD_MEMORY_POINTER_TRAITS_ 1
 
 #include "djinterp.hpp"
 #include <cstddef>  // ptrdiff_t
 
-#include "restd/memory/addressof.hpp"
+#include "re_std/memory/addressof.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/type_traits/void_t.hpp"
+    #include "re_std/type_traits/void_t.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -238,7 +238,7 @@ struct pointer_traits<_T*>
 
     static D_CONSTEXPR pointer pointer_to(element_type& _r) D_NOEXCEPT
     {
-        return restd::addressof(_r);
+        return re_std::addressof(_r);
     }
 };
 
@@ -252,8 +252,8 @@ struct pointer_traits<_T*>
 // specialisation needed.
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_POINTER_TRAITS_
+#endif  // DJINTERP_RE_STD_MEMORY_POINTER_TRAITS_

@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                               any_swap.hpp
+* djinterp [re_std]                                              any_swap.hpp
 *
 * any swap specialization header:
-*   Provides a non-member swap overload for restd::any. This is the
+*   Provides a non-member swap overload for re_std::any. This is the
 * any-specific ADL swap; the master swap module (swap.hpp) is a separate,
 * independent header.
 *   The swap is implemented by delegating to the any::swap member function,
@@ -14,8 +14,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.10
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ANY_SWAP_
-#define DJINTERP_RESTD_ANY_SWAP_ 1
+#ifndef DJINTERP_RE_STD_ANY_SWAP_
+#define DJINTERP_RE_STD_ANY_SWAP_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -45,7 +45,7 @@ D_NOEXCEPT
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ANY_SWAP_
+#endif  // DJINTERP_RE_STD_ANY_SWAP_

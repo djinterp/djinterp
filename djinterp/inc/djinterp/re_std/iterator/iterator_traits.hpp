@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                    iterator_traits.hpp
+* re_std                                                   iterator_traits.hpp
 *
 * extracts the five (or six, on C++20+) type aliases that an iterator
 * exposes, in a uniform way regardless of whether _Iter is a class
@@ -11,29 +11,29 @@
 *   difference_type      - signed type of (it1 - it2)
 *   pointer              - the iterator's pointer type
 *   reference            - the iterator's reference type
-*   iterator_category    - restd tag (NOT std), see translation below
+*   iterator_category    - re_std tag (NOT std), see translation below
 *   iterator_concept     - C++20+, optional
 *
 * primary template behaviour matches C++17+ std::iterator_traits: if
 * _Iter does not expose the required member typedefs, the primary
 * template is EMPTY (no nested types). Earlier std behaviour
 * (pre-C++17) defined the typedefs unconditionally, causing hard
-* errors when _Iter wasn't actually an iterator; restd does not
+* errors when _Iter wasn't actually an iterator; re_std does not
 * reproduce that footgun.
 *
 * TAG TRANSLATION:
-*   iterator_traits ALWAYS yields a restd tag for iterator_category,
+*   iterator_traits ALWAYS yields a re_std tag for iterator_category,
 *   even when the wrapped iterator's own category is a std tag (as is
 *   the case for std::vector::iterator, std::list::iterator, etc.).
-*   This means restd algorithms can tag-dispatch consistently against
-*   restd tags regardless of where the iterator came from.
+*   This means re_std algorithms can tag-dispatch consistently against
+*   re_std tags regardless of where the iterator came from.
 *
 *   Translation is most-specific-first: a std::random_access_iterator_tag
-*   becomes restd::random_access_iterator_tag, not the merely-derivable
-*   restd::input_iterator_tag.
+*   becomes re_std::random_access_iterator_tag, not the merely-derivable
+*   re_std::input_iterator_tag.
 *
-*   When the iterator's category is already a restd tag, translation is
-*   a no-op (the std-base checks all fail — restd tags don't derive
+*   When the iterator's category is already a re_std tag, translation is
+*   a no-op (the std-base checks all fail — re_std tags don't derive
 *   from std tags).
 *
 *   Translation uses std::is_base_of, which is unavoidable here: the
@@ -49,11 +49,11 @@
 *
 * path:      /inc/djinterp/re_std/iterator/iterator_traits.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_ITERATOR_TRAITS_
-#define RESTD_ITERATOR_ITERATOR_TRAITS_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_ITERATOR_TRAITS_
+#define DJINTERP_RE_STD_ITERATOR_ITERATOR_TRAITS_ 1
 
 #include "djinterp.hpp"
 
@@ -61,32 +61,32 @@
 #include <iterator>      // for std::*_iterator_tag (translation source)
 #include <type_traits>   // for std::is_base_of (translation lookup)
 
-#include "restd/iterator/input_iterator_tag.hpp"
-#include "restd/iterator/output_iterator_tag.hpp"
-#include "restd/iterator/forward_iterator_tag.hpp"
-#include "restd/iterator/bidirectional_iterator_tag.hpp"
-#include "restd/iterator/random_access_iterator_tag.hpp"
-#include "restd/type_traits/void_t.hpp"
+#include "re_std/iterator/input_iterator_tag.hpp"
+#include "re_std/iterator/output_iterator_tag.hpp"
+#include "re_std/iterator/forward_iterator_tag.hpp"
+#include "re_std/iterator/bidirectional_iterator_tag.hpp"
+#include "re_std/iterator/random_access_iterator_tag.hpp"
+#include "re_std/type_traits/void_t.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-    #include "restd/iterator/contiguous_iterator_tag.hpp"
+    #include "re_std/iterator/contiguous_iterator_tag.hpp"
 #endif
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
 
     // ---- tag translation ----
     //
-    // Map a (possibly-std, possibly-restd) iterator-category tag to
-    // its restd equivalent. Cascade is most-specific-first: a
+    // Map a (possibly-std, possibly-re_std) iterator-category tag to
+    // its re_std equivalent. Cascade is most-specific-first: a
     // random_access_iterator_tag must NOT match the input arm even
     // though it derives from it.
     //
     // The default arm (no std-base match) returns the input tag
-    // unchanged, which means restd tags pass through and unknown
+    // unchanged, which means re_std tags pass through and unknown
     // user-defined tags pass through too. Both behaviours are
     // intentional.
 
@@ -201,14 +201,18 @@ namespace internal
     struct iter_traits_impl
     <
         _Iter,
-        typename void_t
+        // re_std::void_t is an ALIAS template -- it already IS void, so it
+        // has no ::type member. Writing `typename void_t<...>::type` here
+        // made this partial specialization ill-formed and took the whole
+        // header (and everything including it) down on C++11 through C++20.
+        void_t
         <
             typename _Iter::value_type,
             typename _Iter::difference_type,
             typename _Iter::pointer,
             typename _Iter::reference,
             typename _Iter::iterator_category
-        >::type
+        >
     >
     {
         typedef typename _Iter::value_type        value_type;
@@ -268,6 +272,6 @@ struct iterator_traits<const _T*>
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_ITERATOR_ITERATOR_TRAITS_
+#endif  // DJINTERP_RE_STD_ITERATOR_ITERATOR_TRAITS_

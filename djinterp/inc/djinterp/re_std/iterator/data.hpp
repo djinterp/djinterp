@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                               data.hpp
+* re_std                                                              data.hpp
 *
 * data(c) returns a pointer to the contiguous storage backing the
 * container. For containers with member data(), forwards. For raw
@@ -13,11 +13,11 @@
 *
 * path:      /inc/djinterp/re_std/iterator/data.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_DATA_
-#define RESTD_ITERATOR_DATA_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_DATA_
+#define DJINTERP_RE_STD_ITERATOR_DATA_ 1
 
 #include "djinterp.hpp"
 
@@ -28,7 +28,7 @@
     #include <initializer_list>
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _C>
@@ -56,8 +56,8 @@ D_CONSTEXPR const _E* data(std::initializer_list<_E> _il) D_NOEXCEPT
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_DATA_
+#endif  // DJINTERP_RE_STD_ITERATOR_DATA_

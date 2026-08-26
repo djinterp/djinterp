@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                output_iterator_tag.hpp
+* re_std                                               output_iterator_tag.hpp
 *
 * tag for output iterators — single-pass, write-only iteration.
 * Standalone in the hierarchy: output_iterator_tag does not derive
@@ -14,16 +14,16 @@
 *
 * path:      /inc/djinterp/re_std/iterator/output_iterator_tag.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_OUTPUT_ITERATOR_TAG_
-#define RESTD_ITERATOR_OUTPUT_ITERATOR_TAG_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_OUTPUT_ITERATOR_TAG_
+#define DJINTERP_RE_STD_ITERATOR_OUTPUT_ITERATOR_TAG_ 1
 
 #include "djinterp.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 struct output_iterator_tag
@@ -31,6 +31,6 @@ struct output_iterator_tag
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_ITERATOR_OUTPUT_ITERATOR_TAG_
+#endif  // DJINTERP_RE_STD_ITERATOR_OUTPUT_ITERATOR_TAG_

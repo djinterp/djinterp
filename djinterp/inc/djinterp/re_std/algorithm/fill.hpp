@@ -1,12 +1,12 @@
 /******************************************************************************
-* djinterp [restd]                                                      fill.hpp
+* djinterp [re_std]                                                     fill.hpp
 *
 * fill algorithm header:
 *   Assigns _value to every element in [_first, _last).
 *
 *   PORTABILITY:
 *   - std::fill is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/fill.hpp
@@ -14,8 +14,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_FILL_
-#define DJINTERP_RESTD_ALGORITHM_FILL_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_FILL_
+#define DJINTERP_RE_STD_ALGORITHM_FILL_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -58,7 +58,7 @@ fill(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_FILL_
+#endif  // DJINTERP_RE_STD_ALGORITHM_FILL_

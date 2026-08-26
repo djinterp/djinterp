@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            make_unsigned.hpp
+* djinterp [re_std]                                           make_unsigned.hpp
 *
 * make_unsigned trait header:
 *   Yields the unsigned integral type corresponding to _Type. Per
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_MAKE_UNSIGNED_
-#define DJINTERP_RESTD_TYPE_TRAITS_MAKE_UNSIGNED_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_
+#define DJINTERP_RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -141,7 +141,7 @@ struct make_unsigned<const volatile _Type>
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_MAKE_UNSIGNED_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_MAKE_UNSIGNED_

@@ -22,11 +22,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_CONCEPTS_MOVE_CONSTRUCTIBLE_
-#define RESTD_CONCEPTS_MOVE_CONSTRUCTIBLE_ 1
+#ifndef DJINTERP_RE_STD_CONCEPTS_MOVE_CONSTRUCTIBLE_
+#define DJINTERP_RE_STD_CONCEPTS_MOVE_CONSTRUCTIBLE_ 1
 
 // re_std — the language-tier probe, and nothing else, before the gate
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
 
@@ -35,7 +35,6 @@
 #include "../concepts/constructible_from.hpp"
 #include "../concepts/convertible_to.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // move_constructible
@@ -45,8 +44,6 @@ concept move_constructible
     = constructible_from<_Type, _Type> && convertible_to<_Type, _Type>;
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
-#endif  // RESTD_CONCEPTS_MOVE_CONSTRUCTIBLE_
+#endif  // DJINTERP_RE_STD_CONCEPTS_MOVE_CONSTRUCTIBLE_

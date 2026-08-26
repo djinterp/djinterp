@@ -1,13 +1,13 @@
 /***********************************************************************
-* restd                                                     function.hpp
+* re_std                                                    function.hpp
 *
-* class: type-erased owning callable wrapper -- restd's portable
+* class: type-erased owning callable wrapper -- re_std's portable
 *   alternative to `std::function` (C++11).
 *   `function<R(Args...)>` stores any CopyConstructible callable that is
 * invocable as `R(Args...)` (the result being convertible to `R`, or
 * `R` being `void`), erasing its concrete type behind a small virtual
 * dispatch table. Calling an empty wrapper throws `bad_function_call`.
-* Target dispatch is delegated wholesale to `restd::invoke`, so
+* Target dispatch is delegated wholesale to `re_std::invoke`, so
 * pointer-to-member-function, pointer-to-member-data, `reference_wrapper`,
 * function pointers, lambdas, and arbitrary function objects are all
 * handled uniformly and for free.
@@ -42,21 +42,21 @@
 *
 * path:      /inc/djinterp/re_std/functional/function.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.07.25
+* author(s): re_std                                      date: 2026.07.25
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_FUNCTION_
-#define RESTD_FUNCTIONAL_FUNCTION_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_
+#define DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_ 1
 
 #include "djinterp.hpp"
 
 #if (D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES &&  \
      D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES)
 
-#include "restd/type_traits/type_traits.hpp"
-#include "restd/utility/forward.hpp"
-#include "restd/functional/invoke.hpp"
-#include "restd/functional/bad_function_call.hpp"
+#include "re_std/type_traits/type_traits.hpp"
+#include "re_std/utility/forward.hpp"
+#include "re_std/functional/invoke.hpp"
+#include "re_std/functional/bad_function_call.hpp"
 
 #include <cstddef>   // std::nullptr_t
 
@@ -64,7 +64,7 @@
     #include <typeinfo>
 #endif
 
-namespace restd
+namespace re_std
 {
 
 // function
@@ -150,7 +150,7 @@ NS_INTERNAL
         template<typename _F>
         static true_type
         probe(int,
-              decltype((void)restd::invoke(fn_declval<_F&>(),
+              decltype((void)re_std::invoke(fn_declval<_F&>(),
                                            fn_declval<_Args>()...))* = 0);
 
         template<typename _F>
@@ -176,7 +176,7 @@ NS_INTERNAL
     {
         static const bool value = fn_convertible<
             _Ret,
-            decltype(restd::invoke(fn_declval<_Fn&>(),
+            decltype(re_std::invoke(fn_declval<_Fn&>(),
                                    fn_declval<_Args>()...))
         >::value;
     };
@@ -185,7 +185,7 @@ NS_INTERNAL
     //   trait: `true` if an lvalue `_Fn` is invocable per `_Ret(_Args...)`
     // with the result convertible to `_Ret` (or `_Ret` == void). This is
     // the local stand-in for `is_invocable_r` (which is a follow-on to
-    // this milestone in restd::type_traits).
+    // this milestone in re_std::type_traits).
     template<typename _Ret, typename _Fn, typename... _Args>
     struct fn_invocable_r
         : integral_constant<bool,
@@ -239,7 +239,7 @@ NS_INTERNAL
         static _Ret
         call(_Fd& _f, _A&&... _a)
         {
-            return restd::invoke(_f, restd::forward<_A>(_a)...);
+            return re_std::invoke(_f, re_std::forward<_A>(_a)...);
         }
     };
 
@@ -250,7 +250,7 @@ NS_INTERNAL
         static void
         call(_Fd& _f, _A&&... _a)
         {
-            restd::invoke(_f, restd::forward<_A>(_a)...);
+            re_std::invoke(_f, re_std::forward<_A>(_a)...);
         }
     };
 
@@ -281,13 +281,13 @@ NS_INTERNAL
 
         template<typename _G>
         explicit fn_holder(_G&& _g)
-            : m_f(restd::forward<_G>(_g))
+            : m_f(re_std::forward<_G>(_g))
         {}
 
         _Ret do_call(_Args... _a)
         {
             return fn_call_impl<_Ret>::call(
-                m_f, restd::forward<_Args>(_a)...);
+                m_f, re_std::forward<_Args>(_a)...);
         }
 
         fn_base<_Ret, _Args...>* clone() const
@@ -380,7 +380,7 @@ public:
         if (!internal::fn_is_null(_f, 0))
         {
             m_ptr = new internal::fn_holder<_Fd, _Ret, _Args...>(
-                restd::forward<_Fn>(_f));
+                re_std::forward<_Fn>(_f));
         }
     }
 
@@ -426,7 +426,7 @@ public:
     >::type
     operator=(_Fn&& _f)
     {
-        function(restd::forward<_Fn>(_f)).swap(*this);
+        function(re_std::forward<_Fn>(_f)).swap(*this);
         return *this;
     }
 
@@ -468,7 +468,7 @@ public:
         {
             throw bad_function_call();
         }
-        return m_ptr->do_call(restd::forward<_Args>(_a)...);
+        return m_ptr->do_call(re_std::forward<_Args>(_a)...);
     }
 
 #if D_ENV_CPP98_HAS_TYPEINFO
@@ -555,8 +555,8 @@ operator!=(std::nullptr_t, const function<_Ret(_Args...)>& _f) noexcept
     return static_cast<bool>(_f);
 }
 
-} // namespace restd
+} // namespace re_std
 
 #endif // variadic templates + rvalue references
 
-#endif // RESTD_FUNCTIONAL_FUNCTION_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_FUNCTION_

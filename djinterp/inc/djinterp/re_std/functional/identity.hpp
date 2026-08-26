@@ -1,29 +1,29 @@
 /***********************************************************************
-* restd                                                      identity.hpp
+* re_std                                                     identity.hpp
 *
 * function object: perfect-forwarding passthrough.
 *   Yields its argument unchanged. Used as the default projection in
 * <ranges> and as a building block for other adaptors. Standard surface
-* is C++20; restd back-ports it to C++11+ since the body needs only
+* is C++20; re_std back-ports it to C++11+ since the body needs only
 * perfect forwarding. The transparent-functor `is_transparent` typedef is
 * provided so it composes with set/map's heterogeneous-lookup machinery.
 *
 *
 * path:      /inc/djinterp/re_std/functional/identity.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_IDENTITY_
-#define RESTD_FUNCTIONAL_IDENTITY_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_IDENTITY_
+#define DJINTERP_RE_STD_FUNCTIONAL_IDENTITY_ 1
 
 #include "djinterp.hpp"
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-    #include "restd/utility/forward.hpp"
+    #include "re_std/utility/forward.hpp"
 #endif
 
-namespace restd
+namespace re_std
 {
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
@@ -43,12 +43,12 @@ struct identity
         noexcept
 #endif
     {
-        return restd::forward<_Type>(_v);
+        return re_std::forward<_Type>(_v);
     }
 };
 
 #endif // D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
 
-} // namespace restd
+} // namespace re_std
 
-#endif // RESTD_FUNCTIONAL_IDENTITY_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_IDENTITY_

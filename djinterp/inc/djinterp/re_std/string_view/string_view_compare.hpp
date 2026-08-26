@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                      string_view_compare.hpp
+* djinterp [re_std]                                     string_view_compare.hpp
 *
 * string_view comparison operators header:
 *   The non-member relational operators for basic_string_view. Each is
@@ -11,7 +11,7 @@
 *
 *   PORTABILITY:
 *   On C++11 through C++17 all six legacy operators (==, !=, <, <=, >,
-* >=) are provided (std shipped them in C++17; restd back-ports to
+* >=) are provided (std shipped them in C++17; re_std back-ports to
 * C++11). On C++20+ only operator== and operator<=> are defined; the
 * other four are synthesised by the compiler from those two, matching
 * the standard's C++20 rewrite. operator<=> yields strong_ordering
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_COMPARE_
-#define DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_COMPARE_ 1
+#ifndef DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_COMPARE_
+#define DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_COMPARE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -179,10 +179,10 @@ operator>=(
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_STRING_VIEW_STRING_VIEW_COMPARE_
+#endif  // DJINTERP_RE_STD_STRING_VIEW_STRING_VIEW_COMPARE_

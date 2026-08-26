@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             conjunction.hpp
+* djinterp [re_std]                                            conjunction.hpp
 *
 * conjunction trait header:
 *   Variadic logical AND over type traits. Inherits from the first trait
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_CONJUNCTION_
-#define DJINTERP_RESTD_TYPE_TRAITS_CONJUNCTION_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_CONJUNCTION_
+#define DJINTERP_RE_STD_TYPE_TRAITS_CONJUNCTION_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -86,10 +86,10 @@ struct conjunction<_B1, _Bn...>
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates && variadic templates
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_CONJUNCTION_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_CONJUNCTION_

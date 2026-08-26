@@ -45,15 +45,14 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_IOS_IOS_BASE_
-#define RESTD_IOS_IOS_BASE_ 1
+#ifndef DJINTERP_RE_STD_IOS_IOS_BASE_
+#define DJINTERP_RE_STD_IOS_IOS_BASE_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "../type_traits/type_traits.hpp"
 #include "./stream_types.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // ios_base
@@ -193,6 +192,4 @@ private:
 };
 
 NS_END  // re_std
-NS_END  // djinterp
-
-#endif  // RESTD_IOS_IOS_BASE_
+#endif  // DJINTERP_RE_STD_IOS_IOS_BASE_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             weak_ordering.hpp
+* djinterp [re_std]                                            weak_ordering.hpp
 *
 * weak_ordering class header:
 *   The middle C++20 comparison category. Represents a total ordering
@@ -36,8 +36,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_COMPARE_WEAK_ORDERING_
-#define DJINTERP_RESTD_COMPARE_WEAK_ORDERING_ 1
+#ifndef DJINTERP_RE_STD_COMPARE_WEAK_ORDERING_
+#define DJINTERP_RE_STD_COMPARE_WEAK_ORDERING_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -226,10 +226,10 @@ D_CONSTEXPR_INLINE const weak_ordering weak_ordering::equivalent = weak_ordering
 D_CONSTEXPR_INLINE const weak_ordering weak_ordering::greater    = weak_ordering( 1);
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_COMPARE_WEAK_ORDERING_
+#endif  // DJINTERP_RE_STD_COMPARE_WEAK_ORDERING_

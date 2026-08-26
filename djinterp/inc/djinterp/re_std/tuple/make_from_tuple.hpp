@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          make_from_tuple.hpp
+* djinterp [re_std]                                         make_from_tuple.hpp
 *
 * make_from_tuple function header:
 *   Constructs an object of type _T using the elements of a tuple-like
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TUPLE_MAKE_FROM_TUPLE_
-#define DJINTERP_RESTD_TUPLE_MAKE_FROM_TUPLE_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_MAKE_FROM_TUPLE_
+#define DJINTERP_RE_STD_TUPLE_MAKE_FROM_TUPLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -104,10 +104,10 @@ make_from_tuple(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // variadic templates && rvalue references
 
 
-#endif  // DJINTERP_RESTD_TUPLE_MAKE_FROM_TUPLE_
+#endif  // DJINTERP_RE_STD_TUPLE_MAKE_FROM_TUPLE_

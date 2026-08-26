@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          expected_compare.hpp
+* djinterp [re_std]                                         expected_compare.hpp
 *
 * expected comparison header:
 *   Provides operator== overloads for expected. Three flavours mirror
@@ -10,7 +10,7 @@
 *     operator==(expected<T,E>, unexpected<G>)   - expected vs error
 *
 *   Plus the same three for expected<void, E>. Operator!= is
-* synthesised in C++20 from op== but restd ships it explicitly on
+* synthesised in C++20 from op== but re_std ships it explicitly on
 * every tier (gated out for C++20+ to avoid ambiguity with the
 * compiler-synthesised version).
 *
@@ -20,8 +20,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_EXPECTED_COMPARE_
-#define DJINTERP_RESTD_EXPECTED_COMPARE_ 1
+#ifndef DJINTERP_RE_STD_EXPECTED_COMPARE_
+#define DJINTERP_RE_STD_EXPECTED_COMPARE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -200,10 +200,10 @@ operator!=(
 #endif  // !C++20
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_EXPECTED_COMPARE_
+#endif  // DJINTERP_RE_STD_EXPECTED_COMPARE_

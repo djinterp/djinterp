@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               take_view.hpp
+* djinterp [re_std]                                              take_view.hpp
 *
 * take_view header:
 *   Provides the C++20 prefix adaptor. take_view<V> presents the
@@ -11,7 +11,7 @@
 *   - C++11+; CRTP + view_interface + custom internal sentinel.
 *   - The C++20 standard formulates take_view's iterator as
 *     iterator_t<V> when V is a sized random-access range, and
-*     counted_iterator<iterator_t<V>> otherwise. restd has not yet
+*     counted_iterator<iterator_t<V>> otherwise. re_std has not yet
 *     shipped counted_iterator (deferred in <iterator> Phase 7c),
 *     so we use an internal counter-style sentinel: begin() returns
 *     iterator_t<V> as-is, end() returns a sentinel that compares
@@ -23,7 +23,7 @@
 *     pays a 1-word count overhead.
 *
 *   COLOCATED:
-*   restd::views::take(r, n) — function template that constructs
+*   re_std::views::take(r, n) — function template that constructs
 * take_view over views::all(r).
 *
 *
@@ -32,8 +32,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_TAKE_VIEW_
-#define DJINTERP_RESTD_RANGES_TAKE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_TAKE_VIEW_
+#define DJINTERP_RE_STD_RANGES_TAKE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -300,7 +300,7 @@ public:
     D_CONSTEXPR iterator
     begin()
     {
-        return iterator(restd::begin(m_base), m_count);
+        return iterator(re_std::begin(m_base), m_count);
     }
 
     // end
@@ -308,7 +308,7 @@ public:
     D_CONSTEXPR sentinel
     end()
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 };
 
@@ -407,10 +407,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_TAKE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_TAKE_VIEW_

@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                             rbegin.hpp
+* re_std                                                            rbegin.hpp
 *
 * rbegin(c) returns an iterator to the last element, traversing in
 * reverse. For containers with member rbegin(), forwards. For raw
@@ -11,11 +11,11 @@
 *
 * path:      /inc/djinterp/re_std/iterator/rbegin.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.08
+* author(s): re_std contributors                         date: 2026.05.08
 ***********************************************************************/
 
-#ifndef RESTD_ITERATOR_RBEGIN_
-#define RESTD_ITERATOR_RBEGIN_ 1
+#ifndef DJINTERP_RE_STD_ITERATOR_RBEGIN_
+#define DJINTERP_RE_STD_ITERATOR_RBEGIN_ 1
 
 #include "djinterp.hpp"
 
@@ -25,10 +25,10 @@
     #include <cstddef>
     #include <initializer_list>
 
-    #include "restd/iterator/reverse_iterator.hpp"
+    #include "re_std/iterator/reverse_iterator.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _C>
@@ -56,8 +56,8 @@ D_CONSTEXPR reverse_iterator<const _E*> rbegin(std::initializer_list<_E> _il)
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_ITERATOR_RBEGIN_
+#endif  // DJINTERP_RE_STD_ITERATOR_RBEGIN_

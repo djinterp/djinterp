@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                              aligned_union.hpp
+* djinterp [re_std]                                             aligned_union.hpp
 *
 * aligned_union trait:
 *   Yields `type` as a POD type suitable for use as uninitialized storage
@@ -12,7 +12,7 @@
 *
 *   STANDARD STATUS:
 *   Introduced in C++11. Deprecated in C++23 (P1413R3), same rationale
-* as aligned_storage. restd retains the trait on all C++11+ tiers per
+* as aligned_storage. re_std retains the trait on all C++11+ tiers per
 * project policy. No [[deprecated]] attribute by default.
 *
 *   _TYPES... MUST BE NON-EMPTY:
@@ -28,7 +28,7 @@
 * templates). C++98/03 omits the trait.
 *
 *   DEPENDENCIES:
-*   <cstddef> for std::size_t. No restd traits required (the pack_max
+*   <cstddef> for std::size_t. No re_std traits required (the pack_max
 * helper is self-contained).
 *
 *
@@ -37,8 +37,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_ALIGNED_UNION_
-#define DJINTERP_RESTD_TYPE_TRAITS_ALIGNED_UNION_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_UNION_
+#define DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_UNION_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -129,9 +129,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_ALIGNED_UNION_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_ALIGNED_UNION_

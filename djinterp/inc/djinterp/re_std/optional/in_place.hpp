@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  in_place.hpp
+* djinterp [re_std]                                                 in_place.hpp
 *
 * in_place_t / in_place:
 *   Disambiguating tag type and instance used by optional, variant, any,
@@ -17,7 +17,7 @@
 * optional and similar containers want it before the rest of <utility>
 * is ported. Once the full <utility> umbrella exists, this file should
 * be referenced from there; no migration of users is needed because the
-* file path under /restd/utility/ is the same it would have if shipped
+* file path under /re_std/utility/ is the same it would have if shipped
 * as part of the <utility> port from the start.
 *
 *   PORTABILITY:
@@ -31,8 +31,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.30
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UTILITY_IN_PLACE_
-#define DJINTERP_RESTD_UTILITY_IN_PLACE_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_IN_PLACE_
+#define DJINTERP_RE_STD_UTILITY_IN_PLACE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -72,9 +72,9 @@ NS_RESTD
     D_CONSTEXPR in_place_t in_place{};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_UTILITY_IN_PLACE_
+#endif  // DJINTERP_RE_STD_UTILITY_IN_PLACE_

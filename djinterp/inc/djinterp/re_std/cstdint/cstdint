@@ -1,0 +1,50 @@
+/******************************************************************************
+* djinterp [re_std]                                                     cstdint
+*
+* <cstdint> umbrella header:
+*   Aggregates the granular headers under /inc/djinterp/re_std/cstdint/.
+* Mirrors the standard <cstdint> convenience header and adds no symbols of
+* its own.
+*
+*   THE MACRO HALF OF THIS HEADER HAS NO re_std:: SPELLING:
+*   <cstdint> is two things -- a set of typedefs and a set of macros. The
+* typedefs are re-exported into re_std:: by cstdint.hpp. The macros are
+* not, because macros have no namespace:
+*
+*     INT8_MIN / INT8_MAX ... INT64_MAX      exact-width limits
+*     INT_LEAST*_MIN / MAX, INT_FAST*_MIN / MAX
+*     INTMAX_MIN / INTMAX_MAX, INTPTR_MIN / INTPTR_MAX
+*     PTRDIFF_MIN / PTRDIFF_MAX, SIZE_MAX
+*     SIG_ATOMIC_MIN / MAX, WCHAR_MIN / MAX, WINT_MIN / MAX
+*     INT8_C(v) ... INTMAX_C(v), UINT8_C(v) ... UINTMAX_C(v)
+*
+*   Including this umbrella makes all of them available exactly as the
+* standard header does; no D_RE_STD_ aliases are minted for them, since a
+* renamed macro would be a second spelling of the same thing with no
+* portability gain.
+*
+*   PREFER numeric_limits WHERE YOU CAN:
+*   re_std::numeric_limits<T>::max() is the typed, namespaced, ADL-safe
+* answer to the same question as INT64_MAX, and it is constexpr from
+* C++11. The macros remain the right tool in exactly two places: inside
+* preprocessor conditionals (#if INTMAX_MAX > ...), where a constexpr
+* function cannot be called, and for the INT*_C literal suffixes.
+* re_std::ratio's zetta / yotta typedefs are gated on INTMAX_MAX for that
+* first reason.
+*
+*
+* path:      /inc/djinterp/re_std/cstdint/cstdint
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_CSTDINT_
+#define DJINTERP_RE_STD_CSTDINT_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+#include "./cstdint.hpp"
+
+
+#endif  // DJINTERP_RE_STD_CSTDINT_

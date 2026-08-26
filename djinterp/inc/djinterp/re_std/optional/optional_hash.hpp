@@ -19,10 +19,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_OPTIONAL_HASH_
-#define RESTD_OPTIONAL_HASH_ 1
+#ifndef DJINTERP_RE_STD_OPTIONAL_HASH_
+#define DJINTERP_RE_STD_OPTIONAL_HASH_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -30,7 +30,6 @@
 #include "../functional/hash.hpp"
 #include "./optional.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // hash<optional<_Type>>
@@ -54,8 +53,7 @@ struct hash<optional<_Type> >
 };
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_OPTIONAL_HASH_
+#endif  // DJINTERP_RE_STD_OPTIONAL_HASH_

@@ -24,10 +24,10 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_TUPLE_USES_ALLOCATOR_
-#define RESTD_TUPLE_USES_ALLOCATOR_ 1
+#ifndef DJINTERP_RE_STD_TUPLE_USES_ALLOCATOR_
+#define DJINTERP_RE_STD_TUPLE_USES_ALLOCATOR_ 1
 
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -35,7 +35,6 @@
 #include "../memory/uses_allocator.hpp"
 #include "./tuple.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // uses_allocator<tuple<_Types...>, _Alloc>
@@ -45,8 +44,7 @@ struct uses_allocator<tuple<_Types...>, _Alloc> : true_type
 {};
 
 NS_END
-NS_END
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_TUPLE_USES_ALLOCATOR_
+#endif  // DJINTERP_RE_STD_TUPLE_USES_ALLOCATOR_

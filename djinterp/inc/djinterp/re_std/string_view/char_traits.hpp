@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                              char_traits.hpp
+* djinterp [re_std]                                             char_traits.hpp
 *
 * character traits header:
-*   Provides restd::char_traits<_CharT> — the generic primary template
+*   Provides re_std::char_traits<_CharT> — the generic primary template
 * plus the standard specialisations (char, wchar_t, char8_t, char16_t,
 * char32_t). This is the string-view-supporting subset of the standard
 * char_traits surface: it carries char_type, int_type, and the static
@@ -15,7 +15,7 @@
 *   PORTABILITY:
 *   char_traits has existed since C++98 for char / wchar_t; the
 * char16_t / char32_t specialisations arrived in C++11 and char8_t in
-* C++20. restd matches that: the char / wchar_t paths compile on
+* C++20. re_std matches that: the char / wchar_t paths compile on
 * C++98, char16_t / char32_t are gated on C++11, char8_t on C++20.
 * The search / length / compare operations become constexpr on C++14
 * (relaxed constexpr — loops) versus the standard's C++17, a three-
@@ -25,7 +25,7 @@
 *   DEPENDENCIES:
 *   <cstddef> for size_t. <cstdint> for the char16_t / char32_t
 * int_type aliases (uint_least16_t / uint_least32_t). <cwchar> for
-* wchar_t's int_type (wint_t) and WEOF. No restd dependencies.
+* wchar_t's int_type (wint_t) and WEOF. No re_std dependencies.
 *
 *
 * path:      /inc/djinterp/re_std/string_view/char_traits.hpp
@@ -33,8 +33,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.04
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_STRING_VIEW_CHAR_TRAITS_
-#define DJINTERP_RESTD_STRING_VIEW_CHAR_TRAITS_ 1
+#ifndef DJINTERP_RE_STD_STRING_VIEW_CHAR_TRAITS_
+#define DJINTERP_RE_STD_STRING_VIEW_CHAR_TRAITS_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -54,9 +54,15 @@
         #define D_CONSTEXPR_CPP14
     #endif
 #endif
-
-
 NS_RESTD
+//   Opened here 2026-08-25. This file previously began its
+// namespaced content with no NS_RESTD, so everything above the
+// first NS_END lived at GLOBAL SCOPE and that NS_END closed a
+// namespace that was never opened.
+
+
+
+
 
 
 // =============================================================================
@@ -390,12 +396,16 @@ struct char_traits<char>
 // IV.  wchar_t SPECIALISATION  (C++98)
 // =============================================================================
 
-NS_END  // restd
+NS_END  // re_std
 
 // std (fundamental types — wchar_t int_type / WEOF)
 #include <cwchar>
 
 NS_RESTD
+//   Reopened 2026-08-25. The NS_END above exists so <cwchar> is
+// included at global scope, but nothing reopened re_std afterwards,
+// leaving char_traits<wchar_t> at global scope.
+
 
 // char_traits<wchar_t>
 //   class: traits for the wide character type. int_type is wint_t and
@@ -424,9 +434,11 @@ struct char_traits<wchar_t>
 // V.   char16_t / char32_t SPECIALISATIONS  (C++11)
 // =============================================================================
 
+NS_END  // re_std
+
+
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-NS_END  // restd
 
 // std (fundamental types — uint_least16_t / uint_least32_t)
 #include <cstdint>
@@ -515,7 +527,8 @@ struct char_traits<char8_t>
 #endif  // D_ENV_LANG_IS_CPP20_OR_HIGHER
 
 
-NS_END  // restd
 
 
-#endif  // DJINTERP_RESTD_STRING_VIEW_CHAR_TRAITS_
+NS_END  // re_std   (added 2026-08-25 -- was never closed)
+
+#endif  // DJINTERP_RE_STD_STRING_VIEW_CHAR_TRAITS_

@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                 default_delete.hpp
+* re_std                                                default_delete.hpp
 *
 * the default deleter for unique_ptr:
 *   default_delete<_T>     -  calls `delete _p` on its argument.
@@ -13,35 +13,35 @@
 *     pointer is undefined behaviour, and the static_assert here
 *     catches it at compile time);
 *   - have a templated converting constructor on C++11+, gated on
-*     restd::is_convertible. The array specialisation's converting
+*     re_std::is_convertible. The array specialisation's converting
 *     constructor uses the array-of-pointer-to-array form
 *     (_U(*)[] -> _T(*)[]) per [unique.ptr.dltr.dflt1]/2.
 *
 * path:      /inc/djinterp/re_std/memory/default_delete.hpp
 *   The class itself ships, but the converting constructor is omitted
-* (it requires is_convertible, which is C++11+ in restd). This is
+* (it requires is_convertible, which is C++11+ in re_std). This is
 * sufficient for unique_ptr's basic use; covariant deleter conversions
 * are a C++11+ feature.
 *
 *
 * path:      /inc/djinterp/re_std/memory/default_delete.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_DEFAULT_DELETE_
-#define RESTD_MEMORY_DEFAULT_DELETE_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_DEFAULT_DELETE_
+#define DJINTERP_RE_STD_MEMORY_DEFAULT_DELETE_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-    #include "restd/type_traits/enable_if.hpp"
-    #include "restd/type_traits/is_convertible.hpp"
+    #include "re_std/type_traits/enable_if.hpp"
+    #include "re_std/type_traits/is_convertible.hpp"
 #endif
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -156,6 +156,6 @@ struct default_delete<_T[]>
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_MEMORY_DEFAULT_DELETE_
+#endif  // DJINTERP_RE_STD_MEMORY_DEFAULT_DELETE_

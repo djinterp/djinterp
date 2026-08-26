@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                  uninitialized_default_construct.hpp
+* re_std                                 uninitialized_default_construct.hpp
 *
 * default-initialise each element in [_first, _last) — i.e. construct
 * each as if by:  ::new (p) _T;        (no parens)
@@ -19,16 +19,16 @@
 * overwrite the storage anyway (avoiding the wasted zero-init), and
 * value_construct when the user expects defined contents.
 *
-* added in std C++17; restd back-ports unconditionally.
+* added in std C++17; re_std back-ports unconditionally.
 *
 *
 * path:      /inc/djinterp/re_std/memory/uninitialized_default_construct.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_UNINITIALIZED_DEFAULT_CONSTRUCT_
-#define RESTD_MEMORY_UNINITIALIZED_DEFAULT_CONSTRUCT_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_UNINITIALIZED_DEFAULT_CONSTRUCT_
+#define DJINTERP_RE_STD_MEMORY_UNINITIALIZED_DEFAULT_CONSTRUCT_ 1
 
 #include "djinterp.hpp"
 
@@ -36,12 +36,12 @@
 
     #include <new>
 
-    #include "restd/memory/addressof.hpp"
-    #include "restd/memory/destroy_at.hpp"
-    #include "restd/memory/internal/iter_value.hpp"
+    #include "re_std/memory/addressof.hpp"
+    #include "re_std/memory/destroy_at.hpp"
+    #include "re_std/memory/iter_value.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 template<typename _ForwardIt>
@@ -62,28 +62,28 @@ void uninitialized_default_construct
             {
                 // Note the absence of parens after _T: this is
                 // default-initialisation, not value-initialisation.
-                ::new (static_cast<void*>(restd::addressof(*_current))) _T;
+                ::new (static_cast<void*>(re_std::addressof(*_current))) _T;
             }
         }
         catch (...)
         {
             for (; _first != _current; ++_first)
             {
-                restd::destroy_at(restd::addressof(*_first));
+                re_std::destroy_at(re_std::addressof(*_first));
             }
             throw;
         }
     #else
         for (; _current != _last; ++_current)
         {
-            ::new (static_cast<void*>(restd::addressof(*_current))) _T;
+            ::new (static_cast<void*>(re_std::addressof(*_current))) _T;
         }
     #endif
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_CPP98_HAS_NEW
 
-#endif  // RESTD_MEMORY_UNINITIALIZED_DEFAULT_CONSTRUCT_
+#endif  // DJINTERP_RE_STD_MEMORY_UNINITIALIZED_DEFAULT_CONSTRUCT_

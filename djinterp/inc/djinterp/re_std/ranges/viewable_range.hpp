@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          viewable_range.hpp
+* djinterp [re_std]                                         viewable_range.hpp
 *
 * viewable_range header:
 *   Provides the C++20 viewable_range concept as a SFINAE trait.
@@ -19,7 +19,7 @@
 *
 *   SCOPE LIMITATION:
 *   - movable is approximated with is_move_constructible (consistent
-*     with the simplification already used in restd::ranges::view).
+*     with the simplification already used in re_std::ranges::view).
 *   - constructible_from is approximated with is_constructible.
 *
 *   PORTABILITY:
@@ -33,8 +33,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_VIEWABLE_RANGE_
-#define DJINTERP_RESTD_RANGES_VIEWABLE_RANGE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_VIEWABLE_RANGE_
+#define DJINTERP_RE_STD_RANGES_VIEWABLE_RANGE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -133,10 +133,10 @@ D_CONSTEXPR bool viewable_range_v = viewable_range<_T>::value;
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_VIEWABLE_RANGE_
+#endif  // DJINTERP_RE_STD_RANGES_VIEWABLE_RANGE_

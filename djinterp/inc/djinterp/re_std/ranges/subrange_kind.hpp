@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            subrange_kind.hpp
+* djinterp [re_std]                                           subrange_kind.hpp
 *
 * subrange_kind enum header:
 *   Provides the two-value enumeration that distinguishes a sized
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_SUBRANGE_KIND_
-#define DJINTERP_RESTD_RANGES_SUBRANGE_KIND_ 1
+#ifndef DJINTERP_RE_STD_RANGES_SUBRANGE_KIND_
+#define DJINTERP_RE_STD_RANGES_SUBRANGE_KIND_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -64,7 +64,7 @@ struct subrange_kind
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_RANGES_SUBRANGE_KIND_
+#endif  // DJINTERP_RE_STD_RANGES_SUBRANGE_KIND_

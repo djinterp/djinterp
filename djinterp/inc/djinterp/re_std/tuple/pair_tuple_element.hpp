@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                       pair_tuple_element.hpp
+* djinterp [re_std]                                      pair_tuple_element.hpp
 *
 * tuple_element<I, pair> specialisation header:
-*   Specialises restd::tuple_element so that:
+*   Specialises re_std::tuple_element so that:
 *     tuple_element<0, pair<_T1, _T2> >::type -> _T1
 *     tuple_element<1, pair<_T1, _T2> >::type -> _T2
 *
@@ -24,8 +24,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.17
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_UTILITY_PAIR_TUPLE_ELEMENT_
-#define DJINTERP_RESTD_UTILITY_PAIR_TUPLE_ELEMENT_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_PAIR_TUPLE_ELEMENT_
+#define DJINTERP_RE_STD_UTILITY_PAIR_TUPLE_ELEMENT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -37,7 +37,7 @@
 // std
 #include <cstddef>
 // djinterp
-#include "./pair.hpp"
+#include "../utility/pair.hpp"
 #include "../tuple/tuple_element.hpp"
 
 
@@ -65,10 +65,10 @@ struct tuple_element<1, pair<_T1, _T2> >
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIADIC_TEMPLATES
 
 
-#endif  // DJINTERP_RESTD_UTILITY_PAIR_TUPLE_ELEMENT_
+#endif  // DJINTERP_RE_STD_UTILITY_PAIR_TUPLE_ELEMENT_

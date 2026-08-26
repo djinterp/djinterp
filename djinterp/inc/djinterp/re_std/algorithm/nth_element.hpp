@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               nth_element.hpp
+* djinterp [re_std]                                              nth_element.hpp
 *
 * nth_element algorithm header:
 *   Partially-sorts [_first, _last) such that the element at _nth is
@@ -40,12 +40,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_NTH_ELEMENT_
-#define DJINTERP_RESTD_ALGORITHM_NTH_ELEMENT_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_NTH_ELEMENT_
+#define DJINTERP_RE_STD_ALGORITHM_NTH_ELEMENT_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./iter_swap.hpp"
 #include "../iterator/iterator_traits.hpp"
 #include "../functional/less.hpp"
@@ -156,7 +156,7 @@ _nth_insertion_(
     for (; _i != _last; ++_i)
     {
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        _Value _value = restd::move(*_i);
+        _Value _value = re_std::move(*_i);
 #else
         _Value _value = *_i;
 #endif
@@ -171,7 +171,7 @@ _nth_insertion_(
                 break;
             }
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-            *_j = restd::move(*_prev);
+            *_j = re_std::move(*_prev);
 #else
             *_j = *_prev;
 #endif
@@ -179,7 +179,7 @@ _nth_insertion_(
         }
 
 #if D_ENV_CPP_FEATURE_LANG_RVALUE_REFERENCES
-        *_j = restd::move(_value);
+        *_j = re_std::move(_value);
 #else
         *_j = _value;
 #endif
@@ -348,7 +348,7 @@ nth_element(
 
 
 // nth_element (default operator<)
-//   function: as above with restd::less<value_type>().
+//   function: as above with re_std::less<value_type>().
 template<typename _RandomIt>
 void
 nth_element(
@@ -358,11 +358,11 @@ nth_element(
 )
 {
     typedef typename iterator_traits<_RandomIt>::value_type _Value;
-    nth_element(_first, _nth, _last, restd::less<_Value>());
+    nth_element(_first, _nth, _last, re_std::less<_Value>());
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_NTH_ELEMENT_
+#endif  // DJINTERP_RE_STD_ALGORITHM_NTH_ELEMENT_

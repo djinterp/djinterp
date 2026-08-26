@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                    is_nothrow_assignable.hpp
+* djinterp [re_std]                                   is_nothrow_assignable.hpp
 *
 * is_nothrow_assignable trait header:
 *   Yields true_type if `_To = _From` is well-formed AND the assignment
@@ -7,7 +7,7 @@
 * `is_assignable && noexcept(...)` probe.
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE.
+*   D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_nothrow_assignable.hpp
@@ -15,8 +15,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_ASSIGNABLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_ASSIGNABLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_ASSIGNABLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_ASSIGNABLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -33,20 +33,20 @@
 #include "./add_rvalue_reference.hpp"
 
 
-#ifndef D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE
+#ifndef D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_nothrow_assignable)
-            #define D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE       1
+            #define D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE       1
         #else
-            #define D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE       0
+            #define D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE       0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC)   ||                                  \
             defined(D_ENV_COMPILER_CLANG) ||                                  \
             defined(D_ENV_COMPILER_MSVC)  ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE           1
+        #define D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE           1
     #else
-        #define D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE           0
+        #define D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE           0
     #endif
 #endif
 
@@ -58,7 +58,7 @@ NS_RESTD
 // I.   IS_NOTHROW_ASSIGNABLE
 // =============================================================================
 
-#if D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE
+#if D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE
 
     template<typename _To,
              typename _From>
@@ -107,7 +107,7 @@ NS_RESTD
     {};
 
 
-#endif  // D_RESTD_HAS_IS_NOTHROW_ASSIGNABLE
+#endif  // D_RE_STD_HAS_IS_NOTHROW_ASSIGNABLE
 
 
 // =============================================================================
@@ -124,10 +124,10 @@ NS_RESTD
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_ASSIGNABLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_ASSIGNABLE_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                           is_arithmetic.hpp
+* djinterp [re_std]                                          is_arithmetic.hpp
 *
 * is_arithmetic trait header:
 *   Composite trait. Detects whether a type, ignoring cv-qualifiers, is
@@ -20,8 +20,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_ARITHMETIC_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_ARITHMETIC_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_ARITHMETIC_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_ARITHMETIC_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -61,7 +61,7 @@ struct is_arithmetic
 #endif  // D_ENV_CPP_FEATURE_LANG_VARIABLE_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_ARITHMETIC_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_ARITHMETIC_

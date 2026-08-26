@@ -1,16 +1,16 @@
 /***********************************************************************
-* restd                                                         hash.hpp
+* re_std                                                        hash.hpp
 *
-* restd::hash specialisations for error_code / error_condition:
+* re_std::hash specialisations for error_code / error_condition:
 *   the functional module defers hash<error_code> and
 *   hash<error_condition> to ship with their owning header; this is that
-*   header. Both specialise restd::hash (empty primary from
-*   restd/functional/hash.hpp). std ships hash<error_code> at C++11 and
-*   hash<error_condition> at C++17; restd ships BOTH at C++11 — a
+*   header. Both specialise re_std::hash (empty primary from
+*   re_std/functional/hash.hpp). std ships hash<error_code> at C++11 and
+*   hash<error_condition> at C++17; re_std ships BOTH at C++11 — a
 *   six-year back-port of the error_condition specialisation. Both combine
 *   the integer value() with the address-identity of the category via
 *   reinterpret_cast, so neither is constexpr on any tier (matching std
-*   and restd's pointer-hash specialisation).
+*   and re_std's pointer-hash specialisation).
 *
 *
 * path:      /inc/djinterp/re_std/system_error/hash.hpp
@@ -18,8 +18,8 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_SYSTEM_ERROR_HASH_
-#define RESTD_SYSTEM_ERROR_HASH_ 1
+#ifndef DJINTERP_RE_STD_SYSTEM_ERROR_HASH_
+#define DJINTERP_RE_STD_SYSTEM_ERROR_HASH_ 1
 
 // djinterp
 #include "djinterp.hpp"
@@ -29,15 +29,15 @@
 // std
 #include <system_error>
 #include <cstddef>                  // size_t
-// restd
-#include "../functional/hash.hpp"   // restd::hash primary template
+// re_std
+#include "../functional/hash.hpp"   // re_std::hash primary template
 #include "error_code.hpp"
 #include "error_condition.hpp"
 
 NS_RESTD
 
     // hash<error_code>
-    //   struct: specialisation of restd::hash for error_code (std: C++11).
+    //   struct: specialisation of re_std::hash for error_code (std: C++11).
     template<>
     struct hash<error_code>
     {
@@ -58,8 +58,8 @@ NS_RESTD
     };
 
     // hash<error_condition>
-    //   struct: specialisation of restd::hash for error_condition. std ships
-    // this at C++17; restd back-ports it to C++11.
+    //   struct: specialisation of re_std::hash for error_condition. std ships
+    // this at C++17; re_std back-ports it to C++11.
     template<>
     struct hash<error_condition>
     {
@@ -79,8 +79,8 @@ NS_RESTD
         }
     };
 
-NS_END  // restd
+NS_END  // re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_SYSTEM_ERROR_HASH_
+#endif  // DJINTERP_RE_STD_SYSTEM_ERROR_HASH_

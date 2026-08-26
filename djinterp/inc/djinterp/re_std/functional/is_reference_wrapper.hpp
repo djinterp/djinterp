@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd [functional]                                is_reference_wrapper.hpp
+* re_std [functional]                               is_reference_wrapper.hpp
 *
 *   The reference_wrapper DETECTION TRAIT, split out of
 * reference_wrapper.hpp so that invoke.hpp can dispatch on it without
@@ -7,11 +7,11 @@
 *
 *   WHY A SEPARATE HEADER:
 *   invoke.hpp needs `is_reference_wrapper` to select the rw-arg INVOKE
-* bullets, and reference_wrapper::operator() needs `restd::invoke`.  That
+* bullets, and reference_wrapper::operator() needs `re_std::invoke`.  That
 * is a cycle.  Include guards do not resolve it: they prevent infinite
 * recursion, not mis-ordering -- whichever of the two files is entered
 * first, reference_wrapper::operator()'s trailing return type is parsed
-* before `restd::invoke` is declared, and because `restd::invoke` is a
+* before `re_std::invoke` is declared, and because `re_std::invoke` is a
 * qualified-id whose nested-name-specifier does not depend on a template
 * parameter, it is looked up at template DEFINITION time.
 *
@@ -23,18 +23,18 @@
 *   Min standard: C++11.
 *
 *
-* path:      /inc/restd/functional/is_reference_wrapper.hpp
+* path:      /inc/re_std/functional/is_reference_wrapper.hpp
 * link(s):   TBA
-* author(s): restd
+* author(s): re_std
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_IS_REFERENCE_WRAPPER_
-#define RESTD_FUNCTIONAL_IS_REFERENCE_WRAPPER_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_
+#define DJINTERP_RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_ 1
 
 #include "djinterp.hpp"
-#include "restd/type_traits/type_traits.hpp"
+#include "re_std/type_traits/type_traits.hpp"
 
-namespace restd
+namespace re_std
 {
 
 // reference_wrapper
@@ -74,6 +74,6 @@ D_CONSTEXPR bool is_reference_wrapper_v
 
 #endif
 
-} // namespace restd
+} // namespace re_std
 
-#endif // RESTD_FUNCTIONAL_IS_REFERENCE_WRAPPER_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_IS_REFERENCE_WRAPPER_

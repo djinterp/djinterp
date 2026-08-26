@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                            array_compare.hpp
+* djinterp [re_std]                                           array_compare.hpp
 *
 * array comparison operators header:
 *   Provides the six legacy relational operators for array<_Type, _Size>:
@@ -9,7 +9,7 @@
 *
 *   In C++20, operator!= and the three ordering operators are
 * synthesised from operator<=> per [array.syn] — std no longer ships
-* explicit overloads. restd ships explicit overloads on every tier
+* explicit overloads. re_std ships explicit overloads on every tier
 * for portability: on C++11–C++17 they are the only way to compare
 * arrays; on C++20+ they coexist with the three-way overload (in
 * array_compare_three_way.hpp).
@@ -18,7 +18,7 @@
 *   - C++98/03: not constexpr (no constexpr keyword).
 *   - C++11:    not constexpr (loops disallowed in constexpr function
 *     bodies; would need recursion which is awkward across all six).
-*   - C++14+:   constexpr — restd is ahead of std (std waited for
+*   - C++14+:   constexpr — re_std is ahead of std (std waited for
 *     C++20 / P1614). The relaxed-constexpr rules from C++14 permit
 *     for-loops directly.
 *
@@ -35,8 +35,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_COMPARE_
-#define DJINTERP_RESTD_ARRAY_COMPARE_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_COMPARE_
+#define DJINTERP_RE_STD_ARRAY_COMPARE_ 1
 
 #include <cstddef>
 
@@ -84,7 +84,7 @@ operator==(
 
 // operator!=
 //   function: defined as !(_lhs == _rhs). On C++20 the standard
-// synthesises this from op<=>; restd keeps it explicit so user
+// synthesises this from op<=>; re_std keeps it explicit so user
 // code compiled at C++11–C++17 can still rely on it.
 template<typename    _Type,
          std::size_t _Size>
@@ -163,7 +163,7 @@ operator>=(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ARRAY_COMPARE_
+#endif  // DJINTERP_RE_STD_ARRAY_COMPARE_

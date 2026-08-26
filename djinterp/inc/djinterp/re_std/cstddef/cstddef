@@ -1,0 +1,59 @@
+/******************************************************************************
+* djinterp [re_std]                                                     cstddef
+*
+* <cstddef> umbrella header:
+*   Aggregates the granular headers under /inc/djinterp/re_std/cstddef/.
+* Mirrors the standard <cstddef> convenience header and adds no symbols of
+* its own.
+*
+*   THIS MODULE IS TWO DIFFERENT THINGS AT ONCE, AND THE SPLIT IS THE
+* INTERESTING PART:
+*
+*     size_t, ptrdiff_t, nullptr_t, max_align_t   re-exports
+*     byte, to_integer, the eleven byte operators  re_std's own
+*
+*   The first group is fixed by the implementation -- what sizeof yields,
+* what decltype(nullptr) is -- and can only be surfaced, never rewritten.
+* Those are identity-preserving re-exports: re_std::size_t IS std::size_t.
+*
+*   The second group is ordinary C++ with no compiler magic behind it, so
+* re_std defines it and back-ports it from C++17 to C++11. On C++17 and
+* later that means re_std::byte and std::byte are DIFFERENT TYPES. See
+* byte.hpp for why that was chosen over a tier-dependent identity.
+*
+*   THE TWO MACROS ARE NOT AND CANNOT BE NAMESPACED:
+*   <cstddef> also supplies `NULL` and `offsetof(type, member)`. Macros
+* have no namespace, so there is no re_std:: spelling of either and none
+* is invented here -- including this umbrella makes both available exactly
+* as the standard header does. Two notes on using them from re_std code:
+*
+*     - Prefer D_NULLPTR (or a bare nullptr on C++11+) to NULL. NULL is
+*       an integer literal in disguise and picks integer overloads.
+*     - offsetof is only defined behaviour on standard-layout types.
+*
+*
+* path:      /inc/djinterp/re_std/cstddef/cstddef
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_CSTDDEF_
+#define DJINTERP_RE_STD_CSTDDEF_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+
+// -- implementation-fixed types (re-exports) --------------------------------
+#include "./size_t.hpp"
+#include "./ptrdiff_t.hpp"
+#include "./nullptr_t.hpp"
+#include "./max_align_t.hpp"
+
+// -- re_std's own -----------------------------------------------------------
+#include "./byte.hpp"
+#include "./to_integer.hpp"
+#include "./byte_ops.hpp"
+
+
+#endif  // DJINTERP_RE_STD_CSTDDEF_

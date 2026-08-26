@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                         take_while_view.hpp
+* djinterp [re_std]                                        take_while_view.hpp
 *
 * take_while_view header:
 *   Provides the C++20 predicate-prefix adaptor. take_while_view<V, Pred>
@@ -16,11 +16,11 @@
 *   - As a consequence take_while_view is NOT a common_range — its
 *     end() returns the custom sentinel, not iterator_t<V>. Use
 *     common_view to coerce for algorithms requiring iterator-pair
-*     interfaces (common_view itself is deferred in restd; for now
+*     interfaces (common_view itself is deferred in re_std; for now
 *     materialise via subrange or copy into a container).
 *
 *   COLOCATED:
-*   restd::views::take_while(r, pred).
+*   re_std::views::take_while(r, pred).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/take_while_view.hpp
@@ -28,8 +28,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_TAKE_WHILE_VIEW_
-#define DJINTERP_RESTD_RANGES_TAKE_WHILE_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_TAKE_WHILE_VIEW_
+#define DJINTERP_RE_STD_RANGES_TAKE_WHILE_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -53,7 +53,7 @@ NS_RESTD
 
 // take_while_view<_View, _Pred>
 //   class: stops at the first element of _View where _Pred returns
-// false. Begin = restd::begin(base); end = custom sentinel.
+// false. Begin = re_std::begin(base); end = custom sentinel.
 template<typename _View,
          typename _Pred>
 class take_while_view : public view_interface<take_while_view<_View, _Pred> >
@@ -190,34 +190,34 @@ public:
 
     // begin
     //   function: returns iterator_t<_View> directly. No wrapping.
-    D_CONSTEXPR iterator_t<_View>
+    D_CONSTEXPR_CPP14 iterator_t<_View>
     begin()
     {
-        return restd::begin(m_base);
+        return re_std::begin(m_base);
     }
 
     D_CONSTEXPR
     auto
     begin() const
-        -> decltype(restd::begin(m_base))
+        -> decltype(re_std::begin(m_base))
     {
-        return restd::begin(m_base);
+        return re_std::begin(m_base);
     }
 
 
     // end
     //   function: returns the custom sentinel wrapping the
     // underlying end and a back-pointer to this view.
-    D_CONSTEXPR sentinel
+    D_CONSTEXPR_CPP14 sentinel
     end()
     {
-        return sentinel(restd::end(m_base), this);
+        return sentinel(re_std::end(m_base), this);
     }
 
     D_CONSTEXPR sentinel
     end() const
     {
-        return sentinel(restd::end(m_base), this);
+        return sentinel(re_std::end(m_base), this);
     }
 };
 
@@ -303,10 +303,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_TAKE_WHILE_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_TAKE_WHILE_VIEW_

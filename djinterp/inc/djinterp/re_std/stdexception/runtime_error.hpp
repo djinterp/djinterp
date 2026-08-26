@@ -1,45 +1,45 @@
 /***********************************************************************
-* restd                                                 runtime_error.hpp
+* re_std                                                runtime_error.hpp
 *
 * runtime_error:
 *   base of the "errors detectable only as the program runs" branch of
 * the <stdexcept> hierarchy (derives from exception). Runtime-provided,
-* so restd re-exports std::runtime_error when <stdexcept> is available
+* so re_std re-exports std::runtime_error when <stdexcept> is available
 * (type identity preserved) and degrades to a standalone class deriving
-* from restd::exception otherwise, reusing the non-allocating message
+* from re_std::exception otherwise, reusing the non-allocating message
 * holder defined alongside logic_error.
 *
 *
 * path:      /inc/djinterp/re_std/stdexception/runtime_error.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.06.04
+* author(s): re_std contributors                         date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_STDEXCEPT_RUNTIME_ERROR_
-#define RESTD_STDEXCEPT_RUNTIME_ERROR_ 1
+#ifndef DJINTERP_RE_STD_STDEXCEPT_RUNTIME_ERROR_
+#define DJINTERP_RE_STD_STDEXCEPT_RUNTIME_ERROR_ 1
 
-#include "../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 #include "../exception/exception.hpp"
-#include "logic_error.hpp" // for restd::internal::fixed_message in the fallback
+#include "logic_error.hpp" // for re_std::internal::fixed_message in the fallback
 
 #if D_ENV_CPP98_HAS_STDEXCEPT
 
     #include <stdexcept>
 
-namespace restd
+namespace re_std
 {
     // runtime_error
     //   class: using-declaration from std::runtime_error.
     using std::runtime_error;
 
-} // namespace restd
+} // namespace re_std
 
 #else // freestanding fallback
 
-namespace restd
+namespace re_std
 {
     // runtime_error
-    //   class: standalone fallback deriving from restd::exception.
+    //   class: standalone fallback deriving from re_std::exception.
     //   Exposes the const char* constructor only (no <string> dependency).
     class runtime_error : public exception
     {
@@ -60,8 +60,8 @@ namespace restd
         internal::fixed_message m_msg;
     };
 
-} // namespace restd
+} // namespace re_std
 
 #endif // D_ENV_CPP98_HAS_STDEXCEPT
 
-#endif // RESTD_STDEXCEPT_RUNTIME_ERROR_
+#endif  // DJINTERP_RE_STD_STDEXCEPT_RUNTIME_ERROR_

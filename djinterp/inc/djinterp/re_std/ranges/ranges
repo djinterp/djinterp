@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                     ranges
+* djinterp [re_std]                                                    ranges
 *
 * ranges umbrella header:
 *   Pulls in every public symbol of the <ranges> module that is
-* currently shipped in restd. Mirrors the convention for #include
+* currently shipped in re_std. Mirrors the convention for #include
 * <ranges> — users may include this header to obtain the full
 * surface, or include the individual granular modules for finer
 * control over compile-time cost.
@@ -30,7 +30,7 @@
 *   - Phase R18: join_with_view (C++23, single-value separator) — pipe-enabled
 *   - Phase R19: as_const_view (C++23, simplified) — pipe-enabled
 *   - Phase R21: output_range trait + viewable_range trait + lazy_split_view (C++20)
-*   - Phase R22: internal utilities — restd::iter_move CPO +
+*   - Phase R22: internal utilities — re_std::iter_move CPO +
 *                iter_rvalue_reference_t (in iterator/), basic_const_iterator +
 *                iter_const_reference_t (in iterator/), non_propagating_cache
 *                + movable_box (ranges/internal/). Upgraded as_rvalue_view to
@@ -43,8 +43,8 @@
 *                rbegin / rend / crbegin / crend / size / ssize / empty /
 *                data / cdata. All 13 in a single file using the same
 *                priority<N> + poison-pill ADL pattern as iter_move (R22).
-*                Live in restd::ranges:: sub-namespace to avoid collision
-*                with the existing flat-namespace restd::begin et al.
+*                Live in re_std::ranges:: sub-namespace to avoid collision
+*                with the existing flat-namespace re_std::begin et al.
 *                ordinary-template overloads in <iterator>.
 *   - Phase R25: join_view upgrade — removed the static_assert that
 *                rejected prvalue inner ranges. The view now carries a
@@ -91,13 +91,13 @@
 * (needs concepts + concrete container types).
 *
 *
-* path:      /inc/djinterp/restd/ranges
+* path:      /inc/djinterp/re_std/ranges
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_UMBRELLA_
-#define DJINTERP_RESTD_RANGES_UMBRELLA_ 1
+#ifndef DJINTERP_RE_STD_RANGES_UMBRELLA_
+#define DJINTERP_RE_STD_RANGES_UMBRELLA_ 1
 
 
 // I.    foundations (no concept dependencies, available C++98+)
@@ -150,12 +150,12 @@
 // VII.  pipe infrastructure (Phase R10)
 #include "./ranges/range_adaptor_closure.hpp"
 
-// VII.b R22 internal utilities (exposition-only in std, restd::internal::)
+// VII.b R22 internal utilities (exposition-only in std, re_std::internal::)
 #include "./ranges/non_propagating_cache.hpp"
 #include "./ranges/movable_box.hpp"
 
 // VII.c ranges:: niebloid CPOs (Phase R24) — 13 customisation point
-//       objects in restd::ranges:: sub-namespace
+//       objects in re_std::ranges:: sub-namespace
 #include "./ranges/ranges_access.hpp"
 
 // VIII. view factories (Phase R3; iota_view extended in Phase R9)
@@ -199,4 +199,4 @@
 #include "./ranges/as_const_view.hpp"    // R19 (simplified)
 
 
-#endif  // DJINTERP_RESTD_RANGES_UMBRELLA_
+#endif  // DJINTERP_RE_STD_RANGES_UMBRELLA_

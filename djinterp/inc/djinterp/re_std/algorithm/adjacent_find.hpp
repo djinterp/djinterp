@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                             adjacent_find.hpp
+* djinterp [re_std]                                            adjacent_find.hpp
 *
 * adjacent_find algorithm header:
 *   Returns the first iterator it in [_first, _last) such that *it ==
@@ -8,7 +8,7 @@
 *
 *   PORTABILITY:
 *   - std::adjacent_find is C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *
 *
 * path:      /inc/djinterp/re_std/algorithm/adjacent_find.hpp
@@ -16,8 +16,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_ADJACENT_FIND_
-#define DJINTERP_RESTD_ALGORITHM_ADJACENT_FIND_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_ADJACENT_FIND_
+#define DJINTERP_RE_STD_ALGORITHM_ADJACENT_FIND_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -109,7 +109,7 @@ adjacent_find(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_ADJACENT_FIND_
+#endif  // DJINTERP_RE_STD_ALGORITHM_ADJACENT_FIND_

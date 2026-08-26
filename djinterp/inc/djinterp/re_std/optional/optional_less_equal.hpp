@@ -20,11 +20,11 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.08.13
 ******************************************************************************/
 
-#ifndef RESTD_OPTIONAL_LESS_EQUAL_
-#define RESTD_OPTIONAL_LESS_EQUAL_ 1
+#ifndef DJINTERP_RE_STD_OPTIONAL_LESS_EQUAL_
+#define DJINTERP_RE_STD_OPTIONAL_LESS_EQUAL_ 1
 
 // re_std
-#include "../../djinterp.hpp"
+#include "../../core/djinterp.hpp"
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
@@ -32,7 +32,6 @@
 #include "./optional.hpp"
 #include "./nullopt.hpp"
 
-NS_DJINTERP
 NS_RESTD
 
 // operator<=
@@ -76,8 +75,6 @@ D_CONSTEXPR bool operator<=(const _Other& a, const optional<_Type>& b)
 }
 
 NS_END  // re_std
-NS_END  // djinterp
-
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_OPTIONAL_LESS_EQUAL_
+#endif  // DJINTERP_RE_STD_OPTIONAL_LESS_EQUAL_

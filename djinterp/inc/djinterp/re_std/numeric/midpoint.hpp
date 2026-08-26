@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                          midpoint.hpp
+* re_std                                                         midpoint.hpp
 *
 * midpoint(_a, _b) returns the average of _a and _b without overflow.
 *
@@ -25,11 +25,11 @@
 *
 * path:      /inc/djinterp/re_std/numeric/midpoint.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.09
+* author(s): re_std contributors                         date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_NUMERIC_MIDPOINT_
-#define RESTD_NUMERIC_MIDPOINT_ 1
+#ifndef DJINTERP_RE_STD_NUMERIC_MIDPOINT_
+#define DJINTERP_RE_STD_NUMERIC_MIDPOINT_ 1
 
 #include "djinterp.hpp"
 
@@ -40,7 +40,7 @@
     #include <type_traits>
 
 
-namespace restd
+namespace re_std
 {
 
 // Integral overload. The trick:
@@ -72,8 +72,8 @@ constexpr _T* midpoint(_T* _a, _T* _b) D_NOEXCEPT
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_NUMERIC_MIDPOINT_
+#endif  // DJINTERP_RE_STD_NUMERIC_MIDPOINT_

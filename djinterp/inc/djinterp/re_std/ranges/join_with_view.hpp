@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          join_with_view.hpp
+* djinterp [re_std]                                         join_with_view.hpp
 *
 * join_with_view header:
 *   Provides the C++23 separator-join adaptor. join_with_view<V, S>
@@ -10,7 +10,7 @@
 *
 *   SCOPE LIMITATION RELATIVE TO C++23:
 *   The C++23 std::ranges::join_with_view accepts a separator that
-* is either a single value OR a range of values. Restd ships only
+* is either a single value OR a range of values. Re_std ships only
 * the single-value separator (most common case: comma, space,
 * newline, etc.). The range-separator form requires interleaving
 * iteration through TWO range types and roughly doubles iterator
@@ -26,17 +26,17 @@
 *     via an internal state flag.
 *
 *   COLOCATED:
-*   restd::views::join_with(r, sep) — direct form.
-*   restd::views::join_with(sep)    — bound form for pipe syntax.
+*   re_std::views::join_with(r, sep) — direct form.
+*   re_std::views::join_with(sep)    — bound form for pipe syntax.
 *
 *
-* path:      /inc/djinterp/restd/ranges/join_with_view.hpp
+* path:      /inc/djinterp/re_std/ranges/join_with_view.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_JOIN_WITH_VIEW_
-#define DJINTERP_RESTD_RANGES_JOIN_WITH_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_JOIN_WITH_VIEW_
+#define DJINTERP_RE_STD_RANGES_JOIN_WITH_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -84,9 +84,9 @@ private:
     static_assert(
         is_lvalue_reference<outer_reference>::value
         || is_rvalue_reference<outer_reference>::value,
-        "restd::join_with_view requires the outer range's reference "
+        "re_std::join_with_view requires the outer range's reference "
         "type to be a reference; prvalue inner ranges need a "
-        "non-propagating cache, not yet shipped in restd."
+        "non-propagating cache, not yet shipped in re_std."
     );
 
 
@@ -147,12 +147,12 @@ public:
         void
         satisfy_outer()
         {
-            sentinel_t<_View> outer_end = restd::end(m_parent->m_base);
+            sentinel_t<_View> outer_end = re_std::end(m_parent->m_base);
             while (m_outer != outer_end)
             {
                 inner_range& inner = *m_outer;
-                m_inner = restd::begin(inner);
-                if (m_inner != restd::end(inner))
+                m_inner = re_std::begin(inner);
+                if (m_inner != re_std::end(inner))
                 {
                     return;
                 }
@@ -175,8 +175,8 @@ public:
             {
                 --m_outer;
                 inner_range& inner = *m_outer;
-                iterator_t<inner_range> inner_begin = restd::begin(inner);
-                iterator_t<inner_range> inner_end   = restd::end(inner);
+                iterator_t<inner_range> inner_begin = re_std::begin(inner);
+                iterator_t<inner_range> inner_end   = re_std::end(inner);
                 if (inner_begin != inner_end)
                 {
                     m_inner = inner_end;
@@ -199,7 +199,7 @@ public:
         iterator(
             join_with_view const*  _parent
         )
-            : m_outer(restd::begin(_parent->m_base)),
+            : m_outer(re_std::begin(_parent->m_base)),
               m_inner(),
               m_in_sep(false),
               m_parent(_parent)
@@ -247,7 +247,7 @@ public:
         iterator&
         operator++()
         {
-            sentinel_t<_View> outer_end = restd::end(m_parent->m_base);
+            sentinel_t<_View> outer_end = re_std::end(m_parent->m_base);
             if (m_in_sep)
             {
                 m_in_sep = false;
@@ -258,7 +258,7 @@ public:
             {
                 inner_range& inner = *m_outer;
                 ++m_inner;
-                if (m_inner == restd::end(inner))
+                if (m_inner == re_std::end(inner))
                 {
                     ++m_outer;
                     satisfy_outer();  // skip empties; positions m_inner if found
@@ -296,7 +296,7 @@ public:
         iterator&
         operator--()
         {
-            sentinel_t<_View> outer_end = restd::end(m_parent->m_base);
+            sentinel_t<_View> outer_end = re_std::end(m_parent->m_base);
 
             if (m_outer == outer_end)
             {
@@ -315,7 +315,7 @@ public:
             }
 
             inner_range& inner = *m_outer;
-            if (m_inner == restd::begin(inner))
+            if (m_inner == re_std::begin(inner))
             {
                 // (c) previous element is separator
                 m_in_sep = true;
@@ -343,7 +343,7 @@ public:
         {
             return (m_outer == _rhs.m_outer)
                 && ( (m_parent == D_NULLPTR)
-                  || (m_outer == restd::end(m_parent->m_base))
+                  || (m_outer == re_std::end(m_parent->m_base))
                   || (m_in_sep == _rhs.m_in_sep
                       && m_inner == _rhs.m_inner) );
         }
@@ -460,7 +460,7 @@ public:
     D_CONSTEXPR sentinel
     end() const
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 };
 
@@ -546,10 +546,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_JOIN_WITH_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_JOIN_WITH_VIEW_

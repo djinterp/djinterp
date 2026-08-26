@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                          intcmp.hpp -- cmp_* family
+* re_std                                         intcmp.hpp -- cmp_* family
 *
 * sign-safe integer comparison functions:
 *   cmp_equal, cmp_not_equal, cmp_less, cmp_greater, cmp_less_equal,
@@ -28,22 +28,22 @@
 *
 *
 * DEPENDENCY NOTE:
-*   uses std::is_signed and std::make_unsigned. restd does NOT yet
+*   uses std::is_signed and std::make_unsigned. re_std does NOT yet
 * provide make_unsigned (it's not in the type_traits.hpp foundation
 * that shipped). Documented as a localised, justified exception to
 * the no-std-traits rule, same treatment as iterator_traits's
-* tag-translation layer. To remove the std dependency, restd would
+* tag-translation layer. To remove the std dependency, re_std would
 * need to ship make_signed/make_unsigned (intrinsic-free, just a
 * sequence of partial specs).
 *
 *
 * path:      /inc/djinterp/re_std/utility/intcmp.hpp
 * link(s):   TBA
-* author(s): restd team                                 date: 2026.05.09
+* author(s): re_std team                                date: 2026.05.09
 ***********************************************************************/
 
-#ifndef RESTD_UTILITY_INTCMP_
-#define RESTD_UTILITY_INTCMP_ 1
+#ifndef DJINTERP_RE_STD_UTILITY_INTCMP_
+#define DJINTERP_RE_STD_UTILITY_INTCMP_ 1
 
 #include "djinterp.hpp"
 
@@ -54,7 +54,7 @@
     #include <limits>       // std::numeric_limits (for in_range)
 
 
-namespace restd
+namespace re_std
 {
 namespace internal
 {
@@ -149,7 +149,7 @@ D_CONSTEXPR bool cmp_equal(_T _t, _U _u) D_NOEXCEPT
 template<typename _T, typename _U>
 D_CONSTEXPR bool cmp_not_equal(_T _t, _U _u) D_NOEXCEPT
 {
-    return !restd::cmp_equal(_t, _u);
+    return !re_std::cmp_equal(_t, _u);
 }
 
 template<typename _T, typename _U>
@@ -161,19 +161,19 @@ D_CONSTEXPR bool cmp_less(_T _t, _U _u) D_NOEXCEPT
 template<typename _T, typename _U>
 D_CONSTEXPR bool cmp_greater(_T _t, _U _u) D_NOEXCEPT
 {
-    return restd::cmp_less(_u, _t);
+    return re_std::cmp_less(_u, _t);
 }
 
 template<typename _T, typename _U>
 D_CONSTEXPR bool cmp_less_equal(_T _t, _U _u) D_NOEXCEPT
 {
-    return !restd::cmp_less(_u, _t);
+    return !re_std::cmp_less(_u, _t);
 }
 
 template<typename _T, typename _U>
 D_CONSTEXPR bool cmp_greater_equal(_T _t, _U _u) D_NOEXCEPT
 {
-    return !restd::cmp_less(_t, _u);
+    return !re_std::cmp_less(_t, _u);
 }
 
 
@@ -184,13 +184,13 @@ D_CONSTEXPR bool cmp_greater_equal(_T _t, _U _u) D_NOEXCEPT
 template<typename _R, typename _T>
 D_CONSTEXPR bool in_range(_T _t) D_NOEXCEPT
 {
-    return restd::cmp_greater_equal(_t, std::numeric_limits<_R>::min())
-        && restd::cmp_less_equal(_t, std::numeric_limits<_R>::max());
+    return re_std::cmp_greater_equal(_t, std::numeric_limits<_R>::min())
+        && re_std::cmp_less_equal(_t, std::numeric_limits<_R>::max());
 }
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_UTILITY_INTCMP_
+#endif  // DJINTERP_RE_STD_UTILITY_INTCMP_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                      visit.hpp
+* djinterp [re_std]                                                     visit.hpp
 *
 * single-variant visit header:
 *   Invokes a visitor with the variant's active alternative as its
@@ -40,8 +40,8 @@
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VISIT_
-#define DJINTERP_RESTD_VISIT_ 1
+#ifndef DJINTERP_RE_STD_VISIT_
+#define DJINTERP_RE_STD_VISIT_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -175,10 +175,10 @@ visit(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_VISIT_
+#endif  // DJINTERP_RE_STD_VISIT_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                         underlying_type.hpp
+* djinterp [re_std]                                        underlying_type.hpp
 *
 * underlying_type trait header:
 *   Yields the underlying integral type of an enumeration. Implemented
@@ -15,12 +15,12 @@
 *   FALLBACK BEHAVIOR:
 *   When the intrinsic is unavailable, underlying_type is NOT defined
 * (no fallback typedef). Code that uses it must be gated on
-* D_RESTD_HAS_UNDERLYING_TYPE. This is safe in restd::any because the
+* D_RE_STD_HAS_UNDERLYING_TYPE. This is safe in re_std::any because the
 * only consumer is itself gated on is_enum::value, which is false when
 * intrinsics are absent.
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_UNDERLYING_TYPE is set to 1 if the intrinsic is
+*   D_RE_STD_HAS_UNDERLYING_TYPE is set to 1 if the intrinsic is
 * available, 0 otherwise. Users may pre-define it to override detection.
 *
 *
@@ -29,39 +29,39 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_UNDERLYING_TYPE_
-#define DJINTERP_RESTD_TYPE_TRAITS_UNDERLYING_TYPE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_UNDERLYING_TYPE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_UNDERLYING_TYPE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
 
 
 // =============================================================================
-// 0.   D_RESTD_HAS_UNDERLYING_TYPE DETECTION
+// 0.   D_RE_STD_HAS_UNDERLYING_TYPE DETECTION
 // =============================================================================
 
-// D_RESTD_HAS_UNDERLYING_TYPE
+// D_RE_STD_HAS_UNDERLYING_TYPE
 //   constant: 1 if the __underlying_type compiler intrinsic is
 // available, 0 otherwise. Users may pre-define to override.
-#ifndef D_RESTD_HAS_UNDERLYING_TYPE
+#ifndef D_RE_STD_HAS_UNDERLYING_TYPE
     #if defined(__has_builtin)
         #if __has_builtin(__underlying_type)
-            #define D_RESTD_HAS_UNDERLYING_TYPE 1
+            #define D_RE_STD_HAS_UNDERLYING_TYPE 1
         #else
-            #define D_RESTD_HAS_UNDERLYING_TYPE 0
+            #define D_RE_STD_HAS_UNDERLYING_TYPE 0
         #endif
     #elif ( defined(D_ENV_COMPILER_GCC) ||                                   \
             defined(D_ENV_COMPILER_CLANG) ||                                 \
             defined(D_ENV_COMPILER_MSVC) ||                                  \
             defined(D_ENV_COMPILER_INTEL) )
-        #define D_RESTD_HAS_UNDERLYING_TYPE 1
+        #define D_RE_STD_HAS_UNDERLYING_TYPE 1
     #else
-        #define D_RESTD_HAS_UNDERLYING_TYPE 0
+        #define D_RE_STD_HAS_UNDERLYING_TYPE 0
     #endif
 #endif
 
 
-#if D_RESTD_HAS_UNDERLYING_TYPE
+#if D_RE_STD_HAS_UNDERLYING_TYPE
 
 
 NS_RESTD
@@ -95,10 +95,10 @@ struct underlying_type
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // D_RESTD_HAS_UNDERLYING_TYPE
+#endif  // D_RE_STD_HAS_UNDERLYING_TYPE
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_UNDERLYING_TYPE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_UNDERLYING_TYPE_

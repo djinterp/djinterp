@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                          is_destructible.hpp
+* djinterp [re_std]                                         is_destructible.hpp
 *
 * is_destructible trait header:
 *   Yields true_type if `_Type` can be destroyed (the expression
@@ -26,16 +26,16 @@
 * `__is_destructible` is available.
 *
 *   DETECTION MACRO:
-*   D_RESTD_HAS_IS_DESTRUCTIBLE.
+*   D_RE_STD_HAS_IS_DESTRUCTIBLE.
 *
 *
-* path:      /inc/djinterp/restd/type_traits/is_destructible.hpp
+* path:      /inc/djinterp/re_std/type_traits/is_destructible.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_DESTRUCTIBLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_DESTRUCTIBLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -55,17 +55,17 @@
 #include "./remove_all_extents.hpp"
 
 
-#ifndef D_RESTD_HAS_IS_DESTRUCTIBLE
+#ifndef D_RE_STD_HAS_IS_DESTRUCTIBLE
     #if defined(__has_builtin)
         #if __has_builtin(__is_destructible)
-            #define D_RESTD_HAS_IS_DESTRUCTIBLE     1
+            #define D_RE_STD_HAS_IS_DESTRUCTIBLE     1
         #else
-            #define D_RESTD_HAS_IS_DESTRUCTIBLE     0
+            #define D_RE_STD_HAS_IS_DESTRUCTIBLE     0
         #endif
     #elif defined(D_ENV_COMPILER_MSVC)
-        #define D_RESTD_HAS_IS_DESTRUCTIBLE         1
+        #define D_RE_STD_HAS_IS_DESTRUCTIBLE         1
     #else
-        #define D_RESTD_HAS_IS_DESTRUCTIBLE         0
+        #define D_RE_STD_HAS_IS_DESTRUCTIBLE         0
     #endif
 #endif
 
@@ -77,7 +77,7 @@ NS_RESTD
 // I.   IS_DESTRUCTIBLE
 // =============================================================================
 
-#if D_RESTD_HAS_IS_DESTRUCTIBLE
+#if D_RE_STD_HAS_IS_DESTRUCTIBLE
 
     template<typename _Type>
     struct is_destructible
@@ -153,7 +153,7 @@ NS_RESTD
     {};
 
 
-#endif  // D_RESTD_HAS_IS_DESTRUCTIBLE
+#endif  // D_RE_STD_HAS_IS_DESTRUCTIBLE
 
 
 // =============================================================================
@@ -168,10 +168,10 @@ NS_RESTD
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_DESTRUCTIBLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_DESTRUCTIBLE_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                   is_heap.hpp
+* djinterp [re_std]                                                  is_heap.hpp
 *
 * is_heap algorithm header:
 *   Returns true if [_first, _last) is a max-heap under operator< (or
@@ -7,8 +7,8 @@
 * until-iterator equals _last.
 *
 *   PORTABILITY:
-*   - std::is_heap is C++11; restd back-ports to C++98.
-*   - constexpr in std from C++20 (P0202); restd lifts to C++14.
+*   - std::is_heap is C++11; re_std back-ports to C++98.
+*   - constexpr in std from C++20 (P0202); re_std lifts to C++14.
 *   - Requires RandomAccessIterator.
 *   - Two overloads: default operator< and custom comparator.
 *
@@ -18,12 +18,12 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ALGORITHM_IS_HEAP_
-#define DJINTERP_RESTD_ALGORITHM_IS_HEAP_ 1
+#ifndef DJINTERP_RE_STD_ALGORITHM_IS_HEAP_
+#define DJINTERP_RE_STD_ALGORITHM_IS_HEAP_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
-// restd
+// re_std
 #include "./is_heap_until.hpp"
 
 
@@ -56,7 +56,7 @@ is_heap(
     _RandomIt _last
 )
 {
-    return restd::is_heap_until(_first, _last) == _last;
+    return re_std::is_heap_until(_first, _last) == _last;
 }
 
 
@@ -75,11 +75,11 @@ is_heap(
     _Compare  _comp
 )
 {
-    return restd::is_heap_until(_first, _last, _comp) == _last;
+    return re_std::is_heap_until(_first, _last, _comp) == _last;
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ALGORITHM_IS_HEAP_
+#endif  // DJINTERP_RE_STD_ALGORITHM_IS_HEAP_

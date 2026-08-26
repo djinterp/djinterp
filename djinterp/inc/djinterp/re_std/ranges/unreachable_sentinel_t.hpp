@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                    unreachable_sentinel_t.hpp
+* djinterp [re_std]                                   unreachable_sentinel_t.hpp
 *
 * unreachable_sentinel_t header:
 *   Provides the C++20 never-equal sentinel. unreachable_sentinel_t
@@ -11,7 +11,7 @@
 *   PORTABILITY:
 *   - Type itself is available C++11+ (uses templated friend
 *     operators). The class is empty and trivially constructible.
-*   - The convenience constant restd::unreachable_sentinel is defined
+*   - The convenience constant re_std::unreachable_sentinel is defined
 *     as an inline constexpr variable on C++17+ (avoiding ODR
 *     conflicts across translation units), or as a TU-local
 *     static constexpr instance on C++11/14.
@@ -22,8 +22,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_UNREACHABLE_SENTINEL_T_
-#define DJINTERP_RESTD_RANGES_UNREACHABLE_SENTINEL_T_ 1
+#ifndef DJINTERP_RE_STD_RANGES_UNREACHABLE_SENTINEL_T_
+#define DJINTERP_RE_STD_RANGES_UNREACHABLE_SENTINEL_T_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -115,10 +115,10 @@ static D_CONSTEXPR unreachable_sentinel_t unreachable_sentinel = unreachable_sen
 #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_UNREACHABLE_SENTINEL_T_
+#endif  // DJINTERP_RE_STD_RANGES_UNREACHABLE_SENTINEL_T_

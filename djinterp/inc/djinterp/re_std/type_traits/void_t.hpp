@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                                  void_t.hpp
+* djinterp [re_std]                                                 void_t.hpp
 *
 * void_t alias header:
 *   Maps any well-formed type sequence to `void`. The cornerstone of
@@ -23,8 +23,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_VOID_T_
-#define DJINTERP_RESTD_TYPE_TRAITS_VOID_T_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_VOID_T_
+#define DJINTERP_RE_STD_TYPE_TRAITS_VOID_T_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -62,10 +62,10 @@ template<typename... _Types>
 using void_t = typename internal::make_void<_Types...>::type;
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // alias templates && variadic templates
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_VOID_T_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_VOID_T_

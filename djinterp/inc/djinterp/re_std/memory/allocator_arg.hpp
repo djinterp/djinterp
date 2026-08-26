@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                  allocator_arg.hpp
+* re_std                                                 allocator_arg.hpp
 *
 * tag type and constant marking allocator-extended ctors:
 *   allocator_arg_t  -  empty tag struct.
@@ -13,11 +13,11 @@
 *
 * and the tag is what makes the overload resolvable at the call site:
 *
-*     restd::tuple<int, std::string> t(allocator_arg, my_alloc, 1, "x");
+*     re_std::tuple<int, std::string> t(allocator_arg, my_alloc, 1, "x");
 *                                       ^^^^^^^^^^^^^
 *                                       this disambiguator
 *
-* tier behaviour for the allocator_arg constant (matches restd::nullopt):
+* tier behaviour for the allocator_arg constant (matches re_std::nullopt):
 *   C++17+   inline constexpr  -  one address across all TUs.
 *   C++11+   constexpr         -  internal linkage (per-TU address).
 *                                 Fine: tag is used by value, not address.
@@ -26,16 +26,16 @@
 *
 * path:      /inc/djinterp/re_std/memory/allocator_arg.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.01
+* author(s): re_std contributors                         date: 2026.05.01
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_ALLOCATOR_ARG_
-#define RESTD_MEMORY_ALLOCATOR_ARG_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_ALLOCATOR_ARG_
+#define DJINTERP_RE_STD_MEMORY_ALLOCATOR_ARG_ 1
 
 #include "djinterp.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // =============================================================================
@@ -87,6 +87,6 @@ struct allocator_arg_t
 #endif
 
 
-}  // namespace restd
+}  // namespace re_std
 
-#endif  // RESTD_MEMORY_ALLOCATOR_ARG_
+#endif  // DJINTERP_RE_STD_MEMORY_ALLOCATOR_ARG_

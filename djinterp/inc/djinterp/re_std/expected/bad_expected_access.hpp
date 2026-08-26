@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                       bad_expected_access.hpp
+* djinterp [re_std]                                      bad_expected_access.hpp
 *
 * bad_expected_access exception header:
 *   Provides the exception family thrown by expected<T, E>::value() when
@@ -24,8 +24,8 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_BAD_EXPECTED_ACCESS_
-#define DJINTERP_RESTD_BAD_EXPECTED_ACCESS_ 1
+#ifndef DJINTERP_RE_STD_BAD_EXPECTED_ACCESS_
+#define DJINTERP_RE_STD_BAD_EXPECTED_ACCESS_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -183,10 +183,10 @@ private:
 };
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_BAD_EXPECTED_ACCESS_
+#endif  // DJINTERP_RE_STD_BAD_EXPECTED_ACCESS_

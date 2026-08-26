@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                    is_nothrow_convertible.hpp
+* djinterp [re_std]                                   is_nothrow_convertible.hpp
 *
 * is_nothrow_convertible trait:
 *   true_type if _From is implicitly convertible to _To AND the conversion
@@ -26,7 +26,7 @@
 * operator, no decltype, no rvalue-reference-based declval).
 *
 *   DEPENDENCIES:
-*   is_convertible, integral_constant, false_type, restd::declval.
+*   is_convertible, integral_constant, false_type, re_std::declval.
 *
 *
 * path:      /inc/djinterp/re_std/type_traits/is_nothrow_convertible.hpp
@@ -34,8 +34,8 @@
 * author(s): Samuel 'teer' Neal-Blim                     created: 2026.04.29
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_
-#define DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -43,7 +43,7 @@
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-// restd
+// re_std
 #include "./true_type.hpp"
 #include "./false_type.hpp"
 #include "./integral_constant.hpp"
@@ -87,7 +87,7 @@ NS_RESTD
             : integral_constant<
                   bool,
                   noexcept( implicit_takes<_To>(
-                                restd::declval<_From>() ) ) >
+                                re_std::declval<_From>() ) ) >
         {};
 
     NS_END  // internal
@@ -115,9 +115,9 @@ NS_RESTD
     #endif
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_IS_NOTHROW_CONVERTIBLE_

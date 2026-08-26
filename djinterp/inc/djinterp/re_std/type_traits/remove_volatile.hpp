@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                         remove_volatile.hpp
+* djinterp [re_std]                                        remove_volatile.hpp
 *
 * remove_volatile trait header:
 *   Strips top-level volatile-qualifier from a type. Yields member
@@ -19,8 +19,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.04.28
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_TYPE_TRAITS_REMOVE_VOLATILE_
-#define DJINTERP_RESTD_TYPE_TRAITS_REMOVE_VOLATILE_ 1
+#ifndef DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_
+#define DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_ 1
 
 // djinterp
 #include "../../core/djinterp.hpp"
@@ -64,7 +64,7 @@ struct remove_volatile<volatile _Type>
 #endif  // D_ENV_CPP_FEATURE_LANG_ALIAS_TEMPLATES
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_TYPE_TRAITS_REMOVE_VOLATILE_
+#endif  // DJINTERP_RE_STD_TYPE_TRAITS_REMOVE_VOLATILE_

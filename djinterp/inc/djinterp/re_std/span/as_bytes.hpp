@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                     as_bytes.hpp
+* re_std                                                    as_bytes.hpp
 *
 * free function as_bytes:
 *   Reinterprets a span as a read-only span of bytes. Mirrors
@@ -13,11 +13,11 @@
 *
 * path:      /inc/djinterp/re_std/span/as_bytes.hpp
 * link(s):   TBA
-* author(s): restd contributors                        date: 2026.06.04
+* author(s): re_std contributors                       date: 2026.06.04
 ***********************************************************************/
 
-#ifndef RESTD_SPAN_AS_BYTES_
-#define RESTD_SPAN_AS_BYTES_ 1
+#ifndef DJINTERP_RE_STD_SPAN_AS_BYTES_
+#define DJINTERP_RE_STD_SPAN_AS_BYTES_ 1
 
 #include "djinterp.hpp"
 
@@ -25,10 +25,10 @@
 
 #include <cstddef>  // size_t, byte
 
-#include "restd/span/dynamic_extent.hpp"
-#include "restd/span/span.hpp"
+#include "re_std/span/dynamic_extent.hpp"
+#include "re_std/span/span.hpp"
 
-namespace restd
+namespace re_std
 {
 
     // as_bytes
@@ -48,8 +48,8 @@ namespace restd
             reinterpret_cast<const std::byte*>(_s.data()), _s.size_bytes());
     }
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP17_OR_HIGHER
 
-#endif  // RESTD_SPAN_AS_BYTES_
+#endif  // DJINTERP_RE_STD_SPAN_AS_BYTES_

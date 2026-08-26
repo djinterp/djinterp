@@ -1,8 +1,8 @@
 /***********************************************************************
-* restd                                                         hash.hpp
+* re_std                                                        hash.hpp
 *
 * class: customisation point for hashing values.
-*   Provides the primary `restd::hash<_Type>` template plus
+*   Provides the primary `re_std::hash<_Type>` template plus
 * specialisations for every scalar-like type the standard requires:
 * every arithmetic type, every pointer type, and `nullptr_t`.
 *
@@ -11,7 +11,7 @@
 * `hash<optional<T>>`, etc.) ship alongside those modules.
 *
 *   The standard says the hash for an integer is "implementation
-* defined". restd uses identity casts to `size_t` for integral types --
+* defined". re_std uses identity casts to `size_t` for integral types --
 * this is the same choice libstdc++/libc++ make for short keys -- and
 * a `reinterpret_cast`-based cast for pointers. For floating-point,
 * the bytes are read into a `size_t` so that distinct bit patterns
@@ -21,18 +21,18 @@
 *
 * path:      /inc/djinterp/re_std/functional/hash.hpp
 * link(s):   TBA
-* author(s): restd                                       date: 2026.05.07
+* author(s): re_std                                      date: 2026.05.07
 ***********************************************************************/
 
-#ifndef RESTD_FUNCTIONAL_HASH_
-#define RESTD_FUNCTIONAL_HASH_ 1
+#ifndef DJINTERP_RE_STD_FUNCTIONAL_HASH_
+#define DJINTERP_RE_STD_FUNCTIONAL_HASH_ 1
 
 #include "djinterp.hpp"
 
 #include <cstddef>   // size_t, nullptr_t (gated below)
 #include <cstring>   // memcpy for fp hashing
 
-namespace restd
+namespace re_std
 {
 
 // hash
@@ -100,7 +100,7 @@ NS_END  // internal
 // integer specialisations
 // =============================================================================
 
-#define D_RESTD_HASH_INTEGER_SPEC(T)                                          \
+#define D_RE_STD_HASH_INTEGER_SPEC(T)                                          \
     template<>                                                                \
     struct hash< T >                                                          \
     {                                                                         \
@@ -113,36 +113,36 @@ NS_END  // internal
         }                                                                     \
     }
 
-D_RESTD_HASH_INTEGER_SPEC(bool);
-D_RESTD_HASH_INTEGER_SPEC(char);
-D_RESTD_HASH_INTEGER_SPEC(signed char);
-D_RESTD_HASH_INTEGER_SPEC(unsigned char);
-D_RESTD_HASH_INTEGER_SPEC(wchar_t);
-D_RESTD_HASH_INTEGER_SPEC(short);
-D_RESTD_HASH_INTEGER_SPEC(unsigned short);
-D_RESTD_HASH_INTEGER_SPEC(int);
-D_RESTD_HASH_INTEGER_SPEC(unsigned int);
-D_RESTD_HASH_INTEGER_SPEC(long);
-D_RESTD_HASH_INTEGER_SPEC(unsigned long);
+D_RE_STD_HASH_INTEGER_SPEC(bool);
+D_RE_STD_HASH_INTEGER_SPEC(char);
+D_RE_STD_HASH_INTEGER_SPEC(signed char);
+D_RE_STD_HASH_INTEGER_SPEC(unsigned char);
+D_RE_STD_HASH_INTEGER_SPEC(wchar_t);
+D_RE_STD_HASH_INTEGER_SPEC(short);
+D_RE_STD_HASH_INTEGER_SPEC(unsigned short);
+D_RE_STD_HASH_INTEGER_SPEC(int);
+D_RE_STD_HASH_INTEGER_SPEC(unsigned int);
+D_RE_STD_HASH_INTEGER_SPEC(long);
+D_RE_STD_HASH_INTEGER_SPEC(unsigned long);
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
-D_RESTD_HASH_INTEGER_SPEC(long long);
-D_RESTD_HASH_INTEGER_SPEC(unsigned long long);
-D_RESTD_HASH_INTEGER_SPEC(char16_t);
-D_RESTD_HASH_INTEGER_SPEC(char32_t);
+D_RE_STD_HASH_INTEGER_SPEC(long long);
+D_RE_STD_HASH_INTEGER_SPEC(unsigned long long);
+D_RE_STD_HASH_INTEGER_SPEC(char16_t);
+D_RE_STD_HASH_INTEGER_SPEC(char32_t);
 #endif
 
 #if D_ENV_LANG_IS_CPP20_OR_HIGHER
-D_RESTD_HASH_INTEGER_SPEC(char8_t);
+D_RE_STD_HASH_INTEGER_SPEC(char8_t);
 #endif
 
-#undef D_RESTD_HASH_INTEGER_SPEC
+#undef D_RE_STD_HASH_INTEGER_SPEC
 
 // =============================================================================
 // floating-point specialisations
 // =============================================================================
 
-#define D_RESTD_HASH_FLOAT_SPEC(T)                                            \
+#define D_RE_STD_HASH_FLOAT_SPEC(T)                                            \
     template<>                                                                \
     struct hash< T >                                                          \
     {                                                                         \
@@ -155,11 +155,11 @@ D_RESTD_HASH_INTEGER_SPEC(char8_t);
         }                                                                     \
     }
 
-D_RESTD_HASH_FLOAT_SPEC(float);
-D_RESTD_HASH_FLOAT_SPEC(double);
-D_RESTD_HASH_FLOAT_SPEC(long double);
+D_RE_STD_HASH_FLOAT_SPEC(float);
+D_RE_STD_HASH_FLOAT_SPEC(double);
+D_RE_STD_HASH_FLOAT_SPEC(long double);
 
-#undef D_RESTD_HASH_FLOAT_SPEC
+#undef D_RE_STD_HASH_FLOAT_SPEC
 
 // =============================================================================
 // pointer specialisation
@@ -205,6 +205,6 @@ struct hash<std::nullptr_t>
 
 #endif // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-} // namespace restd
+} // namespace re_std
 
-#endif // RESTD_FUNCTIONAL_HASH_
+#endif  // DJINTERP_RE_STD_FUNCTIONAL_HASH_

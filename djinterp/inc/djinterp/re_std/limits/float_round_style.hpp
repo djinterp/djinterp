@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                            float_round_style.hpp
+* re_std                                           float_round_style.hpp
 *
 * the float_round_style rounding-mode enumeration:
 *   the plain (non-scoped) enumeration naming a floating-point type's rounding
@@ -12,8 +12,8 @@
 * author(s): Sam 'teer' Neal-Blim                       date: 2026.06.05
 ***********************************************************************/
 
-#ifndef RESTD_LIMITS_FLOAT_ROUND_STYLE_
-#define RESTD_LIMITS_FLOAT_ROUND_STYLE_ 1
+#ifndef DJINTERP_RE_STD_LIMITS_FLOAT_ROUND_STYLE_
+#define DJINTERP_RE_STD_LIMITS_FLOAT_ROUND_STYLE_ 1
 
 // djinterp
 #include "djinterp.hpp"
@@ -31,6 +31,6 @@ NS_RESTD
         round_toward_neg_infinity = 3
     };
 
-NS_END  // restd
+NS_END  // re_std
 
-#endif  // RESTD_LIMITS_FLOAT_ROUND_STYLE_
+#endif  // DJINTERP_RE_STD_LIMITS_FLOAT_ROUND_STYLE_

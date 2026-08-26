@@ -1,0 +1,83 @@
+/******************************************************************************
+* djinterp [re_std]                                                      cstdlib
+*
+* <cstdlib> umbrella header:
+*   Aggregates the granular headers under /inc/djinterp/re_std/cstdlib/.
+* Mirrors the standard <cstdlib> convenience header and adds no symbols of
+* its own.
+*
+*   THE WHOLE MODULE IS RE-EXPORTS, AND THAT IS THE CORRECT DESIGN:
+*   Every function here is a contract with the C runtime rather than a
+* piece of library logic. malloc's blocks must return to the runtime's
+* free; atexit's handlers must land on the runtime's list; getenv reads
+* the process environment; the multibyte functions read the active
+* locale. A reimplementation would be a second, disconnected copy of
+* state the process already has one of -- so re_std::malloc IS
+* std::malloc, and a pointer crosses between the two spellings freely.
+*
+*   This is the same reasoning as <new> and <typeinfo>, and the opposite
+* of <bitset> or <expected>, which are pure library code re_std owns
+* outright.
+*
+*   GRANULARITY IS BY FAMILY, NOT BY SYMBOL -- A DOCUMENTED EXCEPTION:
+*   The module's forty-odd symbols are grouped into eight headers by what
+* they do. The usual one-symbol-per-header rule exists to narrow
+* compile-time dependencies, and it has nothing to narrow here: every
+* symbol has the identical dependency, <cstdlib> itself. Forty headers
+* each holding one using-declaration and the same #include would buy
+* nothing. Families are the useful unit instead -- a caller who wants
+* only the termination functions includes process_control.hpp:
+*
+*     string_conversion.hpp   atof, atoi, atol, atoll, strtod, strtof,
+*                             strtold, strtol, strtoll, strtoul, strtoull
+*     random.hpp              rand, srand
+*     memory.hpp              malloc, calloc, realloc, free,
+*                             aligned_alloc (gated)
+*     process_control.hpp     abort, exit, _Exit, atexit,
+*                             quick_exit / at_quick_exit (gated)
+*     environment.hpp         getenv, system
+*     search_sort.hpp         qsort, bsearch
+*     integer_arithmetic.hpp  abs, labs, llabs, div, ldiv, lldiv,
+*                             div_t, ldiv_t, lldiv_t
+*     multibyte.hpp           mblen, mbtowc, wctomb, mbstowcs, wcstombs
+*
+*   THE MACROS HAVE NO re_std:: SPELLING:
+*   EXIT_SUCCESS, EXIT_FAILURE, RAND_MAX, MB_CUR_MAX and NULL are macros
+* and are therefore surfaced exactly as the standard header supplies
+* them.
+*
+*   TWO SYMBOLS ARE CONDITIONAL. Both are gated on a D_RE_STD_HAS_*
+* macro, and where the runtime lacks them the name is absent rather than
+* redirected to a near-equivalent with different semantics:
+*
+*     D_RE_STD_HAS_ALIGNED_ALLOC   0 on MSVC and pre-10.15 Apple
+*     D_RE_STD_HAS_QUICK_EXIT      0 on Apple
+*
+*   WHERE re_std HAS A BETTER ANSWER, THE FAMILY HEADER SAYS SO:
+*   re_std::sort over qsort, <random> over rand, ::operator new over
+* malloc, from_chars over atoi. The C functions are surfaced for
+* interoperation and for porting, not as recommendations.
+*
+*
+* path:      /inc/djinterp/re_std/cstdlib/cstdlib
+* link(s):   TBA
+* author(s): TBA                                           created: 2026.08.25
+******************************************************************************/
+
+#ifndef DJINTERP_RE_STD_CSTDLIB_
+#define DJINTERP_RE_STD_CSTDLIB_ 1
+
+// djinterp
+#include "../../core/djinterp.hpp"
+
+#include "./string_conversion.hpp"
+#include "./random.hpp"
+#include "./memory.hpp"
+#include "./process_control.hpp"
+#include "./environment.hpp"
+#include "./search_sort.hpp"
+#include "./integer_arithmetic.hpp"
+#include "./multibyte.hpp"
+
+
+#endif  // DJINTERP_RE_STD_CSTDLIB_

@@ -1,9 +1,9 @@
 /******************************************************************************
-* djinterp [restd]                                                        variant
+* djinterp [re_std]                                                       variant
 *
 * variant umbrella header:
 *   Convenience header that #includes every granular module under
-* restd/variant/.
+* re_std/variant/.
 *
 *   Per-symbol headers:
 *     monostate.hpp                       - unit alternative
@@ -36,13 +36,13 @@
 *     - Full constexpr surface
 *
 *
-* path:      /inc/djinterp/restd/variant
+* path:      /inc/djinterp/re_std/variant
 * link(s):   TBA
 * author(s): TBA                                           created: 2026.05.20
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_VARIANT_UMBRELLA_
-#define DJINTERP_RESTD_VARIANT_UMBRELLA_ 1
+#ifndef DJINTERP_RE_STD_VARIANT_UMBRELLA_
+#define DJINTERP_RE_STD_VARIANT_UMBRELLA_ 1
 
 #include "./variant/monostate.hpp"
 #include "./variant/bad_variant_access.hpp"
@@ -58,4 +58,4 @@
 #include "./variant/variant_swap.hpp"
 
 
-#endif  // DJINTERP_RESTD_VARIANT_UMBRELLA_
+#endif  // DJINTERP_RE_STD_VARIANT_UMBRELLA_

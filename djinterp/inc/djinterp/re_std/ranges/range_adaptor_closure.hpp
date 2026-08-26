@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                  range_adaptor_closure.hpp
+* djinterp [re_std]                                 range_adaptor_closure.hpp
 *
 * range_adaptor_closure header:
 *   Provides the C++23 range-adaptor-closure CRTP base and the
@@ -32,8 +32,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_RANGE_ADAPTOR_CLOSURE_
-#define DJINTERP_RESTD_RANGES_RANGE_ADAPTOR_CLOSURE_ 1
+#ifndef DJINTERP_RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_
+#define DJINTERP_RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -54,7 +54,7 @@ NS_RESTD
 // recognised by the pipe-detection trait below.
 // note: the C++23 standard adds a single helper member
 // 'operator()' to this base that lets `closure(range)` work uniformly;
-// restd's closures implement operator() directly on the derived
+// re_std's closures implement operator() directly on the derived
 // class, so the base is purely a marker.
 template<typename _Derived>
 struct range_adaptor_closure
@@ -215,10 +215,10 @@ operator|(
 }
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_RANGE_ADAPTOR_CLOSURE_
+#endif  // DJINTERP_RE_STD_RANGES_RANGE_ADAPTOR_CLOSURE_

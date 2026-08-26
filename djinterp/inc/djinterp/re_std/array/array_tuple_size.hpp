@@ -1,8 +1,8 @@
 /******************************************************************************
-* djinterp [restd]                                         array_tuple_size.hpp
+* djinterp [re_std]                                        array_tuple_size.hpp
 *
 * array tuple_size specialization header:
-*   Specialises restd::tuple_size for array<_Type, _Size>:
+*   Specialises re_std::tuple_size for array<_Type, _Size>:
 *
 *     tuple_size<array<_Type, _Size>>::value == _Size
 *
@@ -13,7 +13,7 @@
 *
 *   CV-QUALIFIED ARRAYS:
 *   The primary tuple_size template ships cv-qualified passthrough
-* specialisations per LWG 2762 (already in restd::utility). They
+* specialisations per LWG 2762 (already in re_std::utility). They
 * automatically forward cv-qualified array<...> to the unqualified
 * specialisation here — no extra work needed.
 *
@@ -23,14 +23,14 @@
 * author(s): TBA                                           created: 2026.05.19
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_ARRAY_TUPLE_SIZE_
-#define DJINTERP_RESTD_ARRAY_TUPLE_SIZE_ 1
+#ifndef DJINTERP_RE_STD_ARRAY_TUPLE_SIZE_
+#define DJINTERP_RE_STD_ARRAY_TUPLE_SIZE_ 1
 
 #include <cstddef>
 
 #include "../../core/djinterp.hpp"
 #include "./array.hpp"
-#include "../utility/tuple_size.hpp"
+#include "../tuple/tuple_size.hpp"
 
 
 NS_RESTD
@@ -45,11 +45,11 @@ NS_RESTD
 template<typename    _Type,
          std::size_t _Size>
 struct tuple_size<array<_Type, _Size> >
-    : restd::integral_constant<std::size_t, _Size>
+    : re_std::integral_constant<std::size_t, _Size>
 {};
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
-#endif  // DJINTERP_RESTD_ARRAY_TUPLE_SIZE_
+#endif  // DJINTERP_RE_STD_ARRAY_TUPLE_SIZE_

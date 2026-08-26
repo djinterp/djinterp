@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [restd]                                               join_view.hpp
+* djinterp [re_std]                                              join_view.hpp
 *
 * join_view header:
 *   Provides the C++20 range-of-ranges flattening adaptor. join_view<V>
@@ -32,7 +32,7 @@
 *     non-multi-pass for prvalue inners regardless of underlying.
 *
 *   COLOCATED:
-*   restd::views::join(r).
+*   re_std::views::join(r).
 *
 *
 * path:      /inc/djinterp/re_std/ranges/join_view.hpp
@@ -40,8 +40,8 @@
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.13
 ******************************************************************************/
 
-#ifndef DJINTERP_RESTD_RANGES_JOIN_VIEW_
-#define DJINTERP_RESTD_RANGES_JOIN_VIEW_ 1
+#ifndef DJINTERP_RE_STD_RANGES_JOIN_VIEW_
+#define DJINTERP_RE_STD_RANGES_JOIN_VIEW_ 1
 
 #include "../../core/djinterp.hpp"
 
@@ -220,13 +220,13 @@ public:
         void
         satisfy()
         {
-            sentinel_t<_View> outer_end = restd::end(m_parent->m_base);
+            sentinel_t<_View> outer_end = re_std::end(m_parent->m_base);
             while (m_outer != outer_end)
             {
                 _materialize_inner(is_ref_inner_t());
                 inner_range& inner = _current_inner(is_ref_inner_t());
-                m_inner = restd::begin(inner);
-                if (m_inner != restd::end(inner))
+                m_inner = re_std::begin(inner);
+                if (m_inner != re_std::end(inner))
                 {
                     return;
                 }
@@ -251,7 +251,7 @@ public:
         iterator(
             join_view const*  _parent
         )
-            : m_outer(restd::begin(_parent->m_base)),
+            : m_outer(re_std::begin(_parent->m_base)),
               m_inner(),
               m_parent(_parent)
         {
@@ -277,7 +277,7 @@ public:
         {
             inner_range& inner = _current_inner(is_ref_inner_t());
             ++m_inner;
-            if (m_inner == restd::end(inner))
+            if (m_inner == re_std::end(inner))
             {
                 ++m_outer;
                 satisfy();
@@ -315,8 +315,8 @@ public:
                 --m_outer;
                 _materialize_inner(is_ref_inner_t());
                 inner_range& inner = _current_inner(is_ref_inner_t());
-                iterator_t<inner_range> inner_begin = restd::begin(inner);
-                iterator_t<inner_range> inner_end   = restd::end(inner);
+                iterator_t<inner_range> inner_begin = re_std::begin(inner);
+                iterator_t<inner_range> inner_end   = re_std::end(inner);
                 if (inner_begin != inner_end)
                 {
                     // Non-empty — position at last element.
@@ -347,7 +347,7 @@ public:
         iterator&
         operator--()
         {
-            sentinel_t<_View> outer_end = restd::end(m_parent->m_base);
+            sentinel_t<_View> outer_end = re_std::end(m_parent->m_base);
 
             // Case (a): past-end. Back up.
             if (m_outer == outer_end)
@@ -358,7 +358,7 @@ public:
 
             // Case (b): at begin of current inner.
             inner_range& inner = _current_inner(is_ref_inner_t());
-            if (m_inner == restd::begin(inner))
+            if (m_inner == re_std::begin(inner))
             {
                 _back_up_to_non_empty();
                 return *this;
@@ -403,7 +403,7 @@ public:
         {
             return (m_outer == _rhs.m_outer)
                 && ( (m_parent == D_NULLPTR)
-                  || (m_outer == restd::end(m_parent->m_base))
+                  || (m_outer == re_std::end(m_parent->m_base))
                   || (m_inner == _rhs.m_inner) );
         }
 
@@ -538,16 +538,16 @@ public:
 
     // end
     //   function: sentinel at the outer end.
-    D_CONSTEXPR sentinel
+    D_CONSTEXPR_CPP14 sentinel
     end()
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 
     D_CONSTEXPR sentinel
     end() const
     {
-        return sentinel(restd::end(m_base));
+        return sentinel(re_std::end(m_base));
     }
 };
 
@@ -585,10 +585,10 @@ namespace views
 }  // namespace views
 
 
-NS_END  // restd
+NS_END  // re_std
 
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
 
-#endif  // DJINTERP_RESTD_RANGES_JOIN_VIEW_
+#endif  // DJINTERP_RE_STD_RANGES_JOIN_VIEW_

@@ -1,5 +1,5 @@
 /***********************************************************************
-* restd                                                     owner_less.hpp
+* re_std                                                    owner_less.hpp
 *
 * control-block-based strict-weak ordering predicate for shared_ptr
 * and weak_ptr. Use as the comparator in associative containers when
@@ -12,7 +12,7 @@
 *     owner_less<shared_ptr<_T>>
 *     owner_less<weak_ptr<_T>>
 *     owner_less<void>           (heterogeneous; std added in C++17,
-*                                 restd back-ports unconditionally)
+*                                 re_std back-ports unconditionally)
 *
 *   Each specialisation has comparison operators for both the matching
 *   pointer kind and the cross kind, so that std::set<weak_ptr<T>,
@@ -28,22 +28,22 @@
 *
 * path:      /inc/djinterp/re_std/memory/owner_less.hpp
 * link(s):   TBA
-* author(s): restd contributors                          date: 2026.05.02
+* author(s): re_std contributors                         date: 2026.05.02
 ***********************************************************************/
 
-#ifndef RESTD_MEMORY_OWNER_LESS_
-#define RESTD_MEMORY_OWNER_LESS_ 1
+#ifndef DJINTERP_RE_STD_MEMORY_OWNER_LESS_
+#define DJINTERP_RE_STD_MEMORY_OWNER_LESS_ 1
 
 #include "djinterp.hpp"
 
 
 #if D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-    #include "restd/memory/shared_ptr.hpp"
-    #include "restd/memory/weak_ptr.hpp"
+    #include "re_std/memory/shared_ptr.hpp"
+    #include "re_std/memory/weak_ptr.hpp"
 
 
-namespace restd
+namespace re_std
 {
 
 // Primary template: intentionally undefined. Matches std.
@@ -113,8 +113,8 @@ struct owner_less<void>
 };
 
 
-}  // namespace restd
+}  // namespace re_std
 
 #endif  // D_ENV_LANG_IS_CPP11_OR_HIGHER
 
-#endif  // RESTD_MEMORY_OWNER_LESS_
+#endif  // DJINTERP_RE_STD_MEMORY_OWNER_LESS_
