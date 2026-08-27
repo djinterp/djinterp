@@ -11,9 +11,16 @@
 *     archive.h       (this)  the C face.
 *     archive.hpp / .cpp      the C++ face.
 *
-*   C++ DOES NOT INCLUDE THIS FILE, for the same reason it does not include
-* compress.h: the builders are C99 compound literals.  The C++ face wraps
-* archive_common.h directly.
+*   C++ DOES NOT INCLUDE THIS FILE.  The C++ face wraps archive_common.h
+* directly, and the #ifdef below enforces it.
+*
+*   THE STATED REASON USED TO BE COMPOUND LITERALS AND IS NO LONGER TRUE.  The
+* seven span builders in section I were casts over brace initialisers; they are
+* now calls to sink_common.h's constructors, which C++ compiles.  What remains
+* C-only here is the _Generic in section IV, and that already degrades below
+* C11.  So the split is currently a POLICY, not a language constraint -- do not
+* re-justify it by the old reason.  Whether to keep it is an open question and
+* belongs with the same question about compress.h.
 *
 *   NO archive.c -- everything here is a macro or a D_INLINE (`static inline`)
 * function, so this header exports no external symbol.
@@ -71,8 +78,8 @@
 // c
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 // djinterp
+#include "./sink_common.h"          // d_pack_text/bytes_from_* -- section I
 #include "./archive_common.h"       // the kernel this is notation over
 #include "./compress.h"             // D_PACK_OK / D_PACK_TRY / D_CODEC
 
@@ -86,24 +93,48 @@
 //
 //     *_INIT   a BRACE INITIALISER.  Valid wherever an initialiser is, which
 //              includes an object with static storage duration.
-//     (plain)  a COMPOUND LITERAL, i.e. an expression.  Valid as a function
-//              argument or in an assignment; NOT valid initialising a static,
-//              because C99 6.7.8p4 requires a constant expression there and a
-//              compound literal is not one.
+//     (plain)  an EXPRESSION.  Valid as a function argument or in an
+//              assignment; NOT valid initialising a static, because C99
+//              6.7.8p4 requires a constant expression there and a call is not
+//              one.
 //
 //   So a file-scope entry table takes the _INIT forms and an inline argument
-// takes the plain ones.  The plain forms are DEFINED as a cast over the _INIT
-// forms, so the two cannot drift apart.
+// takes the plain ones.
+//
+//   THE PLAIN FORMS ARE THE KERNEL CONSTRUCTORS, NOT COMPOUND LITERALS.  They
+// used to be `((struct d_pack_text)D_TEXT_INIT(...))` and so on -- seven casts
+// over brace initialisers, which is a second spelling of
+// d_pack_text_from_cstr / d_pack_text_from_span / d_pack_bytes_from_span, all
+// three of which sink_common.h has exported the whole time.  Two spellings of
+// one constructor is the defect this tree keeps finding, and a compound
+// literal is also the one construct in this header C++ cannot compile, so the
+// two problems had one fix.
+//
+//   THEY DIVERGE ON EXACTLY ONE INPUT, and it is worth knowing which.  The
+// constructors NORMALISE a null pointer to the empty span, so
+// D_TEXT_SPAN(NULL, 5) is { NULL, 0 }; the brace form cannot call anything and
+// D_TEXT_SPAN_INIT(NULL, 5) is { NULL, 5 }.  The constructors are right, and
+// the case cannot arise in a static initialiser, which is the only place the
+// _INIT forms belong.
 //
 //   The literal builders take their length from the literal rather than calling
 // strlen, which matters twice: it is constant-folded, and it is correct for a
-// literal containing an interior NUL, where strlen is not.
+// literal containing an interior NUL, where strlen is not.  That rule lives in
+// D_INTERNAL_PACK_LITERAL_LEN so the _INIT form and the plain form cannot
+// disagree about it.
+
+// D_INTERNAL_PACK_LITERAL_LEN
+//   macro: the length of a string LITERAL, excluding its terminator.  Named
+// because both the _INIT forms and the plain forms need it and a second
+// spelling of `sizeof(_lit) - 1u` is a place the two can disagree.
+#define D_INTERNAL_PACK_LITERAL_LEN(_lit)   (sizeof(_lit) - 1u)
 
 // D_TEXT_INIT
 //   macro: brace initialiser for a d_pack_text over the string LITERAL _lit.
 // Only valid for a literal -- for a runtime pointer use D_TEXT_CSTR or
 // D_TEXT_SPAN_INIT.
-#define D_TEXT_INIT(_lit)           { (_lit), (sizeof(_lit) - 1u) }
+#define D_TEXT_INIT(_lit)           { (_lit),                                  \
+                                      D_INTERNAL_PACK_LITERAL_LEN(_lit) }
 
 // D_TEXT_SPAN_INIT
 //   macro: brace initialiser for a d_pack_text over an explicit pointer and
@@ -117,17 +148,18 @@
 // D_BYTES_LITERAL_INIT
 //   macro: brace initialiser for a d_pack_bytes over a string literal's
 // characters, excluding its terminator.
-#define D_BYTES_LITERAL_INIT(_lit)  { (_lit), (sizeof(_lit) - 1u) }
+#define D_BYTES_LITERAL_INIT(_lit)  { (_lit),                                  \
+                                      D_INTERNAL_PACK_LITERAL_LEN(_lit) }
 
 // D_TEXT
 //   macro: a d_pack_text over the string literal _lit, as an EXPRESSION.
 #define D_TEXT(_lit)                                                           \
-    ((struct d_pack_text)D_TEXT_INIT(_lit))
+    d_pack_text_from_span((_lit), D_INTERNAL_PACK_LITERAL_LEN(_lit))
 
 // D_TEXT_SPAN
 //   macro: a d_pack_text over an explicit pointer and length, as an expression.
 #define D_TEXT_SPAN(_p, _n)                                                    \
-    ((struct d_pack_text)D_TEXT_SPAN_INIT((_p), (_n)))
+    d_pack_text_from_span((_p), (size_t)(_n))
 
 // D_TEXT_CSTR
 //   macro: a d_pack_text over a NUL-terminated runtime pointer, as an
@@ -135,30 +167,30 @@
 // it has no _INIT form: strlen is not a constant expression, so it can never
 // initialise a static.
 #define D_TEXT_CSTR(_p)                                                        \
-    ((struct d_pack_text){ (_p), ((_p) ? strlen(_p) : (size_t)0) })
+    d_pack_text_from_cstr(_p)
 
 // D_BYTES
 //   macro: a d_pack_bytes over a pointer and size, as an expression.
 #define D_BYTES(_p, _n)                                                        \
-    ((struct d_pack_bytes)D_BYTES_INIT((_p), (_n)))
+    d_pack_bytes_from_span((_p), (size_t)(_n))
 
 // D_BYTES_LITERAL
 //   macro: a d_pack_bytes over a string literal's characters, as an expression.
 #define D_BYTES_LITERAL(_lit)                                                  \
-    ((struct d_pack_bytes)D_BYTES_LITERAL_INIT(_lit))
+    d_pack_bytes_from_span((_lit), D_INTERNAL_PACK_LITERAL_LEN(_lit))
 
 // D_BYTES_NONE
 //   macro: the empty byte span as an expression.  The counterpart of
-// archive_common.h's D_PACK_BYTES_NONE, which is the brace form.
+// sink_common.h's D_PACK_BYTES_NONE, which is the brace form.
 #define D_BYTES_NONE                                                           \
-    ((struct d_pack_bytes)D_PACK_BYTES_NONE)
+    d_pack_bytes_from_span((const void*)0, (size_t)0)
 
 // D_BYTES_ARRAY
 //   macro: a d_pack_bytes over the whole of array _arr, size taken from its own
 // declaration.  Passing a pointer where an array was meant is caught by
 // D_ARRAY_STATIC_SIZE rather than silently yielding a size of 1.
 #define D_BYTES_ARRAY(_arr)                                                    \
-    ((struct d_pack_bytes)D_BYTES_INIT((_arr), D_ARRAY_STATIC_SIZE(_arr)))
+    d_pack_bytes_from_span((_arr), D_ARRAY_STATIC_SIZE(_arr))
 
 
 // =============================================================================
@@ -363,7 +395,7 @@ d_archive_encrypted_zip(
 {
     struct d_archive_options opt = D_ARCHIVE_OPTIONS_INIT;
 
-    opt.zip.encryption = D_ZIP_ENCRYPTION_AES_256;
+    opt.zip.encryption = D_ZIP_ENCRYPTION_AES256;
     opt.zip.password   = d_pack_text_from_cstr(_password);
 
     return opt;
@@ -476,6 +508,30 @@ d_internal_format_from_any(
 // from the caller; D_ARCHIVE_EXTRACT_TO_ARRAYS takes them as named arrays and
 // derives both capacities.  A caller with a heap grows its own regions between
 // the measure and the extract.
+
+
+// D_ARCHIVE_CREATE_TAR_GZ
+//   macro: build a tarball into _out, staging the intermediate tar in _stage.
+// Both are named ARRAYS and both capacities come from their own declarations.
+//
+//   The staging buffer is explicit because a tarball is two transforms and the
+// first one's output has to live somewhere.  Making the caller name that place
+// is what lets the C face support tar_gz at all -- the alternative was to have
+// only the C++ face support it, which the parity oracle reports as a
+// divergence between the two faces, because it is one.
+#define D_ARCHIVE_CREATE_TAR_GZ(_list, _stage, _out, _out_size)                \
+    d_archive_create_staged(D_FORMAT_ID_TAR_GZ,                                \
+                            (_list), D_ARRAY_STATIC_SIZE(_list), NULL,         \
+                            (_stage), D_ARRAY_STATIC_SIZE(_stage),             \
+                            (_out), D_ARRAY_STATIC_SIZE(_out), (_out_size))
+
+// D_ARCHIVE_MEASURE_TAR_GZ
+//   macro: how many bytes the intermediate tar will need, so a caller can size
+// the staging buffer before committing to one.
+#define D_ARCHIVE_MEASURE_TAR_GZ(_list, _out_size)                             \
+    d_archive_create_staged(D_FORMAT_ID_TAR_GZ,                                \
+                            (_list), D_ARRAY_STATIC_SIZE(_list), NULL,         \
+                            NULL, (size_t)0, NULL, (size_t)0, (_out_size))
 
 // D_ARCHIVE_MEASURE_EXTRACT
 //   macro: fill _layout with the entry count and arena size _in would require.
