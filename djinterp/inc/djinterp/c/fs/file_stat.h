@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_stat.h
+* djinterp [c]                                                     file_stat.h
 *
 * File metadata -- what the filesystem knows about a path.
 *   Every query here is a syscall. The convenience predicates look free and
@@ -12,7 +12,7 @@
 * different files. Where it matters, open first and ask d_fstat about the
 * descriptor -- that one cannot be swapped underneath you.
 *
-* path:      \inc\djinterp\c\fs\file_stat.h
+* path:      /inc/djinterp/c/fs/file_stat.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -46,6 +46,7 @@ IV.   PREDICATES
 #ifndef DJINTERP_FILE_STAT_
 #define DJINTERP_FILE_STAT_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_stat.h"
 

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                     file_temp.hpp
+* djinterp [core]                                                file_temp.hpp
 *
 *   Temporary-file support (roadmap Phase 8). The atomic, safe part of temp
 * handling -- creating an anonymous scratch file -- is a METHOD on file
@@ -14,7 +14,7 @@
 * tells you the DIRECTORY, for when you must place a named artifact there
 * yourself and accept the responsibility that comes with a name.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_temp.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.18
@@ -23,9 +23,9 @@
 #ifndef DJINTERP_FS_FILE_TEMP_
 #define DJINTERP_FS_FILE_TEMP_ 1
 
+// djinterp
 #include "file_path.hpp"
 #include "file_common.hpp"
-
 #include "../../c/fs/file_temp.h"    // d_tempdir
 
 
@@ -45,14 +45,16 @@ temp_directory_path(error& _ec)
     if (!d_tempdir(buf, sizeof(buf)))
     {
         _ec = error::from_errno();
+
         return path();
     }
 
     _ec.clear();
+
     return path(buf);
 }
 
 NS_END  // djinterp
 
 
-#endif // DJINTERP_FS_FILE_TEMP_
+#endif  // DJINTERP_FS_FILE_TEMP_

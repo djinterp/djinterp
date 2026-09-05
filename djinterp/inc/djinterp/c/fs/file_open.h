@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_open.h
+* djinterp [c]                                                     file_open.h
 *
 * Opening, reopening and closing FILE* streams.
 *   Every path this subframework opens goes through here, so the decisions
@@ -9,7 +9,7 @@
 * anything else that needs a stream.
 *   This module owns streams only. Raw descriptors are file_desc.h.
 *
-* path:      \inc\djinterp\c\fs\file_open.h
+* path:      /inc/djinterp/c/fs/file_open.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -33,6 +33,7 @@ II.   STREAM CLOSING
 #ifndef DJINTERP_FILE_OPEN_
 #define DJINTERP_FILE_OPEN_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_open.h"
 

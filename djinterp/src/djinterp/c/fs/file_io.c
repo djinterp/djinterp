@@ -1,9 +1,13 @@
+/******************************************************************************
+* djinterp [c]                                                       file_io.c
+*
+* path:      /src/djinterp/c/fs/file_io.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_io.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             INTERNAL DEFINITIONS                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// Internal definitions
 
 /*
 d_internal_file_io_clamp
@@ -319,8 +323,9 @@ d_internal_file_read_grown
     // read until the source stops producing
     for (;;)
     {
-        chunk = d_internal_file_io_clamp(capacity - used,
-                                         (size_t)D_INTERNAL_FILE_READ_CHUNK_SIZE);
+        chunk = d_internal_file_io_clamp(
+                    capacity - used,
+                    (size_t)D_INTERNAL_FILE_READ_CHUNK_SIZE);
         bytes_read = fread(buffer + used, 1, chunk, _stream);
         used += bytes_read;
 
@@ -457,8 +462,9 @@ d_internal_file_write_stream
     // keep pushing until the buffer is gone or the stream refuses to move
     while (remaining > 0)
     {
-        chunk = d_internal_file_io_clamp(remaining,
-                                         (size_t)D_INTERNAL_FILE_WRITE_CHUNK_SIZE);
+        chunk = d_internal_file_io_clamp(
+                    remaining,
+                    (size_t)D_INTERNAL_FILE_WRITE_CHUNK_SIZE);
         written = fwrite(cursor, 1, chunk, _stream);
 
         // no forward progress means a real error; without this check a
@@ -664,9 +670,7 @@ d_internal_file_write_replace
 #endif  // D_INTERNAL_FILE_WRITE_ATOMIC
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  DESCRIPTOR READS                                    ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Descriptor reads
 
 /*
 d_read
@@ -953,9 +957,7 @@ d_pread
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  DESCRIPTOR WRITES                                  ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Descriptor writes
 
 /*
 d_write
@@ -1248,9 +1250,7 @@ d_pwrite
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  WHOLE-FILE READS                                  ///
-///////////////////////////////////////////////////////////////////////////////
+// III.  Whole-file reads
 
 /*
 d_fread_all_stream
@@ -1505,9 +1505,7 @@ d_fread_all_into
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.  WHOLE-FILE WRITES                                  ///
-///////////////////////////////////////////////////////////////////////////////
+// IV.   Whole-file writes
 
 /*
 d_fwrite_all

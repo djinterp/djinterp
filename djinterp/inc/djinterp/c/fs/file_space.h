@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                 file_space.h
+* djinterp [c]                                                    file_space.h
 *
 * Filesystem capacity.
 *   Three numbers, and the middle one is a trap. `free` is every unallocated
@@ -11,7 +11,7 @@
 * confidently runs out of disk.
 *   Unless you ARE root, you want `available`.
 *
-* path:      \inc\djinterp\c\fs\file_space.h
+* path:      /inc/djinterp/c/fs/file_space.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -31,12 +31,15 @@ II.   QUERY
 #ifndef DJINTERP_FILE_SPACE_
 #define DJINTERP_FILE_SPACE_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_space.h"
 
 
 D_EXTERN_C_BEGIN
 
+
+// I.    Types
 
 // d_space_t
 //   type: the capacity of the filesystem holding some path. Byte counts, not

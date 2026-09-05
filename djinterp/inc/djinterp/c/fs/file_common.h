@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                file_common.h
+* djinterp [c]                                                   file_common.h
 *
 * Shared foundation for the djinterp fs subframework.
 *   Every c/fs/file_*.h includes this one and nothing else of djinterp's fs
@@ -11,7 +11,7 @@
 * contains no configuration logic -- every D_CFG_FILE_* knob is resolved in
 * cfg_file_common.h and only read here.
 *
-* path:      \inc\djinterp\c\fs\file_common.h
+* path:      /inc/djinterp/c/fs/file_common.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -58,14 +58,15 @@ V.    NOTIFICATIONS
 VI.   INTERNAL SUPPORT
       ----------------
       1.  Allocation wrappers
-      2.  Parameter validation macros
-      3.  EINTR retry macro
-      4.  Notification emission macros
+      2.  Notification emission macros
+      3.  Parameter validation macros
+      4.  EINTR retry macro
 */
 
 #ifndef DJINTERP_FILE_COMMON_
 #define DJINTERP_FILE_COMMON_ 1
 
+// std
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -73,6 +74,7 @@ VI.   INTERNAL SUPPORT
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// djinterp
 #include "../djinterp.h"
 #include "../dmemory.h"
 #include "../../config/c/fs/cfg_file_common.h"
@@ -92,6 +94,7 @@ VI.   INTERNAL SUPPORT
         #define WIN32_LEAN_AND_MEAN
     #endif
 
+    // windows
     #include <windows.h>
     #include <winioctl.h>   // for FSCTL_GET_REPARSE_POINT
     #include <io.h>
@@ -101,7 +104,7 @@ VI.   INTERNAL SUPPORT
     #include <direct.h>
     #include <share.h>
 
-    // I.3  legacy SDK fallbacks
+        // I.3   legacy SDK fallbacks
     #ifndef FSCTL_GET_REPARSE_POINT
         #define FSCTL_GET_REPARSE_POINT 0x000900A8
     #endif
@@ -117,6 +120,7 @@ VI.   INTERNAL SUPPORT
 #endif  // D_CFG_FILE_HAS_WIN32
 
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_POSIX)
+    // posix
     #include <unistd.h>
     #include <fcntl.h>
     #include <sys/types.h>
@@ -125,6 +129,7 @@ VI.   INTERNAL SUPPORT
     #include <libgen.h>
 
     #if D_CFG_IS_ON(D_CFG_FILE_HAS_FLOCK)
+        // posix
         #include <sys/file.h>
     #endif
 #endif  // D_CFG_FILE_HAS_POSIX
@@ -139,7 +144,8 @@ VI.   INTERNAL SUPPORT
 //   The check below turns "D_CFG_DEFINE_EXTERN_C is 0 and you forgot to
 // supply your own" from a cascade of syntax errors into one sentence.
 #if !defined(D_EXTERN_C_BEGIN)
-    #error "D_EXTERN_C_BEGIN undefined: D_CFG_DEFINE_EXTERN_C is 0 and no replacement was supplied"
+    #error "D_EXTERN_C_BEGIN undefined: D_CFG_DEFINE_EXTERN_C is 0 "         \
+           "and no replacement was supplied"
 #endif
 
 // D_FILE_RESTRICT
@@ -259,6 +265,8 @@ struct d_dir_t;
     #define D_FILE_PATH_SEP_STR  "\\"
     #define D_FILE_PATH_SEP_ALT  '/'
 #else
+    // POSIX has no alternate separator; _ALT repeats _SEP so that code
+    // testing both characters needs no platform branch.
     #define D_FILE_PATH_SEP      '/'
     #define D_FILE_PATH_SEP_STR  "/"
     #define D_FILE_PATH_SEP_ALT  '/'
@@ -440,8 +448,9 @@ typedef void (*fn_file_notify)(const struct d_file_notice* _notice,
 void           d_file_notify_set_handler(fn_file_notify _handler,
                                          void*          _context);
 fn_file_notify d_file_notify_get_handler(void** _context);
-void           d_file_notify_default_handler(const struct d_file_notice* _notice,
-                                             void*                       _context);
+void           d_file_notify_default_handler(
+                   const struct d_file_notice* _notice,
+                   void*                       _context);
 const char*    d_file_notify_level_name(int _level);
 const char*    d_file_backend_name(void);
 
@@ -454,6 +463,9 @@ const char*    d_file_backend_name(void);
 // d_internal_file_alloc / d_internal_file_realloc / d_internal_file_free
 //   function: every fs allocation funnels through these, so the configured
 // allocator and the D_CFG_FILE_MAX_ALLOC ceiling apply uniformly.
+//   d_internal_file_notify_emit is the out-of-line half of
+// D_INTERNAL_FILE_NOTIFY below; it is declared here so the macro has
+// something to call.
 void* d_internal_file_alloc(size_t _size);
 void* d_internal_file_realloc(void*  _ptr,
                               size_t _size);

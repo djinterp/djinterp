@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                  file_pipe.hpp
+* djinterp [core]                                                file_pipe.hpp
 *
 *   djinterp::process -- a child process run through the shell, its standard
 * input or output connected to this handle by a pipe (the popen model, roadmap
@@ -11,7 +11,8 @@
 *   is interpreted. Building the command from anything a user, a file, or a
 *   network peer influenced is a command-injection vulnerability, and nothing in
 *   this class prevents it: the constructor hands the string straight to the
-*   shell. The only fix is not to do it -- run a fixed, literal command here, and
+*   shell. The only fix is not to do it -- run a fixed, literal command
+* here, and
 *   reach for posix_spawn / CreateProcess with an ARGUMENT VECTOR when any part
 *   of the command is variable. This is the one hazard of this facility, stated
 *   where you cannot miss it. <<<
@@ -24,7 +25,8 @@
 *   EXIT STATUS IS NOT AN ERROR. A command that runs and exits non-zero has not
 * failed as an I/O operation -- it has reported a result, and that result is
 * information you asked for. So close() returns whether the pipe CLOSED and the
-* process was REAPED (an _ec set only if pclose itself failed), and the command's
+* process was REAPED (an _ec set only if pclose itself failed), and the
+* command's
 * exit code is read separately via exit_status(), meaningful once exited() is
 * true. A missing command, a command that dies -- these surface as an exit
 * status (127, 128+signal), not as a close failure.
@@ -33,7 +35,7 @@
 * pipes (D_FILE_PIPE_IS_AVAILABLE == 0); on such a build djinterp::process does
 * not exist, and naming it is a compile error rather than a link-time surprise.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_pipe.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.19
@@ -42,12 +44,14 @@
 #ifndef DJINTERP_FS_FILE_PIPE_
 #define DJINTERP_FS_FILE_PIPE_ 1
 
-#include "file_common.hpp"
-
-#include "../../c/fs/file_pipe.h"     // d_popen, d_pclose, D_FILE_PIPE_IS_AVAILABLE
-
-#include <cstdio>                  // FILE, fread, fwrite, feof, ferror, clearerr
+// std
 #include <cerrno>                  // errno, EBADF, EIO
+// FILE, fread, fwrite, feof, ferror, clearerr
+#include <cstdio>
+// djinterp
+#include "file_common.hpp"
+// d_popen, d_pclose, D_FILE_PIPE_IS_AVAILABLE
+#include "../../c/fs/file_pipe.h"
 
 
 NS_DJINTERP
@@ -68,8 +72,7 @@ public:
         : m_stream(0)
         , m_exit_status(0)
         , m_exited(false)
-    {
-    }
+    {}
 
     // process
     //   function: run _command through the shell, with a pipe to its stdio.
@@ -81,8 +84,7 @@ public:
         : m_stream(d_popen(_command, _mode))
         , m_exit_status(0)
         , m_exited(false)
-    {
-    }
+    {}
 
     // ~process
     //   function: reap the child if still open. The exit status cannot be
@@ -138,13 +140,15 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return 0;
         }
 
         errno = 0;
         got   = std::fread(_buf, 1, _n, m_stream);
 
-        if (got < _n && std::ferror(m_stream))
+        if ( (got < _n) &&
+             (std::ferror(m_stream)) )
         {
             _ec = (errno != 0) ? error::from_errno() : error(EIO);
             std::clearerr(m_stream);
@@ -167,6 +171,7 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return 0;
         }
 
@@ -193,16 +198,19 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
         if (std::fflush(m_stream) != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -219,6 +227,7 @@ public:
         if (!m_stream)
         {
             _ec.clear();
+
             return true;
         }
 
@@ -228,12 +237,14 @@ public:
         if (status < 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         m_exit_status = d_pipe_exit_code(status);
         m_exited      = true;
         _ec.clear();
+
         return true;
     }
 
@@ -286,8 +297,8 @@ private:
     D_DELETED_FN(process& operator=(const process& _other))
 };
 
-#endif // D_FILE_PIPE_IS_AVAILABLE
+#endif  // D_FILE_PIPE_IS_AVAILABLE
 
 NS_END  // djinterp
 
-#endif // DJINTERP_FS_FILE_PIPE_
+#endif  // DJINTERP_FS_FILE_PIPE_

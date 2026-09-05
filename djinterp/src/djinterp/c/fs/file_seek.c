@@ -1,10 +1,15 @@
+/******************************************************************************
+* djinterp [c]                                                     file_seek.c
+*
+* path:      /src/djinterp/c/fs/file_seek.c
+******************************************************************************/
+// std
 #include <limits.h>
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_seek.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  POSITIONING                                             ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Positioning
 
 /*
 d_fseeko
@@ -166,9 +171,7 @@ d_rewind
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  TRUNCATION                                             ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Truncation
 
 /*
 d_ftruncate
@@ -308,7 +311,8 @@ d_ftruncate_stream
                                errno,
                                "d_ftruncate_stream",
                                NULL,
-                               "flush failed; truncating anyway would lose the buffer");
+                               "flush failed; truncating anyway would lose the "
+                               "buffer");
 
         return -1;
     }

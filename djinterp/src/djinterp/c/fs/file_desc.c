@@ -1,9 +1,13 @@
+/******************************************************************************
+* djinterp [c]                                                     file_desc.c
+*
+* path:      /src/djinterp/c/fs/file_desc.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_desc.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             INTERNAL DEFINITIONS                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// Internal definitions
 
 #if !D_FILE_BACKEND_IS_STDC
 //   Not built on the ISO C backend: the only caller is in the non-STDC
@@ -58,12 +62,10 @@ d_internal_desc_flags
     return flags;
 }
 
-#endif // !D_FILE_BACKEND_IS_STDC
+#endif  // !D_FILE_BACKEND_IS_STDC
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  ACQUISITION                                             ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Acquisition
 
 /*
 d_open
@@ -135,7 +137,8 @@ d_open
                                    0,
                                    "d_open",
                                    D_INTERNAL_FILE_NOTIFY_PATH(_path),
-                                   "O_CREAT with mode 0; using the configured default");
+                                   "O_CREAT with mode 0; using the configured "
+                                   "default");
         }
     }
 
@@ -203,9 +206,7 @@ d_fileno
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  DUPLICATION                                            ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Duplication
 
 /*
 d_dup
@@ -259,7 +260,8 @@ d_dup
                                0,
                                "d_dup",
                                NULL,
-                               "F_DUPFD_CLOEXEC unsupported; falling back to dup");
+                               "F_DUPFD_CLOEXEC unsupported; falling back to "
+                               "dup");
         D_INTERNAL_FILE_RETRY_EINTR(result, dup(_fd));
 
         if (result >= 0)
@@ -361,9 +363,7 @@ d_dup2
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  RELEASE                                               ///
-///////////////////////////////////////////////////////////////////////////////
+// III.  Release
 
 /*
 d_close
@@ -417,7 +417,8 @@ d_close
                                errno,
                                "d_close",
                                NULL,
-                               "close failed; the descriptor is gone regardless");
+                               "close failed; the descriptor is gone "
+                               "regardless");
     }
 
     return result;

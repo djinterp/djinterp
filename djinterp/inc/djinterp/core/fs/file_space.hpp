@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                 file_space.hpp
+* djinterp [core]                                               file_space.hpp
 *
 *   Filesystem capacity (roadmap Phase 9). Three byte counts for the filesystem
 * that holds a path -- and, exactly as file_space.h warns, the middle one is a
@@ -17,7 +17,7 @@
 *   A VALUE, not a resource, and a free query over it -- so no ownership, no
 * D_*_ kit, and a FLAT tier ladder.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_space.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.19
@@ -26,12 +26,12 @@
 #ifndef DJINTERP_FS_FILE_SPACE_
 #define DJINTERP_FS_FILE_SPACE_ 1
 
+// std
+#include <cerrno>                 // EINVAL
+// djinterp
 #include "file_path.hpp"
 #include "file_common.hpp"
-
 #include "../../c/fs/file_space.h"   // d_space, d_space_t
-
-#include <cerrno>                 // EINVAL
 
 
 NS_DJINTERP
@@ -51,8 +51,7 @@ struct space_info
         : capacity(0)
         , free(0)
         , available(0)
-    {
-    }
+    {}
 };
 
 
@@ -62,7 +61,10 @@ struct space_info
 // filesystem, not the path. Returns a zeroed space_info with _ec set on failure
 // (an invalid path is EINVAL; a path that does not exist is ENOENT).
 inline space_info
-space(const path& _p, error& _ec)
+space(
+    const path& _p,
+    error&      _ec
+)
 {
     struct d_space_t s;
     space_info       out;
@@ -70,12 +72,14 @@ space(const path& _p, error& _ec)
     if (!_p.valid())
     {
         _ec.assign(EINVAL);
+
         return out;
     }
 
     if (d_space(_p.c_str(), &s) != 0)
     {
         _ec = error::from_errno();
+
         return out;
     }
 
@@ -84,9 +88,10 @@ space(const path& _p, error& _ec)
     out.available = s.available;
 
     _ec.clear();
+
     return out;
 }
 
 NS_END  // djinterp
 
-#endif // DJINTERP_FS_FILE_SPACE_
+#endif  // DJINTERP_FS_FILE_SPACE_

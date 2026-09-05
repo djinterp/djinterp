@@ -1,9 +1,13 @@
+/******************************************************************************
+* djinterp [c]                                                     file_sync.c
+*
+* path:      /src/djinterp/c/fs/file_sync.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_sync.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  KERNEL -> DEVICE                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Kernel -> device
 
 /*
 d_fsync
@@ -66,7 +70,8 @@ d_fsync
                                errno,
                                "d_fsync",
                                NULL,
-                               "F_FULLFSYNC unsupported here; fsync cannot reach the drive cache");
+                               "F_FULLFSYNC unsupported here; fsync cannot "
+                               "reach the drive cache");
         D_INTERNAL_FILE_RETRY_EINTR(result, fsync(_fd));
     }
     #elif (D_INTERNAL_FILE_SYNC_DATA_ONLY == 1)
@@ -137,7 +142,8 @@ d_fsync_stream
                                errno,
                                "d_fsync_stream",
                                NULL,
-                               "flush failed; syncing now would persist a partial buffer");
+                               "flush failed; syncing now would persist a "
+                               "partial buffer");
 
         return -1;
     }
@@ -162,9 +168,7 @@ d_fsync_stream
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  STDIO -> KERNEL                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Stdio -> kernel
 
 /*
 d_fflush

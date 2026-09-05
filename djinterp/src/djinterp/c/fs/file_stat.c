@@ -1,16 +1,22 @@
+/******************************************************************************
+* djinterp [c]                                                     file_stat.c
+*
+* path:      /src/djinterp/c/fs/file_stat.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_stat.h"
 
 #if (D_INTERNAL_FILE_STAT_STATX == 1)
-    // makedev lives here on glibc; <sys/stat.h> only used to drag it in and
-    // stopped in 2.28, which is the same release that added statx -- so a
-    // build new enough to have statx is exactly one that needs this include
+    //   makedev lives here on glibc. <sys/stat.h> only ever dragged it in
+    // implicitly, and stopped doing so in 2.28 -- the same release that added
+    // statx -- so a build new enough to have statx is exactly one that needs
+    // this include.
+    // posix
     #include <sys/sysmacros.h>
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             INTERNAL DEFINITIONS                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// Internal definitions
 
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     #define D_INTERNAL_STAT_NATIVE struct _stat64
@@ -233,7 +239,8 @@ d_internal_stat_path
                                        errno,
                                        _fn,
                                        NULL,
-                                       "statx unavailable; falling back to stat for this process");
+                                       "statx unavailable; falling back to "
+                                       "stat for this process");
             }
             else
             {
@@ -284,9 +291,7 @@ d_internal_stat_path
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  STATUS                                                  ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Status
 
 /*
 d_stat
@@ -446,9 +451,7 @@ d_fstat
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  PERMISSIONS                                            ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Permissions
 
 /*
 d_access
@@ -559,9 +562,7 @@ d_chmod
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  SIZE                                                  ///
-///////////////////////////////////////////////////////////////////////////////
+// III.  Size
 
 /*
 d_file_size
@@ -665,9 +666,7 @@ d_file_size_stream
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.  PREDICATES                                             ///
-///////////////////////////////////////////////////////////////////////////////
+// IV.   Predicates
 
 /*
 d_file_exists

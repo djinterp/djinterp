@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_path.h
+* djinterp [c]                                                     file_path.h
 *
 * Lexical path manipulation -- what a path SAYS, never what is on disk.
 *   Nothing in this module issues a system call. d_dirname("/nowhere/x") is
@@ -11,7 +11,7 @@
 *   The counterpart -- the operations that must ask the filesystem -- are
 * d_getcwd / d_chdir / d_realpath in file_dir.h.
 *
-* path:      \inc\djinterp\c\fs\file_path.h
+* path:      /inc/djinterp/c/fs/file_path.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -36,13 +36,14 @@ III.  INSPECTION
       2.  d_path_root_length  (length of the root prefix, 0 if relative)
 
 IV.   CANONICALIZATION
-      -----------------
+      ----------------
       1.  d_path_normalize    (lexical: collapse . .. and separators)
 */
 
 #ifndef DJINTERP_FILE_PATH_
 #define DJINTERP_FILE_PATH_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_path.h"
 

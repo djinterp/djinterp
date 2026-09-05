@@ -1,15 +1,20 @@
+/******************************************************************************
+* djinterp [c]                                                     file_pipe.c
+*
+* path:      /src/djinterp/c/fs/file_pipe.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_pipe.h"
 
 
 #if (D_INTERNAL_FILE_HAS_PIPES == 1)
 
 #if !D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    #include <sys/wait.h>   /* WIFEXITED / WEXITSTATUS / WTERMSIG */
+    // posix
+    #include <sys/wait.h>   // WIFEXITED / WEXITSTATUS / WTERMSIG
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  PIPES                                                   ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Pipes
 
 /*
 d_popen

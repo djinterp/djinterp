@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                      file_stream.hpp
+* djinterp [core]                                              file_stream.hpp
 *
 *   djinterp::file -- an open file, owned. This is the RAII core of the C++
 * file layer (roadmap Phase 3), and it makes the two decisions the roadmap
@@ -34,7 +34,7 @@
 * platform decision was already made, once, in c/fs. Each method is the same
 * three steps: reject a bad handle, call the C function, translate errno.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_stream.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.18
@@ -43,24 +43,30 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    LANGUAGE SUPPORT       D_MOVE_ENABLED / _NOEXCEPT / _EXPLICIT / _DELETED_FN
+0.    LANGUAGE SUPPORT       D_MOVE_ENABLED / _NOEXCEPT /
+                             _EXPLICIT_BOOL / _DELETED_FN
 I.    CONSTRUCTION / MOVE    ctor, open-ctor, dtor, move (11+)
 II.   I/O                    read / write   (stdio; EOF is not an error)
 III.  POSITIONING            tell / seek / truncate
 IV.   DURABILITY             sync / flush
 V.    ADVISORY LOCKING       lock_shared / lock_exclusive / try_* / unlock
 VI.   LIFETIME               open / open_temp / close
-VII.  OBSERVERS              is_open / operator bool / native_handle / descriptor / status
+VII.  OBSERVERS              is_open / operator bool / native_handle /
+                             descriptor / status
       non-copyable declarations
 */
 
 #ifndef DJINTERP_FS_FILE_STREAM_
 #define DJINTERP_FS_FILE_STREAM_ 1
 
+// std
+#include <cerrno>                  // errno, EBADF, EINVAL, EIO
+// FILE, fread, fwrite, feof, ferror, clearerr
+#include <cstdio>
+// djinterp
 #include "file_path.hpp"
 #include "file_common.hpp"
 #include "file_stat.hpp"
-
 #include "../../c/fs/file_open.h"     // d_fopen, d_fclose
 #include "../../c/fs/file_io.h"       // (whole-file helpers; byte I/O is stdio)
 #include "../../c/fs/file_seek.h"     // d_fseeko, d_ftello, d_ftruncate_stream
@@ -70,16 +76,12 @@ VII.  OBSERVERS              is_open / operator bool / native_handle / descripto
 #include "../../c/fs/file_stat.h"     // d_fstat         (metadata for this fd)
 #include "../../c/fs/file_temp.h"     // d_tmpfile       (anonymous temp file)
 
-#include <cstdio>                  // FILE, fread, fwrite, feof, ferror, clearerr
-#include <cerrno>                  // errno, EBADF, EINVAL, EIO
 
-
-// ===========================================================================
-// 0.   LANGUAGE SUPPORT
-// ===========================================================================
+// 0.    Language support
 //
 //   The move/noexcept/explicit/deleted spellings come from djinterp.hpp
-// (included via file_path.hpp above, and directly here for clarity): D_MOVE_ENABLED,
+// (included via file_path.hpp above, and directly here for clarity):
+// D_MOVE_ENABLED,
 // D_NOEXCEPT, D_EXPLICIT_BOOL, D_DELETED_FN. file was one of the three headers
 // that carried a private copy of this kit (D_FILE_*) as a stopgap; this is the
 // promoted, single-source version -- one spelling every C++ module shares,
@@ -103,8 +105,7 @@ public:
     //   function: a file that owns nothing. is_open() is false until open().
     file(void)
         : m_stream(0)
-    {
-    }
+    {}
 
     // file
     //   function: open _p with mode _mode. The convenient form -- check the
@@ -117,8 +118,7 @@ public:
     // OPEN it) is exactly the kind of surprise `explicit` exists to stop.
     explicit file(const path& _p, const char* _mode)
         : m_stream(_p.valid() ? d_fopen(_p.c_str(), _mode) : 0)
-    {
-    }
+    {}
 
     // ~file
     //   function: close what is owned. A close error cannot be reported from a
@@ -179,13 +179,15 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return 0;
         }
 
         errno = 0;
         got   = std::fread(_buf, 1, _n, m_stream);
 
-        if (got < _n && std::ferror(m_stream))
+        if ( (got < _n) &&
+             (std::ferror(m_stream)) )
         {
             _ec = (errno != 0) ? error::from_errno() : error(EIO);
             std::clearerr(m_stream);
@@ -209,6 +211,7 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return 0;
         }
 
@@ -241,6 +244,7 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return (d_off_t)-1;
         }
 
@@ -265,16 +269,19 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
         if (d_fseeko(m_stream, _off, _whence) != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -285,16 +292,19 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
         if (d_ftruncate_stream(m_stream, _length) != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -311,16 +321,19 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
         if (d_fsync_stream(m_stream) != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -332,16 +345,19 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
         if (d_fflush(m_stream) != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -412,6 +428,7 @@ public:
         if (!_p.valid())
         {
             _ec.assign(EINVAL);
+
             return false;
         }
 
@@ -426,10 +443,12 @@ public:
         if (!m_stream)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -447,6 +466,7 @@ public:
         if (!stream)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
@@ -457,6 +477,7 @@ public:
 
         m_stream = stream;
         _ec.clear();
+
         return true;
     }
 
@@ -472,6 +493,7 @@ public:
         if (!m_stream)
         {
             _ec.clear();
+
             return true;
         }
 
@@ -481,10 +503,12 @@ public:
         if (rc != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -532,6 +556,7 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return -1;
         }
 
@@ -563,16 +588,19 @@ public:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return file_status();
         }
 
         if (d_fstat(d_fileno(m_stream), &buf) != 0)
         {
             _ec = error::from_errno();
+
             return file_status();
         }
 
         _ec.clear();
+
         return file_status(buf);
     }
 
@@ -587,16 +615,19 @@ private:
         if (!m_stream)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
         if (d_flock_stream(m_stream, _operation) != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         _ec.clear();
+
         return true;
     }
 
@@ -609,4 +640,4 @@ private:
 
 NS_END  // djinterp
 
-#endif // DJINTERP_FS_FILE_STREAM_
+#endif  // DJINTERP_FS_FILE_STREAM_

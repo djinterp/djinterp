@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                   file_ops.hpp
+* djinterp [core]                                                 file_ops.hpp
 *
 *   Whole-file operations -- remove, rename, copy (roadmap Phase 7). These are
 * free functions over paths, not a new handle type, so there is no ownership to
@@ -18,14 +18,14 @@
 *   THE REMOVAL FAMILY. Three names, by what each will remove:
 *     remove()          -- a file OR an empty directory (the general one)
 *     remove_file()     -- a file only; refuses a directory
-*     remove_directory()-- an empty directory only (lives in file_dir.hpp)
+*     remove_directory() -- an empty directory only (in file_dir.hpp)
 *   None of them recurse. Emptying a directory tree is a walk-and-delete the
 * caller writes (or a later fs::remove_all), not a surprise inside remove().
 *
 *   NO OS. Every decision was made in c/fs; these are three-line wrappers --
 * validate the path, call the C function, translate errno.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_ops.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.18
@@ -42,19 +42,18 @@ III.  DUPLICATION      copy_file (NOT atomic)
 #ifndef DJINTERP_FS_FILE_OPS_
 #define DJINTERP_FS_FILE_OPS_ 1
 
+// std
+#include <cerrno>                 // EINVAL
+// djinterp
 #include "file_path.hpp"
 #include "file_common.hpp"
-
-#include "../../c/fs/file_ops.h"     // d_remove, d_unlink, d_rename, d_copy_file
-
-#include <cerrno>                 // EINVAL
+// d_remove, d_unlink, d_rename, d_copy_file
+#include "../../c/fs/file_ops.h"
 
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   REMOVAL
-// ===========================================================================
+// I.    Removal
 
 // remove
 //   function: remove a file or an EMPTY directory. Does not recurse -- a
@@ -62,21 +61,27 @@ NS_DJINTERP
 // _ec. Removing something that is not there is ENOENT, so a true return always
 // means this call did the removing.
 inline bool
-remove(const path& _p, error& _ec)
+remove(
+    const path& _p,
+    error&      _ec
+)
 {
     if (!_p.valid())
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
     if (d_remove(_p.c_str()) != 0)
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return true;
 }
 
@@ -86,28 +91,32 @@ remove(const path& _p, error& _ec)
 // directory. The narrower promise is the point: this cannot delete a directory
 // by surprise.
 inline bool
-remove_file(const path& _p, error& _ec)
+remove_file(
+    const path& _p,
+    error&      _ec
+)
 {
     if (!_p.valid())
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
     if (d_unlink(_p.c_str()) != 0)
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return true;
 }
 
 
-// ===========================================================================
-// II.  MOVEMENT
-// ===========================================================================
+// II.   Movement
 
 // rename
 //   function: move/rename _from to _to, ATOMICALLY within a filesystem, and
@@ -118,28 +127,34 @@ remove_file(const path& _p, error& _ec)
 // because it cannot promise atomicity there; that is reported, not papered over
 // with a non-atomic copy.
 inline bool
-rename(const path& _from, const path& _to, error& _ec)
+rename(
+    const path& _from,
+    const path& _to,
+    error&      _ec
+)
 {
-    if (!_from.valid() || !_to.valid())
+    if ( (!_from.valid()) ||
+         (!_to.valid()) )
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
     if (d_rename(_from.c_str(), _to.c_str(), 1) != 0)   // 1 == overwrite
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return true;
 }
 
 
-// ===========================================================================
-// III. DUPLICATION
-// ===========================================================================
+// III.  Duplication
 
 // copy_file
 //   function: copy the contents of _src to _dst, overwriting _dst. NOT atomic
@@ -147,24 +162,32 @@ rename(const path& _from, const path& _to, error& _ec)
 // crash can leave it that way. For an indivisible replace, copy to a temporary
 // and rename() it onto _dst. A missing _src is ENOENT.
 inline bool
-copy_file(const path& _src, const path& _dst, error& _ec)
+copy_file(
+    const path& _src,
+    const path& _dst,
+    error&      _ec
+)
 {
-    if (!_src.valid() || !_dst.valid())
+    if ( (!_src.valid()) ||
+         (!_dst.valid()) )
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
     if (d_copy_file(_src.c_str(), _dst.c_str()) != 0)
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return true;
 }
 
 NS_END  // djinterp
 
-#endif // DJINTERP_FS_FILE_OPS_
+#endif  // DJINTERP_FS_FILE_OPS_

@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_seek.h
+* djinterp [c]                                                     file_seek.h
 *
 * 64-bit positioning and truncation.
 *   Exists as its own module because "where am I in this file" and "how big is
@@ -8,7 +8,7 @@
 *   d_ftello/d_fseeko are 64-bit on every target, including a 32-bit Windows
 * build where ftell() would wrap at 2 GiB and report a plausible wrong answer.
 *
-* path:      \inc\djinterp\c\fs\file_seek.h
+* path:      /inc/djinterp/c/fs/file_seek.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -31,6 +31,7 @@ II.   TRUNCATION
 #ifndef DJINTERP_FILE_SEEK_
 #define DJINTERP_FILE_SEEK_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_seek.h"
 
