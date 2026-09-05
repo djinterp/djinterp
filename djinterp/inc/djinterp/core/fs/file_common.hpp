@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                file_common.hpp
+* djinterp [core]                                              file_common.hpp
 *
 *   Common base for the C++ filesystem layer -- the C++ counterpart to the C
 * file_common.h, which it derives from. Every file_*.hpp module includes this
@@ -19,7 +19,7 @@
 * depending on who wrote it, and the fs methods already carry success in their
 * return value -- so `error` answers only the unambiguous question, failed().
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_common.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.18
@@ -28,11 +28,13 @@
 #ifndef DJINTERP_FS_FILE_COMMON_
 #define DJINTERP_FS_FILE_COMMON_ 1
 
-#include "../djinterp.hpp"            // prelude: namespace + D_* qualifier kit
-#include "../../c/fs/file_common.h"   // the C common this layer derives from
-
+// std
 #include <cerrno>
 #include <cstring>
+// djinterp
+// prelude: namespace + D_* qualifier kit
+#include "../../djinterp.hpp"
+#include "../../c/fs/file_common.h"   // the C common this layer derives from
 
 
 NS_DJINTERP
@@ -46,15 +48,13 @@ public:
     //   function: the success value -- no error.
     error(void)
         : m_code(0)
-    {
-    }
+    {}
 
     // error
     //   function: from a specific errno-style code.
     explicit error(int _code)
         : m_code(_code)
-    {
-    }
+    {}
 
     // value
     //   function: the raw code. 0 means success; anything else is an errno
@@ -109,19 +109,29 @@ private:
 };
 
 
-// operator== / operator!=
+// operator==
 //   function: compare by code, so `ec == error()` is a success test and two
 // failures with the same errno are equal.
-inline bool operator==(const error& _a, const error& _b)
+inline bool
+operator==(
+    const error& _a,
+    const error& _b
+)
 {
     return _a.value() == _b.value();
 }
 
-inline bool operator!=(const error& _a, const error& _b)
+// operator!=
+//   function: the negation of operator==.
+inline bool
+operator!=(
+    const error& _a,
+    const error& _b
+)
 {
     return !(_a == _b);
 }
 
 NS_END  // djinterp
 
-#endif // DJINTERP_FS_FILE_COMMON_
+#endif  // DJINTERP_FS_FILE_COMMON_

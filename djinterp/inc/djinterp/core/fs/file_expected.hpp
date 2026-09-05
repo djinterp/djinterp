@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                              file_expected.hpp
+* djinterp [core]                                            file_expected.hpp
 *
 *   The C++23 return surface (roadmap Phase 10). std::expected<T, error> carries
 * either a value or the error that stopped it, in the return type -- no
@@ -21,7 +21,7 @@
 * Where <expected> is absent, this header defines nothing and is harmless to
 * include.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_expected.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.19
@@ -30,16 +30,18 @@
 #ifndef DJINTERP_FS_FILE_EXPECTED_
 #define DJINTERP_FS_FILE_EXPECTED_ 1
 
+// std
+#include <version>   // populate the library feature-test macros
+// djinterp
 #include "file_path.hpp"
 #include "file_common.hpp"
 #include "file_stat.hpp"
 #include "file_space.hpp"
 #include "file_link.hpp"
 
-#include <version>   // populate the library feature-test macros
-
 #if defined(__cpp_lib_expected) && (__cpp_lib_expected >= 202202L)
 
+// std
 #include <expected>
 
 #define D_INTERNAL_HAVE_EXPECTED 1
@@ -118,7 +120,7 @@ read_symlink(const path& _p)
 
     return target;
 }
-#endif // D_FILE_LINK_IS_AVAILABLE
+#endif  // D_FILE_LINK_IS_AVAILABLE
 
 NS_END  // djinterp
 
@@ -129,4 +131,4 @@ NS_END  // djinterp
 #endif  // __cpp_lib_expected
 
 
-#endif // DJINTERP_FS_FILE_EXPECTED_
+#endif  // DJINTERP_FS_FILE_EXPECTED_

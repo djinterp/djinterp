@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [compat]                                                    dfile.h
+* djinterp [c]                                                         dfile.h
 *
 * COMPATIBILITY SHIM. Do not include this in new code.
 *
@@ -33,7 +33,7 @@
 * other move. st_size, st_mode, st_nlink, st_uid, st_gid, st_dev and st_ino
 * are unchanged.
 *
-* path:      \inc\djinterp\c\dfile.h
+* path:      /inc/djinterp/c/fs/dfile.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -41,7 +41,8 @@
 #ifndef DJINTERP_DFILE_
 #define DJINTERP_DFILE_ 1
 
-#include "./fs/file.h"
+// djinterp
+#include "./file.h"
 
 
 // --- Legacy feature macros ---
@@ -50,7 +51,7 @@
 // and are re-exported here under their old names.
 
 // D_FILE_HAS_SYMLINKS
-//   brief (legacy): 1 when the symbolic-link API exists.
+//   macro (legacy): 1 when the symbolic-link API exists.
 //   Superseded by D_FILE_LINK_IS_AVAILABLE, which says the same thing and
 // says which module it belongs to.
 #ifndef D_FILE_HAS_SYMLINKS
@@ -58,14 +59,14 @@
 #endif
 
 // D_FILE_HAS_PIPES
-//   brief (legacy): 1 when the pipe API exists.
+//   macro (legacy): 1 when the pipe API exists.
 //   Superseded by D_FILE_PIPE_IS_AVAILABLE.
 #ifndef D_FILE_HAS_PIPES
 #   define D_FILE_HAS_PIPES D_INTERNAL_FILE_HAS_PIPES
 #endif
 
 // D_FILE_PLATFORM_WINDOWS
-//   brief (legacy): 1 on a Windows target.
+//   macro (legacy): 1 on a Windows target.
 //   DO NOT USE IN NEW CODE, and it is worth being explicit about why rather
 // than just deprecating it. Every place this macro appeared was a place
 // asking the wrong question: "am I on Windows" instead of "does this build
@@ -80,7 +81,7 @@
 #endif
 
 // D_FILE_PLATFORM_POSIX
-//   brief (legacy): 1 on a POSIX target. See the note above.
+//   macro (legacy): 1 on a POSIX target. See the note above.
 #ifndef D_FILE_PLATFORM_POSIX
 #   define D_FILE_PLATFORM_POSIX D_CFG_FILE_HAS_POSIX
 #endif

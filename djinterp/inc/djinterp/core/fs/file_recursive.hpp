@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                             file_recursive.hpp
+* djinterp [core]                                           file_recursive.hpp
 *
 *   Recursive traversal (roadmap Phase 9) -- walking a whole tree, and removing
 * one. Both are built entirely on the pieces already in place: directory (the
@@ -29,7 +29,7 @@
 * is POST-ORDER by necessity -- a directory cannot be removed until its children
 * are -- and IDEMPOTENT: removing something already gone is success, not ENOENT.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_recursive.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.19
@@ -45,21 +45,20 @@ II.   remove_all     recursive post-order delete
 #ifndef DJINTERP_FS_FILE_RECURSIVE_
 #define DJINTERP_FS_FILE_RECURSIVE_ 1
 
+// std
+#include <cstddef>                // std::size_t
+#include <vector>                 // child gather in remove_all
+// djinterp
 #include "file_path.hpp"
 #include "file_common.hpp"
 #include "file_stat.hpp"
 #include "file_dir.hpp"
 #include "file_ops.hpp"
 
-#include <vector>                 // child gather in remove_all
-#include <cstddef>                // std::size_t
-
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   walk
-// ===========================================================================
+// I.    walk
 
 NS_INTERNAL
     // entry_is_directory
@@ -131,15 +130,17 @@ NS_END  // internal
 // walk. Taking it by value is what lets a temporary lambda be passed inline.
 template<typename _Visitor>
 bool
-walk(const path& _root, _Visitor _visit, error& _ec)
+walk(
+    const path& _root,
+    _Visitor    _visit,
+    error&      _ec
+)
 {
     return internal::walk_impl(_root, _visit, 0, _ec);
 }
 
 
-// ===========================================================================
-// II.  remove_all
-// ===========================================================================
+// II.   remove_all
 
 // remove_all
 //   function: remove _p and everything beneath it, returning true on success.
@@ -153,7 +154,10 @@ walk(const path& _root, _Visitor _visit, error& _ec)
 // is being read -- which is fragile across platforms. Each entry owns its name,
 // so the gathered paths stay valid after the handle is gone.
 inline bool
-remove_all(const path& _p, error& _ec)
+remove_all(
+    const path& _p,
+    error&      _ec
+)
 {
     file_status st = symlink_status(_p, _ec);   // no-follow: a link is a link
 
@@ -165,6 +169,7 @@ remove_all(const path& _p, error& _ec)
     if (st.type() == file_status::type_not_found)
     {
         _ec.clear();
+
         return true;   // already absent
     }
 
@@ -209,4 +214,4 @@ remove_all(const path& _p, error& _ec)
 
 NS_END  // djinterp
 
-#endif // DJINTERP_FS_FILE_RECURSIVE_
+#endif  // DJINTERP_FS_FILE_RECURSIVE_

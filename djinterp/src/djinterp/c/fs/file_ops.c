@@ -1,3 +1,9 @@
+/******************************************************************************
+* djinterp [c]                                                      file_ops.c
+*
+* path:      /src/djinterp/c/fs/file_ops.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_ops.h"
 #include "../../../../inc/djinterp/c/fs/file_desc.h"
 #include "../../../../inc/djinterp/c/fs/file_io.h"
@@ -5,13 +11,12 @@
 
 #if ( (D_INTERNAL_FILE_OPS_COPY_NATIVE == 1) &&                               \
       D_CFG_IS_ON(D_CFG_FILE_HAS_FCOPYFILE) )
+    // apple
     #include <copyfile.h>
 #endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             INTERNAL DEFINITIONS                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// Internal definitions
 
 #if !D_FILE_BACKEND_IS_STDC
 //   Not built on the ISO C backend: the only caller is in the non-STDC
@@ -121,7 +126,8 @@ d_internal_ops_copy_native
                                        errno,
                                        "d_copy_file",
                                        NULL,
-                                       "copy_file_range declined; using the portable path");
+                                       "copy_file_range declined; using the "
+                                       "portable path");
 
                 return 1;
             }
@@ -165,12 +171,10 @@ d_internal_ops_copy_native
 
 #endif  // D_INTERNAL_FILE_OPS_COPY_NATIVE
 
-#endif // !D_FILE_BACKEND_IS_STDC
+#endif  // !D_FILE_BACKEND_IS_STDC
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  REMOVAL                                                 ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Removal
 
 /*
 d_remove
@@ -271,9 +275,7 @@ d_unlink
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  MOVEMENT                                               ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Movement
 
 /*
 d_rename
@@ -332,7 +334,8 @@ d_rename
             D_INTERNAL_FILE_FAIL(EEXIST,
                                  "d_rename",
                                  _new,
-                                 "destination exists and overwrite was not requested",
+                                 "destination exists and overwrite was "
+                                 "not requested",
                                  -1);
         }
     }
@@ -369,7 +372,8 @@ d_rename
                                EXDEV,
                                "d_rename",
                                D_INTERNAL_FILE_NOTIFY_PATH(_old),
-                               "cross-device; falling back to a NON-ATOMIC copy+delete");
+                               "cross-device; falling back to a NON-ATOMIC "
+                               "copy+delete");
 
         if (d_copy_file(_old, _new) != 0)
         {
@@ -403,9 +407,7 @@ d_rename
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  DUPLICATION                                           ///
-///////////////////////////////////////////////////////////////////////////////
+// III.  Duplication
 
 /*
 d_copy_file
@@ -540,7 +542,8 @@ d_copy_file
                                    errno,
                                    "d_copy_file",
                                    D_INTERNAL_FILE_NOTIFY_PATH(_dst),
-                                   "could not preserve the source's permissions");
+                                   "could not preserve the source's "
+                                   "permissions");
         }
     }
     #endif
@@ -566,7 +569,8 @@ d_copy_file
                                saved_errno,
                                "d_copy_file",
                                D_INTERNAL_FILE_NOTIFY_PATH(_dst),
-                               "copy failed; the partial destination was removed");
+                               "copy failed; the partial destination was "
+                               "removed");
         errno = saved_errno;
 
         return -1;

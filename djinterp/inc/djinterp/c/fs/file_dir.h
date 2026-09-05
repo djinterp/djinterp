@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                   file_dir.h
+* djinterp [c]                                                      file_dir.h
 *
 * Directories -- creating, removing, walking -- and the path operations that
 * must ask the filesystem.
@@ -10,7 +10,7 @@
 * pointer stays valid until the next d_readdir on the same handle -- and dies
 * with d_closedir.
 *
-* path:      \inc\djinterp\c\fs\file_dir.h
+* path:      /inc/djinterp/c/fs/file_dir.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -44,6 +44,7 @@ IV.   WORKING DIRECTORY & RESOLUTION
 #ifndef DJINTERP_FILE_DIR_
 #define DJINTERP_FILE_DIR_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "./file_path.h"
 #include "../../config/c/fs/cfg_file_dir.h"

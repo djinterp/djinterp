@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                  file_path.hpp
+* djinterp [core]                                                file_path.hpp
 *
 * djinterp::path -- a lexical path.
 *
@@ -27,7 +27,7 @@
 * the bool conversion. D_CFG_PATH_THROW ADDS throwing on top; it never
 * replaces this.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_path.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
@@ -59,6 +59,7 @@ III.  FREE FUNCTIONS
 #ifndef DJINTERP_FS_FILE_PATH_
 #define DJINTERP_FS_FILE_PATH_ 1
 
+// djinterp
 #include "../../c/fs/file_path.h"
 #include "../../c/dstring.h"
 #include "file_common.hpp"          // common base: prelude (D_* kit) + error
@@ -112,13 +113,16 @@ III.  FREE FUNCTIONS
 #define D_INTERNAL_PATH_STACK_BUF   (D_CFG_PATH_STACK_BUF + 0)
 
 #if (D_INTERNAL_PATH_THROW == 1)
+    // std
     #include <stdexcept>
 #endif
 
 // C++20 three-way comparison support (see operator<=> below). Gated on the
 // standard language feature-test macro -- NOT on __cplusplus, whose C++23 value
 // varies by compiler; the feature-test macro is the portable signal.
-#if defined(__cpp_impl_three_way_comparison) && (__cpp_impl_three_way_comparison >= 201907L)
+#if ( defined(__cpp_impl_three_way_comparison) &&                          \
+      (__cpp_impl_three_way_comparison >= 201907L) )
+    // std
     #include <compare>
     #include <cstring>
     #define D_INTERNAL_PATH_HAS_SPACESHIP 1
@@ -405,11 +409,17 @@ public:
 
     // parent
     //   function: the directory component. d_dirname.
-    path parent(void) const { return d_internal_lex(&path::d_internal_dirname); }
+    path parent(void) const
+    {
+        return d_internal_lex(&path::d_internal_dirname);
+    }
 
     // filename
     //   function: the final component. d_basename.
-    path filename(void) const { return d_internal_lex(&path::d_internal_basename); }
+    path filename(void) const
+    {
+        return d_internal_lex(&path::d_internal_basename);
+    }
 
     // stem
     //   function: the final component without its extension. d_path_stem.
@@ -523,7 +533,10 @@ public:
     // while the kernel says "/y". Both are defensible and they are not the
     // same answer. When the path names something that exists and the
     // difference matters, ask the filesystem -- d_realpath, in file_dir.
-    path normalized(void) const { return d_internal_lex(&path::d_internal_norm); }
+    path normalized(void) const
+    {
+        return d_internal_lex(&path::d_internal_norm);
+    }
 
 
     // --- II.7  Comparison ---
@@ -568,7 +581,8 @@ public:
         const bool this_valid  = (m_str != 0);
         const bool other_valid = (_other.m_str != 0);
 
-        if (!this_valid || !other_valid)
+        if ( (!this_valid) ||
+             (!other_valid) )
         {
             if (this_valid == other_valid)
             {
@@ -605,8 +619,7 @@ private:
     //   function: an invalid path, unconditionally and without throwing.
     path(d_internal_invalid_tag)
         : m_str(0)
-    {
-    }
+    {}
 
     struct d_string* m_str;
 

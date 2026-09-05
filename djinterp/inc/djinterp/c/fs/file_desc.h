@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_desc.h
+* djinterp [c]                                                     file_desc.h
 *
 * Descriptor lifecycle -- getting one, copying one, giving one back.
 *   This module owns descriptors, not the bytes that move through them; those
@@ -9,7 +9,7 @@
 * -- including the one d_dup returns, which POSIX would otherwise hand back
 * with the flag silently cleared.
 *
-* path:      \inc\djinterp\c\fs\file_desc.h
+* path:      /inc/djinterp/c/fs/file_desc.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -35,6 +35,7 @@ III.  RELEASE
 #ifndef DJINTERP_FILE_DESC_
 #define DJINTERP_FILE_DESC_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_desc.h"
 

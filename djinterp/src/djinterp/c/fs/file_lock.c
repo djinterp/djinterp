@@ -1,9 +1,13 @@
+/******************************************************************************
+* djinterp [c]                                                     file_lock.c
+*
+* path:      /src/djinterp/c/fs/file_lock.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_lock.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             INTERNAL DEFINITIONS                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// Internal definitions
 
 //   Not built on the ISO C backend: the only caller is in the non-STDC
 // branch below, so defining it there is an unused function and a warning.
@@ -49,12 +53,10 @@ d_internal_lock_check_op
 
     return (count == 1);
 }
-#endif // D_INTERNAL_FILE_VALIDATE && !D_FILE_BACKEND_IS_STDC
+#endif  // D_INTERNAL_FILE_VALIDATE && !D_FILE_BACKEND_IS_STDC
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  LOCKING                                                 ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Locking
 
 /*
 d_flock
@@ -228,7 +230,8 @@ d_flock
                                    errno,
                                    "d_flock",
                                    NULL,
-                                   "lock is held elsewhere; non-blocking request declined");
+                                   "lock is held elsewhere; non-blocking "
+                                   "request declined");
         }
         else
         {

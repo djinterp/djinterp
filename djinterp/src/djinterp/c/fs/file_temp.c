@@ -1,12 +1,17 @@
+/******************************************************************************
+* djinterp [c]                                                     file_temp.c
+*
+* path:      /src/djinterp/c/fs/file_temp.c
+******************************************************************************/
+// std
 #include <time.h>
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_temp.h"
 #include "../../../../inc/djinterp/c/fs/file_desc.h"
 #include "../../../../inc/djinterp/c/fs/file_stat.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  ATOMIC CREATION                                         ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Atomic creation
 
 /*
 d_tmpfile
@@ -146,7 +151,8 @@ d_mkstemp
             D_INTERNAL_FILE_FAIL(EINVAL,
                                  "d_mkstemp",
                                  _template,
-                                 "template must end in exactly six 'X' characters",
+                                 "template must end in exactly six 'X' "
+                                 "characters",
                                  -1);
         }
     }
@@ -234,9 +240,7 @@ d_mkstemp
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  NAME GENERATION                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Name generation
 
 #if (D_INTERNAL_FILE_TEMP_TMPNAM == 1)
 
@@ -295,7 +299,8 @@ d_tmpnam_s
                            0,
                            "d_tmpnam_s",
                            NULL,
-                           "generated name is racy by construction; prefer d_mkstemp");
+                           "generated name is racy by construction; prefer "
+                           "d_mkstemp");
 
     for (tries = 0; tries < 128; ++tries)
     {
@@ -336,9 +341,7 @@ d_tmpnam_s
 #endif  // D_INTERNAL_FILE_TEMP_TMPNAM
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  LOCATION                                              ///
-///////////////////////////////////////////////////////////////////////////////
+// III.  Location
 
 /*
 d_tempdir

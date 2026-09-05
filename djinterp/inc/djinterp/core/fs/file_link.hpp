@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                  file_link.hpp
+* djinterp [core]                                                file_link.hpp
 *
 *   Symbolic links (roadmap Phase 8) -- create one, read where it points, ask
 * whether a path is one. Free functions over paths, no handle, so no D_*_
@@ -40,12 +40,12 @@ III.  is_symlink         is this path a symlink (does NOT follow)
 #ifndef DJINTERP_FS_FILE_LINK_
 #define DJINTERP_FS_FILE_LINK_ 1
 
+// std
+#include <cerrno>                 // EINVAL
+// djinterp
 #include "file_path.hpp"
 #include "file_common.hpp"
-
 #include "../../c/fs/file_link.h"    // d_symlink, d_readlink, d_is_symlink
-
-#include <cerrno>                 // EINVAL
 
 
 #if D_FILE_LINK_IS_AVAILABLE
@@ -58,21 +58,29 @@ NS_DJINTERP
 // something not yet there), and a relative target is resolved later relative to
 // the link's own directory, not to here.
 inline bool
-create_symlink(const path& _target, const path& _link_path, error& _ec)
+create_symlink(
+    const path& _target,
+    const path& _link_path,
+    error&      _ec
+)
 {
-    if (!_target.valid() || !_link_path.valid())
+    if ( (!_target.valid()) ||
+         (!_link_path.valid()) )
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
     if (d_symlink(_target.c_str(), _link_path.c_str()) != 0)
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return true;
 }
 
@@ -83,7 +91,10 @@ create_symlink(const path& _target, const path& _link_path, error& _ec)
 // terminates by the returned length, which is the one detail a caller must not
 // get wrong -- so it is done here, once.)
 inline path
-read_symlink(const path& _path, error& _ec)
+read_symlink(
+    const path& _path,
+    error&      _ec
+)
 {
     char    buf[D_FILE_PATH_MAX + 1];
     ssize_t n;
@@ -91,6 +102,7 @@ read_symlink(const path& _path, error& _ec)
     if (!_path.valid())
     {
         _ec.assign(EINVAL);
+
         return path();
     }
 
@@ -99,11 +111,13 @@ read_symlink(const path& _path, error& _ec)
     if (n < 0)
     {
         _ec = error::from_errno();
+
         return path();
     }
 
     buf[n] = '\0';   // readlink writes no terminator; place it by the count
     _ec.clear();
+
     return path(buf);
 }
 
@@ -112,13 +126,17 @@ read_symlink(const path& _path, error& _ec)
 // symlink_status(_path).is_symlink(); this is the one-syscall form for when the
 // single bit is all you need.
 inline bool
-is_symlink(const path& _path, error& _ec)
+is_symlink(
+    const path& _path,
+    error&      _ec
+)
 {
     int result;
 
     if (!_path.valid())
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
@@ -127,15 +145,17 @@ is_symlink(const path& _path, error& _ec)
     if (result < 0)
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return result != 0;
 }
 
 NS_END  // djinterp
 
-#endif // D_FILE_LINK_IS_AVAILABLE
+#endif  // D_FILE_LINK_IS_AVAILABLE
 
-#endif // DJINTERP_FS_FILE_LINK_
+#endif  // DJINTERP_FS_FILE_LINK_

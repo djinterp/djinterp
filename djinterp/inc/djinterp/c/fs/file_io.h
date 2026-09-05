@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                    file_io.h
+* djinterp [c]                                                       file_io.h
 *
 * Moving bytes -- through a descriptor, at an offset, or a whole file at once.
 *   Read and write live together because they are one mechanism seen from two
@@ -13,7 +13,7 @@
 * durable storage are build-time decisions -- see cfg_file_io.h, and
 * D_FILE_WRITE_IS_ATOMIC / D_FILE_WRITE_IS_DURABLE to query them.
 *
-* path:      \inc\djinterp\c\fs\file_io.h
+* path:      /inc/djinterp/c/fs/file_io.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -48,6 +48,7 @@ IV.   WHOLE-FILE WRITES
 #ifndef DJINTERP_FILE_IO_
 #define DJINTERP_FILE_IO_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "./file_open.h"
 #include "../../config/c/fs/cfg_file_io.h"

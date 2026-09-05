@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                   file_dir.hpp
+* djinterp [core]                                                 file_dir.hpp
 *
 *   djinterp::directory -- an open directory you can walk with a range-for
 * (roadmap Phase 6). This is the first C++ piece with iterator machinery rather
@@ -29,7 +29,7 @@
 * guarantees (POSIX numbering, defined portably), the same way this layer uses
 * SEEK_SET. There is no platform branch here.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_dir.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.18
@@ -38,7 +38,8 @@
 /*
 TABLE OF CONTENTS
 =================
-0.    LANGUAGE SUPPORT       D_MOVE_ENABLED / _NOEXCEPT / _EXPLICIT / _DELETED_FN
+0.    LANGUAGE SUPPORT       D_MOVE_ENABLED / _NOEXCEPT /
+                             _EXPLICIT_BOOL / _DELETED_FN
 I.    directory_entry        one entry: its name (owned) and its type
 II.   directory_iterator     the input cursor (range-for)
 III.  directory              the RAII handle + walk
@@ -48,36 +49,21 @@ IV.   FREE FUNCTIONS         create_directory / remove_directory
 #ifndef DJINTERP_FS_FILE_DIR_
 #define DJINTERP_FS_FILE_DIR_ 1
 
+// std
+#include <cerrno>                 // EBADF, EINVAL
+#include <cstring>                // std::strcmp (the "." / ".." skip)
+// djinterp
+#include "../../djinterp.hpp"
 #include "file_path.hpp"
 #include "file_common.hpp"
 #include "file_stat.hpp"
-
-#include "../../c/fs/file_dir.h"     // d_opendir, d_readdir, d_closedir, d_mkdir
-
-#include <cstring>                // std::strcmp (the "." / ".." skip)
-#include <cerrno>                 // EBADF, EINVAL
-
-
-// ===========================================================================
-// 0.   LANGUAGE SUPPORT
-// ===========================================================================
-//
-//   The move/noexcept/explicit/deleted spellings come from djinterp.hpp
-// (included via file_path.hpp above, and directly here for clarity): D_MOVE_ENABLED,
-// D_NOEXCEPT, D_EXPLICIT_BOOL, D_DELETED_FN. directory was the THIRD header to
-// carry a private copy of this kit (D_DIR_*), which was the argument that
-// finally tipped the promotion -- this is the single-source result, so a
-// directory that must be non-copyable and movable draws the spelling from the
-// one place every C++ module now shares.
-
-#include "../djinterp.hpp"
+// d_opendir, d_readdir, d_closedir, d_mkdir
+#include "../../c/fs/file_dir.h"
 
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   directory_entry
-// ===========================================================================
+// I.    directory_entry
 
 // directory_entry
 //   class: one directory entry. A VALUE -- it owns a COPY of the name (the
@@ -90,8 +76,7 @@ class directory_entry
 public:
     directory_entry(void)
         : m_type(DT_UNKNOWN)
-    {
-    }
+    {}
 
     // name
     //   function: the entry's name -- the filename ALONE, not a full path. Join
@@ -153,9 +138,7 @@ private:
 };
 
 
-// ===========================================================================
-// II.  directory_iterator
-// ===========================================================================
+// II.   directory_iterator
 
 class directory;   // defined below; the iterator points at one
 
@@ -171,13 +154,11 @@ class directory_iterator
 public:
     directory_iterator(void)
         : m_dir(0)
-    {
-    }
+    {}
 
     explicit directory_iterator(directory* _dir)
         : m_dir(_dir)
-    {
-    }
+    {}
 
     const directory_entry& operator*(void) const;
     const directory_entry* operator->(void) const;
@@ -198,9 +179,7 @@ private:
 };
 
 
-// ===========================================================================
-// III. directory
-// ===========================================================================
+// III.  directory
 
 // directory
 //   class: an open directory. Owns the d_dir_t*; non-copyable on every tier,
@@ -216,8 +195,7 @@ public:
     directory(void)
         : m_dir(0)
         , m_at_end(false)
-    {
-    }
+    {}
 
     // directory
     //   function: open _path for walking. Check the result with operator bool
@@ -232,6 +210,7 @@ public:
         if (!_path.valid())
         {
             _ec.assign(EINVAL);
+
             return;
         }
 
@@ -240,6 +219,7 @@ public:
         if (!m_dir)
         {
             _ec = error::from_errno();
+
             return;
         }
 
@@ -300,6 +280,7 @@ public:
         if (!m_dir)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
@@ -308,11 +289,13 @@ public:
         if (m_at_end)
         {
             _ec = m_error;   // clear on a clean end, set on error
+
             return false;
         }
 
         _out = m_current;
         _ec.clear();
+
         return true;
     }
 
@@ -346,18 +329,21 @@ public:
         if (!m_dir)
         {
             _ec.assign(EBADF);
+
             return false;
         }
 
         if (d_rewinddir(m_dir) != 0)
         {
             _ec = error::from_errno();
+
             return false;
         }
 
         m_at_end = false;
         m_error.clear();
         _ec.clear();
+
         return true;
     }
 
@@ -390,7 +376,8 @@ private:
 
     // read_next
     //   function: advance to the next real entry, skipping "." and "..". Sets
-    // m_at_end at the end of the walk; on a genuine readdir error, sets m_at_end
+    // m_at_end at the end of the walk; on a genuine readdir error, sets
+    // m_at_end
     // AND records the errno in m_error (a NULL return with errno clear is a
     // clean end, with errno set is a failure -- the classic readdir
     // distinction, made once, here).
@@ -472,30 +459,34 @@ directory_iterator::operator++(void)
 }
 
 
-// ===========================================================================
-// IV.  FREE FUNCTIONS
-// ===========================================================================
+// IV.   Free functions
 
 // create_directory
 //   function: make one directory. Its parents must already exist (that is what
 // d_mkdir does; d_mkdir_p would make the chain, and could be added later). An
 // already-existing path is reported as-is -- the caller can check for EEXIST.
 inline bool
-create_directory(const path& _p, error& _ec)
+create_directory(
+    const path& _p,
+    error&      _ec
+)
 {
     if (!_p.valid())
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
     if (d_mkdir(_p.c_str(), (uint32_t)0777) != 0)
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return true;
 }
 
@@ -503,24 +494,30 @@ create_directory(const path& _p, error& _ec)
 //   function: remove one EMPTY directory. A non-empty one is refused by the
 // platform (ENOTEMPTY), reported through _ec -- this does not walk and delete.
 inline bool
-remove_directory(const path& _p, error& _ec)
+remove_directory(
+    const path& _p,
+    error&      _ec
+)
 {
     if (!_p.valid())
     {
         _ec.assign(EINVAL);
+
         return false;
     }
 
     if (d_rmdir(_p.c_str()) != 0)
     {
         _ec = error::from_errno();
+
         return false;
     }
 
     _ec.clear();
+
     return true;
 }
 
 NS_END  // djinterp
 
-#endif // DJINTERP_FS_FILE_DIR_
+#endif  // DJINTERP_FS_FILE_DIR_

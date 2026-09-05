@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [fs]                                                    file_stat.hpp
+* djinterp [core]                                                file_stat.hpp
 *
 *   djinterp::file_status -- what the filesystem knows about a path, captured
 * once (roadmap Phase 5). This is the C++ answer to the warning at the top of
@@ -22,7 +22,8 @@
 * status(p) saw and what the next open(p) gets may be two different files. When
 * it matters, open the file and call file::status() -- an fstat on the live
 * descriptor, which names one file for its whole lifetime and cannot be swapped
-* underneath you. That method lives in file_stream.hpp; this header is what it returns.
+* underneath you. That method lives in file_stream.hpp; this header is what
+* it returns.
 *
 *   A VALUE, not a resource. file_status owns nothing -- it is a struct and an
 * enum. It copies freely on every tier, needs no move, and carries none of the
@@ -35,7 +36,7 @@
 * them), the same way this layer uses SEEK_SET and D_LOCK_EX. There is no
 * platform branch here; the c/fs stat module already normalized st_mode.
 *
-* 
+*
 * path:      /inc/djinterp/core/fs/file_stat.hpp
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.18
@@ -65,9 +66,7 @@ III.  ONE-QUESTION HELPERS   exists / is_regular_file / is_directory / file_size
 
 NS_DJINTERP
 
-// ===========================================================================
-// I.   file_status
-// ===========================================================================
+// I.    file_status
 
 // file_status
 //   class: one filesystem snapshot of one path. A value type -- copy it, store
@@ -111,8 +110,7 @@ public:
     explicit file_status(const struct d_stat_t& _buf)
         : m_type(type_from_mode(_buf.st_mode))
         , m_stat(_buf)
-    {
-    }
+    {}
 
     // file_status
     //   function: a snapshot that carries only a type and no data -- for
@@ -252,9 +250,7 @@ private:
 };
 
 
-// ===========================================================================
-// II.  QUERIES
-// ===========================================================================
+// II.   Queries
 
 // d_internal_status_query
 //   function: the shared body of status() and symlink_status() -- the only
@@ -274,6 +270,7 @@ NS_INTERNAL
         if (!_p.valid())
         {
             _ec.assign(EINVAL);
+
             return file_status();
         }
 
@@ -282,17 +279,21 @@ NS_INTERNAL
 
         if (rc != 0)
         {
-            if (errno == ENOENT || errno == ENOTDIR)
+            if ( (errno == ENOENT) ||
+                 (errno == ENOTDIR) )
             {
                 _ec.clear();
+
                 return file_status(file_status::type_not_found);
             }
 
             _ec = error::from_errno();
+
             return file_status();
         }
 
         _ec.clear();
+
         return file_status(buf);
     }
 NS_END  // internal
@@ -302,7 +303,10 @@ NS_END  // internal
 //   function: snapshot a path, FOLLOWING a final symlink to its target. The
 // usual question -- "what is at this path".
 inline file_status
-status(const path& _p, error& _ec)
+status(
+    const path& _p,
+    error&      _ec
+)
 {
     return internal::status_query(_p, true, _ec);
 }
@@ -312,21 +316,25 @@ status(const path& _p, error& _ec)
 // reports as type_symlink rather than as whatever it points at. What you want
 // when the link itself is the subject.
 inline file_status
-symlink_status(const path& _p, error& _ec)
+symlink_status(
+    const path& _p,
+    error&      _ec
+)
 {
     return internal::status_query(_p, false, _ec);
 }
 
 
-// ===========================================================================
-// III. ONE-QUESTION HELPERS
-// ===========================================================================
+// III.  One-question helpers
 
 // exists
 //   function: does the path name anything (following symlinks). One stat. An
 // absent file is a plain false with no error; a permission failure sets _ec.
 inline bool
-exists(const path& _p, error& _ec)
+exists(
+    const path& _p,
+    error&      _ec
+)
 {
     return status(_p, _ec).exists();
 }
@@ -334,7 +342,10 @@ exists(const path& _p, error& _ec)
 // is_regular_file
 //   function: is it an ordinary file (following symlinks). One stat.
 inline bool
-is_regular_file(const path& _p, error& _ec)
+is_regular_file(
+    const path& _p,
+    error&      _ec
+)
 {
     return status(_p, _ec).is_regular_file();
 }
@@ -342,7 +353,10 @@ is_regular_file(const path& _p, error& _ec)
 // is_directory
 //   function: is it a directory (following symlinks). One stat.
 inline bool
-is_directory(const path& _p, error& _ec)
+is_directory(
+    const path& _p,
+    error&      _ec
+)
 {
     return status(_p, _ec).is_directory();
 }
@@ -352,7 +366,10 @@ is_directory(const path& _p, error& _ec)
 // file is EINVAL -- their st_size is not a byte count -- and an absent file is
 // ENOENT, so a 0 return always came with a cleared _ec from a real, empty file.
 inline uint64_t
-file_size(const path& _p, error& _ec)
+file_size(
+    const path& _p,
+    error&      _ec
+)
 {
     file_status s = status(_p, _ec);
 
@@ -364,19 +381,22 @@ file_size(const path& _p, error& _ec)
     if (!s.exists())
     {
         _ec.assign(ENOENT);
+
         return 0;
     }
 
     if (!s.is_regular_file())
     {
         _ec.assign(EINVAL);
+
         return 0;
     }
 
     _ec.clear();
+
     return s.size();
 }
 NS_END  // djinterp
 
 
-#endif // DJINTERP_FS_FILE_STAT_
+#endif  // DJINTERP_FS_FILE_STAT_

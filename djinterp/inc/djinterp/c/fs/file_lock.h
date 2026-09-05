@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_lock.h
+* djinterp [c]                                                     file_lock.h
 *
 * Advisory file locking.
 *   ADVISORY, and the word is load-bearing: a lock here is a convention among
@@ -12,7 +12,7 @@
 * description, fcntl's lives on the process and is dropped when ANY descriptor
 * to the file closes. Query with D_FILE_LOCK_IS_PER_DESCRIPTION.
 *
-* path:      \inc\djinterp\c\fs\file_lock.h
+* path:      /inc/djinterp/c/fs/file_lock.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -32,6 +32,7 @@ I.    LOCKING
 #ifndef DJINTERP_FILE_LOCK_
 #define DJINTERP_FILE_LOCK_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_lock.h"
 

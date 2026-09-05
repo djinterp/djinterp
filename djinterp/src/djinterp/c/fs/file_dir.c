@@ -1,10 +1,14 @@
+/******************************************************************************
+* djinterp [c]                                                      file_dir.c
+*
+* path:      /src/djinterp/c/fs/file_dir.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_dir.h"
 #include "../../../../inc/djinterp/c/fs/file_stat.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             INTERNAL DEFINITIONS                                        ///
-///////////////////////////////////////////////////////////////////////////////
+// Internal definitions
 
 /*
 d_dir_t
@@ -182,9 +186,7 @@ d_internal_dir_is_dots
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  CREATION                                                ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Creation
 
 /*
 d_mkdir
@@ -339,11 +341,12 @@ d_mkdir_p
                     if (errno != EEXIST)
                     {
                         work[idx] = saved;
-                        D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
-                                               errno,
-                                               "d_mkdir_p",
-                                               D_INTERNAL_FILE_NOTIFY_PATH(_path),
-                                               "could not create an intermediate directory");
+                        D_INTERNAL_FILE_NOTIFY(
+                            D_FILE_NOTIFY_ERROR,
+                            errno,
+                            "d_mkdir_p",
+                            D_INTERNAL_FILE_NOTIFY_PATH(_path),
+                            "could not create an intermediate directory");
 
                         return -1;
                     }
@@ -356,7 +359,8 @@ d_mkdir_p
                         D_INTERNAL_FILE_FAIL(ENOTDIR,
                                              "d_mkdir_p",
                                              _path,
-                                             "a component exists and is not a directory",
+                                             "a component exists and is "
+                                             "not a directory",
                                              -1);
                     }
 
@@ -368,7 +372,8 @@ d_mkdir_p
                         D_INTERNAL_FILE_FAIL(EEXIST,
                                              "d_mkdir_p",
                                              _path,
-                                             "target exists and EXISTING_OK is 0",
+                                             "target exists and "
+                                             "EXISTING_OK is 0",
                                              -1);
                     }
 #endif
@@ -383,9 +388,7 @@ d_mkdir_p
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  REMOVAL                                                ///
-///////////////////////////////////////////////////////////////////////////////
+// II.   Removal
 
 /*
 d_rmdir
@@ -437,9 +440,7 @@ d_rmdir
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  TRAVERSAL                                             ///
-///////////////////////////////////////////////////////////////////////////////
+// III.  Traversal
 
 /*
 d_opendir
@@ -596,7 +597,8 @@ d_readdir
                                    ENAMETOOLONG,
                                    "d_readdir",
                                    NULL,
-                                   "entry name exceeds D_FILE_NAME_MAX; skipped");
+                                   "entry name exceeds D_FILE_NAME_MAX; "
+                                   "skipped");
             continue;
         }
 
@@ -655,7 +657,8 @@ d_readdir
                                    ENAMETOOLONG,
                                    "d_readdir",
                                    NULL,
-                                   "entry name exceeds D_FILE_NAME_MAX; skipped");
+                                   "entry name exceeds D_FILE_NAME_MAX; "
+                                   "skipped");
             continue;
         }
 
@@ -812,9 +815,7 @@ d_closedir
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.  WORKING DIRECTORY & RESOLUTION                         ///
-///////////////////////////////////////////////////////////////////////////////
+// IV.   Working directory & resolution
 
 /*
 d_getcwd

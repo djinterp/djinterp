@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_sync.h
+* djinterp [c]                                                     file_sync.h
 *
 * Forcing data to durable storage.
 *   Three calls, three DIFFERENT promises, and confusing them is how programs
@@ -11,7 +11,7 @@
 *   fflush is not a weaker fsync; it is a different layer. A program that
 * flushes and believes it has persisted is one power cut from finding out.
 *
-* path:      \inc\djinterp\c\fs\file_sync.h
+* path:      /inc/djinterp/c/fs/file_sync.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -32,6 +32,7 @@ II.   STDIO -> KERNEL
 #ifndef DJINTERP_FILE_SYNC_
 #define DJINTERP_FILE_SYNC_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_sync.h"
 

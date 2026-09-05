@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_link.h
+* djinterp [c]                                                     file_link.h
 *
 * Symbolic links.
 *   The whole API is compiled out when D_INTERNAL_FILE_HAS_SYMLINKS is 0, so
@@ -10,7 +10,7 @@
 * fail with EPERM for every ordinary user. Handle the runtime failure; do not
 * infer it from the macro.
 *
-* path:      \inc\djinterp\c\fs\file_link.h
+* path:      /inc/djinterp/c/fs/file_link.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -28,6 +28,7 @@ I.    SYMBOLIC LINKS
 #ifndef DJINTERP_FILE_LINK_
 #define DJINTERP_FILE_LINK_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_link.h"
 

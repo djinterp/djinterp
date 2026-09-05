@@ -1,5 +1,5 @@
 /******************************************************************************
-* djinterp [core]                                                  file_temp.h
+* djinterp [c]                                                     file_temp.h
 *
 * Temporary files.
 *   Two shapes, and only one of them is safe:
@@ -12,7 +12,7 @@
 *   d_tmpnam_s exists for compatibility and is gated behind
 * D_CFG_FILE_TEMP_ALLOW_TMPNAM so a codebase can prove it has no uses left.
 *
-* path:      \inc\djinterp\c\fs\file_temp.h
+* path:      /inc/djinterp/c/fs/file_temp.h
 * link:      TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
 ******************************************************************************/
@@ -38,6 +38,7 @@ III.  LOCATION
 #ifndef DJINTERP_FILE_TEMP_
 #define DJINTERP_FILE_TEMP_ 1
 
+// djinterp
 #include "./file_common.h"
 #include "../../config/c/fs/cfg_file_temp.h"
 

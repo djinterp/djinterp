@@ -1,12 +1,16 @@
+/******************************************************************************
+* djinterp [c]                                                     file_link.c
+*
+* path:      /src/djinterp/c/fs/file_link.c
+******************************************************************************/
+// djinterp
 #include "../../../../inc/djinterp/c/fs/file_link.h"
 #include "../../../../inc/djinterp/c/fs/file_stat.h"
 
 
 #if (D_INTERNAL_FILE_HAS_SYMLINKS == 1)
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  SYMBOLIC LINKS                                          ///
-///////////////////////////////////////////////////////////////////////////////
+// I.    Symbolic links
 
 /*
 d_symlink
@@ -78,7 +82,8 @@ d_symlink
                                    0,
                                    "d_symlink",
                                    NULL,
-                                   "unprivileged-create flag rejected; retrying without it");
+                                   "unprivileged-create flag rejected; "
+                                   "retrying without it");
 
             if (CreateSymbolicLinkA(_linkpath, _target, flags))
             {
@@ -98,7 +103,8 @@ d_symlink
                                EPERM,
                                "d_symlink",
                                D_INTERNAL_FILE_NOTIFY_PATH(_linkpath),
-                               "symlink failed; SeCreateSymbolicLinkPrivilege or Developer Mode is required");
+                               "symlink failed; SeCreateSymbolicLinkPrivilege "
+                               "or Developer Mode is required");
 
         return -1;
     }
