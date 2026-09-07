@@ -1,4 +1,10 @@
-#include "../../inc/c/dmemory.h"
+/******************************************************************************
+* djinterp [core]                                                     dmemory.c
+*
+*
+* path:      /src/djinterp/c/dmemory.c
+******************************************************************************/
+#include "../../../../inc/djinterp/c/memory/dmemory.h"
 
 
 /*
@@ -26,6 +32,7 @@ d_memcpy
     size_t      _amount
 )
 {
+    // validate the source and destination pointers
     if ( (!_destination) || 
          (!_source) )
     {
@@ -36,7 +43,8 @@ d_memcpy
     // Microsoft compiler
     return memcpy(_destination, _source, _amount);
 
-#elif defined(__GNUC__) || defined(__clang__)
+#elif ( defined(__GNUC__) ||                                                    \
+        defined(__clang__) )
     // GCC or Clang
     return memcpy(_destination, _source, _amount);
 
@@ -57,13 +65,14 @@ d_memcpy
 /*
 d_memcpy_s
   Secure cross-platform memory copy function with bounds checking that
-  validates buffer sizes to prevent buffer overflows.
+validates buffer sizes to prevent buffer overflows.
 
 Parameter(s):
-  _destination: pointer to the destination buffer where data will be copied.
-  _destSize:    size of the destination buffer in bytes.
-  _source:      pointer to the source buffer containing data to copy.
-  _amount:      number of bytes to copy from source to destination.
+  _destination:      pointer to the destination buffer where data will be 
+                     copied.
+  _destination_size: size of the destination buffer in bytes.
+  _source:           pointer to the source buffer containing data to copy.
+  _amount:           number of bytes to copy from source to destination.
 Return:
   An integer value corresponding to either:
   - 0, if the copy operation was successful, or
@@ -71,7 +80,7 @@ Return:
     - _destination was NULL,
     - _source was NULL, or
   - ERANGE, if the following condition was true:
-    - _destSize was less than _count.
+    - `_destination_size` was less than `_amount`.
 */
 int
 d_memcpy_s
@@ -115,18 +124,73 @@ d_memcpy_s
     // use standard memcpy on other platforms
     memcpy(_destination, _source, _amount);
     return 0;
-
 #endif
+}
+
+/*
+d_memdup
+  Allocates a new memory region and copies the specified number of bytes from
+the source into it.
+
+Parameter(s):
+  _source: pointer to the source data to copy.
+  _size:   number of bytes to copy.
+Return:
+  A pointer value corresponding to either:
+  - a pointer to the newly allocated memory containing a copy of `_source`, if
+    the operation was successful, or
+  - NULL, if any of the following conditions were true:
+    - `_source` was NULL,
+    - memory allocation failed.
+*/
+void*
+d_memdup
+(
+    const void* _source,
+    size_t      _size
+)
+{
+    void* result;
+
+    // validate the source pointer
+    if (_source == NULL)
+    {
+
+        return NULL;
+    }
+
+    // allocate memory for the duplicate
+    result = malloc(_size);
+
+    // check if memory allocation was successful
+    if (result == NULL)
+    {
+
+        return NULL;
+    }
+
+    // copy the source data into the duplicate
+    if (d_memcpy_s(result,
+                   _size,
+                   _source,
+                   _size) != 0)
+    {
+        free(result);
+
+        return NULL;
+    }
+
+    return result;
 }
 
 /*
 d_memdup_s
   Safely allocate memory and copy data into it, combining malloc and memcpy
-  operations with proper error checking.
+operations with proper error checking.
 
 Parameter(s):
-  _source:  Pointer to the source data to copy.
-  _size: Size of the data to copy in bytes.
+  _source: pointer to the source data to copy.
+  _size:   size of the data to copy in bytes.
 Return:
   A pointer value corresponding to either:
   - pointer to newly allocated memory containing a copy of _source, if the
@@ -190,7 +254,9 @@ d_memset
 {
     unsigned char* p;
     unsigned char  val;
+    size_t         i;
 
+    // validate the destination pointer
     if (_ptr == NULL)
     {
         return NULL;
@@ -200,24 +266,22 @@ d_memset
     val = (unsigned char)_value;
 
     // fill each byte with the value
-    for (size_t i = 0; i < _amount; i++)
+    for (i = 0; i < _amount; i++)
     {
         p[i] = val;
     }
-
-    return _ptr;
 }
 
 /*
 d_memset_s
   Secure memory fill function with bounds checking that validates parameters
-  to prevent buffer overflows.
+to prevent buffer overflows.
 
 Parameter(s):
-  _destination:   Pointer to the destination buffer to fill.
-  _destsz: Size of the destination buffer in bytes.
-  _ch:     The byte value to fill the memory with.
-  _count:  Number of bytes to fill.
+  _destination: pointer to the destination buffer to fill.
+  _destsz:      size of the destination buffer in bytes.
+  _ch:          byte value to fill the memory with.
+  _count:       number of bytes to fill.
 Return:
   An errno_t value corresponding to either:
   - 0, if the operation was successful, or
@@ -239,6 +303,7 @@ d_memset_s
 {
     unsigned char  value;
     unsigned char* d;
+    rsize_t        i;
     rsize_t        n;
 
     // parameter validation
@@ -261,9 +326,11 @@ d_memset_s
     d     = (unsigned char*)_destination;
 
     // fill the lesser of count or destsz bytes
-    n = (_count < _destsz) ? _count : _destsz;
+    n = (_count < _destsz) 
+            ? _count
+            : _destsz;
 
-    for (rsize_t i = 0; i < n; i++) 
+    for (i = 0; i < n; i++) 
     {
         d[i] = value;
     }
