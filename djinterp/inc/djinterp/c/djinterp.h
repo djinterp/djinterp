@@ -319,7 +319,7 @@ TABLE OF CONTENTS
                                           : -1]
         #endif
     #endif
-#endif
+#endif  // D_STATIC_ASSERT
 
 // 2.3    Qualifier kit
 //------------------------------------------------------------------------------
@@ -360,7 +360,7 @@ TABLE OF CONTENTS
     #else
         #define D_INTERNAL_QUAL_TESTING     ((D_TESTING + 0) == 1)
     #endif
-#endif
+#endif  // D_INTERNAL_QUAL_TESTING
 
 #if defined(D_ENV_COMPILER_MSVC)
     // MSVC inline (C or C++) is COMDAT-merged -> linker-safe, no `static`.
@@ -502,16 +502,16 @@ TABLE OF CONTENTS
         #else
             #define D_CONSTEXPR                         // no constexpr in C
         #endif
-    #endif
+    #endif  // D_CONSTEXPR
     #ifndef D_STATIC_CONSTEXPR
         #define D_STATIC_CONSTEXPR          static D_CONSTEXPR
-    #endif
+    #endif  // D_STATIC_CONSTEXPR
     #ifndef D_CONSTEXPR_INLINE
         #define D_CONSTEXPR_INLINE          D_INLINE      // C: == static inline
-    #endif
+    #endif  // D_CONSTEXPR_INLINE
     #ifndef D_STATIC_CONSTEXPR_INLINE
         #define D_STATIC_CONSTEXPR_INLINE   D_STATIC_INLINE
-    #endif
+    #endif  // D_STATIC_CONSTEXPR_INLINE
 #endif
 
 // --- C-language spelling of the inline-VARIABLE qualifiers ---------------
@@ -710,14 +710,14 @@ D_EXTERN_C_END
 // known at compile time. Equal to the quotient of the array's total size and
 // the size of one element -- a count, not a byte total.
 // note: decays to nonsense if handed a pointer rather than an array.
-#define D_ARRAY_STATIC_SIZE(_array)                                         \
+#define D_ARRAY_STATIC_SIZE(_array)                                           \
     ((size_t)(sizeof(_array) / sizeof((_array)[0])))
 
 // 5.1.2  D_ARRAY_TOTAL_SIZE
 //   macro: shorthand for calculating the total memory occupied, in bytes, by
 // a vector of elements.
 // equal to the product of `_element_size` and `_elements_count`.
-#define D_ARRAY_TOTAL_SIZE(_element_size, _elements_count)                  \
+#define D_ARRAY_TOTAL_SIZE(_element_size, _elements_count)                    \
     ((size_t)( (_element_size) * (_elements_count) ))
 
 // 5.2    Index clamping and bounds tests
@@ -726,32 +726,32 @@ D_EXTERN_C_END
 // 5.2.1  D_CLAMP_INDEX
 //   macro: clamps an index to the valid range for a given array size.
 // returns 0 for negative indices and the last index for oversized indices.
-#define D_CLAMP_INDEX(index, arr_size)                                      \
-    ( (arr_size) == 0                                                       \
-      ? 0                                                                   \
-      : ( (index) < 0                                                       \
-          ? 0                                                               \
-          : ( (index) >= (ssize_t)(arr_size) )                              \
-            ? ( (arr_size) - 1 )                                            \
-            : (index) ) )
-
-// 5.2.2  D_INDEX_IN_BOUNDS
-//   macro: alias for D_IS_VALID_INDEX_N for compatibility.
-#define D_INDEX_IN_BOUNDS(_index, _arr_size)                                \
+#define D_CLAMP_INDEX(index, arr_size)                                        \
+    ( (arr_size) == 0                                                         \
+      ? 0                                                                     \
+      : ( (index) < 0                                                         \
+          ? 0                                                                 \
+          : ( (index) >= (ssize_t)(arr_size) )                                \
+            ? ( (arr_size) - 1 )                                              \
+            : (index) ) )                                                     
+                                                                              
+// 5.2.2  D_INDEX_IN_BOUNDS                                                   
+//   macro: alias for D_IS_VALID_INDEX_N for compatibility.                   
+#define D_INDEX_IN_BOUNDS(_index, _arr_size)                                  \
     D_IS_VALID_INDEX_N((_index), (_arr_size))
 
 
 // 5.2.3  D_IS_VALID_INDEX
 //   macro: validates that an `_index` is within bounds for an array of given
 // `_count`.
-#define D_IS_VALID_INDEX(_index, _count)                                    \
-    ( ((_count) > 0) &&                                                     \
-      ( ((_index) >= 0 && (_index) < (ssize_t)(_count)) ||                  \
-        ((_index) < 0 && (-(_index)) <= (ssize_t)(_count)) ) )
-
-// 5.2.4  D_IS_VALID_INDEX_N
-//   macro: validates `_index` against the symmetric negative-index range.
-#define D_IS_VALID_INDEX_N(_index, _count)                                  \
+#define D_IS_VALID_INDEX(_index, _count)                                      \
+    ( ((_count) > 0) &&                                                       \
+      ( ((_index) >= 0 && (_index) < (ssize_t)(_count)) ||                    \
+        ((_index) < 0 && (-(_index)) <= (ssize_t)(_count)) ) )                
+                                                                              
+// 5.2.4  D_IS_VALID_INDEX_N                                                  
+//   macro: validates `_index` against the symmetric negative-index range.    
+#define D_IS_VALID_INDEX_N(_index, _count)                                    \
     ( (_index) >= -(ssize_t)(_count) && (_index) < (ssize_t)(_count) )
 
 
@@ -762,9 +762,9 @@ D_EXTERN_C_END
 //   macro: safe array indexing that returns an element value, not a pointer.
 //   note: only to be used on stack-allocated arrays whose size is known at
 // compile time.
-#define D_SAFE_ARR_IDX(_arr, _index)                                        \
-    ( D_IS_VALID_INDEX_N((_index), sizeof(_arr)/sizeof((_arr)[0]) )         \
-        ? D_ARR_IDX((_arr), (_index))                                       \
+#define D_SAFE_ARR_IDX(_arr, _index)                                          \
+    ( D_IS_VALID_INDEX_N((_index), sizeof(_arr)/sizeof((_arr)[0]) )           \
+        ? D_ARR_IDX((_arr), (_index))                                         \
         : (_arr)[0] )
 
 // 5.3.2  D_NEG_IDX
@@ -773,8 +773,8 @@ D_EXTERN_C_END
 //   Note: this does not check if INDEX corresponds to a valid index within the
 // span of the vector; that must be done by the caller to avoid an out-of-bounds
 // index.
-#define D_NEG_IDX(_index, _count)                                           \
-    ( (_index) < 0 ? (_count) + (_index) :                                  \
+#define D_NEG_IDX(_index, _count)                                             \
+    ( (_index) < 0 ? (_count) + (_index) :                                    \
                     (_index) )
 
 // 5.3.3  D_ARR_IDX
@@ -782,9 +782,9 @@ D_EXTERN_C_END
 // equivalent positive index.
 // note: only to be used on stack-allocated arrays whose size is known at
 // compile time.
-#define D_ARR_IDX(_array, _index)                                           \
-    ( (_array)[(_index) < 0                                                 \
-        ? ( (sizeof(_array)/sizeof((_array)[0])) + (_index) )               \
+#define D_ARR_IDX(_array, _index)                                             \
+    ( (_array)[(_index) < 0                                                   \
+        ? ( (sizeof(_array)/sizeof((_array)[0])) + (_index) )                 \
         : (_index)] )
 
 
