@@ -1,9 +1,7 @@
 /******************************************************************************
-* djinterp [core]                                                   djinterp.c
+* djinterp [c]                                                      djinterp.c
 *
-*   Definitions for the non-inline declarations in djinterp.h.
-*   Currently that is the d_index family: the conversion from djinterp's
-* signed, Python-style index to a plain container offset.
+* Definitions for the non-inline declarations in `djinterp.h`.
 *
 *
 * path:      /src/djinterp/c/djinterp.c
@@ -14,155 +12,141 @@
 #include "../../../inc/djinterp/c/djinterp.h"
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             I.  MAGNITUDE HELPER                                        ///
-///////////////////////////////////////////////////////////////////////////////
-
 /*
 d_internal_index_magnitude
-  The absolute value of a NEGATIVE index, as a size_t.
-  Spelled the long way on purpose. The obvious `(size_t)(-_index)` is undefined
-behaviour at exactly one input -- the most negative d_index -- because its
-negation is not representable in the signed type. That input is unlikely and
-the failure is silent, which is the combination worth spending three tokens to
-avoid. `-(_index + 1)` is always representable (the addition moves the value
-one step away from the edge first), and adding the 1 back in unsigned domain
-cannot overflow.
+  Returns the magnitude of a negative index as size_t.
+
+  The obvious expression (size_t)(-_index) is undefined for the most negative
+d_index because its positive value is not representable in the signed type.
+The expression below first moves the value one step toward zero, negates that
+representable value, and restores the final unit in the unsigned domain.
 
 Parameter(s):
   _index: an index known to be negative.
 Return:
-  |_index|, exactly, for every negative d_index including the minimum.
+  The exact magnitude of _index, including for the minimum d_index.
 */
-static size_t
-d_internal_index_magnitude
-(
+D_STATIC size_t
+d_internal_index_magnitude(
     d_index _index
 )
 {
+
     return ((size_t)(-(_index + 1))) + (size_t)1;
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             II.  VALIDITY                                               ///
-///////////////////////////////////////////////////////////////////////////////
-
 /*
 d_index_is_valid
-  Whether _index addresses a real element of a container holding _count of
-them.
-  The two halves are not symmetric, and that asymmetry is the contract rather
-than an oversight: a positive index must be strictly less than _count (index 0
-is the first element), while a negative one may have magnitude equal to
-_count (-_count is the first element, -1 the last). So _count == 3 accepts
-0, 1, 2 and -1, -2, -3, and rejects 3 and -4.
-  Comparisons are made after the sign is decided. Comparing a d_index against
-a size_t directly promotes the signed operand to unsigned, at which point every
-negative index is a very large positive one and every out-of-range check
-silently passes.
+  Determines whether _index addresses an element of a container containing
+_count elements.
+
+  Positive and negative indices have intentionally asymmetric limits. A
+non-negative index must be less than _count, while a negative index may have a
+magnitude equal to _count. For _count == 3, the valid indices are 0, 1, 2,
+-1, -2, and -3.
+
+  Signed and unsigned comparisons are performed only after the sign is known
+so that a negative d_index is not converted to a large size_t before the range
+test.
 
 Parameter(s):
   _index: the index to test.
   _count: the number of elements available.
 Return:
-  1 when _index addresses an element, 0 otherwise. A _count of 0 has no valid
-index of either sign.
+  true when _index addresses an element; false otherwise. A count of 0 has no
+valid index of either sign.
 */
 bool
-d_index_is_valid
-(
+d_index_is_valid(
     d_index _index,
     size_t  _count
 )
 {
+    // non-negative indices map directly to zero-based offsets
     if (_index >= 0)
     {
+
         return ((size_t)_index < _count);
     }
+
+    // negative indices count backward from the end of the container
 
     return (d_internal_index_magnitude(_index) <= _count);
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  CONVERSION                                            ///
-///////////////////////////////////////////////////////////////////////////////
-
 /*
 d_index_convert_fast
-  Converts a signed index to an offset WITHOUT validating it.
-  The unchecked half of the pair, for callers that have already established the
-range (a loop bound, a prior d_index_is_valid) and do not want to pay for it
-twice.
-  The negative case is unsigned modular arithmetic, not an accident: converting
-a negative d_index to size_t yields a huge value, and adding _count to it wraps
-back to exactly _count - |_index|, which is the answer. It is well defined for
-unsigned types -- but ONLY produces the intended result while |_index| <=
-_count. Outside that range it wraps to a plausible-looking offset rather than
-failing, which is precisely why the safe variant exists and why this one says
-"fast" in its name.
+  Converts a signed index to a zero-based offset without validating it.
+
+  This is the unchecked conversion for callers that have already established
+that _index is valid for _count. In the negative case, conversion to size_t and
+addition to _count use well-defined unsigned modular arithmetic to produce
+_count - |_index| for valid inputs.
 
 Parameter(s):
-  _index: the index to convert. Assumed valid for _count.
+  _index: the index to convert; assumed valid for _count.
   _count: the number of elements available.
 Return:
-  The zero-based offset _index refers to. Meaningless if _index was not valid.
+  The zero-based offset corresponding to _index. The result is not meaningful
+if _index is invalid for _count.
 */
 size_t
-d_index_convert_fast
-(
+d_index_convert_fast(
     d_index _index,
     size_t  _count
 )
 {
+    // non-negative indices are already zero-based offsets
     if (_index >= 0)
     {
+
         return (size_t)_index;
     }
+
+    // valid negative indices wrap to the corresponding positive offset
 
     return _count + (size_t)_index;
 }
 
+
 /*
 d_index_convert_safe
-  Converts a signed index to an offset, refusing anything out of range.
-  The offset is written through _destination rather than returned so that
-failure has a value of its own: every size_t is a legal offset, so there is no
-in-band sentinel this function could return that a caller could not also have
-meant. Splitting the two apart is what lets the failure be checked.
-  _destination is left untouched on failure. A caller that ignores the return
-value therefore sees whatever it had before rather than a fabricated 0, which
-keeps a missed check from looking like a successful conversion to the first
-element.
+  Converts a signed index to a zero-based offset after validating it.
+
+  The offset is written through _destination so that conversion failure has a
+separate value. The destination is left untouched on failure.
 
 Parameter(s):
   _index:       the index to convert.
   _count:       the number of elements available.
   _destination: receives the offset on success; untouched on failure.
 Return:
-  1 on success, 0 if _destination is NULL or _index does not address an
-element of a _count-element container.
+  true on success; false if _destination is NULL or _index is invalid.
 */
 bool
-d_index_convert_safe
-(
+d_index_convert_safe(
     d_index _index,
     size_t  _count,
     size_t* _destination
 )
 {
+    // validate the destination pointer
     if (!_destination)
     {
+
         return false;
     }
 
+    // reject indices that do not address an available element
     if (!d_index_is_valid(_index, _count))
     {
+
         return false;
     }
 
-    *_destination = d_index_convert_fast(_index, _count);
+    *(_destination) = d_index_convert_fast(_index, _count);
 
     return true;
 }

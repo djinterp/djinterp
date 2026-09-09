@@ -6,106 +6,219 @@
 * other modules: cross-platform scalar types, the qualifier kit, shared
 * function-pointer typedefs, the global keyword vocabulary, and negative-
 * indexing types and macros.
-*   It declares no subsystem of its own. Everything here is either a type a
-* dependent module needs in its own signatures, or a spelling the framework
-* must agree on before any of it can compile.
 *
 *
 * path:      /inc/djinterp/c/djinterp.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2023.11.12
-*                                                          revised: 2026.09.07
+*                                                          revised: 2026.09.09
 ******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    FUNDAMENTAL TYPES
-      -----------------
-      1.    Cross-platform compatibility
-            a. bool
-            b. D_RESTRICT
-            c. ssize_t
-      2.    Static assertion
-            a. D_STATIC_ASSERT
-      3.    Qualifier kit
-            a. D_STATIC
-            b. D_INLINE
-            c. D_STATIC_INLINE
-            d. D_EXTERN_C              (+ _BEGIN / _END)
-            e. D_NOINLINE
-            f. D_NODISCARD
-      4.    Function pointers
-            a. fn_apply
-            b. fn_apply_context
-            c. fn_callback
-            d. fn_comparator
-            e. fn_free
-            f. fn_print
-            g. fn_to_string
-            h. fn_write
+1.  GLOBAL KEYWORDS
+    ---------------
+    1.  Framework keywords
+         1.  D_KEYWORD_FRAMEWORK_NAME
+         2.  D_KEYWORD_BINARY
+         3.  D_KEYWORD_CLI
+         3.  D_KEYWORD_CONTAINER
+         5.  D_KEYWORD_DATABASE
+         6.  D_KEYWORD_ERROR
+         7   D_KEYWORD_EXCEPTION
+         8.  D_KEYWORD_FUNCTIONAL
+         9.  D_KEYWORD_INTERNAL
+         10. D_KEYWORD_MATH
+         11. D_KEYWORD_MESSAGE
+         12. D_KEYWORD_TEST
+         13. D_KEYWORD_TEXT
+         14. D_KEYWORD_TESTING
+         15. D_KEYWORD_USER_INTERFACE
+         16. D_KEYWORD_WARNING
 
-II.   GLOBAL KEYWORDS
-      ---------------
-      1.    D_KEYWORD_FRAMEWORK_NAME
-      2.    D_KEYWORD_CLI
-      3.    D_KEYWORD_DATABASE
-      4.    D_KEYWORD_ERROR
-      5.    D_KEYWORD_EXCEPTION
-      6.    D_KEYWORD_FUNCTIONAL
-      7.    D_KEYWORD_INTERNAL
-      8.    D_KEYWORD_MATH
-      9.    D_KEYWORD_MESSAGE
-      10.   D_KEYWORD_TEST
-      11.   D_KEYWORD_TESTING
-      12.   D_KEYWORD_USER_INTERFACE
-      13.   D_KEYWORD_WARNING
+2.  FUNDAMENTAL TYPES
+    -----------------
+    1.  Cross-platform compatibility
+         1.  bool
+         2.  D_RESTRICT
+         3.  ssize_t
+    2.  Static assertion
+         1.  D_STATIC_ASSERT
+    3.  Qualifier kit
+         1.  D_STATIC
+         2.  D_INLINE
+         3.  D_STATIC_INLINE
+         4.  D_EXTERN_C
+         5.  D_EXTERN_C_BEGIN / D_EXTERN_C_END
+         6.  D_NOINLINE
+         7.  D_NODISCARD
+    4.  Function pointers
+         1.  fn_apply
+         2.  fn_apply_context
+         3.  fn_callback
+         4.  fn_comparator
+         5.  fn_free
+         6.  fn_print
+         7.  fn_to_string
+         8.  fn_write
 
-III.  DEFINED CONSTANTS
-      -----------------
-      1.    D_SUCCESS / D_FAILURE
-      2.    D_ENABLED / D_DISABLED
-      3.    D_INDENT
+3.  DEFINED CONSTANTS
+    -----------------
+    1.  Framework constants
+         1.  D_SUCCESS
+         2.  D_FAILURE
+         3.  D_ENABLED
+         4.  D_DISABLED
+         5.  D_INDENT
 
-IV.   NEGATIVE INDEXING
-      -----------------
-      1.    d_index
-      2.    Conversion and validation functions
+4.  NEGATIVE INDEXING
+    -----------------
+    1.  Index type
+         1.  d_index
+    2.  Conversion and validation
+         1.  d_index_convert_fast / d_index_convert_safe
+         2.  d_index_is_valid
 
-V.    INDEXING MACROS & UTILITIES
-      ---------------------------
-      1.    Array size macros
-      2.    Index clamping and bounds tests
-      3.    Negative-index access macros
+5.  INDEXING MACROS AND UTILITIES
+    -----------------------------
+    1.  Array size macros
+         1.  D_ARRAY_STATIC_SIZE
+         2.  D_ARRAY_TOTAL_SIZE
+    2.  Index clamping and bounds tests
+         1.  D_CLAMP_INDEX
+         2.  D_INDEX_IN_BOUNDS
+         3.  D_IS_VALID_INDEX
+         4.  D_IS_VALID_INDEX_N
+    3.  Negative-index access macros
+         1.  D_SAFE_ARR_IDX
+         2.  D_NEG_IDX
+         3.  D_ARR_IDX
 */
 
 #ifndef DJINTERP_C_
 #define DJINTERP_C_ 1
 
 // std
-#include <limits.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <limits.h>                         // LONG_MAX, LLONG_MAX
+#include <stddef.h>                         // size_t
+#include <stdint.h>                         // fixed-width integer types
 // djinterp
-#include "../env/env.h"
-#include "../env/c/env_attributes.h"
-#include "../env/c/env_vendor_attributes.h"
-#include "../config/cfg_qualifiers.h"
-#include "./dmacro.h"
+#include "../env/env.h"                     // language/compiler/OS detection
+#include "../env/c/env_attributes.h"        // standard attribute detection
+#include "../env/c/env_vendor_attributes.h" // vendor attribute detection
+#include "../config/cfg_qualifiers.h"       // qualifier configuration
+#include "./dmacro.h"                       // macro utilities
 
 
 //==============================================================================
-//                             I. FUNDAMENTAL TYPES                            
+// 1.  GLOBAL KEYWORDS
+//==============================================================================
+
+// 1.1    Framework keywords
+//------------------------------------------------------------------------------
+
+// 1.1.1   D_KEYWORD_FRAMEWORK_NAME
+//   constant: keyword corresponding to the name of this framework.
+#define D_KEYWORD_FRAMEWORK_NAME    djinterp
+
+// 1.1.2   D_KEYWORD_BINARY
+//   keyword: resolves to `binary`.
+// used to specify that a unit of code pertains to binary encoding and/or
+// decoding.
+#define D_KEYWORD_BINARY            binary
+
+// 1.1.3   D_KEYWORD_CLI
+//   keyword: resolves to `cli`.
+// used to specify that a unit of code pertains to a command-line interface.
+#define D_KEYWORD_CLI               cli
+
+// 1.1.4   D_KEYWORD_CONTAINER
+//   keyword: resolves to `container`.
+// used to specify that a unit of code pertains to a command-line interface.
+#define D_KEYWORD_CONTAINER         container
+
+// 1.1.5   D_KEYWORD_DATABASE
+//   keyword: resolves to `database`.
+// corresponds to code dealing with databases and database systems.
+#define D_KEYWORD_DATABASE          database
+
+// 1.1.6   D_KEYWORD_ERROR
+//   keyword: resolves to `error`.
+// used for an invalid state; from Latin `errare` -- to wander.
+#define D_KEYWORD_ERROR             error
+
+// 1.1.7   D_KEYWORD_EXCEPTION
+//   keyword: resolves to `exception`.
+// used to indicate a severe deviation from a valid state.
+#define D_KEYWORD_EXCEPTION         exception
+
+// 1.1.8   D_KEYWORD_FUNCTIONAL
+//   keyword: resolves to `functional`.
+// used to specify that a unit of code pertains to functional programming.
+#define D_KEYWORD_FUNCTIONAL        functional
+
+// 1.1.9   D_KEYWORD_INTERNAL
+//   keyword: resolves to `internal`.
+// used to specify that a unit of code is part of the `internal` namespace,
+// hiding the details of implementation from regular use.
+#define D_KEYWORD_INTERNAL          internal
+
+// 1.1.10  D_KEYWORD_MATH
+//   keyword: resolves to `math`.
+// used for variables, macros, namespaces, etc. that pertain to the `math`
+// submodule.
+#define D_KEYWORD_MATH              math
+
+// 1.1.10  D_KEYWORD_MESSAGE
+//   keyword: resolves to `message`.
+// used for variables, macros, namespaces, etc. that convey (usually string-
+// based) human-readable information that is conveyed to the user, often
+// (but not limited to) debugging and error-handling.
+#define D_KEYWORD_MESSAGE           message
+
+// 1.1.11  D_KEYWORD_TEST
+//   keyword: resolves to `test`.
+// used to specify that a unit of code is part of unit testing.
+#define D_KEYWORD_TEST              test
+
+// 1.1.12  D_KEYWORD_TESTING
+//   keyword: resolves to `testing`; used to signify that a code segment
+// pertains to unit testing.
+#define D_KEYWORD_TESTING           testing
+
+// 1.1.13  D_KEYWORD_TEXT
+//   keyword: resolves to `text`.
+// used to specify that a unit of code has to do with textual functionality,
+// including (but not limited to): converting, encoding, processing, 
+// and rendering.
+#define D_KEYWORD_TEXT              text
+
+// 1.1.14  D_KEYWORD_USER_INTERFACE
+//   keyword: resolves to `ui`.
+// used to specify that a unit of code is part of the user interface.
+#define D_KEYWORD_USER_INTERFACE    ui
+
+// 1.1.15  D_KEYWORD_WARNING
+//   keyword: resolves to `warning`.
+// used to specify that the program has an anomalous state that is not
+// necessarily the end of the world.
+#define D_KEYWORD_WARNING           warning
+
+
+//==============================================================================
+// 2.  FUNDAMENTAL TYPES
 //==============================================================================
 
 
-// I.1   Cross-platform compatibility
+// 2.1    Cross-platform compatibility
+//------------------------------------------------------------------------------
 
-// bool
+// 2.1.1  bool
 //   type: portable boolean type for the framework's supported C/C++ modes.
-#if ( defined(__bool_true_false_are_defined) ||                               \
-      defined(bool)                          ||                               \
-      defined(true)                          ||                               \
+#if ( defined(__bool_true_false_are_defined)  ||                              \
+      defined(bool)                           ||                              \
+      defined(true)                           ||                              \
       defined(false) )
     // `stdbool.h` has already been included, do nothing
 
@@ -116,19 +229,19 @@ V.    INDEXING MACROS & UTILITIES
 #elif D_ENV_LANG_IS_C99_OR_HIGHER
     // C99 or newer - use the standard header
     // std
-    #include <stdbool.h>
+    #include <stdbool.h>  // bool, true, false
 #elif defined(__cplusplus)
     // C++ has built-in bool
     // nothing to do, C++ already has bool, true, false
 #else
-    // C99 is the floor (see 0. LANGUAGE FLOOR), so <stdbool.h> is guaranteed
+    // C99 is the framework language floor, so <stdbool.h> is guaranteed
     // and the hand-rolled typedef fallbacks that used to live here are
     // unreachable. Keeping them would be keeping code no build can enter.
     // std
-    #include <stdbool.h>
+    #include <stdbool.h>  // bool, true, false
 #endif
 
-// D_RESTRICT
+// 2.1.2  D_RESTRICT
 //   qualifier: portable restrict/no-alias spelling for C and C++.
 // `restrict` is a C keyword but not a C++ keyword. C uses the standard keyword;
 // C++ uses the compiler extension when one is available.
@@ -144,12 +257,8 @@ V.    INDEXING MACROS & UTILITIES
     #define D_RESTRICT
 #endif  // !defined(__cplusplus)
 
-// b.
-// ssize_t
-//   type: signed-size_t;
-// b.
-// ssize_t
-//   type: signed-size_t;
+// 2.1.3  ssize_t
+//   type: signed integer type corresponding to `size_t`.
 #ifndef _SSIZE_T_DEFINED
     #ifndef _SSIZE_T
         #ifndef __ssize_t_defined
@@ -173,7 +282,8 @@ V.    INDEXING MACROS & UTILITIES
     #endif  // _SSIZE_T
 #endif  // _SSIZE_T_DEFINED
 
-// I.2   Static assertion
+// 2.2    Static assertion
+//------------------------------------------------------------------------------
 
 // D_INTERNAL_STATIC_ASSERT_UID
 //   macro (internal): unique suffix for fallback static-assert declarations.
@@ -183,7 +293,7 @@ V.    INDEXING MACROS & UTILITIES
     #define D_INTERNAL_STATIC_ASSERT_UID __LINE__
 #endif
 
-// D_STATIC_ASSERT
+// 2.2.1  D_STATIC_ASSERT
 //   macro: portable compile-time assertion across supported C and C++ modes.
 #ifndef D_STATIC_ASSERT
     #if defined(D_ENV_LANG_DETECTED_CPP)
@@ -211,7 +321,8 @@ V.    INDEXING MACROS & UTILITIES
     #endif
 #endif
 
-// I.3   Qualifier kit
+// 2.3    Qualifier kit
+//------------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
 //  Storage / linkage qualifiers
@@ -307,37 +418,40 @@ V.    INDEXING MACROS & UTILITIES
 
 // --- public qualifiers (gated by qual_cfg.h; each honors a user override) ---
 
-// D_STATIC
+// 2.3.1  D_STATIC
 //   qualifier: internal linkage (`static`); identical spelling in C and C++.
-#if !defined(D_STATIC) && (D_INTERNAL_CFG_STATIC == 1)
+#if ( !defined(D_STATIC) &&                                                   \
+      (D_INTERNAL_CFG_STATIC == 1) )
     #define D_STATIC                        static
 #endif
 
-// D_INLINE
+// 2.3.2  D_INLINE
 //   qualifier: header-safe inline. `inline` (+force outside testing) in C++ and
 // on MSVC; `static inline` (+force outside testing) in standard C -- the only
 // header-only spelling that never triggers a linker error. Safe on a header-
 // defined function standalone in either language.
-#if !defined(D_INLINE) && (D_INTERNAL_CFG_INLINE == 1)
-    #define D_INLINE                                                          \
-        D_INTERNAL_INLINE_STATIC_PREFIX D_INTERNAL_INLINE_QUAL
+#if ( !defined(D_INLINE) && (                                                 \
+      D_INTERNAL_CFG_INLINE == 1) )
+    #define D_INLINE    D_INTERNAL_INLINE_STATIC_PREFIX D_INTERNAL_INLINE_QUAL
 #endif
 
-// D_STATIC_INLINE
+// 2.3.3  D_STATIC_INLINE
 //   qualifier: internal linkage + inline, composed as exactly one `static`
 // plus the inline specifier. Because the specifier never contains `static`,
 // this is always a single well-formed `static inline` (no double-`static`).
 // in standard C it coincides with D_INLINE, which is correct: a C header inline
 // is always a static inline.
-#if !defined(D_STATIC_INLINE) && (D_INTERNAL_CFG_INLINE == 1)
+#if ( !defined(D_STATIC_INLINE) &&                                            \
+      (D_INTERNAL_CFG_INLINE == 1) )
     #define D_STATIC_INLINE                 static D_INTERNAL_INLINE_QUAL
 #endif
 
-// D_EXTERN_C
+// 2.3.4  D_EXTERN_C
 //   qualifier: C linkage for a SINGLE declaration.  `extern "C"` under C++,
 // nothing under C, so one spelling serves both languages:
 //     D_EXTERN_C int d_foo(void);
-#if !defined(D_EXTERN_C) && (D_INTERNAL_CFG_EXTERN_C == 1)
+#if ( !defined(D_EXTERN_C) &&                                                 \
+      (D_INTERNAL_CFG_EXTERN_C == 1) )
     #if D_INTERNAL_QUAL_EXTERN_C_LINKAGE
         #define D_EXTERN_C                  extern "C"
     #else
@@ -345,7 +459,7 @@ V.    INDEXING MACROS & UTILITIES
     #endif
 #endif
 
-// D_EXTERN_C_BEGIN / D_EXTERN_C_END
+// 2.3.5  D_EXTERN_C_BEGIN / D_EXTERN_C_END
 //   macro: C linkage for a BLOCK of declarations -- the form a header wants,
 // since it costs one line at each end rather than a qualifier on every line.
 // both expand to nothing under C, so a C-only build sees no trace of them and
@@ -356,7 +470,8 @@ V.    INDEXING MACROS & UTILITIES
 //   note the asymmetry with D_EXTERN_C: `extern "C" { ... }` is a linkage
 // block, `extern "C" decl;` is a linkage specification on one declaration.
 // they nest and agree, so mixing the two forms in one header is well-formed.
-#if !defined(D_EXTERN_C_BEGIN) && (D_INTERNAL_CFG_EXTERN_C == 1)
+#if ( !defined(D_EXTERN_C_BEGIN) &&                                           \
+      (D_INTERNAL_CFG_EXTERN_C == 1) )
     #if D_INTERNAL_QUAL_EXTERN_C_LINKAGE
         #define D_EXTERN_C_BEGIN            extern "C" {
     #else
@@ -364,7 +479,8 @@ V.    INDEXING MACROS & UTILITIES
     #endif
 #endif
 
-#if !defined(D_EXTERN_C_END) && (D_INTERNAL_CFG_EXTERN_C == 1)
+#if ( !defined(D_EXTERN_C_END) &&                                             \
+      (D_INTERNAL_CFG_EXTERN_C == 1) )
     #if D_INTERNAL_QUAL_EXTERN_C_LINKAGE
         #define D_EXTERN_C_END              }
     #else
@@ -378,7 +494,8 @@ V.    INDEXING MACROS & UTILITIES
 // before C23 (and C23 constexpr is objects-only), so provide header-safe
 // fallbacks for shared C/C++ headers. Defined directly (not by naive
 // composition) to avoid a double-`static` in C.
-#if !defined(__cplusplus) && (D_INTERNAL_CFG_CONSTEXPR == 1)
+#if ( !defined(__cplusplus) &&                                                \
+      (D_INTERNAL_CFG_CONSTEXPR == 1) )
     #ifndef D_CONSTEXPR
         #if D_ENV_LANG_IS_C23_OR_HIGHER
             #define D_CONSTEXPR             constexpr   // C23: objects only
@@ -408,39 +525,41 @@ V.    INDEXING MACROS & UTILITIES
 // an unguarded definition here would win its #ifndef and silently disable the
 // C++17 spelling.
 #if !defined(__cplusplus)
-    #if !defined(D_INLINE_VAR) && (D_INTERNAL_CFG_INLINE == 1)
+    #if ( !defined(D_INLINE_VAR) &&                                           \
+          (D_INTERNAL_CFG_INLINE == 1) )
         // no inline variables in C
         #define D_INLINE_VAR
     #endif
-    #if !defined(D_CONSTEXPR_INLINE_VAR) &&                                   \
-        (D_INTERNAL_CFG_CONSTEXPR == 1) && (D_INTERNAL_CFG_INLINE == 1)
+    #if ( !defined(D_CONSTEXPR_INLINE_VAR) &&                                 \
+          (D_INTERNAL_CFG_CONSTEXPR == 1)  &&                                 \
+          (D_INTERNAL_CFG_INLINE == 1) )
         #define D_CONSTEXPR_INLINE_VAR      D_CONSTEXPR
     #endif
 #endif
 
-// D_NOINLINE
+// 2.3.6  D_NOINLINE
 //   qualifier: prevents inlining for debugging and profiling.
 #if defined(D_ENV_COMPILER_MSVC)
     #define D_NOINLINE          __declspec(noinline)
-#elif ( defined(D_ENV_COMPILER_GCC) ||  \
+#elif ( defined(D_ENV_COMPILER_GCC) ||                                        \
         defined(D_ENV_COMPILER_CLANG) )
     #define D_NOINLINE          __attribute__((noinline))
 #else
     #define D_NOINLINE
 #endif
 
-// D_NODISCARD
+// 2.3.7  D_NODISCARD
 //   qualifier: indicates that a function return value should not be silently
 // discarded. The compiler will emit a warning (or error, depending
 // on settings) if the caller ignores the return value.
 //
 //   resolution order:
-//     1. C++17  / C23  - [[nodiscard]] is standard.
-//     2. __has_cpp_attribute / __has_c_attribute - catches compilers
+//     1.  C++17  / C23  - [[nodiscard]] is standard.
+//     2.  __has_cpp_attribute / __has_c_attribute - catches compilers
 //        that support the attribute before the standard mandates it.
-//     3. GCC / Clang - __attribute__((warn_unused_result)) in both
+//     3.  GCC / Clang - __attribute__((warn_unused_result)) in both
 //        C and C++ modes, all the way back to GCC 3.4 / Clang 3.0.
-//     4. Everything else - empty (no diagnostic, but no breakage).
+//     4.  Everything else - empty (no diagnostic, but no breakage).
 //
 //   pre-definable: users may #define D_NODISCARD before including
 // this header to override the detected value.
@@ -466,7 +585,7 @@ V.    INDEXING MACROS & UTILITIES
 
     // ---- compiler-specific fallback ----
     #ifndef D_NODISCARD
-        #if ( defined(D_ENV_COMPILER_GCC) ||  \
+        #if ( defined(D_ENV_COMPILER_GCC) ||                                  \
               defined(D_ENV_COMPILER_CLANG) )
             #define D_NODISCARD __attribute__((warn_unused_result))
         #else
@@ -475,141 +594,71 @@ V.    INDEXING MACROS & UTILITIES
     #endif  // D_NODISCARD (fallback)
 #endif  // D_NODISCARD (outer guard)
 
-// I.4   Function pointers
-// fn_apply
+// 2.4    Function pointers
+//------------------------------------------------------------------------------
+// 2.4.1  fn_apply
 //   typedef: function pointer type for applying an operation to an element.
 typedef void (*fn_apply)(void* _element);
 
-// fn_apply_context
+// 2.4.2  fn_apply_context
 //   typedef: function pointer type for applying an operation to an element
 // with additional context.
 typedef void (*fn_apply_context)(void* _element, void* _context);
 
-// fn_callback
+// 2.4.3  fn_callback
 //   typedef: generic callback function pointer with optional context.
 // `_context` may be NULL.
 typedef void (*fn_callback)(void* _context);
 
-// fn_comparator
+// 2.4.4  fn_comparator
 //   typedef: function pointer for ordering two values of identical type.
 // returns a value less than, equal to, or greater than 0 when the first value
 // compares less than, equal to, or greater than the second, respectively.
 typedef int (*fn_comparator)(const void* _a, const void* _b);
 
-// fn_free
+// 2.4.5  fn_free
 //   typedef: function pointer used to free associated memory.
 typedef void (*fn_free)(void* _ptr);
 
-// fn_print
+// 2.4.6  fn_print
 //   typedef: function pointer used to print a value to the desired output.
 typedef void (*fn_print)(void* _type, ...);
 
-// fn_to_string
+// 2.4.7  fn_to_string
 //   typedef: function pointer returning a string representation.
 typedef const char* (*fn_to_string)(void);
 
-// fn_write
+// 2.4.8  fn_write
 //   typedef: function pointer that writes to a buffer.
 typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 
 
 //==============================================================================
-//                               II. GLOBAL TYPES                              
+// 3.  DEFINED CONSTANTS
 //==============================================================================
 
-// D_KEYWORD_FRAMEWORK_NAME
-//   constant: keyword corresponding to the name of this framework.
-#define D_KEYWORD_FRAMEWORK_NAME    djinterp
+// 3.1    Framework constants
+//------------------------------------------------------------------------------
 
-// D_KEYWORD_CLI
-//   keyword: resolves to `cli`.
-// used to specify that a unit of code pertains to a command-line interface.
-#define D_KEYWORD_CLI               cli
-
-// D_KEYWORD_DATABASE
-//   keyword: resolves to `database`.
-// corresponds to code dealing with databases and database systems.
-#define D_KEYWORD_DATABASE          database
-
-// D_KEYWORD_ERROR
-//   keyword: resolves to `error`.
-// used for an invalid state; from Latin `errare` -- to wander.
-#define D_KEYWORD_ERROR             error
-
-// D_KEYWORD_EXCEPTION
-//   keyword: resolves to `exception`.
-// used to indicate a severe deviation from a valid state.
-#define D_KEYWORD_EXCEPTION         exception
-
-// D_KEYWORD_FUNCTIONAL
-//   keyword: resolves to `functional`.
-// used to specify that a unit of code pertains to functional programming.
-#define D_KEYWORD_FUNCTIONAL        functional
-
-// D_KEYWORD_INTERNAL
-//   keyword: resolves to `internal`.
-// used to specify that a unit of code is part of the `internal` namespace,
-// hiding the details of implementation from regular use.
-#define D_KEYWORD_INTERNAL          internal
-
-// D_KEYWORD_MATH
-//   keyword: resolves to `math`.
-// used for variables, macros, namespaces, etc. that pertain to the `math`
-// submodule.
-#define D_KEYWORD_MATH              math
-
-// D_KEYWORD_MESSAGE
-//   keyword: resolves to `message`.
-// used for variables, macros, namespaces, etc. that convey (usually string-
-// based) human-readable information that is conveyed to the user, often
-// (but not limited to) debugging and error-handling.
-#define D_KEYWORD_MESSAGE           message
-
-// D_KEYWORD_TEST
-//   keyword: resolves to `test`.
-// used to specify that a unit of code is part of unit testing.
-#define D_KEYWORD_TEST              test
-
-// D_KEYWORD_TESTING
-//   keyword: resolves to `testing`; used to signify that a code segment
-// pertains to unit testing.
-#define D_KEYWORD_TESTING           testing
-
-// D_KEYWORD_USER_INTERFACE
-//   keyword: resolves to `ui`.
-// used to specify that a unit of code is part of the user interface.
-#define D_KEYWORD_USER_INTERFACE    ui
-
-// D_KEYWORD_WARNING
-//   keyword: resolves to `warning`.
-// used to specify that the program has an anomalous state that is not
-// necessarily the end of the world.
-#define D_KEYWORD_WARNING           warning
-
-
-//==============================================================================
-//                            III. DEFINED CONSTANTS                           
-//==============================================================================
-
-// D_SUCCESS
+// 3.1.1  D_SUCCESS
 //   constant: corresponds to a SUCCESSFUL operation; evaluates to `true`.
 #define D_SUCCESS  true
 
-// D_FAILURE
+// 3.1.2  D_FAILURE
 //   constant: corresponds to a FAILED operation; evaluates to `false`.
 #define D_FAILURE  false
 
-// D_ENABLED
+// 3.1.3  D_ENABLED
 //   constant: corresponds to a capability that IS compiled in; evaluates to
 // `true`. Not a success value -- see D_SUCCESS for that.
 #define D_ENABLED  true
 
-// D_DISABLED
+// 3.1.4  D_DISABLED
 //   constant: corresponds to a capability that is NOT compiled in; evaluates
 // to `false`. Not a failure value -- see D_FAILURE for that.
 #define D_DISABLED false
 
-// D_INDENT
+// 3.1.5  D_INDENT
 //   constant: string corresponding to one (1) level of indentation. Defaults
 // to two single spaces.
 #ifndef D_INDENT
@@ -618,12 +667,13 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 
 
 //==============================================================================
-//                            IV. NEGATIVE INDEXING                            
+// 4.  NEGATIVE INDEXING
 //==============================================================================
 
-// IV.1  Index type
+// 4.1    Index type
+//------------------------------------------------------------------------------
 
-// d_index
+// 4.1.1  d_index
 //   type: a type corresponding to a vector index that may be negative (in
 // addition to the traditional positive or zero vector indices).
 //   A negative `d_index` counts from the last element back toward 0, rather
@@ -631,21 +681,31 @@ typedef size_t (*fn_write)(char* const _buffer, size_t _size);
 // an index of -n, for a count of n, is element 0.
 typedef ssize_t d_index;
 
-// IV.2  Conversion and validation
+// 4.2    Conversion and validation
+//------------------------------------------------------------------------------
 D_EXTERN_C_BEGIN
+
+// 4.2.1  d_index_convert_fast / d_index_convert_safe
 size_t d_index_convert_fast(d_index _index,
                             size_t  _count);
 bool   d_index_convert_safe(d_index _index,
                             size_t  _count,
                             size_t* _destination);
+
+// 4.2.2  d_index_is_valid
 bool   d_index_is_valid(d_index _index,
                         size_t  _count);
 D_EXTERN_C_END
 
 
-// V.    Indexing macros and utilities
+//==============================================================================
+// 5.  INDEXING MACROS AND UTILITIES
+//==============================================================================
 
-// D_ARRAY_STATIC_SIZE
+// 5.1    Array size macros
+//------------------------------------------------------------------------------
+
+// 5.1.1  D_ARRAY_STATIC_SIZE
 //   macro: the number of ELEMENTS in a stack-allocated array whose size is
 // known at compile time. Equal to the quotient of the array's total size and
 // the size of one element -- a count, not a byte total.
@@ -653,14 +713,17 @@ D_EXTERN_C_END
 #define D_ARRAY_STATIC_SIZE(_array)                                         \
     ((size_t)(sizeof(_array) / sizeof((_array)[0])))
 
-// D_ARRAY_TOTAL_SIZE
+// 5.1.2  D_ARRAY_TOTAL_SIZE
 //   macro: shorthand for calculating the total memory occupied, in bytes, by
 // a vector of elements.
 // equal to the product of `_element_size` and `_elements_count`.
 #define D_ARRAY_TOTAL_SIZE(_element_size, _elements_count)                  \
     ((size_t)( (_element_size) * (_elements_count) ))
 
-// D_CLAMP_INDEX
+// 5.2    Index clamping and bounds tests
+//------------------------------------------------------------------------------
+
+// 5.2.1  D_CLAMP_INDEX
 //   macro: clamps an index to the valid range for a given array size.
 // returns 0 for negative indices and the last index for oversized indices.
 #define D_CLAMP_INDEX(index, arr_size)                                      \
@@ -672,12 +735,30 @@ D_EXTERN_C_END
             ? ( (arr_size) - 1 )                                            \
             : (index) ) )
 
-// D_INDEX_IN_BOUNDS
+// 5.2.2  D_INDEX_IN_BOUNDS
 //   macro: alias for D_IS_VALID_INDEX_N for compatibility.
 #define D_INDEX_IN_BOUNDS(_index, _arr_size)                                \
     D_IS_VALID_INDEX_N((_index), (_arr_size))
 
-// D_SAFE_ARR_IDX
+
+// 5.2.3  D_IS_VALID_INDEX
+//   macro: validates that an `_index` is within bounds for an array of given
+// `_count`.
+#define D_IS_VALID_INDEX(_index, _count)                                    \
+    ( ((_count) > 0) &&                                                     \
+      ( ((_index) >= 0 && (_index) < (ssize_t)(_count)) ||                  \
+        ((_index) < 0 && (-(_index)) <= (ssize_t)(_count)) ) )
+
+// 5.2.4  D_IS_VALID_INDEX_N
+//   macro: validates `_index` against the symmetric negative-index range.
+#define D_IS_VALID_INDEX_N(_index, _count)                                  \
+    ( (_index) >= -(ssize_t)(_count) && (_index) < (ssize_t)(_count) )
+
+
+// 5.3    Negative-index access macros
+//------------------------------------------------------------------------------
+
+// 5.3.1  D_SAFE_ARR_IDX
 //   macro: safe array indexing that returns an element value, not a pointer.
 //   note: only to be used on stack-allocated arrays whose size is known at
 // compile time.
@@ -686,20 +767,7 @@ D_EXTERN_C_END
         ? D_ARR_IDX((_arr), (_index))                                       \
         : (_arr)[0] )
 
-// D_IS_VALID_INDEX
-//   macro: validates that an `_index` is within bounds for an array of given
-// `_count`.
-#define D_IS_VALID_INDEX(_index, _count)                                    \
-    ( ((_count) > 0) &&                                                     \
-      ( ((_index) >= 0 && (_index) < (ssize_t)(_count)) ||                  \
-        ((_index) < 0 && (-(_index)) <= (ssize_t)(_count)) ) )
-
-// D_IS_VALID_INDEX_N
-//   macro: validates `_index` against the symmetric negative-index range.
-#define D_IS_VALID_INDEX_N(_index, _count)                                  \
-    ( (_index) >= -(ssize_t)(_count) && (_index) < (ssize_t)(_count) )
-
-// D_NEG_IDX
+// 5.3.2  D_NEG_IDX
 //   macro: given a negative index and the size of the vector (in number of
 // elements), returns the non-negative valid index equivalent.
 //   Note: this does not check if INDEX corresponds to a valid index within the
@@ -709,7 +777,7 @@ D_EXTERN_C_END
     ( (_index) < 0 ? (_count) + (_index) :                                  \
                     (_index) )
 
-// D_ARR_IDX
+// 5.3.3  D_ARR_IDX
 //   macro: given a negative index and array, returns the array element at the
 // equivalent positive index.
 // note: only to be used on stack-allocated arrays whose size is known at
