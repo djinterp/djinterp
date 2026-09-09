@@ -22,9 +22,10 @@
 * | Apple libc    |  yes   |    no    |   no   |    no    |  yes   |   yes    |
 * | Solaris libc  |  yes   |   yes    |   no   |    no    |  yes   |   yes    |
 * +---------------+--------+----------+--------+----------+--------+----------+
-*   Microsoft's UCRT provides functions such as memcpy_s but does not 
-* implement memset_s, while many GCC- and Clang-based environments do not 
-* provide the optional Annex K _s interfaces, errno_t, rsize_t, or RSIZE_MAX.
+*   Microsoft's UCRT provides functions such as `memcpy_s` but does not 
+* implement `memset_s`, while many GCC- and Clang-based environments do not 
+* provide the optional Annex K `_s` interfaces, `errno_t`, `rsize_t`, or 
+* `RSIZE_MAX`.
 *   Platforms also expose different facilities for guaranteed non-elidable 
 * memory clearing. This module normalizes those differences behind
 * a single djinterp interface.
@@ -55,12 +56,12 @@
 #define DJINTERP_C_MEMORY_ 1
 
 // std
-#include <errno.h>       // for EINVAL, ERANGE
-#include <stddef.h>      // for size_t
-#include <stdlib.h>      // for malloc
-#include <string.h>      // for memcpy, memset
+#include <errno.h>        // EINVAL, ERANGE
+#include <stddef.h>       // size_t
+#include <stdlib.h>       // malloc
+#include <string.h>       // memcpy, memset
 // djinterp
-#include "./djinterp.h"
+#include "../djinterp.h"  // framework root
 
 
 // compatibility constants and types
@@ -96,24 +97,22 @@ D_EXTERN_C_BEGIN
 // I.    memory operation: djinterp equivalents
 
 // memcpy, memcpy_s
-void*   d_memcpy(void*       _destination,
-                 const void* _source,
-                 size_t      _amount);
+void*   d_memcpy(  void*       _destination,
+                   const void* _source,
+                   size_t      _amount);
 int     d_memcpy_s(void*       _destination,
                    size_t      _destination_size,
                    const void* _source,
                    size_t      _amount);
-
 // memdup, memdup_s
-void*   d_memdup(const void* _source,
-                 size_t      _size);
+void*   d_memdup(  const void* _source,
+                   size_t      _size);
 void*   d_memdup_s(const void* _source,
                    size_t      _size);
-
 // memset, memset_s
-void*   d_memset(void*  _ptr,
-                 int    _value,
-                 size_t _amount);
+void*   d_memset(  void*   _ptr,
+                   int     _value,
+                   size_t  _amount);
 errno_t d_memset_s(void*   _destination,
                    rsize_t _destsz,
                    int     _ch,
