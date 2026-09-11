@@ -21,9 +21,9 @@ TABLE OF CONTENTS
     --------------------
     1.  Configuration constants
          1.  Variadic argument limits
-              a.  D_CFG_DMACRO_VARG_DEFAULT
-              b.  D_CFG_DMACRO_VARG_MIN
-              c.  D_CFG_DMACRO_VARG_LIMIT
+             a.  D_CFG_DMACRO_VARG_DEFAULT
+             b.  D_CFG_DMACRO_VARG_MIN
+             c.  D_CFG_DMACRO_VARG_LIMIT
          2.  Variant selection constants
     2.  User configuration
          1.  D_CFG_DMACRO_OVERRIDE
