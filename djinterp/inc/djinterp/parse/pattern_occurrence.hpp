@@ -1,23 +1,31 @@
 /******************************************************************************
-* djinterp [parse]                                          pattern_occurrence.hpp
+* djinterp [paradigm]                                       pattern_occurrence.hpp
 *
 * Functional occurrence unfold for searchable patterns:
-*   This header replaces the scanner's hand-rolled "find every occurrence"
-* loop (pattern_scanner::run_secondary) with a reusable functional unfold.
-* The original loop was welded into the scanner's private section, and it
-* copied the entire remaining input on every iteration (src.substr(base)),
-* making it O(n^2) in the number of matches.  Here the same logic is a
-* producer - a pull-based source yielding one positioned match per call and
-* signalling exhaustion when no further occurrence exists - that scans in
-* place without copying, and that any code (not just the scanner) can drain,
-* fold, or pipe.
+*   This header provides a reusable functional unfold over a searchable
+* pattern: a pull-based source yielding one positioned match per call and
+* signalling exhaustion when no further occurrence exists.  It replaces the
+* scanner's former hand-rolled "find every occurrence" loop
+* (pattern_scanner::run_secondary), which was welded into the scanner's
+* private section and copied the entire remaining input on every iteration
+* (src.substr(base)) -- making it O(n^2) in the number of matches.  Here the
+* same logic is a producer that scans in place without copying, and that any
+* code (not just the scanner) can drain, fold, or pipe.
 *
-*   The contract a pattern must satisfy is now machine-checked rather than
+*   This is paradigm-level, not parse-level.  By the formal definition a
+* parser is P A = Σ* → maybe⟨A × Σ*⟩; an occurrence unfold is not a parser --
+* it is search-side machinery built on the producer protocol, operating on a
+* `pattern<>` (paradigm/pattern.hpp).  It was previously mis-filed under
+* djinterp::parse with a vestigial parse.hpp include it never used; it now
+* lives in flat djinterp:: beside its subject (pattern.hpp) and its mechanism
+* (functional/producer.hpp), matching the codebase's flat-outside-parse rule.
+*
+*   The contract a pattern must satisfy is machine-checked rather than
 * described in a comment: occurrence_producer requires
 * has_find_method<_Pattern, std::string, match_result_type>, the structural
-* trait added in core/functional/structural_traits.hpp.  A pattern that does
-* not expose bool find(const std::string&, std::size_t&, R&) fails to compile
-* with a clear message instead of deep in instantiation.
+* trait in functional/structural_traits.hpp.  A pattern that does not expose
+* bool find(const std::string&, std::size_t&, R&) fails to compile with a
+* clear message instead of deep in instantiation.
 *
 * CONTENTS
 *   positioned_match<R>        (offset, captures) pair yielded per occurrence
@@ -25,27 +33,26 @@
 *   make_occurrence_producer   factory binding a pattern + buffer
 *   collect_occurrences(p,buf) eager convenience -> vector<positioned_match<R>>
 *
+*
 * path:      /inc/djinterp/parse/pattern_occurrence.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
 ******************************************************************************/
 
-#ifndef DJINTERP_PARSE_PATTERN_OCCURRENCE_
-#define DJINTERP_PARSE_PATTERN_OCCURRENCE_ 1
+#ifndef DJINTERP_PARADIGM_PATTERN_OCCURRENCE_
+#define DJINTERP_PARADIGM_PATTERN_OCCURRENCE_ 1
 
 // std
 #include <cstddef>
 #include <string>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
-#include "./parse.hpp"
+#include "../djinterp.hpp"
 #include "../core/functional/producer.hpp"
 #include "../core/functional/structural_traits.hpp"
 
 
 NS_DJINTERP
-NS_PARSE
 
 
 // ================================================================
@@ -82,10 +89,10 @@ struct positioned_match
 
 // occurrence_producer
 //   class: a producer (nullary callable yielding
-// producer_step<positioned_match<R>>) that pulls the
-// next occurrence of a searchable pattern from a buffer on each
-// call, and signals exhaustion when none remain.  This is the
-// functional unfold form of the old run_secondary loop.
+// producer_step<positioned_match<R>>) that pulls the next
+// occurrence of a searchable pattern from a buffer on each call,
+// and signals exhaustion when none remain.  This is the functional
+// unfold form of the old run_secondary loop.
 //
 //   It holds the buffer by const reference (the buffer must outlive
 // the producer) and a copy of the pattern.  Crucially it scans in
@@ -252,8 +259,7 @@ collect_occurrences(
 }
 
 
-NS_END  // parse
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_PARSE_PATTERN_OCCURRENCE_
+#endif  // DJINTERP_PARADIGM_PATTERN_OCCURRENCE_

@@ -30,9 +30,10 @@
 *           literal_parser / literal(c)
 *           plus inline factories: digit(), alpha(), alnum(), space()
 *
-* path:      /inc/djinterp/parse/parser/primitives.hpp
+*
+* path:      /inc/djinterp/parse/primitives.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_PARSER_PRIMITIVES_
@@ -46,9 +47,9 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"
-#include "../parse.hpp"
-#include "./parser.hpp"
+#include "../djinterp.hpp"
+#include "parse.hpp"
+#include "parser/parser.hpp"
 
 
 NS_DJINTERP
