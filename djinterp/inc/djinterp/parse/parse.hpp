@@ -40,6 +40,7 @@
 * tuple (N, Σ, P, S) and the polynomial functor F whose initial algebra
 * μF is the parsable carrier live in grammar/.
 *
+*
 * path:      /inc/djinterp/parse/parse.hpp
 * link(s):   ch-parsing.tex
 * author(s): Samuel 'teer' Neal-Blim                       created: 2025.01.11
@@ -55,7 +56,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
 #include "../core/functional/result.hpp"
 
 

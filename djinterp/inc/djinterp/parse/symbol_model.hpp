@@ -25,19 +25,21 @@
 * are reached unqualified from here via enclosing-namespace lookup).
 *
 *
-* path:      /inc/cpp/parse/symbol_model.hpp
+* path:      /inc/djinterp/parse/symbol_model.hpp
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                             date: 2026.05.30
+* author(s): Sam 'teer' Neal-Blim                         created: 2026.05.30
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_SYMBOL_MODEL_
 #define DJINTERP_PARSE_SYMBOL_MODEL_ 1
 
+// std
 #include <cstddef>
 #include <cstdint>
-#include "../core/djinterp.hpp"
-#include "../lang/cpp.hpp"
-#include "../arena/arena.hpp"
+// djinterp
+#include "../djinterp.hpp"
+#include "parsers/cpp/cpp.hpp"
+#include "../core/container/arena/arena.hpp"
 
 
 NS_DJINTERP

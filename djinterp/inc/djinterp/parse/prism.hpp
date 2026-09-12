@@ -42,9 +42,10 @@
 *   IV.   dimap                      profunctor transport across iso
 *   V.    round-trip law helpers     compile- and run-time checks
 *
+*
 * path:      /inc/djinterp/parse/prism.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_PRISM_
@@ -57,7 +58,9 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../core/djinterp.hpp"
+#include "../djinterp.hpp"
+#include "../core/functional/profunctor.hpp"
+#include "../core/functional/recursion.hpp"
 #include "./parse.hpp"
 #include "./parser/parser.hpp"
 
@@ -72,30 +75,43 @@ NS_PARSE
 
 // compose_traits
 //   trait: primary template — undefined by default.  A parsable
-// carrier _Carrier ≅ μF participates in composition by specialising
-// compose_traits<_Carrier> with a static `algebra(t)` that returns
-// the surface string for an instance.  This is the C++ stand-in for
-// the formal print algebra φ : F Σ* → Σ*: the implementation
-// pattern-matches on _Carrier's variants (the constructors of F)
-// and concatenates the already-rendered surfaces of its children
-// (the recursive subtrees).
+// carrier _Carrier ≅ μF supplies its *print algebra* by specialising
 //
-//   By design the trait is structural rather than virtual: a
-// carrier shape changes a single specialisation here, not a
-// virtual dispatch hierarchy across the value type.
+//     using is_specialized = std::true_type;
+//     static Σ* algebra(
+//         const recursive_traits<_Carrier>::template base<Σ*>& layer);
+//
+// — the F-algebra φ : F(Σ*) → Σ*, acting on ONE layer of F whose
+// recursive children have *already* been rendered to Σ* by the
+// surrounding catamorphism.  The carrier declares its structure
+// separately (base functor + project) through
+// recursive_traits<_Carrier> in functional/recursion.hpp; compose
+// is then literally cata[φ] over that structure.
+//
+//   This is the split that makes φ an ordinary F-algebra rather
+// than a bespoke whole-tree hook: the structural recursion belongs
+// to recursion.hpp and is written once, while φ describes a single
+// layer.  The very same recursive_traits<_Carrier> then powers
+// evaluate = cata[φ_eval], type-check = cata[φ_types], pretty-print
+// = cata[φ_doc], and so on — only the algebra changes.  That is
+// what makes `D ≅ μF` load-bearing rather than merely documented.
 //
 //   _Carrier   the parsable type D ≅ μF.
 //   _Element   the surface stream element type (char by default).
 template<typename _Carrier,
-         typename _Element = char>
+         typename _Element = char,
+         typename _Enable  = void>
 struct compose_traits;
 
 
 NS_INTERNAL
 
     // is_composable_helper
-    //   helper: SFINAE detector for whether compose_traits<_T> is
-    // specialised — looks for the static algebra() entry point.
+    //   helper: SFINAE detector requiring BOTH that _T declares a
+    // fold structure (recursive_traits<_T>, so the layer type
+    // base<Σ*> is well-formed) AND that compose_traits<_T> supplies
+    // the print algebra over that layer.  Either half missing →
+    // not composable.
     template<typename _T,
              typename _Element = char,
              typename = void>
@@ -107,9 +123,14 @@ NS_INTERNAL
     struct is_composable_helper<
         _T,
         _Element,
-        void_t<decltype(
-            compose_traits<_T, _Element>::algebra(
-                std::declval<const _T&>()))>
+        void_t<
+            typename compose_traits<_T, _Element>::is_specialized,
+            decltype(
+                compose_traits<_T, _Element>::algebra(
+                    std::declval<
+                        const typename recursive_traits<_T>::
+                            template base<
+                                std::basic_string<_Element> >&>()))>
     > : std::true_type
     {};
 
@@ -117,7 +138,8 @@ NS_END  // internal
 
 
 // is_composable
-//   trait: true iff _T has a compose_traits specialisation able to
+//   trait: true iff _T has both a recursive_traits structure map
+// and a compose_traits print algebra over it — i.e. compose can
 // fold it into a string.
 template<typename _T,
          typename _Element = char>
@@ -138,34 +160,52 @@ struct is_composable
 // ================================================================
 
 // compose
-//   function: cata[φ] : μF → Σ*.  Folds the parsable structure into
-// its surface form by recursively rendering children and applying
-// the print algebra at each level.  The work is delegated to
-// compose_traits<_Carrier>::algebra, which is the per-carrier
-// specialisation of φ.
+//   function: cata[φ] : μF → Σ*.  This is now a *genuine*
+// catamorphism — it hands the print algebra φ = compose_traits<
+// _Carrier>::algebra to functional/recursion.hpp's cata, which
+// peels each layer via recursive_traits<_Carrier>::project, folds
+// every child to its surface string, and applies φ to assemble the
+// layer.  The recursion is not restated here; only φ is carrier-
+// specific.
 //
-//   Total on every value of _Carrier (since the formal definition
-// requires φ to be defined on F Σ* in full).  Injective when the
-// carrier shape is decodable — the surface form recovers the
-// structure uniquely under parse — which is the property
-// witnessing the prism on the language Lang.
+//   Total on every value of _Carrier (φ is defined on all of
+// F(Σ*)).  Injective when the surface uniquely determines the
+// structure — the property that, together with `parse` as the
+// partial inverse ana, witnesses the prism on the language Lang.
 //
-//   Calling compose on a type without a compose_traits
-// specialisation is a compile error.
+//   Calling compose on a carrier lacking either a recursive_traits
+// structure map or a compose_traits algebra is a compile error
+// naming the missing half.
 template<typename _Carrier,
          typename _Element = char>
 D_NODISCARD
-auto compose(
+std::basic_string<_Element>
+compose(
     const _Carrier& _t
 )
--> decltype(compose_traits<_Carrier, _Element>::algebra(_t))
 {
+    static_assert(
+        is_recursive<_Carrier>::value,
+        "compose: _Carrier needs a recursive_traits specialisation "
+        "(base functor + project : C -> F(C)).");
+
     static_assert(
         is_composable<_Carrier, _Element>::value,
         "compose: _Carrier needs a compose_traits specialisation "
-        "(static algebra(const _Carrier&) -> Σ*).");
+        "(the print algebra phi : F(Σ*) -> Σ*).");
 
-    return compose_traits<_Carrier, _Element>::algebra(_t);
+    using surface_type = std::basic_string<_Element>;
+    using layer_type   =
+        typename recursive_traits<_Carrier>::template base<
+            surface_type>;
+
+    return ::djinterp::cata<surface_type, _Carrier>(
+        [](const layer_type& _layer) -> surface_type
+        {
+            return compose_traits<_Carrier, _Element>::algebra(
+                _layer);
+        },
+        _t);
 }
 
 
@@ -319,7 +359,10 @@ make_prism_via_traits(
         static_cast<parser<_Carrier, _Element>&&>(_parse),
         [](const _Carrier& _t) -> surface_type
         {
-            return compose_traits<_Carrier, _Element>::algebra(_t);
+            // the compose leg is cata[φ] over recursive_traits<
+            // _Carrier> with φ = compose_traits<_Carrier>::algebra
+            return ::djinterp::parse::compose<_Carrier, _Element>(
+                _t);
         });
 }
 
@@ -327,19 +370,25 @@ make_prism_via_traits(
 // ================================================================
 //  IV.  dimap  —  profunctor transport
 // ================================================================
+//   prism<C, E> is a profunctor over its carrier C — covariant on
+// the parse side (post-applied), contravariant on the compose side
+// (pre-applied).  The profunctor_traits<prism<C, E>> specialisation
+// (at djinterp:: scope below) is the protocol obligation; the
+// local `dimap` here is a thin convenience that delegates to the
+// protocol, so call sites read as the prism literature does
+// (`dimap(p, f, g)` with f the iso forward and g the inverse).
 
 // dimap
 //   function: transports a prism across an isomorphism on the
-// carrier side.  If _Iso = (f : _Carrier → _Other, g : _Other →
-// _Carrier) is a bijection, then dimap(p, f, g) produces a prism
-// over _Other whose parse leg recovers an _Other via f after the
-// underlying _Carrier parse, and whose compose leg pre-applies g
-// before the underlying compose.
+// carrier side.  Delegates to profunctor_traits<prism<C, E>>::
+// dimap; included here so a downstream module reading prism.hpp
+// finds the operation without an extra include of profunctor.hpp.
 //
 //   The profunctor law — covariance on parse, contravariance on
-// compose — is what makes this signature read as `dimap(p, f, g)`:
+// compose — is what makes the signature read as `dimap(p, f, g)`:
 // f flows in the parse direction (post-applied), g in the compose
-// direction (pre-applied).
+// direction (pre-applied).  If _Iso = (f : C → D, g : D → C) is a
+// bijection then dimap(p, f, g) is the prism over D.
 //
 //   _Carrier   the underlying parsable type.
 //   _Other     the carrier the new prism produces / consumes.
@@ -357,33 +406,11 @@ dimap(
     _Backward                        _g
 )
 {
-    using state_type   = parse_state<_Element>;
-    using surface_type = std::basic_string<_Element>;
-    using parser_type  = parser<_Other, _Element>;
-    using compose_fn   = std::function<surface_type(const _Other&)>;
-
-    parser_type lifted_parse(
-        [_p, _f](state_type& _state) -> parse_result<_Other>
-        {
-            parse_result<_Carrier> r = _p.parse(_state);
-
-            if (!r.ok())
-            {
-                return parse_result<_Other>(r.error());
-            }
-
-            return parse_result<_Other>(_f(r.value()));
-        });
-
-    compose_fn lifted_compose =
-        [_p, _g](const _Other& _o) -> surface_type
-        {
-            return _p.compose(_g(_o));
-        };
-
-    return prism<_Other, _Element>(
-        static_cast<parser_type&&>(lifted_parse),
-        static_cast<compose_fn&&>(lifted_compose));
+    // profunctor_traits expects (pre, post); we receive (post, pre)
+    // in the prism order.  Reorder at the boundary.
+    return ::djinterp::profunctor_traits<
+               prism<_Carrier, _Element>
+           >::dimap(_p, _g, _f);
 }
 
 
@@ -453,6 +480,87 @@ check_parse_compose(
 
     return (_p.compose(r.value()) == _s);
 }
+
+
+NS_END  // parse
+
+
+// ================================================================
+//  profunctor_traits<prism<_Carrier, _Element>>
+// ================================================================
+//   Lives at djinterp:: scope — the same namespace as the primary
+// template in functional/profunctor.hpp.  The prism is the rare
+// case where the two profunctor parameters coincide (A = B = the
+// carrier), and dimap transports both via the iso pair.
+
+template<typename _Carrier,
+         typename _Element>
+struct profunctor_traits<parse::prism<_Carrier, _Element>, void>
+{
+    using is_specialized = std::true_type;
+
+    // dimap
+    //   contracts pre : D → _Carrier (compose direction) and post
+    // : _Carrier → D (parse direction) into a prism<D, _Element>.
+    template<typename _Pre,
+             typename _Post>
+    static
+    auto dimap(
+        const parse::prism<_Carrier, _Element>& _p,
+        _Pre                                    _pre,
+        _Post                                   _post
+    )
+    -> parse::prism<
+           typename std::decay<decltype(
+               _post(std::declval<_Carrier>()))>::type,
+           _Element>
+    {
+        using d_type =
+            typename std::decay<decltype(
+                _post(std::declval<_Carrier>()))>::type;
+        using state_type   = parse::parse_state<_Element>;
+        using surface_type = std::basic_string<_Element>;
+        using parser_type  = parse::parser<d_type, _Element>;
+        using compose_fn   =
+            std::function<surface_type(const d_type&)>;
+
+        parser_type lifted_parse(
+            [_p, _post](state_type& _state)
+                -> parse::parse_result<d_type>
+            {
+                parse::parse_result<_Carrier> r = _p.parse(_state);
+
+                if (!r.ok())
+                {
+                    return parse::parse_result<d_type>(r.error());
+                }
+
+                return parse::parse_result<d_type>(
+                    _post(r.value()));
+            });
+
+        compose_fn lifted_compose =
+            [_p, _pre](const d_type& _d) -> surface_type
+            {
+                return _p.compose(_pre(_d));
+            };
+
+        return parse::prism<d_type, _Element>(
+            static_cast<parser_type&&>(lifted_parse),
+            static_cast<compose_fn&&>(lifted_compose));
+    }
+};
+
+
+NS_END  // djinterp
+
+
+NS_DJINTERP
+NS_PARSE
+
+
+// (parse:: namespace is reopened so a downstream include sees it
+// in the expected scope; nothing further is declared in this file.)
 
 
 NS_END  // parse
