@@ -34,7 +34,7 @@
 *   D_ENV_ARCHIVE_CAN_[READ|WRITE]_[FORMAT] - format capability roll-ups
 *
 * 
-* path:      /inc/djinterp/core/env/env_archive.h
+* path:      /inc/djinterp/env/env_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
 ******************************************************************************/
@@ -48,9 +48,9 @@
 #include <stdlib.h>
 #include <string.h>
 // djinterp
-#include "../../c/djinterp.h"
-#include "./env.h"
-#include "./env_compress.h"
+#include "../c/djinterp.h"
+#include "env.h"
+#include "env_compress.h"
 
 
 // platform split for the PATH probe: Windows vs. POSIX
@@ -62,11 +62,13 @@
 #endif
 
 #if D_INTERNAL_ARCHIVE_OS_WINDOWS
+    // windows
     #include <io.h>          // _access
     #define D_INTERNAL_ACCESS(p)      _access((p), 0)
     #define D_INTERNAL_PATH_SEP       ';'
     #define D_INTERNAL_DIR_SEP        '\\'
 #else
+    // windows
     #include <unistd.h>      // access, X_OK
     #define D_INTERNAL_ACCESS(p)      access((p), X_OK)
     #define D_INTERNAL_PATH_SEP       ':'
@@ -74,6 +76,7 @@
 #endif
 
 #if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
+    // libarchive
     #include <archive.h>
 #endif
 
