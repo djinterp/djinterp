@@ -37,7 +37,7 @@
 *   D_ENV_COMPRESSION_HAVE_[CODEC]   - 1 if some library provides the codec
 *
 
-* path:      /inc/djinterp/core/env/env_compress.h
+* path:      /inc/djinterp/env/env_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
 ******************************************************************************/
@@ -46,11 +46,12 @@
 #define DJINTERP_ENV_COMPRESSION_ 1
 
 
+// std
 // c
 #include <stdio.h>
 // djinterp
-#include "../../c/djinterp.h"
-#include "./env.h"
+#include "../c/djinterp.h"
+#include "env.h"
 
 
 // =============================================================================

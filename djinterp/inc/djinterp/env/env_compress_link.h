@@ -38,7 +38,7 @@
 * the artifact being linked.
 *
 *
-* path:      /inc/djinterp/core/env/env_compress_link.h
+* path:      /inc/djinterp/env/env_compress_link.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.07.04
 ******************************************************************************/
@@ -47,8 +47,8 @@
 #define DJINTERP_ENV_COMPRESS_AUTOLINK_ 1
 
 // djinterp
-#include "../../c/djinterp.h"
-#include "./env.h"
+#include "../c/djinterp.h"
+#include "env.h"
 
 
 // =============================================================================

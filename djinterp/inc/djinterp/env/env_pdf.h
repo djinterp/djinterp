@@ -51,26 +51,36 @@
 *     D_ENV_PDF_[LIB]_VERSION_STRING  string ("unknown" if unavailable)
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    PROBE INFRASTRUCTURE
-* II.   GENERATION LIBRARIES
-*       a. libHaru
-*       b. PDFHummus / PDF-Writer
-*       c. PoDoFo
-*       d. Cairo (PDF surface)
-* III.  RENDER / PARSE LIBRARIES
-*       a. Poppler
-*       b. MuPDF
-*       c. PDFium
-* IV.   AGGREGATE CLASSIFICATION
-* V.    PREFERRED-BACKEND HINT
-*
-*
-* path:      /inc/core/env/env_pdf.h
+* path:      /inc/djinterp/env/env_pdf.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.22
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    PROBE INFRASTRUCTURE
+      --------------------
+
+II.   GENERATION LIBRARIES
+      --------------------
+      a. libHaru
+      b. PDFHummus / PDF-Writer
+      c.    PoDoFo
+            d. Cairo (PDF surface)
+
+III.  RENDER / PARSE LIBRARIES
+      ------------------------
+      a. Poppler
+      b. MuPDF
+      c.    PDFium
+
+IV.   AGGREGATE CLASSIFICATION
+      ------------------------
+
+V.    PREFERRED-BACKEND HINT
+      ----------------------
+*/
 
 #ifndef DJINTERP_ENVIRONMENT_PDF_
 #define DJINTERP_ENVIRONMENT_PDF_ 1
