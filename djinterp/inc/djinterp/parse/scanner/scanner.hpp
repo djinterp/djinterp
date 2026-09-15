@@ -52,6 +52,7 @@
 *           scanner_result_type
 *   IX.   C++20 concepts mirroring the traits
 *
+*
 * path:      /inc/djinterp/parse/scanner/scanner.hpp
 * link(s):   ch-parsing.tex
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
@@ -68,7 +69,7 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/meta/member_traits.hpp"
 #include "../parse.hpp"
 

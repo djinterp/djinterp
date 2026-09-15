@@ -36,6 +36,7 @@
 *   VI.   token_kind_type / token_value_type  SFINAE-safe extractors
 *   VII.  C++20 concepts mirroring the traits
 *
+*
 * path:      /inc/djinterp/parse/token/token.hpp
 * link(s):   ch-parsing.tex
 * author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
@@ -48,7 +49,7 @@
 #include <cstddef>
 #include <type_traits>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/meta/member_traits.hpp"
 #include "../parse.hpp"
 

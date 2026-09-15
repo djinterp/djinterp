@@ -33,17 +33,23 @@
 * The whole token sequence must be consumed; trailing tokens are an error.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    GRAMMAR                              (expression_grammar / factory)
-* II.   PRATT CORE                           (internal: nud / climb)
-* III.  PARSE ENTRY                          (parse_expression)
-*
-*
 * path:      /inc/djinterp/parse/expression/expression_parse.hpp
 * link(s):   ch-parsing.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    GRAMMAR                              (expression_grammar / factory)
+      -------------------------------------------------------------------
+
+II.   PRATT CORE                           (internal: nud / climb)
+      ------------------------------------------------------------
+
+III.  PARSE ENTRY                          (parse_expression)
+      -------------------------------------------------------
+*/
 
 #ifndef DJINTERP_EXPRESSION_EXPRESSION_PARSE_
 #define DJINTERP_EXPRESSION_EXPRESSION_PARSE_ 1

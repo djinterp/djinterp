@@ -1,0 +1,114 @@
+(* ============================================================================
+   djinterp — CLI / functional DSL surface grammar
+   EBNF (ISO/IEC 14977) — companion to djinterp.peg, which is NORMATIVE.
+
+   WHAT THIS RENDERING CAN AND CANNOT SAY.  The language is defined by committed
+   ordered choice with longest match; EBNF alternation ('|') is UNORDERED and
+   EBNF has no lookahead operator.  The syntactic grammar below is unaffected --
+   its alternatives are distinguished by disjoint leading token kinds -- but a
+   few lexical decisions are conventions stated in the notes, not structure:
+     (a) tokens are lexed by MAXIMAL MUNCH (a token is as long as it can be);
+     (b) where lexical alternatives share a prefix, the order in djinterp.peg is
+         the priority: long-option / terminator before short-option, and the
+         comparison operators longest-first;
+     (c) 'and' / 'or' / 'not' are reserved only as whole words -- by (a),
+         'android' is one word.
+   Character-set exclusions ("any character except ...") use EBNF's exception
+   operator ( - ) and are exact.  Precedence is the rule cascade, unchanged,
+   and equals the operator_signature table in djinterp.peg.
+
+   NOTATION (ISO 14977):
+     =  defines a rule      ,  concatenation      |  alternation
+     { e } zero or more     [ e ] optional        ( e ) grouping
+     e1 - e2  exception (e1 but not e2)            ;  ends a rule
+     "t" / 't'  terminal string     (* comment *)     ? special sequence ?
+   ============================================================================ *)
+
+
+(* ─── II.  Syntactic grammar (over tokens) ─────────────────────────────────
+      Each alternative is selected by its leading token, which is unambiguous,
+      so the unordered '|' is exact here.  Precedence is the cascade: weakest
+      binder (sequence) first, strongest (primary) last.                        *)
+
+program     = sequence ;
+
+sequence    = pipeline, { ";", pipeline } ;                (* ; weakest *)
+
+pipeline    = orExpr, { "|", orExpr } ;                    (* | threads a value *)
+
+orExpr      = andExpr, { "or", andExpr } ;
+andExpr     = notExpr, { "and", notExpr } ;
+
+notExpr     = "not", notExpr
+            | compare ;
+
+compare     = primary, [ compareOp, primary ] ;            (* non-associative *)
+
+primary     = "(", sequence, ")"
+            | command
+            | literal ;
+
+command     = verb, { argument } ;
+
+argument    = longOption
+            | terminator
+            | shortOption
+            | operand ;
+
+longOption  = "--", optionName, [ "=", optionValue ] ;
+terminator  = "--" ;                     (* only when not followed by a name char — note (b) *)
+shortOption = "-", shortChar, { shortChar } ;
+
+verb        = word ;
+operand     = word | number | string ;
+literal     = number | string ;
+
+compareOp   = "==" | "!=" | "=~" | "<=" | ">=" | "<" | ">" ;
+
+
+(* ─── I.  Lexical grammar (over characters) ─────────────────────────────────
+      The exception operator writes the character sets directly.  Maximal munch
+      and lexical priority are the notes (a),(b),(c).                           *)
+
+optionName    = nameChar, { nameChar } ;
+optionValue   = string | unquotedValue ;
+unquotedValue = valueChar, { valueChar } ;
+
+word          = wordChar, { wordChar } ;
+
+number        = [ "-" ], digit, { digit }, [ ".", digit, { digit } ] ;
+
+string        = '"', { character - '"' }, '"'
+              | "'", { character - "'" }, "'" ;
+
+shortChar     = letter | digit ;
+
+nameChar      = character - ( blank | newline | metaChar ) ;
+wordChar      = nameChar ;
+valueChar     = character - ( blank | newline | "|" | ";" | "(" | ")" ) ;
+
+metaChar      = "|" | ";" | "(" | ")" | '"' | "'" | "=" ;
+
+letter        = ? one ASCII letter, A-Z or a-z ? ;
+digit         = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+blank         = " " | ? one horizontal tab ? ;
+newline       = ? one line terminator: LF, CR, or CRLF ? ;
+character     = ? any one character of the input ? ;
+
+
+(* ─── Notes ─────────────────────────────────────────────────────────────────
+   (a) Maximal munch: each token consumes as many characters as possible.
+   (b) Lexical priority where a prefix is shared: "--" followed by a name is a
+       longOption; a bare "--" (no following name character) is the terminator;
+       "-" followed by letters/digits is a shortOption. Comparison operators are
+       matched longest-first, so "<=" is one token, never "<" then "=".
+   (c) Reserved words: 'and', 'or', 'not' are operators only as whole words;
+       by (a), 'android' is a single word.
+   (d) Comparisons are non-associative -- 'compare' admits at most one operator
+       -- so 'a == b == c' is a syntax error; parenthesize to nest.
+   (e) '|' (pipeline) binds looser than 'or'/'and', so 'a and b | c' groups as
+       '(a and b) | c'. The full precedence order is the cascade above, tabulated
+       (with associativity and fixity) as the operator_signature in djinterp.peg.
+   (f) A line comment runs from '#' to end of line and is skipped together with
+       whitespace; this is a lexer convention, omitted from the grammar.
+   ─────────────────────────────────────────────────────────────────────────── *)

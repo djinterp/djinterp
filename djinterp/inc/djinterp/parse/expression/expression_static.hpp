@@ -37,21 +37,35 @@
 * runtime bridge (it builds the heap-backed dynamic term).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    CRTP BASE                             (static_expr<Derived>)
-* II.   NODES                                 (static_leaf / static_apply)
-* III.  FACTORIES                             (make_static_leaf / make_static_apply)
-* IV.   COMPILE-TIME SHAPE                     (static_arity / _size / _depth)
-* V.    COMPILE-TIME FOLD                      (static_evaluate)
-* VI.   REIFY                                  (static term -> dynamic expression)
-* VII.  DETECTION                              (is_static_expr / _leaf / _apply)
-*
-*
 * path:      /inc/djinterp/parse/expression/expression_static.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    CRTP BASE                             (static_expr<Derived>)
+      ------------------------------------------------------------
+
+II.   NODES                                 (static_leaf / static_apply)
+      ------------------------------------------------------------------
+
+III.  FACTORIES                             (make_static_leaf / make_static_apply)
+      ----------------------------------------------------------------------------
+
+IV.   COMPILE-TIME SHAPE                     (static_arity / _size / _depth)
+      ----------------------------------------------------------------------
+
+V.    COMPILE-TIME FOLD                      (static_evaluate)
+      --------------------------------------------------------
+
+VI.   REIFY                                  (static term -> dynamic expression)
+      --------------------------------------------------------------------------
+
+VII.  DETECTION                              (is_static_expr / _leaf / _apply)
+      ------------------------------------------------------------------------
+*/
 
 #ifndef DJINTERP_EXPRESSION_EXPRESSION_STATIC_
 #define DJINTERP_EXPRESSION_EXPRESSION_STATIC_ 1

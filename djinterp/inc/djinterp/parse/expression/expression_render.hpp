@@ -32,16 +32,20 @@
 * term and does not depend on the static face.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    RENDER CARRIER & LAYOUT              (internal: precedence, wrapping)
-* II.   RENDER                               (expression -> std::string)
-*
-*
 * path:      /inc/djinterp/parse/expression/expression_render.hpp
 * link(s):   ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    RENDER CARRIER & LAYOUT              (internal: precedence, wrapping)
+      ---------------------------------------------------------------------
+
+II.   RENDER                               (expression -> std::string)
+      ----------------------------------------------------------------
+*/
 
 #ifndef DJINTERP_EXPRESSION_EXPRESSION_RENDER_
 #define DJINTERP_EXPRESSION_EXPRESSION_RENDER_ 1

@@ -47,9 +47,10 @@
 *   IX.   alternative_traits<...>         Alternative — PEG ordered choice
 *   X.    operator|  /  pipe              syntactic sugar over the protocols
 *
+*
 * path:      /inc/djinterp/parse/parser/parser.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_PARSER_
@@ -61,7 +62,7 @@
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/meta/member_traits.hpp"
 #include "../../core/functional/functor.hpp"
 #include "../../core/functional/applicative.hpp"
@@ -673,12 +674,9 @@ struct alternative_traits<parse::parser<_Result, _Element>>
     }
 };
 
-NS_END  // djinterp
 
-// functor_traits<parser<R, E>>
-//   Not specialised here: the monad bridge in functor.hpp picks up
-// any monad as a functor, so parser<R, E> participates in functor
-// automatically via the monad_traits specialisation above.
+
+NS_END  // djinterp
 
 
 #endif  // DJINTERP_PARSE_PARSER_

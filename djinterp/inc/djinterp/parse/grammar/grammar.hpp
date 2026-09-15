@@ -1,55 +1,44 @@
 /******************************************************************************
 * djinterp [parse]                                          grammar/grammar.hpp
 *
-* Formal grammar primitives and polynomial-functor view.
-*   Per ch-parsing.tex a grammar is the language-theoretic four-tuple
+* Formal grammar four-tuple G = (N, Σ, P, S).
+*   This header carries the *textual* presentation of a grammar —
+* the four-tuple the parser literature reads directly: nonterminals,
+* terminals, productions, and a start symbol.  The polynomial
+* functor F that this grammar is the sum-of-products presentation of
+* now lives in its own file, grammar/polynomial.hpp (poly_var,
+* poly_unit, poly_const, poly_sum, poly_product, their Functor /
+* Traversable instances, and the type-level shapes), so that F can
+* be folded generically by functional/recursion.hpp's cata.  This
+* file includes polynomial.hpp, so a consumer of grammar.hpp still
+* sees the whole vocabulary; the split is by responsibility, not by
+* dependency.
 *
-*       G = (N, Σ, P, S)
-*
-* with N the nonterminals, Σ the terminals, P the productions, and
-* S ∈ N the start symbol; and a parsable carrier D is the initial
-* algebra μF of a polynomial functor F — built from constants, +, ×,
-* and composition — that is Traversable.  The grammar and the
-* polynomial functor are two faces of the same thing:
-*
-*   - Each production LHS → RHS₁ RHS₂ … RHSₙ is one variant of F.
-*   - The disjoint union of productions sharing an LHS is F's sum.
-*   - The RHS sequence is F's product.
-*   - Recursive references to nonterminals are F's recursion (the μ).
-*   - The traversal order over F's children is the parser's
-*     left-to-right consumption.
-*
-*   This header carries the four-tuple presentation (production +
-* grammar) — the textual face the parser literature works with — and
-* the type-level polynomial face the formal definition works with.
-* Both are agnostic to the underlying input domain: terminal and
-* nonterminal symbol types are abstract template parameters drawn
-* from any alphabet (text, binary, token streams, user-defined tag
-* symbols).
-*
-*   The grammar imposes no semantic actions, attribute schemes, or
-* parser-construction artefacts; those belong to derivative modules
-* layered on top.  The companion file parser/parser.hpp gives the
-* parser carrier P A; prism.hpp gives compose = cata[φ] : μF → Σ*
-* and the round-trip laws relating compose and parse.
+*   Grammar tuple and polynomial functor are two faces of the same
+* object: a production is one variant of F at its LHS nonterminal,
+* productions sharing an LHS are summed into F's sum there, an RHS
+* string is the product of that variant's children, and a recursive
+* nonterminal is F's μ.  The tuple side is presentation; the functor
+* side (polynomial.hpp) is the algebra the machinery folds.
 *
 * CONTENTS
-*   I.    production<LHS, RHS...>           LHS → RHS₁ RHS₂ … RHSₙ
-*   II.   grammar<N, Σ, P, S>               the four-tuple
-*   III.  polynomial functor shape          constant / sum / product
-*                                           / mu — the type-level F
-*   IV.   has_lhs / has_rhs /               member-typedef detectors
+*   I.    production<LHS, RHS...>           textual rule
+*   II.   grammar<N, Σ, P, S>               textual four-tuple
+*   III.  has_lhs / has_rhs /               member-typedef detectors
 *         has_nonterminals / has_terminals /
 *         has_productions  / has_start_symbol
-*   V.    is_production / is_grammar /      identity traits
+*   IV.   is_production / is_grammar /      identity traits
 *         is_epsilon_production
-*   VI.   production_lhs / production_rhs   SFINAE-safe extractors
-*         grammar_nonterminals / ... etc.
-*   VII.  C++20 concepts mirroring the traits
+*   V.    SFINAE-safe extractors
+*   VI.   C++20 concepts
+*
+*   (The polynomial functor F — poly_* value + type level and their
+*    Functor / Traversable instances — is in grammar/polynomial.hpp.)
+*
 *
 * path:      /inc/djinterp/parse/grammar/grammar.hpp
 * link(s):   ch-parsing.tex
-* author(s): Samuel 'teer' Neal-Blim                          date: 2026.06.29
+* author(s): Samuel 'teer' Neal-Blim                       created: 2026.06.29
 ******************************************************************************/
 
 #ifndef DJINTERP_PARSE_GRAMMAR_
@@ -59,15 +48,16 @@
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 // djinterp
-#include "../../core/djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../../core/meta/member_traits.hpp"
 #include "../parse.hpp"
+#include "../../core/functional/polynomial.hpp"
 
 
 NS_DJINTERP
 NS_PARSE
-
 
 // ================================================================
 //  I.   production
@@ -82,16 +72,10 @@ NS_PARSE
 // (possibly empty) sequence of symbol types drawn from N ∪ Σ.  An
 // empty _RHS pack models an ε-production (LHS → ε).
 //
-//   Symbol types are unconstrained — tag structs, enum-class
-// values lifted via std::integral_constant, or any other
-// distinguishable type the user prefers.  This makes the
-// production agnostic to the input domain its symbols are drawn
-// from.
-//
 //   In the polynomial-functor view a production is one variant of
 // F at the nonterminal _LHS: the RHS string is the product of
-// _RHS… children of that variant.  Multiple productions sharing an
-// LHS are summed into F's sum at that variable.
+// children of that variant.  Multiple productions sharing an LHS
+// are summed into F's sum at that nonterminal.
 template<typename    _LHS,
          typename... _RHS>
 struct production
@@ -140,25 +124,10 @@ NS_END  // internal
 
 
 // grammar
-//   struct: a formal grammar G = (N, Σ, P, S).
-//
-//   _Nonterminals  N — the finite set of nonterminal symbols.
-//   _Terminals     Σ — the finite set of terminal symbols (the
-//                  alphabet over which the language is defined).
-//   _Productions   P — the finite set of production rules,
-//                  typically a typelist of `production`
-//                  instantiations.
-//   _StartSymbol   S ∈ N.  May be omitted (or supplied as void);
-//                  when omitted the start symbol defaults to the
-//                  first nonterminal when _Nonterminals is tuple-
-//                  shaped.  Non-tuple representations must supply
-//                  the start symbol explicitly.
-//
-//   In the polynomial-functor view, the grammar tuple is the
-// presentation of a polynomial endofunctor F on the category whose
-// objects are the nonterminals: the productions describe F's sum-
-// of-products shape, and the parsable carriers D for each
-// nonterminal are F's initial algebras μF.
+//   struct: a formal grammar G = (N, Σ, P, S).  The grammar tuple
+// is the textual presentation; section III below carries the
+// value-level polynomial-functor presentation that participates in
+// the framework's protocols.
 template<typename _Nonterminals,
          typename _Terminals,
          typename _Productions,
@@ -176,79 +145,7 @@ struct grammar
 
 
 // ================================================================
-//  III. polynomial functor shape
-// ================================================================
-//   Type-level building blocks for F directly, parallel to the
-// grammar tuple but more aligned with the formal definition.  These
-// are not used by the parser combinators (which build their carrier
-// from primitives + combinators rather than from F-algebra reified
-// machinery), but they are available for code that wants to talk
-// about F in its own terms — for example a generic compose
-// (catamorphism) over μF — see prism.hpp.
-
-// poly_constant
-//   struct: F<X> = K — the X-variable does not appear; the variant
-// carries a fixed _Constant payload.
-template<typename _Constant>
-struct poly_constant
-{
-    using constant_type = _Constant;
-};
-
-// poly_recursion
-//   struct: F<X> = X — the recursive position, where μF is
-// substituted on closure.
-struct poly_recursion
-{};
-
-// poly_sum
-//   struct: F<X> = _F<X> + _G<X> — disjoint union of two polynomial
-// variants.
-template<typename _F,
-         typename _G>
-struct poly_sum
-{
-    using left  = _F;
-    using right = _G;
-};
-
-// poly_product
-//   struct: F<X> = _Variants₁<X> × _Variants₂<X> × … — n-ary product
-// of polynomial children.
-template<typename... _Variants>
-struct poly_product
-{
-    using children = std::tuple<_Variants...>;
-
-    D_STATIC_CONSTEXPR std::size_t arity = sizeof...(_Variants);
-};
-
-// poly_compose
-//   struct: F<X> = _Outer<_Inner<X>> — composition of two polynomial
-// functors.
-template<typename _Outer,
-         typename _Inner>
-struct poly_compose
-{
-    using outer = _Outer;
-    using inner = _Inner;
-};
-
-// poly_mu
-//   struct: μF — the initial algebra of a polynomial functor.  This
-// is the C++ stand-in for the recursive-fixpoint type D ≅ F<D>; in
-// practice a parsable type carries this shape implicitly via its
-// own constructor declarations, but poly_mu<F> is the formal name
-// when generic algorithms want to talk about it.
-template<typename _F>
-struct poly_mu
-{
-    using functor = _F;
-};
-
-
-// ================================================================
-//  IV.  member-typedef detectors
+//  III. member-typedef detectors
 // ================================================================
 
 // has_lhs
@@ -260,38 +157,34 @@ D_DEFINE_HAS_MEMBER_TYPE(lhs)
 D_DEFINE_HAS_MEMBER_TYPE(rhs)
 
 // has_nonterminals
-//   trait: detects a nested `nonterminals` typedef (the set N).
+//   trait: detects a nested `nonterminals` typedef.
 D_DEFINE_HAS_MEMBER_TYPE(nonterminals)
 
 // has_terminals
-//   trait: detects a nested `terminals` typedef (the alphabet Σ).
+//   trait: detects a nested `terminals` typedef.
 D_DEFINE_HAS_MEMBER_TYPE(terminals)
 
 // has_productions
-//   trait: detects a nested `productions` typedef (the set P).
+//   trait: detects a nested `productions` typedef.
 D_DEFINE_HAS_MEMBER_TYPE(productions)
 
 // has_start_symbol
-//   trait: detects a nested `start_symbol` typedef (S ∈ N).
+//   trait: detects a nested `start_symbol` typedef.
 D_DEFINE_HAS_MEMBER_TYPE(start_symbol)
 
 
 // ================================================================
-//  V.   identity traits
+//  IV.  identity traits
 // ================================================================
 
 NS_INTERNAL
 
     // is_production_helper
-    //   trait: primary template (failure case).
     template<typename _T,
              typename = void>
     struct is_production_helper : std::false_type
     {};
 
-    // is_production_helper (success case)
-    //   trait: succeeds when _T exposes both lhs and rhs nested
-    // typedefs.
     template<typename _T>
     struct is_production_helper<
         _T,
@@ -317,15 +210,11 @@ struct is_production : internal::is_production_helper<_T>
 NS_INTERNAL
 
     // is_grammar_helper
-    //   trait: primary template (failure case).
     template<typename _T,
              typename = void>
     struct is_grammar_helper : std::false_type
     {};
 
-    // is_grammar_helper (success case)
-    //   trait: succeeds when _T exposes the four nested typedefs
-    // of the formal grammar tuple.
     template<typename _T>
     struct is_grammar_helper<
         _T,
@@ -353,7 +242,6 @@ struct is_grammar : internal::is_grammar_helper<_T>
 NS_INTERNAL
 
     // is_empty_tuple_helper
-    //   trait: detects std::tuple<> specifically.
     template<typename _T>
     struct is_empty_tuple_helper : std::false_type
     {};
@@ -363,16 +251,12 @@ NS_INTERNAL
     {};
 
     // is_epsilon_production_helper
-    //   trait: primary template (failure case).
     template<typename _T,
              bool     _IsProduction = is_production<_T>::value,
              typename               = void>
     struct is_epsilon_production_helper : std::false_type
     {};
 
-    // is_epsilon_production_helper (success case)
-    //   trait: succeeds when _T is a production whose RHS is the
-    // empty tuple — i.e. LHS → ε.
     template<typename _T>
     struct is_epsilon_production_helper<
         _T,
@@ -400,7 +284,7 @@ struct is_epsilon_production
 
 
 // ================================================================
-//  VI.  SFINAE-safe extractors
+//  V.   SFINAE-safe extractors
 // ================================================================
 
 // production_lhs / production_lhs_t
@@ -423,19 +307,17 @@ D_DEFINE_MEMBER_TYPE_OR(grammar_start_symbol, start_symbol, void)
 
 
 // ================================================================
-//  VII. C++20 concepts
+//  VI.  C++20 concepts
 // ================================================================
 
 #if D_ENV_CPP_FEATURE_LANG_CONCEPTS
 
     // production_surface
-    //   concept: a type exposing both lhs and rhs.
     template<typename _T>
     concept production_surface =
         ( has_lhs<_T>::value && has_rhs<_T>::value );
 
     // grammar_surface
-    //   concept: a type exposing the full four-part grammar tuple.
     template<typename _T>
     concept grammar_surface =
         ( has_nonterminals<_T>::value &&
@@ -444,30 +326,25 @@ D_DEFINE_MEMBER_TYPE_OR(grammar_start_symbol, start_symbol, void)
           has_start_symbol<_T>::value );
 
     // production_concept
-    //   concept: structurally conforming production.
     template<typename _T>
     concept production_concept = is_production<_T>::value;
 
     // grammar_concept
-    //   concept: structurally conforming grammar.
     template<typename _T>
     concept grammar_concept = is_grammar<_T>::value;
 
     // epsilon_production_concept
-    //   concept: a production whose RHS is empty.
     template<typename _T>
     concept epsilon_production_concept =
         is_epsilon_production<_T>::value;
 
     // nonempty_production_concept
-    //   concept: a production whose RHS is non-empty.
     template<typename _T>
     concept nonempty_production_concept =
         ( is_production<_T>::value &&
           !is_epsilon_production<_T>::value );
 
 #endif  // D_ENV_CPP_FEATURE_LANG_CONCEPTS
-
 
 NS_END  // parse
 NS_END  // djinterp
