@@ -1,0 +1,116 @@
+; ============================================================================
+; djinterp - CLI / functional DSL surface grammar
+; ABNF (RFC 5234; case-sensitive strings per RFC 7405) - companion to
+; djinterp.peg, which is NORMATIVE.
+;
+; WHAT THIS RENDERING CAN AND CANNOT SAY.  The language is committed ordered
+; choice with longest match; ABNF alternation (/) is UNORDERED and ABNF has
+; neither a lookahead nor an exception operator.  As with the EBNF companion,
+; the syntactic grammar is exact (its alternatives begin with disjoint token
+; kinds); three lexical decisions are conventions stated in the notes:
+;   (a) tokens are lexed by MAXIMAL MUNCH;
+;   (b) lexical priority follows djinterp.peg (long-option / terminator before
+;       short-option; comparison operators longest-first);
+;   (c) 'and' / 'or' / 'not' are reserved only as whole words.
+; Character-set exclusions, which ABNF cannot write as a subtraction, are given
+; as explicit code-point ranges (the visible ASCII range minus the seven
+; metacharacters, plus the non-ASCII range).  All string terminals are
+; case-sensitive (%s..., RFC 7405).  Precedence is the cascade below, tabulated
+; as the operator_signature in djinterp.peg.
+;
+; ALPHABET.  Terminals range over the input's characters (Unicode scalar
+; values, in practice UTF-8).  Core rules ALPHA, DIGIT, DQUOTE, WSP, CRLF are
+; from RFC 5234 Appendix B.
+; ============================================================================
+
+
+; --- Syntactic grammar (over tokens) ----------------------------------------
+;     Selected by leading token kind, so the unordered / is exact here.
+
+program      = sequence
+
+sequence     = pipeline *( ";" pipeline )                 ; ; weakest
+
+pipeline     = or-expr *( "|" or-expr )                   ; | threads a value
+
+or-expr      = and-expr *( %s"or" and-expr )
+and-expr     = not-expr *( %s"and" not-expr )
+
+not-expr     = %s"not" not-expr
+             / compare
+
+compare      = primary [ compare-op primary ]             ; non-associative
+
+primary      = "(" sequence ")"
+             / command
+             / literal
+
+command      = verb *argument
+
+argument     = long-option
+             / terminator
+             / short-option
+             / operand
+
+long-option  = "--" option-name [ "=" option-value ]
+terminator   = "--"                    ; only when not followed by a name char - note (b)
+short-option = "-" 1*short-char
+
+verb         = word
+operand      = word / number / string
+literal      = number / string
+
+compare-op   = "==" / "!=" / "=~" / "<=" / ">=" / "<" / ">"
+
+
+; --- Lexical grammar (over characters) --------------------------------------
+
+option-name   = 1*name-char
+option-value  = string / 1*value-char
+word          = 1*word-char
+
+number        = [ "-" ] 1*DIGIT [ "." 1*DIGIT ]
+
+string        = DQUOTE *dquote-char DQUOTE
+              / "'"    *squote-char "'"
+
+short-char    = ALPHA / DIGIT
+
+; word-char / name-char: any character except space, controls, and the seven
+; metacharacters  " ' ( ) ; = |  (excluded code points 22 27 28 29 3B 3D 7C),
+; plus any non-ASCII character.
+word-char     = %x21 / %x23-26 / %x2A-3A / %x3C / %x3E-7B / %x7D-7E / non-ascii
+name-char     = word-char
+
+; value-char: an unquoted option value, running up to whitespace, a pipe, a
+; ';', or a bracket (excluded code points 28 29 3B 7C), plus non-ASCII.  Quotes
+; and '=' are permitted inside an unquoted value.
+value-char    = %x21-27 / %x2A-3A / %x3C-7B / %x7D-7E / non-ascii
+
+; a quoted value holds any character but its own delimiter (tab permitted)
+dquote-char   = %x09 / %x20-21 / %x23-7E / non-ascii       ; not %x22 (")
+squote-char   = %x09 / %x20-26 / %x28-7E / non-ascii       ; not %x27 (')
+
+non-ascii     = %x80-10FFFF                                ; UTF-8 code points
+
+; trivia: whitespace and comments are skipped between tokens
+skip          = 1*( WSP / CRLF / comment )
+comment       = "#" *( %x09 / %x20-7E / non-ascii )        ; '#' to end of line
+
+
+; --- Notes ------------------------------------------------------------------
+; (a) Maximal munch: each token consumes as many characters as possible.
+; (b) Lexical priority where a prefix is shared: "--" followed by a name char
+;     is a long-option; a bare "--" (no following name char) is the terminator;
+;     "-" followed by letters/digits is a short-option. Comparison operators are
+;     matched longest-first, so "<=" is one token, never "<" then "=".
+; (c) Reserved words: 'and', 'or', 'not' are operators only as whole words; by
+;     (a), 'android' is a single word.
+; (d) Comparisons are non-associative -- 'compare' admits at most one operator
+;     -- so 'a == b == c' is a syntax error; parenthesize to nest.
+; (e) '|' (pipeline) binds looser than 'or'/'and', so 'a and b | c' groups as
+;     '(a and b) | c'. The full precedence order (with associativity and fixity)
+;     is the operator_signature table in djinterp.peg.
+; (f) String terminals are case-sensitive; the %s prefix (RFC 7405) is shown on
+;     the keywords and would apply equally to every literal here.
+; ============================================================================

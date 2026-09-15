@@ -28,25 +28,31 @@
 * (the dynamic term is heap-backed, so this allocates per node).
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    FOLD                                  (evaluate)
-* II.   STRUCTURAL QUERIES
-*       1.  size / depth
-*       2.  atoms / operators                 (free-variable / operator collect)
-*       3.  structural_equal
-*       4.  contains_operator / contains_atom
-* III.  TRANSFORMS
-*       1.  map_atoms / map_operators
-*       2.  transform_bottom_up
-*       3.  rewrite_to_fixpoint
-*       4.  substitute
-*
-*
-* path:      /inc/djinterp/parse/expression_ops.hpp
+* path:      /inc/djinterp/parse/expression/expression_ops.hpp
 * link(s):   ch-recursion.tex
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    FOLD                                  (evaluate)
+      ------------------------------------------------
+
+II.   STRUCTURAL QUERIES
+      ------------------
+      1.    size / depth
+      2.    atoms / operators                 (free-variable / operator collect)
+      3.    structural_equal
+      4.    contains_operator / contains_atom
+
+III.  TRANSFORMS
+      ----------
+      1.    map_atoms / map_operators
+      2.    transform_bottom_up
+      3.    rewrite_to_fixpoint
+      4.    substitute
+*/
 
 #ifndef DJINTERP_EXPRESSION_EXPRESSION_OPS_
 #define DJINTERP_EXPRESSION_EXPRESSION_OPS_ 1
@@ -58,10 +64,10 @@
 #include <vector>
 // djinterp
 #include "./expression.hpp"
-#include "../functional/recursion.hpp"
-#include "../functional/foldable.hpp"
-#include "../functional/semigroup.hpp"
-#include "../functional/monoid.hpp"
+#include "../../core/functional/recursion.hpp"
+#include "../../core/functional/foldable.hpp"
+#include "../../core/functional/semigroup.hpp"
+#include "../../core/functional/monoid.hpp"
 
 
 NS_DJINTERP

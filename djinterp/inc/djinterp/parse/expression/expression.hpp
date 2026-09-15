@@ -46,26 +46,36 @@
 * expression_static.hpp.
 *
 *
-* TABLE OF CONTENTS
-* =================
-* I.    OPERATOR MODEL
-*       1.  associativity / fixity
-*       2.  operator_descriptor
-*       3.  operator_signature<OpId, Value, Container>
-* II.   SIGNATURE FUNCTOR                    (expr_layer<OpId, Atom, Child>)
-* III.  FUNCTOR REGISTRATION                 (functor_traits<expr_layer>)
-* IV.   THE EXPRESSION TERM
-*       1.  expression<OpId, Atom>           (= mu<expr_layer>)
-*       2.  constructors                      (expr_leaf / expr_apply)
-*       3.  observers                         (is_leaf / atom_of / ...)
-*       4.  annotated_expression<OpId, Atom, Ann>   (= cofree<expr_layer, Ann>)
-* V.    STRUCTURAL DETECTION                  (is_expr_layer / is_expression)
-*
-*
-* path:      /inc/djinterp/parse/expression.hpp
+* path:      /inc/djinterp/parse/expression/expression.hpp
 * link(s):   ch-recursion.tex, ch-synthesis.tex
 * author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.06
 ******************************************************************************/
+
+/*
+TABLE OF CONTENTS
+=================
+I.    OPERATOR MODEL
+      --------------
+      1.    associativity / fixity
+      2.    operator_descriptor
+      3.    operator_signature<OpId, Value, Container>
+
+II.   SIGNATURE FUNCTOR                    (expr_layer<OpId, Atom, Child>)
+      --------------------------------------------------------------------
+
+III.  FUNCTOR REGISTRATION                 (functor_traits<expr_layer>)
+      -----------------------------------------------------------------
+
+IV.   THE EXPRESSION TERM
+      -------------------
+      1.    expression<OpId, Atom>           (= mu<expr_layer>)
+      2.    constructors                      (expr_leaf / expr_apply)
+      3.    observers                         (is_leaf / atom_of / ...)
+      4.    annotated_expression<OpId, Atom, Ann>   (= cofree<expr_layer, Ann>)
+
+V.    STRUCTURAL DETECTION                  (is_expr_layer / is_expression)
+      ---------------------------------------------------------------------
+*/
 
 #ifndef DJINTERP_EXPRESSION_EXPRESSION_
 #define DJINTERP_EXPRESSION_EXPRESSION_ 1
@@ -77,12 +87,12 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../djinterp.hpp"
-#include "../meta/kv_pair.hpp"
-#include "../util/lookup/lookup_sentinels.hpp"
-#include "../functional/functor.hpp"
-#include "../functional/recursion.hpp"
-#include "../functional/cofree.hpp"
+#include "../../djinterp.hpp"
+#include "../../core/meta/kv_pair.hpp"
+#include "../../core/util/lookup/lookup_sentinels.hpp"
+#include "../../core/functional/functor.hpp"
+#include "../../core/functional/recursion.hpp"
+#include "../../core/functional/cofree.hpp"
 
 
 NS_DJINTERP

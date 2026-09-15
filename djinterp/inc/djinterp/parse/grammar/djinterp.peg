@@ -1,0 +1,222 @@
+################################################################################
+#  djinterp — CLI / functional DSL surface grammar                             #
+#  Parsing Expression Grammar (normative)                                      #
+#                                                                              #
+#  This is the surface syntax of the djinterp command language: a POSIX + GNU  #
+#  command grammar, a find-style predicate algebra over those commands, a      #
+#  value-threading pipeline, and a sequence separator -- one stratified        #
+#  expression grammar whose weakest binder is the sequence and whose strongest #
+#  is a primary (a parenthesized group, a command, or a literal).              #
+#                                                                              #
+#  WHY PEG.  The language is defined by committed ordered choice: where two    #
+#  alternatives overlap, the first that matches wins and there is no backtrack #
+#  past it, and repetition is greedy.  That is exactly the semantics of the    #
+#  parser that implements it (the `or_` combinator and precedence climbing),   #
+#  and it makes every longest-match decision -- `--` before `-`, `<=` before   #
+#  `<`, the bare `--` option terminator -- a property of rule order rather     #
+#  than an external side condition.  An ABNF (RFC 5234) or EBNF rendering is    #
+#  available as a companion; there, alternation is unordered, so these orders  #
+#  become normative notes attached to the grammar.                             #
+#                                                                              #
+#  TWO PHASES.  A lexical grammar turns characters into tokens (resolving the  #
+#  option shapes, the keyword/word distinction, and whitespace); a syntactic   #
+#  grammar turns the token sequence into a term.  This mirrors the             #
+#  implementation: the reader/lexer of functional_cli.hpp produces the tokens, #
+#  and the precedence-climbing parser of expression_parse.hpp -- driven by the #
+#  precedence table below, which is precisely the operator_signature           #
+#  (expression.hpp) -- produces the term.                                      #
+#                                                                              #
+#  NOTATION.                                                                   #
+#    A <- e   rule            e1 e2   sequence          e1 / e2  ordered choice #
+#    e*       zero or more    e+      one or more       e?       optional       #
+#    &e       and-predicate (lookahead, consumes nothing)                       #
+#    !e       not-predicate   [...]   char class   'x' "xy" literal   .  any    #
+#                                                                              #
+#  author(s): Samuel 'teer' Neal-Blim                        created: 2026.07.06 #
+################################################################################
+
+
+################################################################################
+#  I.  LEXICAL GRAMMAR   (characters -> tokens)                                 #
+#                                                                              #
+#  A token stream is produced by alternately discarding Skip and matching one  #
+#  Token.  Order in Token is significant: the option shapes and the operator   #
+#  keywords are tried before Word, so `--name`, `-xvf`, `and`, and `123` never #
+#  lex as bare words.  Word therefore captures exactly the identifiers, paths, #
+#  and operands that are neither an option, a keyword, nor a number.           #
+################################################################################
+
+Skip          <- (Blank / Newline / Comment)+
+
+Token         <- LONG_OPTION
+               / TERMINATOR
+               / SHORT_OPTION
+               / PIPE
+               / SEMICOLON
+               / LPAREN
+               / RPAREN
+               / COMPARE
+               / AND / OR / NOT
+               / NUMBER
+               / STRING
+               / WORD
+
+#  ── option shapes (GNU) ──────────────────────────────────────────────────
+#  Longest match first: LONG_OPTION and TERMINATOR (both `--`) precede
+#  SHORT_OPTION (`-`), and a bare `--` (option terminator) is distinguished
+#  from `--name` by a following non-name character.
+
+LONG_OPTION   <- "--" OptionName ("=" OptionValue)?      # --name , --name=value
+TERMINATOR    <- "--" &(Blank / Newline / EndOfInput)    # bare `--` ends options
+SHORT_OPTION  <- "-" [A-Za-z0-9]+                        # -x , bundled -xvf
+
+OptionName    <- NameChar+
+OptionValue   <- STRING / UnquotedValue
+UnquotedValue <- (!Blank !Newline ![|;()] .)+            # to whitespace / bracket / pipe / ';'
+
+#  ── operators & keywords ─────────────────────────────────────────────────
+#  A comparison operator is matched longest-first.  A keyword is a reserved
+#  word only when not immediately continued by a word character (so `andes`
+#  is a WORD, not `and` followed by `es`).
+
+PIPE          <- "|"
+SEMICOLON     <- ";"
+LPAREN        <- "("
+RPAREN        <- ")"
+
+COMPARE       <- "==" / "!=" / "=~" / "<=" / ">=" / "<" / ">"
+
+AND           <- "and" !WordChar
+OR            <- "or"  !WordChar
+NOT           <- "not" !WordChar
+
+#  ── literals & words ─────────────────────────────────────────────────────
+
+NUMBER        <- "-"? Digit+ ("." Digit+)?
+STRING        <- '"' (!'"' .)* '"'                       # double-quoted
+               / "'" (!"'" .)* "'"                       # single-quoted
+WORD          <- WordChar+                               # identifier / path / operand
+
+WordChar      <- !Blank !Newline ![|;()"'=] .            # any char but whitespace/meta
+NameChar      <- ![ \t\r\n|;()"'=] .
+Digit         <- [0-9]
+
+#  ── trivia ───────────────────────────────────────────────────────────────
+
+Blank         <- [ \t]
+Newline       <- "\r\n" / "\n" / "\r"
+Comment       <- "#" (!Newline .)*
+EndOfInput    <- !.
+
+
+################################################################################
+#  II.  SYNTACTIC GRAMMAR   (tokens -> term)                                    #
+#                                                                              #
+#  Runs over the token sequence (whitespace already removed).  Precedence is   #
+#  the rule cascade, weakest binder first: a Sequence is Pipelines joined by   #
+#  `;`, a Pipeline is OrExprs joined by `|`, and so on down to a Primary.      #
+#  The token names (LONG_OPTION, PIPE, AND, ...) are the terminals produced by #
+#  the lexical grammar above.                                                  #
+################################################################################
+
+Program       <- Sequence EndOfTokens
+
+#  sequence  (weakest)  --  `;` or a newline separates independent pipelines
+Sequence      <- Pipeline (SEMICOLON Pipeline)*
+
+#  pipeline  --  `|` threads the value produced by the left into the right
+Pipeline      <- OrExpr (PIPE OrExpr)*
+
+#  logical or / and  (left-associative)
+OrExpr        <- AndExpr (OR AndExpr)*
+AndExpr       <- NotExpr (AND NotExpr)*
+
+#  logical not  (prefix)
+NotExpr       <- NOT NotExpr
+               / Compare
+
+#  comparison / match  (non-associative: at most one per level -- `a == b == c`
+#  is rejected, parenthesize to nest)
+Compare       <- Primary (COMPARE Primary)?
+
+#  primary  (strongest)
+Primary       <- LPAREN Sequence RPAREN                  # grouping
+               / Command                                 # a POSIX+GNU invocation
+               / Literal                                 # a bare value
+
+#  ── command surface (POSIX + GNU) ─────────────────────────────────────────
+#  A command is a verb followed by options and operands.  Argument scanning is
+#  greedy; it stops at the first token that is not an option or operand -- an
+#  operator, a keyword, a bracket, or end of input -- because those are
+#  distinct token kinds, not words.
+
+Command       <- Verb Argument*
+
+Argument      <- LONG_OPTION
+               / TERMINATOR
+               / SHORT_OPTION
+               / Operand
+
+Verb          <- WORD
+Operand       <- WORD / NUMBER / STRING
+
+Literal       <- NUMBER / STRING
+
+EndOfTokens   <- !.
+
+
+################################################################################
+#  III.  PRECEDENCE & ASSOCIATIVITY                                             #
+#                                                                              #
+#  The cascade above encodes precedence structurally; this table states it     #
+#  directly.  It is exactly the operator_signature the precedence-climbing      #
+#  parser and the renderer consume (expression.hpp): each row is one           #
+#  operator_descriptor keyed by its operator id.  Precedence increases with    #
+#  binding tightness (a larger number binds tighter).                          #
+#                                                                              #
+#    operator        precedence   associativity   fixity     role              #
+#    ───────────────────────────────────────────────────────────────────────  #
+#    ;   (newline)       10          left           infix     sequence          #
+#    |                   20          left           infix     value pipeline     #
+#    or                  30          left           infix     logical or         #
+#    and                 40          left           infix     logical and        #
+#    not                 50          --             prefix    logical not        #
+#    == != =~            60          none           infix     equality / match   #
+#    <  <=  >  >=         60          none           infix     ordering           #
+#    ( ) command lit     --          --             --        primary            #
+#                                                                              #
+#  Comparisons share precedence 60 and are non-associative: mixing them        #
+#  without parentheses (e.g. `a < b == c`) is a syntax error.                   #
+################################################################################
+
+
+################################################################################
+#  IV.  NOTES                                                                   #
+#                                                                              #
+#  1.  Ordered choice / longest match.  Every `/` is committed: the first      #
+#      matching alternative wins with no backtracking past it.  The orderings  #
+#      that matter are called out where they occur -- LONG_OPTION / TERMINATOR #
+#      before SHORT_OPTION, and the COMPARE operators longest-first.           #
+#                                                                              #
+#  2.  Value pipeline.  `|` is not textual: each stage receives the value the  #
+#      previous stage produced (PowerShell-flavored), and the pipeline         #
+#      short-circuits on the first failing stage.  It binds looser than the    #
+#      boolean operators, so `a and b | c` groups as `(a and b) | c`.          #
+#                                                                              #
+#  3.  Commands as primaries.  The find-style predicate algebra is the boolean #
+#      and comparison operators applied to command primaries: `test -f x and   #
+#      test -x x`, `size > 100`.  A command's own options and operands are     #
+#      GNU-shaped (`--name`, `--name=value`, `-x`, bundled `-xvf`, the `--`    #
+#      terminator, positional operands).                                       #
+#                                                                              #
+#  4.  Words vs literals.  A bare word in primary position is a command (a     #
+#      verb, possibly nullary); numbers and quoted strings are literals.  To   #
+#      pass a word as a literal value, quote it.                               #
+#                                                                              #
+#  5.  Keywords.  `and`, `or`, `not` are reserved only at a word boundary;     #
+#      `android` is a WORD.  They are distinct token kinds, so command         #
+#      argument scanning stops at them naturally.                              #
+#                                                                              #
+#  6.  Grouping.  `( ... )` contains a full Sequence, so any construct may be  #
+#      parenthesized to override the precedence cascade.                       #
+################################################################################
