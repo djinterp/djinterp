@@ -212,3 +212,70 @@ void d_jit_print_info(void)
     printf("  needs icache flush : %d\n", (int)D_ENV_JIT_NEEDS_ICACHE_FLUSH);
     printf("  has encoder        : %d\n", (int)D_ENV_JIT_HAS_ENCODER);
 }
+
+
+// ===========================================================================
+// IV.  LABELS + BACK-PATCHING
+// ===========================================================================
+
+void d_jit_label_init(d_jit_label* _label)
+{
+    if (_label == NULL) { return; }
+    _label->bound  = 0;
+    _label->offset = 0;
+    _label->n_refs = 0;
+}
+
+int d_jit_buffer_patch(d_jit_buffer* _buf, size_t _at, uint32_t _value,
+                       unsigned _size)
+{
+    unsigned i;
+    if (_buf == NULL || _buf->code == NULL || _buf->finalized) { return -1; }
+    if (_size != 1 && _size != 2 && _size != 4)                { return -1; }
+    if (_at > _buf->size || _size > _buf->size - _at)          { return -1; }
+    for (i = 0; i < _size; ++i) {
+        _buf->code[_at + i] = (unsigned char)((_value >> (8 * i)) & 0xFF);
+    }
+    return 0;
+}
+
+int d_jit_buffer_read_u32(d_jit_buffer* _buf, size_t _at, uint32_t* _out)
+{
+    if (_buf == NULL || _buf->code == NULL || _out == NULL) { return -1; }
+    if (_at > _buf->size || 4 > _buf->size - _at)           { return -1; }
+    *_out =  (uint32_t)_buf->code[_at]
+          | ((uint32_t)_buf->code[_at + 1] << 8)
+          | ((uint32_t)_buf->code[_at + 2] << 16)
+          | ((uint32_t)_buf->code[_at + 3] << 24);
+    return 0;
+}
+
+int d_jit_label_bind(d_jit_buffer* _buf, d_jit_label* _label)
+{
+    unsigned i;
+    if (_buf == NULL || _label == NULL) { return -1; }
+    _label->offset = _buf->size;
+    _label->bound  = 1;
+    for (i = 0; i < _label->n_refs; ++i) {
+        if (_label->ref_fn[i](_buf, _label->ref_at[i],
+                              _label->offset) != 0) {
+            return -1;
+        }
+    }
+    _label->n_refs = 0;
+    return 0;
+}
+
+int d_jit_label_reference(d_jit_buffer* _buf, d_jit_label* _label,
+                          size_t _at, d_jit_reloc_fn _reloc)
+{
+    if (_buf == NULL || _label == NULL || _reloc == NULL) { return -1; }
+    if (_label->bound) {
+        return _reloc(_buf, _at, _label->offset);
+    }
+    if (_label->n_refs >= D_JIT_LABEL_MAX_REFS)           { return -1; }
+    _label->ref_at[_label->n_refs] = _at;
+    _label->ref_fn[_label->n_refs] = _reloc;
+    _label->n_refs++;
+    return 0;
+}
