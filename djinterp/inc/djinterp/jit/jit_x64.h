@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                     jit_x64.h
+/*******************************************************************************
+* djinterp [jit]                                                       jit_x64.h
 *
 * djinterp x86-64 JIT encoder (byte constants + instruction emitters):
 *   The x86-64 (AMD64 / Intel 64) half of the djinterp JIT. It owns the raw

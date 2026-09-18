@@ -154,4 +154,97 @@ void              d_jit_print_info(void);
 D_EXTERN_C_END
 
 
+// ===========================================================================
+// IV.  LABELS + BACK-PATCHING
+// ===========================================================================
+//   Relative branches need a displacement that often is not known when the
+// branch is emitted (a forward jump targets code that comes later). A label is
+// a branch target: emit jumps to it at any time, bind it once its position is
+// reached, and the forward references are patched automatically. Backward
+// references (label already bound) are patched immediately. This machinery is
+// architecture-neutral -- each encoder emits its own opcode plus a zero
+// displacement placeholder, then records the placeholder with
+// d_jit_label_reference.
+
+// D_JIT_LABEL_MAX_REFS
+//   constant: the most forward (not-yet-bound) references one label may hold
+// before it is bound. Backward references resolve immediately and never count
+// against this. Pre-definable.
+#ifndef D_JIT_LABEL_MAX_REFS
+    #define D_JIT_LABEL_MAX_REFS 16
+#endif
+
+
+//   C linkage for everything below, so a C++ translation unit can consume this
+// header and link against the C archive. Both spellings expand to nothing
+// under a C compiler, so a C-only build sees no trace of them.
+D_EXTERN_C_BEGIN
+
+// d_jit_reloc_fn
+//   type: patches one branch reference. Given the buffer, the byte offset _at
+// recorded for the reference, and the resolved _target offset, it writes the
+// correct displacement into the already-emitted code. Each architecture
+// supplies its own (rel8 / rel32 byte fields for x86, the scaled branch
+// immediates packed into the instruction word for ARM), which is what keeps
+// this label facility architecture-neutral.
+//   returns: 0 on success; -1 if the displacement is out of range/misaligned.
+typedef int (*d_jit_reloc_fn)(d_jit_buffer* _buf, size_t _at, size_t _target);
+
+// d_jit_label
+//   type: a branch target and its pending forward references.
+//   fields:
+//     bound   - 1 once the target offset is fixed by d_jit_label_bind.
+//     offset  - the target byte offset in the buffer (valid once bound).
+//     ref_at  - byte offset recorded for each pending reference.
+//     ref_fn  - the relocation that patches each pending reference.
+//     n_refs  - number of pending forward references.
+typedef struct d_jit_label
+{
+    int            bound;
+    size_t         offset;
+    size_t         ref_at[D_JIT_LABEL_MAX_REFS];
+    d_jit_reloc_fn ref_fn[D_JIT_LABEL_MAX_REFS];
+    unsigned       n_refs;
+} d_jit_label;
+
+// d_jit_label_init
+//   function: initialise _label to unbound with no references.
+void d_jit_label_init(d_jit_label* _label);
+
+// d_jit_buffer_patch
+//   function: overwrite _size bytes (1, 2, or 4) already emitted at offset _at
+// with _value, little-endian. Used to back-patch displacements and immediates
+// before finalize.
+//   returns: 0 on success; -1 if the range is out of bounds, _size is invalid,
+// or the buffer is finalized.
+D_NODISCARD int d_jit_buffer_patch(d_jit_buffer* _buf, size_t _at,
+                                   uint32_t _value, unsigned _size);
+
+// d_jit_buffer_read_u32
+//   function: read the 4 little-endian bytes already emitted at _at into *_out
+// -- for read-modify-write patching of a fixed-width instruction word.
+//   returns: 0 on success; -1 if the range is out of bounds.
+D_NODISCARD int d_jit_buffer_read_u32(d_jit_buffer* _buf, size_t _at,
+                                      uint32_t* _out);
+
+// d_jit_label_bind
+//   function: fix _label's target to the current cursor and apply each pending
+// forward reference through its recorded relocation. Call once per label.
+//   returns: 0 on success; -1 if a relocation reports an out-of-range or
+// misaligned displacement.
+D_NODISCARD int d_jit_label_bind(d_jit_buffer* _buf, d_jit_label* _label);
+
+// d_jit_label_reference
+//   function: register a reference to _label at byte offset _at, patched by
+// the relocation _reloc. Emit the branch (opcode plus a zero displacement
+// placeholder) first, then call this with the recorded offset. If the label is
+// already bound _reloc is applied now; otherwise it is recorded and applied by
+// d_jit_label_bind.
+//   returns: 0 on success; -1 on a relocation error or if the table is full.
+D_NODISCARD int d_jit_label_reference(d_jit_buffer* _buf, d_jit_label* _label,
+                                      size_t _at, d_jit_reloc_fn _reloc);
+
+D_EXTERN_C_END
+
+
 #endif  // DJINTERP_JIT_

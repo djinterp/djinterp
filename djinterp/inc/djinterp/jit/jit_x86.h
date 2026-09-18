@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [jit]                                                     jit_x86.h
+/*******************************************************************************
+* djinterp [jit]                                                       jit_x86.h
 *
 * djinterp x86 (32-bit) JIT encoder (byte constants + instruction emitters):
 *   The IA-32 half of the djinterp JIT, parallel to jit_x64.h but for 32-bit
@@ -270,6 +270,39 @@
 //   constant: xchg r/m, r  (/r).
 #define D_JIT_X86_OP_XCHG_RM_R      0x87
 
+// ---------------------------------------------------------------------------
+// group / immediate opcodes (operation set by the /digit)
+// ---------------------------------------------------------------------------
+
+// D_JIT_X86_OP_GRP3
+//   constant: group 3: test/not/neg/mul/imul/div/idiv r/m, by /digit.
+#define D_JIT_X86_OP_GRP3           0xF7
+
+// D_JIT_X86_OP_GRP2_IMM8
+//   constant: group 2: rotate/shift r/m by imm8 (/digit); count byte follows.
+#define D_JIT_X86_OP_GRP2_IMM8      0xC1
+
+// D_JIT_X86_OP_GRP2_1
+//   constant: group 2: rotate/shift r/m by 1 (/digit).
+#define D_JIT_X86_OP_GRP2_1         0xD1
+
+// D_JIT_X86_OP_GRP2_CL
+//   constant: group 2: rotate/shift r/m by CL (/digit).
+#define D_JIT_X86_OP_GRP2_CL        0xD3
+
+// D_JIT_X86_OP_POP_RM
+//   constant: pop r/m32, group /0.
+#define D_JIT_X86_OP_POP_RM         0x8F
+
+// D_JIT_X86_OP_PUSH_IMM32
+//   constant: push imm32.
+#define D_JIT_X86_OP_PUSH_IMM32     0x68
+
+// D_JIT_X86_OP_PUSH_IMM8
+//   constant: push imm8 (sign-extended).
+#define D_JIT_X86_OP_PUSH_IMM8      0x6A
+
+
 
 // ===========================================================================
 // F.   TWO-BYTE (0F-MAP) OPCODES
@@ -306,6 +339,14 @@
 // D_JIT_X86_OP2_MOVSX_B
 //   constant: 0F BE /r: movsx r, r/m8.
 #define D_JIT_X86_OP2_MOVSX_B         0xBE
+
+// D_JIT_X86_OP2_MOVZX_W
+//   constant: 0F B7 /r: movzx r, r/m16 (zero-extend word).
+#define D_JIT_X86_OP2_MOVZX_W         0xB7
+
+// D_JIT_X86_OP2_MOVSX_W
+//   constant: 0F BF /r: movsx r, r/m16 (sign-extend word).
+#define D_JIT_X86_OP2_MOVSX_W         0xBF
 
 
 // ===========================================================================
@@ -491,16 +532,313 @@
 
 
 // ===========================================================================
-// J.   INSTRUCTION EMITTERS
+// J.   OPERAND MODEL
 // ===========================================================================
-//   A minimal cdecl-oriented encoder set: write one 32-bit instruction into a
-// d_jit_buffer. Arguments are D_JIT_X86_REG_* numbers. Each returns 0 on
-// success or -1 if the underlying buffer emit fails.
+//   A register-or-memory operand, so one emitter can serve every addressing
+// form. A memory operand encodes [base + index*scale + disp]; any part may be
+// absent (base or index = -1, disp = 0). The general ModR/M+SIB+displacement
+// encoding is handled internally by the emitters below. Immediates are passed
+// as separate function arguments, not operands.
+
+// d_jit_x86_operand_kind
+//   type: whether an operand names a register or a memory location.
+typedef enum d_jit_x86_operand_kind
+{
+    D_JIT_X86_KIND_REG = 0,
+    D_JIT_X86_KIND_MEM = 1
+} d_jit_x86_operand_kind;
+
+// d_jit_x86_operand
+//   type: a register or a memory reference.
+//   fields:
+//     kind  - REG or MEM.
+//     base  - REG: the register; MEM: base register, or -1 for none.
+//     index - MEM: index register, or -1 for none (unused for REG).
+//     scale - MEM: index scale 1, 2, 4, or 8 (unused for REG).
+//     disp  - MEM: signed displacement (unused for REG).
+typedef struct d_jit_x86_operand
+{
+    d_jit_x86_operand_kind kind;
+    int                    base;
+    int                    index;
+    int                    scale;
+    int32_t                disp;
+} d_jit_x86_operand;
+
+// ---------------------------------------------------------------------------
+// operand constructors
+// ---------------------------------------------------------------------------
+
+// d_jit_x86_reg
+//   function: a register operand (D_JIT_X86_REG_* value).
+D_INLINE d_jit_x86_operand d_jit_x86_reg(int _reg)
+{
+    d_jit_x86_operand o;
+    o.kind = D_JIT_X86_KIND_REG;
+    o.base = _reg; o.index = -1; o.scale = 1; o.disp = 0;
+    return o;
+}
+
+// d_jit_x86_mem
+//   function: a memory operand [_base + _disp].
+D_INLINE d_jit_x86_operand d_jit_x86_mem(int _base, int32_t _disp)
+{
+    d_jit_x86_operand o;
+    o.kind = D_JIT_X86_KIND_MEM;
+    o.base = _base; o.index = -1; o.scale = 1; o.disp = _disp;
+    return o;
+}
+
+// d_jit_x86_mem_index
+//   function: a memory operand [_base + _index*_scale + _disp]. _base = -1 for
+// for no base register; _scale must be 1, 2, 4, or 8. ESP cannot be an index.
+D_INLINE d_jit_x86_operand d_jit_x86_mem_index(int _base, int _index,
+                                               int _scale, int32_t _disp)
+{
+    d_jit_x86_operand o;
+    o.kind = D_JIT_X86_KIND_MEM;
+    o.base = _base; o.index = _index; o.scale = _scale; o.disp = _disp;
+    return o;
+}
+
+// d_jit_x86_mem_abs
+//   function: an absolute memory operand [_disp].
+D_INLINE d_jit_x86_operand d_jit_x86_mem_abs(int32_t _disp)
+{
+    d_jit_x86_operand o;
+    o.kind = D_JIT_X86_KIND_MEM;
+    o.base = -1; o.index = -1; o.scale = 1; o.disp = _disp;
+    return o;
+}
+
+// ---------------------------------------------------------------------------
+// operation selectors
+// ---------------------------------------------------------------------------
+
+// d_jit_x86_alu
+//   type: the eight group-1 ALU operations; the value is both the /digit for
+// the immediate forms and the index of the register-form opcode.
+typedef enum d_jit_x86_alu
+{
+    D_JIT_X86_ALU_ADD = 0, D_JIT_X86_ALU_OR  = 1,
+    D_JIT_X86_ALU_ADC = 2, D_JIT_X86_ALU_SBB = 3,
+    D_JIT_X86_ALU_AND = 4, D_JIT_X86_ALU_SUB = 5,
+    D_JIT_X86_ALU_XOR = 6, D_JIT_X86_ALU_CMP = 7
+} d_jit_x86_alu;
+
+// d_jit_x86_shift
+//   type: shift/rotate operations (the /digit for the shift-group opcodes).
+// SAL is an alias of SHL.
+typedef enum d_jit_x86_shift
+{
+    D_JIT_X86_SHIFT_ROL = 0, D_JIT_X86_SHIFT_ROR = 1,
+    D_JIT_X86_SHIFT_RCL = 2, D_JIT_X86_SHIFT_RCR = 3,
+    D_JIT_X86_SHIFT_SHL = 4, D_JIT_X86_SHIFT_SHR = 5,
+    D_JIT_X86_SHIFT_SAR = 7, D_JIT_X86_SHIFT_SAL = 4
+} d_jit_x86_shift;
+
+// d_jit_x86_unary
+//   type: the F7-group unary operations (the /digit for opcode 0xF7).
+typedef enum d_jit_x86_unary
+{
+    D_JIT_X86_UNARY_NOT  = 2, D_JIT_X86_UNARY_NEG  = 3,
+    D_JIT_X86_UNARY_MUL  = 4, D_JIT_X86_UNARY_IMUL = 5,
+    D_JIT_X86_UNARY_DIV  = 6, D_JIT_X86_UNARY_IDIV = 7
+} d_jit_x86_unary;
+
+
+// ===========================================================================
+// K.   INSTRUCTION EMITTERS
+// ===========================================================================
+//   A reasonably complete integer encoder. Every operand-taking emitter routes
+// through the internal ModR/M+SIB+displacement encoder, so registers and all
+// memory addressing forms work uniformly. Branch emitters take a d_jit_label
+// (see jit.h) and patch their displacement on bind. Floating point and SSE are
+// out of scope. Each returns 0 on success, -1 on an emit/encoding error.
+//
+//   cdecl reminder: integer arguments are on the stack (first at [ebp+8] once
+// the frame is set up), the result is returned in EAX, and EAX/ECX/EDX are
+// caller-saved.
 
 //   C linkage for everything below, so a C++ translation unit can consume this
 // header and link against the C archive. Both spellings expand to nothing
 // under a C compiler, so a C-only build sees no trace of them.
 D_EXTERN_C_BEGIN
+
+// ---------------------------------------------------------------------------
+// data movement
+// ---------------------------------------------------------------------------
+
+// d_jit_x86_emit_mov
+//   function: mov _dst, _src for reg<-reg, reg<-mem, or mem<-reg (0x89 / 0x8B
+// /r). A mem<-mem pair is rejected.
+D_NODISCARD int d_jit_x86_emit_mov(d_jit_buffer* _buf, d_jit_x86_operand _dst,
+                                   d_jit_x86_operand _src);
+
+// d_jit_x86_emit_mov_imm32
+//   function: mov _dst, imm32 into a register or memory (0xC7 /0 id).
+D_NODISCARD int d_jit_x86_emit_mov_imm32(d_jit_buffer* _buf,
+                                         d_jit_x86_operand _dst,
+                                         uint32_t _imm);
+
+// d_jit_x86_emit_lea
+//   function: lea _reg, _mem (0x8D /r). _mem must be a memory operand.
+D_NODISCARD int d_jit_x86_emit_lea(d_jit_buffer* _buf, int _reg,
+                                   d_jit_x86_operand _mem);
+
+// d_jit_x86_emit_movzx8
+//   function: movzx _reg, r/m8 (0F B6 /r) -- zero-extend a byte.
+D_NODISCARD int d_jit_x86_emit_movzx8(d_jit_buffer* _buf, int _reg,
+                                      d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_movzx16
+//   function: movzx _reg, r/m16 (0F B7 /r) -- zero-extend a word.
+D_NODISCARD int d_jit_x86_emit_movzx16(d_jit_buffer* _buf, int _reg,
+                                       d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_movsx8
+//   function: movsx _reg, r/m8 (0F BE /r) -- sign-extend a byte.
+D_NODISCARD int d_jit_x86_emit_movsx8(d_jit_buffer* _buf, int _reg,
+                                      d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_movsx16
+//   function: movsx _reg, r/m16 (0F BF /r) -- sign-extend a word.
+D_NODISCARD int d_jit_x86_emit_movsx16(d_jit_buffer* _buf, int _reg,
+                                       d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_xchg
+//   function: xchg _rm, _reg (0x87 /r).
+D_NODISCARD int d_jit_x86_emit_xchg(d_jit_buffer* _buf, d_jit_x86_operand _rm,
+                                    int _reg);
+
+// ---------------------------------------------------------------------------
+// arithmetic / logic
+// ---------------------------------------------------------------------------
+
+// d_jit_x86_emit_alu
+//   function: <op> _dst, _src for reg<-reg, reg<-mem, or mem<-reg. <op> is
+// one of the eight ALU operations (register-form opcodes).
+D_NODISCARD int d_jit_x86_emit_alu(d_jit_buffer* _buf, d_jit_x86_alu _op,
+                                   d_jit_x86_operand _dst,
+                                   d_jit_x86_operand _src);
+
+// d_jit_x86_emit_alu_imm32
+//   function: <op> _dst, imm32 (0x81 /digit id).
+D_NODISCARD int d_jit_x86_emit_alu_imm32(d_jit_buffer* _buf, d_jit_x86_alu _op,
+                                         d_jit_x86_operand _dst, int32_t _imm);
+
+// d_jit_x86_emit_alu_imm8
+//   function: <op> _dst, imm8, sign-extended (0x83 /digit ib).
+D_NODISCARD int d_jit_x86_emit_alu_imm8(d_jit_buffer* _buf, d_jit_x86_alu _op,
+                                        d_jit_x86_operand _dst, int8_t _imm);
+
+// d_jit_x86_emit_test
+//   function: test _rm, _reg (0x85 /r).
+D_NODISCARD int d_jit_x86_emit_test(d_jit_buffer* _buf, d_jit_x86_operand _rm,
+                                    int _reg);
+
+// d_jit_x86_emit_test_imm32
+//   function: test _rm, imm32 (0xF7 /0 id).
+D_NODISCARD int d_jit_x86_emit_test_imm32(d_jit_buffer* _buf,
+                                          d_jit_x86_operand _rm,
+                                          uint32_t _imm);
+
+// d_jit_x86_emit_unary
+//   function: not/neg/mul/imul/div/idiv _rm (0xF7 /digit).
+D_NODISCARD int d_jit_x86_emit_unary(d_jit_buffer* _buf, d_jit_x86_unary _op,
+                                     d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_inc
+//   function: inc _rm (0xFF /0).
+D_NODISCARD int d_jit_x86_emit_inc(d_jit_buffer* _buf, d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_dec
+//   function: dec _rm (0xFF /1).
+D_NODISCARD int d_jit_x86_emit_dec(d_jit_buffer* _buf, d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_imul
+//   function: imul _reg, _rm -- two-operand signed multiply (0F AF /r).
+D_NODISCARD int d_jit_x86_emit_imul(d_jit_buffer* _buf, int _reg,
+                                    d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_shift
+//   function: shift/rotate _rm by an immediate count (0xC1 /digit ib).
+D_NODISCARD int d_jit_x86_emit_shift(d_jit_buffer* _buf, d_jit_x86_shift _op,
+                                     d_jit_x86_operand _rm, uint8_t _count);
+
+// d_jit_x86_emit_shift_cl
+//   function: shift/rotate _rm by CL (0xD3 /digit).
+D_NODISCARD int d_jit_x86_emit_shift_cl(d_jit_buffer* _buf,
+                                        d_jit_x86_shift _op,
+                                        d_jit_x86_operand _rm);
+
+// ---------------------------------------------------------------------------
+// stack
+// ---------------------------------------------------------------------------
+
+// d_jit_x86_emit_push_reg
+//   function: push r32 (0x50+rd).
+D_NODISCARD int d_jit_x86_emit_push_reg(d_jit_buffer* _buf, int _reg);
+
+// d_jit_x86_emit_pop_reg
+//   function: pop r32 (0x58+rd).
+D_NODISCARD int d_jit_x86_emit_pop_reg(d_jit_buffer* _buf, int _reg);
+
+// d_jit_x86_emit_push
+//   function: push r/m32 (0xFF /6) -- register or memory.
+D_NODISCARD int d_jit_x86_emit_push(d_jit_buffer* _buf, d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_pop
+//   function: pop r/m32 (0x8F /0) -- register or memory.
+D_NODISCARD int d_jit_x86_emit_pop(d_jit_buffer* _buf, d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_push_imm32
+//   function: push imm32 (0x68 id).
+D_NODISCARD int d_jit_x86_emit_push_imm32(d_jit_buffer* _buf, int32_t _imm);
+
+// ---------------------------------------------------------------------------
+// control flow (branch targets are d_jit_label; see jit.h)
+// ---------------------------------------------------------------------------
+
+// d_jit_x86_emit_jmp
+//   function: jmp _target, rel32 (0xE9 id), patched on bind.
+D_NODISCARD int d_jit_x86_emit_jmp(d_jit_buffer* _buf, d_jit_label* _target);
+
+// d_jit_x86_emit_jcc
+//   function: jcc _target, rel32 (0F 80+cc id). _cc is a D_JIT_X86_CC_* value.
+D_NODISCARD int d_jit_x86_emit_jcc(d_jit_buffer* _buf, int _cc,
+                                   d_jit_label* _target);
+
+// d_jit_x86_emit_call
+//   function: call _target, rel32 (0xE8 id), patched on bind.
+D_NODISCARD int d_jit_x86_emit_call(d_jit_buffer* _buf, d_jit_label* _target);
+
+// d_jit_x86_emit_jmp_rm
+//   function: jmp r/m32 -- indirect (0xFF /4).
+D_NODISCARD int d_jit_x86_emit_jmp_rm(d_jit_buffer* _buf,
+                                      d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_call_rm
+//   function: call r/m32 -- indirect (0xFF /2).
+D_NODISCARD int d_jit_x86_emit_call_rm(d_jit_buffer* _buf,
+                                       d_jit_x86_operand _rm);
+
+// d_jit_x86_emit_ret_imm16
+//   function: ret and pop _bytes of stack args (0xC2 iw).
+D_NODISCARD int d_jit_x86_emit_ret_imm16(d_jit_buffer* _buf, uint16_t _bytes);
+
+// d_jit_x86_emit_setcc
+//   function: setcc _rm8 (0F 90+cc /0). _rm8 is a byte register or memory.
+D_NODISCARD int d_jit_x86_emit_setcc(d_jit_buffer* _buf, int _cc,
+                                     d_jit_x86_operand _rm8);
+
+// d_jit_x86_emit_cdq
+//   function: cdq -- sign-extend EAX into EDX:EAX (0x99), for idiv.
+D_NODISCARD int d_jit_x86_emit_cdq(d_jit_buffer* _buf);
+
+// ---------------------------------------------------------------------------
+// frame + convenience helpers
+// ---------------------------------------------------------------------------
 
 // d_jit_x86_emit_prologue
 //   function: push ebp ; mov ebp, esp  (D_JIT_X86_SEQ_PROLOGUE).
@@ -519,12 +857,12 @@ D_NODISCARD int d_jit_x86_emit_ret(d_jit_buffer* _buf);
 D_NODISCARD int d_jit_x86_emit_nop(d_jit_buffer* _buf, size_t _n);
 
 // d_jit_x86_emit_mov_reg_imm32
-//   function: mov r32, imm32 (B8+rd id).
+//   function: mov r32, imm32 in the compact form (0xB8+rd id).
 D_NODISCARD int d_jit_x86_emit_mov_reg_imm32(d_jit_buffer* _buf,
                                               int _reg, uint32_t _imm);
 
 // d_jit_x86_emit_mov_reg_reg
-//   function: mov _dst, _src  (0x89 /r).
+//   function: mov _dst, _src, register to register (0x89 /r).
 D_NODISCARD int d_jit_x86_emit_mov_reg_reg(d_jit_buffer* _buf,
                                             int _dst, int _src);
 
@@ -534,9 +872,8 @@ D_NODISCARD int d_jit_x86_emit_add_reg_imm32(d_jit_buffer* _buf,
                                              int _reg, int32_t _imm);
 
 // d_jit_x86_emit_load_arg
-//   function: mov _reg, [ebp + 8 + 4*_index]  -- load the _index-th cdecl
-// integer argument (0-based) into a register, given a standard EBP frame
-// (emit the prologue first).
+//   function: mov _reg, [ebp + 8 + 4*_index] -- load the _index-th cdecl
+// integer argument (0-based), given a standard EBP frame.
 D_NODISCARD int d_jit_x86_emit_load_arg(d_jit_buffer* _buf,
                                         int _reg, int _index);
 

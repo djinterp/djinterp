@@ -240,7 +240,8 @@
 //   Which per-architecture opcode table applies to the current target, and
 // whether djinterp actually ships one for it. The TARGET_* flags mirror the
 // D_ENV_ARCH_* family; HAS_ENCODER is 1 where a jit/ encoder module exists.
-// Both x86-64 (jit_x64.h) and 32-bit x86 (jit_x86.h) now qualify.
+// x86-64 (jit_x64.h), x86 (jit_x86.h), AArch64 (jit_arm64.h) and 32-bit ARM
+// (jit_arm.h) all qualify.
 
 // D_ENV_JIT_TARGET_X64
 //   feature: 1 when generating for x86-64 (alias of D_ENV_ARCH_X64).
@@ -262,12 +263,34 @@
     #endif
 #endif
 
+// D_ENV_JIT_TARGET_ARM64
+//   feature: 1 when generating for AArch64 (alias of D_ENV_ARCH_ARM64).
+#ifndef D_ENV_JIT_TARGET_ARM64
+    #if defined(D_ENV_ARCH_ARM64)
+        #define D_ENV_JIT_TARGET_ARM64 1
+    #else
+        #define D_ENV_JIT_TARGET_ARM64 0
+    #endif
+#endif
+
+// D_ENV_JIT_TARGET_ARM
+//   feature: 1 when generating for 32-bit ARM / A32 (alias of D_ENV_ARCH_ARM).
+#ifndef D_ENV_JIT_TARGET_ARM
+    #if defined(D_ENV_ARCH_ARM)
+        #define D_ENV_JIT_TARGET_ARM 1
+    #else
+        #define D_ENV_JIT_TARGET_ARM 0
+    #endif
+#endif
+
 // D_ENV_JIT_HAS_ENCODER
 //   feature: 1 when a djinterp instruction-encoding module is available for
-// the current target architecture (x86-64 or 32-bit x86).
+// the current target (x86-64, 32-bit x86, AArch64, or 32-bit ARM).
 #ifndef D_ENV_JIT_HAS_ENCODER
-    #if ( D_ENV_JIT_TARGET_X64 ||                                            \
-          D_ENV_JIT_TARGET_X86 )
+    #if ( D_ENV_JIT_TARGET_X64   ||                                          \
+          D_ENV_JIT_TARGET_X86   ||                                          \
+          D_ENV_JIT_TARGET_ARM64 ||                                          \
+          D_ENV_JIT_TARGET_ARM )
         #define D_ENV_JIT_HAS_ENCODER 1
     #else
         #define D_ENV_JIT_HAS_ENCODER 0
