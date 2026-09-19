@@ -325,18 +325,66 @@
     #endif
 #endif
 
+// D_ENV_JIT_TARGET_POWERPC32
+//   feature: 1 when generating for 32-bit PowerPC (alias of
+// D_ENV_ARCH_POWERPC32). The jit_ppc encoder serves both PPC32 and PPC64.
+#ifndef D_ENV_JIT_TARGET_POWERPC32
+    #if defined(D_ENV_ARCH_POWERPC32)
+        #define D_ENV_JIT_TARGET_POWERPC32 1
+    #else
+        #define D_ENV_JIT_TARGET_POWERPC32 0
+    #endif
+#endif
+
+// D_ENV_JIT_TARGET_POWERPC64
+//   feature: 1 when generating for 64-bit PowerPC (alias of
+// D_ENV_ARCH_POWERPC64).
+#ifndef D_ENV_JIT_TARGET_POWERPC64
+    #if defined(D_ENV_ARCH_POWERPC64)
+        #define D_ENV_JIT_TARGET_POWERPC64 1
+    #else
+        #define D_ENV_JIT_TARGET_POWERPC64 0
+    #endif
+#endif
+
+// D_ENV_JIT_TARGET_SPARC32
+//   feature: 1 when generating for 32-bit SPARC / SPARC V8 (alias of
+// D_ENV_ARCH_SPARC32). The jit_sparc encoder serves both V8 and V9.
+#ifndef D_ENV_JIT_TARGET_SPARC32
+    #if defined(D_ENV_ARCH_SPARC32)
+        #define D_ENV_JIT_TARGET_SPARC32 1
+    #else
+        #define D_ENV_JIT_TARGET_SPARC32 0
+    #endif
+#endif
+
+// D_ENV_JIT_TARGET_SPARC64
+//   feature: 1 when generating for 64-bit SPARC / SPARC V9 (alias of
+// D_ENV_ARCH_SPARC64).
+#ifndef D_ENV_JIT_TARGET_SPARC64
+    #if defined(D_ENV_ARCH_SPARC64)
+        #define D_ENV_JIT_TARGET_SPARC64 1
+    #else
+        #define D_ENV_JIT_TARGET_SPARC64 0
+    #endif
+#endif
+
 // D_ENV_JIT_HAS_ENCODER
 //   feature: 1 when a djinterp instruction-encoding module is available for
-// the current target (x86-64, x86, AArch64, ARM, RISC-V, or MIPS32/MIPS64).
+// the target (x86-64, x86, AArch64, ARM, RISC-V, MIPS, PowerPC, or SPARC).
 #ifndef D_ENV_JIT_HAS_ENCODER
-    #if ( D_ENV_JIT_TARGET_X64     ||                                        \
-          D_ENV_JIT_TARGET_X86     ||                                        \
-          D_ENV_JIT_TARGET_ARM64   ||                                        \
-          D_ENV_JIT_TARGET_ARM     ||                                        \
-          D_ENV_JIT_TARGET_RISCV32 ||                                        \
-          D_ENV_JIT_TARGET_RISCV64 ||                                        \
-          D_ENV_JIT_TARGET_MIPS32  ||                                        \
-          D_ENV_JIT_TARGET_MIPS64 )
+    #if ( D_ENV_JIT_TARGET_X64       ||                                      \
+          D_ENV_JIT_TARGET_X86       ||                                      \
+          D_ENV_JIT_TARGET_ARM64     ||                                      \
+          D_ENV_JIT_TARGET_ARM       ||                                      \
+          D_ENV_JIT_TARGET_RISCV32   ||                                      \
+          D_ENV_JIT_TARGET_RISCV64   ||                                      \
+          D_ENV_JIT_TARGET_MIPS32    ||                                      \
+          D_ENV_JIT_TARGET_MIPS64    ||                                      \
+          D_ENV_JIT_TARGET_POWERPC32 ||                                      \
+          D_ENV_JIT_TARGET_POWERPC64 ||                                      \
+          D_ENV_JIT_TARGET_SPARC32   ||                                      \
+          D_ENV_JIT_TARGET_SPARC64   )
         #define D_ENV_JIT_HAS_ENCODER 1
     #else
         #define D_ENV_JIT_HAS_ENCODER 0
