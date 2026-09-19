@@ -283,14 +283,60 @@
     #endif
 #endif
 
+// D_ENV_JIT_TARGET_RISCV32
+//   feature: 1 when generating for RV32I (alias of D_ENV_ARCH_RISCV32). The
+// jit_riscv encoder serves both RV32 and RV64.
+#ifndef D_ENV_JIT_TARGET_RISCV32
+    #if defined(D_ENV_ARCH_RISCV32)
+        #define D_ENV_JIT_TARGET_RISCV32 1
+    #else
+        #define D_ENV_JIT_TARGET_RISCV32 0
+    #endif
+#endif
+
+// D_ENV_JIT_TARGET_RISCV64
+//   feature: 1 when generating for RV64I (alias of D_ENV_ARCH_RISCV64).
+#ifndef D_ENV_JIT_TARGET_RISCV64
+    #if defined(D_ENV_ARCH_RISCV64)
+        #define D_ENV_JIT_TARGET_RISCV64 1
+    #else
+        #define D_ENV_JIT_TARGET_RISCV64 0
+    #endif
+#endif
+
+// D_ENV_JIT_TARGET_MIPS32
+//   feature: 1 when generating for MIPS32 (alias of D_ENV_ARCH_MIPS32). The
+// jit_mips encoder serves both MIPS32 and MIPS64.
+#ifndef D_ENV_JIT_TARGET_MIPS32
+    #if defined(D_ENV_ARCH_MIPS32)
+        #define D_ENV_JIT_TARGET_MIPS32 1
+    #else
+        #define D_ENV_JIT_TARGET_MIPS32 0
+    #endif
+#endif
+
+// D_ENV_JIT_TARGET_MIPS64
+//   feature: 1 when generating for MIPS64 (alias of D_ENV_ARCH_MIPS64).
+#ifndef D_ENV_JIT_TARGET_MIPS64
+    #if defined(D_ENV_ARCH_MIPS64)
+        #define D_ENV_JIT_TARGET_MIPS64 1
+    #else
+        #define D_ENV_JIT_TARGET_MIPS64 0
+    #endif
+#endif
+
 // D_ENV_JIT_HAS_ENCODER
 //   feature: 1 when a djinterp instruction-encoding module is available for
-// the current target (x86-64, 32-bit x86, AArch64, or 32-bit ARM).
+// the current target (x86-64, x86, AArch64, ARM, RISC-V, or MIPS32/MIPS64).
 #ifndef D_ENV_JIT_HAS_ENCODER
-    #if ( D_ENV_JIT_TARGET_X64   ||                                          \
-          D_ENV_JIT_TARGET_X86   ||                                          \
-          D_ENV_JIT_TARGET_ARM64 ||                                          \
-          D_ENV_JIT_TARGET_ARM )
+    #if ( D_ENV_JIT_TARGET_X64     ||                                        \
+          D_ENV_JIT_TARGET_X86     ||                                        \
+          D_ENV_JIT_TARGET_ARM64   ||                                        \
+          D_ENV_JIT_TARGET_ARM     ||                                        \
+          D_ENV_JIT_TARGET_RISCV32 ||                                        \
+          D_ENV_JIT_TARGET_RISCV64 ||                                        \
+          D_ENV_JIT_TARGET_MIPS32  ||                                        \
+          D_ENV_JIT_TARGET_MIPS64 )
         #define D_ENV_JIT_HAS_ENCODER 1
     #else
         #define D_ENV_JIT_HAS_ENCODER 0
