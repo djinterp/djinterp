@@ -369,9 +369,21 @@
     #endif
 #endif
 
+// D_ENV_JIT_TARGET_S390X
+//   feature: 1 when generating for 64-bit IBM z/Architecture (alias of
+// D_ENV_ARCH_S390X). The jit_s390x encoder targets z/Architecture; the
+// 31-bit ESA/390 subset (D_ENV_ARCH_S390 without S390X) is not covered.
+#ifndef D_ENV_JIT_TARGET_S390X
+    #if defined(D_ENV_ARCH_S390X)
+        #define D_ENV_JIT_TARGET_S390X 1
+    #else
+        #define D_ENV_JIT_TARGET_S390X 0
+    #endif
+#endif
+
 // D_ENV_JIT_HAS_ENCODER
 //   feature: 1 when a djinterp instruction-encoding module is available for
-// the target (x86-64, x86, AArch64, ARM, RISC-V, MIPS, PowerPC, or SPARC).
+// the target (x86-64/x86, ARM64/ARM, RISC-V, MIPS, PowerPC, SPARC, s390x).
 #ifndef D_ENV_JIT_HAS_ENCODER
     #if ( D_ENV_JIT_TARGET_X64       ||                                      \
           D_ENV_JIT_TARGET_X86       ||                                      \
@@ -384,7 +396,8 @@
           D_ENV_JIT_TARGET_POWERPC32 ||                                      \
           D_ENV_JIT_TARGET_POWERPC64 ||                                      \
           D_ENV_JIT_TARGET_SPARC32   ||                                      \
-          D_ENV_JIT_TARGET_SPARC64   )
+          D_ENV_JIT_TARGET_SPARC64   ||                                      \
+          D_ENV_JIT_TARGET_S390X     )
         #define D_ENV_JIT_HAS_ENCODER 1
     #else
         #define D_ENV_JIT_HAS_ENCODER 0
