@@ -1,31 +1,47 @@
-/******************************************************************************
-* djinterp [core]                                                    dstring.c
+/*******************************************************************************
+* djinterp [c]                                                         dstring.c
 *
-*   Implementation of the d_string safe string type and associated functions.
+* Definitions for the declarations in `dstring.h`.
+*   Implements the `d_string` safe string type and its operations, building on
+* the raw-buffer primitives in `string_fn.h`.
 *
-* path:      \src\dstring.c
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                          date: 2025.12.30
-******************************************************************************/
-#include "../../inc/c/dstring.h"
+* path:      /src/djinterp/c/dstring.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30
+*                                                            revised: 2026.09.22
+*******************************************************************************/
+#include "../../../inc/djinterp/c/dstring.h"  // corresponding header
+// std
+#include <ctype.h>                              // isspace
+#include <errno.h>                              // EINVAL, ERANGE
+#include <stdarg.h>                             // va_list, va_start, va_copy
+#include <stdbool.h>                            // bool
+#include <stddef.h>                             // size_t, NULL
+#include <stdio.h>                              // vsnprintf
+#include <stdlib.h>                             // malloc, realloc, free
+#include <string.h>                             // strlen, strstr, memmove, ...
+// djinterp
+#include "../../../inc/djinterp/c/djinterp.h"   // framework root
+#include "../../../inc/djinterp/c/dmemory.h"    // d_memcpy, d_memset
+#include "../../../inc/djinterp/c/string_fn.h"  // d_str* primitives
 
 
-// internal helper functions
-
+// internal helpers
 /*
 d_string_internal_grow
-  Ensures the d_string has at least the required capacity, growing if needed.
+  File-local, so its contract lives here: ensures `_string` can hold
+`_required` bytes, terminator included, and returns false only for a NULL
+string or a failed allocation, in which case the string is untouched. Capacity
+doubles from its current value (or from 16 when it is 0) until the request
+fits, which keeps a run of appends amortized O(1). The old buffer is freed
+only after the new one is filled.
 */
 D_STATIC bool
-d_string_internal_grow
-(
+d_string_internal_grow(
     struct d_string* _string,
     size_t           _required
 )
 {
-    size_t new_capacity;
-    char*  new_text;
-
     if (!_string)
     {
         return false;
@@ -38,7 +54,7 @@ d_string_internal_grow
     }
 
     // calculate new capacity using growth factor
-    new_capacity = _string->capacity;
+    size_t new_capacity = _string->capacity;
 
     if (new_capacity == 0)
     {
@@ -51,7 +67,7 @@ d_string_internal_grow
     }
 
     // allocate new buffer
-    new_text = malloc(new_capacity);
+    char* new_text = malloc(new_capacity);
 
     // ensure that memory allocation was successful
     if (!new_text)
@@ -60,10 +76,12 @@ d_string_internal_grow
     }
 
     // copy existing content if present
-    if ( (_string->text) && 
+    if ( (_string->text) &&
          (_string->size > 0) )
     {
-        d_memcpy(new_text, _string->text, _string->size + 1);
+        d_memcpy(new_text,
+                 _string->text,
+                 _string->size + 1);
     }
     else
     {
@@ -78,21 +96,13 @@ d_string_internal_grow
     return true;
 }
 
-// creation and destruction functions
+// lifecycle: creation
 /*
 d_string_new
-  Creates an empty `d_string` with default capacity.
-
-Parameter(s):
-  (none)
-Return:
-  A pointer value corresponding to either:
-  - newly allocated `d_string`, if successful, or
-  - NULL, if memory allocation failed.
+  Delegates to d_string_new_with_capacity() with a default capacity of 16.
 */
-D_INLINE struct d_string*
-d_string_new
-(
+struct d_string*
+d_string_new(
     void
 )
 {
@@ -101,30 +111,22 @@ d_string_new
 
 /*
 d_string_new_with_capacity
-  Creates an empty d_string with specified initial capacity.
-
-Parameter(s):
-  _capacity: initial capacity in bytes (including space for null terminator).
-Return:
-  A pointer value corresponding to either:
-  - newly allocated d_string, if successful, or
-  - NULL, if memory allocation failed.
+  The struct is freed again if the text allocation fails, so a failed call
+leaks nothing; the terminator is written at index 0 so the empty string is
+valid at once.
 */
 struct d_string*
-d_string_new_with_capacity
-(
+d_string_new_with_capacity(
     size_t _capacity
 )
 {
-    struct d_string* new_string;
-
     // ensure minimum capacity of 1 for null terminator
     if (_capacity == 0)
     {
         _capacity = 1;
     }
 
-    new_string = malloc(sizeof(struct d_string));
+    struct d_string* new_string = malloc(sizeof(struct d_string));
 
     // ensure that memory allocation was successful
     if (!new_string)
@@ -133,7 +135,7 @@ d_string_new_with_capacity
     }
 
     new_string->text = malloc(_capacity);
-  
+
     // ensure that memory allocation was successful
     if (!new_string->text)
     {
@@ -151,34 +153,23 @@ d_string_new_with_capacity
 
 /*
 d_string_new_from_cstr
-  Creates a d_string from a null-terminated C string.
-
-Parameter(s):
-  _cstr: null-terminated source string to copy.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated d_string containing copy of _cstr, if successful, or
-  - NULL, if _cstr was NULL or memory allocation failed.
+  Measures `_cstr` once and copies the terminator along with the text, so the
+buffer is filled exactly to its capacity.
 */
 struct d_string*
-d_string_new_from_cstr
-(
+d_string_new_from_cstr(
     const char* _cstr
 )
 {
-    size_t           len;
-    size_t           capacity;
-    struct d_string* new_string;
-
     if (!_cstr)
     {
         return NULL;
     }
 
-    len      = strlen(_cstr);
-    capacity = len + 1;
+    const size_t len      = strlen(_cstr);
+    const size_t capacity = len + 1;
 
-    new_string = d_string_new_with_capacity(capacity);
+    struct d_string* new_string = d_string_new_with_capacity(capacity);
 
     // ensure that memory allocation was successful
     if (!new_string)
@@ -186,7 +177,9 @@ d_string_new_from_cstr
         return NULL;
     }
 
-    d_memcpy(new_string->text, _cstr, len + 1);
+    d_memcpy(new_string->text,
+             _cstr,
+             len + 1);
     new_string->size = len;
 
     return new_string;
@@ -194,36 +187,25 @@ d_string_new_from_cstr
 
 /*
 d_string_new_from_cstr_n
-  Creates a d_string from at most n characters of a C string.
-
-Parameter(s):
-  _cstr:   source string to copy from.
-  _length: maximum number of characters to copy.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated d_string, if successful, or
-  - NULL, if _cstr was NULL or memory allocation failed.
+  d_strnlen() bounds the scan at `_length`, so `_cstr` need not be terminated
+within that range; the terminator is written explicitly after the copy.
 */
 struct d_string*
-d_string_new_from_cstr_n
-(
+d_string_new_from_cstr_n(
     const char* _cstr,
     size_t      _length
 )
 {
-    size_t           actual_len;
-    size_t           capacity;
-    struct d_string* new_string;
-
     if (!_cstr)
     {
         return NULL;
     }
 
-    actual_len = d_strnlen(_cstr, _length);
-    capacity   = actual_len + 1;
+    const size_t actual_len = d_strnlen(_cstr,
+                                        _length);
+    const size_t capacity   = actual_len + 1;
 
-    new_string = d_string_new_with_capacity(capacity);
+    struct d_string* new_string = d_string_new_with_capacity(capacity);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -231,7 +213,9 @@ d_string_new_from_cstr_n
         return NULL;
     }
 
-    d_memcpy(new_string->text, _cstr, actual_len);
+    d_memcpy(new_string->text,
+             _cstr,
+             actual_len);
     new_string->text[actual_len] = '\0';
     new_string->size             = actual_len;
 
@@ -240,34 +224,22 @@ d_string_new_from_cstr_n
 
 /*
 d_string_new_from_buffer
-  Creates a d_string from a buffer of specified length (not necessarily 
-null-terminated).
-
-Parameter(s):
-  _buffer: source buffer to copy from.
-  _length: number of bytes to copy.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated d_string, if successful, or
-  - NULL, if _buffer was NULL or memory allocation failed.
+  Copies exactly `_length` bytes, embedded NULs included, and terminates the
+copy itself because the source need not be terminated.
 */
 struct d_string*
-d_string_new_from_buffer
-(
+d_string_new_from_buffer(
     const char* _buffer,
     size_t      _length
 )
 {
-    size_t           capacity;
-    struct d_string* new_string;
-
     if (!_buffer)
     {
         return NULL;
     }
 
-    capacity   = _length + 1;
-    new_string = d_string_new_with_capacity(capacity);
+    const size_t     capacity   = _length + 1;
+    struct d_string* new_string = d_string_new_with_capacity(capacity);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -275,7 +247,9 @@ d_string_new_from_buffer
         return NULL;
     }
 
-    d_memcpy(new_string->text, _buffer, _length);
+    d_memcpy(new_string->text,
+             _buffer,
+             _length);
     new_string->text[_length] = '\0';
     new_string->size          = _length;
 
@@ -284,48 +258,32 @@ d_string_new_from_buffer
 
 /*
 d_string_new_copy
-  Creates a deep copy of an existing d_string.
-
-Parameter(s):
-  _other: d_string to copy.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated d_string copy, if successful, or
-  - NULL, if _other was NULL or memory allocation failed.
+  Delegates to d_string_new_from_buffer() with the source's size, so embedded
+NULs survive and the copy's capacity fits its content rather than the source's
+capacity.
 */
-D_INLINE struct d_string*
-d_string_new_copy
-(
+struct d_string*
+d_string_new_copy(
     const struct d_string* _other
 )
 {
     return (_other)
-        ? d_string_new_from_buffer(_other->text, _other->size)
+        ? d_string_new_from_buffer(_other->text,
+                                   _other->size)
         : NULL;
 }
 
 /*
 d_string_new_fill
-  Creates a d_string filled with a repeated character.
-
-Parameter(s):
-  _length:    number of times to repeat the character.
-  _fill_char: character to fill with.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated d_string, if successful, or
-  - NULL, if memory allocation failed.
+  Fills with d_memset() and writes the terminator separately.
 */
 struct d_string*
-d_string_new_fill
-(
+d_string_new_fill(
     size_t _length,
     char   _fill_char
 )
 {
-    struct d_string* new_string;
-
-    new_string = d_string_new_with_capacity(_length + 1);
+    struct d_string* new_string = d_string_new_with_capacity(_length + 1);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -333,7 +291,9 @@ d_string_new_fill
         return NULL;
     }
 
-    d_memset(new_string->text, _fill_char, _length);
+    d_memset(new_string->text,
+             _fill_char,
+             _length);
     new_string->text[_length] = '\0';
     new_string->size          = _length;
 
@@ -342,38 +302,34 @@ d_string_new_fill
 
 /*
 d_string_new_formatted
-  Creates a d_string using printf-style formatting.
-
-Parameter(s):
-  _format: printf-style format string.
-  ...:     format arguments.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated d_string, if successful, or
-  - NULL, if _format was NULL or memory allocation failed.
+  Formats twice: a vsnprintf() dry run measures the output, then a va_copy()
+of the arguments writes it into a buffer of exactly that size. Every early
+return ends both lists.
 */
 struct d_string*
-d_string_new_formatted
-(
-    const char* _format, 
+d_string_new_formatted(
+    const char* _format,
     ...
 )
 {
-    va_list          args;
-    va_list          args_copy;
-    int              len;
-    struct d_string* new_string;
-
     if (!_format)
     {
         return NULL;
     }
 
-    va_start(args, _format);
-    va_copy(args_copy, args);
+    va_list args;
+    va_list args_copy;
+
+    va_start(args,
+             _format);
+    va_copy(args_copy,
+            args);
 
     // determine required length
-    len = vsnprintf(NULL, 0, _format, args);
+    const int len = vsnprintf(NULL,
+                              0,
+                              _format,
+                              args);
     va_end(args);
 
     if (len < 0)
@@ -383,7 +339,7 @@ d_string_new_formatted
         return NULL;
     }
 
-    new_string = d_string_new_with_capacity((size_t)len + 1);
+    struct d_string* new_string = d_string_new_with_capacity((size_t)len + 1);
 
     // ensure that new `dstring` was created successfully
     if (!new_string)
@@ -393,7 +349,10 @@ d_string_new_formatted
         return NULL;
     }
 
-    vsnprintf(new_string->text, (size_t)len + 1, _format, args_copy);
+    vsnprintf(new_string->text,
+              (size_t)len + 1,
+              _format,
+              args_copy);
     va_end(args_copy);
 
     new_string->size = (size_t)len;
@@ -401,60 +360,39 @@ d_string_new_formatted
     return new_string;
 }
 
-
-/******************************************************************************
-* Capacity Management Functions
-******************************************************************************/
+// lifecycle: capacity management
 /*
 d_string_reserve
-  Ensures the `d_string` has at least the specified capacity.
-
-Parameter(s):
-  _string:   `d_string` to modify.
-  _capacity: minimum capacity to reserve.
-Return:
-  A boolean value corresponding to either:
-  - true, if capacity was reserved successfully, or
-  - false, if _string was NULL or allocation failed.
+  Delegates to d_string_internal_grow(), which never shrinks.
 */
-D_INLINE bool
-d_string_reserve
-(
+bool
+d_string_reserve(
     struct d_string* _string,
     size_t           _capacity
 )
 {
     return (_string)
-        ? d_string_internal_grow(_string, _capacity)
+        ? d_string_internal_grow(_string,
+                                 _capacity)
         : false;
 }
 
 /*
 d_string_shrink_to_fit
-  Reduces capacity to match the current size.
-
-Parameter(s):
-  _string: d_string to shrink.
-Return:
-  A boolean value corresponding to either:
-  - true, if shrinking was successful, or
-  - false, if _string was NULL or reallocation failed.
+  Copies into a fresh buffer rather than calling realloc(), so an allocation
+failure leaves the original buffer in place.
 */
 bool
-d_string_shrink_to_fit
-(
+d_string_shrink_to_fit(
     struct d_string* _string
 )
 {
-    size_t new_capacity;
-    char*  new_text;
-
     if (!_string)
     {
         return false;
     }
 
-    new_capacity = _string->size + 1;
+    const size_t new_capacity = _string->size + 1;
 
     // don't shrink if already at minimum
     if (_string->capacity <= new_capacity)
@@ -462,7 +400,7 @@ d_string_shrink_to_fit
         return true;
     }
 
-    new_text = malloc(new_capacity);
+    char* new_text = malloc(new_capacity);
 
     // ensure that memory allocation was successful
     if (!new_text)
@@ -470,7 +408,9 @@ d_string_shrink_to_fit
         return false;
     }
 
-    d_memcpy(new_text, _string->text, new_capacity);
+    d_memcpy(new_text,
+             _string->text,
+             new_capacity);
     free(_string->text);
 
     _string->text     = new_text;
@@ -481,16 +421,10 @@ d_string_shrink_to_fit
 
 /*
 d_string_capacity
-  Returns the current capacity of a d_string.
-
-Parameter(s):
-  _string: d_string to query.
-Return:
-  The capacity of the string, or 0 if _string is NULL.
+  Reads the field directly.
 */
-D_INLINE size_t
-d_string_capacity
-(
+size_t
+d_string_capacity(
     const struct d_string* _string
 )
 {
@@ -501,27 +435,20 @@ d_string_capacity
 
 /*
 d_string_resize
-  Resizes the `d_string` to the specified size.
-
-Parameter(s):
-  _string:   `d_string` to resize.
-  _new_size: new size for the `d_string`.
-Return:
-  A boolean value corresponding to either:
-  - true, if resize was successful, or
-  - false, if _string was NULL or allocation failed.
+  Growth goes through d_string_internal_grow() first, so a failed allocation
+leaves the string unchanged; the terminator is rewritten at the new size in
+every case, which is what truncates when shrinking.
 */
 bool
-d_string_resize
-(
+d_string_resize(
     struct d_string* _string,
     size_t           _new_size
 )
 {
-    // must be non-NULL
-    // grow if needed
+    // must be non-NULL, and grown first if the new size needs room
     if ( (!_string) ||
-         (!d_string_internal_grow(_string, _new_size + 1)) ) 
+         (!d_string_internal_grow(_string,
+                                  _new_size + 1)) )
     {
         return false;
     }
@@ -529,32 +456,24 @@ d_string_resize
     // if growing, fill with nulls
     if (_new_size > _string->size)
     {
-        d_memset(_string->text + _string->size, '\0', _new_size - _string->size);
+        d_memset(_string->text + _string->size,
+                 '\0',
+                 _new_size - _string->size);
     }
 
-    _string->size             = _new_size;
-    _string->text[_new_size]  = '\0';
+    _string->size            = _new_size;
+    _string->text[_new_size] = '\0';
 
     return true;
 }
 
-
-/******************************************************************************
-* Access Functions
-******************************************************************************/
-
+// access
 /*
 d_string_length
-  Returns the length of the `d_string` (excluding null terminator).
-
-Parameter(s):
-  _string: `d_string` to query.
-Return:
-  The length of the string, or 0 if _string is NULL.
+  Reads the size field directly.
 */
-D_INLINE size_t
-d_string_length
-(
+size_t
+d_string_length(
     const struct d_string* _string
 )
 {
@@ -565,16 +484,10 @@ d_string_length
 
 /*
 d_string_size
-  Alias for `d_string`_length.
-
-Parameter(s):
-  _string: `d_string` to query.
-Return:
-  The size of the `d_string`, or 0 if _string is NULL.
+  Delegates to d_string_length().
 */
-D_INLINE size_t
-d_string_size
-(
+size_t
+d_string_size(
     const struct d_string* _string
 )
 {
@@ -583,18 +496,10 @@ d_string_size
 
 /*
 d_string_cstr
-  Returns a const pointer to the null-terminated string data.
-
-Parameter(s):
-  _string: `d_string` to access.
-Return:
-  A pointer value corresponding to either:
-  - const pointer to the string data, or
-  - NULL, if _string is NULL.
+  Returns the internal buffer; no copy is made.
 */
-D_INLINE const char*
-d_string_cstr
-(
+const char*
+d_string_cstr(
     const struct d_string* _string
 )
 {
@@ -605,18 +510,10 @@ d_string_cstr
 
 /*
 d_string_data
-  Returns a mutable pointer to the string data.
-
-Parameter(s):
-  _string: `d_string` to access.
-Return:
-  A pointer value corresponding to either:
-  - pointer to the string data, or
-  - NULL, if _string is NULL.
+  Returns the internal buffer; no copy is made.
 */
-D_INLINE char*
-d_string_data
-(
+char*
+d_string_data(
     struct d_string* _string
 )
 {
@@ -627,75 +524,56 @@ d_string_data
 
 /*
 d_string_is_empty
-  Checks if the `d_string` is empty.
-
-Parameter(s):
-  _string: `d_string` to check.
-Return:
-  A boolean value corresponding to either:
-  - true, if _string is NULL or empty, or
-  - false, if _string contains characters.
+  Treats NULL as empty, so callers can test an optional string in one call.
 */
-D_INLINE bool
-d_string_is_empty
-(
+bool
+d_string_is_empty(
     const struct d_string* _string
 )
 {
-    return ( (!_string) || 
+    return ( (!_string) ||
              (_string->size == 0) );
 }
 
 /*
 d_string_char_at
-  Returns the character at the specified index.
-
-Parameter(s):
-  _string: `d_string` to access.
-  _index:  index of character (negative indices count from end).
-Return:
-  The character at the index, or '\0' if index is invalid.
+  d_index_convert_safe() both validates the index and resolves a negative one,
+so `pos` is only read after the conversion has succeeded.
 */
-D_INLINE char
-d_string_char_at
-(
+char
+d_string_char_at(
     const struct d_string* _string,
     d_index                _index
 )
 {
-    size_t pos;
+    size_t pos = 0;
 
     return ( (_string) &&
-             (d_index_convert_safe(_index, _string->size, &pos)) )
+             (d_index_convert_safe(_index,
+                                   _string->size,
+                                   &pos)) )
         ? _string->text[pos]
         : '\0';
 }
 
 /*
 d_string_set_char
-  Sets the character at the specified index.
-
-Parameter(s):
-  _string: `d_string` to modify.
-  _index:  index of character (negative indices count from end).
-  _c:      character to set.
-Return:
-  A boolean value corresponding to either:
-  - true, if character was set successfully, or
-  - false, if _string was NULL or index was invalid.
+  d_index_convert_safe() accepts only indices below the size, so the
+terminator can never be overwritten.
 */
 bool
-d_string_set_char
-(
+d_string_set_char(
     struct d_string* _string,
     d_index          _index,
     char             _c
 )
 {
-    size_t pos;
+    size_t pos = 0;
 
     if ( (!_string) ||
-         (!d_index_convert_safe(_index, _string->size, &pos)) )
+         (!d_index_convert_safe(_index,
+                                _string->size,
+                                &pos)) )
     {
         return false;
     }
@@ -707,16 +585,11 @@ d_string_set_char
 
 /*
 d_string_front
-  Returns the first character of the string.
-
-Parameter(s):
-  _string: `d_string` to access.
-Return:
-  The first character, or '\0' if string is empty or NULL.
+  d_string_is_empty() covers both NULL and empty, so index 0 is only read when
+it holds a character.
 */
-D_INLINE char
-d_string_front
-(
+char
+d_string_front(
     const struct d_string* _string
 )
 {
@@ -727,16 +600,11 @@ d_string_front
 
 /*
 d_string_back
-  Returns the last character of the string.
-
-Parameter(s):
-  _string: `d_string` to access.
-Return:
-  The last character, or '\0' if string is empty or NULL.
+  d_string_is_empty() covers both NULL and empty, so `size - 1` cannot
+underflow.
 */
-D_INLINE char
-d_string_back
-(
+char
+d_string_back(
     const struct d_string* _string
 )
 {
@@ -745,26 +613,14 @@ d_string_back
         : _string->text[_string->size - 1];
 }
 
-
-/******************************************************************************
-* Safe Copy Functions
-******************************************************************************/
-
+// copying: safe copy
 /*
 d_string_copy_s
-  Safe copy from d_string to d_string.
-
-Parameter(s):
-  _destination: destination d_string.
-  _source:      source d_string.
-Return:
-  An integer value corresponding to either:
-  - 0, if copy was successful, or
-  - EINVAL, if either parameter was NULL.
+  Grows the destination before touching its text, so a failed copy leaves it
+unchanged; the terminator is copied along with the text.
 */
 int
-d_string_copy_s
-(
+d_string_copy_s(
     struct d_string*       _destination,
     const struct d_string* _source
 )
@@ -773,13 +629,16 @@ d_string_copy_s
          (!_source) )
     {
         return EINVAL;
-    } 
-    else if (!d_string_internal_grow(_destination, _source->size + 1))
+    }
+    else if (!d_string_internal_grow(_destination,
+                                     _source->size + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text, _source->text, _source->size + 1);
+    d_memcpy(_destination->text,
+             _source->text,
+             _source->size + 1);
     _destination->size = _source->size;
 
     return 0;
@@ -787,39 +646,31 @@ d_string_copy_s
 
 /*
 d_string_copy_cstr_s
-  Safe copy from C string to d_string.
-
-Parameter(s):
-  _destination: destination d_string.
-  _source:      source C string.
-Return:
-  An integer value corresponding to either:
-  - 0, if copy was successful, or
-  - EINVAL, if either parameter was NULL.
+  Measures the source once, grows, then copies text and terminator together.
 */
 int
-d_string_copy_cstr_s
-(
+d_string_copy_cstr_s(
     struct d_string* _destination,
     const char*      _source
 )
 {
-    size_t len;
-
-    if ( (!_destination) || 
+    if ( (!_destination) ||
          (!_source) )
     {
         return EINVAL;
     }
 
-    len = strlen(_source);
+    const size_t len = strlen(_source);
 
-    if (!d_string_internal_grow(_destination, len + 1))
+    if (!d_string_internal_grow(_destination,
+                                len + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text, _source, len + 1);
+    d_memcpy(_destination->text,
+             _source,
+             len + 1);
 
     _destination->size = len;
 
@@ -828,41 +679,33 @@ d_string_copy_cstr_s
 
 /*
 d_string_ncopy_s
-  Safe-bounded copy from `d_string` to `d_string`.
-
-Parameter(s):
-  _destination: destination `d_string`.
-  _source:      source `d_string`.
-  _count:       maximum number of characters to copy.
-Return:
-  An integer value corresponding to either:
-  - 0, if copy was successful, or
-  - EINVAL, if either parameter was NULL.
+  Clamps `_count` to the source's size before growing, and terminates
+explicitly because the copied range may stop short of the source's terminator.
 */
 int
-d_string_ncopy_s
-(
+d_string_ncopy_s(
     struct d_string*        _destination,
     const struct d_string*  _source,
     size_t                  _count
 )
 {
-    size_t copy_len;
-
-    if ( (!_destination) || 
+    if ( (!_destination) ||
          (!_source) )
     {
         return EINVAL;
     }
 
-    copy_len = (_count < _source->size) ? _count : _source->size;
+    const size_t copy_len = (_count < _source->size) ? _count : _source->size;
 
-    if (!d_string_internal_grow(_destination, copy_len + 1))
+    if (!d_string_internal_grow(_destination,
+                                copy_len + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text, _source->text, copy_len);
+    d_memcpy(_destination->text,
+             _source->text,
+             copy_len);
     _destination->text[copy_len] = '\0';
     _destination->size           = copy_len;
 
@@ -871,41 +714,34 @@ d_string_ncopy_s
 
 /*
 d_string_ncopy_cstr_s
-  Safe-bounded copy from C string to `d_string`.
-
-Parameter(s):
-  _destination: destination `d_string`.
-  _source:      source C string.
-  _count:       maximum number of characters to copy.
-Return:
-  An integer value corresponding to either:
-  - 0, if copy was successful, or
-  - EINVAL, if either parameter was NULL.
+  d_strnlen() clamps the length without scanning past `_count` bytes; the
+terminator is written explicitly.
 */
 int
-d_string_ncopy_cstr_s
-(
+d_string_ncopy_cstr_s(
     struct d_string* _destination,
     const char*      _source,
     size_t           _count
 )
 {
-    size_t copy_len;
-
-    if ( (!_destination) || 
+    if ( (!_destination) ||
          (!_source) )
     {
         return EINVAL;
     }
 
-    copy_len = d_strnlen(_source, _count);
+    const size_t copy_len = d_strnlen(_source,
+                                      _count);
 
-    if (!d_string_internal_grow(_destination, copy_len + 1))
+    if (!d_string_internal_grow(_destination,
+                                copy_len + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text, _source, copy_len);
+    d_memcpy(_destination->text,
+             _source,
+             copy_len);
     _destination->text[copy_len] = '\0';
     _destination->size           = copy_len;
 
@@ -914,27 +750,18 @@ d_string_ncopy_cstr_s
 
 /*
 d_string_to_buffer_s
-  Safe copy from `d_string` to char buffer.
-
-Parameter(s):
-  _destination:      destination buffer.
-  _destination_size: size of destination buffer.
-  _source:           source `d_string`.
-Return:
-  An integer value corresponding to either:
-  - 0, if copy was successful, or
-  - EINVAL, if _destination or _source was NULL, or
-  - ERANGE, if destination buffer is too small.
+  A zero-size destination is rejected before anything is written. Otherwise a
+destination that is too small is cleared to an empty string, so a caller that
+ignores ERANGE still holds a terminated buffer.
 */
 int
-d_string_to_buffer_s
-(
-    char* restrict         _destination, 
+d_string_to_buffer_s(
+    char* restrict         _destination,
     size_t                 _destination_size,
     const struct d_string* _source
 )
 {
-    if ( (!_destination) || 
+    if ( (!_destination) ||
          (!_source) )
     {
         return EINVAL;
@@ -952,51 +779,43 @@ d_string_to_buffer_s
         return ERANGE;
     }
 
-    d_memcpy(_destination, _source->text, _source->size + 1);
+    d_memcpy(_destination,
+             _source->text,
+             _source->size + 1);
 
     return 0;
 }
 
-
-/******************************************************************************
-* Concatenation Functions
-******************************************************************************/
-
+// copying: safe concatenation
 /*
 d_string_cat_s
-  Safe concatenation of `d_string` to `d_string`.
-
-Parameter(s):
-  _destination: destination `d_string`.
-  _source:      source `d_string` to append.
-Return:
-  An integer value corresponding to either:
-  - 0, if concatenation was successful, or
-  - EINVAL, if either parameter was NULL.
+  Grows the destination, then copies the source's text and terminator in one
+d_memcpy(). That copy is why the parameters are restrict: appending a string
+to itself would overlap by the terminator.
 */
 int
-d_string_cat_s
-(
+d_string_cat_s(
     struct d_string* restrict       _destination,
     const struct d_string* restrict _source
 )
 {
-    size_t new_size;
-
-    if ( (!_destination) || 
+    if ( (!_destination) ||
          (!_source) )
     {
         return EINVAL;
     }
 
-    new_size = (_destination->size + _source->size);
+    const size_t new_size = (_destination->size + _source->size);
 
-    if (!d_string_internal_grow(_destination, new_size + 1))
+    if (!d_string_internal_grow(_destination,
+                                new_size + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text + _destination->size, _source->text, _source->size + 1);
+    d_memcpy(_destination->text + _destination->size,
+             _source->text,
+             _source->size + 1);
     _destination->size = new_size;
 
     return 0;
@@ -1004,41 +823,32 @@ d_string_cat_s
 
 /*
 d_string_cat_cstr_s
-  Safe concatenation of C string to d_string.
-
-Parameter(s):
-  _destination: destination d_string.
-  _source:      source C string to append.
-Return:
-  An integer value corresponding to either:
-  - 0, if concatenation was successful, or
-  - EINVAL, if either parameter was NULL.
+  Measures the source once, grows, then copies text and terminator together.
 */
 int
-d_string_cat_cstr_s
-(
+d_string_cat_cstr_s(
     struct d_string* restrict _destination,
     const char* restrict      _source
 )
 {
-    size_t src_len;
-    size_t new_size;
-
-    if ( (!_destination) || 
+    if ( (!_destination) ||
          (!_source) )
     {
         return EINVAL;
     }
 
-    src_len  = strlen(_source);
-    new_size = (_destination->size + src_len);
+    const size_t src_len  = strlen(_source);
+    const size_t new_size = (_destination->size + src_len);
 
-    if (!d_string_internal_grow(_destination, new_size + 1))
+    if (!d_string_internal_grow(_destination,
+                                new_size + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text + _destination->size, _source, src_len + 1);
+    d_memcpy(_destination->text + _destination->size,
+             _source,
+             src_len + 1);
     _destination->size = new_size;
 
     return 0;
@@ -1046,115 +856,86 @@ d_string_cat_cstr_s
 
 /*
 d_string_ncat_s
-  Safe-bounded concatenation of `d_string` to `d_string`.
-
-Parameter(s):
-  _destination: destination `d_string`.
-  _source:      source `d_string` to append.
-  _count:       maximum number of characters to append.
-Return:
-  An integer value corresponding to either:
-  - 0, if concatenation was successful, or
-  - EINVAL, if either parameter was NULL.
+  Clamps `_count` to the source's size, grows, copies, and terminates
+explicitly because the copied range may end before the source's terminator.
 */
 int
-d_string_ncat_s
-(
+d_string_ncat_s(
     struct d_string* restrict       _destination,
     const struct d_string* restrict _source,
     size_t                          _count
 )
 {
-    size_t append_len;
-    size_t new_size;
-
-    if ( (!_destination) || 
+    if ( (!_destination) ||
          (!_source) )
     {
         return EINVAL;
     }
 
-    append_len = (_count < _source->size) 
+    const size_t append_len = (_count < _source->size)
         ? _count
         : _source->size;
-    new_size = (_destination->size + append_len);
+    const size_t new_size   = (_destination->size + append_len);
 
-    if (!d_string_internal_grow(_destination, new_size + 1))
+    if (!d_string_internal_grow(_destination,
+                                new_size + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text + _destination->size, _source->text, append_len);
-    _destination->size            = new_size;
-    _destination->text[new_size]  = '\0';
+    d_memcpy(_destination->text + _destination->size,
+             _source->text,
+             append_len);
+    _destination->size           = new_size;
+    _destination->text[new_size] = '\0';
 
     return 0;
 }
 
 /*
 d_string_ncat_cstr_s
-  Safe-bounded concatenation of C string to `d_string`.
-
-Parameter(s):
-  _destination: destination `d_string`.
-  _source:      source C string to append.
-  _count:       maximum number of characters to append.
-Return:
-  An integer value corresponding to either:
-  - 0, if concatenation was successful, or
-  - EINVAL, if either parameter was NULL.
+  d_strnlen() clamps the length without scanning past `_count` bytes; the
+terminator is written explicitly after the copy.
 */
 int
-d_string_ncat_cstr_s
-(
+d_string_ncat_cstr_s(
     struct d_string* restrict _destination,
     const char* restrict      _source,
     size_t                    _count
 )
 {
-    size_t append_len;
-    size_t new_size;
-
-    if ( (_destination == NULL) || 
+    if ( (_destination == NULL) ||
          (_source == NULL) )
     {
         return EINVAL;
     }
 
-    append_len = d_strnlen(_source, _count);
-    new_size   = _destination->size + append_len;
+    const size_t append_len = d_strnlen(_source,
+                                        _count);
+    const size_t new_size   = _destination->size + append_len;
 
-    if (!d_string_internal_grow(_destination, new_size + 1))
+    if (!d_string_internal_grow(_destination,
+                                new_size + 1))
     {
         return ERANGE;
     }
 
-    d_memcpy(_destination->text + _destination->size, _source, append_len);
-    _destination->size            = new_size;
-    _destination->text[new_size]  = '\0';
+    d_memcpy(_destination->text + _destination->size,
+             _source,
+             append_len);
+    _destination->size           = new_size;
+    _destination->text[new_size] = '\0';
 
     return 0;
 }
 
-
-/******************************************************************************
-* Duplication Functions
-******************************************************************************/
-
+// copying: duplication
 /*
 d_string_dup
-  Duplicate a `d_string`.
-
-Parameter(s):
-  _string: `d_string` to duplicate.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated copy, if successful, or
-  - NULL, if _string was NULL or allocation failed.
+  Delegates to d_string_new_copy().
 */
-D_INLINE struct d_string*
-d_string_dup
-(
+struct d_string*
+d_string_dup(
     const struct d_string* _string
 )
 {
@@ -1163,24 +944,15 @@ d_string_dup
 
 /*
 d_string_ndup
-  Duplicate at most n characters of a `d_string`.
-
-Parameter(s):
-  _string: `d_string` to duplicate.
-  _n:       maximum number of characters to copy.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated copy, if successful, or
-  - NULL, if _string was NULL or allocation failed.
+  Clamps `_n` to the size and delegates to d_string_new_from_buffer().
 */
-D_INLINE struct d_string*
-d_string_ndup
-(
+struct d_string*
+d_string_ndup(
     const struct d_string* _string,
     size_t                 _n
 )
 {
-    return ( (_string) 
+    return ( (_string)
         ? d_string_new_from_buffer(_string->text,
                                    ( (_n < _string->size)
                                        ? _n
@@ -1190,70 +962,51 @@ d_string_ndup
 
 /*
 d_string_substr
-  Extract substring from `d_string`.
-
-Parameter(s):
-  _string: source d_string.
-  _start:  starting index (negative counts from end).
-  _length: number of characters to extract.
-Return:
-  A pointer value corresponding to either:
-  - newly allocated substring, if successful, or
-  - NULL, if _string was NULL or index was invalid.
+  Resolves `_start` with d_index_convert_safe(), clamps the length to the
+characters that remain, and delegates to d_string_new_from_buffer().
 */
 struct d_string*
-d_string_substr
-(
+d_string_substr(
     const struct d_string* _string,
     d_index                _start,
     size_t                 _length
 )
 {
-    size_t start_pos;
-    size_t actual_len;
+    size_t start_pos = 0;
 
     if ( (!_string) ||
-         (!d_index_convert_safe(_start, _string->size, &start_pos)) )
+         (!d_index_convert_safe(_start,
+                                _string->size,
+                                &start_pos)) )
     {
         return NULL;
     }
 
     // clamp length to available characters
-    actual_len = _length;
+    size_t actual_len = _length;
 
     if (start_pos + actual_len > _string->size)
     {
         actual_len = (_string->size - start_pos);
     }
 
-    return d_string_new_from_buffer(_string->text + start_pos, actual_len);
+    return d_string_new_from_buffer(_string->text + start_pos,
+                                    actual_len);
 }
 
-
-/******************************************************************************
-* Comparison Functions
-******************************************************************************/
-
+// comparison
 /*
 d_string_compare
-  Compares two `d_string`s lexicographically using length-aware comparison.
-
-Parameter(s):
-  _s1: the first `d_string` to compare.
-  _s2: the second `d_string` to compare.
-Return:
-  A value less than, equal to, or greater than zero if _s1 is found to be
-  less than, equal to, or greater than _s2, respectively. Returns 0 if both
-  are NULL.
+  Settles the NULL cases first, then defers to d_strcmp_n(), which compares
+lengths as well as content, so embedded NULs take part.
 */
 int
-d_string_compare
-(
+d_string_compare(
     const struct d_string* _s1,
     const struct d_string* _s2
 )
 {
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1277,25 +1030,16 @@ d_string_compare
 
 /*
 d_string_compare_cstr
-  Compares a `d_string` against a C string lexicographically using length-aware
-comparison.
-
-Parameter(s):
-  _s1: the `d_string` to compare.
-  _s2: the C string to compare against; may be NULL.
-Return:
-  A value less than, equal to, or greater than zero if _s1 is found to be
-  less than, equal to, or greater than _s2, respectively. Returns 0 if both
-  are NULL.
+  Settles the NULL cases first, measures the C string, and defers to
+d_strcmp_n().
 */
-D_INLINE int
-d_string_compare_cstr
-(
+int
+d_string_compare_cstr(
     const struct d_string* _s1,
     const char*            _s2
 )
 {
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1312,41 +1056,29 @@ d_string_compare_cstr
     }
 
     return d_strcmp_n(_s1->text,
-                     _s1->size,
-                     _s2,
-                     strlen(_s2));
+                      _s1->size,
+                      _s2,
+                      strlen(_s2));
 }
 
 /*
 d_string_ncmp
-  Compare at most n characters of two d_strings.
-
-Parameter(s):
-  _s1: first d_string.
-  _s2: second d_string.
-  _n:  maximum characters to compare.
-Return:
-  An integer value indicating relationship.
+  Clamps each side to `_n`, compares the common prefix with memcmp(), and
+breaks a tie on length, so embedded NULs take part.
 */
 int
-d_string_ncmp
-(
+d_string_ncmp(
     const struct d_string* _s1,
     const struct d_string* _s2,
     size_t                 _n
 )
 {
-    size_t len1;
-    size_t len2;
-    size_t min_len;
-    int    result;
-
     if (!_n)
     {
         return 0;
     }
 
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1362,15 +1094,17 @@ d_string_ncmp
         return 1;
     }
 
-    len1 = (_n < _s1->size) 
+    const size_t len1    = (_n < _s1->size)
         ? _n
         : _s1->size;
-    len2    = (_n < _s2->size)
+    const size_t len2    = (_n < _s2->size)
         ? _n
         : _s2->size;
-    min_len = (len1 < len2) ? len1 : len2;
+    const size_t min_len = (len1 < len2) ? len1 : len2;
 
-    result = memcmp(_s1->text, _s2->text, min_len);
+    const int result = memcmp(_s1->text,
+                              _s2->text,
+                              min_len);
 
     if (result != 0)
     {
@@ -1392,18 +1126,11 @@ d_string_ncmp
 
 /*
 d_string_ncmp_cstr
-  Compare at most n characters of `d_string` to C string.
-
-Parameter(s):
-  _s1: `d_string` being compared.
-  _s2: C string being compared.
-  _n:  maximum characters to compare.
-Return:
-  An integer value indicating relationship.
+  Settles the NULL cases, then defers to strncmp(), which stops at the first
+NUL.
 */
-D_INLINE int
-d_string_ncmp_cstr
-(
+int
+d_string_ncmp_cstr(
     const struct d_string* _s1,
     const char*            _s2,
     size_t                 _n
@@ -1414,7 +1141,7 @@ d_string_ncmp_cstr
         return 0;
     }
 
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1430,27 +1157,22 @@ d_string_ncmp_cstr
         return 1;
     }
 
-    return strncmp(_s1->text, _s2, _n);
+    return strncmp(_s1->text,
+                   _s2,
+                   _n);
 }
 
 /*
 d_string_casecmp
-  Case-insensitive comparison of two `d_string`s.
-
-Parameter(s):
-  _s1: first `d_string` being compared. 
-  _s2: second `d_string` being compared.
-Return:
-  An integer value indicating relationship.
+  Settles the NULL cases, then defers to d_strcasecmp().
 */
-D_INLINE int
-d_string_casecmp
-(
+int
+d_string_casecmp(
     const struct d_string* _s1,
     const struct d_string* _s2
 )
 {
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1466,27 +1188,21 @@ d_string_casecmp
         return 1;
     }
 
-    return d_strcasecmp(_s1->text, _s2->text);
+    return d_strcasecmp(_s1->text,
+                        _s2->text);
 }
 
 /*
 d_string_casecmp_cstr
-  Case-insensitive comparison of `d_string` to C string.
-
-Parameter(s):
-  _s1: `d_string` being compared.
-  _s2: C string being compared.
-Return:
-  An integer value indicating relationship.
+  Settles the NULL cases, then defers to d_strcasecmp().
 */
-D_INLINE int
-d_string_casecmp_cstr
-(
+int
+d_string_casecmp_cstr(
     const struct d_string* _s1,
     const char*            _s2
 )
 {
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1502,23 +1218,16 @@ d_string_casecmp_cstr
         return 1;
     }
 
-    return d_strcasecmp(_s1->text, _s2);
+    return d_strcasecmp(_s1->text,
+                        _s2);
 }
 
 /*
 d_string_ncasecmp
-  Case-insensitive comparison of at most n characters.
-
-Parameter(s):
-  _s1: first `d_string` being compared.
-  _s2: second `d_string` being compared.
-  _n:  maximum characters to compare.
-Return:
-  An integer value indicating relationship.
+  Settles the NULL cases, then defers to d_strncasecmp().
 */
-D_INLINE int
-d_string_ncasecmp
-(
+int
+d_string_ncasecmp(
     const struct d_string* _s1,
     const struct d_string* _s2,
     size_t                 _n
@@ -1529,7 +1238,7 @@ d_string_ncasecmp
         return 0;
     }
 
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1545,24 +1254,17 @@ d_string_ncasecmp
         return 1;
     }
 
-    return d_strncasecmp(_s1->text, _s2->text, _n);
+    return d_strncasecmp(_s1->text,
+                         _s2->text,
+                         _n);
 }
 
 /*
 d_string_ncasecmp_cstr
-  Case-insensitive comparison of at most n characters from a `d_string` to a 
-C string.
-
-Parameter(s):
-  _s1: `d_string` being compared.
-  _s2: C string being compared.
-  _n:  maximum characters to compare.
-Return:
-  An integer value indicating relationship.
+  Settles the NULL cases, then defers to d_strncasecmp().
 */
-D_INLINE int
-d_string_ncasecmp_cstr
-(
+int
+d_string_ncasecmp_cstr(
     const struct d_string* _s1,
     const char*            _s2,
     size_t                 _n
@@ -1573,7 +1275,7 @@ d_string_ncasecmp_cstr
         return 0;
     }
 
-    if ( (!_s1) && 
+    if ( (!_s1) &&
          (!_s2) )
     {
         return 0;
@@ -1589,284 +1291,213 @@ d_string_ncasecmp_cstr
         return 1;
     }
 
-    return d_strncasecmp(_s1->text, _s2, _n);
+    return d_strncasecmp(_s1->text,
+                         _s2,
+                         _n);
 }
 
 /*
 d_string_equals
-  Check if two `d_string`s are equal.
-
-Parameter(s):
-  _s1: first `d_string` being compared.
-  _s2: second `d_string` being compared.
-Return:
-  A boolean value: true if equal, false otherwise.
+  Delegates to d_string_compare().
 */
-D_INLINE bool
-d_string_equals
-(
+bool
+d_string_equals(
     const struct d_string* _s1,
     const struct d_string* _s2
 )
 {
-    return (d_string_compare(_s1, _s2) == 0);
+    return (d_string_compare(_s1,
+                             _s2) == 0);
 }
 
 /*
 d_string_equals_cstr
-  Check if d_string equals C string.
-
-Parameter(s):
-  _s1: d_string.
-  _s2: C string.
-Return:
-  A boolean value: true if equal, false otherwise.
+  Delegates to d_string_compare_cstr().
 */
-D_INLINE bool
-d_string_equals_cstr
-(
+bool
+d_string_equals_cstr(
     const struct d_string* _s1,
     const char*            _s2
 )
 {
-    return (d_string_compare_cstr(_s1, _s2) == 0);
+    return (d_string_compare_cstr(_s1,
+                                  _s2) == 0);
 }
 
 /*
 d_string_equals_ignore_case
-  Check if two `d_string`s are equal ignoring case.
-
-Parameter(s):
-  _s1: first `d_string` being compared.
-  _s2: second `d_string` being compared.
-Return:
-  A boolean value: true if equal ignoring case, false otherwise.
+  Delegates to d_string_casecmp().
 */
-D_INLINE bool
-d_string_equals_ignore_case
-(
+bool
+d_string_equals_ignore_case(
     const struct d_string* _s1,
     const struct d_string* _s2
 )
 {
-    return (d_string_casecmp(_s1, _s2) == 0);
+    return (d_string_casecmp(_s1,
+                             _s2) == 0);
 }
 
 /*
 d_string_equals_cstr_ignore_case
-  Check if d_string equals C string ignoring case.
-
-Parameter(s):
-  _s1: first `d_string` being compared.
-  _s2: C string being compared.
-Return:
-  A boolean value: true if equal ignoring case, false otherwise.
+  Delegates to d_string_casecmp_cstr().
 */
-D_INLINE bool
-d_string_equals_cstr_ignore_case
-(
+bool
+d_string_equals_cstr_ignore_case(
     const struct d_string* _s1,
     const char*            _s2
 )
 {
-    return (d_string_casecmp_cstr(_s1, _s2) == 0);
+    return (d_string_casecmp_cstr(_s1,
+                                  _s2) == 0);
 }
 
+// search: character search
 /*
 d_string_find_char
-  Searches for the first occurrence of a character in a d_string.
-
-Parameter(s):
-  _string: the string to search.
-  _c:      the character to find.
-Return:
-  The index of the first occurrence of _c in the string, or D_STRING_NPOS
-  if _c was not found or _string is NULL.
+  Searches with strchr() and converts the hit to an index. Searching for '\0'
+therefore finds the terminator rather than failing.
 */
 d_index
-d_string_find_char
-(
+d_string_find_char(
     const struct d_string* _string,
     char                   _c
 )
 {
-    const char* p;
-
-    if ( (!_string) || 
+    if ( (!_string) ||
          (!_string->text) )
     {
         return -1;
     }
 
-    p = strchr(_string->text, _c);
+    const char* p = strchr(_string->text,
+                           _c);
 
     return (p)
-        ? (ssize_t)(p - _string->text)
+        ? (d_index)(p - _string->text)
         : -1;
 }
 
 /*
 d_string_find_char_from
-  Find first occurrence of character starting from index in a given `d_string`.
-
-Parameter(s):
-  _string: `d_string` to search.
-  _c:      character to find.
-  _start:  starting index.
-Return:
-  Index of character, or -1 if not found.
+  Resolves `_start` with d_index_convert_safe() and searches from there with
+strchr(); the index is measured from the start of the string, not from
+`_start`.
 */
-ssize_t
-d_string_find_char_from
-(
+d_index
+d_string_find_char_from(
     const struct d_string* _string,
     char                   _c,
     d_index                _start
 )
 {
-    size_t      start_pos;
-    const char* p;
+    size_t start_pos = 0;
 
-    if ( (!_string)       || 
+    if ( (!_string)       ||
          (!_string->text) ||
-         (!d_index_convert_safe(_start, _string->size, &start_pos)) )
+         (!d_index_convert_safe(_start,
+                                _string->size,
+                                &start_pos)) )
     {
         return -1;
     }
 
-    p = strchr(_string->text + start_pos, _c);
+    const char* p = strchr(_string->text + start_pos,
+                           _c);
 
     return (p)
-        ? (ssize_t)(p - _string->text)
+        ? (d_index)(p - _string->text)
         : -1;
 }
 
 /*
 d_string_rfind_char
-  Find last occurrence of character in `d_string`.
-
-Parameter(s):
-  _string: `d_string` to search.
-  _c:      character to find.
-Return:
-  Index of character, or -1 if not found.
+  Searches with strrchr() and converts the hit to an index.
 */
-ssize_t
-d_string_rfind_char
-(
+d_index
+d_string_rfind_char(
     const struct d_string* _string,
     char                   _c
 )
 {
-    const char* p;
-
-    if ( (!_string) || 
+    if ( (!_string) ||
          (!_string->text) )
     {
         return -1;
     }
 
-    p = strrchr(_string->text, _c);
+    const char* p = strrchr(_string->text,
+                            _c);
 
     return (p)
-        ? (ssize_t)(p - _string->text)
+        ? (d_index)(p - _string->text)
         : -1;
 }
 
 /*
 d_string_chr
-  Find character in `d_string`, returning pointer.
-
-Parameter(s):
-  _string: `d_string` to search.
-  _c:      character to find.
-Return:
-  Pointer to character, or NULL if not found.
-*/
-D_INLINE char*
-d_string_chr
-(
-    const struct d_string* _string,
-    int                    _c
-)
-{
-    return ( (_string) &&
-             (_string->text) )
-        ? strchr(_string->text, _c)
-        : NULL;
-}
-
-/*
-d_string_rchr
-  Find last occurrence of character in a `d_string`, returning pointer.
-
-Parameter(s):
-  _string: `d_string` to search.
-  _c:      character to find.
-Return:
-  Pointer to character, or NULL if not found.
-*/
-D_INLINE char*
-d_string_rchr
-(
-    const struct d_string* _string,
-    int                    _c
-)
-{
-    return ( (_string) &&
-             (_string->text) )
-        ? strrchr(_string->text, _c)
-        : NULL;
-}
-
-/*
-d_string_chrnul
-  Find character or return pointer to null terminator.
-
-Parameter(s):
-  _string: d_string to search.
-  _c:   character to find.
-Return:
-  Pointer to character or null terminator, NULL only if _string is NULL.
+  Wraps strchr().
 */
 char*
-d_string_chrnul
-(
+d_string_chr(
     const struct d_string* _string,
     int                    _c
 )
 {
     return ( (_string) &&
              (_string->text) )
-        ? d_strchrnul(_string->text, _c)
+        ? strchr(_string->text,
+                 _c)
         : NULL;
 }
 
-
-/******************************************************************************
-* Search Functions - Substring Search
-******************************************************************************/
+/*
+d_string_rchr
+  Wraps strrchr().
+*/
+char*
+d_string_rchr(
+    const struct d_string* _string,
+    int                    _c
+)
+{
+    return ( (_string) &&
+             (_string->text) )
+        ? strrchr(_string->text,
+                  _c)
+        : NULL;
+}
 
 /*
-d_string_find
-  Find first occurrence of substring in d_string.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   d_string to search for.
-Return:
-  Index of substring, or -1 if not found.
+d_string_chrnul
+  Wraps d_strchrnul().
 */
-ssize_t
+char*
+d_string_chrnul(
+    const struct d_string* _string,
+    int                    _c
+)
+{
+    return ( (_string) &&
+             (_string->text) )
+        ? d_strchrnul(_string->text,
+                      _c)
+        : NULL;
+}
+
+// search: substring search
+/*
 d_string_find
-(
+  An empty needle matches at index 0 without searching; otherwise strstr()
+does the work, so matching stops at the first NUL of either string.
+*/
+d_index
+d_string_find(
     const struct d_string* _haystack,
     const struct d_string* _needle
 )
 {
-    const char* p;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
@@ -1877,36 +1508,29 @@ d_string_find
         return 0;
     }
 
-    p = strstr(_haystack->text, _needle->text);
+    const char* p = strstr(_haystack->text,
+                           _needle->text);
 
     if (p == NULL)
     {
         return -1;
     }
 
-    return (ssize_t)(p - _haystack->text);
+    return (d_index)(p - _haystack->text);
 }
 
 /*
 d_string_find_cstr
-  Find first occurrence of C string in d_string.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   C string to search for.
-Return:
-  Index of substring, or -1 if not found.
+  An empty needle matches at index 0 without searching; otherwise strstr()
+does the work.
 */
-ssize_t
-d_string_find_cstr
-(
+d_index
+d_string_find_cstr(
     const struct d_string* _haystack,
     const char*            _needle
 )
 {
-    const char* p;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
@@ -1917,124 +1541,106 @@ d_string_find_cstr
         return 0;
     }
 
-    p = strstr(_haystack->text, _needle);
+    const char* p = strstr(_haystack->text,
+                           _needle);
 
     if (p == NULL)
     {
         return -1;
     }
 
-    return (ssize_t)(p - _haystack->text);
+    return (d_index)(p - _haystack->text);
 }
 
 /*
 d_string_find_from
-  Find substring starting from index.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   d_string to search for.
-  _start:    starting index.
-Return:
-  Index of substring, or -1 if not found.
+  Resolves `_start` with d_index_convert_safe() and searches from there with
+strstr(); the index is measured from the start of the string.
 */
-ssize_t
-d_string_find_from
-(
+d_index
+d_string_find_from(
     const struct d_string* _haystack,
     const struct d_string* _needle,
     d_index                _start
 )
 {
-    size_t      start_pos;
-    const char* p;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
     }
 
-    if (!d_index_convert_safe(_start, _haystack->size, &start_pos))
+    size_t start_pos = 0;
+
+    if (!d_index_convert_safe(_start,
+                              _haystack->size,
+                              &start_pos))
     {
         return -1;
     }
 
-    p = strstr(_haystack->text + start_pos, _needle->text);
+    const char* p = strstr(_haystack->text + start_pos,
+                           _needle->text);
 
     if (p == NULL)
     {
         return -1;
     }
 
-    return (ssize_t)(p - _haystack->text);
+    return (d_index)(p - _haystack->text);
 }
 
 /*
 d_string_find_cstr_from
-  Find C string starting from index.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   C string to search for.
-  _start:    starting index.
-Return:
-  Index of substring, or -1 if not found.
+  Resolves `_start` with d_index_convert_safe() and searches from there with
+strstr(); the index is measured from the start of the string.
 */
-ssize_t
-d_string_find_cstr_from
-(
+d_index
+d_string_find_cstr_from(
     const struct d_string* _haystack,
     const char*            _needle,
     d_index                _start
 )
 {
-    size_t      start_pos;
-    const char* p;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
     }
 
-    if (!d_index_convert_safe(_start, _haystack->size, &start_pos))
+    size_t start_pos = 0;
+
+    if (!d_index_convert_safe(_start,
+                              _haystack->size,
+                              &start_pos))
     {
         return -1;
     }
 
-    p = strstr(_haystack->text + start_pos, _needle);
+    const char* p = strstr(_haystack->text + start_pos,
+                           _needle);
 
     if (p == NULL)
     {
         return -1;
     }
 
-    return (ssize_t)(p - _haystack->text);
+    return (d_index)(p - _haystack->text);
 }
 
 /*
 d_string_rfind
-  Find last occurrence of substring.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   d_string to search for.
-Return:
-  Index of last occurrence, or -1 if not found.
+  Restarts strstr() one character past each hit and keeps the last one, so
+overlapping occurrences are found. An empty needle short-circuits to the
+length.
 */
-ssize_t
-d_string_rfind
-(
+d_index
+d_string_rfind(
     const struct d_string* _haystack,
     const struct d_string* _needle
 )
 {
-    ssize_t     last_pos;
-    const char* p;
-    const char* search_start;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
@@ -2042,7 +1648,7 @@ d_string_rfind
 
     if (_needle->size == 0)
     {
-        return (ssize_t)_haystack->size;
+        return (d_index)_haystack->size;
     }
 
     if (_needle->size > _haystack->size)
@@ -2050,12 +1656,14 @@ d_string_rfind
         return -1;
     }
 
-    last_pos     = -1;
-    search_start = _haystack->text;
+    d_index     last_pos     = -1;
+    const char* search_start = _haystack->text;
+    const char* p            = NULL;
 
-    while ((p = strstr(search_start, _needle->text)) != NULL)
+    while ((p = strstr(search_start,
+                       _needle->text)) != NULL)
     {
-        last_pos     = (ssize_t)(p - _haystack->text);
+        last_pos     = (d_index)(p - _haystack->text);
         search_start = p + 1;
     }
 
@@ -2064,26 +1672,17 @@ d_string_rfind
 
 /*
 d_string_rfind_cstr
-  Find last occurrence of C string.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   C string to search for.
-Return:
-  Index of last occurrence, or -1 if not found.
+  Restarts strstr() one character past each hit and keeps the last one, so
+overlapping occurrences are found. An empty needle short-circuits to the
+length.
 */
-ssize_t
-d_string_rfind_cstr
-(
+d_index
+d_string_rfind_cstr(
     const struct d_string* _haystack,
     const char*            _needle
 )
 {
-    ssize_t     last_pos;
-    const char* p;
-    const char* search_start;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
@@ -2091,15 +1690,17 @@ d_string_rfind_cstr
 
     if (*_needle == '\0')
     {
-        return (ssize_t)_haystack->size;
+        return (d_index)_haystack->size;
     }
 
-    last_pos     = -1;
-    search_start = _haystack->text;
+    d_index     last_pos     = -1;
+    const char* search_start = _haystack->text;
+    const char* p            = NULL;
 
-    while ((p = strstr(search_start, _needle)) != NULL)
+    while ((p = strstr(search_start,
+                       _needle)) != NULL)
     {
-        last_pos     = (ssize_t)(p - _haystack->text);
+        last_pos     = (d_index)(p - _haystack->text);
         search_start = p + 1;
     }
 
@@ -2108,198 +1709,143 @@ d_string_rfind_cstr
 
 /*
 d_string_str
-  Find substring, returning pointer (strstr equivalent).
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   C string to search for.
-Return:
-  Pointer to substring, or NULL if not found.
+  Wraps strstr().
 */
-D_INLINE char*
-d_string_str
-(
+char*
+d_string_str(
     const struct d_string* _haystack,
     const char*            _needle
 )
 {
     return ( (_haystack) &&
              (_needle) )
-        ? strstr(_haystack->text, _needle)
+        ? strstr(_haystack->text,
+                 _needle)
         : NULL;
 }
 
+// search: case-insensitive search
 /*
 d_string_casefind
-  Case-insensitive find substring.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   d_string to search for.
-Return:
-  Index of substring, or -1 if not found.
+  Wraps d_strcasestr() and converts the hit to an index.
 */
-ssize_t
-d_string_casefind
-(
+d_index
+d_string_casefind(
     const struct d_string* _haystack,
     const struct d_string* _needle
 )
 {
-    char* p;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
     }
 
-    p = d_strcasestr(_haystack->text, _needle->text);
+    char* p = d_strcasestr(_haystack->text,
+                           _needle->text);
 
     if (p == NULL)
     {
         return -1;
     }
 
-    return (ssize_t)(p - _haystack->text);
+    return (d_index)(p - _haystack->text);
 }
 
 /*
 d_string_casefind_cstr
-  Case-insensitive find C string.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   C string to search for.
-Return:
-  Index of substring, or -1 if not found.
+  Wraps d_strcasestr() and converts the hit to an index.
 */
-ssize_t
-d_string_casefind_cstr
-(
+d_index
+d_string_casefind_cstr(
     const struct d_string* _haystack,
     const char*            _needle
 )
 {
-    char* p;
-
-    if ( (!_haystack) || 
+    if ( (!_haystack) ||
          (!_needle) )
     {
         return -1;
     }
 
-    p = d_strcasestr(_haystack->text, _needle);
+    char* p = d_strcasestr(_haystack->text,
+                           _needle);
 
     if (p == NULL)
     {
         return -1;
     }
 
-    return (ssize_t)(p - _haystack->text);
+    return (d_index)(p - _haystack->text);
 }
 
 /*
 d_string_casestr
-  Case-insensitive substring search returning pointer.
-
-Parameter(s):
-  _haystack: d_string to search in.
-  _needle:   C string to search for.
-Return:
-  Pointer to substring, or NULL if not found.
+  Wraps d_strcasestr().
 */
-D_INLINE char*
-d_string_casestr
-(
+char*
+d_string_casestr(
     const struct d_string* _haystack,
     const char*            _needle
 )
 {
     return ( (_haystack) &&
              (_needle) )
-        ? d_strcasestr(_haystack->text, _needle)
+        ? d_strcasestr(_haystack->text,
+                       _needle)
         : NULL;
 }
 
-
-/******************************************************************************
-* Search Functions - Containment Checks
-******************************************************************************/
-
+// search: containment and spans
 /*
 d_string_contains
-  Check if `d_string` contains substring.
-
-Parameter(s):
-  _string: `d_string` to search in.
-  _substr: `d_string` to search for.
-Return:
-  true if _substr is found in _string, false otherwise.
+  Delegates to d_string_find().
 */
-D_INLINE bool
-d_string_contains
-(
+bool
+d_string_contains(
     const struct d_string* _string,
     const struct d_string* _substr
 )
 {
-    return (d_string_find(_string, _substr) >= 0);
+    return (d_string_find(_string,
+                          _substr) >= 0);
 }
 
 /*
 d_string_contains_cstr
-  Check if d_string contains C string.
-
-Parameter(s):
-  _string:    d_string to search in.
-  _substr: C string to search for.
-Return:
-  true if _substr is found in _string, false otherwise.
+  Delegates to d_string_find_cstr().
 */
-D_INLINE bool
-d_string_contains_cstr
-(
+bool
+d_string_contains_cstr(
     const struct d_string* _string,
     const char*            _substr
 )
 {
-    return (d_string_find_cstr(_string, _substr) >= 0);
+    return (d_string_find_cstr(_string,
+                               _substr) >= 0);
 }
 
 /*
 d_string_contains_char
-  Check if `d_string` contains character.
-
-Parameter(s):
-  _string: `d_string` to search in.
-  _c:       character to search for.
-Return:
-  true if _c is found in _string, false otherwise.
+  Delegates to d_string_find_char().
 */
-D_INLINE bool
-d_string_contains_char
-(
+bool
+d_string_contains_char(
     const struct d_string* _string,
     char                   _c
 )
 {
-    return (d_string_find_char(_string, _c) >= 0);
+    return (d_string_find_char(_string,
+                               _c) >= 0);
 }
 
 /*
 d_string_starts_with
-  Check if `d_string` starts with prefix.
-
-Parameter(s):
-  _string: `d_string` to check.
-  _prefix: `d_string` prefix.
-Return:
-  true if _string starts with _prefix, false otherwise.
+  Checks the prefix fits before comparing, then compares with memcmp() over
+the prefix's full size, so embedded NULs take part.
 */
-D_INLINE bool
-d_string_starts_with
-(
+bool
+d_string_starts_with(
     const struct d_string* _string,
     const struct d_string* _prefix
 )
@@ -2307,65 +1853,53 @@ d_string_starts_with
     return ( (_string) &&
              (_prefix) &&
              (_prefix->size <= _string->size) )
-        ? (memcmp(_string->text, _prefix->text, _prefix->size) == 0)
+        ? (memcmp(_string->text,
+                  _prefix->text,
+                  _prefix->size) == 0)
         : false;
 }
 
 /*
 d_string_starts_with_cstr
-  Check if `d_string` starts with C string prefix.
-
-Parameter(s):
-  _string: `d_string` to check.
-  _prefix: C string prefix.
-Return:
-  true if _string starts with _prefix, false otherwise.
+  Measures the prefix, rejects one longer than the string, and compares with
+memcmp().
 */
 bool
-d_string_starts_with_cstr
-(
+d_string_starts_with_cstr(
     const struct d_string* _string,
     const char*            _prefix
 )
 {
-    size_t prefix_len;
-
-    if ( (!_string) || 
+    if ( (!_string) ||
          (!_prefix) )
     {
         return false;
     }
 
-    prefix_len = strlen(_prefix);
+    const size_t prefix_len = strlen(_prefix);
 
     if (prefix_len > _string->size)
     {
         return false;
     }
 
-    return (memcmp(_string->text, _prefix, prefix_len) == 0);
+    return (memcmp(_string->text,
+                   _prefix,
+                   prefix_len) == 0);
 }
 
 /*
 d_string_ends_with
-  Check if `d_string` ends with suffix.
-
-Parameter(s):
-  _string: `d_string` to check.
-  _suffix: `d_string` suffix.
-Return:
-  true if _string ends with _suffix, false otherwise.
+  Rejects a suffix longer than the string first, which keeps the offset from
+underflowing, then compares the tail with memcmp().
 */
 bool
-d_string_ends_with
-(
+d_string_ends_with(
     const struct d_string* _string,
     const struct d_string* _suffix
 )
 {
-    size_t offset;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_suffix == NULL) )
     {
         return false;
@@ -2376,212 +1910,170 @@ d_string_ends_with
         return false;
     }
 
-    offset = _string->size - _suffix->size;
+    const size_t offset = _string->size - _suffix->size;
 
-    return (memcmp(_string->text + offset, _suffix->text, _suffix->size) == 0);
+    return (memcmp(_string->text + offset,
+                   _suffix->text,
+                   _suffix->size) == 0);
 }
 
 /*
 d_string_ends_with_cstr
-  Check if `d_string` ends with C string suffix.
-
-Parameter(s):
-  _string: `d_string` to check.
-  _suffix: C string suffix.
-Return:
-  true if _string ends with _suffix, false otherwise.
+  Measures the suffix and rejects one longer than the string, which keeps the
+offset from underflowing, then compares the tail with memcmp().
 */
 bool
-d_string_ends_with_cstr
-(
+d_string_ends_with_cstr(
     const struct d_string* _string,
     const char*            _suffix
 )
 {
-    size_t suffix_len;
-    size_t offset;
-
-    if ( (!_string) || 
+    if ( (!_string) ||
          (!_suffix) )
     {
         return false;
     }
 
-    suffix_len = strlen(_suffix);
+    const size_t suffix_len = strlen(_suffix);
 
     if (suffix_len > _string->size)
     {
         return false;
     }
 
-    offset = (_string->size - suffix_len);
+    const size_t offset = (_string->size - suffix_len);
 
-    return (memcmp(_string->text + offset, _suffix, suffix_len) == 0);
+    return (memcmp(_string->text + offset,
+                   _suffix,
+                   suffix_len) == 0);
 }
 
 /*
 d_string_spn
-  Get length of initial segment containing only characters in accept.
-
-Parameter(s):
-  _string: `d_string` to scan.
-  _accept: string of accepted characters.
-Return:
-  Length of initial segment.
+  Wraps strspn().
 */
-D_INLINE size_t
-d_string_spn
-(
+size_t
+d_string_spn(
     const struct d_string* _string,
     const char*            _accept
 )
 {
-    return ( (_string) && 
+    return ( (_string) &&
              (_accept) )
-        ? strspn(_string->text, _accept)
+        ? strspn(_string->text,
+                 _accept)
         : 0;
 }
 
 /*
 d_string_cspn
-  Get length of initial segment not containing characters in reject.
-
-Parameter(s):
-  _string:    d_string to scan.
-  _reject: string of rejected characters.
-Return:
-  Length of initial segment.
+  Wraps strcspn().
 */
 size_t
-d_string_cspn
-(
+d_string_cspn(
     const struct d_string* _string,
     const char*            _reject
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_reject == NULL) )
     {
         return 0;
     }
 
-    return strcspn(_string->text, _reject);
+    return strcspn(_string->text,
+                   _reject);
 }
 
 /*
 d_string_pbrk
-  Find first occurrence of any character from accept string.
-
-Parameter(s):
-  _string:    d_string to search.
-  _accept: string of characters to find.
-Return:
-  Pointer to first matching character, or NULL if none found.
+  Wraps strpbrk().
 */
 char*
-d_string_pbrk
-(
+d_string_pbrk(
     const struct d_string* _string,
     const char*            _accept
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_accept == NULL) )
     {
         return NULL;
     }
 
-    return strpbrk(_string->text, _accept);
+    return strpbrk(_string->text,
+                   _accept);
 }
 
-
-/******************************************************************************
-* Modification Functions - Assignment
-******************************************************************************/
-
+// modification: assignment
 /*
 d_string_assign
-  Assign content from another d_string.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _other: source d_string.
-Return:
-  true if successful, false otherwise.
+  Delegates to d_string_copy_s() and folds its error code into a bool.
 */
 bool
-d_string_assign
-(
+d_string_assign(
     struct d_string*       _string,
     const struct d_string* _other
 )
 {
-    if ( (!_string) || 
+    if ( (!_string) ||
          (!_other) )
     {
         return false;
     }
 
-    return (d_string_copy_s(_string, _other) == 0);
+    return (d_string_copy_s(_string,
+                            _other) == 0);
 }
 
 /*
 d_string_assign_cstr
-  Assign content from C string.
-
-Parameter(s):
-  _string:  d_string to modify.
-  _cstr: source C string.
-Return:
-  true if successful, false otherwise.
+  Delegates to d_string_copy_cstr_s() and folds its error code into a bool.
 */
 bool
-d_string_assign_cstr
-(
+d_string_assign_cstr(
     struct d_string* _string,
     const char*      _cstr
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_cstr == NULL) )
     {
         return false;
     }
 
-    return (d_string_copy_cstr_s(_string, _cstr) == 0);
+    return (d_string_copy_cstr_s(_string,
+                                 _cstr) == 0);
 }
 
 /*
 d_string_assign_buffer
-  Assign content from buffer.
-
-Parameter(s):
-  _string:    d_string to modify.
-  _buffer: source buffer.
-  _length: number of bytes to copy.
-Return:
-  true if successful, false otherwise.
+  Grows first and copies only on success, so a failed assignment leaves the
+string unchanged; the terminator is written explicitly because `_buffer` need
+not have one.
 */
 bool
-d_string_assign_buffer
-(
+d_string_assign_buffer(
     struct d_string* _string,
     const char*      _buffer,
     size_t           _length
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_buffer == NULL) )
     {
         return false;
     }
 
-    if (!d_string_internal_grow(_string, _length + 1))
+    if (!d_string_internal_grow(_string,
+                                _length + 1))
     {
         return false;
     }
 
-    d_memcpy(_string->text, _buffer, _length);
+    d_memcpy(_string->text,
+             _buffer,
+             _length);
     _string->text[_length] = '\0';
     _string->size          = _length;
 
@@ -2590,18 +2082,10 @@ d_string_assign_buffer
 
 /*
 d_string_assign_char
-  Assign repeated character.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _count: number of times to repeat.
-  _c:     character to assign.
-Return:
-  true if successful, false otherwise.
+  Grows first, fills with d_memset(), and writes the terminator separately.
 */
 bool
-d_string_assign_char
-(
+d_string_assign_char(
     struct d_string* _string,
     size_t           _count,
     char             _c
@@ -2612,110 +2096,91 @@ d_string_assign_char
         return false;
     }
 
-    if (!d_string_internal_grow(_string, _count + 1))
+    if (!d_string_internal_grow(_string,
+                                _count + 1))
     {
         return false;
     }
 
-    d_memset(_string->text, _c, _count);
+    d_memset(_string->text,
+             _c,
+             _count);
     _string->text[_count] = '\0';
     _string->size         = _count;
 
     return true;
 }
 
-
-/******************************************************************************
-* Modification Functions - Append
-******************************************************************************/
-
+// modification: append
 /*
 d_string_append
-  Append another d_string.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _other: d_string to append.
-Return:
-  true if successful, false otherwise.
+  Delegates to d_string_cat_s() and folds its error code into a bool.
 */
 bool
-d_string_append
-(
+d_string_append(
     struct d_string*       _string,
     const struct d_string* _other
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_other == NULL) )
     {
         return false;
     }
 
-    return (d_string_cat_s(_string, _other) == 0);
+    return (d_string_cat_s(_string,
+                           _other) == 0);
 }
 
 /*
 d_string_append_cstr
-  Append C string.
-
-Parameter(s):
-  _string:  d_string to modify.
-  _cstr: C string to append.
-Return:
-  true if successful, false otherwise.
+  Delegates to d_string_cat_cstr_s() and folds its error code into a bool.
 */
 bool
-d_string_append_cstr
-(
+d_string_append_cstr(
     struct d_string* _string,
     const char*      _cstr
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_cstr == NULL) )
     {
         return false;
     }
 
-    return (d_string_cat_cstr_s(_string, _cstr) == 0);
+    return (d_string_cat_cstr_s(_string,
+                                _cstr) == 0);
 }
 
 /*
 d_string_append_buffer
-  Append buffer of specified length.
-
-Parameter(s):
-  _string:    d_string to modify.
-  _buffer: buffer to append.
-  _length: number of bytes to append.
-Return:
-  true if successful, false otherwise.
+  Grows first, copies exactly `_length` bytes, and terminates explicitly
+because `_buffer` need not have a terminator.
 */
 bool
-d_string_append_buffer
-(
+d_string_append_buffer(
     struct d_string* _string,
     const char*      _buffer,
     size_t           _length
 )
 {
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_buffer == NULL) )
     {
         return false;
     }
 
-    new_size = _string->size + _length;
+    const size_t new_size = _string->size + _length;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
 
-    d_memcpy(_string->text + _string->size, _buffer, _length);
+    d_memcpy(_string->text + _string->size,
+             _buffer,
+             _length);
     _string->text[new_size] = '\0';
     _string->size           = new_size;
 
@@ -2724,76 +2189,65 @@ d_string_append_buffer
 
 /*
 d_string_append_char
-  Append single character.
-
-Parameter(s):
-  _string: d_string to modify.
-  _c:   character to append.
-Return:
-  true if successful, false otherwise.
+  Grows for the character and the terminator, then writes both.
 */
 bool
-d_string_append_char
-(
+d_string_append_char(
     struct d_string* _string,
     char             _c
 )
 {
-    size_t new_size;
-
     if (_string == NULL)
     {
         return false;
     }
 
-    new_size = _string->size + 1;
+    const size_t new_size = _string->size + 1;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
 
     _string->text[_string->size] = _c;
-    _string->text[new_size]   = '\0';
-    _string->size             = new_size;
+    _string->text[new_size]      = '\0';
+    _string->size                = new_size;
 
     return true;
 }
 
 /*
 d_string_append_formatted
-  Append printf-style formatted text.
-
-Parameter(s):
-  _string:    d_string to modify.
-  _format: format string.
-  ...:     format arguments.
-Return:
-  true if successful, false otherwise.
+  Formats twice: a vsnprintf() dry run measures the output, then a va_copy()
+of the arguments writes it straight after the existing text, terminator
+included. Every early return ends both lists.
 */
 bool
-d_string_append_formatted
-(
+d_string_append_formatted(
     struct d_string* _string,
     const char*      _format,
     ...
 )
 {
-    va_list args;
-    va_list args_copy;
-    int     len;
-    size_t  new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_format == NULL) )
     {
         return false;
     }
 
-    va_start(args, _format);
-    va_copy(args_copy, args);
+    va_list args;
+    va_list args_copy;
 
-    len = vsnprintf(NULL, 0, _format, args);
+    va_start(args,
+             _format);
+    va_copy(args_copy,
+            args);
+
+    const int len = vsnprintf(NULL,
+                              0,
+                              _format,
+                              args);
     va_end(args);
 
     if (len < 0)
@@ -2803,16 +2257,20 @@ d_string_append_formatted
         return false;
     }
 
-    new_size = _string->size + (size_t)len;
+    const size_t new_size = _string->size + (size_t)len;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         va_end(args_copy);
 
         return false;
     }
 
-    vsnprintf(_string->text + _string->size, (size_t)len + 1, _format, args_copy);
+    vsnprintf(_string->text + _string->size,
+              (size_t)len + 1,
+              _format,
+              args_copy);
     va_end(args_copy);
 
     _string->size = new_size;
@@ -2820,48 +2278,41 @@ d_string_append_formatted
     return true;
 }
 
-
-/******************************************************************************
-* Modification Functions - Prepend
-******************************************************************************/
-
+// modification: prepend
 /*
 d_string_prepend
-  Prepend another d_string.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _other: d_string to prepend.
-Return:
-  true if successful, false otherwise.
+  Grows, shifts the existing text and terminator right with memmove(), then
+copies the new text into the gap.
 */
 bool
-d_string_prepend
-(
+d_string_prepend(
     struct d_string*       _string,
     const struct d_string* _other
 )
 {
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_other == NULL) )
     {
         return false;
     }
 
-    new_size = _string->size + _other->size;
+    const size_t new_size = _string->size + _other->size;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
 
     // shift existing content
-    memmove(_string->text + _other->size, _string->text, _string->size + 1);
+    memmove(_string->text + _other->size,
+            _string->text,
+            _string->size + 1);
 
     // copy prepend content
-    d_memcpy(_string->text, _other->text, _other->size);
+    d_memcpy(_string->text,
+             _other->text,
+             _other->size);
     _string->size = new_size;
 
     return true;
@@ -2869,40 +2320,36 @@ d_string_prepend
 
 /*
 d_string_prepend_cstr
-  Prepend C string.
-
-Parameter(s):
-  _string:  d_string to modify.
-  _cstr: C string to prepend.
-Return:
-  true if successful, false otherwise.
+  Grows, shifts the existing text and terminator right with memmove(), then
+copies the C string into the gap.
 */
 bool
-d_string_prepend_cstr
-(
+d_string_prepend_cstr(
     struct d_string* _string,
     const char*      _cstr
 )
 {
-    size_t cstr_len;
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_cstr == NULL) )
     {
         return false;
     }
 
-    cstr_len = strlen(_cstr);
-    new_size = _string->size + cstr_len;
+    const size_t cstr_len = strlen(_cstr);
+    const size_t new_size = _string->size + cstr_len;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
 
-    memmove(_string->text + cstr_len, _string->text, _string->size + 1);
-    d_memcpy(_string->text, _cstr, cstr_len);
+    memmove(_string->text + cstr_len,
+            _string->text,
+            _string->size + 1);
+    d_memcpy(_string->text,
+             _cstr,
+             cstr_len);
     _string->size = new_size;
 
     return true;
@@ -2910,70 +2357,53 @@ d_string_prepend_cstr
 
 /*
 d_string_prepend_char
-  Prepend single character.
-
-Parameter(s):
-  _string: d_string to modify.
-  _c:   character to prepend.
-Return:
-  true if successful, false otherwise.
+  Grows, shifts the existing text and terminator right by one, then writes the
+character at index 0.
 */
 bool
-d_string_prepend_char
-(
+d_string_prepend_char(
     struct d_string* _string,
     char             _c
 )
 {
-    size_t new_size;
-
     if (_string == NULL)
     {
         return false;
     }
 
-    new_size = _string->size + 1;
+    const size_t new_size = _string->size + 1;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
 
-    memmove(_string->text + 1, _string->text, _string->size + 1);
+    memmove(_string->text + 1,
+            _string->text,
+            _string->size + 1);
     _string->text[0] = _c;
     _string->size    = new_size;
 
     return true;
 }
 
-
-/******************************************************************************
-* Modification Functions - Insert
-******************************************************************************/
-
+// modification: insert
 /*
 d_string_insert
-  Insert d_string at index.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _index: insertion point.
-  _other: d_string to insert.
-Return:
-  true if successful, false otherwise.
+  An index equal to the length is accepted as an append, since
+d_index_convert_safe() would reject it. Otherwise the tail from the insertion
+point, terminator included, is shifted with memmove() and the new text copied
+into the gap.
 */
 bool
-d_string_insert
-(
+d_string_insert(
     struct d_string*       _string,
     d_index                _index,
     const struct d_string* _other
 )
 {
-    size_t pos;
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_other == NULL) )
     {
         return false;
@@ -2982,17 +2412,23 @@ d_string_insert
     // special case: insert at end
     if (_index == (d_index)_string->size)
     {
-        return d_string_append(_string, _other);
+        return d_string_append(_string,
+                               _other);
     }
 
-    if (!d_index_convert_safe(_index, _string->size, &pos))
+    size_t pos = 0;
+
+    if (!d_index_convert_safe(_index,
+                              _string->size,
+                              &pos))
     {
         return false;
     }
 
-    new_size = _string->size + _other->size;
+    const size_t new_size = _string->size + _other->size;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
@@ -3003,7 +2439,9 @@ d_string_insert
             _string->size - pos + 1);
 
     // insert new content
-    d_memcpy(_string->text + pos, _other->text, _other->size);
+    d_memcpy(_string->text + pos,
+             _other->text,
+             _other->size);
     _string->size = new_size;
 
     return true;
@@ -3011,28 +2449,19 @@ d_string_insert
 
 /*
 d_string_insert_cstr
-  Insert C string at index.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _index: insertion point.
-  _cstr:  C string to insert.
-Return:
-  true if successful, false otherwise.
+  An index equal to the length is accepted as an append, since
+d_index_convert_safe() would reject it. Otherwise the tail from the insertion
+point, terminator included, is shifted with memmove() and the C string copied
+into the gap.
 */
 bool
-d_string_insert_cstr
-(
+d_string_insert_cstr(
     struct d_string* _string,
     d_index          _index,
     const char*      _cstr
 )
 {
-    size_t pos;
-    size_t cstr_len;
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_cstr == NULL) )
     {
         return false;
@@ -3041,18 +2470,24 @@ d_string_insert_cstr
     // special case: insert at end
     if (_index == (d_index)_string->size)
     {
-        return d_string_append_cstr(_string, _cstr);
+        return d_string_append_cstr(_string,
+                                    _cstr);
     }
 
-    if (!d_index_convert_safe(_index, _string->size, &pos))
+    size_t pos = 0;
+
+    if (!d_index_convert_safe(_index,
+                              _string->size,
+                              &pos))
     {
         return false;
     }
 
-    cstr_len = strlen(_cstr);
-    new_size = _string->size + cstr_len;
+    const size_t cstr_len = strlen(_cstr);
+    const size_t new_size = _string->size + cstr_len;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
@@ -3061,7 +2496,9 @@ d_string_insert_cstr
             _string->text + pos,
             _string->size - pos + 1);
 
-    d_memcpy(_string->text + pos, _cstr, cstr_len);
+    d_memcpy(_string->text + pos,
+             _cstr,
+             cstr_len);
     _string->size = new_size;
 
     return true;
@@ -3069,26 +2506,18 @@ d_string_insert_cstr
 
 /*
 d_string_insert_char
-  Insert character at index.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _index: insertion point.
-  _c:     character to insert.
-Return:
-  true if successful, false otherwise.
+  An index equal to the length is accepted as an append, since
+d_index_convert_safe() would reject it. Otherwise the tail from the insertion
+point, terminator included, is shifted right by one before the character is
+written.
 */
 bool
-d_string_insert_char
-(
+d_string_insert_char(
     struct d_string* _string,
     d_index          _index,
     char             _c
 )
 {
-    size_t pos;
-    size_t new_size;
-
     if (_string == NULL)
     {
         return false;
@@ -3097,17 +2526,23 @@ d_string_insert_char
     // special case: insert at end
     if (_index == (d_index)_string->size)
     {
-        return d_string_append_char(_string, _c);
+        return d_string_append_char(_string,
+                                    _c);
     }
 
-    if (!d_index_convert_safe(_index, _string->size, &pos))
+    size_t pos = 0;
+
+    if (!d_index_convert_safe(_index,
+                              _string->size,
+                              &pos))
     {
         return false;
     }
 
-    new_size = _string->size + 1;
+    const size_t new_size = _string->size + 1;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
@@ -3122,45 +2557,35 @@ d_string_insert_char
     return true;
 }
 
-
-/******************************************************************************
-* Modification Functions - Erase and Clear
-******************************************************************************/
-
+// modification: erase and clear
 /*
 d_string_erase
-  Erase characters from string.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _index: starting index.
-  _count: number of characters to erase.
-Return:
-  true if successful, false otherwise.
+  Clamps the count to the characters that remain, then closes the gap with a
+memmove() that carries the terminator along.
 */
 bool
-d_string_erase
-(
+d_string_erase(
     struct d_string* _string,
     d_index          _index,
     size_t           _count
 )
 {
-    size_t pos;
-    size_t actual_count;
-
     if (_string == NULL)
     {
         return false;
     }
 
-    if (!d_index_convert_safe(_index, _string->size, &pos))
+    size_t pos = 0;
+
+    if (!d_index_convert_safe(_index,
+                              _string->size,
+                              &pos))
     {
         return false;
     }
 
     // clamp count to available characters
-    actual_count = _count;
+    size_t actual_count = _count;
 
     if (pos + actual_count > _string->size)
     {
@@ -3179,36 +2604,26 @@ d_string_erase
 
 /*
 d_string_erase_char
-  Erase single character at index.
-
-Parameter(s):
-  _string:   d_string to modify.
-  _index: index of character to erase.
-Return:
-  true if successful, false otherwise.
+  Delegates to d_string_erase() with a count of 1.
 */
 bool
-d_string_erase_char
-(
+d_string_erase_char(
     struct d_string* _string,
     d_index          _index
 )
 {
-    return d_string_erase(_string, _index, 1);
+    return d_string_erase(_string,
+                          _index,
+                          1);
 }
 
 /*
 d_string_clear
-  Clear string contents (set to empty).
-
-Parameter(s):
-  _string: d_string to clear.
-Return:
-  (none)
+  Keeps the buffer and writes the terminator at index 0; a string whose buffer
+was freed by d_string_free_contents() only has its size reset.
 */
 void
-d_string_clear
-(
+d_string_clear(
     struct d_string* _string
 )
 {
@@ -3227,58 +2642,49 @@ d_string_clear
     return;
 }
 
-
-/******************************************************************************
-* Modification Functions - Replace
-******************************************************************************/
-
+// modification: replace
 /*
 d_string_replace
-  Replace portion of string with d_string.
-
-Parameter(s):
-  _string:         d_string to modify.
-  _index:       starting index of replacement.
-  _count:       number of characters to replace.
-  _replacement: d_string to insert.
-Return:
-  true if successful, false otherwise.
+  Clamps the count, grows to the final size, shifts the tail after the
+replaced range with memmove() (terminator included), then copies the
+replacement into place. One shift serves both growing and shrinking
+replacements.
 */
 bool
-d_string_replace
-(
+d_string_replace(
     struct d_string*       _string,
     d_index                _index,
     size_t                 _count,
     const struct d_string* _replacement
 )
 {
-    size_t pos;
-    size_t actual_count;
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_replacement == NULL) )
     {
         return false;
     }
 
-    if (!d_index_convert_safe(_index, _string->size, &pos))
+    size_t pos = 0;
+
+    if (!d_index_convert_safe(_index,
+                              _string->size,
+                              &pos))
     {
         return false;
     }
 
     // clamp count
-    actual_count = _count;
+    size_t actual_count = _count;
 
     if (pos + actual_count > _string->size)
     {
         actual_count = _string->size - pos;
     }
 
-    new_size = _string->size - actual_count + _replacement->size;
+    const size_t new_size = _string->size - actual_count + _replacement->size;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
@@ -3289,7 +2695,9 @@ d_string_replace
             _string->size - pos - actual_count + 1);
 
     // copy replacement
-    d_memcpy(_string->text + pos, _replacement->text, _replacement->size);
+    d_memcpy(_string->text + pos,
+             _replacement->text,
+             _replacement->size);
     _string->size = new_size;
 
     return true;
@@ -3297,52 +2705,46 @@ d_string_replace
 
 /*
 d_string_replace_cstr
-  Replace portion of string with C string.
-
-Parameter(s):
-  _string:         d_string to modify.
-  _index:       starting index of replacement.
-  _count:       number of characters to replace.
-  _replacement: C string to insert.
-Return:
-  true if successful, false otherwise.
+  Clamps the count, grows to the final size, shifts the tail after the
+replaced range with memmove() (terminator included), then copies the
+replacement into place. One shift serves both growing and shrinking
+replacements.
 */
 bool
-d_string_replace_cstr
-(
+d_string_replace_cstr(
     struct d_string* _string,
     d_index          _index,
     size_t           _count,
     const char*      _replacement
 )
 {
-    size_t pos;
-    size_t actual_count;
-    size_t rep_len;
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_replacement == NULL) )
     {
         return false;
     }
 
-    if (!d_index_convert_safe(_index, _string->size, &pos))
+    size_t pos = 0;
+
+    if (!d_index_convert_safe(_index,
+                              _string->size,
+                              &pos))
     {
         return false;
     }
 
-    actual_count = _count;
+    size_t actual_count = _count;
 
     if (pos + actual_count > _string->size)
     {
         actual_count = _string->size - pos;
     }
 
-    rep_len  = strlen(_replacement);
-    new_size = _string->size - actual_count + rep_len;
+    const size_t rep_len  = strlen(_replacement);
+    const size_t new_size = _string->size - actual_count + rep_len;
 
-    if (!d_string_internal_grow(_string, new_size + 1))
+    if (!d_string_internal_grow(_string,
+                                new_size + 1))
     {
         return false;
     }
@@ -3351,7 +2753,9 @@ d_string_replace_cstr
             _string->text + pos + actual_count,
             _string->size - pos - actual_count + 1);
 
-    d_memcpy(_string->text + pos, _replacement, rep_len);
+    d_memcpy(_string->text + pos,
+             _replacement,
+             rep_len);
     _string->size = new_size;
 
     return true;
@@ -3359,84 +2763,67 @@ d_string_replace_cstr
 
 /*
 d_string_replace_all
-  Replace all occurrences of substring.
-
-Parameter(s):
-  _string: d_string to modify.
-  _old: d_string to find and replace.
-  _new: d_string replacement.
-Return:
-  true if successful, false otherwise.
+  Rejects an empty `_old` here, then delegates to d_string_replace_all_cstr()
+with the two texts.
 */
 bool
-d_string_replace_all
-(
+d_string_replace_all(
     struct d_string*       _string,
     const struct d_string* _old,
     const struct d_string* _new
 )
 {
-    if ( (_string == NULL) || 
-         (_old == NULL) || 
-         (_new == NULL) ||
+    if ( (_string == NULL)  ||
+         (_old == NULL)     ||
+         (_new == NULL)     ||
          (_old->size == 0) )
     {
         return false;
     }
 
-    return d_string_replace_all_cstr(_string, _old->text, _new->text);
+    return d_string_replace_all_cstr(_string,
+                                     _old->text,
+                                     _new->text);
 }
 
 /*
 d_string_replace_all_cstr
-  Replace all occurrences of C string.
-
-Parameter(s):
-  _string: d_string to modify.
-  _old: C string to find and replace.
-  _new: C string replacement.
-Return:
-  true if successful, false otherwise.
+  Two passes: the first counts matches to size the result exactly, the second
+copies the text between matches and the replacement into a temporary string.
+The temporary's buffer is then adopted and only its struct freed, so the
+result is never copied a second time. Matches are found left to right and do
+not overlap.
 */
 bool
-d_string_replace_all_cstr
-(
+d_string_replace_all_cstr(
     struct d_string* _string,
-    const char* _old,
-    const char* _new
+    const char*      _old,
+    const char*      _new
 )
 {
-    size_t           old_len;
-    size_t           new_len;
-    size_t           count;
-    size_t           new_size;
-    char* search;
-    char* found;
-    char* write_ptr;
-    char* read_ptr;
-    struct d_string* result;
-
-    if ((_string == NULL) ||
-        (_old == NULL) ||
-        (_new == NULL))
+    if ( (_string == NULL) ||
+         (_old == NULL)    ||
+         (_new == NULL) )
     {
         return false;
     }
 
-    old_len = strlen(_old);
+    const size_t old_len = strlen(_old);
 
     if (old_len == 0)
     {
         return false;
     }
 
-    new_len = strlen(_new);
+    const size_t new_len = strlen(_new);
 
     // count occurrences
-    count = 0;
-    search = _string->text;
+    size_t count  = 0;
+    char*  search = _string->text;
+    char*  found  = NULL;
 
-    while ((found = strstr(search, _old)) != NULL)
+    while ((found = strstr(search,
+                           _old)) != NULL)
     {
         count++;
         search = found + old_len;
@@ -3449,10 +2836,11 @@ d_string_replace_all_cstr
     }
 
     // calculate new size (result length excluding '\0')
-    new_size = _string->size + (count * new_len) - (count * old_len);
+    const size_t new_size = _string->size + (count * new_len) -
+                            (count * old_len);
 
     // create temporary result (+1 for '\0')
-    result = d_string_new_with_capacity(new_size + 1);
+    struct d_string* result = d_string_new_with_capacity(new_size + 1);
 
     if (result == NULL)
     {
@@ -3460,21 +2848,26 @@ d_string_replace_all_cstr
     }
 
     // build result
-    read_ptr = _string->text;
-    write_ptr = result->text;
+    char* read_ptr  = _string->text;
+    char* write_ptr = result->text;
 
-    while ((found = strstr(read_ptr, _old)) != NULL)
+    while ((found = strstr(read_ptr,
+                           _old)) != NULL)
     {
-        size_t before_len = (size_t)(found - read_ptr);
+        const size_t before_len = (size_t)(found - read_ptr);
 
         // copy text before match
-        d_memcpy(write_ptr, read_ptr, before_len);
+        d_memcpy(write_ptr,
+                 read_ptr,
+                 before_len);
         write_ptr += before_len;
 
         // copy replacement
         if (new_len > 0)
         {
-            d_memcpy(write_ptr, _new, new_len);
+            d_memcpy(write_ptr,
+                     _new,
+                     new_len);
             write_ptr += new_len;
         }
 
@@ -3483,8 +2876,11 @@ d_string_replace_all_cstr
 
     // copy remaining text (including the terminating '\0')
     {
-        size_t tail_len = strlen(read_ptr);
-        d_memcpy(write_ptr, read_ptr, tail_len + 1);
+        const size_t tail_len = strlen(read_ptr);
+
+        d_memcpy(write_ptr,
+                 read_ptr,
+                 tail_len + 1);
         write_ptr += tail_len;
     }
 
@@ -3494,8 +2890,8 @@ d_string_replace_all_cstr
 
     // swap contents
     free(_string->text);
-    _string->text = result->text;
-    _string->size = new_size;
+    _string->text     = result->text;
+    _string->size     = new_size;
     _string->capacity = result->capacity;
 
     // free result struct (but not its text, which we've taken)
@@ -3504,34 +2900,23 @@ d_string_replace_all_cstr
     return true;
 }
 
-
 /*
 d_string_replace_char
-  Replace all occurrences of a character.
-
-Parameter(s):
-  _string:      d_string to modify.
-  _old_char: character to replace.
-  _new_char: replacement character.
-Return:
-  true if successful, false otherwise.
+  Walks the text once, rewriting matches in place; the size never changes.
 */
 bool
-d_string_replace_char
-(
+d_string_replace_char(
     struct d_string* _string,
     char             _old_char,
     char             _new_char
 )
 {
-    size_t i;
-
     if (_string == NULL)
     {
         return false;
     }
 
-    for (i = 0; i < _string->size; i++)
+    for (size_t i = 0; i < _string->size; i++)
     {
         if (_string->text[i] == _old_char)
         {
@@ -3542,27 +2927,17 @@ d_string_replace_char
     return true;
 }
 
-
-/******************************************************************************
-* Case Conversion Functions
-******************************************************************************/
-
+// transformation: case conversion
 /*
 d_string_to_lower
-  Convert string to lowercase in-place.
-
-Parameter(s):
-  _string: d_string to convert.
-Return:
-  true if successful, false if _string is NULL.
+  Delegates to d_strlwr() on the buffer in place.
 */
 bool
-d_string_to_lower
-(
+d_string_to_lower(
     struct d_string* _string
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_string->text == NULL) )
     {
         return false;
@@ -3575,20 +2950,14 @@ d_string_to_lower
 
 /*
 d_string_to_upper
-  Convert string to uppercase in-place.
-
-Parameter(s):
-  _string: d_string to convert.
-Return:
-  true if successful, false if _string is NULL.
+  Delegates to d_strupr() on the buffer in place.
 */
 bool
-d_string_to_upper
-(
+d_string_to_upper(
     struct d_string* _string
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_string->text == NULL) )
     {
         return false;
@@ -3601,27 +2970,20 @@ d_string_to_upper
 
 /*
 d_string_lower
-  Return new lowercase copy of string.
-
-Parameter(s):
-  _string: d_string to copy and convert.
-Return:
-  New lowercase d_string, or NULL if _string is NULL or allocation fails.
+  Copies with d_string_new_copy() and converts the copy with
+d_string_to_lower().
 */
 struct d_string*
-d_string_lower
-(
+d_string_lower(
     const struct d_string* _string
 )
 {
-    struct d_string* result;
-
     if (_string == NULL)
     {
         return NULL;
     }
 
-    result = d_string_new_copy(_string);
+    struct d_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3635,27 +2997,20 @@ d_string_lower
 
 /*
 d_string_upper
-  Return new uppercase copy of string.
-
-Parameter(s):
-  _string: d_string to copy and convert.
-Return:
-  New uppercase d_string, or NULL if _string is NULL or allocation fails.
+  Copies with d_string_new_copy() and converts the copy with
+d_string_to_upper().
 */
 struct d_string*
-d_string_upper
-(
+d_string_upper(
     const struct d_string* _string
 )
 {
-    struct d_string* result;
-
     if (_string == NULL)
     {
         return NULL;
     }
 
-    result = d_string_new_copy(_string);
+    struct d_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3667,27 +3022,17 @@ d_string_upper
     return result;
 }
 
-
-/******************************************************************************
-* Reversal Functions
-******************************************************************************/
-
+// transformation: reversal
 /*
 d_string_reverse
-  Reverse string in-place.
-
-Parameter(s):
-  _string: d_string to reverse.
-Return:
-  true if successful, false if _string is NULL.
+  Delegates to d_strrev() on the buffer in place.
 */
 bool
-d_string_reverse
-(
+d_string_reverse(
     struct d_string* _string
 )
 {
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_string->text == NULL) )
     {
         return false;
@@ -3700,27 +3045,20 @@ d_string_reverse
 
 /*
 d_string_reversed
-  Return new reversed copy of string.
-
-Parameter(s):
-  _string: d_string to copy and reverse.
-Return:
-  New reversed d_string, or NULL if _string is NULL or allocation fails.
+  Copies with d_string_new_copy() and reverses the copy with
+d_string_reverse().
 */
 struct d_string*
-d_string_reversed
-(
+d_string_reversed(
     const struct d_string* _string
 )
 {
-    struct d_string* result;
-
     if (_string == NULL)
     {
         return NULL;
     }
 
-    result = d_string_new_copy(_string);
+    struct d_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -3732,30 +3070,18 @@ d_string_reversed
     return result;
 }
 
-
-/******************************************************************************
-* Trimming Functions
-******************************************************************************/
-
+// transformation: trimming
 /*
 d_string_trim
-  Trim whitespace from both ends of string in-place.
-
-Parameter(s):
-  _string: d_string to trim.
-Return:
-  true if successful, false if _string is NULL.
+  Scans inward from both ends; the backward scan stops at `start`, so no
+character is examined twice. The surviving run is moved to the front with one
+memmove(), and only when leading whitespace was found.
 */
 bool
-d_string_trim
-(
+d_string_trim(
     struct d_string* _string
 )
 {
-    size_t start;
-    size_t end;
-    size_t new_size;
-
     if (_string == NULL)
     {
         return false;
@@ -3767,9 +3093,9 @@ d_string_trim
     }
 
     // find first non-whitespace
-    start = 0;
+    size_t start = 0;
 
-    while ( (start < _string->size) && 
+    while ( (start < _string->size) &&
             (isspace((unsigned char)_string->text[start])) )
     {
         start++;
@@ -3785,20 +3111,22 @@ d_string_trim
     }
 
     // find last non-whitespace
-    end = _string->size - 1;
+    size_t end = _string->size - 1;
 
-    while ( (end > start) && 
+    while ( (end > start) &&
             (isspace((unsigned char)_string->text[end])) )
     {
         end--;
     }
 
-    new_size = end - start + 1;
+    const size_t new_size = end - start + 1;
 
     // shift content if needed
     if (start > 0)
     {
-        memmove(_string->text, _string->text + start, new_size);
+        memmove(_string->text,
+                _string->text + start,
+                new_size);
     }
 
     _string->text[new_size] = '\0';
@@ -3809,22 +3137,14 @@ d_string_trim
 
 /*
 d_string_trim_left
-  Trim whitespace from left side of string in-place.
-
-Parameter(s):
-  _string: d_string to trim.
-Return:
-  true if successful, false if _string is NULL.
+  Scans forward past the whitespace, then moves the rest of the text,
+terminator included, to the front with one memmove().
 */
 bool
-d_string_trim_left
-(
+d_string_trim_left(
     struct d_string* _string
 )
 {
-    size_t start;
-    size_t new_size;
-
     if (_string == NULL)
     {
         return false;
@@ -3835,9 +3155,9 @@ d_string_trim_left
         return true;
     }
 
-    start = 0;
+    size_t start = 0;
 
-    while ( (start < _string->size) && 
+    while ( (start < _string->size) &&
             (isspace((unsigned char)_string->text[start])) )
     {
         start++;
@@ -3853,8 +3173,10 @@ d_string_trim_left
 
     if (start > 0)
     {
-        new_size = _string->size - start;
-        memmove(_string->text, _string->text + start, new_size + 1);
+        const size_t new_size = _string->size - start;
+        memmove(_string->text,
+                _string->text + start,
+                new_size + 1);
         _string->size = new_size;
     }
 
@@ -3863,21 +3185,14 @@ d_string_trim_left
 
 /*
 d_string_trim_right
-  Trim whitespace from right side of string in-place.
-
-Parameter(s):
-  _string: d_string to trim.
-Return:
-  true if successful, false if _string is NULL.
+  Scans backward past the whitespace and writes the terminator there; nothing
+is moved.
 */
 bool
-d_string_trim_right
-(
+d_string_trim_right(
     struct d_string* _string
 )
 {
-    size_t end;
-
     if (_string == NULL)
     {
         return false;
@@ -3888,9 +3203,9 @@ d_string_trim_right
         return true;
     }
 
-    end = _string->size;
+    size_t end = _string->size;
 
-    while ( (end > 0) && 
+    while ( (end > 0) &&
             (isspace((unsigned char)_string->text[end - 1])) )
     {
         end--;
@@ -3904,26 +3219,16 @@ d_string_trim_right
 
 /*
 d_string_trim_chars
-  Trim specified characters from both ends.
-
-Parameter(s):
-  _string:   d_string to trim.
-  _chars: characters to trim.
-Return:
-  true if successful, false if parameters are NULL.
+  Same shape as d_string_trim(), testing membership with strchr() on `_chars`
+in place of isspace().
 */
 bool
-d_string_trim_chars
-(
+d_string_trim_chars(
     struct d_string* _string,
     const char*      _chars
 )
 {
-    size_t start;
-    size_t end;
-    size_t new_size;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_chars == NULL) )
     {
         return false;
@@ -3935,10 +3240,11 @@ d_string_trim_chars
     }
 
     // find first character not in _chars
-    start = 0;
+    size_t start = 0;
 
-    while ( (start < _string->size) && 
-            (strchr(_chars, _string->text[start]) != NULL) )
+    while ( (start < _string->size) &&
+            (strchr(_chars,
+                    _string->text[start]) != NULL) )
     {
         start++;
     }
@@ -3952,19 +3258,22 @@ d_string_trim_chars
     }
 
     // find last character not in _chars
-    end = _string->size - 1;
+    size_t end = _string->size - 1;
 
-    while ( (end > start) && 
-            (strchr(_chars, _string->text[end]) != NULL) )
+    while ( (end > start) &&
+            (strchr(_chars,
+                    _string->text[end]) != NULL) )
     {
         end--;
     }
 
-    new_size = end - start + 1;
+    const size_t new_size = end - start + 1;
 
     if (start > 0)
     {
-        memmove(_string->text, _string->text + start, new_size);
+        memmove(_string->text,
+                _string->text + start,
+                new_size);
     }
 
     _string->text[new_size] = '\0';
@@ -3975,27 +3284,19 @@ d_string_trim_chars
 
 /*
 d_string_trimmed
-  Return new trimmed copy of string.
-
-Parameter(s):
-  _string: d_string to copy and trim.
-Return:
-  New trimmed d_string, or NULL if _string is NULL or allocation fails.
+  Copies with d_string_new_copy() and trims the copy with d_string_trim().
 */
 struct d_string*
-d_string_trimmed
-(
+d_string_trimmed(
     const struct d_string* _string
 )
 {
-    struct d_string* result;
-
     if (_string == NULL)
     {
         return NULL;
     }
 
-    result = d_string_new_copy(_string);
+    struct d_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -4009,27 +3310,20 @@ d_string_trimmed
 
 /*
 d_string_trimmed_left
-  Return new left-trimmed copy of string.
-
-Parameter(s):
-  _string: d_string to copy and trim.
-Return:
-  New trimmed d_string, or NULL if _string is NULL or allocation fails.
+  Copies with d_string_new_copy() and trims the copy with
+d_string_trim_left().
 */
 struct d_string*
-d_string_trimmed_left
-(
+d_string_trimmed_left(
     const struct d_string* _string
 )
 {
-    struct d_string* result;
-
     if (_string == NULL)
     {
         return NULL;
     }
 
-    result = d_string_new_copy(_string);
+    struct d_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -4043,27 +3337,20 @@ d_string_trimmed_left
 
 /*
 d_string_trimmed_right
-  Return new right-trimmed copy of string.
-
-Parameter(s):
-  _string: d_string to copy and trim.
-Return:
-  New trimmed d_string, or NULL if _string is NULL or allocation fails.
+  Copies with d_string_new_copy() and trims the copy with
+d_string_trim_right().
 */
 struct d_string*
-d_string_trimmed_right
-(
+d_string_trimmed_right(
     const struct d_string* _string
 )
 {
-    struct d_string* result;
-
     if (_string == NULL)
     {
         return NULL;
     }
 
-    result = d_string_new_copy(_string);
+    struct d_string* result = d_string_new_copy(_string);
 
     if (result == NULL)
     {
@@ -4075,79 +3362,49 @@ d_string_trimmed_right
     return result;
 }
 
-
-/******************************************************************************
-* Tokenization Functions
-******************************************************************************/
-
+// transformation: tokenization
 /*
 d_string_tokenize
-  Thread-safe string tokenization.
-
-Parameter(s):
-  _string:     d_string to tokenize (NULL to continue).
-  _delim:   delimiter characters.
-  _saveptr: save state pointer.
-Return:
-  Pointer to next token, or NULL if no more tokens.
+  Passes the buffer (or NULL, to continue) straight to d_strtok_r(), which
+writes NULs into it; the size field is not updated.
 */
 char*
-d_string_tokenize
-(
+d_string_tokenize(
     struct d_string* _string,
     const char*      _delim,
     char**           _saveptr
 )
 {
-    char* start;
-
-    if ( (_delim == NULL) || 
+    if ( (_delim == NULL) ||
          (_saveptr == NULL) )
     {
         return NULL;
     }
 
-    if (_string != NULL)
-    {
-        start = _string->text;
-    }
-    else
-    {
-        start = NULL;
-    }
+    char* start = (_string != NULL)
+        ? _string->text
+        : NULL;
 
-    return d_strtok_r(start, _delim, _saveptr);
+    return d_strtok_r(start,
+                      _delim,
+                      _saveptr);
 }
 
 /*
 d_string_split
-  Split string into array of d_strings.
-
-Parameter(s):
-  _string:    d_string to split.
-  _delim:  delimiter characters.
-  _tokens: output array of d_strings (caller must free with d_string_split_free).
-Return:
-  Number of tokens, or 0 on error.
+  Tokenizes a d_strdup() copy so `_string` is never modified, growing the
+result array by doubling. On any allocation failure every token made so far is
+freed, leaving nothing for the caller to release.
 */
 size_t
-d_string_split
-(
+d_string_split(
     const struct d_string*  _string,
     const char*             _delim,
     struct d_string***      _tokens
 )
 {
-    char*             copy;
-    char*             saveptr;
-    char*             token;
-    size_t            count;
-    size_t            capacity;
-    struct d_string** result;
-    struct d_string** new_result;
-
-    if ( (_string == NULL) || 
-         (_delim == NULL) || 
+    if ( (_string == NULL) ||
+         (_delim == NULL)  ||
          (_tokens == NULL) )
     {
         return 0;
@@ -4158,7 +3415,7 @@ d_string_split
     // handle empty string: return single empty token
     if (_string->size == 0)
     {
-        result = malloc(sizeof(struct d_string*));
+        struct d_string** result = malloc(sizeof(struct d_string*));
 
         if (result == NULL)
         {
@@ -4180,7 +3437,7 @@ d_string_split
     }
 
     // make copy for tokenization
-    copy = d_strdup(_string->text);
+    char* copy = d_strdup(_string->text);
 
     if (copy == NULL)
     {
@@ -4188,8 +3445,8 @@ d_string_split
     }
 
     // initial allocation
-    capacity = 8;
-    result   = malloc(capacity * sizeof(struct d_string*));
+    size_t            capacity = 8;
+    struct d_string** result   = malloc(capacity * sizeof(struct d_string*));
 
     if (result == NULL)
     {
@@ -4198,18 +3455,22 @@ d_string_split
         return 0;
     }
 
-    count   = 0;
-    saveptr = NULL;
-    token   = d_strtok_r(copy, _delim, &saveptr);
+    size_t count   = 0;
+    char*  saveptr = NULL;
+    char*  token   = d_strtok_r(copy,
+                                _delim,
+                                &saveptr);
 
     while (token != NULL)
     {
         // grow array if needed
         if (count >= capacity)
         {
-            capacity  *= 2;
-            new_result = (struct d_string**)realloc(result,
-                                                    capacity * sizeof(struct d_string*));
+            capacity *= 2;
+
+            const size_t      new_bytes  = capacity * sizeof(struct d_string*);
+            struct d_string** new_result = realloc(result,
+                                                   new_bytes);
 
             if (new_result == NULL)
             {
@@ -4245,7 +3506,9 @@ d_string_split
         }
 
         count++;
-        token = d_strtok_r(NULL, _delim, &saveptr);
+        token = d_strtok_r(NULL,
+                           _delim,
+                           &saveptr);
     }
 
     free(copy);
@@ -4257,29 +3520,20 @@ d_string_split
 
 /*
 d_string_split_free
-  Free array of d_strings from d_string_split.
-
-Parameter(s):
-  _tokens: array of d_strings.
-  _count:  number of tokens in array.
-Return:
-  (none)
+  Frees each token, then the array.
 */
 void
-d_string_split_free
-(
+d_string_split_free(
     struct d_string** _tokens,
     size_t            _count
 )
 {
-    size_t i;
-
     if (_tokens == NULL)
     {
         return;
     }
 
-    for (i = 0; i < _count; i++)
+    for (size_t i = 0; i < _count; i++)
     {
         d_string_free(_tokens[i]);
     }
@@ -4289,52 +3543,36 @@ d_string_split_free
     return;
 }
 
-
-/******************************************************************************
-* Join Functions
-******************************************************************************/
-
+// transformation: joining
 /*
 d_string_join
-  Join array of d_strings with delimiter.
-
-Parameter(s):
-  _strings:   array of d_string pointers.
-  _count:     number of strings in array.
-  _delimiter: delimiter to insert between strings.
-Return:
-  New d_string with joined content, or NULL on error.
+  Two passes: the first sums the lengths so the result is allocated once at
+its final size, which is why the appends in the second pass cannot fail.
 */
 struct d_string*
-d_string_join
-(
+d_string_join(
     const struct d_string* const* _strings,
     size_t                        _count,
     const char*                   _delimiter
 )
 {
-    size_t           total_len;
-    size_t           delim_len;
-    size_t           i;
-    struct d_string* result;
-
     if (_count == 0)
     {
         return d_string_new();
     }
 
-    if ( (_strings == NULL) || 
+    if ( (_strings == NULL) ||
          (_delimiter == NULL) )
     {
         return NULL;
     }
 
-    delim_len = strlen(_delimiter);
+    const size_t delim_len = strlen(_delimiter);
 
     // calculate total length
-    total_len = 0;
+    size_t total_len = 0;
 
-    for (i = 0; i < _count; i++)
+    for (size_t i = 0; i < _count; i++)
     {
         if (_strings[i] != NULL)
         {
@@ -4347,7 +3585,7 @@ d_string_join
         }
     }
 
-    result = d_string_new_with_capacity(total_len + 1);
+    struct d_string* result = d_string_new_with_capacity(total_len + 1);
 
     if (result == NULL)
     {
@@ -4355,17 +3593,19 @@ d_string_join
     }
 
     // build result
-    for (i = 0; i < _count; i++)
+    for (size_t i = 0; i < _count; i++)
     {
         if (_strings[i] != NULL)
         {
-            d_string_append(result, _strings[i]);
+            d_string_append(result,
+                            _strings[i]);
         }
 
-        if ( (i < _count - 1) && 
+        if ( (i < _count - 1) &&
              (delim_len > 0) )
         {
-            d_string_append_cstr(result, _delimiter);
+            d_string_append_cstr(result,
+                                 _delimiter);
         }
     }
 
@@ -4374,45 +3614,33 @@ d_string_join
 
 /*
 d_string_join_cstr
-  Join array of C strings with delimiter.
-
-Parameter(s):
-  _strings:   array of C string pointers.
-  _count:     number of strings in array.
-  _delimiter: delimiter to insert between strings.
-Return:
-  New d_string with joined content, or NULL on error.
+  Two passes: the first sums the lengths so the result is allocated once at
+its final size, which is why the appends in the second pass cannot fail.
 */
 struct d_string*
-d_string_join_cstr
-(
+d_string_join_cstr(
     const char* const* _strings,
     size_t             _count,
     const char*        _delimiter
 )
 {
-    size_t           total_len;
-    size_t           delim_len;
-    size_t           i;
-    struct d_string* result;
-
     if (_count == 0)
     {
         return d_string_new();
     }
 
-    if ( (_strings == NULL) || 
+    if ( (_strings == NULL) ||
          (_delimiter == NULL) )
     {
         return NULL;
     }
 
-    delim_len = strlen(_delimiter);
+    const size_t delim_len = strlen(_delimiter);
 
     // calculate total length
-    total_len = 0;
+    size_t total_len = 0;
 
-    for (i = 0; i < _count; i++)
+    for (size_t i = 0; i < _count; i++)
     {
         if (_strings[i] != NULL)
         {
@@ -4425,24 +3653,26 @@ d_string_join_cstr
         }
     }
 
-    result = d_string_new_with_capacity(total_len + 1);
+    struct d_string* result = d_string_new_with_capacity(total_len + 1);
 
     if (result == NULL)
     {
         return NULL;
     }
 
-    for (i = 0; i < _count; i++)
+    for (size_t i = 0; i < _count; i++)
     {
         if (_strings[i] != NULL)
         {
-            d_string_append_cstr(result, _strings[i]);
+            d_string_append_cstr(result,
+                                 _strings[i]);
         }
 
-        if ( (i < _count - 1) && 
+        if ( (i < _count - 1) &&
              (delim_len > 0) )
         {
-            d_string_append_cstr(result, _delimiter);
+            d_string_append_cstr(result,
+                                 _delimiter);
         }
     }
 
@@ -4451,39 +3681,32 @@ d_string_join_cstr
 
 /*
 d_string_concat
-  Concatenate multiple d_strings into one.
-
-Parameter(s):
-  _count: number of d_strings to concatenate.
-  ...:    d_string pointers to concatenate.
-Return:
-  New d_string with concatenated content, or NULL on error.
+  Walks the arguments twice, restarting the list with va_start(): the first
+pass sums the sizes and rejects NULLs before anything is allocated, so the
+appends in the second pass cannot fail.
 */
 struct d_string*
-d_string_concat
-(
-    size_t _count, 
+d_string_concat(
+    size_t _count,
     ...
 )
 {
-    va_list                args;
-    size_t                 total_len;
-    size_t                 i;
-    const struct d_string* str;
-    struct d_string*       result;
-
     if (_count == 0)
     {
         return d_string_new();
     }
 
     // first pass: calculate total length and check for NULL
-    va_start(args, _count);
-    total_len = 0;
+    va_list args;
+    size_t  total_len = 0;
 
-    for (i = 0; i < _count; i++)
+    va_start(args,
+             _count);
+
+    for (size_t i = 0; i < _count; i++)
     {
-        str = va_arg(args, const struct d_string*);
+        const struct d_string* str = va_arg(args,
+                                            const struct d_string*);
 
         if (str == NULL)
         {
@@ -4497,7 +3720,7 @@ d_string_concat
 
     va_end(args);
 
-    result = d_string_new_with_capacity(total_len + 1);
+    struct d_string* result = d_string_new_with_capacity(total_len + 1);
 
     if (result == NULL)
     {
@@ -4505,13 +3728,16 @@ d_string_concat
     }
 
     // second pass: concatenate
-    va_start(args, _count);
+    va_start(args,
+             _count);
 
-    for (i = 0; i < _count; i++)
+    for (size_t i = 0; i < _count; i++)
     {
-        str = va_arg(args, const struct d_string*);
+        const struct d_string* str = va_arg(args,
+                                            const struct d_string*);
 
-        d_string_append(result, str);
+        d_string_append(result,
+                        str);
     }
 
     va_end(args);
@@ -4519,180 +3745,120 @@ d_string_concat
     return result;
 }
 
-
-/******************************************************************************
-* Validation Functions
-******************************************************************************/
-
+// utilities: validation
 /*
 d_string_is_valid
-  Check if a `d_string` is valid: defined as non-NULL, with a non-NULL buffer,
-and a null-terminator at the index corresponding to the parameter's `size`
-field.
-
-Parameter(s):
-  _string: `d_string` being checked for validity.
-Return:
-  A boolean value corresponding to either:
-  - true, if and only if all characters are ASCII, or
-  - false, if one or more characters in `_string` are non-ASCII characters.
+  d_str_is_valid() checks the buffer and rejects NULs before `size`; the
+terminator is checked separately at `size` itself.
 */
-D_INLINE bool
-d_string_is_valid
-(
+bool
+d_string_is_valid(
     const struct d_string* _string
 )
 {
     return (_string)
-        ? ( d_str_is_valid(_string->text, _string->size) &&
+        ? ( (d_str_is_valid(_string->text,
+                            _string->size)) &&
             (_string->text[_string->size] == '\0') )
         : false;
 }
 
 /*
 d_string_is_ascii
-  Check if a `d_string` contains only ASCII characters.
-
-Parameter(s):
-  _string: valid, non-NULL `d_string` to check.
-Return:
-  A boolean value corresponding to either:
-  - true, if and only if all characters are ASCII, or
-  - false, if one or more characters in `_string` are non-ASCII characters.
+  Delegates to d_str_is_ascii() over the stored size.
 */
-D_INLINE bool
-d_string_is_ascii
-(
+bool
+d_string_is_ascii(
     const struct d_string* _string
 )
 {
     return (_string)
-        ? d_str_is_ascii(_string->text, _string->size)
+        ? d_str_is_ascii(_string->text,
+                         _string->size)
         : false;
 }
 
 /*
 d_string_is_numeric
-  Check if a `d_string` contains only numeric characters.
-
-Parameter(s):
-  _string: valid, non-NULL `d_string` to check.
-Return:
-  A boolean value corresponding to either:
-  - true, if and only if all characters are numeric, or
-  - false, if one or more characters in `_string` are non-numeric characters.
+  Delegates to d_str_is_numeric() over the stored size.
 */
-D_INLINE bool
-d_string_is_numeric
-(
+bool
+d_string_is_numeric(
     const struct d_string* _string
 )
 {
     return (_string)
-        ? d_str_is_numeric(_string->text, _string->size)
+        ? d_str_is_numeric(_string->text,
+                           _string->size)
         : false;
 }
 
 /*
 d_string_is_alpha
-  Check if a `d_string` contains only alphabetical characters.
-
-Parameter(s):
-  _string: valid, non-NULL `d_string` to check.
-Return:
-  A boolean value corresponding to either:
-  - true, if and only if all characters are alphabetical, or
-  - false, if one or more characters in `_string` are non-alphabetical characters.
+  Delegates to d_str_is_alpha() over the stored size.
 */
-D_INLINE bool
-d_string_is_alpha
-(
+bool
+d_string_is_alpha(
     const struct d_string* _string
 )
 {
     return (_string)
-        ? d_str_is_alpha(_string->text, _string->size)
+        ? d_str_is_alpha(_string->text,
+                         _string->size)
         : false;
 }
 
 /*
 d_string_is_alnum
-  Check if a `d_string` contains only alphanumeric characters.
-
-Parameter(s):
-  _string: valid, non-NULL `d_string` to check.
-Return:
-  A boolean value corresponding to either:
-  - true, if and only if all characters are alphanumeric, or
-  - false, if one or more characters in `_string` are non-alphanumeric characters.
+  Delegates to d_str_is_alnum() over the stored size.
 */
-D_INLINE bool
-d_string_is_alnum
-(
+bool
+d_string_is_alnum(
     const struct d_string* _string
 )
 {
     return (_string)
-        ? d_str_is_alnum(_string->text, _string->size)
+        ? d_str_is_alnum(_string->text,
+                         _string->size)
         : false;
 }
 
 /*
 d_string_is_whitespace
-  Check if a `d_string` contains only whitespace characters.
-
-Parameter(s):
-  _string: valid, non-NULL `d_string` to check.
-Return:
-  A boolean value corresponding to either:
-  - true, if and only if all characters are whitespace characters, or
-  - false, if one or more characters in `_string` are non-whitespace characters.
+  Delegates to d_str_is_whitespace() over the stored size.
 */
-D_INLINE bool
-d_string_is_whitespace
-(
+bool
+d_string_is_whitespace(
     const struct d_string* _string
 )
 {
     return (_string)
-        ? d_str_is_whitespace(_string->text, _string->size)
+        ? d_str_is_whitespace(_string->text,
+                              _string->size)
         : false;
 }
 
-
-/******************************************************************************
-* Counting Functions
-******************************************************************************/
-
+// utilities: counting and hashing
 /*
 d_string_count_char
-  Count occurrences of character in string.
-
-Parameter(s):
-  _string: d_string to search.
-  _c:   character to count.
-Return:
-  Number of occurrences.
+  Walks the stored size rather than stopping at a NUL, so embedded NULs can be
+counted.
 */
 size_t
-d_string_count_char
-(
+d_string_count_char(
     const struct d_string* _string,
     char                   _c
 )
 {
-    size_t count;
-    size_t i;
-
-    if ( (!_string) || 
+    if ( (!_string) ||
          (!_string->text) )
     {
         return 0;
     }
 
-    count = 0;
+    size_t count = 0;
 
-    for (i = 0; i < _string->size; i++)
+    for (size_t i = 0; i < _string->size; i++)
     {
         if (_string->text[i] == _c)
         {
@@ -4705,43 +3871,34 @@ d_string_count_char
 
 /*
 d_string_count_substr
-  Count occurrences of substring in string.
-
-Parameter(s):
-  _string:    d_string to search.
-  _substr: substring to count.
-Return:
-  Number of occurrences.
+  Restarts strstr() just past each match, so occurrences are counted without
+overlap.
 */
 size_t
-d_string_count_substr
-(
+d_string_count_substr(
     const struct d_string* _string,
     const char*            _substr
 )
 {
-    size_t      count;
-    size_t      substr_len;
-    const char* search;
-    const char* found;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_substr == NULL) )
     {
         return 0;
     }
 
-    substr_len = strlen(_substr);
+    const size_t substr_len = strlen(_substr);
 
     if (substr_len == 0)
     {
         return 0;
     }
 
-    count  = 0;
-    search = _string->text;
+    size_t      count  = 0;
+    const char* search = _string->text;
+    const char* found  = NULL;
 
-    while ((found = strstr(search, _substr)) != NULL)
+    while ((found = strstr(search,
+                           _substr)) != NULL)
     {
         count++;
         search = found + substr_len;
@@ -4750,38 +3907,26 @@ d_string_count_substr
     return count;
 }
 
-
-/******************************************************************************
-* Hash Function
-******************************************************************************/
-
 /*
 d_string_hash
-  Calculate hash value for string (djb2 algorithm).
-
-Parameter(s):
-  _string: d_string to hash.
-Return:
-  Hash value.
+  djb2 (hash * 33 + c from a seed of 5381) over the stored size, reading
+characters as unsigned char so the result is the same whatever the signedness
+of char.
 */
 size_t
-d_string_hash
-(
+d_string_hash(
     const struct d_string* _string
 )
 {
-    size_t hash;
-    size_t i;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_string->text == NULL) )
     {
         return 0;
     }
 
-    hash = 5381;
+    size_t hash = 5381;
 
-    for (i = 0; i < _string->size; i++)
+    for (size_t i = 0; i < _string->size; i++)
     {
         hash = ((hash << 5) + hash) + (unsigned char)_string->text[i];
     }
@@ -4789,29 +3934,22 @@ d_string_hash
     return hash;
 }
 
-
-/******************************************************************************
-* Error String Functions
-******************************************************************************/
-
+// utilities: error strings
 /*
 d_string_error
-  Get error description as d_string.
-
-Parameter(s):
-  _errnum: error number.
-Return:
-  New d_string with error description, or NULL on allocation failure.
+  Formats into a 256-byte stack buffer with d_strerror_r(), falling back to a
+fixed "Unknown error" when that fails.
 */
 struct d_string*
-d_string_error
-(
+d_string_error(
     int _errnum
 )
 {
-    char buf[256];
+    char buf[256] = {0};
 
-    if (d_strerror_r(_errnum, buf, sizeof(buf)) != 0)
+    if (d_strerror_r(_errnum,
+                     buf,
+                     sizeof(buf)) != 0)
     {
         return d_string_new_from_cstr("Unknown error");
     }
@@ -4821,37 +3959,32 @@ d_string_error
 
 /*
 d_string_error_r
-  Thread-safe error string into provided d_string.
-
-Parameter(s):
-  _errnum: error number.
-  _string:    d_string to store error description.
-Return:
-  0 on success, error code otherwise.
+  Formats into a 256-byte stack buffer with d_strerror_r(), then assigns it;
+an error from d_strerror_r() is passed through unchanged.
 */
 int
-d_string_error_r
-(
+d_string_error_r(
     int              _errnum,
     struct d_string* _string
 )
 {
-    char buf[256];
-    int  result;
-
     if (_string == NULL)
     {
         return EINVAL;
     }
 
-    result = d_strerror_r(_errnum, buf, sizeof(buf));
+    char      buf[256] = {0};
+    const int result   = d_strerror_r(_errnum,
+                                      buf,
+                                      sizeof(buf));
 
     if (result != 0)
     {
         return result;
     }
 
-    if (!d_string_assign_cstr(_string, buf))
+    if (!d_string_assign_cstr(_string,
+                              buf))
     {
         return EINVAL;
     }
@@ -4859,33 +3992,24 @@ d_string_error_r
     return 0;
 }
 
-
-/******************************************************************************
-* Formatted String Functions
-******************************************************************************/
-
+// utilities: formatted strings
 /*
 d_string_printf
-  Create formatted d_string.
-
-Parameter(s):
-  _format: printf-style format string.
-  ...:     format arguments.
-Return:
-  New formatted d_string, or NULL on error.
+  Collects the arguments and delegates to d_string_vprintf().
 */
 struct d_string*
-d_string_printf
-(
-    const char* _format, 
+d_string_printf(
+    const char* _format,
     ...
 )
 {
-    va_list          args;
-    struct d_string* result;
+    va_list args;
 
-    va_start(args, _format);
-    result = d_string_vprintf(_format, args);
+    va_start(args,
+             _format);
+
+    struct d_string* result = d_string_vprintf(_format,
+                                               args);
     va_end(args);
 
     return result;
@@ -4893,32 +4017,29 @@ d_string_printf
 
 /*
 d_string_vprintf
-  Create formatted d_string with va_list.
-
-Parameter(s):
-  _format: printf-style format string.
-  _args:   va_list of arguments.
-Return:
-  New formatted d_string, or NULL on error.
+  Formats twice: a dry run over `_args` measures the output, then a va_copy()
+made beforehand writes it into a buffer of exactly that size.
 */
 struct d_string*
-d_string_vprintf
-(
+d_string_vprintf(
     const char* _format,
     va_list     _args
 )
 {
-    va_list          args_copy;
-    int              len;
-    struct d_string* result;
-
     if (_format == NULL)
     {
         return NULL;
     }
 
-    va_copy(args_copy, _args);
-    len = vsnprintf(NULL, 0, _format, _args);
+    va_list args_copy;
+
+    va_copy(args_copy,
+            _args);
+
+    const int len = vsnprintf(NULL,
+                              0,
+                              _format,
+                              _args);
 
     if (len < 0)
     {
@@ -4927,7 +4048,7 @@ d_string_vprintf
         return NULL;
     }
 
-    result = d_string_new_with_capacity((size_t)len + 1);
+    struct d_string* result = d_string_new_with_capacity((size_t)len + 1);
 
     if (result == NULL)
     {
@@ -4936,7 +4057,10 @@ d_string_vprintf
         return NULL;
     }
 
-    vsnprintf(result->text, (size_t)len + 1, _format, args_copy);
+    vsnprintf(result->text,
+              (size_t)len + 1,
+              _format,
+              args_copy);
     va_end(args_copy);
 
     result->size = (size_t)len;
@@ -4946,37 +4070,35 @@ d_string_vprintf
 
 /*
 d_string_sprintf
-  Format into existing d_string.
-
-Parameter(s):
-  _string:    d_string to format into (replaces content).
-  _format: printf-style format string.
-  ...:     format arguments.
-Return:
-  Number of characters written, or -1 on error.
+  Formats twice: a vsnprintf() dry run measures the output, then a va_copy()
+of the arguments writes it over the existing text from index 0. The buffer is
+only grown, never shrunk.
 */
 int
-d_string_sprintf
-(
+d_string_sprintf(
     struct d_string* _string,
     const char*      _format,
     ...
 )
 {
-    va_list args;
-    va_list args_copy;
-    int     len;
-
-    if ( (_string == NULL) || 
+    if ( (_string == NULL) ||
          (_format == NULL) )
     {
         return -1;
     }
 
-    va_start(args, _format);
-    va_copy(args_copy, args);
+    va_list args;
+    va_list args_copy;
 
-    len = vsnprintf(NULL, 0, _format, args);
+    va_start(args,
+             _format);
+    va_copy(args_copy,
+            args);
+
+    const int len = vsnprintf(NULL,
+                              0,
+                              _format,
+                              args);
     va_end(args);
 
     if (len < 0)
@@ -4986,14 +4108,18 @@ d_string_sprintf
         return -1;
     }
 
-    if (!d_string_internal_grow(_string, (size_t)len + 1))
+    if (!d_string_internal_grow(_string,
+                                (size_t)len + 1))
     {
         va_end(args_copy);
 
         return -1;
     }
 
-    vsnprintf(_string->text, (size_t)len + 1, _format, args_copy);
+    vsnprintf(_string->text,
+              (size_t)len + 1,
+              _format,
+              args_copy);
     va_end(args_copy);
 
     _string->size = (size_t)len;
@@ -5001,19 +4127,13 @@ d_string_sprintf
     return len;
 }
 
-
+// lifecycle: destruction
 /*
 d_string_free
-  Frees a d_string and its contents.
-
-Parameter(s):
-  _string: d_string to free.
-Return:
-  (none)
+  Frees the text before the struct that points to it.
 */
 void
-d_string_free
-(
+d_string_free(
     struct d_string* _string
 )
 {
@@ -5034,16 +4154,11 @@ d_string_free
 
 /*
 d_string_free_contents
-  Frees the text buffer of a d_string but not the struct itself.
-
-Parameter(s):
-  _string: d_string whose contents to free.
-Return:
-  (none)
+  Frees the text and resets the fields, leaving an empty string with no buffer
+that the growing functions can reuse.
 */
 void
-d_string_free_contents
-(
+d_string_free_contents(
     struct d_string* _string
 )
 {
