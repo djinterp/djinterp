@@ -1,17 +1,19 @@
-/******************************************************************************
-* djinterp [core]                                                   env_arch.h
+/*******************************************************************************
+* djinterp [env]                                                      env_arch.h
 *
-* djinterp CPU architecture detection:
+* djinterp CPU architecture detection.
 *   Compile-time detection of the CPU architecture family, bit width, and
-* endianness, exposing the D_ENV_ARCH_* interface and the family/bit/endian
-* helper flags.
-*
+* endianness, exposing the D_ENV_ARCH_* interface and the family / bit-width /
+* endianness helper flags.
+*   Requires cfg_env.h (for the D_CFG_ENV_* switches). This header is an
+* internal component of env.h and is #included by it; do not #include it
+* directly.
 *
 * path:      /inc/djinterp/env/env_arch.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2023.03.27
-*                                                          revised: 2026.09.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
+*                                                            revised: 2026.09.23
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
@@ -20,49 +22,53 @@ TABLE OF CONTENTS
     -----------------
     1.  Architecture types
          1.  Architecture type identifiers
-              a. D_ENV_ARCH_TYPE_X86
-              b. D_ENV_ARCH_TYPE_X64
-              c. D_ENV_ARCH_TYPE_ARM
-              d. D_ENV_ARCH_TYPE_ARM64
-              e. D_ENV_ARCH_TYPE_RISCV
-              f. D_ENV_ARCH_TYPE_POWERPC
-              g. D_ENV_ARCH_TYPE_MIPS
-              h. D_ENV_ARCH_TYPE_SPARC
-              i. D_ENV_ARCH_TYPE_S390
-              j. D_ENV_ARCH_TYPE_IA64
-              k. D_ENV_ARCH_TYPE_ALPHA
-              l. D_ENV_ARCH_TYPE_UNKNOWN
+              1.  D_ENV_ARCH_TYPE_X86
+              2.  D_ENV_ARCH_TYPE_X64
+              3.  D_ENV_ARCH_TYPE_ARM
+              4.  D_ENV_ARCH_TYPE_ARM64
+              5.  D_ENV_ARCH_TYPE_RISCV
+              6.  D_ENV_ARCH_TYPE_POWERPC
+              7.  D_ENV_ARCH_TYPE_MIPS
+              8.  D_ENV_ARCH_TYPE_SPARC
+              9.  D_ENV_ARCH_TYPE_S390
+              10. D_ENV_ARCH_TYPE_IA64
+              11. D_ENV_ARCH_TYPE_ALPHA
+              12. D_ENV_ARCH_TYPE_UNKNOWN
     2.  Endianness
          1.  Endianness identifiers
-              a. D_ENV_ARCH_ENDIAN_UNKNOWN
-              b. D_ENV_ARCH_ENDIAN_LITTLE
-              c. D_ENV_ARCH_ENDIAN_BIG
+              1.  D_ENV_ARCH_ENDIAN_UNKNOWN
+              2.  D_ENV_ARCH_ENDIAN_LITTLE
+              3.  D_ENV_ARCH_ENDIAN_BIG
 2.  ARCHITECTURE DETECTION
     ----------------------
     1.  Automatic detection
          1.  Architecture cases
-              a. x86-64 / x86
-              b. ARM64 / ARM
-              c. RISC-V
-              d. PowerPC
-              e. MIPS
-              f. SPARC
-              g. IBM System/390
-              h. Itanium
-              i. Alpha
-              j. Unknown architecture
+              1.  x86-64
+              2.  x86
+              3.  ARM64
+              4.  ARM
+              5.  RISC-V
+              6.  PowerPC
+              7.  MIPS
+              8.  SPARC
+              9.  IBM System/390
+              10. Itanium (IA-64)
+              11. Alpha
+              12. Unknown architecture
     2.  Predefined detection
          1.  D_ENV_DETECTED_ARCH_* overrides
-              a. x86-64 / x86
-              b. ARM64 / ARM
-              c. RISC-V
-              d. PowerPC
-              e. MIPS
-              f. SPARC
-              g. IBM System/390
-              h. Itanium
-              i. Alpha
-              j. Unknown architecture
+              1.  x86-64
+              2.  x86
+              3.  ARM64
+              4.  ARM
+              5.  RISC-V
+              6.  PowerPC
+              7.  MIPS
+              8.  SPARC
+              9.  IBM System/390
+              10. Itanium (IA-64)
+              11. Alpha
+              12. Unknown architecture
 3.  DERIVED ARCHITECTURE FLAGS
     --------------------------
     1.  Architecture families
@@ -76,93 +82,118 @@ TABLE OF CONTENTS
          2.  D_ENV_ARCH_IS_BIG_ENDIAN
 */
 
-#ifndef DJINTERP_ENV_ARCH_
-#define DJINTERP_ENV_ARCH_ 1
+#ifndef DJINTERP_ENV_ENV_ARCH_H
+#define DJINTERP_ENV_ENV_ARCH_H 1
 
 
-//=============================================================================
+//==============================================================================
 // 1.  DEFINED CONSTANTS
-//=============================================================================
+//==============================================================================
 // Defines the stable identifiers used to classify architecture and endianness.
 
 
 // 1.1    Architecture types
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // 1.1.1
 // Architecture type identifiers
 
+// 1.1.1.1
 // D_ENV_ARCH_TYPE_X86
 //   constant: architecture type identifier for 32-bit x86.
 #define D_ENV_ARCH_TYPE_X86     0
 
+// 1.1.1.2
 // D_ENV_ARCH_TYPE_X64
 //   constant: architecture type identifier for 64-bit x86.
 #define D_ENV_ARCH_TYPE_X64     1
 
+// 1.1.1.3
 // D_ENV_ARCH_TYPE_ARM
 //   constant: architecture type identifier for 32-bit ARM.
 #define D_ENV_ARCH_TYPE_ARM     2
 
+// 1.1.1.4
 // D_ENV_ARCH_TYPE_ARM64
 //   constant: architecture type identifier for 64-bit ARM.
 #define D_ENV_ARCH_TYPE_ARM64   3
 
+// 1.1.1.5
 // D_ENV_ARCH_TYPE_RISCV
 //   constant: architecture type identifier for RISC-V.
 #define D_ENV_ARCH_TYPE_RISCV   4
 
+// 1.1.1.6
 // D_ENV_ARCH_TYPE_POWERPC
 //   constant: architecture type identifier for PowerPC.
 #define D_ENV_ARCH_TYPE_POWERPC 5
 
+// 1.1.1.7
 // D_ENV_ARCH_TYPE_MIPS
 //   constant: architecture type identifier for MIPS.
 #define D_ENV_ARCH_TYPE_MIPS    6
 
+// 1.1.1.8
 // D_ENV_ARCH_TYPE_SPARC
 //   constant: architecture type identifier for SPARC.
 #define D_ENV_ARCH_TYPE_SPARC   7
 
+// 1.1.1.9
 // D_ENV_ARCH_TYPE_S390
 //   constant: architecture type identifier for IBM System/390.
 #define D_ENV_ARCH_TYPE_S390    8
 
+// 1.1.1.10
 // D_ENV_ARCH_TYPE_IA64
 //   constant: architecture type identifier for Itanium (IA-64).
 #define D_ENV_ARCH_TYPE_IA64    9
 
+// 1.1.1.11
 // D_ENV_ARCH_TYPE_ALPHA
 //   constant: architecture type identifier for Alpha.
 #define D_ENV_ARCH_TYPE_ALPHA   10
 
+// 1.1.1.12
 // D_ENV_ARCH_TYPE_UNKNOWN
 //   constant: architecture type identifier for an unknown architecture.
 #define D_ENV_ARCH_TYPE_UNKNOWN 11
 
 // 1.2    Endianness
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // 1.2.1
 // Endianness identifiers
 
+// 1.2.1.1
 // D_ENV_ARCH_ENDIAN_UNKNOWN
 //   constant: endianness identifier for an unknown byte order.
 #define D_ENV_ARCH_ENDIAN_UNKNOWN 0
 
+// 1.2.1.2
 // D_ENV_ARCH_ENDIAN_LITTLE
 //   constant: endianness identifier for little-endian byte order.
 #define D_ENV_ARCH_ENDIAN_LITTLE  1
 
+// 1.2.1.3
 // D_ENV_ARCH_ENDIAN_BIG
 //   constant: endianness identifier for big-endian byte order.
 #define D_ENV_ARCH_ENDIAN_BIG     2
 
+
+//==============================================================================
+// 2.  ARCHITECTURE DETECTION
+//==============================================================================
+// Selects exactly one architecture, either from the compiler's predefined
+// macros or, when automatic detection is disabled, from the
+// D_ENV_DETECTED_ARCH_* overrides.
+
+
 // 2.1    Automatic detection
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // 2.1.1
 // Architecture cases
 
 #if (D_CFG_ENV_ARCH_ENABLED)
 
+    // 2.1.1.1
     // x86-64
     #if ( defined(_M_X64)     ||                                              \
           defined(__x86_64__) ||                                              \
@@ -189,6 +220,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.1.1.2
     // x86
     #elif ( defined(_M_IX86)   ||                                             \
             defined(__i386__)  ||                                             \
@@ -214,8 +246,9 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.1.1.3
     // ARM64
-    #elif ( defined(_M_ARM64) ||                                               \
+    #elif ( defined(_M_ARM64) ||                                              \
             defined(__aarch64__) )
         // D_ENV_ARCH_ARM64
         //   macro: indicates that the detected architecture is 64-bit ARM.
@@ -237,6 +270,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.1.1.4
     // ARM
     #elif ( defined(_M_ARM)    ||                                             \
             defined(__arm__)   ||                                             \
@@ -261,6 +295,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.1.1.5
     // RISC-V
     #elif defined(__riscv)
         // D_ENV_ARCH_RISCV
@@ -302,10 +337,11 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.1.1.6
     // PowerPC
-    #elif ( defined(__powerpc__)   ||                                          \
-            defined(__powerpc64__) ||                                          \
-            defined(__PPC__)       ||                                          \
+    #elif ( defined(__powerpc__)   ||                                        \
+            defined(__powerpc64__) ||                                        \
+            defined(__PPC__)       ||                                        \
             defined(__PPC64__) )
         // D_ENV_ARCH_POWERPC
         //   macro: indicates that the detected architecture is PowerPC.
@@ -345,6 +381,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.1.1.7
     // MIPS
     #elif ( defined(__mips__) ||                                               \
             defined(__mips)   ||                                               \
@@ -388,6 +425,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.1.1.8
     // SPARC
     #elif ( defined(__sparc__) ||                                              \
             defined(__sparc) )
@@ -403,7 +441,7 @@ TABLE OF CONTENTS
 
             // D_ENV_ARCH_NAME
             //   constant: human-readable name of the detected architecture.
-            #define D_ENV_ARCH_NAME    "sPARC 64"
+            #define D_ENV_ARCH_NAME    "SPARC 64"
 
             // D_ENV_ARCH_BITS
             //   constant: native architecture width in bits.
@@ -415,7 +453,7 @@ TABLE OF CONTENTS
 
             // D_ENV_ARCH_NAME
             //   constant: human-readable name of the detected architecture.
-            #define D_ENV_ARCH_NAME    "sPARC 32"
+            #define D_ENV_ARCH_NAME    "SPARC 32"
 
             // D_ENV_ARCH_BITS
             //   constant: native architecture width in bits.
@@ -430,6 +468,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.1.1.9
     // IBM System/390
     #elif ( defined(__s390__) ||                                               \
             defined(__s390x__) )
@@ -467,6 +506,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.1.1.10
     // Itanium (IA-64)
     #elif ( defined(__ia64__) ||                                              \
             defined(_IA64)    ||                                              \
@@ -492,6 +532,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.1.1.11
     // Alpha
     #elif ( defined(__alpha__) ||                                             \
             defined(__alpha)   ||                                             \
@@ -516,6 +557,7 @@ TABLE OF CONTENTS
         //   constant: byte-order identifier for the detected architecture.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.1.1.12
     // Unknown architecture
     #else
         // D_ENV_ARCH_UNKNOWN
@@ -542,11 +584,13 @@ TABLE OF CONTENTS
 #else
 
 // 2.2    Predefined detection
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // 2.2.1
 // D_ENV_DETECTED_ARCH_* overrides
 
     // use pre-defined detection variables when automatic detection is disabled
+    // 2.2.1.1
+    // x86-64
     #ifdef D_ENV_DETECTED_ARCH_X64
         // D_ENV_ARCH_X64
         //   macro: indicates a configured x86-64 target.
@@ -568,6 +612,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.2.1.2
+    // x86
     #elif defined(D_ENV_DETECTED_ARCH_X86)
         // D_ENV_ARCH_X86
         //   macro: indicates a configured 32-bit x86 target.
@@ -589,6 +635,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.2.1.3
+    // ARM64
     #elif defined(D_ENV_DETECTED_ARCH_ARM64)
         // D_ENV_ARCH_ARM64
         //   macro: indicates a configured 64-bit ARM target.
@@ -610,6 +658,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.2.1.4
+    // ARM
     #elif defined(D_ENV_DETECTED_ARCH_ARM)
         // D_ENV_ARCH_ARM
         //   macro: indicates a configured 32-bit ARM target.
@@ -631,6 +681,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.2.1.5
+    // RISC-V
     #elif defined(D_ENV_DETECTED_ARCH_RISCV)
         // D_ENV_ARCH_RISCV
         //   macro: indicates a configured RISC-V target.
@@ -652,6 +704,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.2.1.6
+    // PowerPC
     #elif defined(D_ENV_DETECTED_ARCH_POWERPC)
         // D_ENV_ARCH_POWERPC
         //   macro: indicates a configured PowerPC target.
@@ -673,6 +727,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.2.1.7
+    // MIPS
     #elif defined(D_ENV_DETECTED_ARCH_MIPS)
         // D_ENV_ARCH_MIPS
         //   macro: indicates a configured MIPS target.
@@ -694,6 +750,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.2.1.8
+    // SPARC
     #elif defined(D_ENV_DETECTED_ARCH_SPARC)
         // D_ENV_ARCH_SPARC
         //   macro: indicates a configured SPARC target.
@@ -701,7 +759,7 @@ TABLE OF CONTENTS
 
         // D_ENV_ARCH_NAME
         //   constant: human-readable name of the configured architecture.
-        #define D_ENV_ARCH_NAME    "sPARC"
+        #define D_ENV_ARCH_NAME    "SPARC"
 
         // D_ENV_ARCH_TYPE
         //   constant: configured architecture type identifier.
@@ -715,6 +773,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.2.1.9
+    // IBM System/390
     #elif defined(D_ENV_DETECTED_ARCH_S390)
         // D_ENV_ARCH_S390
         //   macro: indicates a configured IBM System/390 target.
@@ -736,6 +796,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_BIG
 
+    // 2.2.1.10
+    // Itanium (IA-64)
     #elif defined(D_ENV_DETECTED_ARCH_IA64)
         // D_ENV_ARCH_IA64
         //   macro: indicates a configured Itanium target.
@@ -757,6 +819,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.2.1.11
+    // Alpha
     #elif defined(D_ENV_DETECTED_ARCH_ALPHA)
         // D_ENV_ARCH_ALPHA
         //   macro: indicates a configured Alpha target.
@@ -778,6 +842,8 @@ TABLE OF CONTENTS
         //   constant: configured architecture byte order.
         #define D_ENV_ARCH_ENDIAN  D_ENV_ARCH_ENDIAN_LITTLE
 
+    // 2.2.1.12
+    // Unknown architecture
     #elif defined(D_ENV_DETECTED_ARCH_UNKNOWN)
         // D_ENV_ARCH_UNKNOWN
         //   macro: indicates a configured unknown-architecture target.
@@ -802,15 +868,15 @@ TABLE OF CONTENTS
 #endif  // D_CFG_ENV_ARCH_ENABLED
 
 
-//=============================================================================
+//==============================================================================
 // 3.  DERIVED ARCHITECTURE FLAGS
-//=============================================================================
+//==============================================================================
 // Derives family, width, and endianness predicates from the selected
 // architecture descriptors.
 
 
 // 3.1    Architecture families
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // 3.1.1
 // D_ENV_ARCH_IS_X86_FAMILY
 //   macro: 1 for x86 or x86-64 targets; otherwise 0.
@@ -832,7 +898,7 @@ TABLE OF CONTENTS
 #endif  // defined(D_ENV_ARCH_ARM) || defined(D_ENV_ARCH_ARM64)
 
 // 3.2    Architecture bit width
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // 3.2.1
 // D_ENV_ARCH_IS_64BIT
 //   macro: 1 when the selected architecture width is 64 bits; otherwise 0.
@@ -852,7 +918,7 @@ TABLE OF CONTENTS
 #endif  // D_ENV_ARCH_BITS == 32
 
 // 3.3    Architecture endianness
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // 3.3.1
 // D_ENV_ARCH_IS_LITTLE_ENDIAN
 //   macro: 1 when the selected architecture is little-endian; otherwise 0.
@@ -872,4 +938,4 @@ TABLE OF CONTENTS
 #endif  // D_ENV_ARCH_ENDIAN == D_ENV_ARCH_ENDIAN_BIG
 
 
-#endif  // DJINTERP_ENV_ARCH_
+#endif  // DJINTERP_ENV_ENV_ARCH_H

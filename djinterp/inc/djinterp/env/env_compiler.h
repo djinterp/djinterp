@@ -1,36 +1,106 @@
-/******************************************************************************
-* djinterp [core]                                               env_compiler.h
+/*******************************************************************************
+* djinterp [env]                                                  env_compiler.h
 *
-* djinterp compiler detection + preprocessor limits:
+* djinterp compiler detection and preprocessor limits.
 *   Compiler identification and version (the D_ENV_COMPILER_* interface),
-* __VA_OPT__ availability detection, and the preprocessor translation-limit
-* interface (D_ENV_PP_*). The preprocessor-limits block consults the
-* D_ENV_PLATFORM_* flags from the OS section, so this header must be included
-* AFTER env_os.h (the umbrella env.h arranges this). Compiler identity itself
-* is independent of arch/OS and must precede env_c_lib.h.
-*
-*   Requires:  cfg_env.h, env_lang.h (for D_ENV_LANG_*), and env_os.h (for
-*              D_ENV_PLATFORM_WINDOWS, used by the limits block). This header is
-*              an internal component of env.h and is #included by it; do NOT
-*              #include it directly.
-*
+* __VA_OPT__ availability, and the preprocessor translation-limit interface
+* (D_ENV_PP_*). The limits block consults the D_ENV_PLATFORM_* flags from the
+* OS section, so this header must be included after env_os.h, which the
+* umbrella env.h arranges. Compiler identity itself is independent of
+* architecture and OS, and must precede env_c_lib.h.
+*   Requires cfg_env.h, env_lang.h (for D_ENV_LANG_*), and env_os.h (for
+* D_ENV_PLATFORM_WINDOWS, used by the limits block). This header is an
+* internal component of env.h and is #included by it; do not #include it
+* directly.
 *
 * path:      /inc/djinterp/env/env_compiler.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2023.03.27
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
+*                                                            revised: 2026.09.23
+*******************************************************************************/
 
-#ifndef DJINTERP_ENV_COMPILER_
-#define DJINTERP_ENV_COMPILER_ 1
+/*
+TABLE OF CONTENTS
+=================
+1.  COMPILER DETECTION
+    ------------------
+    1.  Automatic detection
+         1.  Compiler identity
+              1.  Clang
+              2.  GCC
+              3.  Microsoft Visual C++
+              4.  Intel C++
+              5.  Borland / Turbo C++
+              6.  Unknown compiler
+    2.  Predefined detection
+         1.  D_ENV_DETECTED_COMPILER_* overrides
+         2.  Default version information
+    3.  Toolchain family
+         1.  D_ENV_COMPILER_MSVC_FAMILY
+    4.  Version checks
+         1.  D_ENV_COMPILER_VERSION_AT_LEAST
+         2.  D_ENV_COMPILER_VERSION_AT_MOST
+2.  PREPROCESSOR FEATURES
+    ---------------------
+    1.  __VA_OPT__
+         1.  D_ENV_PP_HAS_VA_OPT
+         2.  D_ENV_PP_HAS_VA_OPT_ENABLED
+3.  PREPROCESSOR LIMITS
+    -------------------
+    1.  Standard translation limits
+         1.  C89 minimum limits
+              1.  D_ENV_PP_LIMIT_C89_MACRO_ARGS
+              2.  D_ENV_PP_LIMIT_C89_NESTING_DEPTH
+              3.  D_ENV_PP_LIMIT_C89_MACRO_IDS
+              4.  D_ENV_PP_LIMIT_C89_PARAMS
+              5.  D_ENV_PP_LIMIT_C89_STRING_LENGTH
+         2.  C99 and later minimum limits
+              1.  D_ENV_PP_LIMIT_C99_MACRO_ARGS
+              2.  D_ENV_PP_LIMIT_C99_NESTING_DEPTH
+              3.  D_ENV_PP_LIMIT_C99_MACRO_IDS
+              4.  D_ENV_PP_LIMIT_C99_PARAMS
+              5.  D_ENV_PP_LIMIT_C99_STRING_LENGTH
+         3.  C++ minimum limits
+              1.  D_ENV_PP_LIMIT_CPP_MACRO_ARGS
+              2.  D_ENV_PP_LIMIT_CPP_NESTING_DEPTH
+              3.  D_ENV_PP_LIMIT_CPP_MACRO_IDS
+              4.  D_ENV_PP_LIMIT_CPP_PARAMS
+              5.  D_ENV_PP_LIMIT_CPP_STRING_LENGTH
+    2.  Standard-based minimums
+         1.  D_ENV_PP_MIN_*
+    3.  Compiler-specific practical limits
+         1.  D_ENV_PP_MAX_* and D_ENV_PP_LIMIT_SOURCE
+    4.  Limit utilities
+         1.  D_ENV_PP_ARGS_WITHIN_LIMIT
+         2.  D_ENV_PP_ARGS_WITHIN_STANDARD
+         3.  D_ENV_PP_IS_UNLIMITED
+         4.  D_ENV_PP_EFFECTIVE_LIMIT
+*/
+
+#ifndef DJINTERP_ENV_ENV_COMPILER_H
+#define DJINTERP_ENV_ENV_COMPILER_H 1
 
 
-// ===========================================================================
-// I.   COMPILER DETECTION
-// ===========================================================================
+//==============================================================================
+// 1.  COMPILER DETECTION
+//==============================================================================
+// Identifies the compiler and its version, from its predefined macros or,
+// when detection is disabled, from the D_ENV_DETECTED_COMPILER_* overrides.
 
-// compiler detection logic
+
 #if D_CFG_ENV_COMPILER_ENABLED
-    // clang (check first as it can masquerade as GCC)
+
+// 1.1    Automatic detection
+//------------------------------------------------------------------------------
+// 1.1.1
+// Compiler identity
+//   constant: exactly one D_ENV_COMPILER_<compiler> flag, defined to 1, plus
+// D_ENV_COMPILER_NAME, _FULL_NAME, _MAJOR, _MINOR, _PATCHLEVEL, and
+// _VERSION_STRING. Clang is tested first because it also defines __GNUC__, and
+// clang-cl is therefore classified as Clang (see D_ENV_COMPILER_MSVC_FAMILY).
+
+    // 1.1.1.1
+    // Clang
     #if defined(__clang__)
         #define D_ENV_COMPILER_CLANG 1
 
@@ -41,13 +111,14 @@
         #else
             #define D_ENV_COMPILER_NAME         "Clang"
             #define D_ENV_COMPILER_FULL_NAME    "Clang/LLVM"
-        #endif
+        #endif  // __apple_build_version__
 
         #define D_ENV_COMPILER_MAJOR            __clang_major__
         #define D_ENV_COMPILER_MINOR            __clang_minor__
         #define D_ENV_COMPILER_PATCHLEVEL       __clang_patchlevel__
         #define D_ENV_COMPILER_VERSION_STRING   __clang_version__
 
+    // 1.1.1.2
     // GCC
     #elif defined(__GNUC__)
         #define D_ENV_COMPILER_GCC 1
@@ -60,14 +131,15 @@
             #define D_ENV_COMPILER_PATCHLEVEL   __GNUC_PATCHLEVEL__
         #else
             #define D_ENV_COMPILER_PATCHLEVEL   0
-        #endif
+        #endif  // __GNUC_PATCHLEVEL__
 
         #ifdef __VERSION__
             #define D_ENV_COMPILER_VERSION_STRING __VERSION__
         #else
             #define D_ENV_COMPILER_VERSION_STRING "GCC (version unknown)"
-        #endif
+        #endif  // __VERSION__
 
+    // 1.1.1.3
     // Microsoft Visual C++
     #elif defined(_MSC_VER)
         #define D_ENV_COMPILER_MSVC             1
@@ -97,6 +169,7 @@
         #define D_ENV_COMPILER_PATCHLEVEL         (_MSC_VER % 10)
         #define D_ENV_COMPILER_VERSION_STRING   "MSVC"
 
+    // 1.1.1.4
     // Intel C++
     #elif ( defined(__INTEL_COMPILER) ||  \
             defined(__ICL)            ||  \
@@ -113,10 +186,11 @@
             #define D_ENV_COMPILER_MAJOR        0
             #define D_ENV_COMPILER_MINOR        0
             #define D_ENV_COMPILER_PATCHLEVEL   0
-        #endif
+        #endif  // __INTEL_COMPILER
         #define D_ENV_COMPILER_VERSION_STRING   "Intel C++"
 
-    // Borland/Turbo C++
+    // 1.1.1.5
+    // Borland / Turbo C++
     #elif ( defined(__BORLANDC__) ||    \
             defined(__TURBOC__) )
         #define D_ENV_COMPILER_BORLAND          1
@@ -131,11 +205,12 @@
             #define D_ENV_COMPILER_MAJOR        0
             #define D_ENV_COMPILER_MINOR        0
             #define D_ENV_COMPILER_PATCHLEVEL   0
-        #endif
+        #endif  // __BORLANDC__
 
         #define D_ENV_COMPILER_VERSION_STRING   "Borland C++"
 
-    // unknown compiler
+    // 1.1.1.6
+    // Unknown compiler
     #else
         #define D_ENV_COMPILER_UNKNOWN          1
         #define D_ENV_COMPILER_NAME             "unknown"
@@ -146,7 +221,12 @@
         #define D_ENV_COMPILER_VERSION_STRING   "unknown"
     #endif
 #else
-// use pre-defined detection variables when compiler detection is disabled
+
+// 1.2    Predefined detection
+//------------------------------------------------------------------------------
+    // 1.2.1
+    // D_ENV_DETECTED_COMPILER_* overrides
+    //   the first D_ENV_DETECTED_COMPILER_* defined selects the compiler.
     #ifdef D_ENV_DETECTED_COMPILER_APPLE_CLANG
         #define D_ENV_COMPILER_APPLE_CLANG 1
         #define D_ENV_COMPILER_CLANG     1
@@ -176,9 +256,11 @@
         #define D_ENV_COMPILER_UNKNOWN   1
         #define D_ENV_COMPILER_NAME      "Unknown"
         #define D_ENV_COMPILER_FULL_NAME "Unknown Compiler"
-    #endif
+    #endif  // D_ENV_DETECTED_COMPILER_APPLE_CLANG
 
-    // default version info when using detected variables
+    // 1.2.2
+    // Default version information
+    //   a simulated compiler reports version 0.0.0, "simulated".
     #ifndef D_ENV_COMPILER_MAJOR
         #define D_ENV_COMPILER_MAJOR          0
         #define D_ENV_COMPILER_MINOR          0
@@ -187,6 +269,26 @@
     #endif  // D_ENV_COMPILER_MAJOR
 #endif  // !D_CFG_ENV_COMPILER_ENABLED
 
+// 1.3    Toolchain family
+//------------------------------------------------------------------------------
+// 1.3.1
+// D_ENV_COMPILER_MSVC_FAMILY
+//   macro: 1 when the compiler uses the Microsoft toolchain's headers and C
+// runtime -- cl itself, and clang-cl and Intel on Windows, which define
+// _MSC_VER as well but are classified above under their own names -- and 0
+// otherwise. Questions about the runtime rather than the compiler, such as
+// whether <sys/types.h> declares ssize_t, key on this macro rather than on
+// D_ENV_COMPILER_MSVC.
+#if ( defined(_MSC_VER) ||                                                    \
+      defined(D_ENV_COMPILER_MSVC) )
+    #define D_ENV_COMPILER_MSVC_FAMILY 1
+#else
+    #define D_ENV_COMPILER_MSVC_FAMILY 0
+#endif
+
+// 1.4    Version checks
+//------------------------------------------------------------------------------
+// 1.4.1
 // D_ENV_COMPILER_VERSION_AT_LEAST
 //   macro: utility macro for version checking, ensuring that the compiler
 // version is greater than, or equal to, the version specified.
@@ -198,6 +300,7 @@
        (D_ENV_COMPILER_MINOR == (minor)) &&    \
        (D_ENV_COMPILER_PATCHLEVEL >= (patch)) ) )
 
+// 1.4.2
 // D_ENV_COMPILER_VERSION_AT_MOST
 //   macro: utility macro for version checking, ensuring that the compiler
 // version is less than, or equal to, the version specified.
@@ -209,83 +312,168 @@
        (D_ENV_COMPILER_MINOR == (minor)) &&    \
        (D_ENV_COMPILER_PATCHLEVEL <= (patch)) ) )
 
-#ifndef D_ENV_PP_HAS_VA_OPT
-    #ifdef D_ENV_LANG_USING_CPP
-        #if ( defined(__cpp_va_opt) &&  \
-              (__cpp_va_opt >= 201803L) )
-            #define D_ENV_PP_HAS_VA_OPT 1
-        #else
-            #define D_ENV_PP_HAS_VA_OPT 0
-        #endif  // defined(__cpp_va_opt) && (__cpp_va_opt >= 201803L)
-    #else
-        // detection method: when __VA_OPT__ is supported and __VA_ARGS__ is non-empty,
-        // __VA_OPT__(,) expands to ",", which shifts argument selection.
-        // We pass a dummy argument (~) to ensure __VA_ARGS__ is non-empty.
-        //
-        // If __VA_OPT__ works:   __VA_OPT__(,) -> "," -> PP_THIRD selects arg 2 (1)
-        // If __VA_OPT__ literal: no comma inserted   -> PP_THIRD selects arg 3 (0)
 
-        #define D_VA_OPT_THIRD_ARG_(a, b, c, ...) c
-        #define D_VA_OPT_THIRD_ARG(...)           D_VA_OPT_THIRD_ARG_(__VA_ARGS__)
-        #define D_VA_OPT_PROBE_(...)              D_VA_OPT_THIRD_ARG(__VA_OPT__(,), 1, 0, )
-        #define D_ENV_PP_HAS_VA_OPT               D_VA_OPT_PROBE_(~)
-    #endif  // D_ENV_LANG_USING_CPP
+//==============================================================================
+// 2.  PREPROCESSOR FEATURES
+//==============================================================================
+
+
+// 2.1    __VA_OPT__
+//------------------------------------------------------------------------------
+// 2.1.1
+// D_ENV_PP_HAS_VA_OPT
+//   constant: 1 when __VA_OPT__ is available, 0 otherwise, decided in order:
+//     - __cpp_va_opt, where a C++ compiler defines it (GCC 13 and Clang 18
+//       do not, even at C++20), answers directly.
+//     - a strict ISO mode (__STRICT_ANSI__) whose standard predates
+//       __VA_OPT__ -- C++ before C++20, C before C2x -- reports 0: it is not
+//       part of the language there, and GCC's -pedantic rejects it even in
+//       a macro that is never expanded.
+//     - anything else probes: with __VA_OPT__ support, __VA_OPT__(,) in a
+//       non-empty argument list expands to a comma, which shifts which
+//       argument the probe selects. The EXPAND step re-scans the forwarded
+//       arguments, which MSVC's traditional preprocessor otherwise passes on
+//       as one.
+#ifndef D_ENV_PP_HAS_VA_OPT
+    #if ( defined(__cpp_va_opt) &&                                             \
+          (__cpp_va_opt >= 201803L) )
+        #define D_ENV_PP_HAS_VA_OPT 1
+    #elif ( defined(__STRICT_ANSI__)                                  &&       \
+            (D_ENV_LANG_USING_CPP)                                    &&       \
+            (D_ENV_LANG_CPP_STANDARD < D_ENV_LANG_CPP_STANDARD_CPP20) )
+        #define D_ENV_PP_HAS_VA_OPT 0
+    #elif ( defined(__STRICT_ANSI__)                             &&            \
+            (!D_ENV_LANG_USING_CPP)                              &&            \
+            (D_ENV_LANG_C_STANDARD <= D_ENV_LANG_C_STANDARD_C17) )
+        #define D_ENV_PP_HAS_VA_OPT 0
+    #else
+        //   a dummy argument (~) keeps __VA_ARGS__ non-empty:
+        //     __VA_OPT__ works:    __VA_OPT__(,) -> ",", third argument 1
+        //     __VA_OPT__ literal:  no comma inserted, third argument 0
+
+        // D_INTERNAL_ENV_VA_OPT_EXPAND / D_INTERNAL_ENV_VA_OPT_THIRD_ARG_ /
+        // D_INTERNAL_ENV_VA_OPT_THIRD_ARG / D_INTERNAL_ENV_VA_OPT_PROBE
+        //   macro (internal): the probe's argument-selection machinery.
+        #define D_INTERNAL_ENV_VA_OPT_EXPAND(x) x
+        #define D_INTERNAL_ENV_VA_OPT_THIRD_ARG_(a, b, c, ...) c
+        #define D_INTERNAL_ENV_VA_OPT_THIRD_ARG(...)                           \
+            D_INTERNAL_ENV_VA_OPT_EXPAND(                                      \
+                D_INTERNAL_ENV_VA_OPT_THIRD_ARG_(__VA_ARGS__))
+        #define D_INTERNAL_ENV_VA_OPT_PROBE(...)                               \
+            D_INTERNAL_ENV_VA_OPT_THIRD_ARG(__VA_OPT__(,), 1, 0, )
+        #define D_ENV_PP_HAS_VA_OPT D_INTERNAL_ENV_VA_OPT_PROBE(~)
+    #endif
 #endif  // D_ENV_PP_HAS_VA_OPT
 
+// 2.1.2
 // D_ENV_PP_HAS_VA_OPT_ENABLED
-//   macro: function-style wrapper for cleaner conditionals
+//   macro: alias for D_ENV_PP_HAS_VA_OPT, for cleaner conditionals.
 #define D_ENV_PP_HAS_VA_OPT_ENABLED  \
     D_ENV_PP_HAS_VA_OPT
 
-// ===========================================================================
-// II.  PREPROCESSOR LIMITS
-// ===========================================================================
-// This section defines preprocessor translation limits based on the C/C++
-// standard and compiler-specific implementations. These limits describe the
-// maximum capabilities guaranteed or supported by the environment.
-//
-// The C standard specifies MINIMUM limits that conforming implementations
-// must support. Actual implementations typically exceed these minimums.
-//
-// Key limits defined:
-//   D_ENV_PP_MIN_MACRO_ARGS      - Standard-mandated minimum macro arguments
-//   D_ENV_PP_MAX_MACRO_ARGS      - Compiler-specific practical maximum
-//   D_ENV_PP_MIN_NESTING_DEPTH   - Standard-mandated minimum #include nesting
-//   D_ENV_PP_MAX_NESTING_DEPTH   - Compiler-specific practical maximum
-//   D_ENV_PP_MIN_MACRO_IDS       - Standard-mandated minimum macro identifiers
-//   D_ENV_PP_MIN_PARAMS          - Standard-mandated minimum function parameters
-//   D_ENV_PP_MIN_STRING_LENGTH   - Standard-mandated minimum string literal length
 
-// -----------------------------------------------------------------------------
-// Standard Translation Limits (from ISO C/C++)
-// -----------------------------------------------------------------------------
-// C89/C90 (ANSI C) minimum limits:
+//==============================================================================
+// 3.  PREPROCESSOR LIMITS
+//==============================================================================
+// Translation limits: the minimums the C and C++ standards require every
+// conforming implementation to support (D_ENV_PP_MIN_*), and the practical
+// maximums documented or measured for each compiler (D_ENV_PP_MAX_*), which
+// typically far exceed them. A maximum of 0 means the compiler imposes no
+// hard limit.
+
+
+// 3.1    Standard translation limits
+//------------------------------------------------------------------------------
+// 3.1.1
+// C89 minimum limits
+
+// 3.1.1.1
+// D_ENV_PP_LIMIT_C89_MACRO_ARGS
+//   constant: C89 / C90 minimum for arguments in one macro invocation.
 #define D_ENV_PP_LIMIT_C89_MACRO_ARGS       31
+
+// 3.1.1.2
+// D_ENV_PP_LIMIT_C89_NESTING_DEPTH
+//   constant: C89 / C90 minimum for nesting levels of #included files.
 #define D_ENV_PP_LIMIT_C89_NESTING_DEPTH    8
+
+// 3.1.1.3
+// D_ENV_PP_LIMIT_C89_MACRO_IDS
+//   constant: C89 / C90 minimum for macro identifiers defined at once.
 #define D_ENV_PP_LIMIT_C89_MACRO_IDS        1024
+
+// 3.1.1.4
+// D_ENV_PP_LIMIT_C89_PARAMS
+//   constant: C89 / C90 minimum for parameters in one function definition.
 #define D_ENV_PP_LIMIT_C89_PARAMS           31
+
+// 3.1.1.5
+// D_ENV_PP_LIMIT_C89_STRING_LENGTH
+//   constant: C89 / C90 minimum for characters in one string literal.
 #define D_ENV_PP_LIMIT_C89_STRING_LENGTH    509
 
-// C99/C11/C17/C23 minimum limits:
+// 3.1.2
+// C99 and later minimum limits
+
+// 3.1.2.1
+// D_ENV_PP_LIMIT_C99_MACRO_ARGS
+//   constant: C99 and later minimum for arguments in one macro invocation.
 #define D_ENV_PP_LIMIT_C99_MACRO_ARGS       127
+
+// 3.1.2.2
+// D_ENV_PP_LIMIT_C99_NESTING_DEPTH
+//   constant: C99 and later minimum for nesting levels of #included files.
 #define D_ENV_PP_LIMIT_C99_NESTING_DEPTH    15
+
+// 3.1.2.3
+// D_ENV_PP_LIMIT_C99_MACRO_IDS
+//   constant: C99 and later minimum for macro identifiers defined at once.
 #define D_ENV_PP_LIMIT_C99_MACRO_IDS        4095
+
+// 3.1.2.4
+// D_ENV_PP_LIMIT_C99_PARAMS
+//   constant: C99 and later minimum for parameters in one function definition.
 #define D_ENV_PP_LIMIT_C99_PARAMS           127
+
+// 3.1.2.5
+// D_ENV_PP_LIMIT_C99_STRING_LENGTH
+//   constant: C99 and later minimum for characters in one string literal.
 #define D_ENV_PP_LIMIT_C99_STRING_LENGTH    4095
 
-// C++ minimum limits (similar to C99+ for modern standards):
+// 3.1.3
+// C++ minimum limits
+
+// 3.1.3.1
+// D_ENV_PP_LIMIT_CPP_MACRO_ARGS
+//   constant: C++ minimum for arguments in one macro invocation.
 #define D_ENV_PP_LIMIT_CPP_MACRO_ARGS       256
+
+// 3.1.3.2
+// D_ENV_PP_LIMIT_CPP_NESTING_DEPTH
+//   constant: C++ minimum for nesting levels of #included files.
 #define D_ENV_PP_LIMIT_CPP_NESTING_DEPTH    256
+
+// 3.1.3.3
+// D_ENV_PP_LIMIT_CPP_MACRO_IDS
+//   constant: C++ minimum for macro identifiers defined at once.
 #define D_ENV_PP_LIMIT_CPP_MACRO_IDS        65536
+
+// 3.1.3.4
+// D_ENV_PP_LIMIT_CPP_PARAMS
+//   constant: C++ minimum for parameters in one function definition.
 #define D_ENV_PP_LIMIT_CPP_PARAMS           256
+
+// 3.1.3.5
+// D_ENV_PP_LIMIT_CPP_STRING_LENGTH
+//   constant: C++ minimum for characters in one string literal.
 #define D_ENV_PP_LIMIT_CPP_STRING_LENGTH    65536
 
-// -----------------------------------------------------------------------------
-// Standard-Based Minimum Limits
-// -----------------------------------------------------------------------------
-// D_ENV_PP_MIN_MACRO_ARGS
-//   The minimum number of arguments in a macro invocation that any conforming
-//   implementation must support, based on the detected language standard.
+// 3.2    Standard-based minimums
+//------------------------------------------------------------------------------
+// 3.2.1
+// D_ENV_PP_MIN_*
+//   constant: D_ENV_PP_MIN_MACRO_ARGS, _NESTING_DEPTH, _MACRO_IDS, _PARAMS, and
+// _STRING_LENGTH: the 3.1 limits of the detected language standard.
 #ifdef D_ENV_LANG_CPP_STANDARD
     #define D_ENV_PP_MIN_MACRO_ARGS     D_ENV_PP_LIMIT_CPP_MACRO_ARGS
     #define D_ENV_PP_MIN_NESTING_DEPTH  D_ENV_PP_LIMIT_CPP_NESTING_DEPTH
@@ -304,13 +492,16 @@
     #define D_ENV_PP_MIN_MACRO_IDS      D_ENV_PP_LIMIT_C89_MACRO_IDS
     #define D_ENV_PP_MIN_PARAMS         D_ENV_PP_LIMIT_C89_PARAMS
     #define D_ENV_PP_MIN_STRING_LENGTH  D_ENV_PP_LIMIT_C89_STRING_LENGTH
-#endif
+#endif  // D_ENV_LANG_CPP_STANDARD
 
-// -----------------------------------------------------------------------------
-// Compiler-Specific Practical Limits
-// -----------------------------------------------------------------------------
-// These values represent practical/documented limits for specific compilers.
-// Note: GCC and Clang do not impose hard limits on macro arguments; they are
+// 3.3    Compiler-specific practical limits
+//------------------------------------------------------------------------------
+// 3.3.1
+// D_ENV_PP_MAX_* and D_ENV_PP_LIMIT_SOURCE
+//   constant: D_ENV_PP_MAX_MACRO_ARGS, _NESTING_DEPTH, _MACRO_IDS, and
+// _STRING_LENGTH for the detected compiler, with D_ENV_PP_LIMIT_SOURCE naming
+// where the values come from.
+// note: GCC and Clang do not impose hard limits on macro arguments; they are
 // constrained only by available memory and recursion depth. The values below
 // are conservative practical limits tested to work reliably.
 
@@ -319,17 +510,18 @@
     // tested to reliably handle 10000+ arguments
     #define D_ENV_PP_MAX_MACRO_ARGS         10000
     #define D_ENV_PP_MAX_NESTING_DEPTH      200
-    #define D_ENV_PP_MAX_MACRO_IDS          0       // 0 = unlimited (memory-bound)
-    #define D_ENV_PP_MAX_STRING_LENGTH      0       // 0 = unlimited (memory-bound)
+    #define D_ENV_PP_MAX_MACRO_IDS          0       // 0: no hard limit
+    #define D_ENV_PP_MAX_STRING_LENGTH      0       // 0: no hard limit
     #define D_ENV_PP_LIMIT_SOURCE           "GCC (practical)"
 
 #elif defined(D_ENV_COMPILER_CLANG)
     // Clang: Similar to GCC, no hard limit
-    // default macro recursion depth is 256, adjustable via -fmacro-backtrace-limit
+    // default macro recursion depth is 256, adjustable via
+    // -fmacro-backtrace-limit
     #define D_ENV_PP_MAX_MACRO_ARGS         10000
     #define D_ENV_PP_MAX_NESTING_DEPTH      256
-    #define D_ENV_PP_MAX_MACRO_IDS          0       // 0 = unlimited (memory-bound)
-    #define D_ENV_PP_MAX_STRING_LENGTH      0       // 0 = unlimited (memory-bound)
+    #define D_ENV_PP_MAX_MACRO_IDS          0       // 0: no hard limit
+    #define D_ENV_PP_MAX_STRING_LENGTH      0       // 0: no hard limit
     #define D_ENV_PP_LIMIT_SOURCE           "Clang (practical)"
 
 #elif defined(D_ENV_COMPILER_MSVC)
@@ -376,10 +568,9 @@
 
 #endif
 
-// -----------------------------------------------------------------------------
-// Preprocessor Limit Utility Macros
-// -----------------------------------------------------------------------------
-
+// 3.4    Limit utilities
+//------------------------------------------------------------------------------
+// 3.4.1
 // D_ENV_PP_ARGS_WITHIN_LIMIT
 //   macro: evaluates to 1 if the given count is within the practical limit.
 // usage:
@@ -389,6 +580,7 @@
 #define D_ENV_PP_ARGS_WITHIN_LIMIT(count) \
     ((count) <= D_ENV_PP_MAX_MACRO_ARGS)
 
+// 3.4.2
 // D_ENV_PP_ARGS_WITHIN_STANDARD
 //   macro: evaluates to 1 if the given count is within the standard minimum.
 // usage:
@@ -398,14 +590,16 @@
 #define D_ENV_PP_ARGS_WITHIN_STANDARD(count) \
     ((count) <= D_ENV_PP_MIN_MACRO_ARGS)
 
+// 3.4.3
 // D_ENV_PP_IS_UNLIMITED
 //   macro: evaluates to 1 if the compiler has no hard limit (value is 0).
 #define D_ENV_PP_IS_UNLIMITED(limit) ((limit) == 0)
 
+// 3.4.4
 // D_ENV_PP_EFFECTIVE_LIMIT
 //   macro: returns the effective limit, treating 0 as a large practical value.
 #define D_ENV_PP_EFFECTIVE_LIMIT(limit) \
     (D_ENV_PP_IS_UNLIMITED(limit) ? 2147483647L : (limit))
 
 
-#endif  // DJINTERP_ENV_COMPILER_
+#endif  // DJINTERP_ENV_ENV_COMPILER_H
