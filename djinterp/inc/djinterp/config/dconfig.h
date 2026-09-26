@@ -1,5 +1,5 @@
-/*****************************************************************************
-* djinterp [core]                                                   cfg_all.h
+/*******************************************************************************
+* djinterp [config]                                                    dconfig.h
 *
 *   Configuration umbrella. Including this file resolves the ENTIRE config
 * graph up front. Use it when you want cross-cutting deductions applied
@@ -9,27 +9,25 @@
 * which pulls dconfig_common.h -- so you only pay for the modules you include
 * (demand-loading). This umbrella is the opt-in "resolve everything" path.
 *
-* path:      /inc/djinterp/config/cfg_all.h
+*
+* path:      /inc/djinterp/config/dconfig.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim
-*****************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                                created: TBA
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_CFG_ALL_
-#define DJINTERP_CFG_ALL_ 1
+#ifndef DJINTERP_CONFIG_DCONFIG_H
+#define DJINTERP_CONFIG_DCONFIG_H 1
 
+// djinterp
 // Root first: user overrides + testing preset + shared helpers.
 #include "cfg_common.h"
-
-
-// ===========================================================================
-// I.   SUBFRAMEWORK CONFIGURATIONS   (include in dependency order)
-// ===========================================================================
-//   Each of these also includes dconfig_common.h at its top (guarded, so it is
-// a cheap skip here). List env first; others depend on its detection tuning.
-
-#include "core/env/env_config.h" // environment detection tuning
+#include "djinterp/config/core/env/cfg_env.h" // environment detection tuning
 #include "cfg_qualifiers.h"      // storage / linkage qualifiers
-#include "core/container/table/cfg_table.h"  // the table DSL subframework
+#include "djinterp/config/core/container/table/cfg_table.h"  // the table DSL subframework
+#include "djinterp/config/parse/cfg_parse.h"        // the parse substrate
+#include "djinterp/config/parsegen/cfg_parsegen.h"  // parser generation (after parse)
+#include "djinterp/config/net/pop/cfg_pop.h"        // POP3 common kernel
 // #include "core/<sub>/cfg_<sub>.h"  // <- add future subframeworks here
 
 
@@ -49,4 +47,4 @@
 //   (none defined yet)
 
 
-#endif  // DJINTERP_CFG_ALL_
+#endif  // DJINTERP_CONFIG_DCONFIG_H
