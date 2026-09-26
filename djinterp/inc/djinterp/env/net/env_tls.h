@@ -19,13 +19,14 @@
 * D_ENV_TLS_<FEATURE> is a non-boolean detected value or identifier.
 *   Every flag is #ifndef-guarded, so a project may pre-define any D_ENV_TLS_*
 * macro before inclusion to override detection.
-*   It requires env_net.h, for D_ENV_NET_HAS_INCLUDE and D_ENV_NET_CAN_TCP,
-* and includes it itself.
+*   It requires env.h, for the OS identification that Schannel and Secure
+* Transport detection reads, and env_net.h, for D_ENV_NET_HAS_INCLUDE and
+* D_ENV_NET_CAN_TCP; it includes both itself.
 *
 * path:      /inc/djinterp/env/net/env_tls.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.26
 *******************************************************************************/
 
 /*
@@ -90,7 +91,9 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_NET_ENV_TLS_H 1
 
 // djinterp
-#include "./env_net.h"  // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP, D_ENV_OS_ID
+#include "../env.h"     // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS,
+                        // D_ENV_IS_OS_FLAG_IN_BLOCK
+#include "./env_net.h"  // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
 
 
 //==============================================================================

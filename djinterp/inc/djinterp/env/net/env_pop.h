@@ -15,13 +15,13 @@
 * D_ENV_POP_<FEATURE> is a non-boolean detected value or identifier.
 *   Every flag is #ifndef-guarded, so a project may pre-define any D_ENV_POP_*
 * macro before inclusion to override detection.
-*   It requires env_net.h, env_tls.h, and env_curl.h, and includes them
-* itself. It is an opt-in module and may be included directly.
+*   It requires env.h, env_net.h, env_tls.h, and env_curl.h, and includes
+* them itself. It is an opt-in module and may be included directly.
 *
 * path:      /inc/djinterp/env/net/env_pop.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25
-*                                                            revised: 2026.09.25
+*                                                            revised: 2026.09.26
 *******************************************************************************/
 
 /*
@@ -69,8 +69,8 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_NET_ENV_POP_H 1
 
 // djinterp
-#include "./env_net.h"   // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP,
-                         // D_ENV_IS_OS_WINDOWS
+#include "../env.h"      // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
+#include "./env_net.h"   // D_ENV_NET_HAS_INCLUDE, D_ENV_NET_CAN_TCP
 #include "./env_tls.h"   // D_ENV_TLS_AVAILABLE
 #include "./env_curl.h"  // D_ENV_CURL_AVAILABLE, D_ENV_CURL_VERSION_NUM
 

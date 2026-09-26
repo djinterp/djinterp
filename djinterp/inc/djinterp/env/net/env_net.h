@@ -35,7 +35,7 @@
 * path:      /inc/djinterp/env/net/env_net.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.26
 *******************************************************************************/
 
 /*
@@ -115,7 +115,7 @@ TABLE OF CONTENTS
 #define DJINTERP_ENV_NET_ENV_NET_H 1
 
 // djinterp
-#include "../env.h"  // D_ENV_OS_*, D_ENV_ARCH_ENDIAN, D_ENV_C_HAS_*
+#include "../env.h"  // D_ENV_ARCH_ENDIAN, D_ENV_C_HAS_*
 
 
 //==============================================================================
