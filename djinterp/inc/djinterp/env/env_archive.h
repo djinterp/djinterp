@@ -1,59 +1,140 @@
-/******************************************************************************
-* djinterp [utility]                                             env_archive.h
+/*******************************************************************************
+* djinterp [env]                                                   env_archive.h
 *
-*   djinterp archive-library environment detection header:
-* This header provides compile-time detection of third-party archive libraries
-* and maps them onto a portable capability matrix for the four target formats
-* requested by the archive layer: zip, tar, gz (gzip), and 7z. It builds on
-* env_compress.h for the underlying codecs and, like that header, performs
-* presence-only detection (via __has_include) without #including any of the
-* third-party headers, so it adds no hard dependency.
+* djinterp archive-library detection.
+*   Compile-time detection of third-party archive libraries, mapped onto a
+* portable capability matrix for the four formats the archive layer targets:
+* zip, tar, gz (gzip), and 7z, with RAR read support as well. It covers
+* libarchive, libzip, minizip and minizip-ng, libtar, the 7-Zip / LZMA SDK and
+* the bit7z C++ wrapper, and the UnRAR library, plus per-format read / write
+* roll-ups, recommended-backend selection, and runtime probe declarations,
+* including an external-tool fallback.
+*   Like env_compress.h, which it builds on for the underlying codecs and
+* includes itself, detection is presence-only via __has_include, and a build
+* system may pre-define any D_ENV_ARCHIVE_HAVE_* macro to force a result.
+*   Names follow three patterns: D_ENV_ARCHIVE_HAVE_<LIB> is 1 when the
+* library is available; D_ENV_ARCHIVE_<LIB>_<FIELD> carries version metadata;
+* D_ENV_ARCHIVE_CAN_<READ|WRITE>_<FORMAT> reports format capability.
 *
-* scope:
-*   - libarchive (multi-format: zip, tar, gz, 7z, cpio, iso, and more)
-*   - libzip (zip read / write)
-*   - minizip and minizip-ng (zip read / write)
-*   - libtar (tar read / write)
-*   - 7-Zip / LZMA SDK (7z) and the bit7z C++ wrapper
-*   - per-format read / write capability roll-ups
-*   - recommended-backend selection per format
-*   - runtime probe and info declarations (incl. external-tool fallback)
-*
-* usage:
-*   Include env.h first (directly or transitively), then this header:
-*     #include "./env.h"
-*     #include "./env_archive.h"
-*   (env_compress.h is pulled in automatically.)
-*
-*   A build system may pre-define any D_ENV_ARCHIVE_HAVE_* macro to force a
-*   result and bypass the __has_include probe.
-*
-* NAMING CONVENTION:
-*   D_ENV_ARCHIVE_HAVE_[LIB]    - 1 if the library is available, 0 if not
-*   D_ENV_ARCHIVE_[LIB]_[FIELD] - version / metadata for a detected library
-*   D_ENV_ARCHIVE_CAN_[READ|WRITE]_[FORMAT] - format capability roll-ups
-*
-* 
 * path:      /inc/djinterp/env/env_archive.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.23
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
+*                                                            revised: 2026.09.23
+*******************************************************************************/
 
-#ifndef DJINTERP_ENV_ARCHIVE_
-#define DJINTERP_ENV_ARCHIVE_ 1
+/*
+TABLE OF CONTENTS
+=================
+1.  PLATFORM SUPPORT
+    ----------------
+    1.  PATH-probe helpers
+         1.  D_INTERNAL_ARCHIVE_OS_WINDOWS
+         2.  D_INTERNAL_ACCESS / D_INTERNAL_PATH_SEP / D_INTERNAL_DIR_SEP
+    2.  libarchive header
+         1.  <archive.h>
+2.  CONFIGURATION AND PROBING
+    -------------------------
+    1.  Configuration and probing
+         1.  D_CFG_ENV_ARCHIVE_ENABLED
+         2.  D_INTERNAL_ARCHIVE_PROBE
+         3.  D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP
+3.  ARCHIVE LIBRARIES
+    -----------------
+    1.  libarchive
+         1.  D_ENV_ARCHIVE_HAVE_LIBARCHIVE
+         2.  D_ENV_ARCHIVE_HAVE_LIBARCHIVE_ENTRY
+         3.  libarchive version metadata
+         4.  D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST
+    2.  libzip
+         1.  D_ENV_ARCHIVE_HAVE_LIBZIP
+         2.  libzip version metadata
+    3.  minizip and minizip-ng
+         1.  D_ENV_ARCHIVE_HAVE_MINIZIP_NG
+         2.  D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC
+         3.  D_ENV_ARCHIVE_HAVE_MINIZIP
+    4.  libtar
+         1.  D_ENV_ARCHIVE_HAVE_LIBTAR
+    5.  7-Zip / LZMA SDK and bit7z
+         1.  D_ENV_ARCHIVE_HAVE_LZMA_SDK
+         2.  D_ENV_ARCHIVE_HAVE_BIT7Z
+         3.  D_ENV_ARCHIVE_HAVE_7ZIP
+    6.  RAR (UnRAR / WinRAR)
+         1.  D_ENV_ARCHIVE_HAVE_UNRAR
+         2.  D_ENV_ARCHIVE_HAVE_RAR_TOOL
+         3.  D_ENV_ARCHIVE_CAN_READ_RAR5
+4.  PLATFORM-NATIVE ARCHIVERS
+    -------------------------
+    1.  Operating-system archivers
+         1.  D_ENV_ARCHIVE_LIKELY_APPLE_BSDTAR
+         2.  D_ENV_ARCHIVE_LIKELY_WIN_BSDTAR
+         3.  D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP
+5.  FORMAT CAPABILITY MATRIX
+    ------------------------
+    1.  zip
+         1.  D_ENV_ARCHIVE_CAN_READ_ZIP
+         2.  D_ENV_ARCHIVE_CAN_WRITE_ZIP
+    2.  tar
+         1.  D_ENV_ARCHIVE_CAN_READ_TAR
+         2.  D_ENV_ARCHIVE_CAN_WRITE_TAR
+         3.  D_ENV_ARCHIVE_CAN_WRITE_TGZ
+    3.  gz (gzip stream)
+         1.  D_ENV_ARCHIVE_CAN_READ_GZ
+         2.  D_ENV_ARCHIVE_CAN_WRITE_GZ
+    4.  7z
+         1.  D_ENV_ARCHIVE_CAN_READ_7Z
+         2.  D_ENV_ARCHIVE_CAN_WRITE_7Z
+    5.  rar
+         1.  D_ENV_ARCHIVE_CAN_READ_RAR
+         2.  D_ENV_ARCHIVE_CAN_WRITE_RAR
+    6.  Aggregate
+         1.  D_ENV_ARCHIVE_CAN_WRITE_ANY
+6.  RECOMMENDED-BACKEND SELECTION
+    -----------------------------
+    1.  Backend identifiers
+         1.  D_ENV_ARCHIVE_BACKEND_*
+              1.  D_ENV_ARCHIVE_BACKEND_NONE
+              2.  D_ENV_ARCHIVE_BACKEND_LIBARCHIVE
+              3.  D_ENV_ARCHIVE_BACKEND_LIBZIP
+              4.  D_ENV_ARCHIVE_BACKEND_MINIZIP_NG
+              5.  D_ENV_ARCHIVE_BACKEND_MINIZIP
+              6.  D_ENV_ARCHIVE_BACKEND_MINIZ
+              7.  D_ENV_ARCHIVE_BACKEND_LIBTAR
+              8.  D_ENV_ARCHIVE_BACKEND_LZMA_SDK
+              9.  D_ENV_ARCHIVE_BACKEND_BIT7Z
+              10. D_ENV_ARCHIVE_BACKEND_UNRAR
+              11. D_ENV_ARCHIVE_BACKEND_RAR_TOOL
+              12. D_ENV_ARCHIVE_BACKEND_BUILTIN
+    2.  Preferred backends
+         1.  D_ENV_ARCHIVE_PREFERRED_ZIP
+         2.  D_ENV_ARCHIVE_PREFERRED_TAR
+         3.  D_ENV_ARCHIVE_PREFERRED_7Z
+         4.  D_ENV_ARCHIVE_PREFERRED_RAR_READ
+         5.  D_ENV_ARCHIVE_PREFERRED_RAR_WRITE
+7.  RUNTIME PROBES
+    --------------
+    1.  Runtime probes
+*/
 
-// std
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef DJINTERP_ENV_ENV_ARCHIVE_H
+#define DJINTERP_ENV_ENV_ARCHIVE_H 1
+
 // djinterp
-#include "../c/djinterp.h"
-#include "env.h"
-#include "env_compress.h"
+#include "../c/djinterp.h"   // D_EXTERN_C_BEGIN, D_EXTERN_C_END
+#include "./env.h"           // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
+#include "./env_compress.h"  // D_ENV_HAS_INCLUDE, D_ENV_COMPRESSION_HAVE_*
 
 
-// platform split for the PATH probe: Windows vs. POSIX
+//==============================================================================
+// 1.  PLATFORM SUPPORT
+//==============================================================================
+
+
+// 1.1    PATH-probe helpers
+//------------------------------------------------------------------------------
+// 1.1.1
+// D_INTERNAL_ARCHIVE_OS_WINDOWS
+//   constant: 1 when the target is Windows, selecting the Windows spellings in
+// 1.1.2; 0 otherwise.
 #if ( defined(D_ENV_OS_ID) &&                                                 \
       D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
     #define D_INTERNAL_ARCHIVE_OS_WINDOWS 1
@@ -61,6 +142,10 @@
     #define D_INTERNAL_ARCHIVE_OS_WINDOWS 0
 #endif
 
+// 1.1.2
+// D_INTERNAL_ACCESS / D_INTERNAL_PATH_SEP / D_INTERNAL_DIR_SEP
+//   macro: the executable-access test, PATH-list separator, and directory
+// separator the external-tool probe (d_env_archive_has_tool) uses.
 #if D_INTERNAL_ARCHIVE_OS_WINDOWS
     // windows
     #include <io.h>          // _access
@@ -68,29 +153,41 @@
     #define D_INTERNAL_PATH_SEP       ';'
     #define D_INTERNAL_DIR_SEP        '\\'
 #else
-    // windows
+    // posix
     #include <unistd.h>      // access, X_OK
     #define D_INTERNAL_ACCESS(p)      access((p), X_OK)
     #define D_INTERNAL_PATH_SEP       ':'
     #define D_INTERNAL_DIR_SEP        '/'
 #endif
 
+// 1.2    libarchive header
+//------------------------------------------------------------------------------
+// 1.2.1
+// <archive.h>
+//   included only when the build pre-defines D_ENV_ARCHIVE_HAVE_LIBARCHIVE to
+// a nonzero value: the macro is not detected until section 3, below this.
 #if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
     // libarchive
-    #include <archive.h>
+    #include <archive.h>  // ARCHIVE_VERSION_NUMBER, ARCHIVE_VERSION_STRING
 #endif
 
-// =============================================================================
-// I.   CONFIGURATION
-// =============================================================================
 
+//==============================================================================
+// 2.  CONFIGURATION AND PROBING
+//==============================================================================
+
+
+// 2.1    Configuration and probing
+//------------------------------------------------------------------------------
+// 2.1.1
 // D_CFG_ENV_ARCHIVE_ENABLED
 //   configuration: master toggle for archive-library detection. when 0, every
 // D_ENV_ARCHIVE_HAVE_* flag resolves to 0 unless explicitly pre-defined.
 #ifndef D_CFG_ENV_ARCHIVE_ENABLED
     #define D_CFG_ENV_ARCHIVE_ENABLED 1
-#endif
+#endif  // D_CFG_ENV_ARCHIVE_ENABLED
 
+// 2.1.2
 // D_INTERNAL_ARCHIVE_PROBE
 //   macro: internal helper. yields the __has_include result for `header`
 // when detection is enabled, and 0 when the master toggle is off.
@@ -100,6 +197,7 @@
     #define D_INTERNAL_ARCHIVE_PROBE(header) 0
 #endif
 
+// 2.1.3
 // D_ENV_ARCHIVE_HAVE_BUILTIN_TAR / _ZIP
 //   configuration: the djinterp archive facade (archive.hpp / archive.cpp)
 // ships dependency-free ustar and ZIP writers/readers. These default to 1 so
@@ -110,17 +208,21 @@
 // macro to 0 to model an environment that excludes the built-in writers.
 #ifndef D_ENV_ARCHIVE_HAVE_BUILTIN_TAR
     #define D_ENV_ARCHIVE_HAVE_BUILTIN_TAR  1
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_BUILTIN_TAR
 
 #ifndef D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP
     #define D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP  1
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP
 
 
-// =============================================================================
-// II.  LIBARCHIVE (multi-format)
-// =============================================================================
+//==============================================================================
+// 3.  ARCHIVE LIBRARIES
+//==============================================================================
 
+
+// 3.1    libarchive
+//------------------------------------------------------------------------------
+// 3.1.1
 // D_ENV_ARCHIVE_HAVE_LIBARCHIVE
 //   feature: detect if libarchive (<archive.h>) is available. libarchive is
 // the broadest backend, reading and writing zip, tar (and tar.* variants),
@@ -131,8 +233,9 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBARCHIVE       0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_LIBARCHIVE
 
+// 3.1.2
 // D_ENV_ARCHIVE_HAVE_LIBARCHIVE_ENTRY
 //   feature: detect the companion <archive_entry.h> header, required for
 // per-entry metadata when writing archives.
@@ -142,9 +245,13 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBARCHIVE_ENTRY 0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_LIBARCHIVE_ENTRY
 
-// libarchive version metadata (only populated when <archive.h> is included)
+// 3.1.3
+// libarchive version metadata
+//   constant: D_ENV_ARCHIVE_LIBARCHIVE_VERNUM and _VERSION_STR, from
+// ARCHIVE_VERSION_NUMBER / ARCHIVE_VERSION_STRING; populated only when
+// <archive.h> has been included, and otherwise 0 and "unknown".
 #if defined(ARCHIVE_VERSION_NUMBER)
     #define D_ENV_ARCHIVE_LIBARCHIVE_VERNUM     ARCHIVE_VERSION_NUMBER
 #else
@@ -157,6 +264,7 @@
     #define D_ENV_ARCHIVE_LIBARCHIVE_VERSION_STR "unknown"
 #endif
 
+// 3.1.4
 // D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST
 //   macro: evaluates to 1 if the included libarchive reports at least the
 // given version. ARCHIVE_VERSION_NUMBER is MAJOR*1000000 + MINOR*1000 + REV.
@@ -165,11 +273,9 @@
       (D_ENV_ARCHIVE_LIBARCHIVE_VERNUM >=                                      \
        (((major) * 1000000) + ((minor) * 1000) + (rev))) )
 
-
-// =============================================================================
-// III. LIBZIP
-// =============================================================================
-
+// 3.2    libzip
+//------------------------------------------------------------------------------
+// 3.2.1
 // D_ENV_ARCHIVE_HAVE_LIBZIP
 //   feature: detect if libzip (<zip.h>) is available. libzip supports both
 // reading and writing of zip archives.
@@ -179,19 +285,21 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBZIP           0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_LIBZIP
 
+// 3.2.2
+// libzip version metadata
+//   constant: D_ENV_ARCHIVE_LIBZIP_VERSION_STR, from LIBZIP_VERSION once
+// <zip.h> is included; "unknown" otherwise.
 #if defined(LIBZIP_VERSION)
     #define D_ENV_ARCHIVE_LIBZIP_VERSION_STR        LIBZIP_VERSION
 #else
     #define D_ENV_ARCHIVE_LIBZIP_VERSION_STR        "unknown"
 #endif
 
-
-// =============================================================================
-// IV.  MINIZIP / MINIZIP-NG
-// =============================================================================
-
+// 3.3    minizip and minizip-ng
+//------------------------------------------------------------------------------
+// 3.3.1
 // D_ENV_ARCHIVE_HAVE_MINIZIP_NG
 //   feature: detect minizip-ng (<mz.h>), the modern rewrite supporting zip
 // read / write with pluggable codecs and encryption.
@@ -201,8 +309,9 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_NG       0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_MINIZIP_NG
 
+// 3.3.2
 // D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC
 //   feature: detect the classic zlib-contrib minizip via its split
 // <minizip/zip.h> / <minizip/unzip.h> headers.
@@ -213,19 +322,18 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC  0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC
 
+// 3.3.3
 // D_ENV_ARCHIVE_HAVE_MINIZIP
 //   feature: 1 if either minizip flavour is available.
 #define D_ENV_ARCHIVE_HAVE_MINIZIP                                             \
     ( D_ENV_ARCHIVE_HAVE_MINIZIP_NG ||                                         \
       D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC )
 
-
-// =============================================================================
-// V.   LIBTAR
-// =============================================================================
-
+// 3.4    libtar
+//------------------------------------------------------------------------------
+// 3.4.1
 // D_ENV_ARCHIVE_HAVE_LIBTAR
 //   feature: detect if libtar (<libtar.h>) is available. libtar reads and
 // writes uncompressed tar; compression is layered separately (e.g. gzip).
@@ -235,13 +343,11 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_LIBTAR           0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_LIBTAR
 
-
-// =============================================================================
-// VI.  7-ZIP / LZMA SDK AND bit7z
-// =============================================================================
-
+// 3.5    7-Zip / LZMA SDK and bit7z
+//------------------------------------------------------------------------------
+// 3.5.1
 // D_ENV_ARCHIVE_HAVE_LZMA_SDK
 //   feature: detect the 7-Zip / LZMA SDK C headers. several layouts exist in
 // the wild; any of the probed headers implies the SDK is present.
@@ -254,22 +360,24 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_LZMA_SDK         0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_LZMA_SDK
 
+// 3.5.2
 // D_ENV_ARCHIVE_HAVE_BIT7Z
 //   feature: detect the bit7z C++ wrapper (<bit7z/bittypes.hpp>), which wraps
 // the 7-Zip library for full 7z read / write from C++.
 // note: bit7z is C++ only.
 #ifndef D_ENV_ARCHIVE_HAVE_BIT7Z
-    #if ( defined(__cplusplus) &&                                             \
+    #if ( (D_ENV_LANG_USING_CPP) &&                                           \
           ( D_INTERNAL_ARCHIVE_PROBE(<bit7z/bittypes.hpp>) ||                  \
             D_INTERNAL_ARCHIVE_PROBE(<bit7z/bit7z.hpp>) ) )
         #define D_ENV_ARCHIVE_HAVE_BIT7Z            1
     #else
         #define D_ENV_ARCHIVE_HAVE_BIT7Z            0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_BIT7Z
 
+// 3.5.3
 // D_ENV_ARCHIVE_HAVE_7ZIP
 //   feature: 1 if any 7z-capable backend is available.
 #define D_ENV_ARCHIVE_HAVE_7ZIP                                               \
@@ -277,15 +385,13 @@
       D_ENV_ARCHIVE_HAVE_BIT7Z    ||                                          \
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
-
-// =============================================================================
-// VII. RAR (UNRAR / WINRAR)
-// =============================================================================
-// RAR is asymmetric. Extraction is widely available, but creation is
+// 3.6    RAR (UnRAR / WinRAR)
+//------------------------------------------------------------------------------
+//   RAR is asymmetric. Extraction is widely available, but creation is
 // proprietary: no library can write RAR. Only the RARLAB `rar` / WinRAR
 // command-line tool produces .rar archives. libarchive and 7-Zip backends can
 // read RAR but never write it.
-
+// 3.6.1
 // D_ENV_ARCHIVE_HAVE_UNRAR
 //   feature: detect the RARLAB UnRAR library (<unrar.h>, or the C++ SDK header
 // <unrar/dll.hpp>). extraction only; UnRAR cannot create archives.
@@ -296,8 +402,9 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_UNRAR            0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_UNRAR
 
+// 3.6.2
 // D_ENV_ARCHIVE_HAVE_RAR_TOOL
 //   feature: presence of the RARLAB `rar` / WinRAR executable, the only means
 // of *creating* RAR archives. this is not compile-time detectable, so it
@@ -306,8 +413,9 @@
 // ("unrar").
 #ifndef D_ENV_ARCHIVE_HAVE_RAR_TOOL
     #define D_ENV_ARCHIVE_HAVE_RAR_TOOL             0
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_RAR_TOOL
 
+// 3.6.3
 // D_ENV_ARCHIVE_CAN_READ_RAR5
 //   feature: 1 if a backend that understands the RAR5 format is available.
 // UnRAR and 7-Zip handle RAR5; libarchive has supported RAR5 read since 3.4.0.
@@ -321,15 +429,19 @@
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
 
-// =============================================================================
-// VIII. PLATFORM-NATIVE ARCHIVERS
-// =============================================================================
+//==============================================================================
+// 4.  PLATFORM-NATIVE ARCHIVERS
+//==============================================================================
 // These flag archiver facilities shipped with the operating system itself,
 // using the OS classification from env.h. Tool-bundling flags are prefixed
 // LIKELY_ because they are inferred from the OS version and must be confirmed
 // at runtime via d_env_archive_has_tool(). All probes degrade to 0 when OS
 // detection is unavailable (D_ENV_OS_ID undefined).
 
+
+// 4.1    Operating-system archivers
+//------------------------------------------------------------------------------
+// 4.1.1
 // D_ENV_ARCHIVE_LIKELY_APPLE_BSDTAR
 //   feature: macOS bundles bsdtar (libarchive) as /usr/bin/tar, giving tar,
 // tar.gz, and zip handling without any linked library.
@@ -340,8 +452,9 @@
     #else
         #define D_ENV_ARCHIVE_LIKELY_APPLE_BSDTAR   0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_LIKELY_APPLE_BSDTAR
 
+// 4.1.2
 // D_ENV_ARCHIVE_LIKELY_WIN_BSDTAR
 //   feature: Windows 10 (build 17063 / version 1803) and Windows 11 bundle
 // bsdtar as tar.exe, which also reads and writes zip.
@@ -353,8 +466,9 @@
     #else
         #define D_ENV_ARCHIVE_LIKELY_WIN_BSDTAR     0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_LIKELY_WIN_BSDTAR
 
+// 4.1.3
 // D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP
 //   feature: detect the Windows Shell automation interface (<shldisp.h>,
 // IShellDispatch / "compressed folders"), usable to create and extract zip
@@ -367,21 +481,21 @@
     #else
         #define D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP    0
     #endif
-#endif
+#endif  // D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP
 
 
-// =============================================================================
-// IX.  FORMAT CAPABILITY MATRIX
-// =============================================================================
+//==============================================================================
+// 5.  FORMAT CAPABILITY MATRIX
+//==============================================================================
 // The roll-ups below answer "can this build read / write <format>?" without
 // the caller needing to know which backend is present. They combine library
 // availability with the codec roll-ups from env_compress.h where a format
 // requires a codec (e.g. zip "deflate", or tar.gz).
 
-// -----------------------------------------------------------------------------
-// A.  zip
-// -----------------------------------------------------------------------------
 
+// 5.1    zip
+//------------------------------------------------------------------------------
+// 5.1.1
 // D_ENV_ARCHIVE_CAN_READ_ZIP
 //   feature: 1 if some backend can read zip archives.
 #define D_ENV_ARCHIVE_CAN_READ_ZIP                                            \
@@ -392,14 +506,14 @@
       D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP   ||                                   \
       D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP )
 
+// 5.1.2
 // D_ENV_ARCHIVE_CAN_WRITE_ZIP
 //   feature: 1 if some backend can write zip archives.
 #define D_ENV_ARCHIVE_CAN_WRITE_ZIP         D_ENV_ARCHIVE_CAN_READ_ZIP
 
-// -----------------------------------------------------------------------------
-// B.  tar
-// -----------------------------------------------------------------------------
-
+// 5.2    tar
+//------------------------------------------------------------------------------
+// 5.2.1
 // D_ENV_ARCHIVE_CAN_READ_TAR
 //   feature: 1 if some backend can read tar archives (uncompressed).
 #define D_ENV_ARCHIVE_CAN_READ_TAR                                            \
@@ -407,10 +521,12 @@
       D_ENV_ARCHIVE_HAVE_LIBTAR     ||                                        \
       D_ENV_ARCHIVE_HAVE_BUILTIN_TAR )
 
+// 5.2.2
 // D_ENV_ARCHIVE_CAN_WRITE_TAR
 //   feature: 1 if some backend can write tar archives (uncompressed).
 #define D_ENV_ARCHIVE_CAN_WRITE_TAR         D_ENV_ARCHIVE_CAN_READ_TAR
 
+// 5.2.3
 // D_ENV_ARCHIVE_CAN_WRITE_TGZ
 //   feature: 1 if a compressed tar.gz can be produced (a tar writer plus a
 // gzip codec, or libarchive which bundles the gzip filter).
@@ -419,10 +535,9 @@
       ( D_ENV_ARCHIVE_HAVE_LIBTAR      && D_ENV_COMPRESSION_HAVE_GZIP ) ||    \
       ( D_ENV_ARCHIVE_HAVE_BUILTIN_TAR && D_ENV_COMPRESSION_HAVE_GZIP_WRAP ) )
 
-// -----------------------------------------------------------------------------
-// C.  gz (gzip stream)
-// -----------------------------------------------------------------------------
-
+// 5.3    gz (gzip stream)
+//------------------------------------------------------------------------------
+// 5.3.1
 // D_ENV_ARCHIVE_CAN_READ_GZ
 //   feature: 1 if a gzip stream can be read (any gzip-container codec or the
 // libarchive gzip filter).
@@ -430,18 +545,19 @@
     ( D_ENV_COMPRESSION_HAVE_GZIP_WRAP ||                                     \
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
+// 5.3.2
 // D_ENV_ARCHIVE_CAN_WRITE_GZ
 //   feature: 1 if a gzip stream can be written.
 #define D_ENV_ARCHIVE_CAN_WRITE_GZ          D_ENV_ARCHIVE_CAN_READ_GZ
 
-// -----------------------------------------------------------------------------
-// D.  7z
-// -----------------------------------------------------------------------------
-
+// 5.4    7z
+//------------------------------------------------------------------------------
+// 5.4.1
 // D_ENV_ARCHIVE_CAN_READ_7Z
 //   feature: 1 if some backend can read 7z archives.
 #define D_ENV_ARCHIVE_CAN_READ_7Z           D_ENV_ARCHIVE_HAVE_7ZIP
 
+// 5.4.2
 // D_ENV_ARCHIVE_CAN_WRITE_7Z
 //   feature: 1 if some backend can write 7z archives. libarchive has shipped
 // 7z write support since 3.0; we key on presence rather than
@@ -453,10 +569,9 @@
       D_ENV_ARCHIVE_HAVE_LZMA_SDK   ||                                        \
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
-// -----------------------------------------------------------------------------
-// E.  rar
-// -----------------------------------------------------------------------------
-
+// 5.5    rar
+//------------------------------------------------------------------------------
+// 5.5.1
 // D_ENV_ARCHIVE_CAN_READ_RAR
 //   feature: 1 if some backend can extract RAR (UnRAR, libarchive's RAR
 // reader, a 7-Zip-based backend, or the rar/unrar tool).
@@ -466,15 +581,15 @@
       D_ENV_ARCHIVE_HAVE_BIT7Z      ||                                        \
       D_ENV_ARCHIVE_HAVE_RAR_TOOL )
 
+// 5.5.2
 // D_ENV_ARCHIVE_CAN_WRITE_RAR
 //   feature: 1 only if the proprietary rar/WinRAR tool is present. no library
 // can create RAR, so this never lights up from a linked dependency alone.
 #define D_ENV_ARCHIVE_CAN_WRITE_RAR         D_ENV_ARCHIVE_HAVE_RAR_TOOL
 
-// -----------------------------------------------------------------------------
-// F.  aggregate
-// -----------------------------------------------------------------------------
-
+// 5.6    Aggregate
+//------------------------------------------------------------------------------
+// 5.6.1
 // D_ENV_ARCHIVE_CAN_WRITE_ANY
 //   feature: 1 if any supported format can be written.
 #define D_ENV_ARCHIVE_CAN_WRITE_ANY                                           \
@@ -485,24 +600,81 @@
       D_ENV_ARCHIVE_CAN_WRITE_RAR )
 
 
-// =============================================================================
-// X.   RECOMMENDED-BACKEND SELECTION
-// =============================================================================
+//==============================================================================
+// 6.  RECOMMENDED-BACKEND SELECTION
+//==============================================================================
 
-// backend identifier constants (stable small integers for runtime dispatch)
+
+// 6.1    Backend identifiers
+//------------------------------------------------------------------------------
+// 6.1.1
+// D_ENV_ARCHIVE_BACKEND_*
+//   constant: stable small integers naming a backend, for runtime dispatch and
+// for the 6.2 preferences.
+
+// 6.1.1.1
+// D_ENV_ARCHIVE_BACKEND_NONE
+//   constant: identifies no backend.
 #define D_ENV_ARCHIVE_BACKEND_NONE          0
+
+// 6.1.1.2
+// D_ENV_ARCHIVE_BACKEND_LIBARCHIVE
+//   constant: identifies libarchive.
 #define D_ENV_ARCHIVE_BACKEND_LIBARCHIVE    1
+
+// 6.1.1.3
+// D_ENV_ARCHIVE_BACKEND_LIBZIP
+//   constant: identifies libzip.
 #define D_ENV_ARCHIVE_BACKEND_LIBZIP        2
+
+// 6.1.1.4
+// D_ENV_ARCHIVE_BACKEND_MINIZIP_NG
+//   constant: identifies minizip-ng.
 #define D_ENV_ARCHIVE_BACKEND_MINIZIP_NG    3
+
+// 6.1.1.5
+// D_ENV_ARCHIVE_BACKEND_MINIZIP
+//   constant: identifies classic minizip.
 #define D_ENV_ARCHIVE_BACKEND_MINIZIP       4
+
+// 6.1.1.6
+// D_ENV_ARCHIVE_BACKEND_MINIZ
+//   constant: identifies miniz.
 #define D_ENV_ARCHIVE_BACKEND_MINIZ         5
+
+// 6.1.1.7
+// D_ENV_ARCHIVE_BACKEND_LIBTAR
+//   constant: identifies libtar.
 #define D_ENV_ARCHIVE_BACKEND_LIBTAR        6
+
+// 6.1.1.8
+// D_ENV_ARCHIVE_BACKEND_LZMA_SDK
+//   constant: identifies the 7-Zip / LZMA SDK.
 #define D_ENV_ARCHIVE_BACKEND_LZMA_SDK      7
+
+// 6.1.1.9
+// D_ENV_ARCHIVE_BACKEND_BIT7Z
+//   constant: identifies bit7z.
 #define D_ENV_ARCHIVE_BACKEND_BIT7Z         8
+
+// 6.1.1.10
+// D_ENV_ARCHIVE_BACKEND_UNRAR
+//   constant: identifies the UnRAR library.
 #define D_ENV_ARCHIVE_BACKEND_UNRAR         9
+
+// 6.1.1.11
+// D_ENV_ARCHIVE_BACKEND_RAR_TOOL
+//   constant: identifies the rar / WinRAR tool.
 #define D_ENV_ARCHIVE_BACKEND_RAR_TOOL      10
+
+// 6.1.1.12
+// D_ENV_ARCHIVE_BACKEND_BUILTIN
+//   constant: identifies the framework's built-in tar and zip writers.
 #define D_ENV_ARCHIVE_BACKEND_BUILTIN       11
 
+// 6.2    Preferred backends
+//------------------------------------------------------------------------------
+// 6.2.1
 // D_ENV_ARCHIVE_PREFERRED_ZIP
 //   constant: preferred zip backend. a dedicated zip library is favoured for
 // fine-grained control, then libarchive, then miniz as a self-contained
@@ -523,6 +695,7 @@
     #define D_ENV_ARCHIVE_PREFERRED_ZIP     D_ENV_ARCHIVE_BACKEND_NONE
 #endif
 
+// 6.2.2
 // D_ENV_ARCHIVE_PREFERRED_TAR
 //   constant: preferred tar backend (libarchive, then libtar, then built-in).
 #if D_ENV_ARCHIVE_HAVE_LIBARCHIVE
@@ -535,6 +708,7 @@
     #define D_ENV_ARCHIVE_PREFERRED_TAR     D_ENV_ARCHIVE_BACKEND_NONE
 #endif
 
+// 6.2.3
 // D_ENV_ARCHIVE_PREFERRED_7Z
 //   constant: preferred 7z backend (bit7z for C++, then the LZMA SDK, then
 // libarchive).
@@ -548,6 +722,7 @@
     #define D_ENV_ARCHIVE_PREFERRED_7Z      D_ENV_ARCHIVE_BACKEND_NONE
 #endif
 
+// 6.2.4
 // D_ENV_ARCHIVE_PREFERRED_RAR_READ
 //   constant: preferred RAR extraction backend (UnRAR, then a 7-Zip backend,
 // then libarchive, then the tool).
@@ -563,6 +738,7 @@
     #define D_ENV_ARCHIVE_PREFERRED_RAR_READ D_ENV_ARCHIVE_BACKEND_NONE
 #endif
 
+// 6.2.5
 // D_ENV_ARCHIVE_PREFERRED_RAR_WRITE
 //   constant: preferred RAR creation backend. only the proprietary tool can
 // write RAR, so this is the tool or nothing.
@@ -573,43 +749,49 @@
 #endif
 
 
-// =============================================================================
-// XI.  RUNTIME PROBE AND INFO DECLARATIONS
-// =============================================================================
+//==============================================================================
+// 7.  RUNTIME PROBES
+//==============================================================================
+// Declared here and defined in the archive implementation. Unlike the macros
+// above, they can report on what the build actually linked and on tools
+// installed on the machine.
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-// d_env_archive_backend_name
-//   function: returns a human-readable name for a backend identifier.
-//   params:
-//     backend - one of the D_ENV_ARCHIVE_BACKEND_* constants.
-//   returns: a static, NUL-terminated backend name, or "none".
-const char* d_env_archive_backend_name(int backend);
+// 7.1    Runtime probes
+//------------------------------------------------------------------------------
+D_EXTERN_C_BEGIN
 
-// d_env_archive_libarchive_runtime_version
-//   function: returns the libarchive runtime version string via
-// archive_version_string(), or "unavailable" when libarchive was not linked.
+/**
+ * @brief Returns a human-readable name for a backend identifier.
+ *
+ * @param[in] _backend  one of the D_ENV_ARCHIVE_BACKEND_* constants.
+ * @return a static, null-terminated backend name, or "none".
+ */
+const char* d_env_archive_backend_name(int _backend);
+/**
+ * @brief Returns the version of the libarchive linked at runtime.
+ *
+ * @return archive_version_string()'s static string, or "unavailable" when
+ *         libarchive was not linked.
+ */
 const char* d_env_archive_libarchive_runtime_version(void);
+/**
+ * @brief Probes PATH for an external archiver executable.
+ *
+ * @note Enables a shell-out fallback when no library backend is linked.
+ *
+ * @param[in] _tool_name  the command to look for (e.g. "tar", "gzip", "zip",
+ *                        "7z").
+ * @return `1` if the tool is found and executable, `0` otherwise.
+ */
+int         d_env_archive_has_tool(const char* _tool_name);
+/**
+ * @brief Prints the detected archive backends, their versions, and the
+ *        resulting per-format capability matrix to stdout.
+ */
+void        d_env_archive_print_info(void);
 
-// d_env_archive_has_tool
-//   function: probes for an external archiver executable on PATH, enabling a
-// shell-out fallback when no library backend is linked.
-//   params:
-//     tool_name - command name to look for (e.g. "tar", "gzip", "zip", "7z").
-//   returns: 1 if the tool is found and executable, 0 otherwise.
-int d_env_archive_has_tool(const char* tool_name);
-
-// d_env_archive_print_info
-//   function: prints the detected archive backends, their versions, and the
-// resulting per-format capability matrix to stdout.
-//   returns: none.
-void d_env_archive_print_info(void);
-
-#ifdef __cplusplus
-}
-#endif
+D_EXTERN_C_END
 
 
-#endif  // DJINTERP_ENV_ARCHIVE_
+#endif  // DJINTERP_ENV_ENV_ARCHIVE_H

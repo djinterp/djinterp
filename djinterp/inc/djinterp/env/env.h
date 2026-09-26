@@ -1,76 +1,64 @@
-/******************************************************************************
-* djinterp [env]                                                         env.h
+/*******************************************************************************
+* djinterp [env]                                                           env.h
 *
-* djinterp environmental detection header (umbrella):
-*   This header provides comprehensive compile-time detection of the
-* compilation environment. It is now an umbrella that includes the
-* per-concern detection sub-headers in dependency order:
-*   - language standards (C95-C23, C++98-C++23)        -> env_lang.h
-*   - POSIX / XSI standards and features               -> env_posix.h
-*   - CPU architectures, bit width, endianness         -> env_arch.h
-*   - operating systems (block/flag classification)    -> env_os.h
-*   - compilers + preprocessor limits + __VA_OPT__     -> env_compiler.h
-*   - C runtime / standard-library features            -> c/env_c_lib.h
-*   - build configuration (Debug/Release)              -> env_build.h
-*
-*   The header creates a unified D_ENV_* macro interface enabling portable
-* code that adapts to different platforms, compilers, and architectures. All
-* detection is performed at compile-time with zero runtime overhead.
-*
-*   INCLUDE ORDER (important):
-*   The sub-headers are included below in an order that satisfies their
-* cross-dependencies. In particular:
-*     - env_compiler.h is included AFTER env_os.h, because the preprocessor-
-*       limits block (folded into env_compiler.h) consults D_ENV_PLATFORM_*
-*       which is established by env_os.h. (In the previous monolithic env.h
-*       this was a latent forward-reference; the umbrella ordering fixes it.)
-*     - c/env_c_lib.h is included last (before build), since it depends on the
-*       language, architecture, OS, compiler, and D_ENV_IS_OS_POSIX_LIKE*
-*       macros established by every preceding section.
-*
-*   CONFIGURATION SYSTEM:
-*   This header supports custom environment simulation via D_CFG_ENV_CUSTOM.
-* See cfg_env.h. Pre-defining D_ENV_DETECTED_* variables automatically
-* sets corresponding section bits to enable testing different environments.
-*
+* djinterp environment detection (umbrella header).
+*   Compile-time detection of the compilation environment, exposing a unified
+* D_ENV_* interface so code can adapt to platform, compiler, and architecture
+* with no runtime cost. This header includes the per-concern detection headers
+* in dependency order: language standards (C95-C23, C++98-C++23) in
+* env_lang.h; POSIX / XSI levels and features in env_posix.h; CPU
+* architecture, width, and endianness in env_arch.h; the OS block / flag
+* classification in env_os.h; the compiler, preprocessor limits, and
+* __VA_OPT__ in env_compiler.h; C runtime features in c/env_c_lib.h; and the
+* build configuration in env_build.h.
+*   Include order matters. env_compiler.h comes after env_os.h because its
+* preprocessor-limits block reads the D_ENV_PLATFORM_* flags env_os.h
+* establishes. c/env_c_lib.h comes last before env_build.h, since it depends
+* on the language, architecture, OS, compiler, and D_ENV_IS_OS_POSIX_LIKE*
+* macros of every preceding header.
+*   Custom environments can be simulated through cfg_env.h: disabling a
+* detection section and pre-defining D_ENV_DETECTED_* macros selects the
+* result that section reports, for testing code against environments other
+* than the host.
 *
 * path:      /inc/djinterp/env/env.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2023.03.27
-*                                                          revised: 2026.09.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
+*                                                            revised: 2026.09.23
+*******************************************************************************/
 
-#ifndef DJINTERP_ENV_
-#define DJINTERP_ENV_ 1
-
-
-// ===========================================================================
-// I.   CONFIGURATION SYSTEM
-// ===========================================================================
-//   All D_CFG_ENV_* macros (master custom flag, bitfield positions,
-// section-enable helpers) are defined in the sibling config file below.
+#ifndef DJINTERP_ENV_ENV_H
+#define DJINTERP_ENV_ENV_H 1
 
 // djinterp
-#include "../config/core/env/cfg_env.h"
-#include "./c/env_c_lib.h"
-#include "./env_lang.h"
-#include "./env_posix.h"
-#include "./env_arch.h"
-#include "./env_os.h"
-#include "./env_compiler.h"
-#include "./env_build.h"
+#include "../config/core/env/cfg_env.h"  // D_CFG_ENV_* detection switches
+#include "./env_lang.h"                  // language standards (D_ENV_LANG_*)
+#include "./env_posix.h"                 // POSIX / XSI levels (D_ENV_POSIX_*)
+#include "./env_arch.h"                  // CPU architecture (D_ENV_ARCH_*)
+#include "./env_os.h"                    // operating system (D_ENV_OS_*)
+#include "./env_compiler.h"              // compiler, preprocessor limits
+#include "./c/env_c_lib.h"               // C runtime; must precede env_build.h
+#include "./env_build.h"                 // Debug / Release (D_ENV_BUILD_*)
 
-// ===========================================================================
-// IX.  DEBUG UTILITIES
-// ===========================================================================
 
 #ifdef D_DEBUG_
-    // std
-    #include <stdio.h>
+    // C linkage for C++ callers. env.h sits below djinterp.h, so the
+    // D_EXTERN_C_BEGIN / D_EXTERN_C_END pair is not available here.
+    #if D_ENV_LANG_USING_CPP
+        extern "C" {
+    #endif
 
-    void print_compiler_info(void);
+    /**
+     * @brief Prints the compiler information detected by the env layer.
+     *
+     * @note Declared only when D_DEBUG_ is defined.
+     */
+    void d_env_print_compiler_info(void);
 
+    #if D_ENV_LANG_USING_CPP
+        }
+    #endif
 #endif  // D_DEBUG_
 
 
-#endif  // DJINTERP_ENV_
+#endif  // DJINTERP_ENV_ENV_H
