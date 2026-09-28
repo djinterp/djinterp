@@ -1,65 +1,88 @@
-/******************************************************************************
-* djinterp [web]                                                      curl.hpp
+/*******************************************************************************
+* djinterp [net]                                                        curl.hpp
 *
-*   libcurl-specific foundational module for the djinterp web subframework.
-* It is the thin, RAII-safe C++ layer over libcurl's easy interface that the
-* neutral web vocabulary (web.hpp) is executed through, and the substrate the
-* vendor integrations (e.g. web/vendor/claude.hpp) build on.
+* The C++ face of the libcurl binding: web.hpp's requests, performed through
+* net/curl/curl.h.
+*   A derived layer. Every transfer runs through d_curl_perform; this header
+* translates web.hpp's vocabulary into the binding's records and back, and
+* adds what C lacks:
+*     - status mapping to web::transport_error                       [2]
+*     - library queries, and RAII over the global state              [3]
+*     - options, std::function sinks, and the two drivers            [4]
+*   No libcurl type appears here, and the header compiles without libcurl;
+* transfers then fail as unsupported_protocol. Define D_CFG_CURL as 1 to make
+* a build without libcurl an error instead (cfg_curl.h).
+*   A sink may throw. Unwinding through libcurl's C frames is undefined, so
+* the exception is caught where libcurl calls back into C++, the transfer
+* ends and is cleaned up, and the driver rethrows it. Builds without
+* exceptions compile none of this.
 *
-* CONTENTS (all in namespace djinterp::web::curl):
-*   0.  availability gate + <curl/curl.h>
-*   I.   library / runtime feature queries (version, curl_version_info bits)
-*   II.  error mapping (CURLcode -> web::transport_error, message)
-*   III. RAII wrappers -- scoped_global, ensure_global, slist, easy
-*   IV.  header bridge + write/header callback trampolines (internal)
-*   V.   options + perform() / perform_stream() drivers over web::request
 *
-*   All API-presence is compile-time gated through env_curl.h; whether a given
-* libcurl BUILD supports a wire feature (HTTP/2, a TLS backend, ...) is a
-* RUNTIME property, exposed here via the feature_supported() helpers.
-*
-*   Requires:  web.hpp, env_curl.h, and libcurl (>= 7.17). Including this header
-* where D_ENV_CURL_AVAILABLE is 0 is a hard error by design.
-*
-* path:      /inc/djinterp/web/curl/curl.hpp
+* path:      /inc/djinterp/net/curl/curl.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
+*                                                            revised: 2026.09.27
+*******************************************************************************/
 
-#ifndef DJINTERP_WEB_CURL_
-#define DJINTERP_WEB_CURL_ 1
+/*
+TABLE OF CONTENTS
+=================
+1.  NAMESPACE
+    ---------
+    1.  Keyword
+         1.  D_KEYWORD_CURL
+2.  ERRORS
+    ------
+    1.  Status mapping
+3.  LIBRARY
+    -------
+    1.  Features
+         1.  feature
+    2.  Library queries
+    3.  Global state
+         1.  scoped_global
+         2.  ensure_global
+4.  TRANSFERS
+    ---------
+    1.  Sinks and options
+         1.  body_sink
+         2.  options
+    2.  The bridge to C
+         1.  stream_state
+    3.  Drivers
+*/
 
-// djinterp -- neutral web vocabulary + curl-specific detection
-#include "../web.hpp"
-#include "../../core/env/web/env_curl.h"
-
-
-// ===========================================================================
-// 0.   AVAILABILITY GATE
-// ===========================================================================
-
-#if !D_ENV_CURL_AVAILABLE
-    #error "curl.hpp requires libcurl: <curl/curl.h> was not found, or the "  \
-           "target platform has no networking. Install libcurl development "  \
-           "headers, or pre-define D_ENV_CURL_AVAILABLE / the D_ENV_CURL_* "  \
-           "flags to describe a cross-compilation target."
-#endif
+#ifndef DJINTERP_NET_CURL_CURL_HPP
+#define DJINTERP_NET_CURL_CURL_HPP 1
 
 // std
-#include <cstddef>
-#include <functional>
-#include <string>
-#include <utility>
-// libcurl
-#include <curl/curl.h>
+#include <cstddef>     // std::size_t
+#include <cstdint>     // std::uint32_t
+#include <exception>   // std::exception_ptr, std::rethrow_exception
+#include <functional>  // std::function
+#include <string>      // std::string
+#include <vector>      // std::vector
+// djinterp
+#include "../../djinterp.hpp"         // framework root
+#include "../../env/cpp/env_cpp98.h"  // D_ENV_CPP98_HAS_EXCEPTION
+#include "../web.hpp"                 // request, response, transport_error
+#include "./curl.h"                   // the C binding
 
 
+//==============================================================================
+// 1.  NAMESPACE
+//==============================================================================
+
+
+// 1.1    Keyword
+//------------------------------------------------------------------------------
+// 1.1.1
 // D_KEYWORD_CURL
-//   keyword: resolves to `curl`. Namespace/identifier tag for the libcurl
-// integration. Guarded so the core may adopt it later without collision.
+//   keyword: resolves to `curl`, the name of this layer's namespace inside
+// djinterp::web. Guarded, so the core may adopt it without collision.
 #ifndef D_KEYWORD_CURL
-    #define D_KEYWORD_CURL              curl
-#endif
+    #define D_KEYWORD_CURL curl
+#endif  // D_KEYWORD_CURL
 
 
 NS_DJINTERP
@@ -67,156 +90,184 @@ NS_WEB
 D_NAMESPACE(D_KEYWORD_CURL)
 
 
-///////////////////////////////////////////////////////////////////////////////
-///              I.   LIBRARY / RUNTIME FEATURE QUERIES                     ///
-///////////////////////////////////////////////////////////////////////////////
-
-// version_string
-//   function: the runtime libcurl version banner (curl_version()).
-D_NODISCARD inline const char*
-version_string()
-{
-    return curl_version();
-}
-
-// version_info
-//   function: the full runtime version-info record, or nullptr if unavailable.
-// Callers inspect ->features, ->ssl_version, ->host, etc.
-D_NODISCARD inline const curl_version_info_data*
-version_info()
-{
-    return curl_version_info(CURLVERSION_NOW);
-}
-
-// feature_supported
-//   function: whether the running libcurl was BUILT with the given
-// CURL_VERSION_* feature bit(s) set (e.g. CURL_VERSION_SSL,
-// CURL_VERSION_HTTP2). This is the runtime complement to the compile-time
-// D_ENV_CURL_HAS_* API flags.
-D_NODISCARD inline bool
-feature_supported(
-    int _feature_mask
-)
-{
-    const curl_version_info_data* info = version_info();
-
-    return ( info &&
-             ((info->features & _feature_mask) == _feature_mask) );
-}
-
-// supports_ssl
-//   function: whether TLS/SSL is available in the running libcurl build.
-D_NODISCARD inline bool
-supports_ssl()
-{
-    return feature_supported(CURL_VERSION_SSL);
-}
-
-// supports_http2
-//   function: whether HTTP/2 is available in the running libcurl build.
-D_NODISCARD inline bool
-supports_http2()
-{
-    return feature_supported(CURL_VERSION_HTTP2);
-}
+//==============================================================================
+// 2.  ERRORS
+//==============================================================================
+// The binding's statuses in web.hpp's vocabulary. The categories match one
+// for one; the two the binding adds have no web counterpart and map to the
+// nearest honest one.
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                       II.   ERROR MAPPING                              ///
-///////////////////////////////////////////////////////////////////////////////
-
-// error_message
-//   function: the human-readable message for a CURLcode (curl_easy_strerror).
-D_NODISCARD inline const char*
-error_message(
-    CURLcode _code
-)
-{
-    return curl_easy_strerror(_code);
-}
-
+// 2.1    Status mapping
+//------------------------------------------------------------------------------
 // to_transport_error
-//   function: maps a CURLcode onto the library-neutral web::transport_error so
-// higher layers can reason about failures without depending on libcurl. Codes
-// without a specific neutral counterpart collapse to transport_error::unknown;
-// CURLE_OK maps to transport_error::none.
+//   function: a binding status as a transport_error. UNSUPPORTED -- a build
+// without libcurl -- is unsupported_protocol, and INVALID_ARGUMENT, a field
+// the binding refuses, is unknown.
 D_NODISCARD inline transport_error
 to_transport_error(
-    CURLcode _code
-)
+    ::d_curl_status _status
+) noexcept
 {
-    switch (_code)
+    switch (_status)
     {
-        case CURLE_OK:
+        case D_CURL_STATUS_OK:
             return transport_error::none;
 
-        case CURLE_UNSUPPORTED_PROTOCOL:
-        case CURLE_URL_MALFORMAT:
+        case D_CURL_STATUS_UNSUPPORTED:
+        case D_CURL_STATUS_UNSUPPORTED_PROTOCOL:
             return transport_error::unsupported_protocol;
 
-        case CURLE_COULDNT_RESOLVE_HOST:
-        case CURLE_COULDNT_RESOLVE_PROXY:
+        case D_CURL_STATUS_COULD_NOT_RESOLVE_HOST:
             return transport_error::could_not_resolve_host;
 
-        case CURLE_COULDNT_CONNECT:
+        case D_CURL_STATUS_COULD_NOT_CONNECT:
             return transport_error::could_not_connect;
 
-        case CURLE_OPERATION_TIMEDOUT:
+        case D_CURL_STATUS_TIMED_OUT:
             return transport_error::timed_out;
 
-        case CURLE_SSL_CONNECT_ERROR:
-        case CURLE_PEER_FAILED_VERIFICATION:
-        case CURLE_SSL_CERTPROBLEM:
-        case CURLE_SSL_CIPHER:
-        case CURLE_USE_SSL_FAILED:
+        case D_CURL_STATUS_TLS_ERROR:
             return transport_error::tls_error;
 
-        case CURLE_TOO_MANY_REDIRECTS:
+        case D_CURL_STATUS_TOO_MANY_REDIRECTS:
             return transport_error::too_many_redirects;
 
-        case CURLE_WRITE_ERROR:
+        case D_CURL_STATUS_WRITE_ERROR:
             return transport_error::write_error;
 
-        case CURLE_READ_ERROR:
+        case D_CURL_STATUS_READ_ERROR:
             return transport_error::read_error;
 
-        case CURLE_ABORTED_BY_CALLBACK:
+        case D_CURL_STATUS_CANCELED:
             return transport_error::canceled;
 
-        case CURLE_OUT_OF_MEMORY:
+        case D_CURL_STATUS_OUT_OF_MEMORY:
             return transport_error::out_of_memory;
 
+        case D_CURL_STATUS_INVALID_ARGUMENT:
+        case D_CURL_STATUS_UNKNOWN:
         default:
             return transport_error::unknown;
     }
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///                      III.   RAII WRAPPERS                              ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 3.  LIBRARY
+//==============================================================================
+// What the libcurl this program runs with can do, and its global state. All
+// of it answers without libcurl: nothing is available, nothing supported.
 
+
+// 3.1    Features
+//------------------------------------------------------------------------------
+// 3.1.1
+// feature
+//   enum: a capability libcurl reports at run time, valued as
+// d_curl_feature.
+enum class feature : unsigned char
+{
+    ssl        = D_CURL_FEATURE_SSL,
+    http2      = D_CURL_FEATURE_HTTP2,
+    http3      = D_CURL_FEATURE_HTTP3,
+    ipv6       = D_CURL_FEATURE_IPV6,
+    libz       = D_CURL_FEATURE_LIBZ,
+    brotli     = D_CURL_FEATURE_BROTLI,
+    zstd       = D_CURL_FEATURE_ZSTD,
+    asynch_dns = D_CURL_FEATURE_ASYNCH_DNS,
+    threadsafe = D_CURL_FEATURE_THREADSAFE
+};
+
+// 3.2    Library queries
+//------------------------------------------------------------------------------
+// available
+//   function: whether this build performs transfers over libcurl.
+D_NODISCARD inline bool
+available() noexcept
+{
+    return (::d_curl_version() != nullptr);
+}
+
+// version_string
+//   function: the loaded libcurl's version text ("8.5.0"), or "" without
+// libcurl.
+D_NODISCARD inline const char*
+version_string() noexcept
+{
+    const char* const text = ::d_curl_version();
+
+    return (text != nullptr) ? text : "";
+}
+
+// version_number
+//   function: the loaded libcurl's version as 0xMMmmpp, or 0 without it.
+D_NODISCARD inline std::uint32_t
+version_number() noexcept
+{
+    return ::d_curl_version_number();
+}
+
+// supports
+//   function: whether the loaded libcurl reports _feature; false without
+// libcurl, and for a feature the build's headers predate.
+D_NODISCARD inline bool
+supports(
+    feature _feature
+) noexcept
+{
+    return ::d_curl_supports(static_cast< ::d_curl_feature>(_feature));
+}
+
+// supports_ssl
+//   function: whether the loaded libcurl speaks TLS.
+D_NODISCARD inline bool
+supports_ssl() noexcept
+{
+    return supports(feature::ssl);
+}
+
+// supports_http2
+//   function: whether the loaded libcurl speaks HTTP/2.
+D_NODISCARD inline bool
+supports_http2() noexcept
+{
+    return supports(feature::http2);
+}
+
+// error_message
+//   function: libcurl's text for one of its codes, as d_curl_result carries
+// them; "" without libcurl.
+D_NODISCARD inline const char*
+error_message(
+    int _code
+) noexcept
+{
+    const char* const text = ::d_curl_code_message(_code);
+
+    return (text != nullptr) ? text : "";
+}
+
+// 3.3    Global state
+//------------------------------------------------------------------------------
+// 3.3.1
 // scoped_global
-//   class: RAII owner of the process-global libcurl state. Constructing it
-// calls curl_global_init; destroying it calls curl_global_cleanup (only if the
-// init succeeded). Neither copyable nor movable -- create exactly one, early,
-// on the main thread, before any other libcurl use.
+//   class: one initialization of libcurl's global state, held for the
+// object's lifetime and balanced when it ends. Optional: ensure_global
+// covers every transfer. Neither copyable nor movable.
 class scoped_global
 {
 public:
-    explicit scoped_global(
-        long _flags = CURL_GLOBAL_DEFAULT
-    )
-        : m_code(curl_global_init(_flags))
-    {
-    }
+    scoped_global() noexcept
+        : m_status(::d_curl_global_init())
+    {}
 
     ~scoped_global()
     {
-        // balance a successful init with exactly one cleanup
-        if (m_code == CURLE_OK)
+        // only a successful initialization is balanced
+        if (m_status == D_CURL_STATUS_OK)
         {
-            curl_global_cleanup();
+            ::d_curl_global_cleanup();
         }
     }
 
@@ -226,659 +277,415 @@ public:
     scoped_global& operator=(scoped_global&&)      D_DELETE;
 
     // ok
-    //   function: whether global initialization succeeded.
+    //   function: whether the initialization succeeded.
     D_NODISCARD bool
-    ok() const
+    ok() const noexcept
     {
-        return (m_code == CURLE_OK);
+        return (m_status == D_CURL_STATUS_OK);
     }
 
-    // code
-    //   function: the CURLcode returned by curl_global_init.
-    D_NODISCARD CURLcode
-    code() const
+    // error
+    //   function: why the initialization failed, or none.
+    D_NODISCARD transport_error
+    error() const noexcept
     {
-        return m_code;
+        return to_transport_error(m_status);
     }
 
 private:
-    CURLcode m_code;
+    ::d_curl_status m_status;
 };
 
+// 3.3.2
 // ensure_global
-//   function: lazily performs a one-time, thread-safe curl_global_init (via a
-// function-local static) and returns whether it succeeded. Intended for the
-// convenience drivers below so callers need not manage global state manually.
-// Deliberately does NOT register a cleanup: the initialization lives for the
-// duration of the process. Prefer scoped_global when deterministic teardown is
-// required.
-inline bool
-ensure_global(
-    long _flags = CURL_GLOBAL_DEFAULT
-)
-{
-    static const CURLcode s_code = curl_global_init(_flags);
-
-    return (s_code == CURLE_OK);
-}
-
-// slist
-//   class: RAII owner of a curl_slist (the linked string list libcurl uses for
-// request headers and similar). Move-only; frees the whole list on destruction.
-class slist
-{
-public:
-    slist()
-        : m_list(nullptr)
-    {
-    }
-
-    ~slist()
-    {
-        if (m_list)
-        {
-            curl_slist_free_all(m_list);
-        }
-    }
-
-    slist(const slist&)            D_DELETE;
-    slist& operator=(const slist&) D_DELETE;
-
-    slist(
-        slist&& _other
-    ) D_NOEXCEPT
-        : m_list(_other.m_list)
-    {
-        _other.m_list = nullptr;
-    }
-
-    slist&
-    operator=(
-        slist&& _other
-    ) D_NOEXCEPT
-    {
-        // guard against self-move, then adopt the source list
-        if (this != &_other)
-        {
-            if (m_list)
-            {
-                curl_slist_free_all(m_list);
-            }
-
-            m_list        = _other.m_list;
-            _other.m_list = nullptr;
-        }
-
-        return *this;
-    }
-
-    // append
-    //   function: appends a copy of `_value` to the list. Returns true on
-    // success; on allocation failure the list is left unchanged and false is
-    // returned.
-    bool
-    append(
-        const char* _value
-    )
-    {
-        struct curl_slist* next = curl_slist_append(m_list, _value);
-
-        if (!next)
-        {
-            return false;
-        }
-
-        m_list = next;
-
-        return true;
-    }
-
-    // append
-    //   function: std::string overload of append.
-    bool
-    append(
-        const std::string& _value
-    )
-    {
-        return append(_value.c_str());
-    }
-
-    // get
-    //   function: the underlying curl_slist pointer (nullptr when empty).
-    D_NODISCARD struct curl_slist*
-    get() const
-    {
-        return m_list;
-    }
-
-    // empty
-    //   function: whether the list holds no entries.
-    D_NODISCARD bool
-    empty() const
-    {
-        return (m_list == nullptr);
-    }
-
-    // release
-    //   function: relinquishes ownership of the list and returns it; the caller
-    // becomes responsible for curl_slist_free_all.
-    D_NODISCARD struct curl_slist*
-    release()
-    {
-        struct curl_slist* out = m_list;
-        m_list = nullptr;
-
-        return out;
-    }
-
-private:
-    struct curl_slist* m_list;
-};
-
-// easy
-//   class: RAII wrapper over a libcurl easy handle (CURL*). Move-only. Exposes
-// a generic setopt/getinfo pair plus typed convenience setters for the common
-// options; all setters return the CURLcode so callers may check them.
-class easy
-{
-public:
-    easy()
-        : m_handle(curl_easy_init())
-    {
-    }
-
-    ~easy()
-    {
-        if (m_handle)
-        {
-            curl_easy_cleanup(m_handle);
-        }
-    }
-
-    easy(const easy&)            D_DELETE;
-    easy& operator=(const easy&) D_DELETE;
-
-    easy(
-        easy&& _other
-    ) D_NOEXCEPT
-        : m_handle(_other.m_handle)
-    {
-        _other.m_handle = nullptr;
-    }
-
-    easy&
-    operator=(
-        easy&& _other
-    ) D_NOEXCEPT
-    {
-        // guard against self-move, then adopt the source handle
-        if (this != &_other)
-        {
-            if (m_handle)
-            {
-                curl_easy_cleanup(m_handle);
-            }
-
-            m_handle        = _other.m_handle;
-            _other.m_handle = nullptr;
-        }
-
-        return *this;
-    }
-
-    // operator bool
-    //   function: whether the handle was successfully created.
-    D_NODISCARD explicit operator bool() const
-    {
-        return (m_handle != nullptr);
-    }
-
-    // get
-    //   function: the underlying CURL* (nullptr if construction failed).
-    D_NODISCARD CURL*
-    get() const
-    {
-        return m_handle;
-    }
-
-    // reset
-    //   function: restores the handle to its default state (curl_easy_reset),
-    // preserving live connections while clearing all options.
-    void
-    reset()
-    {
-        if (m_handle)
-        {
-            curl_easy_reset(m_handle);
-        }
-
-        return;
-    }
-
-    // setopt
-    //   function: generic option setter forwarding to curl_easy_setopt. `_value`
-    // must have the type the option expects (a long, a pointer, an off_t, ...).
-    template<typename _Value>
-    CURLcode
-    setopt(
-        CURLoption _option,
-        _Value     _value
-    )
-    {
-        return curl_easy_setopt(m_handle, _option, _value);
-    }
-
-    // getinfo
-    //   function: generic info getter forwarding to curl_easy_getinfo. `_out`
-    // points to storage of the type the info item yields.
-    template<typename _Value>
-    CURLcode
-    getinfo(
-        CURLINFO _info,
-        _Value*  _out
-    )
-    {
-        return curl_easy_getinfo(m_handle, _info, _out);
-    }
-
-    // set_url
-    //   function: sets the target URL (CURLOPT_URL).
-    CURLcode
-    set_url(
-        const std::string& _url
-    )
-    {
-        return setopt(CURLOPT_URL, _url.c_str());
-    }
-
-    // set_custom_request
-    //   function: sets the request method token (CURLOPT_CUSTOMREQUEST).
-    CURLcode
-    set_custom_request(
-        const char* _method
-    )
-    {
-        return setopt(CURLOPT_CUSTOMREQUEST, _method);
-    }
-
-    // set_body
-    //   function: sets a copied request body (CURLOPT_POSTFIELDSIZE +
-    // CURLOPT_COPYPOSTFIELDS). libcurl copies the bytes, so `_body` need not
-    // outlive the call. The size must be set before the copy so binary bodies
-    // with embedded NULs are handled correctly.
-    CURLcode
-    set_body(
-        const std::string& _body
-    )
-    {
-        const CURLcode rc = setopt(CURLOPT_POSTFIELDSIZE,
-                                   static_cast<long>(_body.size()));
-
-        if (rc != CURLE_OK)
-        {
-            return rc;
-        }
-
-        return setopt(CURLOPT_COPYPOSTFIELDS, _body.c_str());
-    }
-
-    // set_headers
-    //   function: attaches a request header list (CURLOPT_HTTPHEADER). The list
-    // must outlive the perform() call.
-    CURLcode
-    set_headers(
-        struct curl_slist* _headers
-    )
-    {
-        return setopt(CURLOPT_HTTPHEADER, _headers);
-    }
-
-    // set_user_agent
-    //   function: sets the User-Agent (CURLOPT_USERAGENT).
-    CURLcode
-    set_user_agent(
-        const std::string& _agent
-    )
-    {
-        return setopt(CURLOPT_USERAGENT, _agent.c_str());
-    }
-
-    // set_accept_encoding
-    //   function: sets the accepted content encodings (CURLOPT_ACCEPT_ENCODING).
-    // An empty string advertises every coding this libcurl build supports.
-    CURLcode
-    set_accept_encoding(
-        const std::string& _encoding
-    )
-    {
-        return setopt(CURLOPT_ACCEPT_ENCODING, _encoding.c_str());
-    }
-
-    // set_timeout_ms
-    //   function: sets the whole-transfer timeout (CURLOPT_TIMEOUT_MS).
-    CURLcode
-    set_timeout_ms(
-        long _ms
-    )
-    {
-        return setopt(CURLOPT_TIMEOUT_MS, _ms);
-    }
-
-    // set_connect_timeout_ms
-    //   function: sets the connection-phase timeout (CURLOPT_CONNECTTIMEOUT_MS).
-    CURLcode
-    set_connect_timeout_ms(
-        long _ms
-    )
-    {
-        return setopt(CURLOPT_CONNECTTIMEOUT_MS, _ms);
-    }
-
-    // set_follow_location
-    //   function: enables/disables redirect following (CURLOPT_FOLLOWLOCATION).
-    CURLcode
-    set_follow_location(
-        bool _follow
-    )
-    {
-        return setopt(CURLOPT_FOLLOWLOCATION, _follow ? 1L : 0L);
-    }
-
-    // set_max_redirects
-    //   function: caps the number of redirects followed (CURLOPT_MAXREDIRS).
-    CURLcode
-    set_max_redirects(
-        long _max
-    )
-    {
-        return setopt(CURLOPT_MAXREDIRS, _max);
-    }
-
-    // set_verify_tls
-    //   function: enables/disables peer and host TLS verification
-    // (CURLOPT_SSL_VERIFYPEER + CURLOPT_SSL_VERIFYHOST). Disabling is insecure
-    // and intended only for local testing.
-    CURLcode
-    set_verify_tls(
-        bool _verify
-    )
-    {
-        const CURLcode rc = setopt(CURLOPT_SSL_VERIFYPEER, _verify ? 1L : 0L);
-
-        if (rc != CURLE_OK)
-        {
-            return rc;
-        }
-
-        return setopt(CURLOPT_SSL_VERIFYHOST, _verify ? 2L : 0L);
-    }
-
-    // set_verbose
-    //   function: toggles libcurl's verbose diagnostics (CURLOPT_VERBOSE).
-    CURLcode
-    set_verbose(
-        bool _verbose
-    )
-    {
-        return setopt(CURLOPT_VERBOSE, _verbose ? 1L : 0L);
-    }
-
-    // response_code
-    //   function: the last response's status code (CURLINFO_RESPONSE_CODE), or
-    // 0 if unavailable.
-    D_NODISCARD long
-    response_code()
-    {
-        long code = 0;
-        getinfo(CURLINFO_RESPONSE_CODE, &code);
-
-        return code;
-    }
-
-    // perform
-    //   function: runs the transfer synchronously (curl_easy_perform).
-    CURLcode
-    perform()
-    {
-        return curl_easy_perform(m_handle);
-    }
-
-private:
-    CURL* m_handle;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-///           IV.   HEADER BRIDGE + CALLBACK TRAMPOLINES                    ///
-///////////////////////////////////////////////////////////////////////////////
-
-// body_sink
-//   type: a callback receiving response-body chunks as they arrive. Returning
-// false aborts the transfer (surfaced as transport_error::canceled).
-using body_sink = std::function<bool(const char*, std::size_t)>;
-
+//   function: initializes libcurl's global state once per process, and
+// reports whether it is ready. C++11 makes the first call's initialization
+// thread-safe, which libcurl's own is not before 7.84. Every transfer calls
+// it; the initialization is never balanced, which libcurl permits.
 NS_INTERNAL
 
-    // write_trampoline
-    //   function: libcurl CURLOPT_WRITEFUNCTION callback. Forwards each chunk
-    // to the body_sink pointed at by _userdata; a sink returning false yields a
-    // short count, which libcurl treats as a write error / abort.
-    inline std::size_t
-    write_trampoline(
-        char*       _ptr,
-        std::size_t _size,
-        std::size_t _nmemb,
-        void*       _userdata
-    )
+    // global_error
+    //   function: the outcome of the one initialization, as a
+    // transport_error.
+    D_NODISCARD inline transport_error
+    global_error() noexcept
     {
-        const std::size_t total = _size * _nmemb;
-        body_sink*        sink  = static_cast<body_sink*>(_userdata);
+        static const transport_error s_error =
+            to_transport_error(::d_curl_global_init());
 
-        // no sink -> silently discard, but report success so the transfer runs
-        if ( (!sink) ||
-             (!*sink) )
-        {
-            return total;
-        }
-
-        return (*sink)(_ptr, total) ? total : 0;
-    }
-
-    // header_trampoline
-    //   function: libcurl CURLOPT_HEADERFUNCTION callback. Parses each
-    // "Name: Value" line into the header_list pointed at by _userdata; the
-    // status line and blank separators (which carry no colon) are ignored.
-    inline std::size_t
-    header_trampoline(
-        char*       _buffer,
-        std::size_t _size,
-        std::size_t _nitems,
-        void*       _userdata
-    )
-    {
-        const std::size_t total = _size * _nitems;
-        header_list*      out   = static_cast<header_list*>(_userdata);
-
-        // parse into the sink when present
-        if (out)
-        {
-            std::string line(_buffer, total);
-
-            // strip the trailing CRLF
-            while ( (!line.empty()) &&
-                    ((line.back() == '\r') || (line.back() == '\n')) )
-            {
-                line.pop_back();
-            }
-
-            const std::size_t colon = line.find(':');
-
-            // a colon distinguishes a real field from the status line / blank
-            if (colon != std::string::npos)
-            {
-                std::string name  = line.substr(0, colon);
-                std::string value = line.substr(colon + 1);
-
-                // trim optional leading whitespace from the value
-                const std::size_t first = value.find_first_not_of(" \t");
-
-                if (first != std::string::npos)
-                {
-                    value = value.substr(first);
-                }
-                else
-                {
-                    value.clear();
-                }
-
-                // trim trailing whitespace from the value
-                const std::size_t last = value.find_last_not_of(" \t");
-
-                if (last != std::string::npos)
-                {
-                    value.erase(last + 1);
-                }
-
-                out->push_back(header_field(name, value));
-            }
-        }
-
-        return total;
+        return s_error;
     }
 
 NS_END  // internal
 
-// make_header_slist
-//   function: builds a curl_slist (as an owning slist) from a neutral
-// web::header_list, formatting each field as "Name: Value".
-D_NODISCARD inline slist
-make_header_slist(
-    const header_list& _headers
-)
+D_NODISCARD inline bool
+ensure_global() noexcept
 {
-    slist list;
-
-    // format and append each header field
-    for (const header_field& field : _headers)
-    {
-        const std::string line = field.first + ": " + field.second;
-        list.append(line);
-    }
-
-    return list;
+    return (internal::global_error() == transport_error::none);
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-///               V.   OPTIONS + PERFORM DRIVERS                           ///
-///////////////////////////////////////////////////////////////////////////////
+//==============================================================================
+// 4.  TRANSFERS
+//==============================================================================
+// A request goes out through the binding, and its response comes back: the
+// status and fields into a web::response, the body into a sink or the
+// response itself. Where redirects are followed, the fields of every
+// response in the chain arrive, in order, and only the last one's body.
 
+
+// 4.1    Sinks and options
+//------------------------------------------------------------------------------
+// 4.1.1
+// body_sink
+//   type: receives each piece of a response body as it arrives; returns
+// false to end the transfer, which then fails as write_error. It may throw;
+// see perform_stream.
+using body_sink = std::function<bool(const char*, std::size_t)>;
+
+// 4.1.2
 // options
-//   struct: per-request transport options consumed by the perform drivers. The
-// defaults are safe and conventional (verified TLS, redirects followed, the
-// framework User-Agent, and all supported content encodings advertised).
+//   struct: how a transfer runs. The defaults are d_curl_options_init's,
+// but for the User-Agent, which is web.hpp's.
+//     timeout_ms          the whole transfer's limit; 0 or less for none.
+//     connect_timeout_ms  the connection phase's limit; 0 or less for
+//                         libcurl's.
+//     follow_redirects    follow Location, up to max_redirects times.
+//     verify_tls          verify the peer's certificate and name. Turning
+//                         it off is insecure.
+//     verbose             have libcurl describe the transfer on stderr.
+//     accept_encoding     the codings to accept and decode; "" for every
+//                         one libcurl supports.
+//     user_agent          the User-Agent; "" for D_WEB_DEFAULT_USER_AGENT.
+//     proxy               the proxy URL; "" for libcurl's default, which
+//                         reads the environment's proxy variables.
+//     bypass_proxy        use no proxy at all, whatever proxy and the
+//                         environment say.
 struct options
 {
-    long        timeout_ms;          // whole transfer; 0 = no explicit limit
-    long        connect_timeout_ms;  // connect phase; 0 = no explicit limit
-    bool        follow_redirects;
-    long        max_redirects;
-    bool        verify_tls;
-    bool        verbose;
-    std::string accept_encoding;     // "" = advertise all supported codings
-    std::string user_agent;
-
     options()
         : timeout_ms(0),
           connect_timeout_ms(0),
           follow_redirects(true),
-          max_redirects(30),
+          max_redirects(D_CURL_MAX_REDIRECTS_DEFAULT),
           verify_tls(true),
           verbose(false),
           accept_encoding(),
-          user_agent(D_WEB_DEFAULT_USER_AGENT)
-    {
-    }
+          user_agent(D_WEB_DEFAULT_USER_AGENT),
+          proxy(),
+          bypass_proxy(false)
+    {}
+
+    long        timeout_ms;
+    long        connect_timeout_ms;
+    bool        follow_redirects;
+    long        max_redirects;
+    bool        verify_tls;
+    bool        verbose;
+    std::string accept_encoding;
+    std::string user_agent;
+    std::string proxy;
+    bool        bypass_proxy;
 };
 
+// 4.2    The bridge to C
+//------------------------------------------------------------------------------
+// How a request becomes the binding's records, which borrow from the
+// request, the options, and a field list built beside them, all outliving
+// the transfer; and how the binding's callbacks reach C++ again.
+//
+// 4.2.1
+// stream_state
+//   struct: what the binding's callbacks reach through their context: the
+// caller's sink, the header list being filled, and the exception a callback
+// caught, if any.
 NS_INTERNAL
 
-    // configure_easy
-    //   function: applies a web::request and options to an easy handle, wiring
-    // method, body, headers (via the caller-owned slist), and the standard
-    // transport options. The header slist and body_sink must outlive the
-    // subsequent perform() call.
+    struct stream_state
+    {
+        const body_sink*   sink;
+        header_list*       headers;
+        std::exception_ptr error;
+    };
+
+#if (D_ENV_CPP98_HAS_EXCEPTION == 1)
+
+    // guarded_body
+    //   function: hands one body piece to the caller's sink, catching what
+    // it throws: the exception waits in _state, and the transfer ends.
+    inline bool
+    guarded_body(
+        stream_state& _state,
+        const char*   _data,
+        std::size_t   _size
+    ) noexcept
+    {
+        try
+        {
+            return (*_state.sink)(_data,
+                                  _size);
+        }
+        catch (...)
+        {
+            _state.error = std::current_exception();
+
+            return false;
+        }
+    }
+
+    // guarded_field
+    //   function: appends one response field to the header list, catching
+    // what the allocation throws, as guarded_body does.
+    inline bool
+    guarded_field(
+        stream_state&      _state,
+        const d_pack_text& _name,
+        const d_pack_text& _value
+    ) noexcept
+    {
+        try
+        {
+            _state.headers->push_back(
+                header_field(std::string(_name.data,
+                                         _name.length),
+                             std::string(_value.data,
+                                         _value.length)));
+
+            return true;
+        }
+        catch (...)
+        {
+            _state.error = std::current_exception();
+
+            return false;
+        }
+    }
+
+    // rethrow_caught
+    //   function: resumes the exception a callback caught, now that libcurl
+    // is off the stack.
     inline void
-    configure_easy(
-        easy&          _easy,
-        const request& _request,
-        const options& _options,
-        slist&         _headers,
-        body_sink*     _body_sink,
-        header_list*   _response_headers
+    rethrow_caught(
+        const stream_state& _state
     )
     {
-        _easy.set_url(_request.url);
-        _easy.set_follow_location(_options.follow_redirects);
-        _easy.set_max_redirects(_options.max_redirects);
-        _easy.set_verify_tls(_options.verify_tls);
-        _easy.set_verbose(_options.verbose);
-        _easy.set_accept_encoding(_options.accept_encoding);
-        _easy.set_user_agent(
-            _options.user_agent.empty() ? std::string(D_WEB_DEFAULT_USER_AGENT)
-                                        : _options.user_agent);
-
-        // apply timeouts only when explicitly requested
-        if (_options.timeout_ms > 0)
+        // a callback caught one
+        if (_state.error)
         {
-            _easy.set_timeout_ms(_options.timeout_ms);
+            std::rethrow_exception(_state.error);
         }
-
-        if (_options.connect_timeout_ms > 0)
-        {
-            _easy.set_connect_timeout_ms(_options.connect_timeout_ms);
-        }
-
-        // method: a custom-request token covers every verb uniformly; HEAD
-        // additionally suppresses the response body
-        _easy.set_custom_request(to_string(_request.method));
-
-        if (_request.method == http_method::head)
-        {
-            _easy.setopt(CURLOPT_NOBODY, 1L);
-        }
-
-        // body (copied by libcurl) when present
-        if (!_request.body.empty())
-        {
-            _easy.set_body(_request.body);
-        }
-
-        // request headers
-        _headers = make_header_slist(_request.headers);
-
-        if (!_headers.empty())
-        {
-            _easy.set_headers(_headers.get());
-        }
-
-        // response body + header sinks
-        _easy.setopt(CURLOPT_WRITEFUNCTION, &internal::write_trampoline);
-        _easy.setopt(CURLOPT_WRITEDATA, _body_sink);
-        _easy.setopt(CURLOPT_HEADERFUNCTION, &internal::header_trampoline);
-        _easy.setopt(CURLOPT_HEADERDATA, _response_headers);
 
         return;
     }
 
+#else
+
+    // guarded_body
+    //   function: hands one body piece to the caller's sink; without
+    // exceptions there is nothing to guard against.
+    inline bool
+    guarded_body(
+        stream_state& _state,
+        const char*   _data,
+        std::size_t   _size
+    ) noexcept
+    {
+        return (*_state.sink)(_data,
+                              _size);
+    }
+
+    // guarded_field
+    //   function: appends one response field to the header list.
+    inline bool
+    guarded_field(
+        stream_state&      _state,
+        const d_pack_text& _name,
+        const d_pack_text& _value
+    ) noexcept
+    {
+        _state.headers->push_back(
+            header_field(std::string(_name.data,
+                                     _name.length),
+                         std::string(_value.data,
+                                     _value.length)));
+
+        return true;
+    }
+
+    // rethrow_caught
+    //   function: without exceptions, nothing was caught.
+    inline void
+    rethrow_caught(
+        const stream_state& _state
+    ) noexcept
+    {
+        (void)_state;
+
+        return;
+    }
+
+#endif  // D_ENV_CPP98_HAS_EXCEPTION
+
+    D_EXTERN_C_BEGIN
+
+    // d_internal_curl_hpp_on_body
+    //   function: the binding's body callback. C linkage, as the binding's
+    // pointer type requires.
+    inline bool
+    d_internal_curl_hpp_on_body(
+        void*       _state,
+        const void* _data,
+        std::size_t _size
+    ) noexcept
+    {
+        return guarded_body(*static_cast<stream_state*>(_state),
+                            static_cast<const char*>(_data),
+                            _size);
+    }
+
+    // d_internal_curl_hpp_on_field
+    //   function: the binding's header callback. C linkage, as the
+    // binding's pointer type requires.
+    inline bool
+    d_internal_curl_hpp_on_field(
+        void*       _state,
+        d_pack_text _name,
+        d_pack_text _value
+    ) noexcept
+    {
+        return guarded_field(*static_cast<stream_state*>(_state),
+                             _name,
+                             _value);
+    }
+
+    D_EXTERN_C_END
+
+    // c_fields
+    //   function: the request's header fields as the binding's records,
+    // each borrowing its strings.
+    inline std::vector< ::d_curl_header>
+    c_fields(
+        const header_list& _headers
+    )
+    {
+        std::vector< ::d_curl_header> fields;
+
+        fields.reserve(_headers.size());
+
+        // each field in order
+        for (const header_field& field : _headers)
+        {
+            const ::d_curl_header entry =
+            {
+                { field.first.data(), field.first.size() },
+                { field.second.data(), field.second.size() }
+            };
+
+            fields.push_back(entry);
+        }
+
+        return fields;
+    }
+
+    // c_request
+    //   function: the request as the binding's record, borrowing from
+    // _request and _fields.
+    D_NODISCARD inline ::d_curl_request
+    c_request(
+        const request&                       _request,
+        const std::vector< ::d_curl_header>& _fields
+    ) noexcept
+    {
+        const ::d_curl_request record =
+        {
+            to_string(_request.method),
+            _request.url.c_str(),
+            _fields.data(),
+            _fields.size(),
+            { _request.body.data(), _request.body.size() }
+        };
+
+        return record;
+    }
+
+    // c_options
+    //   function: the options as the binding's record, borrowing their
+    // strings. A timeout of 0 or less reads as none, as it always has here.
+    D_NODISCARD inline ::d_curl_options
+    c_options(
+        const options& _options
+    ) noexcept
+    {
+        ::d_curl_options settings = ::d_curl_options();
+
+        ::d_curl_options_init(&settings);
+        settings.timeout_ms         = (_options.timeout_ms > 0)
+                                          ? _options.timeout_ms
+                                          : 0;
+        settings.connect_timeout_ms = (_options.connect_timeout_ms > 0)
+                                          ? _options.connect_timeout_ms
+                                          : 0;
+        settings.follow_redirects   = _options.follow_redirects;
+        settings.max_redirects      = _options.max_redirects;
+        settings.verify_tls         = _options.verify_tls;
+        settings.verbose            = _options.verbose;
+        settings.accept_encoding    = _options.accept_encoding.c_str();
+        settings.user_agent         = (_options.user_agent.empty())
+                                          ? D_WEB_DEFAULT_USER_AGENT
+                                          : _options.user_agent.c_str();
+        settings.proxy              = (_options.proxy.empty())
+                                          ? nullptr
+                                          : _options.proxy.c_str();
+
+        // no proxy at all, whatever the environment says
+        if (_options.bypass_proxy)
+        {
+            settings.proxy = "";
+        }
+
+        return settings;
+    }
+
+    // c_sink
+    //   function: the binding's sink for a stream: the header callback
+    // always, the body callback only for a sink that can take a body.
+    D_NODISCARD inline ::d_curl_sink
+    c_sink(
+        stream_state& _state
+    ) noexcept
+    {
+        const ::d_curl_sink sink =
+        {
+            (*_state.sink) ? d_internal_curl_hpp_on_body : nullptr,
+            d_internal_curl_hpp_on_field,
+            &_state
+        };
+
+        return sink;
+    }
+
 NS_END  // internal
 
-// perform_stream
-//   function: executes `_request`, delivering response-body chunks to `_sink`
-// as they arrive (no full-body buffering) and recording status + response
-// headers into `_meta`. `_sink` returning false aborts the transfer. Returns
-// the neutral transport_error (transport_error::none on success). Suitable for
-// streaming responses such as server-sent events.
+// 4.3    Drivers
+//------------------------------------------------------------------------------
+/**
+ * @brief Performs a request, streaming its body to `_sink` as it arrives.
+ *
+ * @note `_meta` receives the status, the header fields of every response in
+ *       a redirect chain, and the error; the body goes to the sink alone.
+ *       The status is set only for a transfer that completed.
+ *
+ * @param[in]  _request  the request; borrowed for the call.
+ * @param[in]  _sink     receives the body; an empty sink discards it.
+ * @param[out] _meta     reset, then filled as described above.
+ * @param[in]  _options  how the transfer runs.
+ * @return the outcome, as stored in `_meta.error`: none once a response
+ *         arrived, whatever its HTTP status; unsupported_protocol without
+ *         libcurl; unknown for a header field the binding refuses -- a
+ *         colon in its name, or a line break or NUL in either part.
+ * @throws whatever `_sink` threw, rethrown once the transfer has ended and
+ *         been cleaned up; and std::bad_alloc.
+ */
 D_NODISCARD inline transport_error
 perform_stream(
     const request&   _request,
@@ -889,77 +696,84 @@ perform_stream(
 {
     _meta = response();
 
-    // one-time global init for the convenience path
-    if (!ensure_global())
+    const transport_error global = internal::global_error();
+
+    // libcurl's global state comes first, once per process
+    if (global != transport_error::none)
     {
-        _meta.error = transport_error::out_of_memory;
+        _meta.error = global;
 
         return _meta.error;
     }
 
-    easy handle;
+    const std::vector< ::d_curl_header> fields    =
+        internal::c_fields(_request.headers);
+    const ::d_curl_request              c_request =
+        internal::c_request(_request,
+                            fields);
+    const ::d_curl_options              c_options =
+        internal::c_options(_options);
+    internal::stream_state              state     =
+        { &_sink, &_meta.headers, std::exception_ptr() };
+    const ::d_curl_sink                 c_sink    =
+        internal::c_sink(state);
+    ::d_curl_result                     result    =
+        { D_CURL_STATUS_OK, 0, 0 };
 
-    // a null handle means libcurl could not allocate one
-    if (!handle)
+    (void)::d_curl_perform(&c_request,
+                           &c_options,
+                           &c_sink,
+                           &result);
+    internal::rethrow_caught(state);
+    _meta.error = to_transport_error(result.status);
+
+    // the status belongs to a completed transfer only
+    if (_meta.error == transport_error::none)
     {
-        _meta.error = transport_error::out_of_memory;
-
-        return _meta.error;
-    }
-
-    slist     headers;
-    body_sink sink = _sink;
-
-    internal::configure_easy(handle,
-                             _request,
-                             _options,
-                             headers,
-                             &sink,
-                             &_meta.headers);
-
-    const CURLcode rc = handle.perform();
-    _meta.error = to_transport_error(rc);
-
-    // capture the status code whenever the exchange produced one
-    if (rc == CURLE_OK)
-    {
-        _meta.status = static_cast<int>(handle.response_code());
+        _meta.status = static_cast<int>(result.http_status);
     }
 
     return _meta.error;
 }
 
-// perform
-//   function: executes `_request` and returns a fully-populated neutral
-// web::response (status, headers, buffered body, and transport error). This is
-// the primary entry point for one-shot request/response exchanges.
+/**
+ * @brief Performs a request, collecting the whole response.
+ *
+ * @param[in] _request  the request; borrowed for the call.
+ * @param[in] _options  how the transfer runs.
+ * @return the response: status, header fields, and error as
+ *         perform_stream fills them, and the body when error is none.
+ * @throws whatever perform_stream throws.
+ */
 D_NODISCARD inline response
 perform(
     const request& _request,
     const options& _options = options()
 )
 {
-    response res;
-
-    // buffer the body via a sink that appends to a local string
-    std::string body;
-    body_sink   sink =
-        [&body](const char* _data, std::size_t _length) -> bool
+    response        result;
+    std::string     body;
+    const body_sink sink =
+        [&body](const char* _data,
+                std::size_t _length) -> bool
         {
-            body.append(_data, _length);
+            body.append(_data,
+                        _length);
 
             return true;
         };
+    const transport_error error = perform_stream(_request,
+                                                 sink,
+                                                 result,
+                                                 _options);
 
-    const transport_error err = perform_stream(_request, sink, res, _options);
-
-    // move the buffered body into the response on success
-    if (err == transport_error::none)
+    // the body belongs to a completed transfer only
+    if (error == transport_error::none)
     {
-        res.body.swap(body);
+        result.body.swap(body);
     }
 
-    return res;
+    return result;
 }
 
 
@@ -968,4 +782,4 @@ NS_END  // web
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_WEB_CURL_
+#endif  // DJINTERP_NET_CURL_CURL_HPP
