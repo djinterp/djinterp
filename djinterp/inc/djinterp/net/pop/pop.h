@@ -25,6 +25,7 @@
 *   Build configuration comes from cfg_pop.h; environment detection for the
 * derived modules from env_pop.h.
 *
+*
 * path:      /inc/djinterp/net/pop/pop.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25
