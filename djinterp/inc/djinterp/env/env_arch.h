@@ -9,10 +9,11 @@
 * internal component of env.h and is #included by it; do not #include it
 * directly.
 *
+*
 * path:      /inc/djinterp/env/env_arch.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -195,11 +196,11 @@ TABLE OF CONTENTS
 
     // 2.1.1.1
     // x86-64
-    #if ( defined(_M_X64)     ||                                              \
-          defined(__x86_64__) ||                                              \
-          defined(__x86_64)   ||                                              \
-          defined(__amd64__)  ||                                              \
-          defined(__amd64) )
+    #if ( (defined(_M_X64))     ||                                             \
+          (defined(__x86_64__)) ||                                             \
+          (defined(__x86_64))   ||                                             \
+          (defined(__amd64__))  ||                                             \
+          (defined(__amd64)) )
         // D_ENV_ARCH_X64
         //   macro: indicates that the detected architecture is x86-64.
         #define D_ENV_ARCH_X64    1
@@ -222,10 +223,10 @@ TABLE OF CONTENTS
 
     // 2.1.1.2
     // x86
-    #elif ( defined(_M_IX86)   ||                                             \
-            defined(__i386__)  ||                                             \
-            defined(__i386)    ||                                             \
-            defined(i386) )
+    #elif ( (defined(_M_IX86))  ||                                             \
+            (defined(__i386__)) ||                                             \
+            (defined(__i386))   ||                                             \
+            (defined(i386)) )
         // D_ENV_ARCH_X86
         //   macro: indicates that the detected architecture is 32-bit x86.
         #define D_ENV_ARCH_X86     1
@@ -248,8 +249,8 @@ TABLE OF CONTENTS
 
     // 2.1.1.3
     // ARM64
-    #elif ( defined(_M_ARM64) ||                                              \
-            defined(__aarch64__) )
+    #elif ( (defined(_M_ARM64)) ||                                             \
+            (defined(__aarch64__)) )
         // D_ENV_ARCH_ARM64
         //   macro: indicates that the detected architecture is 64-bit ARM.
         #define D_ENV_ARCH_ARM64   1
@@ -272,9 +273,9 @@ TABLE OF CONTENTS
 
     // 2.1.1.4
     // ARM
-    #elif ( defined(_M_ARM)    ||                                             \
-            defined(__arm__)   ||                                             \
-            defined(__thumb__) )
+    #elif ( (defined(_M_ARM))  ||                                              \
+            (defined(__arm__)) ||                                              \
+            (defined(__thumb__)) )
         // D_ENV_ARCH_ARM
         //   macro: indicates that the detected architecture is 32-bit ARM.
         #define D_ENV_ARCH_ARM     1
@@ -302,7 +303,7 @@ TABLE OF CONTENTS
         //   macro: indicates that the detected architecture is RISC-V.
         #define D_ENV_ARCH_RISCV 1
 
-        #if ( defined(__riscv_xlen) &&                                        \
+        #if ( (defined(__riscv_xlen)) &&                                       \
               (__riscv_xlen == 64) )
             // D_ENV_ARCH_RISCV64
             //   macro: indicates a 64-bit RISC-V target.
@@ -339,15 +340,16 @@ TABLE OF CONTENTS
 
     // 2.1.1.6
     // PowerPC
-    #elif ( defined(__powerpc__)   ||                                        \
-            defined(__powerpc64__) ||                                        \
-            defined(__PPC__)       ||                                        \
-            defined(__PPC64__) )
+    #elif ( (defined(__powerpc__))   ||                                        \
+            (defined(__powerpc64__)) ||                                        \
+            (defined(__PPC__))       ||                                        \
+            (defined(__PPC64__)) )
         // D_ENV_ARCH_POWERPC
         //   macro: indicates that the detected architecture is PowerPC.
         #define D_ENV_ARCH_POWERPC 1
 
-        #if defined(__powerpc64__) || defined(__PPC64__)
+        #if ( (defined(__powerpc64__)) ||                                      \
+              (defined(__PPC64__)) )
             // D_ENV_ARCH_POWERPC64
             //   macro: indicates a 64-bit PowerPC target.
             #define D_ENV_ARCH_POWERPC64 1
@@ -383,15 +385,15 @@ TABLE OF CONTENTS
 
     // 2.1.1.7
     // MIPS
-    #elif ( defined(__mips__) ||                                               \
-            defined(__mips)   ||                                               \
-            defined(__MIPS__) )
+    #elif ( (defined(__mips__)) ||                                             \
+            (defined(__mips))   ||                                             \
+            (defined(__MIPS__)) )
         // D_ENV_ARCH_MIPS
         //   macro: indicates that the detected architecture is MIPS.
         #define D_ENV_ARCH_MIPS 1
 
-        #if ( defined(_MIPS_ARCH_MIPS64) ||                                    \
-              defined(__mips64) )
+        #if ( (defined(_MIPS_ARCH_MIPS64)) ||                                  \
+              (defined(__mips64)) )
             // D_ENV_ARCH_MIPS64
             //   macro: indicates a 64-bit MIPS target.
             #define D_ENV_ARCH_MIPS64 1
@@ -427,14 +429,14 @@ TABLE OF CONTENTS
 
     // 2.1.1.8
     // SPARC
-    #elif ( defined(__sparc__) ||                                              \
-            defined(__sparc) )
+    #elif ( (defined(__sparc__)) ||                                            \
+            (defined(__sparc)) )
         // D_ENV_ARCH_SPARC
         //   macro: indicates that the detected architecture is SPARC.
         #define D_ENV_ARCH_SPARC 1
 
-        #if ( defined(__sparc64__) ||                                          \
-              defined(__sparcv9) )
+        #if ( (defined(__sparc64__)) ||                                        \
+              (defined(__sparcv9)) )
             // D_ENV_ARCH_SPARC64
             //   macro: indicates a 64-bit SPARC target.
             #define D_ENV_ARCH_SPARC64 1
@@ -470,8 +472,8 @@ TABLE OF CONTENTS
 
     // 2.1.1.9
     // IBM System/390
-    #elif ( defined(__s390__) ||                                               \
-            defined(__s390x__) )
+    #elif ( (defined(__s390__)) ||                                             \
+            (defined(__s390x__)) )
         // D_ENV_ARCH_S390
         //   macro: indicates that the detected architecture is System/390.
         #define D_ENV_ARCH_S390 1
@@ -508,10 +510,10 @@ TABLE OF CONTENTS
 
     // 2.1.1.10
     // Itanium (IA-64)
-    #elif ( defined(__ia64__) ||                                              \
-            defined(_IA64)    ||                                              \
-            defined(__IA64__) ||                                              \
-            defined(_M_IA64) )
+    #elif ( (defined(__ia64__)) ||                                             \
+            (defined(_IA64))    ||                                             \
+            (defined(__IA64__)) ||                                             \
+            (defined(_M_IA64)) )
         // D_ENV_ARCH_IA64
         //   macro: indicates that the detected architecture is Itanium.
         #define D_ENV_ARCH_IA64   1
@@ -534,9 +536,9 @@ TABLE OF CONTENTS
 
     // 2.1.1.11
     // Alpha
-    #elif ( defined(__alpha__) ||                                             \
-            defined(__alpha)   ||                                             \
-            defined(_M_ALPHA) )
+    #elif ( (defined(__alpha__)) ||                                            \
+            (defined(__alpha))   ||                                            \
+            (defined(_M_ALPHA)) )
         // D_ENV_ARCH_ALPHA
         //   macro: indicates that the detected architecture is Alpha.
         #define D_ENV_ARCH_ALPHA  1
@@ -880,8 +882,8 @@ TABLE OF CONTENTS
 // 3.1.1
 // D_ENV_ARCH_IS_X86_FAMILY
 //   macro: 1 for x86 or x86-64 targets; otherwise 0.
-#if ( defined(D_ENV_ARCH_X86) ||                                              \
-      defined(D_ENV_ARCH_X64) )
+#if ( (defined(D_ENV_ARCH_X86)) ||                                             \
+      (defined(D_ENV_ARCH_X64)) )
     #define D_ENV_ARCH_IS_X86_FAMILY 1
 #else
     #define D_ENV_ARCH_IS_X86_FAMILY 0
@@ -890,8 +892,8 @@ TABLE OF CONTENTS
 // 3.1.2
 // D_ENV_ARCH_IS_ARM_FAMILY
 //   macro: 1 for ARM or ARM64 targets; otherwise 0.
-#if ( defined(D_ENV_ARCH_ARM) ||                                              \
-      defined(D_ENV_ARCH_ARM64) )
+#if ( (defined(D_ENV_ARCH_ARM)) ||                                             \
+      (defined(D_ENV_ARCH_ARM64)) )
     #define D_ENV_ARCH_IS_ARM_FAMILY 1
 #else
     #define D_ENV_ARCH_IS_ARM_FAMILY 0

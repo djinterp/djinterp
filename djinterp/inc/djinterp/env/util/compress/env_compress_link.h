@@ -16,8 +16,8 @@
 * detected through their include guards, and only for libraries that were
 * actually detected. Include it from an implementation unit after the facade
 * and env headers, for example:
-*     #include "../util/compress.hpp"         // pulls in env_compress.h
-*     #include "../env/env_compress_link.h"  // requests zlib / lzma / ... links
+*     #include "../util/compress.hpp"                      // env_compress.h
+*     #include "../env/util/compress/env_compress_link.h"  // link requests
 *   Because the requests are confined to the units that include this header
 * (the codec and archive .c / .cpp files), a header that merely reads the
 * capability macros never gains a link dependency.
@@ -33,10 +33,10 @@
 * ZLIB_DLL matches the artifact being linked.
 *
 *
-* path:      /inc/djinterp/env/env_compress_link.h
+* path:      /inc/djinterp/env/util/compress/env_compress_link.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -65,11 +65,11 @@ TABLE OF CONTENTS
          1.  Archive link requests
 */
 
-#ifndef DJINTERP_ENV_ENV_COMPRESS_LINK_H
-#define DJINTERP_ENV_ENV_COMPRESS_LINK_H 1
+#ifndef DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_LINK_H
+#define DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_LINK_H 1
 
 // djinterp
-#include "./env.h"  // D_ENV_BUILD_DEBUG
+#include "../../env.h"  // D_ENV_BUILD_DEBUG
 
 
 //==============================================================================
@@ -96,7 +96,7 @@ TABLE OF CONTENTS
 // relies on the build system for linking. The test reads _MSC_VER, not
 // D_ENV_COMPILER_MSVC_FAMILY: a link pragma needs the real toolchain, and the
 // env macro also follows a simulated one.
-#if ( defined(_MSC_VER) &&                                                    \
+#if ( (defined(_MSC_VER)) &&                                                   \
       (D_CFG_ENV_AUTOLINK) )
 
     // 1.2.1
@@ -207,7 +207,7 @@ TABLE OF CONTENTS
 
 // 3.1    Codec libraries
 //------------------------------------------------------------------------------
-    #ifdef DJINTERP_ENV_ENV_COMPRESS_H
+    #ifdef DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_H
 
         // 3.1.1
         // D_CFG_ENV_AUTOLINK_LZMA_STATIC
@@ -254,7 +254,7 @@ TABLE OF CONTENTS
             D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_BROTLICOMMON_LIB)
         #endif
 
-    #endif  // DJINTERP_ENV_ENV_COMPRESS_H
+    #endif  // DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_H
 
 
 //==============================================================================
@@ -269,7 +269,7 @@ TABLE OF CONTENTS
 
 // 4.1    Archive libraries
 //------------------------------------------------------------------------------
-    #ifdef DJINTERP_ENV_ENV_ARCHIVE_H
+    #ifdef DJINTERP_ENV_UTIL_ARCHIVE_ENV_ARCHIVE_H
 
         // 4.1.1
         // Archive link requests
@@ -282,9 +282,9 @@ TABLE OF CONTENTS
             D_INTERNAL_AUTOLINK_LIB(D_CFG_ENV_AUTOLINK_LIBZIP_LIB)
         #endif
 
-    #endif  // DJINTERP_ENV_ENV_ARCHIVE_H
+    #endif  // DJINTERP_ENV_UTIL_ARCHIVE_ENV_ARCHIVE_H
 
 #endif  // _MSC_VER && D_CFG_ENV_AUTOLINK
 
 
-#endif  // DJINTERP_ENV_ENV_COMPRESS_LINK_H
+#endif  // DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_LINK_H

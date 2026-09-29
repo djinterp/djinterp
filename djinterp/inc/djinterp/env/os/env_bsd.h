@@ -31,10 +31,11 @@
 * while D_ENV_FBSD_, D_ENV_OBSD_, D_ENV_NBSD_, and D_ENV_DBSD_ prefixes are
 * FreeBSD-, OpenBSD-, NetBSD-, and DragonFly-specific.
 *
+*
 * path:      /inc/djinterp/env/os/env_bsd.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -243,7 +244,7 @@ TABLE OF CONTENTS
 // 1.1.1
 // D_ENV_BSD_IS_FREEBSD
 //   feature: detect if building on FreeBSD.
-#if ( defined(__FreeBSD__)  ||                                                 \
+#if ( (defined(__FreeBSD__)) ||                                                \
       (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_FREE) )
     #define D_ENV_BSD_IS_FREEBSD        1
 #else
@@ -253,7 +254,7 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_ENV_BSD_IS_OPENBSD
 //   feature: detect if building on OpenBSD.
-#if ( defined(__OpenBSD__)  ||                                                 \
+#if ( (defined(__OpenBSD__)) ||                                                \
       (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_OPEN) )
     #define D_ENV_BSD_IS_OPENBSD        1
 #else
@@ -263,7 +264,7 @@ TABLE OF CONTENTS
 // 1.1.3
 // D_ENV_BSD_IS_NETBSD
 //   feature: detect if building on NetBSD.
-#if ( defined(__NetBSD__)  ||                                                  \
+#if ( (defined(__NetBSD__)) ||                                                 \
       (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_NET) )
     #define D_ENV_BSD_IS_NETBSD         1
 #else
@@ -273,7 +274,7 @@ TABLE OF CONTENTS
 // 1.1.4
 // D_ENV_BSD_IS_DRAGONFLY
 //   feature: detect if building on DragonFly BSD.
-#if ( defined(__DragonFly__)  ||                                               \
+#if ( (defined(__DragonFly__)) ||                                              \
       (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_DRAGONFLY) )
     #define D_ENV_BSD_IS_DRAGONFLY      1
 #else
@@ -283,7 +284,7 @@ TABLE OF CONTENTS
 // 1.1.5
 // D_ENV_BSD_IS_BSDOS
 //   feature: detect if building on BSD/OS (historical).
-#if ( defined(__bsdi__)  ||                                                    \
+#if ( (defined(__bsdi__)) ||                                                   \
       (D_ENV_OS_ID == D_ENV_OS_FLAG_BSD_OS) )
     #define D_ENV_BSD_IS_BSDOS          1
 #else
@@ -441,8 +442,8 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the detected FreeBSD version is at least
 // the specified __FreeBSD_version constant.
 #define D_ENV_FBSD_AT_LEAST(version)                                           \
-    ( D_ENV_BSD_IS_FREEBSD &&                                                  \
-      D_ENV_FBSD_VER_DETECTED &&                                               \
+    ( (D_ENV_BSD_IS_FREEBSD)    &&                                             \
+      (D_ENV_FBSD_VER_DETECTED) &&                                             \
       (D_ENV_FBSD_VER >= (version)) )
 
 // 2.3    OpenBSD version constants
@@ -548,8 +549,8 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the detected OpenBSD version is at least
 // the specified YYYYMM version constant.
 #define D_ENV_OBSD_AT_LEAST(version)                                           \
-    ( D_ENV_BSD_IS_OPENBSD &&                                                  \
-      D_ENV_OBSD_VER_DETECTED &&                                               \
+    ( (D_ENV_BSD_IS_OPENBSD)    &&                                             \
+      (D_ENV_OBSD_VER_DETECTED) &&                                             \
       (D_ENV_OBSD_VER >= (version)) )
 
 // 2.5    NetBSD version constants
@@ -611,8 +612,8 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the detected NetBSD version is at least
 // the specified __NetBSD_Version__ constant.
 #define D_ENV_NBSD_AT_LEAST(version)                                           \
-    ( D_ENV_BSD_IS_NETBSD &&                                                   \
-      D_ENV_NBSD_VER_DETECTED &&                                               \
+    ( (D_ENV_BSD_IS_NETBSD)     &&                                             \
+      (D_ENV_NBSD_VER_DETECTED) &&                                             \
       (D_ENV_NBSD_VER >= (version)) )
 
 // 2.7    DragonFly BSD version constants
@@ -664,8 +665,8 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the detected DragonFly version is at least
 // the specified __DragonFly_version constant.
 #define D_ENV_DBSD_AT_LEAST(version)                                           \
-    ( D_ENV_BSD_IS_DRAGONFLY &&                                                \
-      D_ENV_DBSD_VER_DETECTED &&                                               \
+    ( (D_ENV_BSD_IS_DRAGONFLY)  &&                                             \
+      (D_ENV_DBSD_VER_DETECTED) &&                                             \
       (D_ENV_DBSD_VER >= (version)) )
 
 
@@ -682,10 +683,10 @@ TABLE OF CONTENTS
 //   feature: detect if kqueue/kevent is available.
 // kqueue is present on all modern BSDs. it is the BSD equivalent of
 // Linux's epoll.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_KQUEUE        1
 #else
     #define D_ENV_BSD_HAS_KQUEUE        0
@@ -707,10 +708,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_ARC4RANDOM
 //   feature: detect if arc4random() is available.
 // present on all modern BSDs; provides cryptographically secure random.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_ARC4RANDOM    1
 #else
     #define D_ENV_BSD_HAS_ARC4RANDOM    0
@@ -747,10 +748,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_MINHERIT
 //   feature: detect if minherit() (mmap inheritance control) is
 // available. present on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_MINHERIT      1
 #else
     #define D_ENV_BSD_HAS_MINHERIT      0
@@ -769,10 +770,10 @@ TABLE OF CONTENTS
 // 3.3.4
 // D_ENV_BSD_HAS_POSIX_MEMALIGN
 //   feature: detect if posix_memalign() is available.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_POSIX_MEMALIGN 1
 #else
     #define D_ENV_BSD_HAS_POSIX_MEMALIGN 0
@@ -822,10 +823,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_STRLCPY
 //   feature: detect if strlcpy() / strlcat() are available.
 // originated in OpenBSD; present on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_STRLCPY       1
     #define D_ENV_BSD_HAS_STRLCAT       1
 #else
@@ -837,8 +838,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_STRTONUM
 //   feature: detect if strtonum() (safe string-to-number) is available.
 // originated in OpenBSD; present on FreeBSD 6+, OpenBSD 3.6+.
-#if ( D_ENV_BSD_IS_OPENBSD ||                                                 \
-      D_ENV_BSD_IS_FREEBSD )
+#if ( (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_FREEBSD) )
     #define D_ENV_BSD_HAS_STRTONUM      1
 #else
     #define D_ENV_BSD_HAS_STRTONUM      0
@@ -869,10 +870,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_CLOSEFROM
 //   feature: detect if closefrom() is available.
 // OpenBSD 3.5+, FreeBSD 8+, NetBSD 3+, DragonFly.
-#if ( D_ENV_BSD_IS_OPENBSD   ||                                               \
-      D_ENV_BSD_IS_FREEBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_CLOSEFROM     1
 #else
     #define D_ENV_BSD_HAS_CLOSEFROM     0
@@ -884,10 +885,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SYSCTL
 //   feature: detect if sysctl() / sysctlbyname() are available.
 // sysctl is the primary kernel parameter interface on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SYSCTL        1
 #else
     #define D_ENV_BSD_HAS_SYSCTL        0
@@ -897,8 +898,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SYSCTLBYNAME
 //   feature: detect if sysctlbyname() (string-based sysctl) is
 // available. FreeBSD, DragonFly, NetBSD 6+. not available on OpenBSD.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SYSCTLBYNAME  1
 #elif D_ENV_NBSD_AT_LEAST(D_ENV_NBSD_VER_7)
     #define D_ENV_BSD_HAS_SYSCTLBYNAME  1
@@ -934,8 +935,8 @@ TABLE OF CONTENTS
 // available. OpenBSD 6.4+ only.
 #if D_ENV_OBSD_AT_LEAST(D_ENV_OBSD_VER_6_4)
     #define D_ENV_BSD_HAS_UNVEIL        1
-#elif ( D_ENV_BSD_IS_OPENBSD &&                                                \
-        !D_ENV_OBSD_VER_DETECTED )
+#elif ( (D_ENV_BSD_IS_OPENBSD) &&                                              \
+        (!D_ENV_OBSD_VER_DETECTED) )
     // OpenBSD detected but version unknown; assume modern
     #define D_ENV_BSD_HAS_UNVEIL        1
 #else
@@ -950,8 +951,8 @@ TABLE OF CONTENTS
 // available. FreeBSD 10+ only.
 #if D_ENV_FBSD_AT_LEAST(D_ENV_FBSD_VER_10)
     #define D_ENV_BSD_HAS_CAPSICUM      1
-#elif ( D_ENV_BSD_IS_FREEBSD &&                                                \
-        !D_ENV_FBSD_VER_DETECTED )
+#elif ( (D_ENV_BSD_IS_FREEBSD) &&                                              \
+        (!D_ENV_FBSD_VER_DETECTED) )
     // FreeBSD detected but version unknown; assume modern
     #define D_ENV_BSD_HAS_CAPSICUM      1
 #else
@@ -988,10 +989,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SECURELEVEL
 //   feature: detect if the kern.securelevel sysctl is available.
 // present on all BSDs (originated in 4.4BSD).
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SECURELEVEL   1
 #else
     #define D_ENV_BSD_HAS_SECURELEVEL   0
@@ -1003,10 +1004,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_PF
 //   feature: detect if pf (packet filter) is available.
 // originated in OpenBSD 3.0; ported to FreeBSD, NetBSD, DragonFly.
-#if ( D_ENV_BSD_IS_OPENBSD   ||                                               \
-      D_ENV_BSD_IS_FREEBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_PF            1
 #else
     #define D_ENV_BSD_HAS_PF            0
@@ -1016,8 +1017,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_IPFW
 //   feature: detect if IPFW (IP Firewall) is available.
 // FreeBSD and DragonFly only.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_IPFW          1
 #else
     #define D_ENV_BSD_HAS_IPFW          0
@@ -1045,10 +1046,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_BPF
 //   feature: detect if BPF (Berkeley Packet Filter) device is
 // available. present on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_BPF           1
 #else
     #define D_ENV_BSD_HAS_BPF           0
@@ -1065,8 +1066,8 @@ TABLE OF CONTENTS
 //   feature: detect if sendfile() is available.
 // note: BSD sendfile differs from Linux sendfile in signature and
 // semantics. FreeBSD, DragonFly have it. OpenBSD and NetBSD do not.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SENDFILE      1
 #else
     #define D_ENV_BSD_HAS_SENDFILE      0
@@ -1076,8 +1077,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_ACCEPT_FILTER
 //   feature: detect if accept filters (SO_ACCEPTFILTER) are available.
 // FreeBSD and DragonFly only.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_ACCEPT_FILTER 1
 #else
     #define D_ENV_BSD_HAS_ACCEPT_FILTER 0
@@ -1087,9 +1088,9 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_CARP
 //   feature: detect if CARP (Common Address Redundancy Protocol) is
 // available. present on OpenBSD, FreeBSD, NetBSD.
-#if ( D_ENV_BSD_IS_OPENBSD ||                                                 \
-      D_ENV_BSD_IS_FREEBSD ||                                                  \
-      D_ENV_BSD_IS_NETBSD )
+#if ( (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD) )
     #define D_ENV_BSD_HAS_CARP          1
 #else
     #define D_ENV_BSD_HAS_CARP          0
@@ -1115,10 +1116,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SO_REUSEPORT
 //   feature: detect if SO_REUSEPORT is available.
 // originated in BSD; available on all variants.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SO_REUSEPORT  1
 #else
     #define D_ENV_BSD_HAS_SO_REUSEPORT  0
@@ -1165,10 +1166,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_FFS
 //   feature: detect if FFS (Fast File System / UFS) is available.
 // FFS/UFS is the traditional BSD filesystem, present on all variants.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_FFS           1
 #else
     #define D_ENV_BSD_HAS_FFS           0
@@ -1177,8 +1178,8 @@ TABLE OF CONTENTS
 // 5.4.2
 // D_ENV_BSD_HAS_UFS2
 //   feature: detect if UFS2 is available (FreeBSD 5+, NetBSD 5+).
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_NETBSD )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD) )
     #define D_ENV_BSD_HAS_UFS2          1
 #else
     #define D_ENV_BSD_HAS_UFS2          0
@@ -1188,8 +1189,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SOFTDEP
 //   feature: detect if soft-dependency (soft updates) journaling is
 // available. FreeBSD and OpenBSD support soft updates on FFS.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_OPENBSD )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) )
     #define D_ENV_BSD_HAS_SOFTDEP       1
 #else
     #define D_ENV_BSD_HAS_SOFTDEP       0
@@ -1201,9 +1202,9 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_NULLFS
 //   feature: detect if nullfs (loopback mount / bind mount) is
 // available. present on FreeBSD, NetBSD, DragonFly.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_NULLFS        1
 #else
     #define D_ENV_BSD_HAS_NULLFS        0
@@ -1213,10 +1214,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_TMPFS
 //   feature: detect if tmpfs (in-memory filesystem) is available.
 // present on all modern BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_TMPFS         1
 #else
     #define D_ENV_BSD_HAS_TMPFS         0
@@ -1226,8 +1227,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_DEVFS
 //   feature: detect if devfs (device filesystem) is available.
 // FreeBSD and DragonFly use devfs; OpenBSD and NetBSD do not.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_DEVFS         1
 #else
     #define D_ENV_BSD_HAS_DEVFS         0
@@ -1237,8 +1238,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_FDESCFS
 //   feature: detect if fdescfs (/dev/fd filesystem) is available.
 // FreeBSD, NetBSD.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_NETBSD )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD) )
     #define D_ENV_BSD_HAS_FDESCFS       1
 #else
     #define D_ENV_BSD_HAS_FDESCFS       0
@@ -1249,9 +1250,9 @@ TABLE OF CONTENTS
 //   feature: detect if procfs is available.
 // FreeBSD and NetBSD have procfs; OpenBSD removed it in 5.7;
 // DragonFly has it.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_PROCFS        1
 #else
     #define D_ENV_BSD_HAS_PROCFS        0
@@ -1261,8 +1262,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_EXTATTR
 //   feature: detect if extended attributes (extattr) are available.
 // FreeBSD 5+ and NetBSD 3+ support extended attributes.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_NETBSD )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD) )
     #define D_ENV_BSD_HAS_EXTATTR       1
 #else
     #define D_ENV_BSD_HAS_EXTATTR       0
@@ -1281,8 +1282,8 @@ TABLE OF CONTENTS
 //   feature: detect if rfork() is available.
 // FreeBSD and DragonFly support rfork (Plan 9-style process creation).
 // note: rfork is largely superseded by pthreads on FreeBSD.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_RFORK         1
 #else
     #define D_ENV_BSD_HAS_RFORK         0
@@ -1297,8 +1298,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_PTHREAD_NP
 //   feature: detect if BSD non-portable pthread extensions are
 // available (pthread_set_name_np, pthread_getthreadid_np, etc.).
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_PTHREAD_NP    1
 #else
     #define D_ENV_BSD_HAS_PTHREAD_NP    0
@@ -1314,10 +1315,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_KTRACE
 //   feature: detect if ktrace (kernel trace) is available.
 // present on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_KTRACE        1
 #else
     #define D_ENV_BSD_HAS_KTRACE        0
@@ -1352,9 +1353,9 @@ TABLE OF CONTENTS
 // 6.2.1
 // D_ENV_BSD_HAS_X11
 //   feature: detect if X11/Xlib development headers are available.
-#if ( defined(_X11_XLIB_H_)  ||                                               \
-      defined(_X11_X_H_)     ||                                                \
-      defined(_XLIB_H_) )
+#if ( (defined(_X11_XLIB_H_)) ||                                               \
+      (defined(_X11_X_H_))    ||                                               \
+      (defined(_XLIB_H_)) )
     #define D_ENV_BSD_HAS_X11           1
 #else
     #define D_ENV_BSD_HAS_X11           0
@@ -1364,9 +1365,9 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_WAYLAND
 //   feature: detect if Wayland client headers are available.
 // Wayland support on BSDs is newer and less universal than on Linux.
-#if ( defined(__wayland_client_h)      ||                                      \
-      defined(WAYLAND_CLIENT_H)        ||                                      \
-      defined(__wayland_client_core_h) )
+#if ( (defined(__wayland_client_h)) ||                                         \
+      (defined(WAYLAND_CLIENT_H))   ||                                         \
+      (defined(__wayland_client_core_h)) )
     #define D_ENV_BSD_HAS_WAYLAND       1
 #else
     #define D_ENV_BSD_HAS_WAYLAND       0
@@ -1387,8 +1388,8 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_WSCONS
 //   feature: detect if wscons (workstation console framework) is
 // available. NetBSD and OpenBSD only.
-#if ( D_ENV_BSD_IS_NETBSD ||                                                  \
-      D_ENV_BSD_IS_OPENBSD )
+#if ( (D_ENV_BSD_IS_NETBSD) ||                                                 \
+      (D_ENV_BSD_IS_OPENBSD) )
     #define D_ENV_BSD_HAS_WSCONS        1
 #else
     #define D_ENV_BSD_HAS_WSCONS        0
@@ -1415,10 +1416,10 @@ TABLE OF CONTENTS
 // 7.1.3
 // D_ENV_BSD_HAS_SYS_MOUNT_H
 //   feature: sys/mount.h (mount/unmount/statfs) is available.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SYS_MOUNT_H   1
 #else
     #define D_ENV_BSD_HAS_SYS_MOUNT_H   0
@@ -1437,10 +1438,10 @@ TABLE OF CONTENTS
 // 7.1.6
 // D_ENV_BSD_HAS_SYS_PTRACE_H
 //   feature: sys/ptrace.h is available on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SYS_PTRACE_H  1
 #else
     #define D_ENV_BSD_HAS_SYS_PTRACE_H  0
@@ -1450,10 +1451,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SYS_TREE_H
 //   feature: sys/tree.h (red-black tree / splay tree macros) is
 // available. present on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SYS_TREE_H    1
 #else
     #define D_ENV_BSD_HAS_SYS_TREE_H    0
@@ -1463,10 +1464,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SYS_QUEUE_H
 //   feature: sys/queue.h (TAILQ, LIST, SLIST macros) is available.
 // originated in 4.4BSD; present on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SYS_QUEUE_H   1
 #else
     #define D_ENV_BSD_HAS_SYS_QUEUE_H   0
@@ -1476,10 +1477,10 @@ TABLE OF CONTENTS
 // D_ENV_BSD_HAS_SYS_ENDIAN_H
 //   feature: sys/endian.h (byte-order macros: be16toh, le32toh, etc.)
 // is available. present on all modern BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_SYS_ENDIAN_H  1
 #else
     #define D_ENV_BSD_HAS_SYS_ENDIAN_H  0
@@ -1488,10 +1489,10 @@ TABLE OF CONTENTS
 // 7.1.10
 // D_ENV_BSD_HAS_DLFCN_H
 //   feature: dlfcn.h (dynamic loading) is available on all modern BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_DLFCN_H       1
 #else
     #define D_ENV_BSD_HAS_DLFCN_H       0
@@ -1502,12 +1503,12 @@ TABLE OF CONTENTS
 //   feature: detect if libutil.h (login_cap, openpty, etc.) is
 // available. FreeBSD and DragonFly use libutil.h; OpenBSD and NetBSD
 // use util.h.
-#if ( D_ENV_BSD_IS_FREEBSD ||                                                 \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_LIBUTIL_H     1
     #define D_ENV_BSD_HAS_UTIL_H        0
-#elif ( D_ENV_BSD_IS_OPENBSD ||                                                \
-        D_ENV_BSD_IS_NETBSD )
+#elif ( (D_ENV_BSD_IS_OPENBSD) ||                                              \
+        (D_ENV_BSD_IS_NETBSD) )
     #define D_ENV_BSD_HAS_LIBUTIL_H     0
     #define D_ENV_BSD_HAS_UTIL_H        1
 #else
@@ -1528,10 +1529,10 @@ TABLE OF CONTENTS
 // 7.1.14
 // D_ENV_BSD_HAS_NET_IF_DL_H
 //   feature: net/if_dl.h (data link address) is available on all BSDs.
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_NET_IF_DL_H   1
 #else
     #define D_ENV_BSD_HAS_NET_IF_DL_H   0
@@ -1571,10 +1572,10 @@ TABLE OF CONTENTS
 //   feature: detect if a ports/packages system is expected.
 // FreeBSD has ports + pkg; OpenBSD has ports + pkg_add; NetBSD has
 // pkgsrc; DragonFly uses dports (based on FreeBSD ports).
-#if ( D_ENV_BSD_IS_FREEBSD   ||                                               \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+#if ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
     #define D_ENV_BSD_HAS_PORTS         1
 #else
     #define D_ENV_BSD_HAS_PORTS         0
@@ -1653,21 +1654,21 @@ void        d_env_bsd_print_info(void);
 // D_ENV_BSD_IS_ANY
 //   macro: evaluates to 1 if any recognized BSD variant is detected.
 #define D_ENV_BSD_IS_ANY()                                                     \
-    ( D_ENV_BSD_IS_FREEBSD   ||                                                \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY ||                                                \
-      D_ENV_BSD_IS_BSDOS )
+    ( (D_ENV_BSD_IS_FREEBSD)   ||                                              \
+      (D_ENV_BSD_IS_OPENBSD)   ||                                              \
+      (D_ENV_BSD_IS_NETBSD)    ||                                              \
+      (D_ENV_BSD_IS_DRAGONFLY) ||                                              \
+      (D_ENV_BSD_IS_BSDOS) )
 
 // 8.2.2
 // D_ENV_BSD_IS_MODERN
 //   macro: evaluates to 1 if the detected BSD is a modern,
 // actively-maintained variant with recent releases (excludes BSD/OS).
 #define D_ENV_BSD_IS_MODERN()                                                  \
-    ( D_ENV_BSD_IS_FREEBSD   ||                                                \
-      D_ENV_BSD_IS_OPENBSD   ||                                                \
-      D_ENV_BSD_IS_NETBSD    ||                                                \
-      D_ENV_BSD_IS_DRAGONFLY )
+    ( (D_ENV_BSD_IS_FREEBSD) ||                                                \
+      (D_ENV_BSD_IS_OPENBSD) ||                                                \
+      (D_ENV_BSD_IS_NETBSD)  ||                                                \
+      (D_ENV_BSD_IS_DRAGONFLY) )
 
 // 8.2.3
 // D_ENV_BSD_HAS_STRONG_SANDBOXING
@@ -1675,7 +1676,7 @@ void        d_env_bsd_print_info(void);
 // application sandboxing mechanism (Capsicum on FreeBSD, pledge/unveil
 // on OpenBSD).
 #define D_ENV_BSD_HAS_STRONG_SANDBOXING()                                      \
-    ( D_ENV_BSD_HAS_CAPSICUM ||                                                \
+    ( (D_ENV_BSD_HAS_CAPSICUM) ||                                              \
       ( D_ENV_BSD_HAS_PLEDGE && D_ENV_BSD_HAS_UNVEIL ) )
 
 // 8.2.4
@@ -1683,16 +1684,16 @@ void        d_env_bsd_print_info(void);
 //   macro: evaluates to 1 if a strong, non-blocking secure random
 // source is available (arc4random or getentropy).
 #define D_ENV_BSD_HAS_SECURE_RANDOM()                                          \
-    ( D_ENV_BSD_HAS_ARC4RANDOM ||                                              \
-      D_ENV_BSD_HAS_GETENTROPY )
+    ( (D_ENV_BSD_HAS_ARC4RANDOM) ||                                            \
+      (D_ENV_BSD_HAS_GETENTROPY) )
 
 // 8.2.5
 // D_ENV_BSD_HAS_SAFE_STRING
 //   macro: evaluates to 1 if safe string functions (strlcpy, strlcat,
 // explicit_bzero) are available.
 #define D_ENV_BSD_HAS_SAFE_STRING()                                            \
-    ( D_ENV_BSD_HAS_STRLCPY      &&                                            \
-      D_ENV_BSD_HAS_EXPLICIT_BZERO )
+    ( (D_ENV_BSD_HAS_STRLCPY) &&                                               \
+      (D_ENV_BSD_HAS_EXPLICIT_BZERO) )
 
 // 8.2.6
 // D_ENV_BSD_HAS_FULL_EVENT_SYSTEM

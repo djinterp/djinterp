@@ -33,10 +33,11 @@
 * library's header is included); and D_ENV_PDF_<LIB>_VERSION_STRING is a
 * string ("unknown" when unavailable).
 *
+*
 * path:      /inc/djinterp/env/env_pdf.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.22
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -217,8 +218,8 @@ TABLE OF CONTENTS
 // unknown under header-only detection; integrators can pre-define the version
 // macros if they track it.
 #ifndef D_ENV_PDF_HAS_PDFHUMMUS
-    #if ( D_INTERNAL_PDF_PROBE(<PDFWriter.h>) ||  \
-          D_INTERNAL_PDF_PROBE(<PDFWriter/PDFWriter.h>) )
+    #if ( (D_INTERNAL_PDF_PROBE(<PDFWriter.h>)) ||                             \
+          (D_INTERNAL_PDF_PROBE(<PDFWriter/PDFWriter.h>)) )
         #define D_ENV_PDF_HAS_PDFHUMMUS 1
     #else
         #define D_ENV_PDF_HAS_PDFHUMMUS 0
@@ -262,8 +263,8 @@ TABLE OF CONTENTS
 // Modern PoDoFo (0.10+) requires C++17. License: LGPL-2.0+/MPL-2.0 (library);
 // GPL (tools).
 #ifndef D_ENV_PDF_HAS_PODOFO
-    #if ( D_INTERNAL_PDF_PROBE(<podofo/podofo.h>) ||  \
-          D_INTERNAL_PDF_PROBE(<podofo/base/PdfDefines.h>) )
+    #if ( (D_INTERNAL_PDF_PROBE(<podofo/podofo.h>)) ||                         \
+          (D_INTERNAL_PDF_PROBE(<podofo/base/PdfDefines.h>)) )
         #define D_ENV_PDF_HAS_PODOFO 1
     #else
         #define D_ENV_PDF_HAS_PODOFO 0
@@ -345,7 +346,7 @@ TABLE OF CONTENTS
 //   capability: 1 only when cairo's headers report the PDF surface backend
 // was actually compiled in (requires <cairo.h> included beforehand).
 #ifndef D_ENV_PDF_CAIRO_PDF_BACKEND_ENABLED
-    #if ( defined(CAIRO_HAS_PDF_SURFACE) &&                                   \
+    #if ( (defined(CAIRO_HAS_PDF_SURFACE)) &&                                  \
           (CAIRO_HAS_PDF_SURFACE) )
         #define D_ENV_PDF_CAIRO_PDF_BACKEND_ENABLED 1
     #else
@@ -404,8 +405,8 @@ TABLE OF CONTENTS
 // under "poppler/PDFDoc.h"). Version: POPPLER_VERSION / _MAJOR / _MINOR /
 // _MICRO from poppler/cpp/poppler-version.h. License: GPL-2.0+.
 #ifndef D_ENV_PDF_HAS_POPPLER
-    #if ( D_INTERNAL_PDF_PROBE(<poppler/cpp/poppler-document.h>) ||  \
-          D_INTERNAL_PDF_PROBE(<poppler/PDFDoc.h>) )
+    #if ( (D_INTERNAL_PDF_PROBE(<poppler/cpp/poppler-document.h>)) ||          \
+          (D_INTERNAL_PDF_PROBE(<poppler/PDFDoc.h>)) )
         #define D_ENV_PDF_HAS_POPPLER 1
     #else
         #define D_ENV_PDF_HAS_POPPLER 0
@@ -515,8 +516,8 @@ TABLE OF CONTENTS
 // stable public compile-time version macro; version is reported unknown under
 // header-only detection. License: BSD-3-Clause / Apache-2.0.
 #ifndef D_ENV_PDF_HAS_PDFIUM
-    #if ( D_INTERNAL_PDF_PROBE(<fpdfview.h>) ||  \
-          D_INTERNAL_PDF_PROBE(<public/fpdfview.h>) )
+    #if ( (D_INTERNAL_PDF_PROBE(<fpdfview.h>)) ||                              \
+          (D_INTERNAL_PDF_PROBE(<public/fpdfview.h>)) )
         #define D_ENV_PDF_HAS_PDFIUM 1
     #else
         #define D_ENV_PDF_HAS_PDFIUM 0
@@ -561,10 +562,10 @@ TABLE OF CONTENTS
 // D_ENV_PDF_HAS_GENERATION_LIB
 //   aggregate: 1 if ANY PDF generation (write) library is detected.
 #ifndef D_ENV_PDF_HAS_GENERATION_LIB
-    #if ( D_ENV_PDF_HAS_LIBHARU   ||  \
-          D_ENV_PDF_HAS_PDFHUMMUS ||  \
-          D_ENV_PDF_HAS_PODOFO    ||  \
-          D_ENV_PDF_HAS_CAIRO_PDF )
+    #if ( (D_ENV_PDF_HAS_LIBHARU)   ||                                         \
+          (D_ENV_PDF_HAS_PDFHUMMUS) ||                                         \
+          (D_ENV_PDF_HAS_PODOFO)    ||                                         \
+          (D_ENV_PDF_HAS_CAIRO_PDF) )
         #define D_ENV_PDF_HAS_GENERATION_LIB 1
     #else
         #define D_ENV_PDF_HAS_GENERATION_LIB 0
@@ -575,10 +576,10 @@ TABLE OF CONTENTS
 // D_ENV_PDF_HAS_RENDER_LIB
 //   aggregate: 1 if ANY PDF render / parse library is detected.
 #ifndef D_ENV_PDF_HAS_RENDER_LIB
-    #if ( D_ENV_PDF_HAS_POPPLER ||  \
-          D_ENV_PDF_HAS_MUPDF   ||  \
-          D_ENV_PDF_HAS_PDFIUM  ||  \
-          D_ENV_PDF_HAS_PODOFO )
+    #if ( (D_ENV_PDF_HAS_POPPLER) ||                                           \
+          (D_ENV_PDF_HAS_MUPDF)   ||                                           \
+          (D_ENV_PDF_HAS_PDFIUM)  ||                                           \
+          (D_ENV_PDF_HAS_PODOFO) )
         #define D_ENV_PDF_HAS_RENDER_LIB 1
     #else
         #define D_ENV_PDF_HAS_RENDER_LIB 0
@@ -589,8 +590,8 @@ TABLE OF CONTENTS
 // D_ENV_PDF_HAS_ANY_LIB
 //   aggregate: 1 if ANY PDF library at all is detected.
 #ifndef D_ENV_PDF_HAS_ANY_LIB
-    #if ( D_ENV_PDF_HAS_GENERATION_LIB ||  \
-          D_ENV_PDF_HAS_RENDER_LIB )
+    #if ( (D_ENV_PDF_HAS_GENERATION_LIB) ||                                    \
+          (D_ENV_PDF_HAS_RENDER_LIB) )
         #define D_ENV_PDF_HAS_ANY_LIB 1
     #else
         #define D_ENV_PDF_HAS_ANY_LIB 0
@@ -601,10 +602,10 @@ TABLE OF CONTENTS
 // D_ENV_PDF_GENERATION_LIB_COUNT
 //   aggregate: number of distinct generation libraries detected.
 #ifndef D_ENV_PDF_GENERATION_LIB_COUNT
-    #define D_ENV_PDF_GENERATION_LIB_COUNT  \
-        ( D_ENV_PDF_HAS_LIBHARU   +  \
-          D_ENV_PDF_HAS_PDFHUMMUS +  \
-          D_ENV_PDF_HAS_PODOFO    +  \
+    #define D_ENV_PDF_GENERATION_LIB_COUNT                                     \
+        ( D_ENV_PDF_HAS_LIBHARU   +                                            \
+          D_ENV_PDF_HAS_PDFHUMMUS +                                            \
+          D_ENV_PDF_HAS_PODOFO    +                                            \
           D_ENV_PDF_HAS_CAIRO_PDF )
 #endif  // D_ENV_PDF_GENERATION_LIB_COUNT
 
@@ -667,8 +668,8 @@ TABLE OF CONTENTS
     #elif D_ENV_PDF_HAS_PODOFO
         #define D_ENV_PDF_PREFERRED_BACKEND      D_ENV_PDF_BACKEND_PODOFO
         #define D_ENV_PDF_PREFERRED_BACKEND_NAME D_ENV_PDF_PODOFO_NAME
-    #elif ( D_ENV_PDF_HAS_CAIRO_PDF &&  \
-            D_ENV_PDF_CAIRO_PDF_BACKEND_ENABLED )
+    #elif ( (D_ENV_PDF_HAS_CAIRO_PDF) &&                                       \
+            (D_ENV_PDF_CAIRO_PDF_BACKEND_ENABLED) )
         #define D_ENV_PDF_PREFERRED_BACKEND      D_ENV_PDF_BACKEND_CAIRO
         #define D_ENV_PDF_PREFERRED_BACKEND_NAME D_ENV_PDF_CAIRO_PDF_NAME
     #else

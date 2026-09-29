@@ -26,10 +26,11 @@
 *   Naming: D_ENV_APPLE_<CATEGORY>_<FEATURE> is shared across Apple platforms;
 * D_ENV_MACOS_<CATEGORY>_<FEATURE> is macOS-specific.
 *
+*
 * path:      /inc/djinterp/env/os/env_apple.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -209,16 +210,16 @@ TABLE OF CONTENTS
 // 1.1.2
 // D_ENV_APPLE_IS_MACOS
 //   feature: detect if building for macOS.
-#if ( defined(TARGET_OS_OSX) &&                                               \
+#if ( (defined(TARGET_OS_OSX)) &&                                              \
       (TARGET_OS_OSX) )
     #define D_ENV_APPLE_IS_MACOS        1
-#elif ( defined(__APPLE__) &&                                                  \
-        !defined(TARGET_OS_IPHONE) )
+#elif ( (defined(__APPLE__)) &&                                                \
+        (!defined(TARGET_OS_IPHONE)) )
     // fallback for older SDKs
     #define D_ENV_APPLE_IS_MACOS        1
-#elif ( defined(__APPLE__)        &&                                           \
-        defined(TARGET_OS_IPHONE) &&                                           \
-        !TARGET_OS_IPHONE )
+#elif ( (defined(__APPLE__))        &&                                         \
+        (defined(TARGET_OS_IPHONE)) &&                                         \
+        (!TARGET_OS_IPHONE) )
     #define D_ENV_APPLE_IS_MACOS        1
 #else
     #define D_ENV_APPLE_IS_MACOS        0
@@ -227,12 +228,12 @@ TABLE OF CONTENTS
 // 1.1.3
 // D_ENV_APPLE_IS_IOS
 //   feature: detect if building for iOS/iPadOS.
-#if ( defined(TARGET_OS_IOS) &&                                               \
+#if ( (defined(TARGET_OS_IOS)) &&                                              \
       (TARGET_OS_IOS) )
     #define D_ENV_APPLE_IS_IOS          1
-#elif ( defined(TARGET_OS_IPHONE)                        &&                    \
-        (TARGET_OS_IPHONE)                               &&                    \
-        (!(defined(TARGET_OS_TV) && TARGET_OS_TV))       &&                    \
+#elif ( (defined(TARGET_OS_IPHONE))                &&                          \
+        (TARGET_OS_IPHONE)                         &&                          \
+        (!(defined(TARGET_OS_TV) && TARGET_OS_TV)) &&                          \
         (!(defined(TARGET_OS_WATCH) && TARGET_OS_WATCH)) )
     #define D_ENV_APPLE_IS_IOS          1
 #else
@@ -242,7 +243,7 @@ TABLE OF CONTENTS
 // 1.1.4
 // D_ENV_APPLE_IS_TVOS
 //   feature: detect if building for tvOS.
-#if ( defined(TARGET_OS_TV) &&                                                 \
+#if ( (defined(TARGET_OS_TV)) &&                                               \
       (TARGET_OS_TV) )
     #define D_ENV_APPLE_IS_TVOS         1
 #else
@@ -252,7 +253,7 @@ TABLE OF CONTENTS
 // 1.1.5
 // D_ENV_APPLE_IS_WATCHOS
 //   feature: detect if building for watchOS.
-#if ( defined(TARGET_OS_WATCH) &&                                              \
+#if ( (defined(TARGET_OS_WATCH)) &&                                            \
       (TARGET_OS_WATCH) )
     #define D_ENV_APPLE_IS_WATCHOS      1
 #else
@@ -262,7 +263,7 @@ TABLE OF CONTENTS
 // 1.1.6
 // D_ENV_APPLE_IS_VISIONOS
 //   feature: detect if building for visionOS (Xcode 15+).
-#if ( defined(TARGET_OS_VISION) &&                                             \
+#if ( (defined(TARGET_OS_VISION)) &&                                           \
       (TARGET_OS_VISION) )
     #define D_ENV_APPLE_IS_VISIONOS     1
 #else
@@ -272,7 +273,7 @@ TABLE OF CONTENTS
 // 1.1.7
 // D_ENV_APPLE_IS_MACCATALYST
 //   feature: detect if building as Mac Catalyst (iPad app on macOS).
-#if ( defined(TARGET_OS_MACCATALYST) &&                                        \
+#if ( (defined(TARGET_OS_MACCATALYST)) &&                                      \
       (TARGET_OS_MACCATALYST) )
     #define D_ENV_APPLE_IS_MACCATALYST  1
 #else
@@ -282,10 +283,10 @@ TABLE OF CONTENTS
 // 1.1.8
 // D_ENV_APPLE_IS_SIMULATOR
 //   feature: detect if building for the simulator (not device).
-#if ( defined(TARGET_OS_SIMULATOR) &&                                          \
+#if ( (defined(TARGET_OS_SIMULATOR)) &&                                        \
       (TARGET_OS_SIMULATOR) )
     #define D_ENV_APPLE_IS_SIMULATOR    1
-#elif ( defined(TARGET_IPHONE_SIMULATOR) &&                                    \
+#elif ( (defined(TARGET_IPHONE_SIMULATOR)) &&                                  \
         (TARGET_IPHONE_SIMULATOR) )
     // older SDK macro
     #define D_ENV_APPLE_IS_SIMULATOR    1
@@ -296,8 +297,8 @@ TABLE OF CONTENTS
 // 1.1.9
 // D_ENV_APPLE_IS_DEVICE
 //   feature: detect if building for a physical device (not simulator).
-#if ( D_ENV_APPLE_IS_APPLE &&                                                 \
-      !D_ENV_APPLE_IS_SIMULATOR )
+#if ( (D_ENV_APPLE_IS_APPLE) &&                                                \
+      (!D_ENV_APPLE_IS_SIMULATOR) )
     #define D_ENV_APPLE_IS_DEVICE       1
 #else
     #define D_ENV_APPLE_IS_DEVICE       0
@@ -417,7 +418,7 @@ TABLE OF CONTENTS
 // is found. This header does not include <Availability.h>, so both are found
 // only when the translation unit included it first; otherwise every value is
 // 0.
-#if ( (D_ENV_APPLE_IS_MACOS) ||                                               \
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
       (D_ENV_APPLE_IS_MACCATALYST) )
     #ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
         #define D_ENV_MACOS_DEPLOY_TARGET                                      \
@@ -448,7 +449,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the macOS deployment target is at least
 // the specified version constant.
 #define D_ENV_MACOS_AT_LEAST(version)                                          \
-    ( D_ENV_MACOS_DEPLOY_DETECTED &&                                           \
+    ( (D_ENV_MACOS_DEPLOY_DETECTED) &&                                         \
       (D_ENV_MACOS_DEPLOY_TARGET >= (version)) )
 
 // 2.2.3
@@ -456,7 +457,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the macOS SDK version is at least the
 // specified version constant.
 #define D_ENV_MACOS_SDK_AT_LEAST(version)                                      \
-    ( D_ENV_MACOS_SDK_DETECTED &&                                              \
+    ( (D_ENV_MACOS_SDK_DETECTED) &&                                            \
       (D_ENV_MACOS_SDK_VERSION >= (version)) )
 
 // 2.2.4
@@ -559,8 +560,8 @@ TABLE OF CONTENTS
 // D_ENV_APPLE_IS_APPLE_CLANG
 //   feature: detect if the compiler is Apple Clang (distinct from
 // upstream LLVM Clang). Apple Clang uses its own version numbering.
-#if ( defined(__apple_build_version__) ||                                      \
-      defined(D_ENV_COMPILER_APPLE_CLANG) )
+#if ( (defined(__apple_build_version__)) ||                                    \
+      (defined(D_ENV_COMPILER_APPLE_CLANG)) )
     #define D_ENV_APPLE_IS_APPLE_CLANG  1
 #else
     #define D_ENV_APPLE_IS_APPLE_CLANG  0
@@ -612,8 +613,8 @@ TABLE OF CONTENTS
 // 3.3.1
 // D_ENV_APPLE_HAS_OBJC
 //   feature: detect if compiling in Objective-C or Objective-C++ mode.
-#if ( defined(__OBJC__) ||                                                     \
-      defined(__OBJC2__) )
+#if ( (defined(__OBJC__)) ||                                                   \
+      (defined(__OBJC2__)) )
     #define D_ENV_APPLE_HAS_OBJC        1
 #else
     #define D_ENV_APPLE_HAS_OBJC        0
@@ -651,8 +652,8 @@ TABLE OF CONTENTS
 // D_ENV_APPLE_HAS_SWIFT_BRIDGING
 //   feature: detect if Swift-to-C/ObjC bridging is being used.
 // SWIFT_PACKAGE is defined by SPM; SWIFT_MODULE_NAME by Xcode builds.
-#if ( defined(SWIFT_PACKAGE)     ||                                            \
-      defined(SWIFT_MODULE_NAME) )
+#if ( (defined(SWIFT_PACKAGE)) ||                                              \
+      (defined(SWIFT_MODULE_NAME)) )
     #define D_ENV_APPLE_HAS_SWIFT_BRIDGING 1
 #else
     #define D_ENV_APPLE_HAS_SWIFT_BRIDGING 0
@@ -708,10 +709,10 @@ TABLE OF CONTENTS
 // 4.1.4
 // D_ENV_APPLE_HAS_COREDATA
 //   feature: detect if CoreData.framework is available.
-#if ( D_ENV_APPLE_IS_MACOS   ||                                               \
-      D_ENV_APPLE_IS_IOS     ||                                                \
-      D_ENV_APPLE_IS_TVOS    ||                                                \
-      D_ENV_APPLE_IS_WATCHOS )
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_IOS)   ||                                                \
+      (D_ENV_APPLE_IS_TVOS)  ||                                                \
+      (D_ENV_APPLE_IS_WATCHOS) )
     #define D_ENV_APPLE_HAS_COREDATA    1
 #else
     #define D_ENV_APPLE_HAS_COREDATA    0
@@ -758,9 +759,9 @@ TABLE OF CONTENTS
 // (macOS 10.15+, iOS 13+).
 #if D_ENV_MACOS_SDK_AT_LEAST(D_ENV_MACOS_VER_10_15)
     #define D_ENV_APPLE_HAS_CRYPTOKIT   1
-#elif ( D_ENV_APPLE_IS_IOS   ||                                                \
-        D_ENV_APPLE_IS_TVOS  ||                                                \
-        D_ENV_APPLE_IS_WATCHOS )
+#elif ( (D_ENV_APPLE_IS_IOS)  ||                                               \
+        (D_ENV_APPLE_IS_TVOS) ||                                               \
+        (D_ENV_APPLE_IS_WATCHOS) )
     #define D_ENV_APPLE_HAS_CRYPTOKIT   1
 #else
     #define D_ENV_APPLE_HAS_CRYPTOKIT   0
@@ -812,9 +813,9 @@ TABLE OF CONTENTS
 // 4.3.3
 // D_ENV_APPLE_HAS_MULTIPEER
 //   feature: detect if MultipeerConnectivity.framework is available.
-#if ( D_ENV_APPLE_IS_MACOS ||                                                 \
-      D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_TVOS )
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_IOS)   ||                                                \
+      (D_ENV_APPLE_IS_TVOS) )
     #define D_ENV_APPLE_HAS_MULTIPEER   1
 #else
     #define D_ENV_APPLE_HAS_MULTIPEER   0
@@ -828,9 +829,9 @@ TABLE OF CONTENTS
 // (macOS 10.11+, iOS 8+).
 #if D_ENV_MACOS_SDK_AT_LEAST(D_ENV_MACOS_VER_10_11)
     #define D_ENV_APPLE_HAS_METAL       1
-#elif ( D_ENV_APPLE_IS_IOS   ||                                                \
-        D_ENV_APPLE_IS_TVOS  ||                                                \
-        D_ENV_APPLE_IS_VISIONOS )
+#elif ( (D_ENV_APPLE_IS_IOS)  ||                                               \
+        (D_ENV_APPLE_IS_TVOS) ||                                               \
+        (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_APPLE_HAS_METAL       1
 #else
     #define D_ENV_APPLE_HAS_METAL       0
@@ -857,9 +858,9 @@ TABLE OF CONTENTS
 // 4.4.4
 // D_ENV_APPLE_HAS_COREIMAGE
 //   feature: detect if CoreImage.framework is available.
-#if ( D_ENV_APPLE_IS_MACOS ||                                                 \
-      D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_TVOS )
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_IOS)   ||                                                \
+      (D_ENV_APPLE_IS_TVOS) )
     #define D_ENV_APPLE_HAS_COREIMAGE   1
 #else
     #define D_ENV_APPLE_HAS_COREIMAGE   0
@@ -869,9 +870,9 @@ TABLE OF CONTENTS
 // D_ENV_APPLE_HAS_COREANIMATION
 //   feature: detect if CoreAnimation (QuartzCore.framework) is
 // available.
-#if ( D_ENV_APPLE_IS_MACOS ||                                                 \
-      D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_TVOS )
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_IOS)   ||                                                \
+      (D_ENV_APPLE_IS_TVOS) )
     #define D_ENV_APPLE_HAS_COREANIMATION 1
 #else
     #define D_ENV_APPLE_HAS_COREANIMATION 0
@@ -880,10 +881,10 @@ TABLE OF CONTENTS
 // 4.4.6
 // D_ENV_APPLE_HAS_COREAUDIO
 //   feature: detect if CoreAudio.framework is available.
-#if ( D_ENV_APPLE_IS_MACOS ||                                                 \
-      D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_TVOS  ||                                                  \
-      D_ENV_APPLE_IS_WATCHOS )
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_IOS)   ||                                                \
+      (D_ENV_APPLE_IS_TVOS)  ||                                                \
+      (D_ENV_APPLE_IS_WATCHOS) )
     #define D_ENV_APPLE_HAS_COREAUDIO   1
 #else
     #define D_ENV_APPLE_HAS_COREAUDIO   0
@@ -892,11 +893,11 @@ TABLE OF CONTENTS
 // 4.4.7
 // D_ENV_APPLE_HAS_AVFOUNDATION
 //   feature: detect if AVFoundation.framework is available.
-#if ( D_ENV_APPLE_IS_MACOS ||                                                 \
-      D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_TVOS  ||                                                  \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_MACOS)   ||                                              \
+      (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_APPLE_HAS_AVFOUNDATION 1
 #else
     #define D_ENV_APPLE_HAS_AVFOUNDATION 0
@@ -917,8 +918,8 @@ TABLE OF CONTENTS
 // D_ENV_APPLE_HAS_OPENGL_ES
 //   feature: detect if OpenGL ES is available.
 // deprecated in iOS 12 in favor of Metal; still available.
-#if ( D_ENV_APPLE_IS_IOS  ||                                                   \
-      D_ENV_APPLE_IS_TVOS )
+#if ( (D_ENV_APPLE_IS_IOS) ||                                                  \
+      (D_ENV_APPLE_IS_TVOS) )
     #define D_ENV_APPLE_HAS_OPENGL_ES   1
 #else
     #define D_ENV_APPLE_HAS_OPENGL_ES   0
@@ -929,8 +930,8 @@ TABLE OF CONTENTS
 //   feature: detect if Vulkan (via MoltenVK) is available.
 // MoltenVK translates Vulkan to Metal. not an Apple framework, but
 // commonly used.
-#if ( D_ENV_APPLE_HAS_METAL &&                                                \
-      defined(VK_USE_PLATFORM_METAL_EXT) )
+#if ( (D_ENV_APPLE_HAS_METAL) &&                                               \
+      (defined(VK_USE_PLATFORM_METAL_EXT)) )
     #define D_ENV_APPLE_HAS_VULKAN      1
 #else
     #define D_ENV_APPLE_HAS_VULKAN      0
@@ -941,8 +942,8 @@ TABLE OF CONTENTS
 // 4.5.1
 // D_ENV_APPLE_HAS_APPKIT
 //   feature: detect if AppKit.framework (macOS UI) is available.
-#if ( D_ENV_APPLE_IS_MACOS &&                                                 \
-      !D_ENV_APPLE_IS_MACCATALYST )
+#if ( (D_ENV_APPLE_IS_MACOS) &&                                                \
+      (!D_ENV_APPLE_IS_MACCATALYST) )
     #define D_ENV_APPLE_HAS_APPKIT      1
 #else
     #define D_ENV_APPLE_HAS_APPKIT      0
@@ -952,10 +953,10 @@ TABLE OF CONTENTS
 // D_ENV_APPLE_HAS_UIKIT
 //   feature: detect if UIKit.framework (iOS/tvOS/Catalyst UI) is
 // available.
-#if ( D_ENV_APPLE_IS_IOS        ||                                             \
-      D_ENV_APPLE_IS_TVOS       ||                                             \
-      D_ENV_APPLE_IS_MACCATALYST ||                                            \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_IOS)         ||                                          \
+      (D_ENV_APPLE_IS_TVOS)        ||                                          \
+      (D_ENV_APPLE_IS_MACCATALYST) ||                                          \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_APPLE_HAS_UIKIT       1
 #else
     #define D_ENV_APPLE_HAS_UIKIT       0
@@ -967,10 +968,10 @@ TABLE OF CONTENTS
 // (macOS 10.15+, iOS 13+).
 #if D_ENV_MACOS_SDK_AT_LEAST(D_ENV_MACOS_VER_10_15)
     #define D_ENV_APPLE_HAS_SWIFTUI     1
-#elif ( D_ENV_APPLE_IS_IOS      ||                                             \
-        D_ENV_APPLE_IS_TVOS     ||                                             \
-        D_ENV_APPLE_IS_WATCHOS  ||                                             \
-        D_ENV_APPLE_IS_VISIONOS )
+#elif ( (D_ENV_APPLE_IS_IOS)     ||                                            \
+        (D_ENV_APPLE_IS_TVOS)    ||                                            \
+        (D_ENV_APPLE_IS_WATCHOS) ||                                            \
+        (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_APPLE_HAS_SWIFTUI     1
 #else
     #define D_ENV_APPLE_HAS_SWIFTUI     0
@@ -1009,8 +1010,8 @@ TABLE OF CONTENTS
 // introduced in macOS 10.14; required for notarization.
 #if D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_10_14)
     #define D_ENV_MACOS_HAS_HARDENED_RUNTIME 1
-#elif ( D_ENV_APPLE_IS_MACOS &&                                                \
-        !D_ENV_MACOS_DEPLOY_DETECTED )
+#elif ( (D_ENV_APPLE_IS_MACOS) &&                                              \
+        (!D_ENV_MACOS_DEPLOY_DETECTED) )
     #define D_ENV_MACOS_HAS_HARDENED_RUNTIME 1
 #else
     #define D_ENV_MACOS_HAS_HARDENED_RUNTIME 0
@@ -1022,8 +1023,8 @@ TABLE OF CONTENTS
 // Apple began requiring notarization for distribution in macOS 10.15.
 #if D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_10_15)
     #define D_ENV_MACOS_HAS_NOTARIZATION 1
-#elif ( D_ENV_APPLE_IS_MACOS &&                                                \
-        !D_ENV_MACOS_DEPLOY_DETECTED )
+#elif ( (D_ENV_APPLE_IS_MACOS) &&                                              \
+        (!D_ENV_MACOS_DEPLOY_DETECTED) )
     #define D_ENV_MACOS_HAS_NOTARIZATION 1
 #else
     #define D_ENV_MACOS_HAS_NOTARIZATION 0
@@ -1035,8 +1036,8 @@ TABLE OF CONTENTS
 // SIP was introduced in macOS 10.11.
 #if D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_10_11)
     #define D_ENV_MACOS_HAS_SIP         1
-#elif ( D_ENV_APPLE_IS_MACOS &&                                                \
-        !D_ENV_MACOS_DEPLOY_DETECTED )
+#elif ( (D_ENV_APPLE_IS_MACOS) &&                                              \
+        (!D_ENV_MACOS_DEPLOY_DETECTED) )
     #define D_ENV_MACOS_HAS_SIP         1
 #else
     #define D_ENV_MACOS_HAS_SIP         0
@@ -1048,8 +1049,8 @@ TABLE OF CONTENTS
 // expected (privacy permission prompts). TCC matured in macOS 10.14+.
 #if D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_10_14)
     #define D_ENV_MACOS_HAS_TCC         1
-#elif ( D_ENV_APPLE_IS_MACOS &&                                                \
-        !D_ENV_MACOS_DEPLOY_DETECTED )
+#elif ( (D_ENV_APPLE_IS_MACOS) &&                                              \
+        (!D_ENV_MACOS_DEPLOY_DETECTED) )
     #define D_ENV_MACOS_HAS_TCC         1
 #else
     #define D_ENV_MACOS_HAS_TCC         0
@@ -1090,8 +1091,8 @@ TABLE OF CONTENTS
 // D_ENV_MACOS_HAS_SYSTEMCONFIG
 //   feature: detect if SystemConfiguration.framework (network config,
 // reachability) is available.
-#if ( D_ENV_APPLE_IS_MACOS ||                                                 \
-      D_ENV_APPLE_IS_IOS )
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_IOS) )
     #define D_ENV_MACOS_HAS_SYSTEMCONFIG 1
 #else
     #define D_ENV_MACOS_HAS_SYSTEMCONFIG 0
@@ -1113,8 +1114,8 @@ TABLE OF CONTENTS
 // virtualization) is available (macOS 10.10+).
 #if D_ENV_MACOS_SDK_AT_LEAST(D_ENV_MACOS_VER_10_10)
     #define D_ENV_MACOS_HAS_HYPERVISOR  1
-#elif ( D_ENV_APPLE_IS_MACOS &&                                                \
-        !D_ENV_MACOS_SDK_DETECTED )
+#elif ( (D_ENV_APPLE_IS_MACOS) &&                                              \
+        (!D_ENV_MACOS_SDK_DETECTED) )
     #define D_ENV_MACOS_HAS_HYPERVISOR  1
 #else
     #define D_ENV_MACOS_HAS_HYPERVISOR  0
@@ -1141,8 +1142,8 @@ TABLE OF CONTENTS
 // 6.1.1
 // D_ENV_APPLE_IS_ARM64
 //   feature: detect if building for Apple Silicon (ARM64).
-#if ( defined(__arm64__)   ||                                                  \
-      defined(__aarch64__) )
+#if ( (defined(__arm64__)) ||                                                  \
+      (defined(__aarch64__)) )
     #define D_ENV_APPLE_IS_ARM64        1
 #else
     #define D_ENV_APPLE_IS_ARM64        0
@@ -1151,8 +1152,8 @@ TABLE OF CONTENTS
 // 6.1.2
 // D_ENV_APPLE_IS_X86_64
 //   feature: detect if building for Intel x86-64.
-#if ( defined(__x86_64__) ||                                                   \
-      defined(__x86_64) )
+#if ( (defined(__x86_64__)) ||                                                 \
+      (defined(__x86_64)) )
     #define D_ENV_APPLE_IS_X86_64       1
 #else
     #define D_ENV_APPLE_IS_X86_64       0
@@ -1176,8 +1177,8 @@ TABLE OF CONTENTS
 //   feature: detect if running under Rosetta 2 translation is
 // plausible (x86-64 binary on macOS 11+ deployment target).
 // actual Rosetta detection requires runtime sysctl queries.
-#if ( D_ENV_APPLE_IS_X86_64 &&                                                \
-      D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_11) )
+#if ( (D_ENV_APPLE_IS_X86_64) &&                                               \
+      (D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_11)) )
     #define D_ENV_APPLE_MAYBE_ROSETTA   1
 #else
     #define D_ENV_APPLE_MAYBE_ROSETTA   0
@@ -1197,8 +1198,8 @@ TABLE OF CONTENTS
 //   feature: detect if Apple's AMX (matrix coprocessor) is likely
 // present. AMX is on all Apple Silicon Macs (M1+). no public header
 // exists; detection is architecture-based.
-#if ( D_ENV_APPLE_IS_ARM64 &&                                                 \
-      D_ENV_APPLE_IS_MACOS )
+#if ( (D_ENV_APPLE_IS_ARM64) &&                                                \
+      (D_ENV_APPLE_IS_MACOS) )
     #define D_ENV_APPLE_HAS_AMX         1
 #else
     #define D_ENV_APPLE_HAS_AMX         0
@@ -1228,13 +1229,13 @@ TABLE OF CONTENTS
 // iOS 10+).
 #if D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_10_12)
     #define D_ENV_APPLE_HAS_GETENTROPY  1
-#elif ( D_ENV_APPLE_IS_IOS      ||                                             \
-        D_ENV_APPLE_IS_TVOS     ||                                             \
-        D_ENV_APPLE_IS_WATCHOS  ||                                             \
-        D_ENV_APPLE_IS_VISIONOS )
+#elif ( (D_ENV_APPLE_IS_IOS)     ||                                            \
+        (D_ENV_APPLE_IS_TVOS)    ||                                            \
+        (D_ENV_APPLE_IS_WATCHOS) ||                                            \
+        (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_APPLE_HAS_GETENTROPY  1
-#elif ( D_ENV_APPLE_IS_MACOS &&                                                \
-        !D_ENV_MACOS_DEPLOY_DETECTED )
+#elif ( (D_ENV_APPLE_IS_MACOS) &&                                              \
+        (!D_ENV_MACOS_DEPLOY_DETECTED) )
     #define D_ENV_APPLE_HAS_GETENTROPY  1
 #else
     #define D_ENV_APPLE_HAS_GETENTROPY  0
@@ -1306,13 +1307,13 @@ TABLE OF CONTENTS
 // APFS became default in macOS 10.13 / iOS 10.3.
 #if D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_10_13)
     #define D_ENV_APPLE_HAS_APFS        1
-#elif ( D_ENV_APPLE_IS_IOS      ||                                             \
-        D_ENV_APPLE_IS_TVOS     ||                                             \
-        D_ENV_APPLE_IS_WATCHOS  ||                                             \
-        D_ENV_APPLE_IS_VISIONOS )
+#elif ( (D_ENV_APPLE_IS_IOS)     ||                                            \
+        (D_ENV_APPLE_IS_TVOS)    ||                                            \
+        (D_ENV_APPLE_IS_WATCHOS) ||                                            \
+        (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_APPLE_HAS_APFS        1
-#elif ( D_ENV_APPLE_IS_MACOS &&                                                \
-        !D_ENV_MACOS_DEPLOY_DETECTED )
+#elif ( (D_ENV_APPLE_IS_MACOS) &&                                              \
+        (!D_ENV_MACOS_DEPLOY_DETECTED) )
     #define D_ENV_APPLE_HAS_APFS        1
 #else
     #define D_ENV_APPLE_HAS_APFS        0
@@ -1340,8 +1341,8 @@ TABLE OF CONTENTS
 // 7.2.4
 // D_ENV_APPLE_HAS_SPOTLIGHT
 //   feature: detect if Spotlight (mdfind, MDQuery) APIs are available.
-#if ( D_ENV_APPLE_IS_MACOS ||                                                 \
-      D_ENV_APPLE_IS_IOS )
+#if ( (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_IOS) )
     #define D_ENV_APPLE_HAS_SPOTLIGHT   1
 #else
     #define D_ENV_APPLE_HAS_SPOTLIGHT   0
@@ -1423,55 +1424,55 @@ void        d_env_apple_print_info(void);
 // D_ENV_APPLE_IS_DESKTOP
 //   macro: evaluates to 1 if the platform is a desktop OS (macOS).
 #define D_ENV_APPLE_IS_DESKTOP()                                               \
-    ( D_ENV_APPLE_IS_MACOS &&                                                  \
-      !D_ENV_APPLE_IS_MACCATALYST )
+    ( (D_ENV_APPLE_IS_MACOS) &&                                                \
+      (!D_ENV_APPLE_IS_MACCATALYST) )
 
 // 9.1.2
 // D_ENV_APPLE_IS_MOBILE
 //   macro: evaluates to 1 if the platform is a mobile/embedded Apple
 // OS (iOS, tvOS, watchOS, visionOS).
 #define D_ENV_APPLE_IS_MOBILE()                                                \
-    ( D_ENV_APPLE_IS_IOS     ||                                                \
-      D_ENV_APPLE_IS_TVOS    ||                                                \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+    ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
 
 // 9.1.3
 // D_ENV_APPLE_IS_MODERN
 //   macro: evaluates to 1 if the deployment target is a modern Apple
 // OS (macOS 11+ / Apple Silicon era, or any current mobile OS).
 #define D_ENV_APPLE_IS_MODERN()                                                \
-    ( D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_11) ||                              \
-      D_ENV_APPLE_IS_IOS                        ||                             \
-      D_ENV_APPLE_IS_TVOS                       ||                             \
-      D_ENV_APPLE_IS_WATCHOS                    ||                             \
-      D_ENV_APPLE_IS_VISIONOS )
+    ( (D_ENV_MACOS_AT_LEAST(D_ENV_MACOS_VER_11)) ||                            \
+      (D_ENV_APPLE_IS_IOS)                       ||                            \
+      (D_ENV_APPLE_IS_TVOS)                      ||                            \
+      (D_ENV_APPLE_IS_WATCHOS)                   ||                            \
+      (D_ENV_APPLE_IS_VISIONOS) )
 
 // 9.1.4
 // D_ENV_APPLE_HAS_SECURE_RANDOM
 //   macro: evaluates to 1 if a strong secure random source is
 // available (arc4random or getentropy).
 #define D_ENV_APPLE_HAS_SECURE_RANDOM()                                        \
-    ( D_ENV_APPLE_HAS_ARC4RANDOM ||                                            \
-      D_ENV_APPLE_HAS_GETENTROPY )
+    ( (D_ENV_APPLE_HAS_ARC4RANDOM) ||                                          \
+      (D_ENV_APPLE_HAS_GETENTROPY) )
 
 // 9.1.5
 // D_ENV_APPLE_HAS_GPU_API
 //   macro: evaluates to 1 if a GPU API (Metal, OpenGL, or OpenGL ES)
 // is available.
 #define D_ENV_APPLE_HAS_GPU_API()                                              \
-    ( D_ENV_APPLE_HAS_METAL     ||                                             \
-      D_ENV_APPLE_HAS_OPENGL   ||                                              \
-      D_ENV_APPLE_HAS_OPENGL_ES )
+    ( (D_ENV_APPLE_HAS_METAL)  ||                                              \
+      (D_ENV_APPLE_HAS_OPENGL) ||                                              \
+      (D_ENV_APPLE_HAS_OPENGL_ES) )
 
 // 9.1.6
 // D_ENV_MACOS_IS_HARDENED
 //   macro: evaluates to 1 if macOS hardening features are all expected
 // to be present (SIP + Hardened Runtime + notarization).
 #define D_ENV_MACOS_IS_HARDENED()                                              \
-    ( D_ENV_MACOS_HAS_SIP              &&                                      \
-      D_ENV_MACOS_HAS_HARDENED_RUNTIME &&                                      \
-      D_ENV_MACOS_HAS_NOTARIZATION )
+    ( (D_ENV_MACOS_HAS_SIP)              &&                                    \
+      (D_ENV_MACOS_HAS_HARDENED_RUNTIME) &&                                    \
+      (D_ENV_MACOS_HAS_NOTARIZATION) )
 
 
 #endif  // DJINTERP_ENV_OS_ENV_APPLE_H

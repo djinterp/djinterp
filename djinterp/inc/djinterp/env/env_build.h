@@ -8,10 +8,11 @@
 * header is an internal component of env.h and is #included by it; do not
 * #include it directly.
 *
+*
 * path:      /inc/djinterp/env/env_build.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 #ifndef DJINTERP_ENV_ENV_BUILD_H
@@ -28,8 +29,8 @@
     // note: !defined(NDEBUG) means builds that define neither DEBUG nor
     // NDEBUG will be classified as Debug. If this is too aggressive for
     // your build system, consider requiring an affirmative debug signal.
-    #if ( defined(DEBUG)  ||  \
-          defined(_DEBUG) ||  \
+    #if ( (defined(DEBUG))  ||                                                 \
+          (defined(_DEBUG)) ||                                                 \
           (!defined(NDEBUG)) )
         #define D_ENV_BUILD_DEBUG   1
         #define D_ENV_BUILD_TYPE    "Debug"

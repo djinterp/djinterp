@@ -1,178 +1,215 @@
-/******************************************************************************
-* djinterp [core]                                       env_vendor_attributes.h
+/*******************************************************************************
+* djinterp [env]                                         env_vendor_attributes.h
 *
-*   Portable wrappers for vendor-specific compiler attributes that have no
-*   standard [[…]] equivalent (or whose standard form arrived too recently
-*   to be relied upon universally).
+* djinterp portable wrappers for vendor-specific attributes.
+*   D_* macros for compiler attributes and builtins that have no standard
+* [[...]] form, or whose standard form arrived too recently to rely on
+* everywhere. Each expands to the spelling the detected compiler and language
+* standard accept -- the __attribute__ family GCC and Clang share, MSVC's
+* __declspec, or a language keyword -- and otherwise to a fallback that is safe
+* to use.
+*   It does not redefine macros that live in other headers: D_INLINE,
+* D_NOINLINE, and D_RESTRICT belong to djinterp.h, and the standard attributes
+* with vendor fallbacks (D_NORETURN, D_DEPRECATED, D_NODISCARD, and the rest) to
+* env_attributes.h.
+*   Every macro is pre-definable: #define it before including this header to
+* override the detected value. Every macro is always defined except
+* D_THREAD_LOCAL, which is left undefined where the compiler has no
+* thread-local storage; D_THREAD_LOCAL_AVAILABLE says which.
+*   It requires env.h, for the D_ENV_LANG_* and D_ENV_COMPILER_* families it
+* reads, and includes it itself.
 *
-*   Requires:  env.h  (must be #included first for D_ENV_COMPILER_*,
-*              D_ENV_LANG_*, and D_ENV_OS_* detection macros).
 *
-*   This header intentionally does NOT redefine macros that already live
-*   in other headers:
-*     djinterp.h          - D_INLINE, D_NOINLINE, D_RESTRICT
-*     env_attributes.h    - D_NORETURN, D_DEPRECATED, D_NODISCARD, etc.
-*                           (standard attributes with vendor fallbacks)
-*
-*   Attributes defined herein:
-*
-*     Function purity & optimisation
-*       D_PURE                    pure function (reads globals, no writes)
-*       D_CONST                   const function (depends only on params)
-*       D_HOT                     hot-path optimisation hint
-*       D_COLD                    cold-path optimisation hint
-*       D_FLATTEN                 inline all calls within the function
-*
-*     Memory & allocation
-*       D_MALLOC                  returns pointer to unaliased memory
-*       D_ALLOC_SIZE(...)         which params describe allocation size
-*       D_ALLOC_ALIGN(n)          which param gives alignment
-*       D_ALIGNED(n)              minimum alignment for types/variables
-*       D_PACKED                  remove struct padding
-*
-*     Null & parameter contracts
-*       D_NONNULL(...)            listed params must not be NULL
-*       D_NONNULL_ALL             all pointer params must not be NULL
-*       D_RETURNS_NONNULL         return value is never NULL
-*
-*     Format-string checking
-*       D_FORMAT_PRINTF(fmt, va)  printf-style format/args validation
-*       D_FORMAT_SCANF(fmt, va)   scanf-style format/args validation
-*
-*     Symbol visibility & linkage
-*       D_EXPORT                  public symbol (dllexport / default)
-*       D_IMPORT                  imported symbol (dllimport / default)
-*       D_HIDDEN                  hidden symbol (not exported)
-*       D_WEAK                    weak linkage
-*
-*     Section & lifetime
-*       D_SECTION(name)           place symbol in named section
-*       D_USED                    retain symbol even if unreferenced
-*       D_CONSTRUCTOR             run before main
-*       D_DESTRUCTOR              run after main
-*
-*     Branch prediction (expression-level)
-*       D_EXPECT(expr, val)       general __builtin_expect wrapper
-*       D_EXPECT_TRUE(expr)       branch expected to be taken
-*       D_EXPECT_FALSE(expr)      branch expected NOT to be taken
-*
-*     Miscellaneous
-*       D_UNREACHABLE             mark unreachable code paths
-*       D_PREFETCH(addr)          software prefetch hint
-*       D_THREAD_LOCAL            thread-local storage duration
-*       D_NAKED                   omit function prologue/epilogue
-*
-*   Every macro is pre-definable: #define it before including this header
-*   to override the detected value.
-*
-* path:      /inc/c/core/config/env_vendor_attributes.h
+* path:      /inc/djinterp/env/c/env_vendor_attributes.h
 * link(s):   TBA
-* author(s): Sam 'teer' Neal-Blim                          date: 2023.11.12
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2023.11.12
+*                                                            revised: 2026.09.28
+*******************************************************************************/
 
-#ifndef DJINTERP_ENV_VENDOR_ATTRIBUTES_
-#define DJINTERP_ENV_VENDOR_ATTRIBUTES_ 1
+/*
+TABLE OF CONTENTS
+=================
+1.  COMPILER FAMILY
+    ---------------
+    1.  GCC-compatible compilers
+         1.  D_INTERNAL_ENV_GCC_COMPAT
+2.  FUNCTION PURITY AND OPTIMISATION
+    --------------------------------
+    1.  Purity
+         1.  D_PURE
+         2.  D_CONST
+    2.  Optimisation hints
+         1.  D_HOT
+         2.  D_COLD
+         3.  D_FLATTEN
+3.  MEMORY AND ALLOCATION
+    ---------------------
+    1.  Allocation functions
+         1.  D_MALLOC
+         2.  D_ALLOC_SIZE
+         3.  D_ALLOC_ALIGN
+    2.  Layout
+         1.  D_ALIGNED
+         2.  D_PACKED
+4.  NULL AND PARAMETER CONTRACTS
+    ----------------------------
+    1.  Pointer contracts
+         1.  D_NONNULL
+         2.  D_NONNULL_ALL
+         3.  D_RETURNS_NONNULL
+5.  FORMAT-STRING CHECKING
+    ----------------------
+    1.  Format strings
+         1.  D_FORMAT_PRINTF
+         2.  D_FORMAT_SCANF
+6.  SYMBOL VISIBILITY AND LINKAGE
+    -----------------------------
+    1.  Visibility
+         1.  D_EXPORT
+         2.  D_IMPORT
+         3.  D_HIDDEN
+    2.  Linkage
+         1.  D_WEAK
+7.  SECTIONS AND LIFETIME
+    ---------------------
+    1.  Linker sections
+         1.  D_SECTION
+         2.  D_USED
+    2.  Startup and shutdown
+         1.  D_CONSTRUCTOR / D_DESTRUCTOR
+8.  BRANCH PREDICTION
+    -----------------
+    1.  Expression-level hints
+         1.  D_EXPECT
+         2.  D_EXPECT_TRUE / D_EXPECT_FALSE
+9.  MISCELLANEOUS
+    -------------
+    1.  Code generation
+         1.  D_UNREACHABLE
+         2.  D_PREFETCH
+    2.  Storage duration
+         1.  D_THREAD_LOCAL
+         2.  D_THREAD_LOCAL_AVAILABLE
+    3.  Function prologues
+         1.  D_NAKED
+*/
+
+#ifndef DJINTERP_ENV_C_ENV_VENDOR_ATTRIBUTES_H
+#define DJINTERP_ENV_C_ENV_VENDOR_ATTRIBUTES_H 1
+
+// djinterp
+#include "../env.h"  // D_ENV_LANG_*, D_ENV_COMPILER_*
 
 
-// Internal helper: true when the compiler is GCC-compatible (GCC or Clang).
-#if ( defined(D_ENV_COMPILER_GCC) ||  \
-      defined(D_ENV_COMPILER_CLANG) )
-    #define D_INTERNAL_GCC_COMPAT_ 1
+//==============================================================================
+// 1.  COMPILER FAMILY
+//==============================================================================
+// Most attributes below have a GNU spelling, which GCC and Clang share, and
+// several also have an MSVC __declspec spelling. The helper here identifies the
+// GNU family; it is file-local, and #undef'd at the end of this header.
+
+
+// 1.1    GCC-compatible compilers
+//------------------------------------------------------------------------------
+// 1.1.1
+// D_INTERNAL_ENV_GCC_COMPAT
+//   macro (internal): defined, to 1, when the compiler accepts GCC's
+// __attribute__ and __builtin_* spellings: GCC, and Clang on every target.
+// clang-cl counts as Clang (see D_ENV_COMPILER_MSVC_FAMILY), so it takes these
+// spellings rather than MSVC's.
+#if ( (defined(D_ENV_COMPILER_GCC)) ||                                         \
+      (defined(D_ENV_COMPILER_CLANG)) )
+    #define D_INTERNAL_ENV_GCC_COMPAT 1
 #endif
 
 
-// ===========================================================================
-// I.   FUNCTION PURITY & OPTIMISATION
-// ===========================================================================
+//==============================================================================
+// 2.  FUNCTION PURITY AND OPTIMISATION
+//==============================================================================
 
 
-// -----------------------------------------------------------------------------
+// 2.1    Purity
+//------------------------------------------------------------------------------
+// 2.1.1
 // D_PURE
-//   Declares that a function has no side effects and its return value
-//   depends only on its parameters and global state.  The compiler may
-//   eliminate redundant calls when the relevant state has not changed.
+//   macro: declares that a function has no side effects and that its return
+// value depends only on its parameters and on global state. The compiler may
+// eliminate redundant calls while that state is unchanged.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((pure)).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_PURE
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_PURE __attribute__((pure))
     #else
         #define D_PURE
     #endif
 #endif  // D_PURE
 
-
-// -----------------------------------------------------------------------------
+// 2.1.2
 // D_CONST
-//   Stricter than D_PURE: the function depends ONLY on its parameters
-//   (no reads from global memory or dereferenced pointers).  Calls with
-//   identical arguments may be freely CSE'd or hoisted out of loops.
+//   macro: stricter than D_PURE: the function depends only on its parameters,
+// reading neither global memory nor anything through a pointer. Calls with
+// identical arguments may be merged, or hoisted out of loops.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((const)).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_CONST
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_CONST __attribute__((const))
     #else
         #define D_CONST
     #endif
 #endif  // D_CONST
 
-
-// -----------------------------------------------------------------------------
+// 2.2    Optimisation hints
+//------------------------------------------------------------------------------
+// 2.2.1
 // D_HOT
-//   Hints that the function is a hot path.  The compiler may place it
-//   in a dedicated section and optimise more aggressively.
+//   macro: hints that the function is on a hot path. The compiler may place it
+// in a dedicated section and optimise it more aggressively.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC 4.3+ / Clang - __attribute__((hot)).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_HOT
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_HOT __attribute__((hot))
     #else
         #define D_HOT
     #endif
 #endif  // D_HOT
 
-
-// -----------------------------------------------------------------------------
+// 2.2.2
 // D_COLD
-//   Hints that the function is rarely executed (error handlers, init
-//   paths).  The compiler may place it in a cold section and optimise
-//   for size rather than speed.
+//   macro: hints that the function is rarely executed, such as an error
+// handler or an initialisation path. The compiler may place it in a cold
+// section and optimise it for size rather than speed.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC 4.3+ / Clang - __attribute__((cold)).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_COLD
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_COLD __attribute__((cold))
     #else
         #define D_COLD
     #endif
 #endif  // D_COLD
 
-
-// -----------------------------------------------------------------------------
+// 2.2.3
 // D_FLATTEN
-//   Requests that every call inside the annotated function be inlined,
-//   regardless of the callee's own inline hints.  Useful for hot
-//   dispatch wrappers or critical loops with many small helpers.
+//   macro: requests that every call inside the annotated function be inlined,
+// whatever the callees' own inline hints. Useful for hot dispatch wrappers, and
+// for critical loops that call many small helpers.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((flatten)).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_FLATTEN
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_FLATTEN __attribute__((flatten))
     #else
         #define D_FLATTEN
@@ -180,24 +217,26 @@
 #endif  // D_FLATTEN
 
 
-// ===========================================================================
-// II.  MEMORY & ALLOCATION
-// ===========================================================================
+//==============================================================================
+// 3.  MEMORY AND ALLOCATION
+//==============================================================================
 
 
-// -----------------------------------------------------------------------------
+// 3.1    Allocation functions
+//------------------------------------------------------------------------------
+// 3.1.1
 // D_MALLOC
-//   Declares that the function returns a pointer to newly allocated
-//   memory that does not alias any other pointer visible to the caller.
-//   Enables alias-analysis optimisations similar to malloc(3).
+//   macro: declares that the function returns a pointer to newly allocated
+// memory that aliases no other pointer visible to the caller, enabling the
+// alias-analysis optimisations the compiler applies to malloc(3).
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((malloc)).
-//     2. MSVC - __declspec(restrict) (identical semantics).
+//     2. MSVC - __declspec(restrict), which makes the same no-alias promise
+//        about the result.
 //     3. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_MALLOC
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_MALLOC __attribute__((malloc))
     #elif defined(D_ENV_COMPILER_MSVC)
         #define D_MALLOC __declspec(restrict)
@@ -206,71 +245,69 @@
     #endif
 #endif  // D_MALLOC
 
-
-// -----------------------------------------------------------------------------
-// D_ALLOC_SIZE(...)
-//   Specifies which parameter(s) of an allocation function describe the
-//   total size of the returned block.  One argument means that parameter
-//   IS the byte count; two arguments means the product of the two
-//   parameters is the byte count (like calloc).
+// 3.1.2
+// D_ALLOC_SIZE
+//   macro: names, by 1-based position, the parameters of an allocation
+// function that give the size of the returned block. With one argument, that
+// parameter is the byte count; with two, the byte count is the product of the
+// two parameters, as for calloc.
 //
-//   Usage:
-//     void* my_malloc(size_t n) D_ALLOC_SIZE(1);
-//     void* my_calloc(size_t n, size_t sz) D_ALLOC_SIZE(1, 2);
+//   usage:
+//     void* my_malloc(size_t _size) D_ALLOC_SIZE(1);
+//     void* my_calloc(size_t _count,
+//                     size_t _size) D_ALLOC_SIZE(1, 2);
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC 4.3+ / Clang - __attribute__((alloc_size(…))).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_ALLOC_SIZE
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_ALLOC_SIZE(...) __attribute__((alloc_size(__VA_ARGS__)))
     #else
         #define D_ALLOC_SIZE(...)
     #endif
 #endif  // D_ALLOC_SIZE
 
-
-// -----------------------------------------------------------------------------
-// D_ALLOC_ALIGN(n)
-//   Specifies which parameter of an allocation function describes the
-//   alignment of the returned block.
+// 3.1.3
+// D_ALLOC_ALIGN
+//   macro: names, by 1-based position, the parameter of an allocation function
+// that gives the alignment of the returned block.
 //
-//   Usage:
-//     void* my_aligned_alloc(size_t align, size_t sz) D_ALLOC_ALIGN(1);
+//   usage:
+//     void* my_aligned_alloc(size_t _align,
+//                            size_t _size) D_ALLOC_ALIGN(1);
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC 4.9+ / Clang - __attribute__((alloc_align(…))).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_ALLOC_ALIGN
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_ALLOC_ALIGN(n) __attribute__((alloc_align(n)))
     #else
         #define D_ALLOC_ALIGN(n)
     #endif
 #endif  // D_ALLOC_ALIGN
 
-
-// -----------------------------------------------------------------------------
-// D_ALIGNED(n)
-//   Specifies a minimum alignment (in bytes) for a type, variable, or
-//   struct member.
+// 3.2    Layout
+//------------------------------------------------------------------------------
+// 3.2.1
+// D_ALIGNED
+//   macro: specifies a minimum alignment, in bytes, for a type, a variable, or
+// a struct member.
 //
-//   Usage:
+//   usage:
 //     D_ALIGNED(16) float vec[4];
-//     typedef struct D_ALIGNED(64) { ... } cache_line_t;
+//     struct D_ALIGNED(64) cache_line { ... };
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((aligned(n))).
 //     2. MSVC - __declspec(align(n)).
 //     3. No-op fallback (natural alignment only).
 //
-//   NOTE: MSVC __declspec(align(…)) requires a compile-time constant
-//   and cannot be used with template parameters or constexpr values.
-// -----------------------------------------------------------------------------
+//   note: MSVC's __declspec(align(…)) requires a compile-time constant, and
+// cannot take a template parameter or a constexpr value.
 #ifndef D_ALIGNED
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_ALIGNED(n) __attribute__((aligned(n)))
     #elif defined(D_ENV_COMPILER_MSVC)
         #define D_ALIGNED(n) __declspec(align(n))
@@ -279,25 +316,27 @@
     #endif
 #endif  // D_ALIGNED
 
-
-// -----------------------------------------------------------------------------
+// 3.2.2
 // D_PACKED
-//   Removes padding between struct members so the struct occupies the
-//   minimum number of bytes.
+//   macro: removes the padding between struct members, so the struct occupies
+// the minimum number of bytes.
 //
-//   Usage:
-//     typedef struct D_PACKED { uint8_t a; uint32_t b; } wire_msg_t;
+//   usage:
+//     struct D_PACKED wire_header
+//     {
+//         uint8_t  kind;
+//         uint32_t length;
+//     };
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((packed)).
 //     2. No-op fallback.
 //
-//   NOTE: MSVC uses #pragma pack(push, 1) / #pragma pack(pop) instead
-//   of a per-type attribute.  For MSVC packing, wrap the struct
-//   declaration with those pragmas manually.
-// -----------------------------------------------------------------------------
+//   note: MSVC packs with #pragma pack(push, 1) and #pragma pack(pop) rather
+// than a per-type attribute; wrap the struct declaration in those pragmas by
+// hand.
 #ifndef D_PACKED
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_PACKED __attribute__((packed))
     #else
         #define D_PACKED
@@ -305,62 +344,60 @@
 #endif  // D_PACKED
 
 
-// ===========================================================================
-// III. NULL & PARAMETER CONTRACTS
-// ===========================================================================
+//==============================================================================
+// 4.  NULL AND PARAMETER CONTRACTS
+//==============================================================================
 
 
-// -----------------------------------------------------------------------------
-// D_NONNULL(...)
-//   Declares that the listed parameter positions (1-based) must not be
-//   NULL.  The compiler may emit a warning if a provably-null argument
-//   is passed and may optimise under the assumption that the pointer is
-//   non-null.
+// 4.1    Pointer contracts
+//------------------------------------------------------------------------------
+// 4.1.1
+// D_NONNULL
+//   macro: declares that the listed parameters, by 1-based position, must not
+// be NULL. The compiler may warn when a provably null argument is passed, and
+// may optimise on the assumption that those pointers are non-null.
 //
-//   Usage:
-//     void copy(void* dst, const void* src, size_t n) D_NONNULL(1, 2);
+//   usage:
+//     void copy(void*       _dst,
+//               const void* _src,
+//               size_t      _count) D_NONNULL(1, 2);
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((nonnull(…))).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_NONNULL
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
     #else
         #define D_NONNULL(...)
     #endif
 #endif  // D_NONNULL
 
-
-// -----------------------------------------------------------------------------
+// 4.1.2
 // D_NONNULL_ALL
-//   Short-hand: ALL pointer parameters must not be NULL.
+//   macro: shorthand declaring that no pointer parameter may be NULL.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((nonnull)).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_NONNULL_ALL
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_NONNULL_ALL __attribute__((nonnull))
     #else
         #define D_NONNULL_ALL
     #endif
 #endif  // D_NONNULL_ALL
 
-
-// -----------------------------------------------------------------------------
+// 4.1.3
 // D_RETURNS_NONNULL
-//   Declares that the function never returns NULL.  Enables the
-//   compiler to elide null checks on the call site.
+//   macro: declares that the function never returns NULL, so null checks on
+// its result can be elided at the call site.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC 4.9+ / Clang - __attribute__((returns_nonnull)).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_RETURNS_NONNULL
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_RETURNS_NONNULL __attribute__((returns_nonnull))
     #else
         #define D_RETURNS_NONNULL
@@ -368,50 +405,51 @@
 #endif  // D_RETURNS_NONNULL
 
 
-// ===========================================================================
-// IV.  FORMAT-STRING CHECKING
-// ===========================================================================
+//==============================================================================
+// 5.  FORMAT-STRING CHECKING
+//==============================================================================
 
 
-// -----------------------------------------------------------------------------
-// D_FORMAT_PRINTF(fmt_idx, first_arg)
-//   Enables compile-time printf-style format-string validation.
-//   `fmt_idx` is the 1-based index of the format parameter; `first_arg`
-//   is the 1-based index of the first variadic argument (or 0 for
-//   vprintf-style functions that take a va_list).
+// 5.1    Format strings
+//------------------------------------------------------------------------------
+// 5.1.1
+// D_FORMAT_PRINTF
+//   macro: enables compile-time checking of a printf-style format string
+// against its arguments. `fmt_idx` is the 1-based position of the format
+// parameter, and `first_arg` that of the first variadic argument, or 0 for a
+// vprintf-style function, which takes a va_list.
 //
-//   For C++ non-static member functions, the implicit `this` occupies
-//   position 1, so indices are shifted by one compared to free functions.
+//   usage:
+//     void my_printf(const char* _format,
+//                    ...) D_FORMAT_PRINTF(1, 2);
+//     void my_vprintf(const char* _format,
+//                     va_list     _args) D_FORMAT_PRINTF(1, 0);
 //
-//   Usage:
-//     void my_printf(const char* fmt, ...) D_FORMAT_PRINTF(1, 2);
-//     void my_vprintf(const char* fmt, va_list ap) D_FORMAT_PRINTF(1, 0);
-//
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((format(printf, …, …))).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
+//
+//   note: in a C++ non-static member function the implicit `this` occupies
+// position 1, so each index is one higher than for a free function.
 #ifndef D_FORMAT_PRINTF
-    #if defined(D_INTERNAL_GCC_COMPAT_)
-        #define D_FORMAT_PRINTF(fmt_idx, first_arg)  \
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
+        #define D_FORMAT_PRINTF(fmt_idx, first_arg)                            \
             __attribute__((format(printf, fmt_idx, first_arg)))
     #else
         #define D_FORMAT_PRINTF(fmt_idx, first_arg)
     #endif
 #endif  // D_FORMAT_PRINTF
 
-
-// -----------------------------------------------------------------------------
-// D_FORMAT_SCANF(fmt_idx, first_arg)
-//   Same as D_FORMAT_PRINTF but validates scanf-style format strings.
+// 5.1.2
+// D_FORMAT_SCANF
+//   macro: as D_FORMAT_PRINTF, for a scanf-style format string.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((format(scanf, …, …))).
 //     2. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_FORMAT_SCANF
-    #if defined(D_INTERNAL_GCC_COMPAT_)
-        #define D_FORMAT_SCANF(fmt_idx, first_arg)  \
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
+        #define D_FORMAT_SCANF(fmt_idx, first_arg)                             \
             __attribute__((format(scanf, fmt_idx, first_arg)))
     #else
         #define D_FORMAT_SCANF(fmt_idx, first_arg)
@@ -419,87 +457,87 @@
 #endif  // D_FORMAT_SCANF
 
 
-// ===========================================================================
-// V.   SYMBOL VISIBILITY & LINKAGE
-// ===========================================================================
+//==============================================================================
+// 6.  SYMBOL VISIBILITY AND LINKAGE
+//==============================================================================
 
 
-// -----------------------------------------------------------------------------
+// 6.1    Visibility
+//------------------------------------------------------------------------------
+// 6.1.1
 // D_EXPORT
-//   Marks a symbol as publicly exported from a shared library / DLL.
+//   macro: marks a symbol as exported from a shared library or DLL.
 //
-//   Resolution order:
-//     1. Windows (MSVC / MinGW) - __declspec(dllexport).
+//   resolution order:
+//     1. MSVC, or any compiler targeting Windows (_WIN32) -
+//        __declspec(dllexport).
 //     2. GCC 4+ / Clang - __attribute__((visibility("default"))).
 //     3. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_EXPORT
-    #if ( defined(D_ENV_COMPILER_MSVC) ||  \
-          defined(_WIN32) )
+    #if ( (defined(D_ENV_COMPILER_MSVC)) ||                                    \
+          (defined(_WIN32)) )
         #define D_EXPORT __declspec(dllexport)
-    #elif defined(D_INTERNAL_GCC_COMPAT_)
+    #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_EXPORT __attribute__((visibility("default")))
     #else
         #define D_EXPORT
     #endif
 #endif  // D_EXPORT
 
-
-// -----------------------------------------------------------------------------
+// 6.1.2
 // D_IMPORT
-//   Marks a symbol as imported from a shared library / DLL.
+//   macro: marks a symbol as imported from a shared library or DLL.
 //
-//   Resolution order:
-//     1. Windows (MSVC / MinGW) - __declspec(dllimport).
-//     2. GCC / Clang - __attribute__((visibility("default"))) (ELF
-//        does not distinguish import from export at the symbol level).
+//   resolution order:
+//     1. MSVC, or any compiler targeting Windows (_WIN32) -
+//        __declspec(dllimport).
+//     2. GCC / Clang - __attribute__((visibility("default"))), since ELF does
+//        not distinguish import from export at the symbol level.
 //     3. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_IMPORT
-    #if ( defined(D_ENV_COMPILER_MSVC) ||  \
-          defined(_WIN32) )
+    #if ( (defined(D_ENV_COMPILER_MSVC)) ||                                    \
+          (defined(_WIN32)) )
         #define D_IMPORT __declspec(dllimport)
-    #elif defined(D_INTERNAL_GCC_COMPAT_)
+    #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_IMPORT __attribute__((visibility("default")))
     #else
         #define D_IMPORT
     #endif
 #endif  // D_IMPORT
 
-
-// -----------------------------------------------------------------------------
+// 6.1.3
 // D_HIDDEN
-//   Marks a symbol as library-internal (not exported).  On ELF
-//   platforms this produces smaller, faster shared objects.
+//   macro: marks a symbol as internal to its library, and not exported. On ELF
+// platforms this makes shared objects smaller and faster.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC 4+ / Clang - __attribute__((visibility("hidden"))).
-//     2. No-op fallback (symbol remains at its default visibility).
-// -----------------------------------------------------------------------------
+//     2. No-op fallback (the symbol keeps its default visibility).
 #ifndef D_HIDDEN
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_HIDDEN __attribute__((visibility("hidden")))
     #else
         #define D_HIDDEN
     #endif
 #endif  // D_HIDDEN
 
-
-// -----------------------------------------------------------------------------
+// 6.2    Linkage
+//------------------------------------------------------------------------------
+// 6.2.1
 // D_WEAK
-//   Declares a symbol with weak linkage.  A strong definition in
-//   another translation unit will override it; if no strong definition
-//   exists, the weak one is used.  Useful for providing overridable
-//   defaults.
+//   macro: gives a symbol weak linkage. A strong definition in another
+// translation unit overrides it; with none, the weak one is used. Useful for
+// defaults a program may replace.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((weak)).
-//     2. MSVC - __declspec(selectany) (closest equivalent for data;
-//        no exact analogue for functions).
+//     2. MSVC - __declspec(selectany), the closest equivalent for data.
 //     3. No-op fallback.
-// -----------------------------------------------------------------------------
+//
+//   note: MSVC accepts selectany only on data with external linkage, so
+// D_WEAK on a function does not compile with MSVC.
 #ifndef D_WEAK
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_WEAK __attribute__((weak))
     #elif defined(D_ENV_COMPILER_MSVC)
         #define D_WEAK __declspec(selectany)
@@ -509,26 +547,27 @@
 #endif  // D_WEAK
 
 
-// ===========================================================================
-// VI.  SECTION & LIFETIME
-// ===========================================================================
+//==============================================================================
+// 7.  SECTIONS AND LIFETIME
+//==============================================================================
 
 
-// -----------------------------------------------------------------------------
-// D_SECTION(name)
-//   Places the annotated symbol into the named linker section.
+// 7.1    Linker sections
+//------------------------------------------------------------------------------
+// 7.1.1
+// D_SECTION
+//   macro: places the annotated symbol in the named linker section.
 //
-//   Usage:
+//   usage:
 //     D_SECTION(".my_data") int persistent_counter = 0;
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((section(name))).
-//     2. MSVC - __declspec(allocate(name))  (requires a matching
-//        #pragma section(name, …) beforehand).
+//     2. MSVC - __declspec(allocate(name)), which needs a matching
+//        #pragma section(name, …) beforehand.
 //     3. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_SECTION
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_SECTION(name) __attribute__((section(name)))
     #elif defined(D_ENV_COMPILER_MSVC)
         #define D_SECTION(name) __declspec(allocate(name))
@@ -537,41 +576,40 @@
     #endif
 #endif  // D_SECTION
 
-
-// -----------------------------------------------------------------------------
+// 7.1.2
 // D_USED
-//   Prevents the linker from stripping the symbol even if it appears
-//   unreferenced.  Commonly paired with D_SECTION for registration
-//   tables, plugin descriptors, or linker-set entries.
+//   macro: keeps the linker from stripping the symbol even when nothing
+// references it. Commonly paired with D_SECTION for registration tables,
+// plugin descriptors, and linker-set entries.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((used)).
-//     2. No-op fallback (symbol may be stripped by LTO or --gc-sections).
-// -----------------------------------------------------------------------------
+//     2. No-op fallback (LTO or --gc-sections may strip the symbol).
 #ifndef D_USED
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_USED __attribute__((used))
     #else
         #define D_USED
     #endif
 #endif  // D_USED
 
-
-// -----------------------------------------------------------------------------
+// 7.2    Startup and shutdown
+//------------------------------------------------------------------------------
+// 7.2.1
 // D_CONSTRUCTOR / D_DESTRUCTOR
-//   Declares functions that are called automatically before main()
-//   (constructor) or after main() / exit() (destructor).
+//   macro: declares a function the runtime calls automatically, before main()
+// for D_CONSTRUCTOR, and after main() returns or exit() is called for
+// D_DESTRUCTOR.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((constructor)) / ((destructor)).
 //     2. No-op fallback.
 //
-//   NOTE: MSVC achieves the same via CRT initialisation segments
-//   (#pragma section(".CRT$XCU", …)) and function pointers.  That
-//   pattern cannot be expressed as a simple macro.
-// -----------------------------------------------------------------------------
+//   note: MSVC achieves the same through CRT initialisation segments
+// (#pragma section(".CRT$XCU", …)) and function pointers, a pattern no simple
+// macro can express.
 #ifndef D_CONSTRUCTOR
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_CONSTRUCTOR __attribute__((constructor))
     #else
         #define D_CONSTRUCTOR
@@ -579,7 +617,7 @@
 #endif  // D_CONSTRUCTOR
 
 #ifndef D_DESTRUCTOR
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_DESTRUCTOR __attribute__((destructor))
     #else
         #define D_DESTRUCTOR
@@ -587,69 +625,73 @@
 #endif  // D_DESTRUCTOR
 
 
-// ===========================================================================
-// VII. BRANCH PREDICTION (EXPRESSION-LEVEL)
-// ===========================================================================
-//
-//   These complement D_LIKELY / D_UNLIKELY from env_attributes.h.
-//   The [[likely]] / [[unlikely]] standard attributes are statement-
-//   level; these macros operate at the expression level via
-//   __builtin_expect and are usable in C as well.
-//
+//==============================================================================
+// 8.  BRANCH PREDICTION
+//==============================================================================
+// These complement D_LIKELY / D_UNLIKELY from env_attributes.h. The standard
+// [[likely]] / [[unlikely]] attributes apply to statements; these macros work
+// at the expression level, through __builtin_expect, so C can use them too.
 
 
-// -----------------------------------------------------------------------------
-// D_EXPECT(expr, val)
-//   General-purpose __builtin_expect wrapper.  Tells the compiler that
-//   `expr` is expected to evaluate to `val`.
+// 8.1    Expression-level hints
+//------------------------------------------------------------------------------
+// 8.1.1
+// D_EXPECT
+//   macro: a general __builtin_expect wrapper, telling the compiler that `expr`
+// is expected to evaluate to `val`. `expr` is normalised to 0 or 1 first, so
+// `val` should be 0 or 1.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __builtin_expect(…).
-//     2. Identity fallback.
-// -----------------------------------------------------------------------------
+//     2. Fallback - the normalised `expr` alone.
 #ifndef D_EXPECT
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_EXPECT(expr, val) __builtin_expect(!!(expr), (val))
     #else
         #define D_EXPECT(expr, val) (!!(expr))
     #endif
 #endif  // D_EXPECT
 
-
-// -----------------------------------------------------------------------------
-// D_EXPECT_TRUE(expr) / D_EXPECT_FALSE(expr)
-//   Convenience wrappers for the common case.
-// -----------------------------------------------------------------------------
+// 8.1.2
+// D_EXPECT_TRUE / D_EXPECT_FALSE
+//   macro: D_EXPECT for the common cases: a condition expected to be true, or
+// expected to be false.
 #ifndef D_EXPECT_TRUE
     #define D_EXPECT_TRUE(expr)  D_EXPECT((expr), 1)
-#endif
+#endif  // D_EXPECT_TRUE
 
 #ifndef D_EXPECT_FALSE
     #define D_EXPECT_FALSE(expr) D_EXPECT((expr), 0)
-#endif
+#endif  // D_EXPECT_FALSE
 
 
-// ===========================================================================
-// VIII. MISCELLANEOUS
-// ===========================================================================
+//==============================================================================
+// 9.  MISCELLANEOUS
+//==============================================================================
 
 
-// -----------------------------------------------------------------------------
+// 9.1    Code generation
+//------------------------------------------------------------------------------
+// 9.1.1
 // D_UNREACHABLE
-//   Marks a code path that should never be reached.  Enables dead-code
-//   optimisations and may trap in debug builds.
+//   macro: marks a code path that is never reached, enabling dead-code
+// optimisations. Reaching it is undefined behaviour on the standard-library
+// and compiler tiers, though libstdc++'s std::unreachable() traps in
+// _GLIBCXX_ASSERTIONS builds.
 //
-//   Resolution order:
-//     1. C++23 - std::unreachable() (defined in <utility>).
+//   resolution order:
+//     1. C++23 - std::unreachable(), declared in <utility>.
 //     2. GCC / Clang - __builtin_unreachable().
 //     3. MSVC - __assume(0).
-//     4. Infinite-loop fallback (safe, pessimises).
-// -----------------------------------------------------------------------------
+//     4. Infinite-loop fallback.
+//
+//   note: this header does not include <utility>, so a C++23 translation unit
+// that uses D_UNREACHABLE must include it itself.
 #ifndef D_UNREACHABLE
-    #if defined(__cplusplus) && D_ENV_LANG_IS_CPP23_OR_HIGHER
-        // NOTE: requires #include <utility> in the translation unit.
+    #if ( (defined(__cplusplus)) &&                                            \
+          (D_ENV_LANG_IS_CPP23_OR_HIGHER) )
         #define D_UNREACHABLE std::unreachable()
-    #elif defined(D_INTERNAL_GCC_COMPAT_)
+    #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_UNREACHABLE __builtin_unreachable()
     #elif defined(D_ENV_COMPILER_MSVC)
         #define D_UNREACHABLE __assume(0)
@@ -658,82 +700,91 @@
     #endif
 #endif  // D_UNREACHABLE
 
-
-// -----------------------------------------------------------------------------
-// D_PREFETCH(addr)
-//   Issues a software prefetch hint for the cache line containing
-//   `addr`.  Uses read-access, low-temporal-locality defaults.
+// 9.1.2
+// D_PREFETCH
+//   macro: issues a software prefetch hint for the cache line holding `addr`,
+// for reading, with low temporal locality.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __builtin_prefetch(addr, 0, 0).
-//     2. MSVC / Intel - _mm_prefetch  (requires <xmmintrin.h>; left
-//        as a no-op here to avoid header pollution - define D_PREFETCH
-//        manually if you need it with MSVC).
-//     3. No-op fallback.
-// -----------------------------------------------------------------------------
+//     2. No-op fallback.
+//
+//   note: MSVC and Intel provide _mm_prefetch, but it needs <xmmintrin.h>,
+// which this header does not pull in; pre-define D_PREFETCH to use it there.
 #ifndef D_PREFETCH
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_PREFETCH(addr) __builtin_prefetch((addr), 0, 0)
     #else
         #define D_PREFETCH(addr) ((void)(addr))
     #endif
 #endif  // D_PREFETCH
 
-
-// -----------------------------------------------------------------------------
+// 9.2    Storage duration
+//------------------------------------------------------------------------------
+// 9.2.1
 // D_THREAD_LOCAL
-//   Declares a variable with thread-local storage duration.
+//   macro: declares a variable with thread-local storage duration.
 //
-//   Resolution order:
-//     1. C++11 / C23 - thread_local keyword.
-//     2. C11 - _Thread_local keyword.
+//   resolution order:
+//     1. C++11 / C23 - the thread_local keyword.
+//     2. C11 - the _Thread_local keyword.
 //     3. GCC / Clang - __thread.
 //     4. MSVC - __declspec(thread).
-//     5. No-op fallback (variable has normal storage duration -
-//        this is a silent degradation that may cause data races;
-//        prefer a build error in production by pre-defining
-//        D_THREAD_LOCAL to #error).
-// -----------------------------------------------------------------------------
+//     5. Otherwise left undefined, and D_THREAD_LOCAL_AVAILABLE is 0.
+//
+//   note: an empty definition would silently give a per-thread variable
+// ordinary static storage, shared by every thread. Leaving the macro
+// undefined makes such a declaration a compile error instead, and code
+// with a fallback of its own tests D_THREAD_LOCAL_AVAILABLE. This is the
+// one macro in this header that can be left undefined.
 #ifndef D_THREAD_LOCAL
     #if defined(__cplusplus)
         #if D_ENV_LANG_IS_CPP11_OR_HIGHER
             #define D_THREAD_LOCAL thread_local
-        #elif defined(D_INTERNAL_GCC_COMPAT_)
+        #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
             #define D_THREAD_LOCAL __thread
         #elif defined(D_ENV_COMPILER_MSVC)
             #define D_THREAD_LOCAL __declspec(thread)
-        #else
-            #define D_THREAD_LOCAL
         #endif
     #else
         #if D_ENV_LANG_IS_C23_OR_HIGHER
             #define D_THREAD_LOCAL thread_local
         #elif D_ENV_LANG_IS_C11_OR_HIGHER
             #define D_THREAD_LOCAL _Thread_local
-        #elif defined(D_INTERNAL_GCC_COMPAT_)
+        #elif defined(D_INTERNAL_ENV_GCC_COMPAT)
             #define D_THREAD_LOCAL __thread
         #elif defined(D_ENV_COMPILER_MSVC)
             #define D_THREAD_LOCAL __declspec(thread)
-        #else
-            #define D_THREAD_LOCAL
         #endif
     #endif
 #endif  // D_THREAD_LOCAL
 
+// 9.2.2
+// D_THREAD_LOCAL_AVAILABLE
+//   constant: 1 when D_THREAD_LOCAL is defined, by the cascade above or by
+// the build, and 0 when the compiler offers no thread-local storage.
+#ifndef D_THREAD_LOCAL_AVAILABLE
+    #ifdef D_THREAD_LOCAL
+        #define D_THREAD_LOCAL_AVAILABLE 1
+    #else
+        #define D_THREAD_LOCAL_AVAILABLE 0
+    #endif  // D_THREAD_LOCAL
+#endif  // D_THREAD_LOCAL_AVAILABLE
 
-// -----------------------------------------------------------------------------
+// 9.3    Function prologues
+//------------------------------------------------------------------------------
+// 9.3.1
 // D_NAKED
-//   Omits the compiler-generated function prologue and epilogue (no
-//   stack frame setup, register saves, or return sequence).  The
-//   function body must be written entirely in inline assembly.
+//   macro: omits the compiler-generated prologue and epilogue (no stack-frame
+// setup, register saves, or return sequence), so the function body must be
+// written entirely in inline assembly.
 //
-//   Resolution order:
+//   resolution order:
 //     1. GCC / Clang - __attribute__((naked)).
-//     2. MSVC - __declspec(naked)  (x86 only).
+//     2. MSVC - __declspec(naked), on x86 only.
 //     3. No-op fallback.
-// -----------------------------------------------------------------------------
 #ifndef D_NAKED
-    #if defined(D_INTERNAL_GCC_COMPAT_)
+    #if defined(D_INTERNAL_ENV_GCC_COMPAT)
         #define D_NAKED __attribute__((naked))
     #elif defined(D_ENV_COMPILER_MSVC)
         #define D_NAKED __declspec(naked)
@@ -743,10 +794,8 @@
 #endif  // D_NAKED
 
 
-// Clean up internal helper.
-#ifdef D_INTERNAL_GCC_COMPAT_
-    #undef D_INTERNAL_GCC_COMPAT_
-#endif
+// D_INTERNAL_ENV_GCC_COMPAT is file-local; see 1.1.1
+#undef D_INTERNAL_ENV_GCC_COMPAT
 
 
-#endif  // DJINTERP_ENV_VENDOR_ATTRIBUTES_
+#endif  // DJINTERP_ENV_C_ENV_VENDOR_ATTRIBUTES_H

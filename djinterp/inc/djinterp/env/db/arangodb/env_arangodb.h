@@ -1,162 +1,335 @@
-/******************************************************************************
-* djinterp [db]                                              env_arangodb.h
+/*******************************************************************************
+* djinterp [env]                                                  env_arangodb.h
 *
-* djinterp ArangoDB environmental detection header:
-* This header provides comprehensive compile-time detection of ArangoDB
-* environments, capabilities, and version-gated features, including:
-*   - version decomposition (major, minor, patch) and comparison macros
-*   - client driver detection (C++ fuerte driver, VelocyPack library)
-*   - multi-model capabilities (document, graph, key-value, search)
-*   - AQL (ArangoDB Query Language) feature detection
-*   - graph features (traversals, shortest path, k-shortest-paths, k-paths,
-*     all-shortest-paths, pregel, SmartGraphs, EnterpriseGraphs,
-*     SatelliteGraphs, DisjointSmartGraphs, HybridSmartGraphs)
-*   - index type detection (persistent, TTL, fulltext, geo, inverted,
-*     multi-dimensional, ZKD)
-*   - ArangoSearch / Views detection (IResearch-based analyzers,
-*     search-alias views, scoring functions, nested search, SEARCH
-*     highlighting, GeoJSON and geo-spatial analysis via analyzers)
-*   - replication and clustering (Active Failover, OneShard, SmartJoins,
-*     SatelliteCollections, cluster-wide transactions, DC2DC)
-*   - transaction features (single-document, multi-document, streaming,
-*     JavaScript transactions)
-*   - storage engine detection (RocksDB; MMFiles removal)
-*   - Foxx microservices framework detection
-*   - VelocyPack (VPack) binary format detection
-*   - HTTP API and protocol features (HTTP/2, VST protocol, cursors)
-*   - authentication (JWT, LDAP, Kerberos)
-*   - SSL/TLS and encryption (at-rest, in-transit, key rotation)
-*   - Community vs Enterprise edition feature gating
-*   - optimizer and query profiling features
-*   - backup and restore capabilities (arangodump, arangorestore, hot
-*     backup)
+* djinterp ArangoDB environment detection.
+*   Compile-time detection of an ArangoDB environment: the server version and
+* its comparison macros, the Community or Enterprise edition, the C++ fuerte
+* driver and VelocyPack, and the version- and edition-gated capabilities built
+* on them: storage engines, index types, ArangoSearch views and analyzers, AQL,
+* graphs, transactions, replication and clustering, security, Foxx, backup and
+* restore, collections and schemas, and the optimizer.
+*   ArangoDB is a multi-model database: documents, graphs and key-value pairs
+* under one query language, AQL. Its features depend on the server version and
+* on the edition; SmartGraphs, encryption at rest, LDAP, DC2DC replication and
+* hot backup, among others, need Enterprise.
+*   Versions are encoded as MAJOR*10000 + MINOR*100 + PATCH, the MySQL-family
+* convention, so ArangoDB 3.11.5 is 31105. D_ENV_ARANGO_HAS_* are capability
+* flags, D_ENV_ARANGO_VERSION_* the version and its parts, and D_ENV_ARANGO_IS_*
+* the edition and release series. Sections 4 onward exist only when ArangoDB is
+* detected.
+*   Settings live in cfg_env_arangodb.h: D_CFG_ENV_USING_ARANGODB includes the
+* velocypack C++ header (C++ only), and D_CFG_ENV_ARANGO_CUSTOM, or any
+* pre-defined D_ENV_ARANGO_DETECTED_*, switches to manual detection. Otherwise,
+* include the ArangoDB headers first, so that their version macros exist. This
+* header also includes env_db.h, for the base database detection.
 *
-*   ArangoDB is a native multi-model database supporting documents, graphs,
-* and key-value pairs with a single query language (AQL). It uses a JSON-
-* based document model with the VelocyPack binary serialization format for
-* performance. Features are determined by server version and by whether the
-* Community or Enterprise edition is deployed; several key capabilities
-* (SmartGraphs, encryption, LDAP, DC2DC replication, hot backup) require
-* the Enterprise edition.
 *
-*   VERSION ENCODING:
-*   ArangoDB uses semantic versioning (MAJOR.MINOR.PATCH). This header
-* encodes version as MAJOR*10000 + MINOR*100 + PATCH, matching the
-* MySQL-family convention. E.g. ArangoDB 3.11.5 = 31105.
-*
-*   NAMING CONVENTION:
-*   D_ENV_ARANGO_[CATEGORY]_[FEATURE]  - 1 if available, 0 otherwise
-*   D_ENV_ARANGO_VERSION_[COMPONENT]   - version number components
-*   D_ENV_ARANGO_HAS_[CAPABILITY]      - capability flag (1/0)
-*
-*   DEPENDENCIES:
-*   This header includes env_db.h for base database environment detection
-* capabilities. It should be included after ArangoDB client/server headers
-* so that version macros are available.
-* 
-*
-* path:      /inc/djinterp/core/env/db/arangodb/env_arangodb.h
+* path:      /inc/djinterp/env/db/arangodb/env_arangodb.h
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.06.15
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.06.15
+*                                                            revised: 2026.09.27
+*******************************************************************************/
 
-#ifndef DJINTERP_ENVIRONMENT_ARANGODB_
-#define DJINTERP_ENVIRONMENT_ARANGODB_ 1
+/*
+TABLE OF CONTENTS
+=================
+1.  VENDOR HEADER INCLUSION
+    -----------------------
+    1.  Vendor header
+         1.  D_ENV_ARANGODB_CPP_HEADER_INCLUDED
+2.  VERSION ENCODING
+    ----------------
+    1.  Encoding and decoding
+         1.  D_ENV_ARANGO_ENCODE_VERSION
+         2.  D_ENV_ARANGO_DECODE_MAJOR
+         3.  D_ENV_ARANGO_DECODE_MINOR
+         4.  D_ENV_ARANGO_DECODE_PATCH
+3.  VERSION DETECTION
+    -----------------
+    1.  Release version IDs
+         1.  D_ENV_ARANGO_VERSION_<MAJOR>_<MINOR>_<PATCH>
+    2.  Detected version
+         1.  D_ENV_ARANGO_DETECTED / D_ENV_ARANGO_VERSION_*
+4.  VERSION COMPARISON MACROS
+    -------------------------
+    1.  Comparisons
+         1.  D_ENV_ARANGO_VERSION_AT_LEAST
+         2.  D_ENV_ARANGO_VERSION_BELOW
+         3.  D_ENV_ARANGO_VERSION_EXACT
+         4.  D_ENV_ARANGO_VERSION_IN_RANGE
+    2.  Release series
+         1.  D_ENV_ARANGO_IS_<SERIES>
+5.  EDITION DETECTION
+    -----------------
+    1.  Editions
+         1.  D_ENV_ARANGO_IS_ENTERPRISE
+         2.  D_ENV_ARANGO_IS_COMMUNITY
+         3.  D_ENV_ARANGO_LICENSE_IS_BSL
+6.  CLIENT DRIVER AND PROTOCOL DETECTION
+    ------------------------------------
+    1.  Drivers and protocols
+         1.  D_ENV_ARANGO_HAS_FUERTE
+         2.  D_ENV_ARANGO_HAS_VELOCYPACK
+         3.  D_ENV_ARANGO_HAS_VST_PROTOCOL
+         4.  D_ENV_ARANGO_VST_DEPRECATED
+         5.  D_ENV_ARANGO_HAS_HTTP2
+         6.  D_ENV_ARANGO_HAS_CURSOR_API
+         7.  D_ENV_ARANGO_HAS_BATCH_API
+7.  STORAGE ENGINE
+    --------------
+    1.  Storage engines
+         1.  D_ENV_ARANGO_HAS_ROCKSDB
+         2.  D_ENV_ARANGO_REMOVED_MMFILES
+         3.  D_ENV_ARANGO_HAS_MMFILES
+         4.  D_ENV_ARANGO_HAS_COMPRESSION
+8.  INDEX TYPES
+    -----------
+    1.  Index types
+         1.  D_ENV_ARANGO_HAS_INDEX_PERSISTENT
+         2.  D_ENV_ARANGO_INDEX_HASH_IS_ALIAS
+         3.  D_ENV_ARANGO_INDEX_SKIPLIST_IS_ALIAS
+         4.  D_ENV_ARANGO_HAS_INDEX_GEO
+         5.  D_ENV_ARANGO_HAS_INDEX_FULLTEXT
+         6.  D_ENV_ARANGO_INDEX_FULLTEXT_DEPRECATED
+         7.  D_ENV_ARANGO_HAS_INDEX_TTL
+         8.  D_ENV_ARANGO_HAS_INDEX_INVERTED
+         9.  D_ENV_ARANGO_HAS_INDEX_MDI
+         10. D_ENV_ARANGO_HAS_INDEX_MDI_PREFIXED
+         11. D_ENV_ARANGO_HAS_STORED_VALUES
+         12. D_ENV_ARANGO_HAS_CACHE_ON_INDEX
+9.  ARANGOSEARCH AND VIEWS
+    ----------------------
+    1.  Views and analyzers
+         1.  D_ENV_ARANGO_HAS_ARANGOSEARCH
+         2.  D_ENV_ARANGO_HAS_SEARCH_ALIAS_VIEWS
+         3.  D_ENV_ARANGO_HAS_ANALYZERS
+         4.  D_ENV_ARANGO_HAS_ANALYZER_PIPELINE
+         5.  D_ENV_ARANGO_HAS_ANALYZER_AQL
+         6.  D_ENV_ARANGO_HAS_ANALYZER_GEO
+         7.  D_ENV_ARANGO_HAS_ANALYZER_CLASSIFICATION
+         8.  D_ENV_ARANGO_HAS_ANALYZER_MINHASH
+         9.  D_ENV_ARANGO_HAS_NESTED_SEARCH
+         10. D_ENV_ARANGO_HAS_SEARCH_HIGHLIGHT
+         11. D_ENV_ARANGO_HAS_SEARCH_OFFSET_INFO
+         12. D_ENV_ARANGO_HAS_SCORING_FUNCTIONS
+10. AQL (ARANGODB QUERY LANGUAGE) FEATURES
+    --------------------------------------
+    1.  Query language
+         1.  D_ENV_ARANGO_HAS_AQL
+         2.  D_ENV_ARANGO_HAS_AQL_UPSERT
+         3.  D_ENV_ARANGO_HAS_AQL_INSERT_UPDATE
+         4.  D_ENV_ARANGO_HAS_AQL_SUBQUERY_OPTIMIZATION
+         5.  D_ENV_ARANGO_HAS_AQL_WINDOW
+         6.  D_ENV_ARANGO_HAS_AQL_COLLECT_AGGREGATE
+         7.  D_ENV_ARANGO_HAS_AQL_GRAPH_TRAVERSAL
+         8.  D_ENV_ARANGO_HAS_AQL_SHORTEST_PATH
+         9.  D_ENV_ARANGO_HAS_AQL_K_SHORTEST_PATHS
+         10. D_ENV_ARANGO_HAS_AQL_K_PATHS
+         11. D_ENV_ARANGO_HAS_AQL_ALL_SHORTEST_PATHS
+         12. D_ENV_ARANGO_HAS_AQL_SEARCH_FUNCTION
+         13. D_ENV_ARANGO_HAS_AQL_PRUNE
+         14. D_ENV_ARANGO_HAS_AQL_COMPUTED_VALUES
+         15. D_ENV_ARANGO_HAS_AQL_EXPLAIN_PROFILE
+         16. D_ENV_ARANGO_HAS_AQL_LATE_MATERIALIZATION
+11. GRAPH FEATURES
+    --------------
+    1.  Graphs
+         1.  D_ENV_ARANGO_HAS_NAMED_GRAPHS
+         2.  D_ENV_ARANGO_HAS_SMART_GRAPHS
+         3.  D_ENV_ARANGO_HAS_ENTERPRISE_GRAPHS
+         4.  D_ENV_ARANGO_HAS_SATELLITE_GRAPHS
+         5.  D_ENV_ARANGO_HAS_DISJOINT_SMART_GRAPHS
+         6.  D_ENV_ARANGO_HAS_HYBRID_SMART_GRAPHS
+         7.  D_ENV_ARANGO_HAS_PREGEL
+12. TRANSACTIONS
+    ------------
+    1.  Transactions
+         1.  D_ENV_ARANGO_HAS_SINGLE_DOC_TRX
+         2.  D_ENV_ARANGO_HAS_JS_TRANSACTIONS
+         3.  D_ENV_ARANGO_HAS_STREAMING_TRX
+         4.  D_ENV_ARANGO_HAS_AQL_MULTI_DOC_TRX
+         5.  D_ENV_ARANGO_HAS_CLUSTER_TRX
+13. REPLICATION AND CLUSTERING
+    --------------------------
+    1.  Deployment and replication
+         1.  D_ENV_ARANGO_HAS_CLUSTER
+         2.  D_ENV_ARANGO_HAS_ACTIVE_FAILOVER
+         3.  D_ENV_ARANGO_HAS_ONESHARD
+         4.  D_ENV_ARANGO_HAS_SATELLITE_COLLECTIONS
+         5.  D_ENV_ARANGO_HAS_SMART_JOINS
+         6.  D_ENV_ARANGO_HAS_DC2DC_REPL
+         7.  D_ENV_ARANGO_HAS_SYNC_REPL
+         8.  D_ENV_ARANGO_HAS_WRITE_CONCERN
+14. SECURITY AND AUTHENTICATION
+    ---------------------------
+    1.  Authentication and encryption
+         1.  D_ENV_ARANGO_HAS_AUTH_JWT
+         2.  D_ENV_ARANGO_HAS_AUTH_BASIC
+         3.  D_ENV_ARANGO_HAS_AUTH_LDAP
+         4.  D_ENV_ARANGO_HAS_AUTH_KERBEROS
+         5.  D_ENV_ARANGO_HAS_SSL
+         6.  D_ENV_ARANGO_HAS_ENCRYPTION_AT_REST
+         7.  D_ENV_ARANGO_HAS_KEY_ROTATION
+         8.  D_ENV_ARANGO_HAS_AUDIT_LOG
+         9.  D_ENV_ARANGO_HAS_JWT_SECRET_ROTATION
+15. FOXX MICROSERVICES
+    ------------------
+    1.  Foxx
+         1.  D_ENV_ARANGO_HAS_FOXX
+         2.  D_ENV_ARANGO_HAS_FOXX_QUEUES
+         3.  D_ENV_ARANGO_HAS_FOXX_TYPESCRIPT
+16. BACKUP AND RESTORE
+    ------------------
+    1.  Backup and restore
+         1.  D_ENV_ARANGO_HAS_ARANGODUMP
+         2.  D_ENV_ARANGO_HAS_HOT_BACKUP
+         3.  D_ENV_ARANGO_HAS_ARANGOEXPORT
+         4.  D_ENV_ARANGO_HAS_DUMP_PARALLEL
+17. COLLECTION AND SCHEMA FEATURES
+    ------------------------------
+    1.  Collections and schemas
+         1.  D_ENV_ARANGO_HAS_DOCUMENT_COLLECTIONS
+         2.  D_ENV_ARANGO_HAS_EDGE_COLLECTIONS
+         3.  D_ENV_ARANGO_HAS_SCHEMA_VALIDATION
+         4.  D_ENV_ARANGO_HAS_COMPUTED_VALUES
+         5.  D_ENV_ARANGO_HAS_COLLECTION_SHARDING
+         6.  D_ENV_ARANGO_HAS_KEY_GENERATORS
+18. OPTIMIZER AND DIAGNOSTICS
+    -------------------------
+    1.  Optimizer and diagnostics
+         1.  D_ENV_ARANGO_HAS_AQL_OPTIMIZER
+         2.  D_ENV_ARANGO_HAS_QUERY_PROFILING
+         3.  D_ENV_ARANGO_HAS_QUERY_CACHE
+         4.  D_ENV_ARANGO_HAS_SLOW_QUERY_LOG
+         5.  D_ENV_ARANGO_HAS_METRICS_API
+19. COMPOSITE CHECKS
+    ----------------
+    1.  Composite checks
+         1.  D_ENV_ARANGO_HAS_MODERN_SEARCH
+         2.  D_ENV_ARANGO_HAS_MODERN_AQL
+         3.  D_ENV_ARANGO_HAS_MODERN_GRAPH
+         4.  D_ENV_ARANGO_HAS_MODERN_CLUSTER
+         5.  D_ENV_ARANGO_HAS_ENTERPRISE_SUITE
+         6.  D_ENV_ARANGO_IS_FULLY_MODERN
+20. DEPRECATION AND REMOVAL
+    -----------------------
+    1.  Deprecations
+         1.  D_ENV_ARANGO_DEPRECATED_FULLTEXT_INDEX
+         2.  D_ENV_ARANGO_DEPRECATED_HASH_INDEX
+         3.  D_ENV_ARANGO_DEPRECATED_SKIPLIST_INDEX
+*/
+
+#ifndef DJINTERP_ENV_DB_ARANGODB_ENV_ARANGODB_H
+#define DJINTERP_ENV_DB_ARANGODB_ENV_ARANGODB_H 1
 
 // djinterp
-#include "../../../../config/core/env/db/arangodb/env_arangodb_config.h"
-#include "../env_db.h"
+#include "../../../config/core/env/db/arangodb/cfg_env_arangodb.h"  // config
+#include "../env_db.h"  // base database detection (D_ENV_DB_*)
 
 
-// =============================================================================
-// 0.   VENDOR HEADER INCLUSION
-// =============================================================================
-//   Driven by D_CFG_ENV_USING_ARANGODB from env_config.h. ArangoDB has no
-// canonical C client API — the closest embedded entry point is the
-// velocypack C++ header. Consequently this section only engages in C++
-// builds; in C builds, a #error is raised if USING is enabled, since there
-// is nothing sensible to include. Detection below is gated on
+//==============================================================================
+// 1.  VENDOR HEADER INCLUSION
+//==============================================================================
+// Driven by D_CFG_ENV_USING_ARANGODB, from cfg_env_arangodb.h. ArangoDB has
+// no canonical C client API; the closest embedded entry point is the
+// velocypack C++ header, so this section engages only in C++ builds, and a
+// C build with the setting on is an #error. Detection below is gated on
 // D_ENV_ARANGODB_CPP_HEADER_INCLUDED.
 
+
+// 1.1    Vendor header
+//------------------------------------------------------------------------------
+// 1.1.1
+// D_ENV_ARANGODB_CPP_HEADER_INCLUDED
+//   detection: D_ENV_ARANGODB_CPP_HEADER_INCLUDED is 1 once this section has
+// included the velocypack header, and 0 when D_CFG_ENV_USING_ARANGODB is off;
+// D_ENV_DB_HAS_ARANGODB_CLIENT_CPP follows it unless pre-defined. With the
+// setting on, a C build or a missing header is an #error.
 #if (D_CFG_ENV_USING_ARANGODB == 1)
 
     #ifdef __cplusplus
         #if defined(__has_include)
             #if __has_include(D_CFG_ENV_ARANGODB_CPP_PATH)
-                #include D_CFG_ENV_ARANGODB_CPP_PATH
+                #include D_CFG_ENV_ARANGODB_CPP_PATH  // velocypack
                 #define D_ENV_ARANGODB_CPP_HEADER_INCLUDED 1
             #elif __has_include(<velocypack/vpack.h>)
-                #include <velocypack/vpack.h>
+                // arangodb
+                #include <velocypack/vpack.h>  // velocypack
                 #define D_ENV_ARANGODB_CPP_HEADER_INCLUDED 1
             #else
-                #error "D_CFG_ENV_USING_ARANGODB=1 but no velocypack "       \
-                       "header was found. Install libvelocypack-dev (or "    \
-                       "equivalent), or define D_CFG_ENV_ARANGODB_CPP_PATH " \
+                #error "D_CFG_ENV_USING_ARANGODB=1 but no velocypack "         \
+                       "header was found. Install libvelocypack-dev (or "      \
+                       "equivalent), or define D_CFG_ENV_ARANGODB_CPP_PATH "   \
                        "to the correct location."
             #endif
         #else
-            #include D_CFG_ENV_ARANGODB_CPP_PATH
+            #include D_CFG_ENV_ARANGODB_CPP_PATH  // velocypack
             #define D_ENV_ARANGODB_CPP_HEADER_INCLUDED 1
         #endif
 
         #ifndef D_ENV_DB_HAS_ARANGODB_CLIENT_CPP
             #define D_ENV_DB_HAS_ARANGODB_CLIENT_CPP 1
-        #endif
+        #endif  // D_ENV_DB_HAS_ARANGODB_CLIENT_CPP
 
     #else  // !__cplusplus
-        #error "D_CFG_ENV_USING_ARANGODB=1 requires a C++ build. ArangoDB "  \
-               "has no canonical C client surface; use the velocypack C++ "  \
+        #error "D_CFG_ENV_USING_ARANGODB=1 requires a C++ build. ArangoDB "    \
+               "has no canonical C client surface; use the velocypack C++ "    \
                "header or consume ArangoDB via its HTTP API directly."
-    #endif
+    #endif  // __cplusplus
 
 #else
     #define D_ENV_ARANGODB_CPP_HEADER_INCLUDED 0
     #ifndef D_ENV_DB_HAS_ARANGODB_CLIENT_CPP
         #define D_ENV_DB_HAS_ARANGODB_CLIENT_CPP 0
-    #endif
+    #endif  // D_ENV_DB_HAS_ARANGODB_CLIENT_CPP
 #endif  // D_CFG_ENV_USING_ARANGODB
 
 
-// =============================================================================
-// I.   CONFIGURATION SYSTEM
-// =============================================================================
+//==============================================================================
+// 2.  VERSION ENCODING
+//==============================================================================
+// Encoded as MAJOR*10000 + MINOR*100 + PATCH.
+// E.g. ArangoDB 3.11.5 = 31105.
 
-//   All D_CFG_* macros for this module live in env_arangodb_config.h,
-// pulled in at the top of this file.
 
-
-// =============================================================================
-// II.  VERSION ENCODING
-// =============================================================================
-//   Encoded as MAJOR*10000 + MINOR*100 + PATCH.
-//   E.g. ArangoDB 3.11.5 = 31105.
-
+// 2.1    Encoding and decoding
+//------------------------------------------------------------------------------
+// 2.1.1
 // D_ENV_ARANGO_ENCODE_VERSION
 //   macro: encodes a (major, minor, patch) triple into the version ID.
-#define D_ENV_ARANGO_ENCODE_VERSION(major, minor, patch) \
+#define D_ENV_ARANGO_ENCODE_VERSION(major, minor, patch)                       \
     ((major) * 10000 + (minor) * 100 + (patch))
 
+// 2.1.2
 // D_ENV_ARANGO_DECODE_MAJOR
 //   macro: extracts the major version from an encoded version ID.
-#define D_ENV_ARANGO_DECODE_MAJOR(ver) \
+#define D_ENV_ARANGO_DECODE_MAJOR(ver)                                         \
     ((ver) / 10000)
 
+// 2.1.3
 // D_ENV_ARANGO_DECODE_MINOR
 //   macro: extracts the minor version from an encoded version ID.
-#define D_ENV_ARANGO_DECODE_MINOR(ver) \
+#define D_ENV_ARANGO_DECODE_MINOR(ver)                                         \
     (((ver) / 100) % 100)
 
+// 2.1.4
 // D_ENV_ARANGO_DECODE_PATCH
 //   macro: extracts the patch version from an encoded version ID.
-#define D_ENV_ARANGO_DECODE_PATCH(ver) \
+#define D_ENV_ARANGO_DECODE_PATCH(ver)                                         \
     ((ver) % 100)
 
 
-// =============================================================================
-// III. VERSION DETECTION
-// =============================================================================
+//==============================================================================
+// 3.  VERSION DETECTION
+//==============================================================================
 
-// version ID constants for feature-significant releases
+
+// 3.1    Release version IDs
+//------------------------------------------------------------------------------
+// 3.1.1
+// D_ENV_ARANGO_VERSION_<MAJOR>_<MINOR>_<PATCH>
+//   constant: encoded IDs of the releases that gate features below, each
+// with what it introduced.
 #define D_ENV_ARANGO_VERSION_3_3_0     30300
 #define D_ENV_ARANGO_VERSION_3_4_0     30400   // ArangoSearch, stream trx
 #define D_ENV_ARANGO_VERSION_3_5_0     30500   // SmartJoins
@@ -172,6 +345,16 @@
 #define D_ENV_ARANGO_VERSION_3_11_1    31101
 #define D_ENV_ARANGO_VERSION_3_12_0    31200   // latest
 
+// 3.2    Detected version
+//------------------------------------------------------------------------------
+// 3.2.1
+// D_ENV_ARANGO_DETECTED / D_ENV_ARANGO_VERSION_*
+//   detection: D_ENV_ARANGO_DETECTED is 1 when an ArangoDB version is known,
+// and D_ENV_ARANGO_VERSION_ID, _MAJOR, _MINOR, _PATCH and _STRING then
+// describe it. Automatic mode reads ARANGODB_VERSION_MAJOR, _MINOR and _PATCH,
+// or the ARANGODB_VERSION string alone, which leaves the version at 0.
+// Manual mode (D_CFG_ENV_ARANGO_CUSTOM) reads D_ENV_ARANGO_DETECTED_VERSION,
+// or one of D_ENV_ARANGO_DETECTED_3_4 to _3_12.
 #if (D_CFG_ENV_ARANGO_CUSTOM == 0)
 
     // automatic detection via ArangoDB-provided version macros.
@@ -182,22 +365,22 @@
     // Requires the velocypack/ArangoDB header to be in scope; if
     // D_CFG_ENV_USING_ARANGODB was not enabled the sentinel is 0 and we skip
     // cleanly (no reference to ARANGODB_VERSION_MAJOR).
-    #if ( D_ENV_ARANGODB_CPP_HEADER_INCLUDED  &&  \
-          defined(ARANGODB_VERSION_MAJOR) )
+    #if ( (D_ENV_ARANGODB_CPP_HEADER_INCLUDED) &&                              \
+          (defined(ARANGODB_VERSION_MAJOR)) )
         #define D_ENV_ARANGO_DETECTED          1
         #define D_ENV_ARANGO_VERSION_MAJOR     ARANGODB_VERSION_MAJOR
         #define D_ENV_ARANGO_VERSION_MINOR     ARANGODB_VERSION_MINOR
         #define D_ENV_ARANGO_VERSION_PATCH     ARANGODB_VERSION_PATCH
-        #define D_ENV_ARANGO_VERSION_ID        \
-            D_ENV_ARANGO_ENCODE_VERSION(ARANGODB_VERSION_MAJOR,  \
-                                         ARANGODB_VERSION_MINOR,  \
+        #define D_ENV_ARANGO_VERSION_ID                                        \
+            D_ENV_ARANGO_ENCODE_VERSION(ARANGODB_VERSION_MAJOR,                \
+                                         ARANGODB_VERSION_MINOR,               \
                                          ARANGODB_VERSION_PATCH)
 
         #ifdef ARANGODB_VERSION
             #define D_ENV_ARANGO_VERSION_STRING ARANGODB_VERSION
         #else
             #define D_ENV_ARANGO_VERSION_STRING "unknown"
-        #endif
+        #endif  // ARANGODB_VERSION
 
     #elif defined(ARANGODB_VERSION)
         // string-only detection; version ID must be derived from the
@@ -218,11 +401,11 @@
     #ifdef D_ENV_ARANGO_DETECTED_VERSION
         #define D_ENV_ARANGO_DETECTED          1
         #define D_ENV_ARANGO_VERSION_ID        D_ENV_ARANGO_DETECTED_VERSION
-        #define D_ENV_ARANGO_VERSION_MAJOR     \
+        #define D_ENV_ARANGO_VERSION_MAJOR                                     \
             D_ENV_ARANGO_DECODE_MAJOR(D_ENV_ARANGO_DETECTED_VERSION)
-        #define D_ENV_ARANGO_VERSION_MINOR     \
+        #define D_ENV_ARANGO_VERSION_MINOR                                     \
             D_ENV_ARANGO_DECODE_MINOR(D_ENV_ARANGO_DETECTED_VERSION)
-        #define D_ENV_ARANGO_VERSION_PATCH     \
+        #define D_ENV_ARANGO_VERSION_PATCH                                     \
             D_ENV_ARANGO_DECODE_PATCH(D_ENV_ARANGO_DETECTED_VERSION)
         #define D_ENV_ARANGO_VERSION_STRING    "manual"
 
@@ -300,117 +483,151 @@
 
     #else
         #define D_ENV_ARANGO_DETECTED          0
-    #endif
+    #endif  // D_ENV_ARANGO_DETECTED_VERSION
 
 #endif  // D_CFG_ENV_ARANGO_CUSTOM
 
 
-// =============================================================================
-// IV.  VERSION COMPARISON MACROS
-// =============================================================================
-
+// sections 4 to 20 exist only when ArangoDB is detected; see 3.2.1
 #if D_ENV_ARANGO_DETECTED
 
-    #define D_ENV_ARANGO_VERSION_AT_LEAST(major, minor, patch) \
-        (D_ENV_ARANGO_VERSION_ID >= \
+//==============================================================================
+// 4.  VERSION COMPARISON MACROS
+//==============================================================================
+
+
+// 4.1    Comparisons
+//------------------------------------------------------------------------------
+    // 4.1.1
+    // D_ENV_ARANGO_VERSION_AT_LEAST
+    //   macro: 1 if the detected version is at least major.minor.patch.
+    #define D_ENV_ARANGO_VERSION_AT_LEAST(major, minor, patch)                 \
+        (D_ENV_ARANGO_VERSION_ID >=                                            \
             D_ENV_ARANGO_ENCODE_VERSION(major, minor, patch))
 
-    #define D_ENV_ARANGO_VERSION_BELOW(major, minor, patch) \
-        (D_ENV_ARANGO_VERSION_ID < \
+    // 4.1.2
+    // D_ENV_ARANGO_VERSION_BELOW
+    //   macro: 1 if the detected version is below major.minor.patch.
+    #define D_ENV_ARANGO_VERSION_BELOW(major, minor, patch)                    \
+        (D_ENV_ARANGO_VERSION_ID <                                             \
             D_ENV_ARANGO_ENCODE_VERSION(major, minor, patch))
 
-    #define D_ENV_ARANGO_VERSION_EXACT(major, minor, patch) \
-        (D_ENV_ARANGO_VERSION_ID == \
+    // 4.1.3
+    // D_ENV_ARANGO_VERSION_EXACT
+    //   macro: 1 if the detected version is exactly major.minor.patch.
+    #define D_ENV_ARANGO_VERSION_EXACT(major, minor, patch)                    \
+        (D_ENV_ARANGO_VERSION_ID ==                                            \
             D_ENV_ARANGO_ENCODE_VERSION(major, minor, patch))
 
-    #define D_ENV_ARANGO_VERSION_IN_RANGE(min_maj, min_min, min_pat,     \
-                                           max_maj, max_min, max_pat)     \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(min_maj, min_min, min_pat) &&    \
-          D_ENV_ARANGO_VERSION_BELOW(max_maj, max_min, max_pat) )
+    // 4.1.4
+    // D_ENV_ARANGO_VERSION_IN_RANGE
+    //   macro: 1 if the detected version is at least the first
+    // triple and below the second.
+    #define D_ENV_ARANGO_VERSION_IN_RANGE(min_maj, min_min, min_pat,           \
+                                          max_maj, max_min, max_pat)           \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(min_maj, min_min, min_pat)) &&        \
+          (D_ENV_ARANGO_VERSION_BELOW(max_maj, max_min, max_pat)) )
 
-    // series macros
-    #define D_ENV_ARANGO_IS_3_4 \
+// 4.2    Release series
+//------------------------------------------------------------------------------
+    // 4.2.1
+    // D_ENV_ARANGO_IS_<SERIES>
+    //   macro: 1 if the detected version is in that release series, 3.4 to
+    // 3.12; D_ENV_ARANGO_IS_3_12 also covers every later release.
+    #define D_ENV_ARANGO_IS_3_4                                                \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 4, 0, 3, 5, 0)
-    #define D_ENV_ARANGO_IS_3_5 \
+    #define D_ENV_ARANGO_IS_3_5                                                \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 5, 0, 3, 6, 0)
-    #define D_ENV_ARANGO_IS_3_6 \
+    #define D_ENV_ARANGO_IS_3_6                                                \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 6, 0, 3, 7, 0)
-    #define D_ENV_ARANGO_IS_3_7 \
+    #define D_ENV_ARANGO_IS_3_7                                                \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 7, 0, 3, 8, 0)
-    #define D_ENV_ARANGO_IS_3_8 \
+    #define D_ENV_ARANGO_IS_3_8                                                \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 8, 0, 3, 9, 0)
-    #define D_ENV_ARANGO_IS_3_9 \
+    #define D_ENV_ARANGO_IS_3_9                                                \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 9, 0, 3, 10, 0)
-    #define D_ENV_ARANGO_IS_3_10 \
+    #define D_ENV_ARANGO_IS_3_10                                               \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 10, 0, 3, 11, 0)
-    #define D_ENV_ARANGO_IS_3_11 \
+    #define D_ENV_ARANGO_IS_3_11                                               \
         D_ENV_ARANGO_VERSION_IN_RANGE(3, 11, 0, 3, 12, 0)
-    #define D_ENV_ARANGO_IS_3_12 \
+    #define D_ENV_ARANGO_IS_3_12                                               \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 12, 0)
 
 
-// =============================================================================
-// V.   EDITION DETECTION (COMMUNITY vs ENTERPRISE)
-// =============================================================================
-//   ArangoDB ships in two editions. The Enterprise edition includes
+//==============================================================================
+// 5.  EDITION DETECTION
+//==============================================================================
+// ArangoDB ships in two editions. The Enterprise edition includes
 // SmartGraphs, encryption at rest, LDAP authentication, DC2DC replication,
 // hot backup, and other advanced clustering features. The Community
 // edition is open-source with Apache 2.0 license (changed to BSL 1.1
 // in 3.10.2 for server, driver remains Apache 2.0).
 
+
+// 5.1    Editions
+//------------------------------------------------------------------------------
+    // 5.1.1
     // D_ENV_ARANGO_IS_ENTERPRISE
     //   detection: 1 if Enterprise edition is detected.
     #ifndef D_ENV_ARANGO_IS_ENTERPRISE
-        #if ( defined(USE_ENTERPRISE)            ||  \
-              defined(ARANGODB_ENTERPRISE)       ||  \
-              defined(D_ENV_ARANGO_DETECTED_ENTERPRISE) )
+        #if ( (defined(USE_ENTERPRISE))      ||                                \
+              (defined(ARANGODB_ENTERPRISE)) ||                                \
+              (defined(D_ENV_ARANGO_DETECTED_ENTERPRISE)) )
             #define D_ENV_ARANGO_IS_ENTERPRISE 1
         #else
             #define D_ENV_ARANGO_IS_ENTERPRISE 0
         #endif
-    #endif
+    #endif  // D_ENV_ARANGO_IS_ENTERPRISE
 
+    // 5.1.2
     // D_ENV_ARANGO_IS_COMMUNITY
     //   detection: 1 if Community edition (not Enterprise).
-    #define D_ENV_ARANGO_IS_COMMUNITY \
+    #define D_ENV_ARANGO_IS_COMMUNITY                                          \
         (!D_ENV_ARANGO_IS_ENTERPRISE)
 
+    // 5.1.3
     // D_ENV_ARANGO_LICENSE_IS_BSL
     //   status: 1 if the server is under Business Source License (3.10.2+
     // for server code). Does not affect client drivers.
-    #define D_ENV_ARANGO_LICENSE_IS_BSL \
+    #define D_ENV_ARANGO_LICENSE_IS_BSL                                        \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 2)
 
 
-// =============================================================================
-// VI.  CLIENT DRIVER AND PROTOCOL DETECTION
-// =============================================================================
+//==============================================================================
+// 6.  CLIENT DRIVER AND PROTOCOL DETECTION
+//==============================================================================
 
+
+// 6.1    Drivers and protocols
+//------------------------------------------------------------------------------
+    // 6.1.1
     // D_ENV_ARANGO_HAS_FUERTE
     //   feature: detect if the C++ fuerte HTTP/VST driver is available.
     #ifndef D_ENV_ARANGO_HAS_FUERTE
-        #if ( defined(FUERTE_VERSION)    ||  \
-              defined(FUERTE_VERSION_ID) )
+        #if ( (defined(FUERTE_VERSION)) ||                                     \
+              (defined(FUERTE_VERSION_ID)) )
             #define D_ENV_ARANGO_HAS_FUERTE 1
         #else
             #define D_ENV_ARANGO_HAS_FUERTE 0
         #endif
-    #endif
+    #endif  // D_ENV_ARANGO_HAS_FUERTE
 
+    // 6.1.2
     // D_ENV_ARANGO_HAS_VELOCYPACK
     //   feature: detect if VelocyPack (VPack) binary serialization
     // library is available. VelocyPack is ArangoDB's compact binary
     // JSON-compatible format used on the wire and for internal storage.
     #ifndef D_ENV_ARANGO_HAS_VELOCYPACK
-        #if ( defined(VELOCYPACK_VERSION)      ||  \
-              defined(VELOCYPACK_HAS_BUILDER)  ||  \
-              defined(VELOCYPACK_VELOCYPACK_H) )
+        #if ( (defined(VELOCYPACK_VERSION))     ||                             \
+              (defined(VELOCYPACK_HAS_BUILDER)) ||                             \
+              (defined(VELOCYPACK_VELOCYPACK_H)) )
             #define D_ENV_ARANGO_HAS_VELOCYPACK 1
         #else
             #define D_ENV_ARANGO_HAS_VELOCYPACK 0
         #endif
-    #endif
+    #endif  // D_ENV_ARANGO_HAS_VELOCYPACK
 
+    // 6.1.3
     // D_ENV_ARANGO_HAS_VST_PROTOCOL
     //   feature: VelocyStream (VST) binary protocol for client-server
     // communication (alternative to HTTP). Available since ArangoDB 3.0.
@@ -421,44 +638,54 @@
         #else
             #define D_ENV_ARANGO_HAS_VST_PROTOCOL 0
         #endif
-    #endif
+    #endif  // D_ENV_ARANGO_HAS_VST_PROTOCOL
 
+    // 6.1.4
     // D_ENV_ARANGO_VST_DEPRECATED
     //   status: 1 if VST protocol is deprecated (3.12+).
-    #define D_ENV_ARANGO_VST_DEPRECATED \
+    #define D_ENV_ARANGO_VST_DEPRECATED                                        \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 12, 0)
 
+    // 6.1.5
     // D_ENV_ARANGO_HAS_HTTP2
     //   feature: HTTP/2 protocol support for client-server communication.
     // Introduced in ArangoDB 3.7.1.
-    #define D_ENV_ARANGO_HAS_HTTP2 \
+    #define D_ENV_ARANGO_HAS_HTTP2                                             \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 1)
 
+    // 6.1.6
     // D_ENV_ARANGO_HAS_CURSOR_API
     //   feature: cursor-based result set iteration via HTTP API.
     // Core feature present in all modern versions.
     #define D_ENV_ARANGO_HAS_CURSOR_API D_ENV_ARANGO_DETECTED
 
+    // 6.1.7
     // D_ENV_ARANGO_HAS_BATCH_API
     //   feature: batch request API (multiple operations in one HTTP
     // request). Core feature.
     #define D_ENV_ARANGO_HAS_BATCH_API D_ENV_ARANGO_DETECTED
 
 
-// =============================================================================
-// VII. STORAGE ENGINE
-// =============================================================================
+//==============================================================================
+// 7.  STORAGE ENGINE
+//==============================================================================
 
+
+// 7.1    Storage engines
+//------------------------------------------------------------------------------
+    // 7.1.1
     // D_ENV_ARANGO_HAS_ROCKSDB
     //   feature: RocksDB storage engine. Available since 3.2, sole engine
     // since 3.7 (MMFiles was removed).
     #define D_ENV_ARANGO_HAS_ROCKSDB D_ENV_ARANGO_DETECTED
 
+    // 7.1.2
     // D_ENV_ARANGO_REMOVED_MMFILES
     //   status: 1 if MMFiles storage engine has been removed (3.7+).
-    #define D_ENV_ARANGO_REMOVED_MMFILES \
+    #define D_ENV_ARANGO_REMOVED_MMFILES                                       \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)
 
+    // 7.1.3
     // D_ENV_ARANGO_HAS_MMFILES
     //   feature: detect if MMFiles engine is still available (< 3.7).
     #ifndef D_ENV_ARANGO_HAS_MMFILES
@@ -467,19 +694,24 @@
         #else
             #define D_ENV_ARANGO_HAS_MMFILES 0
         #endif
-    #endif
+    #endif  // D_ENV_ARANGO_HAS_MMFILES
 
+    // 7.1.4
     // D_ENV_ARANGO_HAS_COMPRESSION
     //   feature: RocksDB column family compression (LZ4, Snappy, zstd).
     // Configurable since 3.4.
-    #define D_ENV_ARANGO_HAS_COMPRESSION \
+    #define D_ENV_ARANGO_HAS_COMPRESSION                                       \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
 
-// =============================================================================
-// VIII. INDEX TYPES
-// =============================================================================
+//==============================================================================
+// 8.  INDEX TYPES
+//==============================================================================
 
+
+// 8.1    Index types
+//------------------------------------------------------------------------------
+    // 8.1.1
     // D_ENV_ARANGO_HAS_INDEX_PERSISTENT
     //   feature: persistent (sorted, RocksDB-backed) index. This is the
     // primary index type since the move to RocksDB. Replaced the old
@@ -487,652 +719,779 @@
     // aliases for persistent.
     #define D_ENV_ARANGO_HAS_INDEX_PERSISTENT D_ENV_ARANGO_DETECTED
 
+    // 8.1.2
     // D_ENV_ARANGO_INDEX_HASH_IS_ALIAS
     //   status: 1 if "hash" index type is an alias for persistent.
     // The distinction was removed in 3.9.
-    #define D_ENV_ARANGO_INDEX_HASH_IS_ALIAS \
+    #define D_ENV_ARANGO_INDEX_HASH_IS_ALIAS                                   \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)
 
+    // 8.1.3
     // D_ENV_ARANGO_INDEX_SKIPLIST_IS_ALIAS
     //   status: 1 if "skiplist" index type is an alias for persistent.
-    #define D_ENV_ARANGO_INDEX_SKIPLIST_IS_ALIAS \
+    #define D_ENV_ARANGO_INDEX_SKIPLIST_IS_ALIAS                               \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)
 
+    // 8.1.4
     // D_ENV_ARANGO_HAS_INDEX_GEO
     //   feature: geo-spatial index (S2-based). Present in all modern
     // versions. Supports GeoJSON objects and legacy coordinate pairs.
     #define D_ENV_ARANGO_HAS_INDEX_GEO D_ENV_ARANGO_DETECTED
 
+    // 8.1.5
     // D_ENV_ARANGO_HAS_INDEX_FULLTEXT
     //   feature: legacy fulltext index. Present but deprecated since 3.10
     // in favor of ArangoSearch and inverted indexes.
     #define D_ENV_ARANGO_HAS_INDEX_FULLTEXT D_ENV_ARANGO_DETECTED
 
+    // 8.1.6
     // D_ENV_ARANGO_INDEX_FULLTEXT_DEPRECATED
     //   status: 1 if legacy fulltext index is deprecated (3.10+).
-    #define D_ENV_ARANGO_INDEX_FULLTEXT_DEPRECATED \
+    #define D_ENV_ARANGO_INDEX_FULLTEXT_DEPRECATED                             \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 8.1.7
     // D_ENV_ARANGO_HAS_INDEX_TTL
     //   feature: TTL (time-to-live) index for automatic document
     // expiration. Introduced in ArangoDB 3.5.
-    #define D_ENV_ARANGO_HAS_INDEX_TTL \
+    #define D_ENV_ARANGO_HAS_INDEX_TTL                                         \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 0)
 
+    // 8.1.8
     // D_ENV_ARANGO_HAS_INDEX_INVERTED
     //   feature: inverted index (standalone, outside of Views).
     // Introduced in ArangoDB 3.10, enhanced in 3.11+.
-    #define D_ENV_ARANGO_HAS_INDEX_INVERTED \
+    #define D_ENV_ARANGO_HAS_INDEX_INVERTED                                    \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 8.1.9
     // D_ENV_ARANGO_HAS_INDEX_MDI
     //   feature: multi-dimensional index (MDI / ZKD - Z-order Kurve
     // Decomposition) for multi-attribute range queries.
     // Introduced in ArangoDB 3.10 (experimental), stable in 3.12.
-    #define D_ENV_ARANGO_HAS_INDEX_MDI \
+    #define D_ENV_ARANGO_HAS_INDEX_MDI                                         \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 8.1.10
     // D_ENV_ARANGO_HAS_INDEX_MDI_PREFIXED
     //   feature: prefixed multi-dimensional index (MDI with a prefix
     // of regular persistent index fields). Introduced in 3.12.
-    #define D_ENV_ARANGO_HAS_INDEX_MDI_PREFIXED \
+    #define D_ENV_ARANGO_HAS_INDEX_MDI_PREFIXED                                \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 12, 0)
 
+    // 8.1.11
     // D_ENV_ARANGO_HAS_STORED_VALUES
     //   feature: storedValues on persistent indexes (covering index
     // capability, avoiding document lookups). Introduced in 3.10.
-    #define D_ENV_ARANGO_HAS_STORED_VALUES \
+    #define D_ENV_ARANGO_HAS_STORED_VALUES                                     \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 8.1.12
     // D_ENV_ARANGO_HAS_CACHE_ON_INDEX
     //   feature: per-index in-memory caching for persistent indexes.
     // Introduced in 3.10.
-    #define D_ENV_ARANGO_HAS_CACHE_ON_INDEX \
+    #define D_ENV_ARANGO_HAS_CACHE_ON_INDEX                                    \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
 
-// =============================================================================
-// IX.  ARANGOSEARCH AND VIEWS
-// =============================================================================
-//   ArangoSearch is built on the IResearch library and provides full-text
+//==============================================================================
+// 9.  ARANGOSEARCH AND VIEWS
+//==============================================================================
+// ArangoSearch is built on the IResearch library and provides full-text
 // search, ranking, and complex filtering capabilities via Views.
 
+
+// 9.1    Views and analyzers
+//------------------------------------------------------------------------------
+    // 9.1.1
     // D_ENV_ARANGO_HAS_ARANGOSEARCH
     //   feature: ArangoSearch Views (arangosearch type). Introduced in
     // ArangoDB 3.4 using the IResearch engine.
-    #define D_ENV_ARANGO_HAS_ARANGOSEARCH \
+    #define D_ENV_ARANGO_HAS_ARANGOSEARCH                                      \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
+    // 9.1.2
     // D_ENV_ARANGO_HAS_SEARCH_ALIAS_VIEWS
     //   feature: search-alias Views (lightweight Views backed by inverted
     // indexes on the collections, without separate data copies).
     // Introduced in ArangoDB 3.10.
-    #define D_ENV_ARANGO_HAS_SEARCH_ALIAS_VIEWS \
+    #define D_ENV_ARANGO_HAS_SEARCH_ALIAS_VIEWS                                \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 9.1.3
     // D_ENV_ARANGO_HAS_ANALYZERS
     //   feature: custom analyzers framework (text, norm, stem, ngram,
     // delimiter, pipeline, etc.). Introduced with ArangoSearch in 3.4.
-    #define D_ENV_ARANGO_HAS_ANALYZERS \
+    #define D_ENV_ARANGO_HAS_ANALYZERS                                         \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
+    // 9.1.4
     // D_ENV_ARANGO_HAS_ANALYZER_PIPELINE
     //   feature: pipeline analyzers (chaining multiple analyzers).
     // Introduced in ArangoDB 3.8.
-    #define D_ENV_ARANGO_HAS_ANALYZER_PIPELINE \
+    #define D_ENV_ARANGO_HAS_ANALYZER_PIPELINE                                 \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 8, 0)
 
+    // 9.1.5
     // D_ENV_ARANGO_HAS_ANALYZER_AQL
     //   feature: AQL analyzer type (applying AQL expressions as
     // analyzers for computed fields in Views). Introduced in 3.8.
-    #define D_ENV_ARANGO_HAS_ANALYZER_AQL \
+    #define D_ENV_ARANGO_HAS_ANALYZER_AQL                                      \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 8, 0)
 
+    // 9.1.6
     // D_ENV_ARANGO_HAS_ANALYZER_GEO
     //   feature: geo analyzers (geojson, geopoint) for spatial queries
     // via ArangoSearch. Introduced in 3.8.
-    #define D_ENV_ARANGO_HAS_ANALYZER_GEO \
+    #define D_ENV_ARANGO_HAS_ANALYZER_GEO                                      \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 8, 0)
 
+    // 9.1.7
     // D_ENV_ARANGO_HAS_ANALYZER_CLASSIFICATION
     //   feature: classification and nearest_neighbors analyzers for
     // ML-based text classification. Introduced in 3.10 (Enterprise).
-    #define D_ENV_ARANGO_HAS_ANALYZER_CLASSIFICATION \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_ANALYZER_CLASSIFICATION                           \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)) &&                         \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 9.1.8
     // D_ENV_ARANGO_HAS_ANALYZER_MINHASH
     //   feature: minhash analyzer for approximate set similarity.
     // Introduced in ArangoDB 3.10 (Enterprise).
-    #define D_ENV_ARANGO_HAS_ANALYZER_MINHASH \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_ANALYZER_MINHASH                                  \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)) &&                         \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 9.1.9
     // D_ENV_ARANGO_HAS_NESTED_SEARCH
     //   feature: nested search (querying into nested arrays/objects with
     // correct conjunctive semantics across sub-documents).
     // Introduced in ArangoDB 3.10.
-    #define D_ENV_ARANGO_HAS_NESTED_SEARCH \
+    #define D_ENV_ARANGO_HAS_NESTED_SEARCH                                     \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 9.1.10
     // D_ENV_ARANGO_HAS_SEARCH_HIGHLIGHT
     //   feature: SEARCH highlighting (returning matched fragments with
     // surrounding context). Introduced in ArangoDB 3.11.
-    #define D_ENV_ARANGO_HAS_SEARCH_HIGHLIGHT \
+    #define D_ENV_ARANGO_HAS_SEARCH_HIGHLIGHT                                  \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 11, 0)
 
+    // 9.1.11
     // D_ENV_ARANGO_HAS_SEARCH_OFFSET_INFO
     //   feature: offset information for SEARCH matches (start/length
     // positions in matched fields). Introduced in ArangoDB 3.11.
-    #define D_ENV_ARANGO_HAS_SEARCH_OFFSET_INFO \
+    #define D_ENV_ARANGO_HAS_SEARCH_OFFSET_INFO                                \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 11, 0)
 
+    // 9.1.12
     // D_ENV_ARANGO_HAS_SCORING_FUNCTIONS
     //   feature: BM25() and TFIDF() scoring functions in AQL for
     // relevance ranking in SEARCH queries. Available since 3.4.
-    #define D_ENV_ARANGO_HAS_SCORING_FUNCTIONS \
+    #define D_ENV_ARANGO_HAS_SCORING_FUNCTIONS                                 \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
 
-// =============================================================================
-// X.   AQL (ARANGODB QUERY LANGUAGE) FEATURES
-// =============================================================================
-//   AQL is ArangoDB's native query language - declarative, but not SQL.
+//==============================================================================
+// 10.  AQL (ARANGODB QUERY LANGUAGE) FEATURES
+//==============================================================================
+// AQL is ArangoDB's native query language - declarative, but not SQL.
 // It supports document operations, graph traversals, joins, aggregation,
 // sub-queries, and data modification (INSERT, UPDATE, REPLACE, REMOVE,
 // UPSERT) all in a single language.
 
+
+// 10.1   Query language
+//------------------------------------------------------------------------------
+    // 10.1.1
     // D_ENV_ARANGO_HAS_AQL
     //   feature: AQL is always available. Core feature.
     #define D_ENV_ARANGO_HAS_AQL D_ENV_ARANGO_DETECTED
 
+    // 10.1.2
     // D_ENV_ARANGO_HAS_AQL_UPSERT
     //   feature: UPSERT operation in AQL. Present in all 3.x versions.
     #define D_ENV_ARANGO_HAS_AQL_UPSERT D_ENV_ARANGO_DETECTED
 
+    // 10.1.3
     // D_ENV_ARANGO_HAS_AQL_INSERT_UPDATE
     //   feature: INSERT ... OPTIONS { overwriteMode: "update" } for
     // insert-or-update semantics. Introduced in 3.7.
-    #define D_ENV_ARANGO_HAS_AQL_INSERT_UPDATE \
+    #define D_ENV_ARANGO_HAS_AQL_INSERT_UPDATE                                 \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)
 
+    // 10.1.4
     // D_ENV_ARANGO_HAS_AQL_SUBQUERY_OPTIMIZATION
     //   feature: sub-query splicing optimization (inlining simple
     // sub-queries). Enhanced in 3.8+.
-    #define D_ENV_ARANGO_HAS_AQL_SUBQUERY_OPTIMIZATION \
+    #define D_ENV_ARANGO_HAS_AQL_SUBQUERY_OPTIMIZATION                         \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 8, 0)
 
+    // 10.1.5
     // D_ENV_ARANGO_HAS_AQL_WINDOW
     //   feature: WINDOW clause for cumulative/sliding-window aggregations
     // in AQL (analogous to SQL window functions). Introduced in 3.8.
-    #define D_ENV_ARANGO_HAS_AQL_WINDOW \
+    #define D_ENV_ARANGO_HAS_AQL_WINDOW                                        \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 8, 0)
 
+    // 10.1.6
     // D_ENV_ARANGO_HAS_AQL_COLLECT_AGGREGATE
     //   feature: COLLECT ... AGGREGATE syntax for grouped aggregation.
     // Present in all 3.x versions.
     #define D_ENV_ARANGO_HAS_AQL_COLLECT_AGGREGATE D_ENV_ARANGO_DETECTED
 
+    // 10.1.7
     // D_ENV_ARANGO_HAS_AQL_GRAPH_TRAVERSAL
     //   feature: graph traversal syntax (FOR v, e, p IN ... GRAPH ...).
     // Core AQL feature.
     #define D_ENV_ARANGO_HAS_AQL_GRAPH_TRAVERSAL D_ENV_ARANGO_DETECTED
 
+    // 10.1.8
     // D_ENV_ARANGO_HAS_AQL_SHORTEST_PATH
     //   feature: SHORTEST_PATH query in AQL. Core feature.
     #define D_ENV_ARANGO_HAS_AQL_SHORTEST_PATH D_ENV_ARANGO_DETECTED
 
+    // 10.1.9
     // D_ENV_ARANGO_HAS_AQL_K_SHORTEST_PATHS
     //   feature: K_SHORTEST_PATHS query in AQL. Introduced in 3.5.
-    #define D_ENV_ARANGO_HAS_AQL_K_SHORTEST_PATHS \
+    #define D_ENV_ARANGO_HAS_AQL_K_SHORTEST_PATHS                              \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 0)
 
+    // 10.1.10
     // D_ENV_ARANGO_HAS_AQL_K_PATHS
     //   feature: K_PATHS query (all paths between source and target).
     // Introduced in 3.9.
-    #define D_ENV_ARANGO_HAS_AQL_K_PATHS \
+    #define D_ENV_ARANGO_HAS_AQL_K_PATHS                                       \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)
 
+    // 10.1.11
     // D_ENV_ARANGO_HAS_AQL_ALL_SHORTEST_PATHS
     //   feature: ALL_SHORTEST_PATHS query. Introduced in 3.9.
-    #define D_ENV_ARANGO_HAS_AQL_ALL_SHORTEST_PATHS \
+    #define D_ENV_ARANGO_HAS_AQL_ALL_SHORTEST_PATHS                            \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)
 
+    // 10.1.12
     // D_ENV_ARANGO_HAS_AQL_SEARCH_FUNCTION
     //   feature: SEARCH keyword in AQL (filtering on ArangoSearch Views
     // and inverted indexes). Available since ArangoSearch in 3.4.
-    #define D_ENV_ARANGO_HAS_AQL_SEARCH_FUNCTION \
+    #define D_ENV_ARANGO_HAS_AQL_SEARCH_FUNCTION                               \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
+    // 10.1.13
     // D_ENV_ARANGO_HAS_AQL_PRUNE
     //   feature: PRUNE clause for graph traversals (early termination
     // of traversal branches). Introduced in 3.4.5.
-    #define D_ENV_ARANGO_HAS_AQL_PRUNE \
+    #define D_ENV_ARANGO_HAS_AQL_PRUNE                                         \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 5)
 
+    // 10.1.14
     // D_ENV_ARANGO_HAS_AQL_COMPUTED_VALUES
     //   feature: computed values (server-side computed attributes set
     // on INSERT/UPDATE/REPLACE). Introduced in 3.10.
-    #define D_ENV_ARANGO_HAS_AQL_COMPUTED_VALUES \
+    #define D_ENV_ARANGO_HAS_AQL_COMPUTED_VALUES                               \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 10.1.15
     // D_ENV_ARANGO_HAS_AQL_EXPLAIN_PROFILE
     //   feature: AQL query profiling (EXPLAIN with actual runtime data).
     // Enhanced in 3.5+.
-    #define D_ENV_ARANGO_HAS_AQL_EXPLAIN_PROFILE \
+    #define D_ENV_ARANGO_HAS_AQL_EXPLAIN_PROFILE                               \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 0)
 
+    // 10.1.16
     // D_ENV_ARANGO_HAS_AQL_LATE_MATERIALIZATION
     //   feature: late document materialization optimization (deferred
     // full document fetches until actually needed). Introduced in 3.10.
-    #define D_ENV_ARANGO_HAS_AQL_LATE_MATERIALIZATION \
+    #define D_ENV_ARANGO_HAS_AQL_LATE_MATERIALIZATION                          \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
 
-// =============================================================================
-// XI.  GRAPH FEATURES
-// =============================================================================
+//==============================================================================
+// 11.  GRAPH FEATURES
+//==============================================================================
 
+
+// 11.1   Graphs
+//------------------------------------------------------------------------------
+    // 11.1.1
     // D_ENV_ARANGO_HAS_NAMED_GRAPHS
     //   feature: named graph management (CREATE/DROP/MODIFY graph API).
     #define D_ENV_ARANGO_HAS_NAMED_GRAPHS D_ENV_ARANGO_DETECTED
 
+    // 11.1.2
     // D_ENV_ARANGO_HAS_SMART_GRAPHS
     //   feature: SmartGraphs (enterprise graphs with data locality for
     // graph traversals across shards). Enterprise only. Introduced in 3.4.
-    #define D_ENV_ARANGO_HAS_SMART_GRAPHS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_SMART_GRAPHS                                      \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 11.1.3
     // D_ENV_ARANGO_HAS_ENTERPRISE_GRAPHS
     //   feature: EnterpriseGraphs (automatically sharded graphs without
     // manual SmartGraph attribute selection). Enterprise only.
     // Introduced in 3.10.
-    #define D_ENV_ARANGO_HAS_ENTERPRISE_GRAPHS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_ENTERPRISE_GRAPHS                                 \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)) &&                         \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 11.1.4
     // D_ENV_ARANGO_HAS_SATELLITE_GRAPHS
     //   feature: SatelliteGraphs (graph replicated to every DB server
     // for local traversals). Enterprise only. Introduced in 3.7.
-    #define D_ENV_ARANGO_HAS_SATELLITE_GRAPHS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_SATELLITE_GRAPHS                                  \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 11.1.5
     // D_ENV_ARANGO_HAS_DISJOINT_SMART_GRAPHS
     //   feature: DisjointSmartGraphs (SmartGraphs where edge collections
     // are disjoint for better performance). Enterprise only.
     // Introduced in 3.7.
-    #define D_ENV_ARANGO_HAS_DISJOINT_SMART_GRAPHS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_DISJOINT_SMART_GRAPHS                             \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 11.1.6
     // D_ENV_ARANGO_HAS_HYBRID_SMART_GRAPHS
     //   feature: HybridSmartGraphs (SmartGraphs that also use
     // SatelliteCollections for certain vertex collections).
     // Enterprise only. Introduced in 3.9.
-    #define D_ENV_ARANGO_HAS_HYBRID_SMART_GRAPHS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_HYBRID_SMART_GRAPHS                               \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 11.1.7
     // D_ENV_ARANGO_HAS_PREGEL
     //   feature: Pregel graph processing framework (distributed iterative
     // graph algorithms: PageRank, community detection, etc.).
     // Introduced in 3.4.
-    #define D_ENV_ARANGO_HAS_PREGEL \
+    #define D_ENV_ARANGO_HAS_PREGEL                                            \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
 
-// =============================================================================
-// XII. TRANSACTIONS
-// =============================================================================
+//==============================================================================
+// 12.  TRANSACTIONS
+//==============================================================================
 
+
+// 12.1   Transactions
+//------------------------------------------------------------------------------
+    // 12.1.1
     // D_ENV_ARANGO_HAS_SINGLE_DOC_TRX
     //   feature: single-document ACID transactions. Core feature (all
     // single-document operations are atomic by default).
     #define D_ENV_ARANGO_HAS_SINGLE_DOC_TRX D_ENV_ARANGO_DETECTED
 
+    // 12.1.2
     // D_ENV_ARANGO_HAS_JS_TRANSACTIONS
     //   feature: JavaScript (server-side) multi-collection transactions.
     // Core feature.
     #define D_ENV_ARANGO_HAS_JS_TRANSACTIONS D_ENV_ARANGO_DETECTED
 
+    // 12.1.3
     // D_ENV_ARANGO_HAS_STREAMING_TRX
     //   feature: streaming (HTTP-based) multi-document transactions
     // with explicit BEGIN/COMMIT/ABORT via REST API.
     // Introduced in ArangoDB 3.5.
-    #define D_ENV_ARANGO_HAS_STREAMING_TRX \
+    #define D_ENV_ARANGO_HAS_STREAMING_TRX                                     \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 0)
 
+    // 12.1.4
     // D_ENV_ARANGO_HAS_AQL_MULTI_DOC_TRX
     //   feature: implicit multi-document transactions within a single
     // AQL query (the query runs as one atomic operation for all
     // modifications). Available since 3.4.
-    #define D_ENV_ARANGO_HAS_AQL_MULTI_DOC_TRX \
+    #define D_ENV_ARANGO_HAS_AQL_MULTI_DOC_TRX                                 \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
+    // 12.1.5
     // D_ENV_ARANGO_HAS_CLUSTER_TRX
     //   feature: cluster-wide multi-shard transactions (intermediate
     // commits within AQL on clusters). Enhanced in 3.9+.
-    #define D_ENV_ARANGO_HAS_CLUSTER_TRX \
+    #define D_ENV_ARANGO_HAS_CLUSTER_TRX                                       \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)
 
 
-// =============================================================================
-// XIII. REPLICATION AND CLUSTERING
-// =============================================================================
+//==============================================================================
+// 13.  REPLICATION AND CLUSTERING
+//==============================================================================
 
+
+// 13.1   Deployment and replication
+//------------------------------------------------------------------------------
+    // 13.1.1
     // D_ENV_ARANGO_HAS_CLUSTER
     //   feature: ArangoDB cluster deployment (Coordinators, DB-Servers,
     // Agents). Core clustering architecture present since 3.0.
     #define D_ENV_ARANGO_HAS_CLUSTER D_ENV_ARANGO_DETECTED
 
+    // 13.1.2
     // D_ENV_ARANGO_HAS_ACTIVE_FAILOVER
     //   feature: Active Failover (single-server HA with automatic
     // leader election). Introduced in ArangoDB 3.3.
-    #define D_ENV_ARANGO_HAS_ACTIVE_FAILOVER \
+    #define D_ENV_ARANGO_HAS_ACTIVE_FAILOVER                                   \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 3, 0)
 
+    // 13.1.3
     // D_ENV_ARANGO_HAS_ONESHARD
     //   feature: OneShard deployment (all collections of a database on
     // a single shard for local join performance). Introduced in 3.6.
-    #define D_ENV_ARANGO_HAS_ONESHARD \
+    #define D_ENV_ARANGO_HAS_ONESHARD                                          \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 6, 0)
 
+    // 13.1.4
     // D_ENV_ARANGO_HAS_SATELLITE_COLLECTIONS
     //   feature: SatelliteCollections (collections replicated to every
     // DB server for shard-local joins). Enterprise only. Introduced in 3.4.
-    #define D_ENV_ARANGO_HAS_SATELLITE_COLLECTIONS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_SATELLITE_COLLECTIONS                             \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 13.1.5
     // D_ENV_ARANGO_HAS_SMART_JOINS
     //   feature: SmartJoins (shard-local joins on identically sharded
     // collections). Enterprise only. Introduced in 3.5.
-    #define D_ENV_ARANGO_HAS_SMART_JOINS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_SMART_JOINS                                       \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 13.1.6
     // D_ENV_ARANGO_HAS_DC2DC_REPL
     //   feature: datacenter-to-datacenter replication (asynchronous cross-
     // datacenter replication). Enterprise only. Introduced in 3.3.
-    #define D_ENV_ARANGO_HAS_DC2DC_REPL \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 3, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_DC2DC_REPL                                        \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 3, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 13.1.7
     // D_ENV_ARANGO_HAS_SYNC_REPL
     //   feature: synchronous replication (configurable replication factor
     // per collection within a cluster). Core cluster feature.
     #define D_ENV_ARANGO_HAS_SYNC_REPL D_ENV_ARANGO_DETECTED
 
+    // 13.1.8
     // D_ENV_ARANGO_HAS_WRITE_CONCERN
     //   feature: write concern (minimum number of in-sync replicas
     // required before acknowledging a write). Introduced in 3.6.
-    #define D_ENV_ARANGO_HAS_WRITE_CONCERN \
+    #define D_ENV_ARANGO_HAS_WRITE_CONCERN                                     \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 6, 0)
 
 
-// =============================================================================
-// XIV. SECURITY AND AUTHENTICATION
-// =============================================================================
+//==============================================================================
+// 14.  SECURITY AND AUTHENTICATION
+//==============================================================================
 
+
+// 14.1   Authentication and encryption
+//------------------------------------------------------------------------------
+    // 14.1.1
     // D_ENV_ARANGO_HAS_AUTH_JWT
     //   feature: JWT (JSON Web Token) authentication for HTTP API.
     // Core authentication method.
     #define D_ENV_ARANGO_HAS_AUTH_JWT D_ENV_ARANGO_DETECTED
 
+    // 14.1.2
     // D_ENV_ARANGO_HAS_AUTH_BASIC
     //   feature: HTTP Basic authentication. Core feature.
     #define D_ENV_ARANGO_HAS_AUTH_BASIC D_ENV_ARANGO_DETECTED
 
+    // 14.1.3
     // D_ENV_ARANGO_HAS_AUTH_LDAP
     //   feature: LDAP authentication and authorization.
     // Enterprise only. Available since 3.4.
-    #define D_ENV_ARANGO_HAS_AUTH_LDAP \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_AUTH_LDAP                                         \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 14.1.4
     // D_ENV_ARANGO_HAS_AUTH_KERBEROS
     //   feature: Kerberos authentication. Enterprise only.
     // Introduced in ArangoDB 3.7.
-    #define D_ENV_ARANGO_HAS_AUTH_KERBEROS \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_AUTH_KERBEROS                                     \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 14.1.5
     // D_ENV_ARANGO_HAS_SSL
     //   feature: SSL/TLS for client-server encryption in transit.
     // Core feature, always available.
     #define D_ENV_ARANGO_HAS_SSL D_ENV_ARANGO_DETECTED
 
+    // 14.1.6
     // D_ENV_ARANGO_HAS_ENCRYPTION_AT_REST
     //   feature: encryption at rest (RocksDB encryption).
     // Enterprise only. Available since 3.4.
-    #define D_ENV_ARANGO_HAS_ENCRYPTION_AT_REST \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_ENCRYPTION_AT_REST                                \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 14.1.7
     // D_ENV_ARANGO_HAS_KEY_ROTATION
     //   feature: encryption key rotation for at-rest encryption.
     // Enterprise only. Introduced in 3.7.
-    #define D_ENV_ARANGO_HAS_KEY_ROTATION \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_KEY_ROTATION                                      \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 14.1.8
     // D_ENV_ARANGO_HAS_AUDIT_LOG
     //   feature: audit logging. Enterprise only. Available since 3.4.
-    #define D_ENV_ARANGO_HAS_AUDIT_LOG \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_AUDIT_LOG                                         \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 14.1.9
     // D_ENV_ARANGO_HAS_JWT_SECRET_ROTATION
     //   feature: JWT secret rotation (reloading secrets without restart).
     // Introduced in 3.7.
-    #define D_ENV_ARANGO_HAS_JWT_SECRET_ROTATION \
+    #define D_ENV_ARANGO_HAS_JWT_SECRET_ROTATION                               \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)
 
 
-// =============================================================================
-// XV.  FOXX MICROSERVICES
-// =============================================================================
+//==============================================================================
+// 15.  FOXX MICROSERVICES
+//==============================================================================
 
+
+// 15.1   Foxx
+//------------------------------------------------------------------------------
+    // 15.1.1
     // D_ENV_ARANGO_HAS_FOXX
     //   feature: Foxx microservices framework (server-side JavaScript
     // services running inside ArangoDB). Core feature.
     #define D_ENV_ARANGO_HAS_FOXX D_ENV_ARANGO_DETECTED
 
+    // 15.1.2
     // D_ENV_ARANGO_HAS_FOXX_QUEUES
     //   feature: Foxx job queues (background task execution).
     #define D_ENV_ARANGO_HAS_FOXX_QUEUES D_ENV_ARANGO_DETECTED
 
+    // 15.1.3
     // D_ENV_ARANGO_HAS_FOXX_TYPESCRIPT
     //   feature: TypeScript support in Foxx services. Introduced in 3.4.
-    #define D_ENV_ARANGO_HAS_FOXX_TYPESCRIPT \
+    #define D_ENV_ARANGO_HAS_FOXX_TYPESCRIPT                                   \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 4, 0)
 
 
-// =============================================================================
-// XVI. BACKUP AND RESTORE
-// =============================================================================
+//==============================================================================
+// 16.  BACKUP AND RESTORE
+//==============================================================================
 
+
+// 16.1   Backup and restore
+//------------------------------------------------------------------------------
+    // 16.1.1
     // D_ENV_ARANGO_HAS_ARANGODUMP
     //   feature: arangodump / arangorestore utilities for logical backup.
     // Core tooling.
     #define D_ENV_ARANGO_HAS_ARANGODUMP D_ENV_ARANGO_DETECTED
 
+    // 16.1.2
     // D_ENV_ARANGO_HAS_HOT_BACKUP
     //   feature: hot backup API (consistent cluster-wide snapshot without
     // downtime). Enterprise only. Introduced in 3.5.1.
-    #define D_ENV_ARANGO_HAS_HOT_BACKUP \
-        ( D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 1) && \
-          D_ENV_ARANGO_IS_ENTERPRISE )
+    #define D_ENV_ARANGO_HAS_HOT_BACKUP                                        \
+        ( (D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 1)) &&                          \
+          (D_ENV_ARANGO_IS_ENTERPRISE) )
 
+    // 16.1.3
     // D_ENV_ARANGO_HAS_ARANGOEXPORT
     //   feature: arangoexport utility (JSONL/CSV/XML/XGMML export).
     #define D_ENV_ARANGO_HAS_ARANGOEXPORT D_ENV_ARANGO_DETECTED
 
+    // 16.1.4
     // D_ENV_ARANGO_HAS_DUMP_PARALLEL
     //   feature: parallel dump/restore (multi-threaded arangodump).
     // Enhanced parallelism introduced in 3.8+.
-    #define D_ENV_ARANGO_HAS_DUMP_PARALLEL \
+    #define D_ENV_ARANGO_HAS_DUMP_PARALLEL                                     \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 8, 0)
 
 
-// =============================================================================
-// XVII. COLLECTION AND SCHEMA FEATURES
-// =============================================================================
+//==============================================================================
+// 17.  COLLECTION AND SCHEMA FEATURES
+//==============================================================================
 
+
+// 17.1   Collections and schemas
+//------------------------------------------------------------------------------
+    // 17.1.1
     // D_ENV_ARANGO_HAS_DOCUMENT_COLLECTIONS
     //   feature: document collections. Core data model.
     #define D_ENV_ARANGO_HAS_DOCUMENT_COLLECTIONS D_ENV_ARANGO_DETECTED
 
+    // 17.1.2
     // D_ENV_ARANGO_HAS_EDGE_COLLECTIONS
     //   feature: edge collections (for graph relationships). Core.
     #define D_ENV_ARANGO_HAS_EDGE_COLLECTIONS D_ENV_ARANGO_DETECTED
 
+    // 17.1.3
     // D_ENV_ARANGO_HAS_SCHEMA_VALIDATION
     //   feature: JSON Schema validation on collections (enforcing
     // document structure at write time). Introduced in 3.7.
-    #define D_ENV_ARANGO_HAS_SCHEMA_VALIDATION \
+    #define D_ENV_ARANGO_HAS_SCHEMA_VALIDATION                                 \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 7, 0)
 
+    // 17.1.4
     // D_ENV_ARANGO_HAS_COMPUTED_VALUES
     //   feature: computed values (server-side computed attributes).
     // Introduced in 3.10.
-    #define D_ENV_ARANGO_HAS_COMPUTED_VALUES \
+    #define D_ENV_ARANGO_HAS_COMPUTED_VALUES                                   \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
+    // 17.1.5
     // D_ENV_ARANGO_HAS_COLLECTION_SHARDING
     //   feature: collection sharding (distributing data across DB
     // servers by shard key). Core cluster feature.
     #define D_ENV_ARANGO_HAS_COLLECTION_SHARDING D_ENV_ARANGO_DETECTED
 
+    // 17.1.6
     // D_ENV_ARANGO_HAS_KEY_GENERATORS
     //   feature: configurable key generators (traditional, autoincrement,
     // uuid, padded). Core feature.
     #define D_ENV_ARANGO_HAS_KEY_GENERATORS D_ENV_ARANGO_DETECTED
 
 
-// =============================================================================
-// XVIII. OPTIMIZER AND DIAGNOSTICS
-// =============================================================================
+//==============================================================================
+// 18.  OPTIMIZER AND DIAGNOSTICS
+//==============================================================================
 
+
+// 18.1   Optimizer and diagnostics
+//------------------------------------------------------------------------------
+    // 18.1.1
     // D_ENV_ARANGO_HAS_AQL_OPTIMIZER
     //   feature: AQL query optimizer (rule-based optimization with
     // configurable rules). Core feature.
     #define D_ENV_ARANGO_HAS_AQL_OPTIMIZER D_ENV_ARANGO_DETECTED
 
+    // 18.1.2
     // D_ENV_ARANGO_HAS_QUERY_PROFILING
     //   feature: per-query runtime profiling (execution statistics per
     // node in the query plan). Enhanced in 3.5+.
-    #define D_ENV_ARANGO_HAS_QUERY_PROFILING \
+    #define D_ENV_ARANGO_HAS_QUERY_PROFILING                                   \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 5, 0)
 
+    // 18.1.3
     // D_ENV_ARANGO_HAS_QUERY_CACHE
     //   feature: AQL query results cache. Present in all modern versions;
     // works in single-server mode.
     #define D_ENV_ARANGO_HAS_QUERY_CACHE D_ENV_ARANGO_DETECTED
 
+    // 18.1.4
     // D_ENV_ARANGO_HAS_SLOW_QUERY_LOG
     //   feature: slow query log (logging queries exceeding a time
     // threshold). Core feature.
     #define D_ENV_ARANGO_HAS_SLOW_QUERY_LOG D_ENV_ARANGO_DETECTED
 
+    // 18.1.5
     // D_ENV_ARANGO_HAS_METRICS_API
     //   feature: Prometheus-compatible metrics endpoint. Introduced
     // in 3.8 (/_admin/metrics/v2).
-    #define D_ENV_ARANGO_HAS_METRICS_API \
+    #define D_ENV_ARANGO_HAS_METRICS_API                                       \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 8, 0)
 
 
-// =============================================================================
-// XIX.  CONVENIENCE / COMPOSITE MACROS
-// =============================================================================
+//==============================================================================
+// 19.  COMPOSITE CHECKS
+//==============================================================================
 
+
+// 19.1   Composite checks
+//------------------------------------------------------------------------------
+    // 19.1.1
     // D_ENV_ARANGO_HAS_MODERN_SEARCH
     //   macro: evaluates to 1 if ArangoSearch, analyzers, search-alias
     // Views, inverted indexes, and nested search are all available.
-    #define D_ENV_ARANGO_HAS_MODERN_SEARCH \
-        ( D_ENV_ARANGO_HAS_ARANGOSEARCH       && \
-          D_ENV_ARANGO_HAS_ANALYZERS          && \
-          D_ENV_ARANGO_HAS_SEARCH_ALIAS_VIEWS && \
-          D_ENV_ARANGO_HAS_INDEX_INVERTED     && \
-          D_ENV_ARANGO_HAS_NESTED_SEARCH )
+    #define D_ENV_ARANGO_HAS_MODERN_SEARCH                                     \
+        ( (D_ENV_ARANGO_HAS_ARANGOSEARCH)       &&                             \
+          (D_ENV_ARANGO_HAS_ANALYZERS)          &&                             \
+          (D_ENV_ARANGO_HAS_SEARCH_ALIAS_VIEWS) &&                             \
+          (D_ENV_ARANGO_HAS_INDEX_INVERTED)     &&                             \
+          (D_ENV_ARANGO_HAS_NESTED_SEARCH) )
 
+    // 19.1.2
     // D_ENV_ARANGO_HAS_MODERN_AQL
     //   macro: evaluates to 1 if AQL window functions, late
     // materialization, and computed values are all available.
-    #define D_ENV_ARANGO_HAS_MODERN_AQL \
-        ( D_ENV_ARANGO_HAS_AQL_WINDOW              && \
-          D_ENV_ARANGO_HAS_AQL_LATE_MATERIALIZATION && \
-          D_ENV_ARANGO_HAS_AQL_COMPUTED_VALUES )
+    #define D_ENV_ARANGO_HAS_MODERN_AQL                                        \
+        ( (D_ENV_ARANGO_HAS_AQL_WINDOW)               &&                       \
+          (D_ENV_ARANGO_HAS_AQL_LATE_MATERIALIZATION) &&                       \
+          (D_ENV_ARANGO_HAS_AQL_COMPUTED_VALUES) )
 
+    // 19.1.3
     // D_ENV_ARANGO_HAS_MODERN_GRAPH
     //   macro: evaluates to 1 if K_PATHS, ALL_SHORTEST_PATHS, and Pregel
     // are all available.
-    #define D_ENV_ARANGO_HAS_MODERN_GRAPH \
-        ( D_ENV_ARANGO_HAS_AQL_K_PATHS             && \
-          D_ENV_ARANGO_HAS_AQL_ALL_SHORTEST_PATHS  && \
-          D_ENV_ARANGO_HAS_PREGEL )
+    #define D_ENV_ARANGO_HAS_MODERN_GRAPH                                      \
+        ( (D_ENV_ARANGO_HAS_AQL_K_PATHS)            &&                         \
+          (D_ENV_ARANGO_HAS_AQL_ALL_SHORTEST_PATHS) &&                         \
+          (D_ENV_ARANGO_HAS_PREGEL) )
 
+    // 19.1.4
     // D_ENV_ARANGO_HAS_MODERN_CLUSTER
     //   macro: evaluates to 1 if OneShard, write concern, and cluster
     // transactions are all available.
-    #define D_ENV_ARANGO_HAS_MODERN_CLUSTER \
-        ( D_ENV_ARANGO_HAS_ONESHARD     && \
-          D_ENV_ARANGO_HAS_WRITE_CONCERN && \
-          D_ENV_ARANGO_HAS_CLUSTER_TRX )
+    #define D_ENV_ARANGO_HAS_MODERN_CLUSTER                                    \
+        ( (D_ENV_ARANGO_HAS_ONESHARD)      &&                                  \
+          (D_ENV_ARANGO_HAS_WRITE_CONCERN) &&                                  \
+          (D_ENV_ARANGO_HAS_CLUSTER_TRX) )
 
+    // 19.1.5
     // D_ENV_ARANGO_HAS_ENTERPRISE_SUITE
     //   macro: evaluates to 1 if all core Enterprise features are
     // available (SmartGraphs, encryption, LDAP, hot backup, audit log).
-    #define D_ENV_ARANGO_HAS_ENTERPRISE_SUITE \
-        ( D_ENV_ARANGO_HAS_SMART_GRAPHS          && \
-          D_ENV_ARANGO_HAS_ENCRYPTION_AT_REST    && \
-          D_ENV_ARANGO_HAS_AUTH_LDAP             && \
-          D_ENV_ARANGO_HAS_HOT_BACKUP           && \
-          D_ENV_ARANGO_HAS_AUDIT_LOG )
+    #define D_ENV_ARANGO_HAS_ENTERPRISE_SUITE                                  \
+        ( (D_ENV_ARANGO_HAS_SMART_GRAPHS)       &&                             \
+          (D_ENV_ARANGO_HAS_ENCRYPTION_AT_REST) &&                             \
+          (D_ENV_ARANGO_HAS_AUTH_LDAP)          &&                             \
+          (D_ENV_ARANGO_HAS_HOT_BACKUP)         &&                             \
+          (D_ENV_ARANGO_HAS_AUDIT_LOG) )
 
+    // 19.1.6
     // D_ENV_ARANGO_IS_FULLY_MODERN
     //   macro: evaluates to 1 if ArangoDB has a comprehensive modern
     // feature set (roughly 3.10+ with search, AQL, graph, and cluster).
-    #define D_ENV_ARANGO_IS_FULLY_MODERN \
-        ( D_ENV_ARANGO_HAS_MODERN_SEARCH  && \
-          D_ENV_ARANGO_HAS_MODERN_AQL     && \
-          D_ENV_ARANGO_HAS_MODERN_GRAPH   && \
-          D_ENV_ARANGO_HAS_MODERN_CLUSTER && \
-          D_ENV_ARANGO_HAS_STREAMING_TRX )
+    #define D_ENV_ARANGO_IS_FULLY_MODERN                                       \
+        ( (D_ENV_ARANGO_HAS_MODERN_SEARCH)  &&                                 \
+          (D_ENV_ARANGO_HAS_MODERN_AQL)     &&                                 \
+          (D_ENV_ARANGO_HAS_MODERN_GRAPH)   &&                                 \
+          (D_ENV_ARANGO_HAS_MODERN_CLUSTER) &&                                 \
+          (D_ENV_ARANGO_HAS_STREAMING_TRX) )
 
 
-// =============================================================================
-// XX.   DEPRECATION AND REMOVAL
-// =============================================================================
+//==============================================================================
+// 20.  DEPRECATION AND REMOVAL
+//==============================================================================
+// D_ENV_ARANGO_REMOVED_MMFILES and D_ENV_ARANGO_VST_DEPRECATED, defined with
+// the storage-engine and protocol flags, belong here too.
 
-    // D_ENV_ARANGO_REMOVED_MMFILES
-    //   status: already defined above (VII).
 
+// 20.1   Deprecations
+//------------------------------------------------------------------------------
+    // 20.1.1
     // D_ENV_ARANGO_DEPRECATED_FULLTEXT_INDEX
     //   status: 1 if legacy fulltext index is deprecated (use
     // ArangoSearch / inverted index instead). 3.10+.
-    #define D_ENV_ARANGO_DEPRECATED_FULLTEXT_INDEX \
+    #define D_ENV_ARANGO_DEPRECATED_FULLTEXT_INDEX                             \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 10, 0)
 
-    // D_ENV_ARANGO_DEPRECATED_VST
-    //   status: alias from VI above.
-
+    // 20.1.2
     // D_ENV_ARANGO_DEPRECATED_HASH_INDEX
     //   status: 1 if "hash" index type name is deprecated (now alias for
     // persistent). 3.9+.
-    #define D_ENV_ARANGO_DEPRECATED_HASH_INDEX \
+    #define D_ENV_ARANGO_DEPRECATED_HASH_INDEX                                 \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)
 
+    // 20.1.3
     // D_ENV_ARANGO_DEPRECATED_SKIPLIST_INDEX
     //   status: 1 if "skiplist" index type name is deprecated (now alias
     // for persistent). 3.9+.
-    #define D_ENV_ARANGO_DEPRECATED_SKIPLIST_INDEX \
+    #define D_ENV_ARANGO_DEPRECATED_SKIPLIST_INDEX                             \
         D_ENV_ARANGO_VERSION_AT_LEAST(3, 9, 0)
 
 
 #endif  // D_ENV_ARANGO_DETECTED
 
 
-#endif  // DJINTERP_ENVIRONMENT_ARANGODB_
+#endif  // DJINTERP_ENV_DB_ARANGODB_ENV_ARANGODB_H

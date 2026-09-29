@@ -17,10 +17,10 @@
 * D_ENV_ARCHIVE_CAN_<READ|WRITE>_<FORMAT> reports format capability.
 *
 *
-* path:      /inc/djinterp/env/env_archive.h
+* path:      /inc/djinterp/env/util/archive/env_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -116,13 +116,14 @@ TABLE OF CONTENTS
     1.  Runtime probes
 */
 
-#ifndef DJINTERP_ENV_ENV_ARCHIVE_H
-#define DJINTERP_ENV_ENV_ARCHIVE_H 1
+#ifndef DJINTERP_ENV_UTIL_ARCHIVE_ENV_ARCHIVE_H
+#define DJINTERP_ENV_UTIL_ARCHIVE_ENV_ARCHIVE_H 1
 
 // djinterp
-#include "../c/djinterp.h"   // D_EXTERN_C_BEGIN, D_EXTERN_C_END
-#include "./env.h"           // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
-#include "./env_compress.h"  // D_ENV_HAS_INCLUDE, D_ENV_COMPRESSION_HAVE_*
+#include "../../../c/djinterp.h"       // D_EXTERN_C_BEGIN, D_EXTERN_C_END
+#include "../../env.h"                 // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
+#include "../compress/env_compress.h"  // D_ENV_HAS_INCLUDE,
+                                       // D_ENV_COMPRESSION_HAVE_*
 
 
 //==============================================================================
@@ -136,8 +137,8 @@ TABLE OF CONTENTS
 // D_INTERNAL_ARCHIVE_OS_WINDOWS
 //   constant: 1 when the target is Windows, selecting the Windows spellings in
 // 1.1.2; 0 otherwise.
-#if ( defined(D_ENV_OS_ID) &&                                                 \
-      D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID) )
+#if ( (defined(D_ENV_OS_ID)) &&                                                \
+      (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) )
     #define D_INTERNAL_ARCHIVE_OS_WINDOWS 1
 #else
     #define D_INTERNAL_ARCHIVE_OS_WINDOWS 0
@@ -317,8 +318,8 @@ TABLE OF CONTENTS
 //   feature: detect the classic zlib-contrib minizip via its split
 // <minizip/zip.h> / <minizip/unzip.h> headers.
 #ifndef D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC
-    #if ( D_INTERNAL_ARCHIVE_PROBE(<minizip/zip.h>) &&                         \
-          D_INTERNAL_ARCHIVE_PROBE(<minizip/unzip.h>) )
+    #if ( (D_INTERNAL_ARCHIVE_PROBE(<minizip/zip.h>)) &&                       \
+          (D_INTERNAL_ARCHIVE_PROBE(<minizip/unzip.h>)) )
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC  1
     #else
         #define D_ENV_ARCHIVE_HAVE_MINIZIP_CLASSIC  0
@@ -353,10 +354,10 @@ TABLE OF CONTENTS
 //   feature: detect the 7-Zip / LZMA SDK C headers. several layouts exist in
 // the wild; any of the probed headers implies the SDK is present.
 #ifndef D_ENV_ARCHIVE_HAVE_LZMA_SDK
-    #if ( D_INTERNAL_ARCHIVE_PROBE(<7z.h>)      ||                             \
-          D_INTERNAL_ARCHIVE_PROBE(<7zTypes.h>) ||                             \
-          D_INTERNAL_ARCHIVE_PROBE(<LzmaLib.h>) ||                             \
-          D_INTERNAL_ARCHIVE_PROBE(<Lzma2Enc.h>) )
+    #if ( (D_INTERNAL_ARCHIVE_PROBE(<7z.h>))      ||                           \
+          (D_INTERNAL_ARCHIVE_PROBE(<7zTypes.h>)) ||                           \
+          (D_INTERNAL_ARCHIVE_PROBE(<LzmaLib.h>)) ||                           \
+          (D_INTERNAL_ARCHIVE_PROBE(<Lzma2Enc.h>)) )
         #define D_ENV_ARCHIVE_HAVE_LZMA_SDK         1
     #else
         #define D_ENV_ARCHIVE_HAVE_LZMA_SDK         0
@@ -369,9 +370,9 @@ TABLE OF CONTENTS
 // the 7-Zip library for full 7z read / write from C++.
 // note: bit7z is C++ only.
 #ifndef D_ENV_ARCHIVE_HAVE_BIT7Z
-    #if ( (D_ENV_LANG_USING_CPP) &&                                           \
-          ( D_INTERNAL_ARCHIVE_PROBE(<bit7z/bittypes.hpp>) ||                  \
-            D_INTERNAL_ARCHIVE_PROBE(<bit7z/bit7z.hpp>) ) )
+    #if ( (D_ENV_LANG_USING_CPP) &&                                            \
+          ( (D_INTERNAL_ARCHIVE_PROBE(<bit7z/bittypes.hpp>)) ||                \
+            (D_INTERNAL_ARCHIVE_PROBE(<bit7z/bit7z.hpp>)) ) )
         #define D_ENV_ARCHIVE_HAVE_BIT7Z            1
     #else
         #define D_ENV_ARCHIVE_HAVE_BIT7Z            0
@@ -381,9 +382,9 @@ TABLE OF CONTENTS
 // 3.5.3
 // D_ENV_ARCHIVE_HAVE_7ZIP
 //   feature: 1 if any 7z-capable backend is available.
-#define D_ENV_ARCHIVE_HAVE_7ZIP                                               \
-    ( D_ENV_ARCHIVE_HAVE_LZMA_SDK ||                                          \
-      D_ENV_ARCHIVE_HAVE_BIT7Z    ||                                          \
+#define D_ENV_ARCHIVE_HAVE_7ZIP                                                \
+    ( D_ENV_ARCHIVE_HAVE_LZMA_SDK ||                                           \
+      D_ENV_ARCHIVE_HAVE_BIT7Z    ||                                           \
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
 // 3.6    RAR (UnRAR / WinRAR)
@@ -397,8 +398,8 @@ TABLE OF CONTENTS
 //   feature: detect the RARLAB UnRAR library (<unrar.h>, or the C++ SDK header
 // <unrar/dll.hpp>). extraction only; UnRAR cannot create archives.
 #ifndef D_ENV_ARCHIVE_HAVE_UNRAR
-    #if ( D_INTERNAL_ARCHIVE_PROBE(<unrar.h>) ||                              \
-          D_INTERNAL_ARCHIVE_PROBE(<unrar/dll.hpp>) )
+    #if ( (D_INTERNAL_ARCHIVE_PROBE(<unrar.h>)) ||                             \
+          (D_INTERNAL_ARCHIVE_PROBE(<unrar/dll.hpp>)) )
         #define D_ENV_ARCHIVE_HAVE_UNRAR            1
     #else
         #define D_ENV_ARCHIVE_HAVE_UNRAR            0
@@ -423,10 +424,10 @@ TABLE OF CONTENTS
 // As with 7z write, we key on libarchive presence rather than
 // D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST (which requires including <archive.h>);
 // any libarchive recent enough to be installed satisfies the 3.4 floor.
-#define D_ENV_ARCHIVE_CAN_READ_RAR5                                          \
-    ( D_ENV_ARCHIVE_HAVE_UNRAR    ||                                        \
-      D_ENV_ARCHIVE_HAVE_BIT7Z    ||                                        \
-      D_ENV_ARCHIVE_HAVE_RAR_TOOL ||                                        \
+#define D_ENV_ARCHIVE_CAN_READ_RAR5                                            \
+    ( D_ENV_ARCHIVE_HAVE_UNRAR    ||                                           \
+      D_ENV_ARCHIVE_HAVE_BIT7Z    ||                                           \
+      D_ENV_ARCHIVE_HAVE_RAR_TOOL ||                                           \
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
 
@@ -447,7 +448,7 @@ TABLE OF CONTENTS
 //   feature: macOS bundles bsdtar (libarchive) as /usr/bin/tar, giving tar,
 // tar.gz, and zip handling without any linked library.
 #ifndef D_ENV_ARCHIVE_LIKELY_APPLE_BSDTAR
-    #if ( defined(D_ENV_OS_ID) &&                                             \
+    #if ( (defined(D_ENV_OS_ID)) &&                                            \
           (D_ENV_OS_ID == D_ENV_OS_FLAG_MACOS) )
         #define D_ENV_ARCHIVE_LIKELY_APPLE_BSDTAR   1
     #else
@@ -460,8 +461,8 @@ TABLE OF CONTENTS
 //   feature: Windows 10 (build 17063 / version 1803) and Windows 11 bundle
 // bsdtar as tar.exe, which also reads and writes zip.
 #ifndef D_ENV_ARCHIVE_LIKELY_WIN_BSDTAR
-    #if ( defined(D_ENV_OS_ID) &&                                             \
-          ( (D_ENV_OS_ID == D_ENV_OS_FLAG_WIN_PC_10) ||                       \
+    #if ( (defined(D_ENV_OS_ID)) &&                                            \
+          ( (D_ENV_OS_ID == D_ENV_OS_FLAG_WIN_PC_10) ||                        \
             (D_ENV_OS_ID == D_ENV_OS_FLAG_WIN_PC_11) ) )
         #define D_ENV_ARCHIVE_LIKELY_WIN_BSDTAR     1
     #else
@@ -475,9 +476,9 @@ TABLE OF CONTENTS
 // IShellDispatch / "compressed folders"), usable to create and extract zip
 // archives on desktop Windows without a third-party library.
 #ifndef D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP
-    #if ( defined(D_ENV_OS_ID)                       &&                       \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)           &&                       \
-          D_INTERNAL_ARCHIVE_PROBE(<shldisp.h>) )
+    #if ( (defined(D_ENV_OS_ID))             &&                                \
+          (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) &&                                \
+          (D_INTERNAL_ARCHIVE_PROBE(<shldisp.h>)) )
         #define D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP    1
     #else
         #define D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP    0
@@ -499,12 +500,12 @@ TABLE OF CONTENTS
 // 5.1.1
 // D_ENV_ARCHIVE_CAN_READ_ZIP
 //   feature: 1 if some backend can read zip archives.
-#define D_ENV_ARCHIVE_CAN_READ_ZIP                                            \
-    ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE      ||                                   \
-      D_ENV_ARCHIVE_HAVE_LIBZIP          ||                                   \
-      D_ENV_ARCHIVE_HAVE_MINIZIP         ||                                   \
-      D_ENV_COMPRESSION_HAVE_MINIZ       ||                                   \
-      D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP   ||                                   \
+#define D_ENV_ARCHIVE_CAN_READ_ZIP                                             \
+    ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE      ||                                    \
+      D_ENV_ARCHIVE_HAVE_LIBZIP          ||                                    \
+      D_ENV_ARCHIVE_HAVE_MINIZIP         ||                                    \
+      D_ENV_COMPRESSION_HAVE_MINIZ       ||                                    \
+      D_ENV_ARCHIVE_HAVE_WIN_SHELL_ZIP   ||                                    \
       D_ENV_ARCHIVE_HAVE_BUILTIN_ZIP )
 
 // 5.1.2
@@ -517,9 +518,9 @@ TABLE OF CONTENTS
 // 5.2.1
 // D_ENV_ARCHIVE_CAN_READ_TAR
 //   feature: 1 if some backend can read tar archives (uncompressed).
-#define D_ENV_ARCHIVE_CAN_READ_TAR                                            \
-    ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                        \
-      D_ENV_ARCHIVE_HAVE_LIBTAR     ||                                        \
+#define D_ENV_ARCHIVE_CAN_READ_TAR                                             \
+    ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                         \
+      D_ENV_ARCHIVE_HAVE_LIBTAR     ||                                         \
       D_ENV_ARCHIVE_HAVE_BUILTIN_TAR )
 
 // 5.2.2
@@ -531,9 +532,9 @@ TABLE OF CONTENTS
 // D_ENV_ARCHIVE_CAN_WRITE_TGZ
 //   feature: 1 if a compressed tar.gz can be produced (a tar writer plus a
 // gzip codec, or libarchive which bundles the gzip filter).
-#define D_ENV_ARCHIVE_CAN_WRITE_TGZ                                           \
-    ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                        \
-      ( D_ENV_ARCHIVE_HAVE_LIBTAR      && D_ENV_COMPRESSION_HAVE_GZIP ) ||    \
+#define D_ENV_ARCHIVE_CAN_WRITE_TGZ                                            \
+    ( D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                         \
+      ( D_ENV_ARCHIVE_HAVE_LIBTAR      && D_ENV_COMPRESSION_HAVE_GZIP ) ||     \
       ( D_ENV_ARCHIVE_HAVE_BUILTIN_TAR && D_ENV_COMPRESSION_HAVE_GZIP_WRAP ) )
 
 // 5.3    gz (gzip stream)
@@ -542,8 +543,8 @@ TABLE OF CONTENTS
 // D_ENV_ARCHIVE_CAN_READ_GZ
 //   feature: 1 if a gzip stream can be read (any gzip-container codec or the
 // libarchive gzip filter).
-#define D_ENV_ARCHIVE_CAN_READ_GZ                                             \
-    ( D_ENV_COMPRESSION_HAVE_GZIP_WRAP ||                                     \
+#define D_ENV_ARCHIVE_CAN_READ_GZ                                              \
+    ( D_ENV_COMPRESSION_HAVE_GZIP_WRAP ||                                      \
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
 // 5.3.2
@@ -565,9 +566,9 @@ TABLE OF CONTENTS
 // D_ENV_ARCHIVE_LIBARCHIVE_AT_LEAST (which needs <archive.h> to be included to
 // read ARCHIVE_VERSION_NUMBER, and this is a presence-only detection layer).
 // bit7z and the LZMA SDK can also create 7z.
-#define D_ENV_ARCHIVE_CAN_WRITE_7Z                                            \
-    ( D_ENV_ARCHIVE_HAVE_BIT7Z      ||                                        \
-      D_ENV_ARCHIVE_HAVE_LZMA_SDK   ||                                        \
+#define D_ENV_ARCHIVE_CAN_WRITE_7Z                                             \
+    ( D_ENV_ARCHIVE_HAVE_BIT7Z      ||                                         \
+      D_ENV_ARCHIVE_HAVE_LZMA_SDK   ||                                         \
       D_ENV_ARCHIVE_HAVE_LIBARCHIVE )
 
 // 5.5    rar
@@ -576,10 +577,10 @@ TABLE OF CONTENTS
 // D_ENV_ARCHIVE_CAN_READ_RAR
 //   feature: 1 if some backend can extract RAR (UnRAR, libarchive's RAR
 // reader, a 7-Zip-based backend, or the rar/unrar tool).
-#define D_ENV_ARCHIVE_CAN_READ_RAR                                            \
-    ( D_ENV_ARCHIVE_HAVE_UNRAR      ||                                        \
-      D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                        \
-      D_ENV_ARCHIVE_HAVE_BIT7Z      ||                                        \
+#define D_ENV_ARCHIVE_CAN_READ_RAR                                             \
+    ( D_ENV_ARCHIVE_HAVE_UNRAR      ||                                         \
+      D_ENV_ARCHIVE_HAVE_LIBARCHIVE ||                                         \
+      D_ENV_ARCHIVE_HAVE_BIT7Z      ||                                         \
       D_ENV_ARCHIVE_HAVE_RAR_TOOL )
 
 // 5.5.2
@@ -593,11 +594,11 @@ TABLE OF CONTENTS
 // 5.6.1
 // D_ENV_ARCHIVE_CAN_WRITE_ANY
 //   feature: 1 if any supported format can be written.
-#define D_ENV_ARCHIVE_CAN_WRITE_ANY                                           \
-    ( D_ENV_ARCHIVE_CAN_WRITE_ZIP ||                                          \
-      D_ENV_ARCHIVE_CAN_WRITE_TAR ||                                          \
-      D_ENV_ARCHIVE_CAN_WRITE_GZ  ||                                          \
-      D_ENV_ARCHIVE_CAN_WRITE_7Z  ||                                          \
+#define D_ENV_ARCHIVE_CAN_WRITE_ANY                                            \
+    ( D_ENV_ARCHIVE_CAN_WRITE_ZIP ||                                           \
+      D_ENV_ARCHIVE_CAN_WRITE_TAR ||                                           \
+      D_ENV_ARCHIVE_CAN_WRITE_GZ  ||                                           \
+      D_ENV_ARCHIVE_CAN_WRITE_7Z  ||                                           \
       D_ENV_ARCHIVE_CAN_WRITE_RAR )
 
 
@@ -795,4 +796,4 @@ void        d_env_archive_print_info(void);
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_ENV_ENV_ARCHIVE_H
+#endif  // DJINTERP_ENV_UTIL_ARCHIVE_ENV_ARCHIVE_H

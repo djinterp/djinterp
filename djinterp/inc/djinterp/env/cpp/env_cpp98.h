@@ -1,202 +1,253 @@
-/******************************************************************************
-* djinterp [core]                                                 env_cpp98.h
-* 
-* djinterp C++98 standard library header detection:
-* This header provides compile-time detection of C++98 standard library
-* headers, which predate the feature test macro system. This serves as a
-* complement to cpp_features.h, which handles C++11+ feature detection via
-* __cpp_lib_* macros.
+/*******************************************************************************
+* djinterp [env]                                                     env_cpp98.h
 *
-* SCOPE:
-*   - C++98 standard library headers only
-*   - Assumes availability in any conforming C++ implementation
-*   - Provides platform-specific workarounds for incomplete implementations
-*   - Does NOT duplicate functionality from cpp_features.h
+* djinterp C++98 standard-library header detection.
+*   Detects which C++98 standard-library headers are available. They predate
+* the feature-test macros that env_cpp_features.h reads, so each flag assumes
+* its header exists in any C++ build, except where a platform or a compiler
+* switch is known to remove it: <locale> on AVR and Android, <typeinfo>
+* without RTTI, and <exception> and <stdexcept> without exception support. In
+* C, every flag is 0.
+*   D_ENV_CPP98_HAS_<HEADER> is 1 if <header> is available and 0 otherwise;
+* D_ENV_CPP98_HAS_ALL_* and D_ENV_CPP98_HAS_FULL_STL combine them.
+*   Every D_ENV_CPP98_HAS_<HEADER> flag is pre-definable: #define it before
+* including this header to override the detected value, for instance to test a
+* partial library, to simulate another platform, or to switch exceptions off.
+*   It reads only the compiler's own predefined macros, and includes nothing.
 *
-* USAGE:
-*   Include env.h before including this header:
-*     #include "env.h"
-*     #include "env_cpp98.h"
 *
-* NAMING CONVENTION:
-*   D_ENV_CPP98_HAS_[HEADER_NAME] - 1 if available, 0 otherwise
-*
-* path:      \inc\env_cpp98.h                                           
-* author(s): Samuel 'teer' Neal-Blim                       created: 2025.02.08
-******************************************************************************/
+* path:      /inc/djinterp/env/cpp/env_cpp98.h
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.02.08
+*                                                            revised: 2026.09.27
+*******************************************************************************/
 
-#ifndef DJINTERP_CPP98_ENVIRONMENT_
-#define DJINTERP_CPP98_ENVIRONMENT_ 1
+/*
+TABLE OF CONTENTS
+=================
+1.  C++98 STANDARD LIBRARY HEADERS
+    ------------------------------
+    1.  Containers
+         1.  D_ENV_CPP98_HAS_VECTOR
+         2.  D_ENV_CPP98_HAS_LIST
+         3.  D_ENV_CPP98_HAS_DEQUE
+         4.  D_ENV_CPP98_HAS_QUEUE
+         5.  D_ENV_CPP98_HAS_STACK
+         6.  D_ENV_CPP98_HAS_MAP
+         7.  D_ENV_CPP98_HAS_SET
+         8.  D_ENV_CPP98_HAS_BITSET
+    2.  Algorithms and iterators
+         1.  D_ENV_CPP98_HAS_ALGORITHM
+         2.  D_ENV_CPP98_HAS_ITERATOR
+         3.  D_ENV_CPP98_HAS_FUNCTIONAL
+         4.  D_ENV_CPP98_HAS_NUMERIC
+    3.  Strings and localization
+         1.  D_ENV_CPP98_HAS_STRING
+         2.  D_ENV_CPP98_HAS_LOCALE
+    4.  I/O streams
+         1.  D_ENV_CPP98_HAS_IOSTREAM
+         2.  D_ENV_CPP98_HAS_ISTREAM
+         3.  D_ENV_CPP98_HAS_OSTREAM
+         4.  D_ENV_CPP98_HAS_FSTREAM
+         5.  D_ENV_CPP98_HAS_SSTREAM
+         6.  D_ENV_CPP98_HAS_IOMANIP
+         7.  D_ENV_CPP98_HAS_IOS
+         8.  D_ENV_CPP98_HAS_IOSFWD
+         9.  D_ENV_CPP98_HAS_STREAMBUF
+    5.  Utilities
+         1.  D_ENV_CPP98_HAS_UTILITY
+         2.  D_ENV_CPP98_HAS_MEMORY
+         3.  D_ENV_CPP98_HAS_NEW
+         4.  D_ENV_CPP98_HAS_TYPEINFO
+         5.  D_ENV_CPP98_HAS_EXCEPTION
+         6.  D_ENV_CPP98_HAS_STDEXCEPT
+         7.  D_ENV_CPP98_HAS_LIMITS
+    6.  Numerics
+         1.  D_ENV_CPP98_HAS_COMPLEX
+         2.  D_ENV_CPP98_HAS_VALARRAY
+2.  AGGREGATE CHECKS
+    ----------------
+    1.  Header groups
+         1.  D_ENV_CPP98_HAS_ALL_CONTAINERS
+         2.  D_ENV_CPP98_HAS_ALL_ALGORITHMS
+         3.  D_ENV_CPP98_HAS_ALL_IOSTREAMS
+         4.  D_ENV_CPP98_HAS_ALL_UTILITIES
+         5.  D_ENV_CPP98_HAS_ALL_NUMERICS
+    2.  Whole library
+         1.  D_ENV_CPP98_HAS_FULL_STL
+*/
 
-// require env.h to be included first
-//#ifndef DJINTERP_C_ENVIRONMENT_
-//    #error "env_cpp98.h requires env.h to be included first"
-//#endif
-//
-//// only meaningful in C++ mode
-//#ifndef __cplusplus
-//    #error "env_cpp98.h can only be used in C++ compilation mode"
-//#endif
+#ifndef DJINTERP_ENV_CPP_ENV_CPP98_H
+#define DJINTERP_ENV_CPP_ENV_CPP98_H 1
 
 
-// ===========================================================================
-// I.   C++98 STANDARD LIBRARY HEADERS
-// ===========================================================================
+//==============================================================================
+// 1.  C++98 STANDARD LIBRARY HEADERS
+//==============================================================================
+// Any conforming C++98 or later implementation provides these headers, so the
+// flags mostly document a dependency, and give non-conforming or embedded
+// implementations a hook. Embedded libraries (Arduino, AVR-GCC) often ship a
+// subset, commonly without <locale>, exceptions, RTTI, or, on bare metal, I/O
+// streams.
 
-// NOTE: In any conforming C++98 or later implementation, these headers should
-// be available. The macros primarily serve as documentation and provide hooks
-// for handling non-conforming or embedded implementations.
 
-// -----------------------------------------------------------------------------
-// A. Containers
-// -----------------------------------------------------------------------------
-
+// 1.1    Containers
+//------------------------------------------------------------------------------
+// 1.1.1
 // D_ENV_CPP98_HAS_VECTOR
-//   feature: detect if <vector> is available (C++98+)
+//   feature: 1 if <vector> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_VECTOR
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_VECTOR 1
     #else
         #define D_ENV_CPP98_HAS_VECTOR 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_VECTOR
 
+// 1.1.2
 // D_ENV_CPP98_HAS_LIST
-//   feature: detect if <list> is available (C++98+)
+//   feature: 1 if <list> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_LIST
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_LIST 1
     #else
         #define D_ENV_CPP98_HAS_LIST 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_LIST
 
+// 1.1.3
 // D_ENV_CPP98_HAS_DEQUE
-//   feature: detect if <deque> is available (C++98+)
+//   feature: 1 if <deque> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_DEQUE
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_DEQUE 1
     #else
         #define D_ENV_CPP98_HAS_DEQUE 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_DEQUE
 
+// 1.1.4
 // D_ENV_CPP98_HAS_QUEUE
-//   feature: detect if <queue> is available (C++98+)
+//   feature: 1 if <queue> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_QUEUE
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_QUEUE 1
     #else
         #define D_ENV_CPP98_HAS_QUEUE 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_QUEUE
 
+// 1.1.5
 // D_ENV_CPP98_HAS_STACK
-//   feature: detect if <stack> is available (C++98+)
+//   feature: 1 if <stack> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_STACK
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_STACK 1
     #else
         #define D_ENV_CPP98_HAS_STACK 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_STACK
 
+// 1.1.6
 // D_ENV_CPP98_HAS_MAP
-//   feature: detect if <map> is available (C++98+)
+//   feature: 1 if <map> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_MAP
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_MAP 1
     #else
         #define D_ENV_CPP98_HAS_MAP 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_MAP
 
+// 1.1.7
 // D_ENV_CPP98_HAS_SET
-//   feature: detect if <set> is available (C++98+)
+//   feature: 1 if <set> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_SET
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_SET 1
     #else
         #define D_ENV_CPP98_HAS_SET 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_SET
 
+// 1.1.8
 // D_ENV_CPP98_HAS_BITSET
-//   feature: detect if <bitset> is available (C++98+)
+//   feature: 1 if <bitset> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_BITSET
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_BITSET 1
     #else
         #define D_ENV_CPP98_HAS_BITSET 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_BITSET
 
-
-// -----------------------------------------------------------------------------
-// B. Algorithms and Iterators
-// -----------------------------------------------------------------------------
-
+// 1.2    Algorithms and iterators
+//------------------------------------------------------------------------------
+// 1.2.1
 // D_ENV_CPP98_HAS_ALGORITHM
-//   feature: detect if <algorithm> is available (C++98+)
+//   feature: 1 if <algorithm> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_ALGORITHM
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_ALGORITHM 1
     #else
         #define D_ENV_CPP98_HAS_ALGORITHM 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_ALGORITHM
 
+// 1.2.2
 // D_ENV_CPP98_HAS_ITERATOR
-//   feature: detect if <iterator> is available (C++98+)
+//   feature: 1 if <iterator> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_ITERATOR
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_ITERATOR 1
     #else
         #define D_ENV_CPP98_HAS_ITERATOR 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_ITERATOR
 
+// 1.2.3
 // D_ENV_CPP98_HAS_FUNCTIONAL
-//   feature: detect if <functional> is available (C++98+)
+//   feature: 1 if <functional> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_FUNCTIONAL
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_FUNCTIONAL 1
     #else
         #define D_ENV_CPP98_HAS_FUNCTIONAL 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_FUNCTIONAL
 
+// 1.2.4
 // D_ENV_CPP98_HAS_NUMERIC
-//   feature: detect if <numeric> is available (C++98+)
+//   feature: 1 if <numeric> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_NUMERIC
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_NUMERIC 1
     #else
         #define D_ENV_CPP98_HAS_NUMERIC 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_NUMERIC
 
-
-// -----------------------------------------------------------------------------
-// C. Strings and Localization
-// -----------------------------------------------------------------------------
-
+// 1.3    Strings and localization
+//------------------------------------------------------------------------------
+// 1.3.1
 // D_ENV_CPP98_HAS_STRING
-//   feature: detect if <string> is available (C++98+)
+//   feature: 1 if <string> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_STRING
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_STRING 1
     #else
         #define D_ENV_CPP98_HAS_STRING 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_STRING
 
+// 1.3.2
 // D_ENV_CPP98_HAS_LOCALE
-//   feature: detect if <locale> is available (C++98+)
+//   feature: 1 if <locale> is available (C++98), 0 otherwise. Assumed
+// absent on AVR and Android, where locale support may be missing.
 #ifndef D_ENV_CPP98_HAS_LOCALE
     #if defined(__cplusplus)
-        // some embedded platforms may not have locale support
-        #if !defined(__AVR__) && !defined(__ANDROID__)
+        #if ( (!defined(__AVR__)) &&                                           \
+              (!defined(__ANDROID__)) )
             #define D_ENV_CPP98_HAS_LOCALE 1
         #else
             #define D_ENV_CPP98_HAS_LOCALE 0
@@ -204,144 +255,155 @@
     #else
         #define D_ENV_CPP98_HAS_LOCALE 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_LOCALE
 
-
-// -----------------------------------------------------------------------------
-// D. I/O Streams
-// -----------------------------------------------------------------------------
-
+// 1.4    I/O streams
+//------------------------------------------------------------------------------
+// 1.4.1
 // D_ENV_CPP98_HAS_IOSTREAM
-//   feature: detect if <iostream> is available (C++98+)
+//   feature: 1 if <iostream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOSTREAM
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_IOSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_IOSTREAM 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_IOSTREAM
 
+// 1.4.2
 // D_ENV_CPP98_HAS_ISTREAM
-//   feature: detect if <istream> is available (C++98+)
+//   feature: 1 if <istream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_ISTREAM
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_ISTREAM 1
     #else
         #define D_ENV_CPP98_HAS_ISTREAM 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_ISTREAM
 
+// 1.4.3
 // D_ENV_CPP98_HAS_OSTREAM
-//   feature: detect if <ostream> is available (C++98+)
+//   feature: 1 if <ostream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_OSTREAM
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_OSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_OSTREAM 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_OSTREAM
 
+// 1.4.4
 // D_ENV_CPP98_HAS_FSTREAM
-//   feature: detect if <fstream> is available (C++98+)
+//   feature: 1 if <fstream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_FSTREAM
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_FSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_FSTREAM 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_FSTREAM
 
+// 1.4.5
 // D_ENV_CPP98_HAS_SSTREAM
-//   feature: detect if <sstream> is available (C++98+)
+//   feature: 1 if <sstream> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_SSTREAM
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_SSTREAM 1
     #else
         #define D_ENV_CPP98_HAS_SSTREAM 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_SSTREAM
 
+// 1.4.6
 // D_ENV_CPP98_HAS_IOMANIP
-//   feature: detect if <iomanip> is available (C++98+)
+//   feature: 1 if <iomanip> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOMANIP
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_IOMANIP 1
     #else
         #define D_ENV_CPP98_HAS_IOMANIP 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_IOMANIP
 
+// 1.4.7
 // D_ENV_CPP98_HAS_IOS
-//   feature: detect if <ios> is available (C++98+)
+//   feature: 1 if <ios> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOS
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_IOS 1
     #else
         #define D_ENV_CPP98_HAS_IOS 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_IOS
 
+// 1.4.8
 // D_ENV_CPP98_HAS_IOSFWD
-//   feature: detect if <iosfwd> is available (C++98+)
+//   feature: 1 if <iosfwd> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_IOSFWD
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_IOSFWD 1
     #else
         #define D_ENV_CPP98_HAS_IOSFWD 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_IOSFWD
 
+// 1.4.9
 // D_ENV_CPP98_HAS_STREAMBUF
-//   feature: detect if <streambuf> is available (C++98+)
+//   feature: 1 if <streambuf> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_STREAMBUF
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_STREAMBUF 1
     #else
         #define D_ENV_CPP98_HAS_STREAMBUF 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_STREAMBUF
 
-
-// -----------------------------------------------------------------------------
-// E. Utilities
-// -----------------------------------------------------------------------------
-
+// 1.5    Utilities
+//------------------------------------------------------------------------------
+// 1.5.1
 // D_ENV_CPP98_HAS_UTILITY
-//   feature: detect if <utility> is available (C++98+)
+//   feature: 1 if <utility> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_UTILITY
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_UTILITY 1
     #else
         #define D_ENV_CPP98_HAS_UTILITY 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_UTILITY
 
+// 1.5.2
 // D_ENV_CPP98_HAS_MEMORY
-//   feature: detect if <memory> is available (C++98+, but limited)
+//   feature: 1 if <memory> is available (C++98, in its limited C++98
+// form), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_MEMORY
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_MEMORY 1
     #else
         #define D_ENV_CPP98_HAS_MEMORY 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_MEMORY
 
+// 1.5.3
 // D_ENV_CPP98_HAS_NEW
-//   feature: detect if <new> is available (C++98+)
+//   feature: 1 if <new> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_NEW
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_NEW 1
     #else
         #define D_ENV_CPP98_HAS_NEW 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_NEW
 
+// 1.5.4
 // D_ENV_CPP98_HAS_TYPEINFO
-//   feature: detect if <typeinfo> is available (C++98+)
+//   feature: 1 if <typeinfo> is available (C++98) and RTTI is on, 0
+// otherwise. RTTI counts as on when __GXX_RTTI, _CPPRTTI or __INTEL_RTTI__ is
+// defined.
 #ifndef D_ENV_CPP98_HAS_TYPEINFO
     #if defined(__cplusplus)
-        // some platforms disable RTTI
-        #if !defined(__GXX_RTTI) && !defined(_CPPRTTI) && !defined(__INTEL_RTTI__)
+        #if ( (!defined(__GXX_RTTI)) &&                                        \
+              (!defined(_CPPRTTI))   &&                                        \
+              (!defined(__INTEL_RTTI__)) )
             #define D_ENV_CPP98_HAS_TYPEINFO 0
         #else
             #define D_ENV_CPP98_HAS_TYPEINFO 1
@@ -349,14 +411,18 @@
     #else
         #define D_ENV_CPP98_HAS_TYPEINFO 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_TYPEINFO
 
+// 1.5.5
 // D_ENV_CPP98_HAS_EXCEPTION
-//   feature: detect if <exception> is available (C++98+)
+//   feature: 1 if <exception> is available (C++98) and exceptions are on, 0
+// otherwise. Exceptions count as on when __cpp_exceptions, __EXCEPTIONS or
+// _CPPUNWIND is defined.
 #ifndef D_ENV_CPP98_HAS_EXCEPTION
     #if defined(__cplusplus)
-        // some platforms disable exceptions
-        #if !defined(__cpp_exceptions) && !defined(__EXCEPTIONS) && !defined(_CPPUNWIND)
+        #if ( (!defined(__cpp_exceptions)) &&                                  \
+              (!defined(__EXCEPTIONS))     &&                                  \
+              (!defined(_CPPUNWIND)) )
             #define D_ENV_CPP98_HAS_EXCEPTION 0
         #else
             #define D_ENV_CPP98_HAS_EXCEPTION 1
@@ -364,13 +430,17 @@
     #else
         #define D_ENV_CPP98_HAS_EXCEPTION 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_EXCEPTION
 
+// 1.5.6
 // D_ENV_CPP98_HAS_STDEXCEPT
-//   feature: detect if <stdexcept> is available (C++98+)
+//   feature: 1 if <stdexcept> is available (C++98) and exceptions are on, 0
+// otherwise, as for D_ENV_CPP98_HAS_EXCEPTION.
 #ifndef D_ENV_CPP98_HAS_STDEXCEPT
     #if defined(__cplusplus)
-        #if !defined(__cpp_exceptions) && !defined(__EXCEPTIONS) && !defined(_CPPUNWIND)
+        #if ( (!defined(__cpp_exceptions)) &&                                  \
+              (!defined(__EXCEPTIONS))     &&                                  \
+              (!defined(_CPPUNWIND)) )
             #define D_ENV_CPP98_HAS_STDEXCEPT 0
         #else
             #define D_ENV_CPP98_HAS_STDEXCEPT 1
@@ -378,136 +448,120 @@
     #else
         #define D_ENV_CPP98_HAS_STDEXCEPT 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_STDEXCEPT
 
+// 1.5.7
 // D_ENV_CPP98_HAS_LIMITS
-//   feature: detect if <limits> is available (C++98+)
+//   feature: 1 if <limits> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_LIMITS
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_LIMITS 1
     #else
         #define D_ENV_CPP98_HAS_LIMITS 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_LIMITS
 
-
-// -----------------------------------------------------------------------------
-// F. Numerics
-// -----------------------------------------------------------------------------
-
+// 1.6    Numerics
+//------------------------------------------------------------------------------
+// 1.6.1
 // D_ENV_CPP98_HAS_COMPLEX
-//   feature: detect if <complex> is available (C++98+)
+//   feature: 1 if <complex> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_COMPLEX
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_COMPLEX 1
     #else
         #define D_ENV_CPP98_HAS_COMPLEX 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_COMPLEX
 
+// 1.6.2
 // D_ENV_CPP98_HAS_VALARRAY
-//   feature: detect if <valarray> is available (C++98+)
+//   feature: 1 if <valarray> is available (C++98), 0 otherwise.
 #ifndef D_ENV_CPP98_HAS_VALARRAY
     #if defined(__cplusplus)
         #define D_ENV_CPP98_HAS_VALARRAY 1
     #else
         #define D_ENV_CPP98_HAS_VALARRAY 0
     #endif
-#endif
+#endif  // D_ENV_CPP98_HAS_VALARRAY
 
 
-// ===========================================================================
-// II.  AGGREGATE CHECKS
-// ===========================================================================
+//==============================================================================
+// 2.  AGGREGATE CHECKS
+//==============================================================================
+// 1 when every header of a group in section 1 is available.
 
+
+// 2.1    Header groups
+//------------------------------------------------------------------------------
+// 2.1.1
 // D_ENV_CPP98_HAS_ALL_CONTAINERS
-//   constant: 1 if all C++98 container headers are available
-#define D_ENV_CPP98_HAS_ALL_CONTAINERS  \
-    ( D_ENV_CPP98_HAS_VECTOR    &&      \
-      D_ENV_CPP98_HAS_LIST      &&      \
-      D_ENV_CPP98_HAS_DEQUE     &&      \
-      D_ENV_CPP98_HAS_QUEUE     &&      \
-      D_ENV_CPP98_HAS_STACK     &&      \
-      D_ENV_CPP98_HAS_MAP       &&      \
-      D_ENV_CPP98_HAS_SET       &&      \
-      D_ENV_CPP98_HAS_BITSET )
+//   feature: 1 if all C++98 container headers are available.
+#define D_ENV_CPP98_HAS_ALL_CONTAINERS                                         \
+    ( (D_ENV_CPP98_HAS_VECTOR) &&                                              \
+      (D_ENV_CPP98_HAS_LIST)   &&                                              \
+      (D_ENV_CPP98_HAS_DEQUE)  &&                                              \
+      (D_ENV_CPP98_HAS_QUEUE)  &&                                              \
+      (D_ENV_CPP98_HAS_STACK)  &&                                              \
+      (D_ENV_CPP98_HAS_MAP)    &&                                              \
+      (D_ENV_CPP98_HAS_SET)    &&                                              \
+      (D_ENV_CPP98_HAS_BITSET) )
 
+// 2.1.2
 // D_ENV_CPP98_HAS_ALL_ALGORITHMS
-//   constant: 1 if all C++98 algorithm/iterator headers are available
-#define D_ENV_CPP98_HAS_ALL_ALGORITHMS  \
-    ( D_ENV_CPP98_HAS_ALGORITHM  &&     \
-      D_ENV_CPP98_HAS_ITERATOR   &&     \
-      D_ENV_CPP98_HAS_FUNCTIONAL &&     \
-      D_ENV_CPP98_HAS_NUMERIC )
+//   feature: 1 if all C++98 algorithm/iterator headers are available.
+#define D_ENV_CPP98_HAS_ALL_ALGORITHMS                                         \
+    ( (D_ENV_CPP98_HAS_ALGORITHM)  &&                                          \
+      (D_ENV_CPP98_HAS_ITERATOR)   &&                                          \
+      (D_ENV_CPP98_HAS_FUNCTIONAL) &&                                          \
+      (D_ENV_CPP98_HAS_NUMERIC) )
 
+// 2.1.3
 // D_ENV_CPP98_HAS_ALL_IOSTREAMS
-//   constant: 1 if all C++98 I/O stream headers are available
-#define D_ENV_CPP98_HAS_ALL_IOSTREAMS  \
-    ( D_ENV_CPP98_HAS_IOSTREAM  &&     \
-      D_ENV_CPP98_HAS_ISTREAM   &&     \
-      D_ENV_CPP98_HAS_OSTREAM   &&     \
-      D_ENV_CPP98_HAS_FSTREAM   &&     \
-      D_ENV_CPP98_HAS_SSTREAM   &&     \
-      D_ENV_CPP98_HAS_IOMANIP   &&     \
-      D_ENV_CPP98_HAS_IOS       &&     \
-      D_ENV_CPP98_HAS_IOSFWD    &&     \
-      D_ENV_CPP98_HAS_STREAMBUF )
+//   feature: 1 if all C++98 I/O stream headers are available.
+#define D_ENV_CPP98_HAS_ALL_IOSTREAMS                                          \
+    ( (D_ENV_CPP98_HAS_IOSTREAM) &&                                            \
+      (D_ENV_CPP98_HAS_ISTREAM)  &&                                            \
+      (D_ENV_CPP98_HAS_OSTREAM)  &&                                            \
+      (D_ENV_CPP98_HAS_FSTREAM)  &&                                            \
+      (D_ENV_CPP98_HAS_SSTREAM)  &&                                            \
+      (D_ENV_CPP98_HAS_IOMANIP)  &&                                            \
+      (D_ENV_CPP98_HAS_IOS)      &&                                            \
+      (D_ENV_CPP98_HAS_IOSFWD)   &&                                            \
+      (D_ENV_CPP98_HAS_STREAMBUF) )
 
+// 2.1.4
 // D_ENV_CPP98_HAS_ALL_UTILITIES
-//   constant: 1 if all C++98 utility headers are available
-#define D_ENV_CPP98_HAS_ALL_UTILITIES  \
-    ( D_ENV_CPP98_HAS_UTILITY    &&    \
-      D_ENV_CPP98_HAS_MEMORY     &&    \
-      D_ENV_CPP98_HAS_NEW        &&    \
-      D_ENV_CPP98_HAS_TYPEINFO   &&    \
-      D_ENV_CPP98_HAS_EXCEPTION  &&    \
-      D_ENV_CPP98_HAS_STDEXCEPT  &&    \
-      D_ENV_CPP98_HAS_LIMITS )
+//   feature: 1 if all C++98 utility headers are available.
+#define D_ENV_CPP98_HAS_ALL_UTILITIES                                          \
+    ( (D_ENV_CPP98_HAS_UTILITY)   &&                                           \
+      (D_ENV_CPP98_HAS_MEMORY)    &&                                           \
+      (D_ENV_CPP98_HAS_NEW)       &&                                           \
+      (D_ENV_CPP98_HAS_TYPEINFO)  &&                                           \
+      (D_ENV_CPP98_HAS_EXCEPTION) &&                                           \
+      (D_ENV_CPP98_HAS_STDEXCEPT) &&                                           \
+      (D_ENV_CPP98_HAS_LIMITS) )
 
+// 2.1.5
 // D_ENV_CPP98_HAS_ALL_NUMERICS
-//   constant: 1 if all C++98 numeric headers are available
-#define D_ENV_CPP98_HAS_ALL_NUMERICS  \
-    ( D_ENV_CPP98_HAS_COMPLEX  &&     \
-      D_ENV_CPP98_HAS_VALARRAY )
+//   feature: 1 if all C++98 numeric headers are available.
+#define D_ENV_CPP98_HAS_ALL_NUMERICS                                           \
+    ( (D_ENV_CPP98_HAS_COMPLEX) &&                                             \
+      (D_ENV_CPP98_HAS_VALARRAY) )
 
+// 2.2    Whole library
+//------------------------------------------------------------------------------
+// 2.2.1
 // D_ENV_CPP98_HAS_FULL_STL
-//   constant: 1 if complete C++98 STL is available
-#define D_ENV_CPP98_HAS_FULL_STL             \
-    ( D_ENV_CPP98_HAS_ALL_CONTAINERS  &&     \
-      D_ENV_CPP98_HAS_ALL_ALGORITHMS  &&     \
-      D_ENV_CPP98_HAS_ALL_IOSTREAMS   &&     \
-      D_ENV_CPP98_HAS_ALL_UTILITIES   &&     \
-      D_ENV_CPP98_HAS_ALL_NUMERICS    &&     \
-      D_ENV_CPP98_HAS_STRING          &&     \
-      D_ENV_CPP98_HAS_LOCALE )
+//   feature: 1 if the complete C++98 standard library is available.
+#define D_ENV_CPP98_HAS_FULL_STL                                               \
+    ( (D_ENV_CPP98_HAS_ALL_CONTAINERS) &&                                      \
+      (D_ENV_CPP98_HAS_ALL_ALGORITHMS) &&                                      \
+      (D_ENV_CPP98_HAS_ALL_IOSTREAMS)  &&                                      \
+      (D_ENV_CPP98_HAS_ALL_UTILITIES)  &&                                      \
+      (D_ENV_CPP98_HAS_ALL_NUMERICS)   &&                                      \
+      (D_ENV_CPP98_HAS_STRING)         &&                                      \
+      (D_ENV_CPP98_HAS_LOCALE) )
 
 
-// ===========================================================================
-// III. NOTES ON PLATFORM-SPECIFIC BEHAVIORS
-// ===========================================================================
-
-// NOTE: Embedded Platforms
-//   Some embedded C++ implementations (e.g., Arduino, AVR-GCC) may provide
-//   only a subset of the C++98 standard library. Common omissions include:
-//   - <locale> (locale support)
-//   - <exception> and <stdexcept> (when exceptions are disabled)
-//   - <typeinfo> (when RTTI is disabled)
-//   - I/O streams on bare-metal systems
-//
-// NOTE: Exception Handling
-//   The D_ENV_CPP98_HAS_EXCEPTION and D_ENV_CPP98_HAS_STDEXCEPT macros
-//   detect if exception support is enabled via compiler flags. To disable
-//   exceptions manually, define these to 0 before including this header.
-//
-// NOTE: RTTI Support
-//   The D_ENV_CPP98_HAS_TYPEINFO macro detects if RTTI is enabled.
-//   Some platforms disable RTTI for performance/size reasons.
-//
-// NOTE: Custom Override
-//   All macros can be pre-defined to override detection, useful for:
-//   - Testing partial STL implementations
-//   - Working around platform-specific issues
-//   - Simulating different environments
-
-
-#endif  // DJINTERP_CPP98_ENVIRONMENT_
+#endif  // DJINTERP_ENV_CPP_ENV_CPP98_H

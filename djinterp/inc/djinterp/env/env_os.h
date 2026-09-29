@@ -10,10 +10,11 @@
 * derivation). This header is an internal component of env.h and is #included
 * by it; do not #include it directly.
 *
+*
 * path:      /inc/djinterp/env/env_os.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -483,14 +484,14 @@ TABLE OF CONTENTS
 // 2.1.1
 // D_ENV_IS_OS_FLAG_IN_BLOCK
 //   macro: 1 when OS_FLAG lies in block BLOCK_NUM, 0 otherwise.
-#define D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, BLOCK_NUM)                       \
+#define D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, BLOCK_NUM)                          \
     ( ((OS_FLAG) >> D_ENV_OS_BLOCK_SIZE) == (BLOCK_NUM) )
 
 // 2.1.2
 // D_ENV_IS_OS_FLAG_UNIX
 //   macro: 1 when OS_FLAG lies in the Unix block (0x1), which includes Linux; 0
 // otherwise.
-#define D_ENV_IS_OS_FLAG_UNIX(OS_FLAG)                                      \
+#define D_ENV_IS_OS_FLAG_UNIX(OS_FLAG)                                         \
     ( ((OS_FLAG) >> D_ENV_OS_BLOCK_SIZE) == 0x1 )
 
 // 2.2    Family tests
@@ -498,37 +499,37 @@ TABLE OF CONTENTS
 // 2.2.1
 // D_ENV_IS_OS_MOBILE
 //   macro: 1 for iOS, Android, and Bada; 0 otherwise.
-#define D_ENV_IS_OS_MOBILE(OS_FLAG)                                         \
-    ( ((OS_FLAG) == D_ENV_OS_FLAG_IOS)     ||                               \
-      ((OS_FLAG) == D_ENV_OS_FLAG_ANDROID) ||                               \
+#define D_ENV_IS_OS_MOBILE(OS_FLAG)                                            \
+    ( ((OS_FLAG) == D_ENV_OS_FLAG_IOS)     ||                                  \
+      ((OS_FLAG) == D_ENV_OS_FLAG_ANDROID) ||                                  \
       ((OS_FLAG) == D_ENV_OS_FLAG_BADA) )
 
 // 2.2.2
 // D_ENV_IS_OS_MSDOS
 //   macro: 1 for MS-DOS; 0 otherwise.
-#define D_ENV_IS_OS_MSDOS(OS_FLAG)                                          \
+#define D_ENV_IS_OS_MSDOS(OS_FLAG)                                             \
     ( (OS_FLAG) == D_ENV_OS_FLAG_MSDOS )
 
 // 2.2.3
 // D_ENV_IS_OS_WINDOWS
 //   macro: 1 for any Windows flag, desktop, server, embedded, or mobile; 0
 // otherwise.
-#define D_ENV_IS_OS_WINDOWS(OS_FLAG)                                        \
-    ( ((OS_FLAG) >= D_ENV_OS_FLAG_WIN_FIRST) &&                             \
+#define D_ENV_IS_OS_WINDOWS(OS_FLAG)                                           \
+    ( ((OS_FLAG) >= D_ENV_OS_FLAG_WIN_FIRST) &&                                \
       ((OS_FLAG) <= D_ENV_OS_FLAG_WIN_LAST) )
 
 // 2.2.4
 // D_ENV_IS_OS_DISCONTINUED
 //   macro: 1 for a discontinued system; 0 otherwise.
-#define D_ENV_IS_OS_DISCONTINUED(OS_FLAG)                                   \
-    ( ((OS_FLAG) >= D_ENV_OS_FLAG_DISCONTINUED_FIRST) &&                    \
+#define D_ENV_IS_OS_DISCONTINUED(OS_FLAG)                                      \
+    ( ((OS_FLAG) >= D_ENV_OS_FLAG_DISCONTINUED_FIRST) &&                       \
       ((OS_FLAG) <= D_ENV_OS_FLAG_DISCONTINUED_LAST) )
 
 // 2.2.5
 // D_ENV_IS_OS_UNSUPPORTED
 //   macro: 1 for a system the framework does not support; 0 otherwise.
-#define D_ENV_IS_OS_UNSUPPORTED(OS_FLAG)                                    \
-    ( ((OS_FLAG) >= D_ENV_OS_UNSUPPORTED_FIRST) &&                          \
+#define D_ENV_IS_OS_UNSUPPORTED(OS_FLAG)                                       \
+    ( ((OS_FLAG) >= D_ENV_OS_UNSUPPORTED_FIRST) &&                             \
       ((OS_FLAG) <= D_ENV_OS_UNSUPPORTED_LAST) )
 
 // 2.3    POSIX tests
@@ -537,34 +538,34 @@ TABLE OF CONTENTS
 // D_ENV_IS_OS_POSIX_COMPLIANT
 //   macro: 1 when the OS is likely to be POSIX-compliant: the Unix, BSD, and
 // Solaris blocks, macOS, and Android; 0 otherwise.
-#define D_ENV_IS_OS_POSIX_COMPLIANT(OS_FLAG)                                \
-    ( (D_ENV_IS_OS_FLAG_UNIX(OS_FLAG))           ||                         \
-      (D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x4)) ||                          \
-      (D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x5)) ||                          \
-      ((OS_FLAG) == D_ENV_OS_FLAG_MACOS)        ||                          \
+#define D_ENV_IS_OS_POSIX_COMPLIANT(OS_FLAG)                                   \
+    ( (D_ENV_IS_OS_FLAG_UNIX(OS_FLAG))          ||                             \
+      (D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x4)) ||                             \
+      (D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x5)) ||                             \
+      ((OS_FLAG) == D_ENV_OS_FLAG_MACOS)        ||                             \
       ((OS_FLAG) == D_ENV_OS_FLAG_ANDROID) )
 
 // 2.3.2
 // D_ENV_IS_OS_POSIX_LIKE
 //   macro: 1 for the Unix (Linux included), Apple, and BSD blocks, the systems
 // expected to provide the traditional POSIX headers and functions; 0 otherwise.
-#define D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)                                     \
-    ( (D_ENV_IS_OS_FLAG_UNIX(OS_FLAG))           ||                         \
-      (D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x0)) ||                          \
+#define D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)                                        \
+    ( (D_ENV_IS_OS_FLAG_UNIX(OS_FLAG))          ||                             \
+      (D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x0)) ||                             \
       (D_ENV_IS_OS_FLAG_IN_BLOCK(OS_FLAG, 0x4)) )
 
 // 2.3.3
 // D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID
 //   macro: D_ENV_IS_OS_POSIX_LIKE plus Android, which provides most POSIX APIs.
-#define D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID(OS_FLAG)                          \
-    ( (D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)) ||                                  \
+#define D_ENV_IS_OS_POSIX_LIKE_OR_ANDROID(OS_FLAG)                             \
+    ( (D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)) ||                                     \
       ((OS_FLAG) == D_ENV_OS_FLAG_ANDROID) )
 
 // 2.3.4
 // D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS
 //   macro: D_ENV_IS_OS_POSIX_LIKE plus Windows, for APIs available on both.
-#define D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(OS_FLAG)                          \
-    ( (D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)) ||                                  \
+#define D_ENV_IS_OS_POSIX_LIKE_OR_WINDOWS(OS_FLAG)                             \
+    ( (D_ENV_IS_OS_POSIX_LIKE(OS_FLAG)) ||                                     \
       (D_ENV_IS_OS_WINDOWS(OS_FLAG)) )
 
 
@@ -633,18 +634,18 @@ TABLE OF CONTENTS
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_WIN_PC_PRE_XP
             #define D_ENV_OS_NAME  "Windows (16-bit)"
 
-        #elif ( defined(__WIN32__)   ||  \
-                defined(__TOS_WIN__) ||  \
-                defined(__WINDOWS__) )
+        #elif ( (defined(__WIN32__))   ||                                      \
+                (defined(__TOS_WIN__)) ||                                      \
+                (defined(__WINDOWS__)) )
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_WIN_PC_10
             #define D_ENV_OS_NAME  "Windows"
 
         // 3.1.1.4
         // MS-DOS
-        #elif ( defined(MSDOS)     ||  \
-                defined(_MSDOS)    ||  \
-                defined(__MSDOS__) ||  \
-                defined(__DOS__) )
+        #elif ( (defined(MSDOS))     ||                                        \
+                (defined(_MSDOS))    ||                                        \
+                (defined(__MSDOS__)) ||                                        \
+                (defined(__DOS__)) )
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_MSDOS
             #define D_ENV_OS_NAME  "MS-DOS"
 
@@ -670,24 +671,24 @@ TABLE OF CONTENTS
 
         // 3.1.1.7
         // Solaris
-        #elif ( defined(__sun)  ||  \
-                defined(__SVR4) ||  \
-                defined(__svr4__) )
+        #elif ( (defined(__sun))  ||                                           \
+                (defined(__SVR4)) ||                                           \
+                (defined(__svr4__)) )
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_SOLARIS
             #define D_ENV_OS_NAME  "solaris"
 
         // 3.1.1.8
         // Unix variants
-        #elif ( defined(__unix__) ||  \
-                defined(__unix)   ||  \
-                defined(unix) )
+        #elif ( (defined(__unix__)) ||                                         \
+                (defined(__unix))   ||                                         \
+                (defined(unix)) )
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_UNIX
             #define D_ENV_OS_NAME  "Unix"
 
         // 3.1.1.9
         // Legacy and discontinued systems
-        #elif ( defined(_AIX) ||  \
-                defined(__TOS_AIX__) )
+        #elif ( (defined(_AIX)) ||                                             \
+                (defined(__TOS_AIX__)) )
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_AIX
             #define D_ENV_OS_NAME  "AIX"
 
@@ -695,8 +696,8 @@ TABLE OF CONTENTS
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_HP_UX
             #define D_ENV_OS_NAME  "HP-UX"
 
-        #elif ( defined(sgi) ||  \
-                defined(__sgi) )
+        #elif ( (defined(sgi)) ||                                              \
+                (defined(__sgi)) )
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_IRIX
             #define D_ENV_OS_NAME  "IRIX"
 
@@ -704,8 +705,8 @@ TABLE OF CONTENTS
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_QNX
             #define D_ENV_OS_NAME  "QNX"
 
-        #elif ( defined(__VMS) ||  \
-                defined(VMS) )
+        #elif ( (defined(__VMS)) ||                                            \
+                (defined(VMS)) )
             #define D_ENV_OS_ID    D_ENV_OS_FLAG_VMS
             #define D_ENV_OS_NAME  "OpenVMS"
 
@@ -800,14 +801,14 @@ TABLE OF CONTENTS
 // _MACOS, _UNIX, or _UNKNOWN is defined, to 1, from D_ENV_OS_ID.
 #if (D_ENV_OS_ID == D_ENV_OS_FLAG_ANDROID)
     #define D_ENV_PLATFORM_ANDROID 1
-#elif ( (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) ||                                 \
+#elif ( (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) ||                                  \
         (D_ENV_IS_OS_MSDOS(D_ENV_OS_ID)) )
     #define D_ENV_PLATFORM_WINDOWS 1
 #elif (D_ENV_OS_ID == D_ENV_OS_FLAG_LINUX)
     #define D_ENV_PLATFORM_LINUX 1
 #elif (D_ENV_OS_ID == D_ENV_OS_FLAG_MACOS)
     #define D_ENV_PLATFORM_MACOS 1
-#elif ( (D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)) ||                               \
+#elif ( (D_ENV_IS_OS_FLAG_UNIX(D_ENV_OS_ID)) ||                                \
         (D_ENV_IS_OS_FLAG_IN_BLOCK(D_ENV_OS_ID, 0x4)) )
     #define D_ENV_PLATFORM_UNIX 1
 #else

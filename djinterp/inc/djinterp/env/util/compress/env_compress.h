@@ -20,10 +20,10 @@
 * some library provides the codec.
 *
 *
-* path:      /inc/djinterp/env/env_compress.h
+* path:      /inc/djinterp/env/util/compress/env_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -107,13 +107,13 @@ TABLE OF CONTENTS
     1.  Runtime queries
 */
 
-#ifndef DJINTERP_ENV_ENV_COMPRESS_H
-#define DJINTERP_ENV_ENV_COMPRESS_H 1
+#ifndef DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_H
+#define DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_H 1
 
 
 // djinterp
-#include "../c/djinterp.h"  // D_EXTERN_C_BEGIN, D_EXTERN_C_END
-#include "./env.h"          // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
+#include "../../../c/djinterp.h"  // D_EXTERN_C_BEGIN, D_EXTERN_C_END
+#include "../../env.h"            // D_ENV_OS_ID, D_ENV_IS_OS_WINDOWS
 
 
 //==============================================================================
@@ -211,9 +211,9 @@ TABLE OF CONTENTS
 //   feature: detect if zlib-ng is available, in either its native (<zlib-ng.h>,
 // zng_ prefixed) or compat (masquerades as zlib) configuration.
 #ifndef D_ENV_COMPRESSION_HAVE_ZLIBNG
-    #if ( D_INTERNAL_COMPRESSION_PROBE(<zlib-ng.h>) ||                         \
-          defined(ZLIBNG_VERSION)                   ||                         \
-          defined(ZLIBNG_VER_STRING) )
+    #if ( (D_INTERNAL_COMPRESSION_PROBE(<zlib-ng.h>)) ||                       \
+          (defined(ZLIBNG_VERSION))                   ||                       \
+          (defined(ZLIBNG_VER_STRING)) )
         #define D_ENV_COMPRESSION_HAVE_ZLIBNG       1
     #else
         #define D_ENV_COMPRESSION_HAVE_ZLIBNG       0
@@ -464,11 +464,11 @@ TABLE OF CONTENTS
 //   feature: detect Apple's libcompression (<compress.h>), which provides
 // LZFSE, LZ4, raw DEFLATE (ZLIB), and LZMA. ships on macOS 10.11+ and iOS 9+.
 #ifndef D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION
-    #if ( defined(D_ENV_OS_ID)                          &&                    \
-          ( (D_ENV_OS_ID == D_ENV_OS_FLAG_MACOS) ||                           \
-            (D_ENV_OS_ID == D_ENV_OS_FLAG_IOS)   ||                           \
-            (D_ENV_OS_ID == D_ENV_OS_FLAG_APPLE) )      &&                    \
-          D_INTERNAL_COMPRESSION_PROBE(<compress.h>) )
+    #if ( (defined(D_ENV_OS_ID))                    &&                         \
+          ( (D_ENV_OS_ID == D_ENV_OS_FLAG_MACOS) ||                            \
+            (D_ENV_OS_ID == D_ENV_OS_FLAG_IOS)   ||                            \
+            (D_ENV_OS_ID == D_ENV_OS_FLAG_APPLE) )  &&                         \
+          (D_INTERNAL_COMPRESSION_PROBE(<compress.h>)) )
         #define D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION 1
     #else
         #define D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION 0
@@ -482,9 +482,9 @@ TABLE OF CONTENTS
 // note: MSZIP is a DEFLATE variant but is not interchangeable with RFC 1952
 // gzip, so this flag is not folded into the gzip roll-up below.
 #ifndef D_ENV_COMPRESSION_HAVE_WIN_COMPRESSION_API
-    #if ( defined(D_ENV_OS_ID)                          &&                    \
-          D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)              &&                    \
-          D_INTERNAL_COMPRESSION_PROBE(<compressapi.h>) )
+    #if ( (defined(D_ENV_OS_ID))             &&                                \
+          (D_ENV_IS_OS_WINDOWS(D_ENV_OS_ID)) &&                                \
+          (D_INTERNAL_COMPRESSION_PROBE(<compressapi.h>)) )
         #define D_ENV_COMPRESSION_HAVE_WIN_COMPRESSION_API 1
     #else
         #define D_ENV_COMPRESSION_HAVE_WIN_COMPRESSION_API 0
@@ -494,8 +494,8 @@ TABLE OF CONTENTS
 // 4.1.3
 // D_ENV_COMPRESSION_HAVE_PLATFORM_NATIVE
 //   feature: 1 if any OS-native codec facility was detected.
-#define D_ENV_COMPRESSION_HAVE_PLATFORM_NATIVE                                \
-    ( D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION ||                          \
+#define D_ENV_COMPRESSION_HAVE_PLATFORM_NATIVE                                 \
+    ( D_ENV_COMPRESSION_HAVE_APPLE_LIBCOMPRESSION ||                           \
       D_ENV_COMPRESSION_HAVE_WIN_COMPRESSION_API )
 
 
@@ -684,4 +684,4 @@ void        d_env_compression_print_info(void);
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_ENV_ENV_COMPRESS_H
+#endif  // DJINTERP_ENV_UTIL_COMPRESS_ENV_COMPRESS_H

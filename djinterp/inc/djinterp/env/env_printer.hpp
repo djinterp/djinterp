@@ -24,6 +24,7 @@
 *   print.hpp's writers must be declared before this header is included; it
 * does not include print.hpp itself.
 *
+*
 * path:      /inc/djinterp/env/env_printer.hpp
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.22
