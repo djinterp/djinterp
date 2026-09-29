@@ -13,10 +13,11 @@
 * internal component of env.h and is #included by it; do not #include it
 * directly.
 *
+*
 * path:      /inc/djinterp/env/env_compiler.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 
 /*
@@ -40,6 +41,10 @@ TABLE OF CONTENTS
     4.  Version checks
          1.  D_ENV_COMPILER_VERSION_AT_LEAST
          2.  D_ENV_COMPILER_VERSION_AT_MOST
+    5.  Builtin families
+         1.  D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
+    6.  Keyword extensions
+         1.  D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
 2.  PREPROCESSOR FEATURES
     ---------------------
     1.  __VA_OPT__
@@ -171,9 +176,9 @@ TABLE OF CONTENTS
 
     // 1.1.1.4
     // Intel C++
-    #elif ( defined(__INTEL_COMPILER) ||  \
-            defined(__ICL)            ||  \
-            defined(__ICC) )
+    #elif ( (defined(__INTEL_COMPILER)) ||                                     \
+            (defined(__ICL))            ||                                     \
+            (defined(__ICC)) )
         #define D_ENV_COMPILER_INTEL 1
         #define D_ENV_COMPILER_NAME            "Intel C++"
         #define D_ENV_COMPILER_FULL_NAME       "Intel C++ Compiler"
@@ -191,8 +196,8 @@ TABLE OF CONTENTS
 
     // 1.1.1.5
     // Borland / Turbo C++
-    #elif ( defined(__BORLANDC__) ||    \
-            defined(__TURBOC__) )
+    #elif ( (defined(__BORLANDC__)) ||                                         \
+            (defined(__TURBOC__)) )
         #define D_ENV_COMPILER_BORLAND          1
         #define D_ENV_COMPILER_NAME             "Borland C++"
         #define D_ENV_COMPILER_FULL_NAME        "Borland C++ Compiler"
@@ -279,8 +284,8 @@ TABLE OF CONTENTS
 // otherwise. Questions about the runtime rather than the compiler, such as
 // whether <sys/types.h> declares ssize_t, key on this macro rather than on
 // D_ENV_COMPILER_MSVC.
-#if ( defined(_MSC_VER) ||                                                    \
-      defined(D_ENV_COMPILER_MSVC) )
+#if ( (defined(_MSC_VER)) ||                                                   \
+      (defined(D_ENV_COMPILER_MSVC)) )
     #define D_ENV_COMPILER_MSVC_FAMILY 1
 #else
     #define D_ENV_COMPILER_MSVC_FAMILY 0
@@ -292,25 +297,66 @@ TABLE OF CONTENTS
 // D_ENV_COMPILER_VERSION_AT_LEAST
 //   macro: utility macro for version checking, ensuring that the compiler
 // version is greater than, or equal to, the version specified.
-#define D_ENV_COMPILER_VERSION_AT_LEAST(major, minor, patch) \
-    ( (D_ENV_COMPILER_MAJOR > (major))     ||  \
-     ( (D_ENV_COMPILER_MAJOR == (major)) &&    \
-       (D_ENV_COMPILER_MINOR > (minor)) )  ||  \
-     ( (D_ENV_COMPILER_MAJOR == (major)) &&    \
-       (D_ENV_COMPILER_MINOR == (minor)) &&    \
+#define D_ENV_COMPILER_VERSION_AT_LEAST(major, minor, patch)                   \
+    ( (D_ENV_COMPILER_MAJOR > (major))     ||                                  \
+     ( (D_ENV_COMPILER_MAJOR == (major)) &&                                    \
+       (D_ENV_COMPILER_MINOR > (minor)) )  ||                                  \
+     ( (D_ENV_COMPILER_MAJOR == (major)) &&                                    \
+       (D_ENV_COMPILER_MINOR == (minor)) &&                                    \
        (D_ENV_COMPILER_PATCHLEVEL >= (patch)) ) )
 
 // 1.4.2
 // D_ENV_COMPILER_VERSION_AT_MOST
 //   macro: utility macro for version checking, ensuring that the compiler
 // version is less than, or equal to, the version specified.
-#define D_ENV_COMPILER_VERSION_AT_MOST(major, minor, patch) \
-    ( (D_ENV_COMPILER_MAJOR < (major))     ||  \
-     ( (D_ENV_COMPILER_MAJOR == (major)) &&    \
-       (D_ENV_COMPILER_MINOR < (minor)) )  ||  \
-     ( (D_ENV_COMPILER_MAJOR == (major)) &&    \
-       (D_ENV_COMPILER_MINOR == (minor)) &&    \
+#define D_ENV_COMPILER_VERSION_AT_MOST(major, minor, patch)                    \
+    ( (D_ENV_COMPILER_MAJOR < (major))     ||                                  \
+     ( (D_ENV_COMPILER_MAJOR == (major)) &&                                    \
+       (D_ENV_COMPILER_MINOR < (minor)) )  ||                                  \
+     ( (D_ENV_COMPILER_MAJOR == (major)) &&                                    \
+       (D_ENV_COMPILER_MINOR == (minor)) &&                                    \
        (D_ENV_COMPILER_PATCHLEVEL <= (patch)) ) )
+
+// 1.5    Builtin families
+//------------------------------------------------------------------------------
+// 1.5.1
+// D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
+//   constant: 1 when the compiler provides the __atomic_* builtins -- the
+// memory-model family GCC introduced in 4.7, which Clang, clang-cl, and the
+// GCC-compatible front ends implement -- and 0 otherwise. MSVC does not
+// provide them.
+//   Detected from __ATOMIC_SEQ_CST, which every such compiler predefines in
+// every language mode. The answer is therefore a property of the compiler and
+// never of the language level: the builtins are as available under -std=c89
+// as under -std=c23, and in C++ as in C. Pre-define it to 0 to simulate a
+// compiler without them.
+#ifndef D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
+    #if defined(__ATOMIC_SEQ_CST)
+        #define D_ENV_COMPILER_HAS_ATOMIC_BUILTINS 1
+    #else
+        #define D_ENV_COMPILER_HAS_ATOMIC_BUILTINS 0
+    #endif
+#endif  // D_ENV_COMPILER_HAS_ATOMIC_BUILTINS
+
+// 1.6    Keyword extensions
+//------------------------------------------------------------------------------
+// 1.6.1
+// D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
+//   constant: 1 when the compiler accepts `__restrict` as a spelling of the
+// C99 `restrict` qualifier in every language mode -- C89, C++, and MSVC's
+// default C mode, none of which have the keyword. GCC, Clang, clang-cl, MSVC,
+// and the Intel front ends all do; 0 for any other compiler. Pre-define it to
+// 0 to simulate a compiler without it.
+#ifndef D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
+    #if ( (defined(D_ENV_COMPILER_GCC))     ||                                 \
+          (defined(D_ENV_COMPILER_CLANG))   ||                                 \
+          (defined(D_ENV_COMPILER_INTEL))   ||                                 \
+          (D_ENV_COMPILER_MSVC_FAMILY == 1) )
+        #define D_ENV_COMPILER_HAS_RESTRICT_EXTENSION 1
+    #else
+        #define D_ENV_COMPILER_HAS_RESTRICT_EXTENSION 0
+    #endif
+#endif  // D_ENV_COMPILER_HAS_RESTRICT_EXTENSION
 
 
 //==============================================================================
@@ -335,15 +381,15 @@ TABLE OF CONTENTS
 //       arguments, which MSVC's traditional preprocessor otherwise passes on
 //       as one.
 #ifndef D_ENV_PP_HAS_VA_OPT
-    #if ( defined(__cpp_va_opt) &&                                             \
+    #if ( (defined(__cpp_va_opt)) &&                                           \
           (__cpp_va_opt >= 201803L) )
         #define D_ENV_PP_HAS_VA_OPT 1
-    #elif ( defined(__STRICT_ANSI__)                                  &&       \
-            (D_ENV_LANG_USING_CPP)                                    &&       \
+    #elif ( (defined(__STRICT_ANSI__)) &&                                      \
+            (D_ENV_LANG_USING_CPP)     &&                                      \
             (D_ENV_LANG_CPP_STANDARD < D_ENV_LANG_CPP_STANDARD_CPP20) )
         #define D_ENV_PP_HAS_VA_OPT 0
-    #elif ( defined(__STRICT_ANSI__)                             &&            \
-            (!D_ENV_LANG_USING_CPP)                              &&            \
+    #elif ( (defined(__STRICT_ANSI__)) &&                                      \
+            (!D_ENV_LANG_USING_CPP)    &&                                      \
             (D_ENV_LANG_C_STANDARD <= D_ENV_LANG_C_STANDARD_C17) )
         #define D_ENV_PP_HAS_VA_OPT 0
     #else
@@ -368,7 +414,7 @@ TABLE OF CONTENTS
 // 2.1.2
 // D_ENV_PP_HAS_VA_OPT_ENABLED
 //   macro: alias for D_ENV_PP_HAS_VA_OPT, for cleaner conditionals.
-#define D_ENV_PP_HAS_VA_OPT_ENABLED  \
+#define D_ENV_PP_HAS_VA_OPT_ENABLED                                            \
     D_ENV_PP_HAS_VA_OPT
 
 
@@ -577,7 +623,7 @@ TABLE OF CONTENTS
 //   #if D_ENV_PP_ARGS_WITHIN_LIMIT(64)
 //       // safe to use 64-argument macro
 //   #endif
-#define D_ENV_PP_ARGS_WITHIN_LIMIT(count) \
+#define D_ENV_PP_ARGS_WITHIN_LIMIT(count)                                      \
     ((count) <= D_ENV_PP_MAX_MACRO_ARGS)
 
 // 3.4.2
@@ -587,7 +633,7 @@ TABLE OF CONTENTS
 //   #if D_ENV_PP_ARGS_WITHIN_STANDARD(31)
 //       // portable across all conforming compilers
 //   #endif
-#define D_ENV_PP_ARGS_WITHIN_STANDARD(count) \
+#define D_ENV_PP_ARGS_WITHIN_STANDARD(count)                                   \
     ((count) <= D_ENV_PP_MIN_MACRO_ARGS)
 
 // 3.4.3
@@ -598,7 +644,7 @@ TABLE OF CONTENTS
 // 3.4.4
 // D_ENV_PP_EFFECTIVE_LIMIT
 //   macro: returns the effective limit, treating 0 as a large practical value.
-#define D_ENV_PP_EFFECTIVE_LIMIT(limit) \
+#define D_ENV_PP_EFFECTIVE_LIMIT(limit)                                        \
     (D_ENV_PP_IS_UNLIMITED(limit) ? 2147483647L : (limit))
 
 

@@ -16,6 +16,7 @@
 * library is available; D_ENV_ARCHIVE_<LIB>_<FIELD> carries version metadata;
 * D_ENV_ARCHIVE_CAN_<READ|WRITE>_<FORMAT> reports format capability.
 *
+*
 * path:      /inc/djinterp/env/env_archive.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23

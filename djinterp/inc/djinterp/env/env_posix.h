@@ -10,10 +10,11 @@
 * internal component of env.h and is #included by it; do not #include it
 * directly.
 *
+*
 * path:      /inc/djinterp/env/env_posix.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -220,15 +221,15 @@ TABLE OF CONTENTS
             // posix
             #include <unistd.h>  // _POSIX_VERSION, _XOPEN_VERSION, _POSIX_*
         #endif
-    #elif ( defined(__unix__)    ||                                            \
-            defined(__unix)      ||                                            \
-            defined(unix)        ||                                            \
-            defined(__linux__)   ||                                            \
-            defined(__APPLE__)   ||                                            \
-            defined(__FreeBSD__) ||                                            \
-            defined(__OpenBSD__) ||                                            \
-            defined(__NetBSD__)  ||                                            \
-            defined(__sun) )
+    #elif ( (defined(__unix__))    ||                                          \
+            (defined(__unix))      ||                                          \
+            (defined(unix))        ||                                          \
+            (defined(__linux__))   ||                                          \
+            (defined(__APPLE__))   ||                                          \
+            (defined(__FreeBSD__)) ||                                          \
+            (defined(__OpenBSD__)) ||                                          \
+            (defined(__NetBSD__))  ||                                          \
+            (defined(__sun)) )
         // posix
         #include <unistd.h>  // _POSIX_VERSION, _XOPEN_VERSION, _POSIX_*
     #endif
@@ -313,15 +314,15 @@ TABLE OF CONTENTS
             #endif
 
         // check for basic POSIX symbols if no version macros
-        #elif ( defined(__unix__)   ||  \
-                defined(__unix)     ||  \
-                defined(unix)       ||  \
-                defined(__linux__)  ||  \
-                defined(__APPLE__)  ||  \
-                defined(__FreeBSD__)||  \
-                defined(__OpenBSD__)||  \
-                defined(__NetBSD__) ||  \
-                defined(__sun) )
+        #elif ( (defined(__unix__))    ||                                      \
+                (defined(__unix))      ||                                      \
+                (defined(unix))        ||                                      \
+                (defined(__linux__))   ||                                      \
+                (defined(__APPLE__))   ||                                      \
+                (defined(__FreeBSD__)) ||                                      \
+                (defined(__OpenBSD__)) ||                                      \
+                (defined(__NetBSD__))  ||                                      \
+                (defined(__sun)) )
             #define D_ENV_POSIX_LIKELY      1
             #define D_ENV_POSIX_VERSION     0L
             #define D_ENV_POSIX_NAME        "POSIX (Likely)"
@@ -385,10 +386,10 @@ TABLE OF CONTENTS
     // 2.1.5
     // D_ENV_POSIX_FEATURE_REALTIME
     //   feature: POSIX real-time extensions support detection.
-    #if ( defined(_POSIX_REALTIME_SIGNALS) ||  \
-          defined(_POSIX_TIMERS)            ||  \
-          defined(_POSIX_ASYNCHRONOUS_IO)   ||  \
-          defined(_POSIX_PRIORITY_SCHEDULING) )
+    #if ( (defined(_POSIX_REALTIME_SIGNALS)) ||                                \
+          (defined(_POSIX_TIMERS))           ||                                \
+          (defined(_POSIX_ASYNCHRONOUS_IO))  ||                                \
+          (defined(_POSIX_PRIORITY_SCHEDULING)) )
         #define D_ENV_POSIX_FEATURE_REALTIME 1
     #else
         #define D_ENV_POSIX_FEATURE_REALTIME 0
@@ -397,13 +398,13 @@ TABLE OF CONTENTS
     // 2.1.6
     // D_ENV_POSIX_FEATURE_SOCKETS
     //   feature: POSIX sockets/networking support detection.
-    #if ( defined(_POSIX_NETWORKING) ||  \
-          defined(__unix__)          ||  \
-          defined(__linux__)         ||  \
-          defined(__APPLE__)         ||  \
-          defined(__FreeBSD__)       ||  \
-          defined(__OpenBSD__)       ||  \
-          defined(__NetBSD__) )
+    #if ( (defined(_POSIX_NETWORKING)) ||                                      \
+          (defined(__unix__))          ||                                      \
+          (defined(__linux__))         ||                                      \
+          (defined(__APPLE__))         ||                                      \
+          (defined(__FreeBSD__))       ||                                      \
+          (defined(__OpenBSD__))       ||                                      \
+          (defined(__NetBSD__)) )
         #define D_ENV_POSIX_FEATURE_SOCKETS 1
     #else
         #define D_ENV_POSIX_FEATURE_SOCKETS 0
@@ -563,7 +564,7 @@ TABLE OF CONTENTS
 // 3.1.2
 // D_ENV_POSIX_IS_MODERN
 //   macro: evaluates to 1 if POSIX.1-2001 or later is detected.
-#define D_ENV_POSIX_IS_MODERN     \
+#define D_ENV_POSIX_IS_MODERN                                                  \
     (D_ENV_POSIX_VERSION >= D_ENV_POSIX_VERSION_2001)
 
 // 3.1.3
@@ -574,7 +575,7 @@ TABLE OF CONTENTS
 // 3.1.4
 // D_ENV_POSIX_VERSION_AT_LEAST
 //   macro: checks if POSIX version is at least the specified version.
-#define D_ENV_POSIX_VERSION_AT_LEAST(version) \
+#define D_ENV_POSIX_VERSION_AT_LEAST(version)                                  \
     (D_ENV_POSIX_VERSION >= (version))
 
 // 3.1.5
@@ -589,7 +590,7 @@ TABLE OF CONTENTS
 // 3.1.6
 // D_ENV_XSI_VERSION_AT_LEAST
 //   macro: checks if XSI version is at least the specified version.
-#define D_ENV_XSI_VERSION_AT_LEAST(version) \
+#define D_ENV_XSI_VERSION_AT_LEAST(version)                                    \
     (D_ENV_POSIX_XSI_VERSION >= (version))
 
 

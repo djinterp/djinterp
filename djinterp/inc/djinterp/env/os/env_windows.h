@@ -24,10 +24,11 @@
 * from the build or from <windows.h>; see 1.3.
 *   Naming: D_ENV_WIN_<CATEGORY>_<FEATURE> is 1 if available, 0 otherwise.
 *
+*
 * path:      /inc/djinterp/env/os/env_windows.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.22
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -399,14 +400,14 @@ TABLE OF CONTENTS
 // D_ENV_WIN_TARGET_AT_LEAST
 //   macro: evaluates to 1 if the targeted _WIN32_WINNT version is at least
 // the specified version.
-#define D_ENV_WIN_TARGET_AT_LEAST(version)                                    \
+#define D_ENV_WIN_TARGET_AT_LEAST(version)                                     \
     ( D_ENV_WIN_TARGET_WINNT >= (version) )
 
 // 1.3.4
 // D_ENV_WIN_NTDDI_AT_LEAST
 //   macro: evaluates to 1 if the targeted NTDDI_VERSION is at least the
 // specified version.
-#define D_ENV_WIN_NTDDI_AT_LEAST(version)                                     \
+#define D_ENV_WIN_NTDDI_AT_LEAST(version)                                      \
     ( D_ENV_WIN_TARGET_NTDDI >= (version) )
 
 
@@ -484,9 +485,9 @@ TABLE OF CONTENTS
 // note: compile-time heuristic only — true WoW64 detection requires
 // runtime checks via IsWow64Process(). this detects the typical scenario
 // of targeting x86 while the SDK indicates 64-bit awareness.
-#if ( defined(_WIN32)  &&                                                     \
-      !defined(_WIN64) &&                                                     \
-      defined(_M_IX86) )
+#if ( (defined(_WIN32))  &&                                                    \
+      (!defined(_WIN64)) &&                                                    \
+      (defined(_M_IX86)) )
     #define D_ENV_WIN_MAYBE_WOW64 1
 #else
     #define D_ENV_WIN_MAYBE_WOW64 0
@@ -495,8 +496,8 @@ TABLE OF CONTENTS
 // 3.1.3
 // D_ENV_WIN_IS_ARM
 //   feature: detect if targeting Windows on ARM.
-#if ( defined(_M_ARM)   ||                                                    \
-      defined(_M_ARM64) )
+#if ( (defined(_M_ARM)) ||                                                     \
+      (defined(_M_ARM64)) )
     #define D_ENV_WIN_IS_ARM    1
 #else
     #define D_ENV_WIN_IS_ARM    0
@@ -517,8 +518,8 @@ TABLE OF CONTENTS
 // D_ENV_WIN_UNICODE / D_ENV_WIN_CHAR_MODE
 //   feature: detect if building in Unicode mode (UNICODE / _UNICODE), with
 // D_ENV_WIN_CHAR_MODE naming the mode.
-#if ( defined(UNICODE) ||                                                     \
-      defined(_UNICODE) )
+#if ( (defined(UNICODE)) ||                                                    \
+      (defined(_UNICODE)) )
     #define D_ENV_WIN_UNICODE       1
     #define D_ENV_WIN_CHAR_MODE     "Unicode"
 #else
@@ -565,8 +566,8 @@ TABLE OF CONTENTS
 // 4.1.3
 // D_ENV_WIN_IS_DLL
 //   feature: detect if building a DLL.
-#if ( defined(_WINDLL) ||                                                     \
-      defined(_USRDLL) )
+#if ( (defined(_WINDLL)) ||                                                    \
+      (defined(_USRDLL)) )
     #define D_ENV_WIN_IS_DLL        1
 #else
     #define D_ENV_WIN_IS_DLL        0
@@ -575,8 +576,8 @@ TABLE OF CONTENTS
 // 4.1.4
 // D_ENV_WIN_IS_DRIVER
 //   feature: detect if building a kernel-mode driver (WDK/DDK).
-#if ( defined(NTDDI_VERSION) &&                                               \
-      defined(_KERNEL_MODE) )
+#if ( (defined(NTDDI_VERSION)) &&                                              \
+      (defined(_KERNEL_MODE)) )
     #define D_ENV_WIN_IS_DRIVER     1
 #elif defined(_WDMDDK_)
     #define D_ENV_WIN_IS_DRIVER     1
@@ -610,8 +611,8 @@ TABLE OF CONTENTS
 // 5.1.2
 // D_ENV_WIN_HAS_CRT_DBG
 //   feature: detect if CRT debug features are available.
-#if ( defined(_DEBUG) &&                                                      \
-      defined(_MSC_VER) )
+#if ( (defined(_DEBUG)) &&                                                     \
+      (defined(_MSC_VER)) )
     #define D_ENV_WIN_HAS_CRT_DBG   1
 #else
     #define D_ENV_WIN_HAS_CRT_DBG   0
@@ -620,8 +621,8 @@ TABLE OF CONTENTS
 // 5.1.3
 // D_ENV_WIN_STATIC_CRT / D_ENV_WIN_DYNAMIC_CRT
 //   feature: detect if linking the CRT statically or dynamically.
-#if ( defined(_MT) &&                                                         \
-      !defined(_DLL) )
+#if ( (defined(_MT)) &&                                                        \
+      (!defined(_DLL)) )
     #define D_ENV_WIN_STATIC_CRT    1
     #define D_ENV_WIN_DYNAMIC_CRT   0
 #elif defined(_DLL)
@@ -662,9 +663,9 @@ TABLE OF CONTENTS
 // 5.1.6
 // D_ENV_WIN_HAS_DECLSPEC
 //   feature: detect if __declspec is available.
-#if ( defined(_MSC_VER)    ||                                                 \
-      defined(__MINGW32__) ||                                                 \
-      defined(__MINGW64__) )
+#if ( (defined(_MSC_VER))    ||                                                \
+      (defined(__MINGW32__)) ||                                                \
+      (defined(__MINGW64__)) )
     #define D_ENV_WIN_HAS_DECLSPEC  1
 #else
     #define D_ENV_WIN_HAS_DECLSPEC  0
@@ -723,8 +724,8 @@ TABLE OF CONTENTS
 // 6.1.5
 // D_ENV_WIN_HAS_CPPWINRT
 //   feature: detect if C++/WinRT headers are available.
-#if ( defined(__cpp_lib_coroutine) ||                                         \
-      defined(WINRT_BASE_H) )
+#if ( (defined(__cpp_lib_coroutine)) ||                                        \
+      (defined(WINRT_BASE_H)) )
     #define D_ENV_WIN_HAS_CPPWINRT  1
 #else
     #define D_ENV_WIN_HAS_CPPWINRT  0
@@ -733,7 +734,7 @@ TABLE OF CONTENTS
 // 6.1.6
 // D_ENV_WIN_HAS_UWP
 //   feature: detect if compiling for UWP (Universal Windows Platform).
-#if ( defined(WINAPI_FAMILY) &&                                               \
+#if ( (defined(WINAPI_FAMILY)) &&                                              \
       (WINAPI_FAMILY == WINAPI_FAMILY_APP) )
     #define D_ENV_WIN_HAS_UWP       1
 #else
@@ -972,8 +973,8 @@ TABLE OF CONTENTS
 //   feature: detect if io.h is available (low-level I/O, MSVC).
 #ifdef _MSC_VER
     #define D_ENV_WIN_HAS_IO_H      1
-#elif ( defined(__MINGW32__) ||                                               \
-        defined(__MINGW64__) )
+#elif ( (defined(__MINGW32__)) ||                                              \
+        (defined(__MINGW64__)) )
     #define D_ENV_WIN_HAS_IO_H      1
 #else
     #define D_ENV_WIN_HAS_IO_H      0
@@ -984,8 +985,8 @@ TABLE OF CONTENTS
 //   feature: detect if direct.h is available (directory functions, MSVC).
 #ifdef _MSC_VER
     #define D_ENV_WIN_HAS_DIRECT_H  1
-#elif ( defined(__MINGW32__) ||                                               \
-        defined(__MINGW64__) )
+#elif ( (defined(__MINGW32__)) ||                                              \
+        (defined(__MINGW64__)) )
     #define D_ENV_WIN_HAS_DIRECT_H  1
 #else
     #define D_ENV_WIN_HAS_DIRECT_H  0
@@ -996,8 +997,8 @@ TABLE OF CONTENTS
 //   feature: detect if process.h is available (_beginthread, _spawnl).
 #ifdef _MSC_VER
     #define D_ENV_WIN_HAS_PROCESS_H 1
-#elif ( defined(__MINGW32__) ||                                               \
-        defined(__MINGW64__) )
+#elif ( (defined(__MINGW32__)) ||                                              \
+        (defined(__MINGW64__)) )
     #define D_ENV_WIN_HAS_PROCESS_H 1
 #else
     #define D_ENV_WIN_HAS_PROCESS_H 0
@@ -1044,8 +1045,8 @@ TABLE OF CONTENTS
 // D_ENV_WIN_HAS_POPCNT
 //   feature: detect if __popcnt / __popcnt64 intrinsics are available.
 #ifdef _MSC_VER
-    #if ( defined(__AVX__) ||                                                 \
-          defined(__POPCNT__) )
+    #if ( (defined(__AVX__)) ||                                                \
+          (defined(__POPCNT__)) )
         #define D_ENV_WIN_HAS_POPCNT 1
     #else
         #define D_ENV_WIN_HAS_POPCNT 0
@@ -1072,8 +1073,8 @@ TABLE OF CONTENTS
 // 8.2.1
 // D_ENV_WIN_IS_MINGW
 //   feature: detect if building with MinGW (GNU toolchain on Windows).
-#if ( defined(__MINGW32__) ||                                                 \
-      defined(__MINGW64__) )
+#if ( (defined(__MINGW32__)) ||                                                \
+      (defined(__MINGW64__)) )
     #define D_ENV_WIN_IS_MINGW      1
 #else
     #define D_ENV_WIN_IS_MINGW      0
@@ -1100,10 +1101,10 @@ TABLE OF CONTENTS
 // 8.2.4
 // D_ENV_WIN_IS_MSVC_NATIVE
 //   feature: detect if building with native MSVC (not MinGW, not Cygwin).
-#if ( defined(_MSC_VER)       &&                                              \
-      !defined(__MINGW32__)   &&                                              \
-      !defined(__MINGW64__)   &&                                              \
-      !defined(__CYGWIN__) )
+#if ( (defined(_MSC_VER))     &&                                               \
+      (!defined(__MINGW32__)) &&                                               \
+      (!defined(__MINGW64__)) &&                                               \
+      (!defined(__CYGWIN__)) )
     #define D_ENV_WIN_IS_MSVC_NATIVE 1
 #else
     #define D_ENV_WIN_IS_MSVC_NATIVE 0

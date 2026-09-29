@@ -18,6 +18,7 @@
 *   It requires env.h, env_net.h, env_tls.h, and env_curl.h, and includes
 * them itself. It is an opt-in module and may be included directly.
 *
+*
 * path:      /inc/djinterp/env/net/env_pop.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25

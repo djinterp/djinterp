@@ -32,6 +32,7 @@
 * needs no such switch: static and import zlib both resolve as long as
 * ZLIB_DLL matches the artifact being linked.
 *
+*
 * path:      /inc/djinterp/env/env_compress_link.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.04

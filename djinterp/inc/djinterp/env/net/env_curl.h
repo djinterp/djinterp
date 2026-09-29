@@ -22,6 +22,7 @@
 *   It requires env_net.h, for D_ENV_NET_HAS_INCLUDE and D_ENV_NET_CAN_TCP,
 * and includes it itself. It is an opt-in module and may be included directly.
 *
+*
 * path:      /inc/djinterp/env/net/env_curl.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16

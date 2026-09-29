@@ -25,10 +25,11 @@
 * are iOS / iPadOS-, tvOS-, watchOS-, and visionOS-specific; D_ENV_MOBILE_ is
 * shared across the mobile Apple platforms.
 *
+*
 * path:      /inc/djinterp/env/os/env_ios.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -262,7 +263,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the iOS deployment target is at least
 // the specified version.
 #define D_ENV_IOS_AT_LEAST(version)                                            \
-    ( D_ENV_IOS_DEPLOY_DETECTED &&                                             \
+    ( (D_ENV_IOS_DEPLOY_DETECTED) &&                                           \
       (D_ENV_IOS_DEPLOY_TARGET >= (version)) )
 
 // 1.2.3
@@ -270,7 +271,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the iOS SDK version is at least the
 // specified version.
 #define D_ENV_IOS_SDK_AT_LEAST(version)                                        \
-    ( D_ENV_IOS_SDK_DETECTED &&                                                \
+    ( (D_ENV_IOS_SDK_DETECTED) &&                                              \
       (D_ENV_IOS_SDK_VERSION >= (version)) )
 
 // 1.2.4
@@ -380,7 +381,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the tvOS deployment target is at least
 // the specified version.
 #define D_ENV_TVOS_AT_LEAST(version)                                           \
-    ( D_ENV_TVOS_DEPLOY_DETECTED &&                                            \
+    ( (D_ENV_TVOS_DEPLOY_DETECTED) &&                                          \
       (D_ENV_TVOS_DEPLOY_TARGET >= (version)) )
 
 // 2.3    watchOS version constants
@@ -457,7 +458,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the watchOS deployment target is at least
 // the specified version.
 #define D_ENV_WATCHOS_AT_LEAST(version)                                        \
-    ( D_ENV_WATCHOS_DEPLOY_DETECTED &&                                         \
+    ( (D_ENV_WATCHOS_DEPLOY_DETECTED) &&                                       \
       (D_ENV_WATCHOS_DEPLOY_TARGET >= (version)) )
 
 // 2.5    visionOS version constants
@@ -497,7 +498,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the visionOS deployment target is at
 // least the specified version.
 #define D_ENV_VISOS_AT_LEAST(version)                                          \
-    ( D_ENV_VISOS_DEPLOY_DETECTED &&                                           \
+    ( (D_ENV_VISOS_DEPLOY_DETECTED) &&                                         \
       (D_ENV_VISOS_DEPLOY_TARGET >= (version)) )
 
 
@@ -513,8 +514,8 @@ TABLE OF CONTENTS
 //   feature: detect if ARKit.framework is available (iOS 11+).
 #if D_ENV_IOS_SDK_AT_LEAST(D_ENV_IOS_VER_11)
     #define D_ENV_IOS_HAS_ARKIT         1
-#elif ( D_ENV_APPLE_IS_IOS &&                                                  \
-        !D_ENV_IOS_SDK_DETECTED )
+#elif ( (D_ENV_APPLE_IS_IOS) &&                                                \
+        (!D_ENV_IOS_SDK_DETECTED) )
     #define D_ENV_IOS_HAS_ARKIT         1
 #else
     #define D_ENV_IOS_HAS_ARKIT         0
@@ -535,8 +536,8 @@ TABLE OF CONTENTS
 //   feature: detect if RealityKit.framework is available (iOS 13+).
 #if D_ENV_IOS_SDK_AT_LEAST(D_ENV_IOS_VER_13)
     #define D_ENV_IOS_HAS_REALITYKIT    1
-#elif ( D_ENV_APPLE_IS_IOS &&                                                  \
-        !D_ENV_IOS_SDK_DETECTED )
+#elif ( (D_ENV_APPLE_IS_IOS) &&                                                \
+        (!D_ENV_IOS_SDK_DETECTED) )
     #define D_ENV_IOS_HAS_REALITYKIT    1
 #elif D_ENV_APPLE_IS_VISIONOS
     #define D_ENV_IOS_HAS_REALITYKIT    1
@@ -551,8 +552,8 @@ TABLE OF CONTENTS
 //   feature: detect if CoreML.framework is available (iOS 11+).
 #if D_ENV_IOS_SDK_AT_LEAST(D_ENV_IOS_VER_11)
     #define D_ENV_IOS_HAS_COREML        1
-#elif ( D_ENV_APPLE_IS_IOS &&                                                  \
-        !D_ENV_IOS_SDK_DETECTED )
+#elif ( (D_ENV_APPLE_IS_IOS) &&                                                \
+        (!D_ENV_IOS_SDK_DETECTED) )
     #define D_ENV_IOS_HAS_COREML        1
 #elif D_ENV_APPLE_IS_MACOS
     // Core ML is also on macOS 10.13+
@@ -583,8 +584,8 @@ TABLE OF CONTENTS
 // D_ENV_IOS_HAS_HEALTHKIT
 //   feature: detect if HealthKit.framework is available (iOS 8+).
 // not available on iPad, tvOS, or macOS.
-#if ( D_ENV_APPLE_IS_IOS &&                                                   \
-      !D_ENV_APPLE_IS_SIMULATOR )
+#if ( (D_ENV_APPLE_IS_IOS) &&                                                  \
+      (!D_ENV_APPLE_IS_SIMULATOR) )
     #define D_ENV_IOS_HAS_HEALTHKIT     1
 #elif D_ENV_APPLE_IS_WATCHOS
     #define D_ENV_IOS_HAS_HEALTHKIT     1
@@ -596,8 +597,8 @@ TABLE OF CONTENTS
 // D_ENV_IOS_HAS_COREMOTION
 //   feature: detect if CoreMotion.framework (accelerometer, gyroscope,
 // pedometer) is available.
-#if ( D_ENV_APPLE_IS_IOS    ||                                                 \
-      D_ENV_APPLE_IS_WATCHOS )
+#if ( (D_ENV_APPLE_IS_IOS) ||                                                  \
+      (D_ENV_APPLE_IS_WATCHOS) )
     #define D_ENV_IOS_HAS_COREMOTION    1
 #else
     #define D_ENV_IOS_HAS_COREMOTION    0
@@ -606,10 +607,10 @@ TABLE OF CONTENTS
 // 3.3.3
 // D_ENV_IOS_HAS_CORELOCATION
 //   feature: detect if CoreLocation.framework is available.
-#if ( D_ENV_APPLE_IS_IOS    ||                                                 \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_MACOS  ||                                                 \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_MACOS)   ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_IOS_HAS_CORELOCATION  1
 #else
     #define D_ENV_IOS_HAS_CORELOCATION  0
@@ -621,10 +622,10 @@ TABLE OF CONTENTS
 // D_ENV_IOS_HAS_USERNOTIFICATIONS
 //   feature: detect if UserNotifications.framework is available
 // (iOS 10+).
-#if ( D_ENV_APPLE_IS_IOS     ||                                                \
-      D_ENV_APPLE_IS_WATCHOS  ||                                               \
-      D_ENV_APPLE_IS_TVOS     ||                                               \
-      D_ENV_APPLE_IS_MACOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_MACOS) )
     #define D_ENV_IOS_HAS_USERNOTIFICATIONS 1
 #else
     #define D_ENV_IOS_HAS_USERNOTIFICATIONS 0
@@ -656,10 +657,10 @@ TABLE OF CONTENTS
 // 3.5.1
 // D_ENV_IOS_HAS_MAPKIT
 //   feature: detect if MapKit.framework is available.
-#if ( D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_MACOS ||                                                  \
-      D_ENV_APPLE_IS_TVOS  ||                                                  \
-      D_ENV_APPLE_IS_WATCHOS )
+#if ( (D_ENV_APPLE_IS_IOS)   ||                                                \
+      (D_ENV_APPLE_IS_MACOS) ||                                                \
+      (D_ENV_APPLE_IS_TVOS)  ||                                                \
+      (D_ENV_APPLE_IS_WATCHOS) )
     #define D_ENV_IOS_HAS_MAPKIT        1
 #else
     #define D_ENV_IOS_HAS_MAPKIT        0
@@ -749,11 +750,11 @@ TABLE OF CONTENTS
 // 4.2.1
 // D_ENV_IOS_HAS_STOREKIT
 //   feature: detect if StoreKit.framework (IAP) is available.
-#if ( D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_MACOS ||                                                  \
-      D_ENV_APPLE_IS_TVOS  ||                                                  \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_MACOS)   ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_IOS_HAS_STOREKIT      1
 #else
     #define D_ENV_IOS_HAS_STOREKIT      0
@@ -786,8 +787,8 @@ TABLE OF CONTENTS
 // D_ENV_IOS_HAS_CAMERA_API
 //   feature: detect if camera capture APIs are available.
 // AVFoundation camera APIs are on iOS and macOS; not on watchOS/tvOS.
-#if ( D_ENV_APPLE_IS_IOS  ||                                                   \
-      D_ENV_APPLE_IS_MACOS )
+#if ( (D_ENV_APPLE_IS_IOS) ||                                                  \
+      (D_ENV_APPLE_IS_MACOS) )
     #define D_ENV_IOS_HAS_CAMERA_API    1
 #else
     #define D_ENV_IOS_HAS_CAMERA_API    0
@@ -818,12 +819,12 @@ TABLE OF CONTENTS
 // D_ENV_IOS_HAS_NFC_API
 //   feature: detect if Core NFC framework is available (iOS 11+).
 // not available on iPad, simulator, or tvOS.
-#if ( D_ENV_APPLE_IS_IOS      &&                                               \
-      !D_ENV_APPLE_IS_SIMULATOR &&                                             \
-      D_ENV_IOS_SDK_AT_LEAST(D_ENV_IOS_VER_11) )
+#if ( (D_ENV_APPLE_IS_IOS)        &&                                           \
+      (!D_ENV_APPLE_IS_SIMULATOR) &&                                           \
+      (D_ENV_IOS_SDK_AT_LEAST(D_ENV_IOS_VER_11)) )
     #define D_ENV_IOS_HAS_NFC_API       1
-#elif ( D_ENV_APPLE_IS_IOS &&                                                  \
-        !D_ENV_IOS_SDK_DETECTED )
+#elif ( (D_ENV_APPLE_IS_IOS) &&                                                \
+        (!D_ENV_IOS_SDK_DETECTED) )
     #define D_ENV_IOS_HAS_NFC_API       1
 #else
     #define D_ENV_IOS_HAS_NFC_API       0
@@ -835,8 +836,8 @@ TABLE OF CONTENTS
 // (LocalAuthentication) are available (iOS 11+).
 #if D_ENV_IOS_SDK_AT_LEAST(D_ENV_IOS_VER_11)
     #define D_ENV_IOS_HAS_FACEID_API    1
-#elif ( D_ENV_APPLE_IS_IOS &&                                                  \
-        !D_ENV_IOS_SDK_DETECTED )
+#elif ( (D_ENV_APPLE_IS_IOS) &&                                                \
+        (!D_ENV_IOS_SDK_DETECTED) )
     #define D_ENV_IOS_HAS_FACEID_API    1
 #else
     #define D_ENV_IOS_HAS_FACEID_API    0
@@ -845,10 +846,10 @@ TABLE OF CONTENTS
 // 5.1.6
 // D_ENV_IOS_HAS_BLUETOOTH_API
 //   feature: detect if CoreBluetooth.framework is available.
-#if ( D_ENV_APPLE_IS_IOS    ||                                                 \
-      D_ENV_APPLE_IS_MACOS   ||                                                \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_TVOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_MACOS)   ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_TVOS) )
     #define D_ENV_IOS_HAS_BLUETOOTH_API 1
 #else
     #define D_ENV_IOS_HAS_BLUETOOTH_API 0
@@ -973,9 +974,9 @@ TABLE OF CONTENTS
 // D_ENV_MOBILE_IS_APP_STORE_BUILD
 //   feature: detect if building for App Store distribution.
 // NDEBUG + no simulator + not ad-hoc is a heuristic.
-#if ( defined(NDEBUG)            &&                                            \
-      !D_ENV_APPLE_IS_SIMULATOR  &&                                            \
-      D_ENV_APPLE_IS_DEVICE )
+#if ( (defined(NDEBUG))           &&                                           \
+      (!D_ENV_APPLE_IS_SIMULATOR) &&                                           \
+      (D_ENV_APPLE_IS_DEVICE) )
     #define D_ENV_MOBILE_IS_APP_STORE_BUILD 1
 #else
     #define D_ENV_MOBILE_IS_APP_STORE_BUILD 0
@@ -985,10 +986,10 @@ TABLE OF CONTENTS
 // D_ENV_MOBILE_HAS_TESTFLIGHT
 //   feature: detect if TestFlight APIs (StoreKit receipt checking) are
 // available. TestFlight is available on iOS 8+.
-#if ( D_ENV_APPLE_IS_IOS   ||                                                  \
-      D_ENV_APPLE_IS_TVOS  ||                                                  \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_MOBILE_HAS_TESTFLIGHT 1
 #else
     #define D_ENV_MOBILE_HAS_TESTFLIGHT 0
@@ -1009,10 +1010,10 @@ TABLE OF CONTENTS
 //   feature: detect if JIT compilation is prohibited.
 // App Store apps on iOS cannot use JIT (W^X policy) unless the app
 // uses a JIT entitlement (which is not generally available).
-#if ( D_ENV_APPLE_IS_IOS    ||                                                 \
-      D_ENV_APPLE_IS_TVOS   ||                                                 \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_MOBILE_NO_JIT         1
 #else
     #define D_ENV_MOBILE_NO_JIT         0
@@ -1022,10 +1023,10 @@ TABLE OF CONTENTS
 // D_ENV_MOBILE_NO_DLOPEN
 //   feature: detect if dlopen of third-party dynamic libraries is
 // prohibited. App Store policy forbids loading non-system dylibs.
-#if ( D_ENV_APPLE_IS_IOS    ||                                                 \
-      D_ENV_APPLE_IS_TVOS   ||                                                 \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_MOBILE_NO_DLOPEN      1
 #else
     #define D_ENV_MOBILE_NO_DLOPEN      0
@@ -1035,10 +1036,10 @@ TABLE OF CONTENTS
 // D_ENV_MOBILE_NO_FORK
 //   feature: detect if fork() is prohibited.
 // iOS does not allow fork/exec; this is enforced by the sandbox.
-#if ( D_ENV_APPLE_IS_IOS    ||                                                 \
-      D_ENV_APPLE_IS_TVOS   ||                                                 \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+#if ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
     #define D_ENV_MOBILE_NO_FORK        1
 #else
     #define D_ENV_MOBILE_NO_FORK        0
@@ -1122,28 +1123,28 @@ void        d_env_ios_print_info(void);
 //   macro: evaluates to 1 if Swift concurrency (async/await, actors)
 // is available in system frameworks (iOS 15+).
 #define D_ENV_IOS_HAS_MODERN_CONCURRENCY()                                     \
-    ( D_ENV_IOS_AT_LEAST(D_ENV_IOS_VER_15)   ||                                \
-      D_ENV_TVOS_AT_LEAST(D_ENV_TVOS_VER_15) ||                                \
-      D_ENV_WATCHOS_AT_LEAST(D_ENV_WATCHOS_VER_8) )
+    ( (D_ENV_IOS_AT_LEAST(D_ENV_IOS_VER_15))   ||                              \
+      (D_ENV_TVOS_AT_LEAST(D_ENV_TVOS_VER_15)) ||                              \
+      (D_ENV_WATCHOS_AT_LEAST(D_ENV_WATCHOS_VER_8)) )
 
 // 7.2.4
 // D_ENV_MOBILE_IS_SANDBOXED
 //   macro: evaluates to 1 if the platform enforces mandatory app
 // sandboxing (all mobile Apple platforms).
 #define D_ENV_MOBILE_IS_SANDBOXED()                                            \
-    ( D_ENV_APPLE_IS_IOS     ||                                                \
-      D_ENV_APPLE_IS_TVOS    ||                                                \
-      D_ENV_APPLE_IS_WATCHOS ||                                                \
-      D_ENV_APPLE_IS_VISIONOS )
+    ( (D_ENV_APPLE_IS_IOS)     ||                                              \
+      (D_ENV_APPLE_IS_TVOS)    ||                                              \
+      (D_ENV_APPLE_IS_WATCHOS) ||                                              \
+      (D_ENV_APPLE_IS_VISIONOS) )
 
 // 7.2.5
 // D_ENV_MOBILE_IS_CONSTRAINED
 //   macro: evaluates to 1 if the platform has significant runtime
 // constraints (no JIT, no fork, no dlopen).
 #define D_ENV_MOBILE_IS_CONSTRAINED()                                          \
-    ( D_ENV_MOBILE_NO_JIT    &&                                                \
-      D_ENV_MOBILE_NO_FORK   &&                                                \
-      D_ENV_MOBILE_NO_DLOPEN )
+    ( (D_ENV_MOBILE_NO_JIT)  &&                                                \
+      (D_ENV_MOBILE_NO_FORK) &&                                                \
+      (D_ENV_MOBILE_NO_DLOPEN) )
 
 // 7.2.6
 // D_ENV_IOS_HAS_SPATIAL_COMPUTING

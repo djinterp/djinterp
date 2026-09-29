@@ -26,10 +26,11 @@
 * <linux/version.h>; see 1.2.
 *   Naming: D_ENV_LINUX_<CATEGORY>_<FEATURE> is 1 if available, 0 otherwise.
 *
+*
 * path:      /inc/djinterp/env/os/env_linux.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.28
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.27
 *******************************************************************************/
 
 /*
@@ -446,7 +447,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the targeted kernel version is at least
 // the specified version.
 #define D_ENV_LINUX_KVER_AT_LEAST(major, minor, patch)                         \
-    ( D_ENV_LINUX_KVER_DETECTED &&                                             \
+    ( (D_ENV_LINUX_KVER_DETECTED) &&                                           \
       (D_ENV_LINUX_KVER >= D_ENV_LINUX_KERNEL_VER(major, minor, patch)) )
 
 // 1.2.3
@@ -454,7 +455,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the targeted kernel version is at least
 // the specified hex constant (e.g. D_ENV_LINUX_KVER_5_4).
 #define D_ENV_LINUX_KVER_AT_LEAST_HEX(hex_version)                             \
-    ( D_ENV_LINUX_KVER_DETECTED &&                                             \
+    ( (D_ENV_LINUX_KVER_DETECTED) &&                                           \
       (D_ENV_LINUX_KVER >= (hex_version)) )
 
 
@@ -468,8 +469,8 @@ TABLE OF CONTENTS
 // 2.1.1
 // D_ENV_LINUX_LIBC_GLIBC
 //   feature: detect if the GNU C Library (glibc) is in use.
-#if ( defined(__GLIBC__) ||                                                    \
-      defined(__GNU_LIBRARY__) )
+#if ( (defined(__GLIBC__)) ||                                                  \
+      (defined(__GNU_LIBRARY__)) )
     #define D_ENV_LINUX_LIBC_GLIBC      1
 
     // D_ENV_LINUX_GLIBC_MAJOR
@@ -501,7 +502,7 @@ TABLE OF CONTENTS
 //   macro: evaluates to 1 if the detected glibc version is at least the
 // specified major.minor version.
 #define D_ENV_LINUX_GLIBC_AT_LEAST(major, minor)                               \
-    ( D_ENV_LINUX_LIBC_GLIBC &&                                                \
+    ( (D_ENV_LINUX_LIBC_GLIBC) &&                                              \
       ( (D_ENV_LINUX_GLIBC_MAJOR > (major)) ||                                 \
         ( (D_ENV_LINUX_GLIBC_MAJOR == (major)) &&                              \
           (D_ENV_LINUX_GLIBC_MINOR >= (minor)) ) ) )
@@ -658,7 +659,7 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_FILE_OFFSET_BITS_64
 //   feature: detect if _FILE_OFFSET_BITS is set to 64 (transparent
 // large file support: off_t becomes 64-bit on 32-bit platforms).
-#if ( defined(_FILE_OFFSET_BITS) &&                                            \
+#if ( (defined(_FILE_OFFSET_BITS)) &&                                          \
       (_FILE_OFFSET_BITS == 64) )
     #define D_ENV_LINUX_HAS_FILE_OFFSET_BITS_64 1
 #else
@@ -830,9 +831,9 @@ TABLE OF CONTENTS
 //   feature: detect if epoll is available.
 // epoll has been available since kernel 2.5.44; any glibc-based system
 // on a 2.6+ kernel supports it.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL  ||                                               \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL)  ||                                              \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_EPOLL       1
 #else
     #define D_ENV_LINUX_HAS_EPOLL       0
@@ -842,9 +843,9 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_EVENTFD
 //   feature: detect if eventfd/eventfd2 is available (kernel 2.6.22+,
 // glibc 2.8+).
-#if ( D_ENV_LINUX_GLIBC_AT_LEAST(2, 8)  ||                                    \
-      D_ENV_LINUX_LIBC_MUSL             ||                                     \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_GLIBC_AT_LEAST(2, 8)) ||                                    \
+      (D_ENV_LINUX_LIBC_MUSL)            ||                                    \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_EVENTFD     1
 #else
     #define D_ENV_LINUX_HAS_EVENTFD     0
@@ -854,9 +855,9 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_SIGNALFD
 //   feature: detect if signalfd is available (kernel 2.6.22+,
 // glibc 2.8+).
-#if ( D_ENV_LINUX_GLIBC_AT_LEAST(2, 8)  ||                                    \
-      D_ENV_LINUX_LIBC_MUSL             ||                                     \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_GLIBC_AT_LEAST(2, 8)) ||                                    \
+      (D_ENV_LINUX_LIBC_MUSL)            ||                                    \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_SIGNALFD    1
 #else
     #define D_ENV_LINUX_HAS_SIGNALFD    0
@@ -866,9 +867,9 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_TIMERFD
 //   feature: detect if timerfd_create/timerfd_settime is available
 // (kernel 2.6.25+, glibc 2.8+).
-#if ( D_ENV_LINUX_GLIBC_AT_LEAST(2, 8)  ||                                    \
-      D_ENV_LINUX_LIBC_MUSL             ||                                     \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_GLIBC_AT_LEAST(2, 8)) ||                                    \
+      (D_ENV_LINUX_LIBC_MUSL)            ||                                    \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_TIMERFD     1
 #else
     #define D_ENV_LINUX_HAS_TIMERFD     0
@@ -878,9 +879,9 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_INOTIFY
 //   feature: detect if inotify (filesystem event monitoring) is available
 // (kernel 2.6.13+).
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL  ||                                               \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL)  ||                                              \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_INOTIFY     1
 #else
     #define D_ENV_LINUX_HAS_INOTIFY     0
@@ -890,8 +891,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_FANOTIFY
 //   feature: detect if fanotify is available (kernel 2.6.37+,
 // glibc 2.13+).
-#if ( D_ENV_LINUX_GLIBC_AT_LEAST(2, 13) ||                                    \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_GLIBC_AT_LEAST(2, 13)) ||                                   \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_FANOTIFY    1
 #else
     #define D_ENV_LINUX_HAS_FANOTIFY    0
@@ -920,8 +921,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_MEMFD_CREATE
 //   feature: detect if memfd_create() is available (kernel 3.17+,
 // glibc 2.27+).
-#if ( D_ENV_LINUX_GLIBC_AT_LEAST(2, 27) ||                                    \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_GLIBC_AT_LEAST(2, 27)) ||                                   \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_MEMFD_CREATE 1
 #else
     #define D_ENV_LINUX_HAS_MEMFD_CREATE 0
@@ -953,8 +954,8 @@ TABLE OF CONTENTS
 // enables user-space page fault handling.
 #if D_ENV_LINUX_KVER_AT_LEAST_HEX(D_ENV_LINUX_KVER_4_3)
     #define D_ENV_LINUX_HAS_USERFAULTFD 1
-#elif ( D_ENV_LINUX_GLIBC_AT_LEAST(2, 21) &&                                  \
-        !D_ENV_LINUX_KVER_DETECTED )
+#elif ( (D_ENV_LINUX_GLIBC_AT_LEAST(2, 21)) &&                                 \
+        (!D_ENV_LINUX_KVER_DETECTED) )
     // glibc has the wrapper; kernel version unknown — assume available
     // on modern systems
     #define D_ENV_LINUX_HAS_USERFAULTFD 1
@@ -997,9 +998,9 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_PRCTL
 //   feature: detect if prctl() is available.
 // prctl has been available since Linux 2.1.57.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL  ||                                               \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL)  ||                                              \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_PRCTL       1
 #else
     #define D_ENV_LINUX_HAS_PRCTL       0
@@ -1033,8 +1034,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_STATX
 //   feature: detect if statx() syscall is available (kernel 4.11+).
 // provides extended file attributes (creation time, mount ID, etc.).
-#if ( D_ENV_LINUX_GLIBC_HAS_STATX ||                                          \
-      D_ENV_LINUX_KVER_AT_LEAST_HEX(D_ENV_LINUX_KVER_4_11) )
+#if ( (D_ENV_LINUX_GLIBC_HAS_STATX) ||                                         \
+      (D_ENV_LINUX_KVER_AT_LEAST_HEX(D_ENV_LINUX_KVER_4_11)) )
     #define D_ENV_LINUX_HAS_STATX       1
 #else
     #define D_ENV_LINUX_HAS_STATX       0
@@ -1056,8 +1057,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_COPY_FILE_RANGE
 //   feature: detect if copy_file_range() syscall is available
 // (kernel 4.5+).
-#if ( D_ENV_LINUX_GLIBC_HAS_COPY_FILE_RANGE ||                                \
-      D_ENV_LINUX_KVER_AT_LEAST_HEX(D_ENV_LINUX_KVER_4_5) )
+#if ( (D_ENV_LINUX_GLIBC_HAS_COPY_FILE_RANGE) ||                               \
+      (D_ENV_LINUX_KVER_AT_LEAST_HEX(D_ENV_LINUX_KVER_4_5)) )
     #define D_ENV_LINUX_HAS_COPY_FILE_RANGE 1
 #else
     #define D_ENV_LINUX_HAS_COPY_FILE_RANGE 0
@@ -1066,8 +1067,8 @@ TABLE OF CONTENTS
 // 4.5.5
 // D_ENV_LINUX_HAS_CLOSE_RANGE
 //   feature: detect if close_range() is available (kernel 5.9+).
-#if ( D_ENV_LINUX_GLIBC_HAS_CLOSE_RANGE ||                                    \
-      D_ENV_LINUX_KVER_AT_LEAST_HEX(D_ENV_LINUX_KVER_5_9) )
+#if ( (D_ENV_LINUX_GLIBC_HAS_CLOSE_RANGE) ||                                   \
+      (D_ENV_LINUX_KVER_AT_LEAST_HEX(D_ENV_LINUX_KVER_5_9)) )
     #define D_ENV_LINUX_HAS_CLOSE_RANGE 1
 #else
     #define D_ENV_LINUX_HAS_CLOSE_RANGE 0
@@ -1091,8 +1092,8 @@ TABLE OF CONTENTS
     #define D_ENV_LINUX_HAS_SECCOMP     1
 #else
     // assume available on modern systems when kernel version is unknown
-    #if ( D_ENV_LINUX_LIBC_GLIBC &&                                            \
-          D_ENV_LINUX_GLIBC_AT_LEAST(2, 17) )
+    #if ( (D_ENV_LINUX_LIBC_GLIBC) &&                                          \
+          (D_ENV_LINUX_GLIBC_AT_LEAST(2, 17)) )
         #define D_ENV_LINUX_HAS_SECCOMP 1
     #else
         #define D_ENV_LINUX_HAS_SECCOMP 0
@@ -1105,8 +1106,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_CAPABILITIES
 //   feature: detect if POSIX capabilities are available.
 // present since kernel 2.2; practically universal on modern Linux.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_CAPABILITIES 1
 #else
     #define D_ENV_LINUX_HAS_CAPABILITIES 0
@@ -1119,8 +1120,8 @@ TABLE OF CONTENTS
 //   feature: detect if Linux namespaces (mount, PID, network, user,
 // UTS, IPC, cgroup, time) are available.
 // the full set matured across kernels 2.6.24 through 5.6.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_NAMESPACES  1
 #else
     #define D_ENV_LINUX_HAS_NAMESPACES  0
@@ -1165,8 +1166,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_PROCFS
 //   feature: detect if /proc filesystem is expected to be available.
 // procfs is effectively universal on non-embedded Linux.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_PROCFS      1
 #else
     #define D_ENV_LINUX_HAS_PROCFS      0
@@ -1182,8 +1183,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_CGROUPS_V1
 //   feature: detect if cgroups v1 is expected to be available
 // (kernel 2.6.24+).
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_CGROUPS_V1  1
 #else
     #define D_ENV_LINUX_HAS_CGROUPS_V1  0
@@ -1222,9 +1223,9 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_NETLINK
 //   feature: detect if Netlink sockets are available (kernel 2.2+).
 // used for kernel-userspace IPC: routing, firewall, audit, etc.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL  ||                                               \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL)  ||                                              \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_NETLINK     1
 #else
     #define D_ENV_LINUX_HAS_NETLINK     0
@@ -1246,8 +1247,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_SPLICE
 //   feature: detect if splice / tee / vmsplice are available
 // (kernel 2.6.17+).
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_SPLICE      1
 #else
     #define D_ENV_LINUX_HAS_SPLICE      0
@@ -1281,9 +1282,9 @@ TABLE OF CONTENTS
 // 7.1.1
 // D_ENV_LINUX_HAS_X11
 //   feature: detect if X11/Xlib development headers are available.
-#if ( defined(_X11_XLIB_H_)  ||                                               \
-      defined(_X11_X_H_)     ||                                                \
-      defined(_XLIB_H_) )
+#if ( (defined(_X11_XLIB_H_)) ||                                               \
+      (defined(_X11_X_H_))    ||                                               \
+      (defined(_XLIB_H_)) )
     #define D_ENV_LINUX_HAS_X11         1
 #else
     #define D_ENV_LINUX_HAS_X11         0
@@ -1302,9 +1303,9 @@ TABLE OF CONTENTS
 // 7.1.3
 // D_ENV_LINUX_HAS_WAYLAND
 //   feature: detect if Wayland client development headers are available.
-#if ( defined(__wayland_client_h)      ||                                      \
-      defined(WAYLAND_CLIENT_H)        ||                                      \
-      defined(__wayland_client_core_h) )
+#if ( (defined(__wayland_client_h)) ||                                         \
+      (defined(WAYLAND_CLIENT_H))   ||                                         \
+      (defined(__wayland_client_core_h)) )
     #define D_ENV_LINUX_HAS_WAYLAND     1
 #else
     #define D_ENV_LINUX_HAS_WAYLAND     0
@@ -1323,8 +1324,8 @@ TABLE OF CONTENTS
 // 7.1.5
 // D_ENV_LINUX_HAS_KMS
 //   feature: detect if KMS (Kernel Mode Setting) headers are available.
-#if ( defined(__DRM_MODE_H__)  ||                                              \
-      defined(_DRM_MODE_H) )
+#if ( (defined(__DRM_MODE_H__)) ||                                             \
+      (defined(_DRM_MODE_H)) )
     #define D_ENV_LINUX_HAS_KMS         1
 #else
     #define D_ENV_LINUX_HAS_KMS         0
@@ -1342,8 +1343,8 @@ TABLE OF CONTENTS
 // 7.1.7
 // D_ENV_LINUX_HAS_EGL
 //   feature: detect if EGL headers are available.
-#if ( defined(__egl_h_)  ||                                                    \
-      defined(EGL_EGL_H) )
+#if ( (defined(__egl_h_)) ||                                                   \
+      (defined(EGL_EGL_H)) )
     #define D_ENV_LINUX_HAS_EGL         1
 #else
     #define D_ENV_LINUX_HAS_EGL         0
@@ -1355,9 +1356,9 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_SYSTEMD
 //   feature: detect if systemd development headers (sd-daemon, sd-bus,
 // sd-journal) are available.
-#if ( defined(SD_LISTEN_FDS_START)  ||                                         \
-      defined(_SD_COMMON_H)        ||                                          \
-      defined(SD_ID128_NULL) )
+#if ( (defined(SD_LISTEN_FDS_START)) ||                                        \
+      (defined(_SD_COMMON_H))        ||                                        \
+      (defined(SD_ID128_NULL)) )
     #define D_ENV_LINUX_HAS_SYSTEMD     1
 #else
     #define D_ENV_LINUX_HAS_SYSTEMD     0
@@ -1420,8 +1421,8 @@ TABLE OF CONTENTS
 // D_ENV_LINUX_HAS_SYS_SENDFILE_H
 //   feature: detect if sys/sendfile.h (zero-copy file transfer) is
 // available.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_SYS_SENDFILE_H 1
 #else
     #define D_ENV_LINUX_HAS_SYS_SENDFILE_H 0
@@ -1446,9 +1447,9 @@ TABLE OF CONTENTS
 // 8.1.9
 // D_ENV_LINUX_HAS_SYS_SYSINFO_H
 //   feature: detect if sys/sysinfo.h (sysinfo struct) is available.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL  ||                                               \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL)  ||                                              \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_SYS_SYSINFO_H 1
 #else
     #define D_ENV_LINUX_HAS_SYS_SYSINFO_H 0
@@ -1457,8 +1458,8 @@ TABLE OF CONTENTS
 // 8.1.10
 // D_ENV_LINUX_HAS_LINUX_FUTEX_H
 //   feature: detect if linux/futex.h is available.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_LINUX_FUTEX_H 1
 #else
     #define D_ENV_LINUX_HAS_LINUX_FUTEX_H 0
@@ -1482,9 +1483,9 @@ TABLE OF CONTENTS
 // 8.1.14
 // D_ENV_LINUX_HAS_DLFCN_H
 //   feature: detect if dlfcn.h (dynamic loading) is available.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL  ||                                               \
-      D_ENV_LINUX_LIBC_BIONIC )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL)  ||                                              \
+      (D_ENV_LINUX_LIBC_BIONIC) )
     #define D_ENV_LINUX_HAS_DLFCN_H     1
 #else
     #define D_ENV_LINUX_HAS_DLFCN_H     0
@@ -1493,8 +1494,8 @@ TABLE OF CONTENTS
 // 8.1.15
 // D_ENV_LINUX_HAS_ELF_H
 //   feature: detect if elf.h (ELF format definitions) is available.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_ELF_H       1
 #else
     #define D_ENV_LINUX_HAS_ELF_H       0
@@ -1503,8 +1504,8 @@ TABLE OF CONTENTS
 // 8.1.16
 // D_ENV_LINUX_HAS_LINK_H
 //   feature: detect if link.h (dynamic linker interface) is available.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_LINK_H      1
 #else
     #define D_ENV_LINUX_HAS_LINK_H      0
@@ -1513,8 +1514,8 @@ TABLE OF CONTENTS
 // 8.1.17
 // D_ENV_LINUX_HAS_SYS_XATTR_H
 //   feature: detect if sys/xattr.h (extended attributes) is available.
-#if ( D_ENV_LINUX_LIBC_GLIBC ||                                               \
-      D_ENV_LINUX_LIBC_MUSL )
+#if ( (D_ENV_LINUX_LIBC_GLIBC) ||                                              \
+      (D_ENV_LINUX_LIBC_MUSL) )
     #define D_ENV_LINUX_HAS_SYS_XATTR_H 1
 #else
     #define D_ENV_LINUX_HAS_SYS_XATTR_H 0
@@ -1525,7 +1526,7 @@ TABLE OF CONTENTS
 // 8.2.1
 // D_ENV_LINUX_IS_GCC
 //   feature: detect if building with GCC on Linux.
-#if ( defined(__GNUC__) &&                                                     \
+#if ( (defined(__GNUC__)) &&                                                   \
       (!defined(__clang__)) )
     #define D_ENV_LINUX_IS_GCC          1
 #else
@@ -1544,13 +1545,13 @@ TABLE OF CONTENTS
 // 8.2.3
 // D_ENV_LINUX_HAS_SANITIZERS
 //   feature: detect if address/thread/undefined sanitizers are active.
-#if ( defined(__SANITIZE_ADDRESS__)  ||                                        \
-      defined(__SANITIZE_THREAD__) )
+#if ( (defined(__SANITIZE_ADDRESS__)) ||                                       \
+      (defined(__SANITIZE_THREAD__)) )
     #define D_ENV_LINUX_HAS_SANITIZERS  1
 #elif ( defined(__has_feature) )
-    #if ( __has_feature(address_sanitizer) ||                                 \
-          __has_feature(thread_sanitizer)  ||                                 \
-          __has_feature(undefined_behavior_sanitizer) )
+    #if ( (__has_feature(address_sanitizer)) ||                                \
+          (__has_feature(thread_sanitizer))  ||                                \
+          (__has_feature(undefined_behavior_sanitizer)) )
         #define D_ENV_LINUX_HAS_SANITIZERS 1
     #else
         #define D_ENV_LINUX_HAS_SANITIZERS 0
@@ -1564,8 +1565,8 @@ TABLE OF CONTENTS
 //   feature: detect if stack protector (stack canary / SSP) is enabled.
 #if defined(__SSP__)
     #define D_ENV_LINUX_HAS_STACK_PROTECTOR 1
-#elif ( defined(__SSP_STRONG__)  ||                                            \
-        defined(__SSP_ALL__) )
+#elif ( (defined(__SSP_STRONG__)) ||                                           \
+        (defined(__SSP_ALL__)) )
     #define D_ENV_LINUX_HAS_STACK_PROTECTOR 1
 #else
     #define D_ENV_LINUX_HAS_STACK_PROTECTOR 0
@@ -1587,8 +1588,8 @@ TABLE OF CONTENTS
 //   feature: detect if RELRO (RELocation Read-Only) is requested.
 // note: compile-time detection is limited. full RELRO is a linker
 // option (-Wl,-z,relro,-z,now); this checks for common indicators.
-#if ( D_ENV_LINUX_HAS_PIE &&                                                  \
-      D_ENV_LINUX_HAS_STACK_PROTECTOR )
+#if ( (D_ENV_LINUX_HAS_PIE) &&                                                 \
+      (D_ENV_LINUX_HAS_STACK_PROTECTOR) )
     // likely a hardened build; RELRO is probable but not guaranteed
     #define D_ENV_LINUX_LIKELY_RELRO    1
 #else
@@ -1670,15 +1671,15 @@ void        d_env_linux_print_info(void);
 //   macro: evaluates to 1 if the build environment represents a
 // "modern" Linux (glibc 2.17+ or musl, roughly RHEL 7+ era).
 #define D_ENV_LINUX_IS_MODERN()                                                \
-    ( D_ENV_LINUX_GLIBC_AT_LEAST(2, 17) ||                                     \
-      D_ENV_LINUX_LIBC_MUSL )
+    ( (D_ENV_LINUX_GLIBC_AT_LEAST(2, 17)) ||                                   \
+      (D_ENV_LINUX_LIBC_MUSL) )
 
 // 9.2.2
 // D_ENV_LINUX_IS_EMBEDDED
 //   macro: evaluates to 1 if the build environment suggests an
 // embedded Linux (uClibc or Bionic without glibc).
 #define D_ENV_LINUX_IS_EMBEDDED()                                              \
-    ( D_ENV_LINUX_LIBC_UCLIBC ||                                               \
+    ( (D_ENV_LINUX_LIBC_UCLIBC) ||                                             \
       ( D_ENV_LINUX_LIBC_BIONIC && !D_ENV_LINUX_LIBC_GLIBC ) )
 
 // 9.2.3
@@ -1686,8 +1687,8 @@ void        d_env_linux_print_info(void);
 //   macro: evaluates to 1 if common hardening features are detected
 // (PIE, stack protector, FORTIFY_SOURCE).
 #define D_ENV_LINUX_IS_HARDENED()                                              \
-    ( D_ENV_LINUX_HAS_PIE              &&                                      \
-      D_ENV_LINUX_HAS_STACK_PROTECTOR  &&                                      \
+    ( (D_ENV_LINUX_HAS_PIE)             &&                                     \
+      (D_ENV_LINUX_HAS_STACK_PROTECTOR) &&                                     \
       (D_ENV_LINUX_HAS_FORTIFY_SOURCE >= 1) )
 
 // 9.2.4
@@ -1695,19 +1696,19 @@ void        d_env_linux_print_info(void);
 //   macro: evaluates to 1 if modern async I/O primitives are available
 // (epoll + eventfd + timerfd + signalfd).
 #define D_ENV_LINUX_HAS_MODERN_IO()                                            \
-    ( D_ENV_LINUX_HAS_EPOLL    &&                                              \
-      D_ENV_LINUX_HAS_EVENTFD  &&                                              \
-      D_ENV_LINUX_HAS_TIMERFD  &&                                              \
-      D_ENV_LINUX_HAS_SIGNALFD )
+    ( (D_ENV_LINUX_HAS_EPOLL)   &&                                             \
+      (D_ENV_LINUX_HAS_EVENTFD) &&                                             \
+      (D_ENV_LINUX_HAS_TIMERFD) &&                                             \
+      (D_ENV_LINUX_HAS_SIGNALFD) )
 
 // 9.2.5
 // D_ENV_LINUX_HAS_SANDBOXING
 //   macro: evaluates to 1 if comprehensive sandboxing primitives are
 // available (seccomp + namespaces + capabilities).
 #define D_ENV_LINUX_HAS_SANDBOXING()                                           \
-    ( D_ENV_LINUX_HAS_SECCOMP      &&                                          \
-      D_ENV_LINUX_HAS_NAMESPACES   &&                                          \
-      D_ENV_LINUX_HAS_CAPABILITIES )
+    ( (D_ENV_LINUX_HAS_SECCOMP)    &&                                          \
+      (D_ENV_LINUX_HAS_NAMESPACES) &&                                          \
+      (D_ENV_LINUX_HAS_CAPABILITIES) )
 
 
 #endif  // DJINTERP_ENV_OS_ENV_LINUX_H

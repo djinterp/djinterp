@@ -19,6 +19,7 @@
 * metadata for a detected library; D_ENV_COMPRESSION_HAVE_<CODEC> is 1 when
 * some library provides the codec.
 *
+*
 * path:      /inc/djinterp/env/env_compress.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.23

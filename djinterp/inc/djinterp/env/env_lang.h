@@ -10,10 +10,11 @@
 * internal component of env.h and is #included by it; do not #include it
 * directly.
 *
+*
 * path:      /inc/djinterp/env/env_lang.h
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2023.03.27
-*                                                            revised: 2026.09.23
+*                                                            revised: 2026.09.28
 *******************************************************************************/
 
 /*
@@ -42,6 +43,7 @@ TABLE OF CONTENTS
          1.  D_INTERNAL_ENV_LANG_CPLUSPLUS
          2.  D_ENV_LANG_CPP_STANDARD
          3.  D_ENV_LANG_C_STANDARD
+         4.  D_ENV_LANG_C_INFERRED
     2.  Predefined detection
          1.  D_ENV_DETECTED_CPP* overrides
          2.  D_ENV_DETECTED_C* overrides
@@ -66,7 +68,9 @@ TABLE OF CONTENTS
     ----------------
     1.  C++ helpers
          1.  D_DELETE
-    2.  Integral-type availability
+    2.  Keyword availability
+         1.  D_ENV_LANG_HAS_RESTRICT
+    3.  Integral-type availability
 */
 
 #ifndef DJINTERP_ENV_ENV_LANG_H
@@ -169,7 +173,7 @@ TABLE OF CONTENTS
         // __cplusplus at 199711L unless /Zc:__cplusplus is given, and reports
         // the real version in _MSVC_LANG (clang-cl sets both), so the larger
         // of the two is taken. Every other compiler has no _MSVC_LANG.
-        #if ( defined(_MSVC_LANG) &&                                          \
+        #if ( (defined(_MSVC_LANG)) &&                                         \
               (_MSVC_LANG > __cplusplus) )
             #define D_INTERNAL_ENV_LANG_CPLUSPLUS _MSVC_LANG
         #else
@@ -205,8 +209,9 @@ TABLE OF CONTENTS
     // D_ENV_LANG_C_STANDARD
     //   constant: the detected C standard, taken from __STDC_VERSION__, with
     // D_ENV_LANG_C_STANDARD_NAME its name; 199000L ("C90") when the compiler
-    // reports no version, which includes every C++ compiler.
-    #ifdef __STDC_VERSION__
+    // reports no version, which includes every C++ compiler. The one inferred
+    // case is MSVC's default C mode (see 2.1.4).
+    #if defined(__STDC_VERSION__)
         // D_ENV_LANG_DETECTED_C
         //   constant: defined, empty, when __STDC_VERSION__ is available.
         #define D_ENV_LANG_DETECTED_C
@@ -230,6 +235,23 @@ TABLE OF CONTENTS
             #define D_ENV_LANG_C_STANDARD      __STDC_VERSION__
             #define D_ENV_LANG_C_STANDARD_NAME "C90"
         #endif
+    #elif ( (defined(_MSC_VER))     &&                                         \
+            (!defined(__cplusplus)) &&                                         \
+            (_MSC_VER >= 1900) )
+        // 2.1.4
+        // D_ENV_LANG_C_INFERRED
+        //   constant: defined, empty, when the C standard was inferred rather
+        // than reported. MSVC defines __STDC_VERSION__ only under /std:c11
+        // and later; in its default C mode it reports nothing, yet from
+        // Visual Studio 2015 (cl 19.00) on it compiles C99 -- the library,
+        // stdbool, designated initializers, compound literals, mixed
+        // declarations -- with two exceptions: variable-length arrays, which
+        // the framework does not use, and the `restrict` keyword, which
+        // D_ENV_LANG_HAS_RESTRICT reports as absent here.
+        #define D_ENV_LANG_C_INFERRED
+
+        #define D_ENV_LANG_C_STANDARD      D_ENV_LANG_C_STANDARD_C99
+        #define D_ENV_LANG_C_STANDARD_NAME "C99 (MSVC default mode)"
     #else
         #define D_ENV_LANG_C_STANDARD      199000L
         #define D_ENV_LANG_C_STANDARD_NAME "C90"
@@ -308,37 +330,37 @@ TABLE OF CONTENTS
     // 3.1.2
     // D_ENV_LANG_IS_CPP98_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++98 or later.
-    #define D_ENV_LANG_IS_CPP98_OR_HIGHER                                     \
+    #define D_ENV_LANG_IS_CPP98_OR_HIGHER                                      \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP98)
 
     // 3.1.3
     // D_ENV_LANG_IS_CPP11_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++11 or later.
-    #define D_ENV_LANG_IS_CPP11_OR_HIGHER                                     \
+    #define D_ENV_LANG_IS_CPP11_OR_HIGHER                                      \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP11)
 
     // 3.1.4
     // D_ENV_LANG_IS_CPP14_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++14 or later.
-    #define D_ENV_LANG_IS_CPP14_OR_HIGHER                                     \
+    #define D_ENV_LANG_IS_CPP14_OR_HIGHER                                      \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP14)
 
     // 3.1.5
     // D_ENV_LANG_IS_CPP17_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++17 or later.
-    #define D_ENV_LANG_IS_CPP17_OR_HIGHER                                     \
+    #define D_ENV_LANG_IS_CPP17_OR_HIGHER                                      \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP17)
 
     // 3.1.6
     // D_ENV_LANG_IS_CPP20_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++20 or later.
-    #define D_ENV_LANG_IS_CPP20_OR_HIGHER                                     \
+    #define D_ENV_LANG_IS_CPP20_OR_HIGHER                                      \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP20)
 
     // 3.1.7
     // D_ENV_LANG_IS_CPP23_OR_HIGHER
     //   macro: evaluates to 1 if detected C++ standard is C++23 or later.
-    #define D_ENV_LANG_IS_CPP23_OR_HIGHER                                     \
+    #define D_ENV_LANG_IS_CPP23_OR_HIGHER                                      \
         (D_ENV_LANG_CPP_STANDARD >= D_ENV_LANG_CPP_STANDARD_CPP23)
 #else
     #define D_ENV_LANG_USING_CPP 0
@@ -360,31 +382,31 @@ TABLE OF CONTENTS
 // 3.2.2
 // D_ENV_LANG_IS_C95_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C95 or later.
-#define D_ENV_LANG_IS_C95_OR_HIGHER                                           \
+#define D_ENV_LANG_IS_C95_OR_HIGHER                                            \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C95)
 
 // 3.2.3
 // D_ENV_LANG_IS_C99_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C99 or later.
-#define D_ENV_LANG_IS_C99_OR_HIGHER                                           \
+#define D_ENV_LANG_IS_C99_OR_HIGHER                                            \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C99)
 
 // 3.2.4
 // D_ENV_LANG_IS_C11_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C11 or later.
-#define D_ENV_LANG_IS_C11_OR_HIGHER                                           \
+#define D_ENV_LANG_IS_C11_OR_HIGHER                                            \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C11)
 
 // 3.2.5
 // D_ENV_LANG_IS_C17_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C17 or later.
-#define D_ENV_LANG_IS_C17_OR_HIGHER                                           \
+#define D_ENV_LANG_IS_C17_OR_HIGHER                                            \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C17)
 
 // 3.2.6
 // D_ENV_LANG_IS_C23_OR_HIGHER
 //   macro: evaluates to 1 if detected C standard is C23 or later.
-#define D_ENV_LANG_IS_C23_OR_HIGHER                                           \
+#define D_ENV_LANG_IS_C23_OR_HIGHER                                            \
     (D_ENV_LANG_C_STANDARD >= D_ENV_LANG_C_STANDARD_C23)
 
 
@@ -408,7 +430,27 @@ TABLE OF CONTENTS
     #endif
 #endif  // D_DELETE
 
-// 4.2    Integral-type availability
+// 4.2    Keyword availability
+//------------------------------------------------------------------------------
+// 4.2.1
+// D_ENV_LANG_HAS_RESTRICT
+//   constant: 1 when the C99 `restrict` keyword can be written as such: C
+// (C++ has no `restrict`) at a C99-or-later level the compiler reported.
+// 0 under C++, below C99, and in MSVC's default C mode, whose level is
+// inferred (D_ENV_LANG_C_INFERRED) and which accepts only the vendor
+// spelling -- see D_ENV_COMPILER_HAS_RESTRICT_EXTENSION in env_compiler.h.
+// Pre-define it to override the detection.
+#ifndef D_ENV_LANG_HAS_RESTRICT
+    #if ( (D_ENV_LANG_USING_CPP == 0)        &&                                \
+          (D_ENV_LANG_IS_C99_OR_HIGHER)      &&                                \
+          (!defined(D_ENV_LANG_C_INFERRED)) )
+        #define D_ENV_LANG_HAS_RESTRICT 1
+    #else
+        #define D_ENV_LANG_HAS_RESTRICT 0
+    #endif
+#endif  // D_ENV_LANG_HAS_RESTRICT
+
+// 4.3    Integral-type availability
 //------------------------------------------------------------------------------
 //   core integral-type availability derived from the language standard
 // detected above (freestanding-safe, C and C++ alike). It lives in the sibling
