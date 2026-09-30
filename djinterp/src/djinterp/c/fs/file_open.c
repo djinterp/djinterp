@@ -1,13 +1,33 @@
-/******************************************************************************
-* djinterp [c]                                                     file_open.c
+/*******************************************************************************
+* djinterp [c]                                                       file_open.c
+*
+* Implementation of the stream opening and closing declared in file_open.h.
+*   Three file-local steps shape every open: the caller's mode is decorated
+* with the build's policy, the path is opened through the one backend call
+* this build selected (_fsopen, fopen_s or fopen), and the new stream is given
+* the configured buffering. Every entry point here funnels through them, so
+* the policy is applied once rather than re-litigated per caller.
+*
 *
 * path:      /src/djinterp/c/fs/file_open.c
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/fs/file_open.h"  // corresponding header
+// std
+#include <errno.h>   // errno, EBADF, EINVAL, ENOENT, ENOSYS
+#include <stddef.h>  // NULL, size_t
+#include <stdio.h>   // FILE, EOF, fopen, freopen, fclose, fdopen, setvbuf
+#include <string.h>  // memcpy, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/fs/file_open.h"
+#include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
+#include "../../../../inc/djinterp/config/c/fs/cfg_file_open.h"  // D_INTERNAL_FILE_OPEN_*
 
 
-// Internal definitions
+//==============================================================================
+// FILE-LOCAL DEFINITIONS
+//==============================================================================
 
 #if (D_INTERNAL_FILE_OPEN_DECORATE == 1)
 
@@ -16,38 +36,22 @@ d_internal_file_open_mode
   Rewrites a caller's mode string so it carries this build's open policy: a
 'b' when D_CFG_FILE_OPEN_BINARY_DEFAULT is set and the caller named neither
 'b' nor 't', and the target's close-on-exec character when the platform has
-one and D_CFG_FILE_OPEN_CLOEXEC is set.
-  Anything the caller already asked for is left alone -- an explicit "rt" is
-an explicit request for text mode, and this function's job is to supply a
-default, not to overrule.
+one and D_CFG_FILE_OPEN_CLOEXEC is set. Anything the caller already asked for
+is left alone -- an explicit "rt" is an explicit request for text mode, and
+the job here is to supply a default, not to overrule.
   If the rewrite would not fit, the caller's string is returned untouched: a
 mode string longer than the buffer is malformed, and fopen rejects it with a
-better error than we could invent.
-
-Parameter(s):
-  _mode:    the caller's mode string; must not be NULL.
-  _buf:     scratch space for the rewrite.
-  _bufsize: size of _buf, in bytes.
-Return:
-  A pointer to the mode string to pass on -- either _buf or _mode itself.
-Never NULL.
+better error than could be invented here. So the result is _buf or _mode,
+and never NULL.
 */
 static const char*
-d_internal_file_open_mode
-(
+d_internal_file_open_mode(
     const char* _mode,
     char*       _buf,
     size_t      _bufsize
 )
 {
-    size_t length;
-    size_t idx;
-    size_t out;
-    int    has_binary;
-    int    has_text;
-    int    has_cloexec;
-
-    length = strlen(_mode);
+    const size_t length = strlen(_mode);
 
     // leave a malformed or oversized mode to the platform to reject
     if ((length + 3) > _bufsize)
@@ -55,12 +59,12 @@ d_internal_file_open_mode
         return _mode;
     }
 
-    has_binary  = 0;
-    has_text    = 0;
-    has_cloexec = 0;
+    int has_binary  = 0;
+    int has_text    = 0;
+    int has_cloexec = 0;
 
     // find out what the caller already asked for
-    for (idx = 0; idx < length; ++idx)
+    for (size_t idx = 0; idx < length; ++idx)
     {
         if (_mode[idx] == 'b')
         {
@@ -78,8 +82,11 @@ d_internal_file_open_mode
 #endif
     }
 
-    memcpy(_buf, _mode, length);
-    out = length;
+    memcpy(_buf,
+           _mode,
+           length);
+
+    size_t out = length;
 
 #if D_CFG_IS_ON(D_CFG_FILE_OPEN_BINARY_DEFAULT)
     // supply binary only where the caller expressed no preference
@@ -100,6 +107,7 @@ d_internal_file_open_mode
 
     _buf[out] = '\0';
 
+    // a configuration may leave any of these unread
     (void)has_binary;
     (void)has_text;
     (void)has_cloexec;
@@ -107,31 +115,27 @@ d_internal_file_open_mode
     return _buf;
 }
 
-#endif  // D_INTERNAL_FILE_OPEN_DECORATE
-
+#endif  // D_INTERNAL_FILE_OPEN_DECORATE == 1
 
 /*
 d_internal_file_open_configure
-  Applies this build's post-open policy to a freshly opened stream. Currently
-that means the configured stdio buffering, if any.
-  A setvbuf failure is deliberately not fatal: the stream is open and usable,
-and refusing to hand it back because the platform declined a buffer size would
-turn a tuning preference into an outage.
-
-Parameter(s):
-  _stream: the newly opened stream; may be NULL, in which case nothing is done.
-Return:
-  _stream, unchanged, so callers can wrap an open expression in it.
+  Applies this build's post-open policy to a freshly opened stream -- at
+present, the configured stdio buffering. A setvbuf failure is deliberately not
+fatal: the stream is open and usable, and refusing to hand it back because the
+platform declined a buffer size would turn a tuning preference into an outage.
+The argument is returned as given, NULL included, so that an open expression
+can be wrapped in it.
 */
 static FILE*
-d_internal_file_open_configure
-(
+d_internal_file_open_configure(
     FILE* _stream
 )
 {
 #if (D_INTERNAL_FILE_OPEN_SETVBUF == 1)
+    // only a stream that exists can be buffered
     if (_stream)
     {
+        // a declined buffer size is a warning, never a failure
         if (setvbuf(_stream,
                     NULL,
                     D_CFG_FILE_OPEN_BUFFER_MODE,
@@ -139,7 +143,7 @@ d_internal_file_open_configure
         {
             D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_WARN,
                                    0,
-                                   "d_fopen",
+                                   "d_file_open_stream",
                                    NULL,
                                    "setvbuf declined; using stdio's buffer");
         }
@@ -149,100 +153,122 @@ d_internal_file_open_configure
     return _stream;
 }
 
+#if (D_INTERNAL_FILE_OPEN_USE_FSOPEN == 1)
 
 /*
 d_internal_file_open_raw
-  The one place this subframework actually asks the platform to open a path.
-Everything above it -- d_fopen, d_fopen_s, and the whole-file helpers in
-file_read / file_write -- funnels through here, so the backend choice is made
-once rather than re-litigated per entry point.
-
-Parameter(s):
-  _filename: path to open; must not be NULL.
-  _mode:     already-decorated mode string; must not be NULL.
-Return:
-  An open stream, or NULL on failure with errno set by the platform.
+  The one place this subframework asks the platform to open a path, so the
+backend choice is made once rather than per entry point. This build shares the
+file through _fsopen, with the sharing mode it was configured for.
 */
 static FILE*
-d_internal_file_open_raw
-(
+d_internal_file_open_raw(
     const char* _filename,
     const char* _mode
 )
 {
-#if (D_INTERNAL_FILE_OPEN_USE_FSOPEN == 1)
-    return _fsopen(_filename, _mode, D_INTERNAL_FILE_OPEN_SHARE_FLAG);
-#elif (D_INTERNAL_FILE_OPEN_FOPEN_S == 1)
-    FILE* result;
+    return _fsopen(_filename,
+                   _mode,
+                   D_INTERNAL_FILE_OPEN_SHARE_FLAG);
+}
 
-    result = NULL;
+#elif (D_INTERNAL_FILE_OPEN_FOPEN_S == 1)
+
+/*
+d_internal_file_open_raw
+  The one place this subframework asks the platform to open a path, so the
+backend choice is made once rather than per entry point. This build uses
+fopen_s, which reports through its return value rather than errno; that is
+normalized to the fopen contract so every caller has one failure shape.
+*/
+static FILE*
+d_internal_file_open_raw(
+    const char* _filename,
+    const char* _mode
+)
+{
+    FILE* result = NULL;
 
     // fopen_s reports through its return value, not errno; normalize to the
-    // fopen contract so every caller has one failure shape to handle.
-    if (fopen_s(&result, _filename, _mode) != 0)
+    // fopen contract so every caller has one failure shape to handle
+    if (fopen_s(&result,
+                _filename,
+                _mode) != 0)
     {
         return NULL;
     }
 
     return result;
-#else
-    return fopen(_filename, _mode);
-#endif
 }
 
-
-// I.    Stream opening
+#else
 
 /*
-d_fopen
-  Portable file open with consistent behaviour across platforms.
-
-Parameter(s):
-  _filename: path to file.
-  _mode:     file open mode ("r", "w", "a", ...), optionally with 'b', '+'.
-Return:
-  A file pointer on success, or NULL on failure with errno set.
+d_internal_file_open_raw
+  The one place this subframework asks the platform to open a path, so the
+backend choice is made once rather than per entry point. This build uses
+plain fopen.
 */
-FILE*
-d_fopen
-(
+static FILE*
+d_internal_file_open_raw(
     const char* _filename,
     const char* _mode
 )
 {
-#if (D_INTERNAL_FILE_OPEN_DECORATE == 1)
-    char        mode_buf[D_INTERNAL_FILE_OPEN_MODE_MAX];
-    const char* mode;
-#endif
-    FILE*       result;
+    return fopen(_filename,
+                 _mode);
+}
 
+#endif  // D_INTERNAL_FILE_OPEN_USE_FSOPEN, D_INTERNAL_FILE_OPEN_FOPEN_S
+
+//==============================================================================
+// 1.  STREAMS
+//==============================================================================
+
+/*
+d_file_open_stream
+  Decorate, open, configure: the mode gains this build's policy, the path goes
+through the backend call this build selected, and the new stream is given the
+configured buffering.
+*/
+FILE*
+d_file_open_stream(
+    const char* _filename,
+    const char* _mode
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_filename != NULL,
                             EINVAL,
-                            "d_fopen",
+                            "d_file_open_stream",
                             NULL,
                             "filename is NULL",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_mode != NULL,
                             EINVAL,
-                            "d_fopen",
+                            "d_file_open_stream",
                             _filename,
                             "mode is NULL",
                             NULL);
 
 #if (D_INTERNAL_FILE_OPEN_DECORATE == 1)
-    mode = d_internal_file_open_mode(_mode, mode_buf, sizeof(mode_buf));
-    result = d_internal_file_open_raw(_filename, mode);
+    char              mode_buf[D_INTERNAL_FILE_OPEN_MODE_MAX];
+    const char* const mode = d_internal_file_open_mode(_mode,
+                                                       mode_buf,
+                                                       sizeof(mode_buf));
 #else
-    result = d_internal_file_open_raw(_filename, _mode);
+    const char* const mode = _mode;
 #endif
+
+    FILE* const result = d_internal_file_open_raw(_filename,
+                                                  mode);
 
     // report the failure; the caller only learns that it got NULL
     if (!result)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_fopen",
+                               "d_file_open_stream",
                                D_INTERNAL_FILE_NOTIFY_PATH(_filename),
                                "open failed");
 
@@ -252,25 +278,14 @@ d_fopen
     return d_internal_file_open_configure(result);
 }
 
-
 /*
-d_fopen_s
-  Secure file open (C11 Annex K fopen_s equivalent).
-  Unlike d_fopen this reports through the return value, and it clears
-*_stream before doing anything else, so a caller that ignores the return code
-is left holding NULL rather than an indeterminate pointer.
-
-Parameter(s):
-  _stream:   receives the file pointer; must not be NULL.
-  _filename: path to file.
-  _mode:     file open mode.
-Return:
-  0 on success, or a non-zero error code (EINVAL for a bad argument,
-otherwise the platform's errno) on failure.
+d_file_open_stream_s
+  *_stream is cleared as soon as it is known to be writable, before anything
+else can fail. A failed open that left errno clear is reported as ENOENT
+rather than as success.
 */
 int
-d_fopen_s
-(
+d_file_open_stream_s(
     FILE**      _stream,
     const char* _filename,
     const char* _mode
@@ -280,7 +295,7 @@ d_fopen_s
     // through it
     D_INTERNAL_FILE_REQUIRE(_stream != NULL,
                             EINVAL,
-                            "d_fopen_s",
+                            "d_file_open_stream_s",
                             NULL,
                             "stream out-parameter is NULL",
                             EINVAL);
@@ -289,19 +304,21 @@ d_fopen_s
 
     D_INTERNAL_FILE_REQUIRE(_filename != NULL,
                             EINVAL,
-                            "d_fopen_s",
+                            "d_file_open_stream_s",
                             NULL,
                             "filename is NULL",
                             EINVAL);
     D_INTERNAL_FILE_REQUIRE(_mode != NULL,
                             EINVAL,
-                            "d_fopen_s",
+                            "d_file_open_stream_s",
                             _filename,
                             "mode is NULL",
                             EINVAL);
 
-    *_stream = d_fopen(_filename, _mode);
+    *_stream = d_file_open_stream(_filename,
+                                  _mode);
 
+    // translate a failure into a code the caller can return
     if (!*_stream)
     {
         return errno ? errno : ENOENT;
@@ -310,68 +327,57 @@ d_fopen_s
     return 0;
 }
 
-
 /*
-d_freopen
-  Portable file reopen.
-
-Parameter(s):
-  _filename: path to file, or NULL to change the mode of _stream in place.
-  _mode:     new file open mode.
-  _stream:   the existing stream to reopen.
-Return:
-  A file pointer on success, or NULL on failure. Note the C contract: on
-failure _stream is closed regardless, so the caller must not reuse it.
+d_file_reopen_stream
+  The same mode decoration as d_file_open_stream, then freopen or freopen_s.
+The C contract makes failure destructive -- the original stream is closed
+whether or not the reopen succeeds -- and the failure notice says so.
 */
 FILE*
-d_freopen
-(
+d_file_reopen_stream(
     const char* _filename,
     const char* _mode,
     FILE*       _stream
 )
 {
-#if (D_INTERNAL_FILE_OPEN_DECORATE == 1)
-    char        mode_buf[D_INTERNAL_FILE_OPEN_MODE_MAX];
-    const char* mode;
-#endif
-    FILE*       result;
-
     // parameter validation: _filename may legitimately be NULL here
     D_INTERNAL_FILE_REQUIRE(_mode != NULL,
                             EINVAL,
-                            "d_freopen",
+                            "d_file_reopen_stream",
                             _filename,
                             "mode is NULL",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_stream != NULL,
                             EINVAL,
-                            "d_freopen",
+                            "d_file_reopen_stream",
                             _filename,
                             "stream is NULL",
                             NULL);
 
 #if (D_INTERNAL_FILE_OPEN_DECORATE == 1)
-    mode = d_internal_file_open_mode(_mode, mode_buf, sizeof(mode_buf));
+    char              mode_buf[D_INTERNAL_FILE_OPEN_MODE_MAX];
+    const char* const mode = d_internal_file_open_mode(_mode,
+                                                       mode_buf,
+                                                       sizeof(mode_buf));
+#else
+    const char* const mode = _mode;
 #endif
 
 #if (D_INTERNAL_FILE_OPEN_FOPEN_S == 1)
-    result = NULL;
+    FILE* result = NULL;
 
-    #if (D_INTERNAL_FILE_OPEN_DECORATE == 1)
-    if (freopen_s(&result, _filename, mode, _stream) != 0)
-    #else
-    if (freopen_s(&result, _filename, _mode, _stream) != 0)
-    #endif
+    // freopen_s reports through its return value; normalize to NULL
+    if (freopen_s(&result,
+                  _filename,
+                  mode,
+                  _stream) != 0)
     {
         return NULL;
     }
 #else
-    #if (D_INTERNAL_FILE_OPEN_DECORATE == 1)
-    result = freopen(_filename, mode, _stream);
-    #else
-    result = freopen(_filename, _mode, _stream);
-    #endif
+    FILE* const result = freopen(_filename,
+                                 mode,
+                                 _stream);
 #endif
 
     // report the failure; note the stream is gone either way
@@ -379,7 +385,7 @@ d_freopen
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_freopen",
+                               "d_file_reopen_stream",
                                D_INTERNAL_FILE_NOTIFY_PATH(_filename),
                                "reopen failed; stream is now closed");
 
@@ -389,22 +395,14 @@ d_freopen
     return d_internal_file_open_configure(result);
 }
 
-
 /*
-d_freopen_s
-  Secure file reopen (C11 Annex K freopen_s equivalent).
-
-Parameter(s):
-  _newstream: receives the reopened file pointer; must not be NULL.
-  _filename:  path to file, or NULL to change the mode of _stream in place.
-  _mode:      new file open mode.
-  _stream:    the existing stream to reopen.
-Return:
-  0 on success, or a non-zero error code on failure.
+d_file_reopen_stream_s
+  *_newstream is cleared as soon as it is known to be writable, before
+anything else can fail. A failed reopen that left errno clear is reported as
+ENOENT rather than as success.
 */
 int
-d_freopen_s
-(
+d_file_reopen_stream_s(
     FILE**      _newstream,
     const char* _filename,
     const char* _mode,
@@ -414,7 +412,7 @@ d_freopen_s
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_newstream != NULL,
                             EINVAL,
-                            "d_freopen_s",
+                            "d_file_reopen_stream_s",
                             NULL,
                             "stream out-parameter is NULL",
                             EINVAL);
@@ -423,19 +421,22 @@ d_freopen_s
 
     D_INTERNAL_FILE_REQUIRE(_mode != NULL,
                             EINVAL,
-                            "d_freopen_s",
+                            "d_file_reopen_stream_s",
                             _filename,
                             "mode is NULL",
                             EINVAL);
     D_INTERNAL_FILE_REQUIRE(_stream != NULL,
                             EINVAL,
-                            "d_freopen_s",
+                            "d_file_reopen_stream_s",
                             _filename,
                             "stream is NULL",
                             EINVAL);
 
-    *_newstream = d_freopen(_filename, _mode, _stream);
+    *_newstream = d_file_reopen_stream(_filename,
+                                       _mode,
+                                       _stream);
 
+    // translate a failure into a code the caller can return
     if (!*_newstream)
     {
         return errno ? errno : ENOENT;
@@ -444,66 +445,71 @@ d_freopen_s
     return 0;
 }
 
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_fdopen
-  Associates a stream with an already-open file descriptor (POSIX fdopen).
-  The descriptor is adopted, not duplicated: closing the returned stream
-closes _fd, and closing _fd out from under the stream is undefined. On a pure
-ISO C backend there are no descriptors, so this always fails with ENOSYS.
-
-Parameter(s):
-  _fd:   an open file descriptor.
-  _mode: a mode string compatible with how _fd was opened.
-Return:
-  A file pointer on success, or NULL on failure with errno set.
+d_file_open_stream_fd
+  The ISO C backend has no descriptors to adopt, so this cannot be emulated --
+only reported, as ENOSYS.
 */
 FILE*
-d_fdopen
-(
+d_file_open_stream_fd(
     int         _fd,
     const char* _mode
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_fd;
     (void)_mode;
 
-    // the ISO C backend has no descriptors to adopt, so this cannot be
-    // emulated -- only reported
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_fdopen",
+                         "d_file_open_stream_fd",
                          NULL,
                          "no descriptors on the ISO C backend",
                          NULL);
-#else
-    FILE* result;
+}
 
+#else
+
+/*
+d_file_open_stream_fd
+  fdopen adopts the descriptor rather than duplicating it, so from here on the
+stream owns _fd. The new stream is given the same configured buffering as any
+other open.
+*/
+FILE*
+d_file_open_stream_fd(
+    int         _fd,
+    const char* _mode
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_fd >= 0,
                             EBADF,
-                            "d_fdopen",
+                            "d_file_open_stream_fd",
                             NULL,
                             "descriptor is negative",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_mode != NULL,
                             EINVAL,
-                            "d_fdopen",
+                            "d_file_open_stream_fd",
                             NULL,
                             "mode is NULL",
                             NULL);
 
-    #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    result = _fdopen(_fd, _mode);
-    #else
-    result = fdopen(_fd, _mode);
-    #endif
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    FILE* const result = _fdopen(_fd,
+                                 _mode);
+#else
+    FILE* const result = fdopen(_fd,
+                                _mode);
+#endif
 
+    // report the failure; errno is the platform's
     if (!result)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_fdopen",
+                               "d_file_open_stream_fd",
                                NULL,
                                "fdopen failed");
 
@@ -511,50 +517,37 @@ d_fdopen
     }
 
     return d_internal_file_open_configure(result);
-#endif
 }
 
-
-// II.   Stream closing
+#endif  // D_FILE_BACKEND_IS_STDC
 
 /*
-d_fclose
-  Closes a stream opened by this module.
-  It exists so that closing is a decision this subframework owns rather than
-one scattered across callers -- and because fclose's failure mode is worth
-surfacing: a buffered write that could not be flushed is reported here, at
-close, and nowhere else. A caller that ignores this return value can lose
-data it believes it wrote.
-
-Parameter(s):
-  _stream: the stream to close; must not be NULL.
-Return:
-  0 on success, or EOF on failure with errno set.
+d_file_close_stream
+  Closing is a decision this subframework owns rather than one scattered
+across callers -- and fclose's failure mode is worth surfacing: a buffered
+write that could not be flushed is reported here, at close, and nowhere else.
 */
 int
-d_fclose
-(
+d_file_close_stream(
     FILE* _stream
 )
 {
-    int result;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_stream != NULL,
                             EINVAL,
-                            "d_fclose",
+                            "d_file_close_stream",
                             NULL,
                             "stream is NULL",
                             EOF);
 
-    result = fclose(_stream);
+    const int result = fclose(_stream);
 
     // a failure here means buffered data never reached the file
     if (result != 0)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_fclose",
+                               "d_file_close_stream",
                                NULL,
                                "close failed; buffered data may be lost");
     }

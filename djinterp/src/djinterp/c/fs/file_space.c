@@ -1,49 +1,48 @@
-/******************************************************************************
-* djinterp [c]                                                    file_space.c
+/*******************************************************************************
+* djinterp [c]                                                      file_space.c
+*
+* Implementation of the capacity query declared in file_space.h.
+*   statvfs where the platform has it, GetDiskFreeSpaceEx on Windows, and an
+* honest ENOSYS everywhere else: a made-up capacity is worse than an admitted
+* absence, since the caller would act on it.
+*
 *
 * path:      /src/djinterp/c/fs/file_space.c
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/fs/file_space.h"  // corresponding header
+// std
+#include <errno.h>   // errno, EINVAL, ENOENT, ENOSYS
+#include <stdint.h>  // uint64_t
+#include <string.h>  // memset
 // djinterp
-#include "../../../../inc/djinterp/c/fs/file_space.h"
-
+#include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
+#include "../../../../inc/djinterp/config/c/fs/cfg_file_space.h"  // D_CFG_FILE_HAS_STATVFS
+// posix
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_STATVFS)
-    // posix
-    #include <sys/statvfs.h>
+    #include <sys/statvfs.h>  // statvfs, struct statvfs
 #endif
 
 
-// II.   Query
+//==============================================================================
+// 2.  QUERY
+//==============================================================================
 
 /*
-d_space
-  Reports the capacity of the filesystem holding a path.
-  The path names any existing file or directory ON the filesystem; the answer
-describes the whole filesystem, not the path.
-
-  free vs available -- the distinction this function exists to preserve:
-    free       every unallocated byte.
-    available  what an unprivileged process may actually claim.
-  They diverge because of the root reserve (ext4 withholds 5% by default so a
-full disk does not lock root out of repairing it), quotas, and container or
-overlay limits. The gap is routinely an order of magnitude: on the machine
-this was written on, /tmp reported 249 GiB free and 10 GiB available.
-  Deciding "will my write fit" from `free` is how a program confidently runs
-out of disk. Unless you are root, use `available`.
-
-  There is deliberately no emulation. Where the platform will not answer, this
-reports ENOSYS -- a made-up capacity is worse than an admitted absence, since
-the caller would act on it.
-
-Parameter(s):
-  _path: any existing path on the filesystem of interest.
-  _out:  receives the capacity; fully overwritten, and zeroed on failure so a
-         caller who ignores the return code cannot read a stale number.
-Return:
-  0 on success, or -1 on failure with errno set.
+d_file_space
+  f_frsize, not f_bsize: the block counts are in fragment units, and f_bsize is
+the preferred I/O size, a different number that happens to be equal often
+enough to hide the bug for years. On Windows, GetDiskFreeSpaceEx's first
+out-parameter is quota-aware and is the analogue of f_bavail, not f_bfree --
+its argument order invites getting that backwards.
+  There is deliberately no emulation where neither exists. The output is
+zeroed before anything can fail, so a caller who ignores the return code never
+reads a plausible stale number.
 */
 int
-d_space
-(
+d_file_space(
     const char*       _path,
     struct d_space_t* _out
 )
@@ -51,31 +50,34 @@ d_space
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_path != NULL,
                             EINVAL,
-                            "d_space",
+                            "d_file_space",
                             NULL,
                             "path is NULL",
                             -1);
     D_INTERNAL_FILE_REQUIRE(_out != NULL,
                             EINVAL,
-                            "d_space",
+                            "d_file_space",
                             _path,
                             "output buffer is NULL",
                             -1);
 
     // zero first: a caller who ignores the return code must not read a number
     // that looks plausible and is not
-    memset(_out, 0, sizeof(*_out));
+    memset(_out,
+           0,
+           sizeof(*_out));
 
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_STATVFS)
     {
         struct statvfs vfs;
-        uint64_t       unit;
 
-        if (statvfs(_path, &vfs) != 0)
+        // ask the filesystem that holds the path
+        if (statvfs(_path,
+                    &vfs) != 0)
         {
             D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                    errno,
-                                   "d_space",
+                                   "d_file_space",
                                    D_INTERNAL_FILE_NOTIFY_PATH(_path),
                                    "statvfs failed");
 
@@ -85,8 +87,9 @@ d_space
         // f_frsize is the FRAGMENT size and is what the block counts are in.
         // f_bsize is the preferred I/O size and is a different number that
         // happens to be equal often enough to hide the bug for years.
-        unit = (uint64_t)vfs.f_frsize;
+        uint64_t unit = (uint64_t)vfs.f_frsize;
 
+        // an implementation that reports no fragment size means f_bsize
         if (unit == 0)
         {
             unit = (uint64_t)vfs.f_bsize;
@@ -107,12 +110,15 @@ d_space
         // the first out-parameter is quota-aware and is the ANALOGUE OF
         // f_bavail, not of f_bfree -- the argument order invites getting this
         // backwards
-        if (!GetDiskFreeSpaceExA(_path, &avail, &total, &total_free))
+        if (!GetDiskFreeSpaceExA(_path,
+                                 &avail,
+                                 &total,
+                                 &total_free))
         {
             D_INTERNAL_FILE_SET_ERR(ENOENT);
             D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                    ENOENT,
-                                   "d_space",
+                                   "d_file_space",
                                    D_INTERNAL_FILE_NOTIFY_PATH(_path),
                                    "GetDiskFreeSpaceEx failed");
 
@@ -129,7 +135,7 @@ d_space
     // no emulation: capacity cannot be derived from anything else here, and a
     // fabricated number would be acted upon
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_space",
+                         "d_file_space",
                          _path,
                          "this target reports no filesystem capacity",
                          -1);

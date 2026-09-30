@@ -1,46 +1,55 @@
-/******************************************************************************
-* djinterp [c]                                                     file_temp.c
+/*******************************************************************************
+* djinterp [c]                                                       file_temp.c
+*
+* Implementation of the temporary-file calls declared in file_temp.h.
+*   Anonymous files come from tmpfile. Named ones come from mkstemp on POSIX,
+* under a pinned umask, and on Windows from _mktemp_s plus an exclusive create,
+* retried when another process wins the race for a name. d_file_temp_name, the
+* racy form, is compiled only when the build allows it.
+*
 *
 * path:      /src/djinterp/c/fs/file_temp.c
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/fs/file_temp.h"  // corresponding header
 // std
-#include <time.h>
+#include <errno.h>   // errno, EINVAL, EEXIST, ERANGE, ENAMETOOLONG, EIO
+#include <stdio.h>   // FILE, tmpfile, snprintf
+#include <stdlib.h>  // getenv, mkstemp
+#include <string.h>  // memcpy, strlen
+#include <time.h>    // clock
 // djinterp
-#include "../../../../inc/djinterp/c/fs/file_temp.h"
-#include "../../../../inc/djinterp/c/fs/file_desc.h"
-#include "../../../../inc/djinterp/c/fs/file_stat.h"
+#include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
+#include "../../../../inc/djinterp/c/fs/file_desc.h"    // d_file_open
+#include "../../../../inc/djinterp/c/fs/file_stat.h"    // d_file_exists
+#include "../../../../inc/djinterp/config/c/fs/cfg_file_temp.h"  // D_INTERNAL_FILE_TEMP_*
 
 
-// I.    Atomic creation
+//==============================================================================
+// 1.  TEMPORARY FILES
+//==============================================================================
 
 /*
-d_tmpfile
-  Creates an anonymous temporary file, removed when it is closed or the
-process exits.
-  Anonymous is the safety property: there is no name for an attacker to race,
-and no cleanup for you to forget. Prefer it whenever the file does not need to
-be handed to another process by path.
-
-Parameter(s):
-  none.
-Return:
-  An open read/write stream, or NULL on failure with errno set.
+d_file_temp_stream
+  tmpfile's file is anonymous: there is no name for an attacker to race and no
+cleanup for anyone to forget, which is why this is the preferred form. The
+wrapper adds only the failure notice.
 */
 FILE*
-d_tmpfile
-(
+d_file_temp_stream(
     void
 )
 {
-    FILE* result;
+    FILE* const result = tmpfile();
 
-    result = tmpfile();
-
+    // report the failure; errno is the platform's
     if (!result)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_tmpfile",
+                               "d_file_temp_stream",
                                NULL,
                                "tmpfile failed");
     }
@@ -48,35 +57,28 @@ d_tmpfile
     return result;
 }
 
-
 /*
-d_tmpfile_s
-  Creates an anonymous temporary file, reporting through the return value
-(C11 Annex K shape).
-
-Parameter(s):
-  _stream: receives the stream; must not be NULL. Cleared before anything else
-           happens, so a caller who ignores the return code holds NULL rather
-           than an indeterminate pointer.
-Return:
-  0 on success, or a non-zero error code -- EINVAL for a NULL out-parameter.
+d_file_temp_stream_s
+  The out-parameter receives d_file_temp_stream's result directly, so on
+failure it holds NULL rather than an indeterminate pointer. A failure that
+left errno clear is reported as EIO rather than as success.
 */
 int
-d_tmpfile_s
-(
+d_file_temp_stream_s(
     FILE** _stream
 )
 {
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_stream != NULL,
                             EINVAL,
-                            "d_tmpfile_s",
+                            "d_file_temp_stream_s",
                             NULL,
                             "stream out-parameter is NULL",
                             EINVAL);
 
-    *_stream = d_tmpfile();
+    *_stream = d_file_temp_stream();
 
+    // translate a failure into a code the caller can return
     if (!*_stream)
     {
         return errno ? errno : EIO;
@@ -85,52 +87,53 @@ d_tmpfile_s
     return 0;
 }
 
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_mkstemp
-  Creates and opens a uniquely-named temporary file from a template.
-  The safe named form: it chooses the name and opens it in ONE operation, so
-there is no instant at which the name exists and the file does not. That is
-the whole difference from d_tmpnam_s, and it is why this should be the only
-one you use.
-  The template is modified in place: its trailing "XXXXXX" is replaced with
-the chosen suffix, so the caller learns the name. It must therefore be
-writable -- a string literal will crash.
-  Created with D_CFG_FILE_TEMP_MODE (0600). The file is NOT removed for you.
-
-Parameter(s):
-  _template: a writable path ending in exactly six 'X' characters.
-Return:
-  An open descriptor on success, or -1 on failure with errno set.
+d_file_temp_create
+  The ISO C backend has no descriptors to return, so this only reports ENOSYS.
 */
 int
-d_mkstemp
-(
+d_file_temp_create(
     char* _template
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_template;
 
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_mkstemp",
+                         "d_file_temp_create",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
-#else
-    size_t length;
-    size_t idx;
-    int    result;
+}
 
+#else
+
+/*
+d_file_temp_create
+  The template is checked here rather than left to the platform: an
+implementation handed a bad template may fail with EINVAL or may quietly do
+something else, and the caller cannot tell which.
+  POSIX has mkstemp, run under a pinned umask so the file's mode is this
+build's decision on every libc. The CRT has no mkstemp, and _mktemp_s names
+without opening, so on Windows the race is closed by hand: O_EXCL makes the
+create atomic, and a name lost to another process is retried rather than
+reported.
+*/
+int
+d_file_temp_create(
+    char* _template
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_template != NULL,
                             EINVAL,
-                            "d_mkstemp",
+                            "d_file_temp_create",
                             NULL,
                             "template is NULL",
                             -1);
 
-    length = strlen(_template);
+    const size_t length = strlen(_template);
 
     // check the template here rather than letting the platform do it: an
     // implementation handed a bad template may fail with EINVAL, or may
@@ -138,18 +141,21 @@ d_mkstemp
     if (length < (size_t)D_INTERNAL_FILE_TEMP_SUFFIX_LEN)
     {
         D_INTERNAL_FILE_FAIL(EINVAL,
-                             "d_mkstemp",
+                             "d_file_temp_create",
                              _template,
                              "template is shorter than the required XXXXXX",
                              -1);
     }
 
-    for (idx = length - D_INTERNAL_FILE_TEMP_SUFFIX_LEN; idx < length; ++idx)
+    // the suffix must consist entirely of placeholder characters
+    for (size_t idx = length - D_INTERNAL_FILE_TEMP_SUFFIX_LEN;
+         idx < length;
+         ++idx)
     {
         if (_template[idx] != 'X')
         {
             D_INTERNAL_FILE_FAIL(EINVAL,
-                                 "d_mkstemp",
+                                 "d_file_temp_create",
                                  _template,
                                  "template must end in exactly six 'X' "
                                  "characters",
@@ -157,49 +163,59 @@ d_mkstemp
         }
     }
 
-    #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    int result = -1;
+
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     // the CRT has no mkstemp. _mktemp_s names but does not open, so the race
     // has to be closed by hand: O_EXCL makes the create atomic, and a name
     // that lost the race is retried rather than reported.
     {
-        char   attempt[D_FILE_PATH_MAX];
-        int    tries;
+        char attempt[D_FILE_PATH_MAX];
 
-        for (tries = 0; tries < 128; ++tries)
+        // try a bounded number of names before giving up
+        for (int tries = 0; tries < 128; ++tries)
         {
+            // the working copy must hold the template and its terminator
             if (length >= sizeof(attempt))
             {
                 D_INTERNAL_FILE_FAIL(ENAMETOOLONG,
-                                     "d_mkstemp",
+                                     "d_file_temp_create",
                                      _template,
                                      "template is longer than D_FILE_PATH_MAX",
                                      -1);
             }
 
-            memcpy(attempt, _template, length + 1);
+            memcpy(attempt,
+                   _template,
+                   length + 1);
 
-            if (_mktemp_s(attempt, length + 1) != 0)
+            // name a candidate from the template
+            if (_mktemp_s(attempt,
+                          length + 1) != 0)
             {
                 D_INTERNAL_FILE_FAIL(EEXIST,
-                                     "d_mkstemp",
+                                     "d_file_temp_create",
                                      _template,
                                      "no unique name available",
                                      -1);
             }
 
-            result = d_open(attempt,
-                            O_RDWR | O_CREAT | O_EXCL,
-                            D_INTERNAL_FILE_TEMP_MODE);
+            result = d_file_open(attempt,
+                                 O_RDWR | O_CREAT | O_EXCL,
+                                 D_INTERNAL_FILE_TEMP_MODE);
 
+            // report the chosen name back through the template
             if (result >= 0)
             {
-                memcpy(_template, attempt, length + 1);
+                memcpy(_template,
+                       attempt,
+                       length + 1);
 
                 return result;
             }
 
             // somebody took the name between naming and opening -- which is
-            // exactly the race d_tmpnam_s cannot escape. Try another.
+            // exactly the race d_file_temp_name cannot escape. Try another.
             if (errno != EEXIST)
             {
                 return -1;
@@ -207,120 +223,110 @@ d_mkstemp
         }
 
         D_INTERNAL_FILE_FAIL(EEXIST,
-                             "d_mkstemp",
+                             "d_file_temp_create",
                              _template,
                              "exhausted attempts to find a free temporary name",
                              -1);
     }
-    #else
+#else
     {
-        mode_t saved_mask;
-
         // mkstemp is specified to create with 0600 -- but only since POSIX
         // 2008, and older implementations used 0666 & ~umask. Pinning the
         // umask around the call makes the mode this build's decision on every
         // libc rather than a question of vintage.
-        saved_mask = umask((mode_t)(0777 & ~D_INTERNAL_FILE_TEMP_MODE));
+        const mode_t saved_mask =
+            umask((mode_t)(0777 & ~D_INTERNAL_FILE_TEMP_MODE));
+
         result = mkstemp(_template);
         (void)umask(saved_mask);
     }
-    #endif
+#endif
 
+    // report the failure; errno is the platform's
     if (result < 0)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_mkstemp",
+                               "d_file_temp_create",
                                NULL,
                                "mkstemp failed");
     }
 
     return result;
-#endif
 }
 
-
-// II.   Name generation
+#endif  // D_FILE_BACKEND_IS_STDC
 
 #if (D_INTERNAL_FILE_TEMP_TMPNAM == 1)
 
 /*
-d_tmpnam_s
-  Generates a filename that does not currently exist.
-  READ THIS. "Does not currently exist" is a statement about the past by the
-time it returns. Between this call and your open, anybody with write access to
-that directory can create the name -- classically as a symlink to a file you
-have permission to destroy -- and your program then writes there, with your
-privileges. That is not a hypothetical; it is the oldest bug in Unix
-temporary-file handling and it is why tmpnam is deprecated everywhere.
-  There is no way to fix it from inside this function: the flaw is the
-interface, which separates naming from opening. d_mkstemp does not, which is
-why it is the answer.
-  Compiled only when D_CFG_FILE_TEMP_ALLOW_TMPNAM is 1, so a codebase can set
-it to 0 and have the compiler prove there are no uses left.
-
-Parameter(s):
-  _s:       buffer to receive the name.
-  _maxsize: size of _s, in bytes.
-Return:
-  0 on success, or a non-zero error code on failure.
+d_file_temp_name
+  "Does not currently exist" is a statement about the past by the time this
+returns, and nothing inside it can change that: the flaw is the interface,
+which separates naming from opening. Names join the temporary directory, the
+clock and a process-wide counter -- not a security measure, only a way to
+reduce accidental collisions between concurrent callers -- and each is tested
+for existence, with the answer already stale, for a bounded number of tries.
 */
 int
-d_tmpnam_s
-(
+d_file_temp_name(
     char*  _s,
     size_t _maxsize
 )
 {
-    char        dir[D_FILE_PATH_MAX];
-    static int  counter = 0;
-    int         tries;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_s != NULL,
                             EINVAL,
-                            "d_tmpnam_s",
+                            "d_file_temp_name",
                             NULL,
                             "buffer is NULL",
                             EINVAL);
     D_INTERNAL_FILE_REQUIRE(_maxsize > 1,
                             EINVAL,
-                            "d_tmpnam_s",
+                            "d_file_temp_name",
                             NULL,
                             "buffer is too small to hold a name",
                             EINVAL);
 
-    if (!d_tempdir(dir, sizeof(dir)))
+    char dir[D_FILE_PATH_MAX];
+
+    // the name lives in the temporary directory
+    if (!d_dir_temp(dir,
+                    sizeof(dir)))
     {
         return EIO;
     }
 
     D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_WARN,
                            0,
-                           "d_tmpnam_s",
+                           "d_file_temp_name",
                            NULL,
                            "generated name is racy by construction; prefer "
-                           "d_mkstemp");
+                           "d_file_temp_create");
 
-    for (tries = 0; tries < 128; ++tries)
+    // shared by every call, so successive names differ
+    static int counter = 0;
+
+    // try a bounded number of names before giving up
+    for (int tries = 0; tries < 128; ++tries)
     {
-        int written;
-
         // not a security measure -- nothing here can be one. It only reduces
         // accidental collisions between concurrent callers.
-        written = snprintf(_s,
-                           _maxsize,
-                           "%s%cdjtmp_%lu_%d",
-                           dir,
-                           D_FILE_PATH_SEP,
-                           (unsigned long)clock(),
-                           counter++);
+        const int written = snprintf(_s,
+                                     _maxsize,
+                                     "%s%cdjtmp_%lu_%d",
+                                     dir,
+                                     D_FILE_PATH_SEP,
+                                     (unsigned long)clock(),
+                                     counter++);
 
+        // an encoding failure leaves nothing usable
         if (written < 0)
         {
             return EIO;
         }
 
+        // a truncated name is not the name that was generated
         if ((size_t)written >= _maxsize)
         {
             D_INTERNAL_FILE_SET_ERR(ERANGE);
@@ -340,54 +346,41 @@ d_tmpnam_s
 
 #endif  // D_INTERNAL_FILE_TEMP_TMPNAM
 
-
-// III.  Location
-
 /*
-d_tempdir
-  Reports the directory temporary files should go in.
-  Consults TMPDIR, then TMP, then TEMP, then falls back to
-D_CFG_FILE_TEMP_DIR_FALLBACK -- unless D_CFG_FILE_TEMP_HONOUR_ENV is 0, which
-is what a set-uid program wants, since an attacker who controls the
-environment otherwise controls where your files land.
-  No trailing separator, so d_path_join works without special-casing.
-
-Parameter(s):
-  _buf:     buffer to receive the path.
-  _bufsize: size of _buf, in bytes.
-Return:
-  _buf on success, or NULL on failure with errno set.
+d_dir_temp
+  TMPDIR is the POSIX spelling; TMP and TEMP are what Windows sets. With the
+environment ignored or silent, Windows is asked through GetTempPath -- there
+is no /tmp there, and the real answer is per-user -- and elsewhere the
+configured fallback is used. Every answer loses its trailing separators, so
+d_path_join needs no special case.
 */
 char*
-d_tempdir
-(
+d_dir_temp(
     char*  _buf,
     size_t _bufsize
 )
 {
-    const char* found;
-    size_t      length;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_buf != NULL,
                             EINVAL,
-                            "d_tempdir",
+                            "d_dir_temp",
                             NULL,
                             "buffer is NULL",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_bufsize > 1,
                             EINVAL,
-                            "d_tempdir",
+                            "d_dir_temp",
                             NULL,
                             "buffer is too small",
                             NULL);
 
-    found = NULL;
+    const char* found = NULL;
 
 #if D_CFG_IS_ON(D_CFG_FILE_TEMP_HONOUR_ENV)
     // TMPDIR is the POSIX spelling; TMP and TEMP are what Windows sets
     found = getenv("TMPDIR");
 
+    // fall back through the Windows spellings
     if ( (!found) ||
          (found[0] == '\0') )
     {
@@ -401,55 +394,57 @@ d_tempdir
     }
 #endif
 
+    // with nothing from the environment, ask the platform
     if ( (!found) ||
          (found[0] == '\0') )
     {
 #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
         // ask the API rather than guess: there is no /tmp here, and the real
         // answer is per-user
+        DWORD n = GetTempPathA((DWORD)_bufsize,
+                               _buf);
+
+        // zero is failure; a value past the buffer is the size it needed
+        if ( (n == 0) ||
+             (n >= (DWORD)_bufsize) )
         {
-            DWORD n;
-
-            n = GetTempPathA((DWORD)_bufsize, _buf);
-
-            if ( (n == 0) ||
-                 (n >= (DWORD)_bufsize) )
-            {
-                D_INTERNAL_FILE_FAIL(ERANGE,
-                                     "d_tempdir",
-                                     NULL,
-                                     "temp directory does not fit the buffer",
-                                     NULL);
-            }
-
-            // GetTempPath appends a separator; strip it so the result is a
-            // directory name like every other path this subframework returns
-            while ( (n > 1) &&
-                    ( (_buf[n - 1] == '\\') ||
-                      (_buf[n - 1] == '/') ) )
-            {
-                _buf[--n] = '\0';
-            }
-
-            return _buf;
+            D_INTERNAL_FILE_FAIL(ERANGE,
+                                 "d_dir_temp",
+                                 NULL,
+                                 "temp directory does not fit the buffer",
+                                 NULL);
         }
+
+        // GetTempPath appends a separator; strip it so the result is a
+        // directory name like every other path this subframework returns
+        while ( (n > 1) &&
+                ( (_buf[n - 1] == '\\') ||
+                  (_buf[n - 1] == '/') ) )
+        {
+            _buf[--n] = '\0';
+        }
+
+        return _buf;
 #else
         found = D_CFG_FILE_TEMP_DIR_FALLBACK;
 #endif
     }
 
-    length = strlen(found);
+    size_t length = strlen(found);
 
+    // the directory and its terminator must fit
     if ((length + 1) > _bufsize)
     {
         D_INTERNAL_FILE_FAIL(ERANGE,
-                             "d_tempdir",
+                             "d_dir_temp",
                              NULL,
                              "temp directory does not fit the buffer",
                              NULL);
     }
 
-    memcpy(_buf, found, length + 1);
+    memcpy(_buf,
+           found,
+           length + 1);
 
     // no trailing separator, so d_path_join needs no special case
     while ( (length > 1) &&

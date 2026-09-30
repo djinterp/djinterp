@@ -1,41 +1,52 @@
-/******************************************************************************
-* djinterp [c]                                                     file_lock.c
+/*******************************************************************************
+* djinterp [c]                                                       file_lock.c
+*
+* Implementation of the advisory locks declared in file_lock.h.
+*   Three backends, chosen at build time: flock where the build selects it and
+* the platform has it, LockFileEx on Windows, and whole-file fcntl record locks
+* everywhere else. djinterp's D_LOCK_* operations are translated to each
+* backend's own constants rather than assumed to match them.
+*
 *
 * path:      /src/djinterp/c/fs/file_lock.c
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/fs/file_lock.h"  // corresponding header
+// std
+#include <errno.h>   // errno, EBADF, EINVAL, EWOULDBLOCK, EAGAIN, EACCES
+#include <stdio.h>   // FILE, fileno, SEEK_SET
+#include <string.h>  // memset
 // djinterp
-#include "../../../../inc/djinterp/c/fs/file_lock.h"
+#include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
+#include "../../../../inc/djinterp/config/c/fs/cfg_file_lock.h"  // D_INTERNAL_FILE_LOCK_BACKEND
 
 
-// Internal definitions
+//==============================================================================
+// FILE-LOCAL DEFINITIONS
+//==============================================================================
 
-//   Not built on the ISO C backend: the only caller is in the non-STDC
-// branch below, so defining it there is an unused function and a warning.
-#if ( (D_INTERNAL_FILE_VALIDATE == 1) && !D_FILE_BACKEND_IS_STDC )
+#if ( (D_INTERNAL_FILE_VALIDATE == 1) &&                                       \
+      (!D_FILE_BACKEND_IS_STDC) )
+
 /*
 d_internal_lock_check_op
-  Validates a lock operation.
-  Exactly one of SH / EX / UN must be present. Passing two is not a richer
-request, it is a contradiction, and a platform handed the OR of two flags will
-do something arbitrary rather than complain.
-
-Parameter(s):
-  _operation: the caller's operation.
-Return:
-  1 when the operation is well-formed, 0 otherwise.
+  Exactly one of SH / EX / UN must be present. Two is not a richer request but
+a contradiction, and a platform handed the OR of two flags does something
+arbitrary rather than complain. Defined only where D_INTERNAL_FILE_REQUIRE
+expands to a check and d_file_lock_fd is not the ISO C stub -- the only
+builds that call it; anywhere else it would be an unused static function.
 */
 static int
-d_internal_lock_check_op
-(
+d_internal_lock_check_op(
     int _operation
 )
 {
-    int mode;
-    int count;
+    const int mode  = _operation & (D_LOCK_SH | D_LOCK_EX | D_LOCK_UN);
+    int       count = 0;
 
-    mode  = _operation & (D_LOCK_SH | D_LOCK_EX | D_LOCK_UN);
-    count = 0;
-
+    // count the operations present
     if ((mode & D_LOCK_SH) != 0)
     {
         ++count;
@@ -53,74 +64,75 @@ d_internal_lock_check_op
 
     return (count == 1);
 }
+
 #endif  // D_INTERNAL_FILE_VALIDATE && !D_FILE_BACKEND_IS_STDC
 
+//==============================================================================
+// 1.  LOCKING
+//==============================================================================
 
-// I.    Locking
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_flock
-  Takes or releases an advisory lock on a descriptor.
-  Advisory: a process that does not ask is not stopped. This coordinates
-cooperating programs and nothing else.
-  Blocks until the lock is available unless D_LOCK_NB is given, in which case
-a conflict returns -1 with errno EWOULDBLOCK -- which is a normal outcome to
-test for, not a failure to report.
-  The lock's lifetime depends on the backend and the two are not
-interchangeable: with flock it belongs to the open file description (survives
-dup, shared with a forked child, released at the last close of that open);
-with fcntl it belongs to the process and is dropped when ANY descriptor to the
-file is closed, including one a library opened behind your back. Check
-D_FILE_LOCK_IS_PER_DESCRIPTION.
-
-Parameter(s):
-  _fd:        an open descriptor.
-  _operation: exactly one of D_LOCK_SH, D_LOCK_EX or D_LOCK_UN, optionally
-              OR'd with D_LOCK_NB.
-Return:
-  0 on success, or -1 on failure with errno set.
+d_file_lock_fd
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
 int
-d_flock
-(
+d_file_lock_fd(
     int _fd,
     int _operation
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_fd;
     (void)_operation;
 
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_flock",
+                         "d_file_lock_fd",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
-#else
-    int result;
+}
 
+#else
+
+/*
+d_file_lock_fd
+  Every backend locks the whole file: fcntl is given l_len 0, which means "to
+end of file, however it grows", and LockFileEx the maximum range. Win32
+reports failure without an errno, so a refusal there is recorded as
+EWOULDBLOCK, the one failure worth naming. A refused non-blocking request is
+an answer rather than a malfunction, and is reported at info severity.
+*/
+int
+d_file_lock_fd(
+    int _fd,
+    int _operation
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_fd >= 0,
                             EBADF,
-                            "d_flock",
+                            "d_file_lock_fd",
                             NULL,
                             "descriptor is negative",
                             -1);
     D_INTERNAL_FILE_REQUIRE(d_internal_lock_check_op(_operation),
                             EINVAL,
-                            "d_flock",
+                            "d_file_lock_fd",
                             NULL,
                             "operation must be exactly one of SH / EX / UN",
                             -1);
 
-    #if ( (D_INTERNAL_FILE_LOCK_BACKEND == D_CFG_FILE_LOCK_BACKEND_FLOCK) &&  \
-          D_CFG_IS_ON(D_CFG_FILE_HAS_FLOCK) )
-    {
-        int op;
+    int result = -1;
 
+#if ( (D_INTERNAL_FILE_LOCK_BACKEND == D_CFG_FILE_LOCK_BACKEND_FLOCK) &&       \
+      (D_CFG_IS_ON(D_CFG_FILE_HAS_FLOCK)) )
+    {
         // djinterp's D_LOCK_* are deliberately not LOCK_*: Windows has no
         // such constants and Solaris numbers them differently, so they are
         // translated here rather than assumed to match
+        int op = LOCK_UN;
+
         if ((_operation & D_LOCK_SH) != 0)
         {
             op = LOCK_SH;
@@ -129,45 +141,49 @@ d_flock
         {
             op = LOCK_EX;
         }
-        else
-        {
-            op = LOCK_UN;
-        }
 
+        // a non-blocking request fails rather than waits
         if ((_operation & D_LOCK_NB) != 0)
         {
             op |= LOCK_NB;
         }
 
-        D_INTERNAL_FILE_RETRY_EINTR(result, flock(_fd, op));
+        D_INTERNAL_FILE_RETRY_EINTR(result,
+                                    flock(_fd,
+                                          op));
     }
-    #elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     {
-        HANDLE   handle;
-        OVERLAPPED overlapped;
-        DWORD    flags;
+        const HANDLE handle = (HANDLE)_get_osfhandle(_fd);
 
-        handle = (HANDLE)_get_osfhandle(_fd);
-
+        // a descriptor with no OS handle cannot be locked
         if (handle == INVALID_HANDLE_VALUE)
         {
             D_INTERNAL_FILE_FAIL(EBADF,
-                                 "d_flock",
+                                 "d_file_lock_fd",
                                  NULL,
                                  "descriptor has no OS handle",
                                  -1);
         }
 
-        memset(&overlapped, 0, sizeof(overlapped));
+        OVERLAPPED overlapped;
 
+        memset(&overlapped,
+               0,
+               sizeof(overlapped));
+
+        // release, or take the lock with the requested strength
         if ((_operation & D_LOCK_UN) != 0)
         {
-            result = UnlockFileEx(handle, 0, MAXDWORD, MAXDWORD, &overlapped) ?
-                     0 : -1;
+            result = UnlockFileEx(handle,
+                                  0,
+                                  MAXDWORD,
+                                  MAXDWORD,
+                                  &overlapped) ? 0 : -1;
         }
         else
         {
-            flags = 0;
+            DWORD flags = 0;
 
             if ((_operation & D_LOCK_EX) != 0)
             {
@@ -179,25 +195,32 @@ d_flock
                 flags |= LOCKFILE_FAIL_IMMEDIATELY;
             }
 
-            result = LockFileEx(handle, flags, 0, MAXDWORD, MAXDWORD,
+            result = LockFileEx(handle,
+                                flags,
+                                0,
+                                MAXDWORD,
+                                MAXDWORD,
                                 &overlapped) ? 0 : -1;
         }
 
+        // Win32 sets no errno; name the one failure worth naming
         if (result != 0)
         {
             D_INTERNAL_FILE_SET_ERR(EWOULDBLOCK);
         }
     }
-    #else
+#else
     {
         struct flock fl;
-        int          cmd;
 
-        memset(&fl, 0, sizeof(fl));
+        memset(&fl,
+               0,
+               sizeof(fl));
         fl.l_whence = SEEK_SET;
         fl.l_start  = 0;
         fl.l_len    = 0;   // 0 means "to end of file", however it grows
 
+        // translate the operation into a record-lock type
         if ((_operation & D_LOCK_SH) != 0)
         {
             fl.l_type = F_RDLCK;
@@ -211,24 +234,28 @@ d_flock
             fl.l_type = F_UNLCK;
         }
 
-        cmd = ((_operation & D_LOCK_NB) != 0) ? F_SETLK : F_SETLKW;
+        const int cmd = ((_operation & D_LOCK_NB) != 0) ? F_SETLK : F_SETLKW;
 
-        D_INTERNAL_FILE_RETRY_EINTR(result, fcntl(_fd, cmd, &fl));
+        D_INTERNAL_FILE_RETRY_EINTR(result,
+                                    fcntl(_fd,
+                                          cmd,
+                                          &fl));
     }
-    #endif
+#endif
 
+    // report the failure at the severity it deserves
     if (result != 0)
     {
         // a refused non-blocking lock is an ANSWER, not a malfunction; do not
         // report it at error severity
         if ( ((_operation & D_LOCK_NB) != 0) &&
              ( (errno == EWOULDBLOCK) ||
-               (errno == EAGAIN) ||
+               (errno == EAGAIN)      ||
                (errno == EACCES) ) )
         {
             D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_INFO,
                                    errno,
-                                   "d_flock",
+                                   "d_file_lock_fd",
                                    NULL,
                                    "lock is held elsewhere; non-blocking "
                                    "request declined");
@@ -237,7 +264,7 @@ d_flock
         {
             D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                    errno,
-                                   "d_flock",
+                                   "d_file_lock_fd",
                                    NULL,
                                    "lock operation failed");
         }
@@ -246,66 +273,72 @@ d_flock
     }
 
     return 0;
-#endif
 }
 
+#endif  // D_FILE_BACKEND_IS_STDC
+
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_flock_stream
-  Takes or releases an advisory lock through the stream that owns the file.
-  Deliberately does NOT flush first, unlike d_ftruncate_stream: a lock is
-about coordination, not about the bytes, and flushing here would make taking a
-lock perform I/O the caller did not ask for. Flush yourself before releasing a
-lock that guards data you have written.
-
-Parameter(s):
-  _stream:    an open stream.
-  _operation: as d_flock.
-Return:
-  0 on success, or -1 on failure with errno set.
+d_file_lock_stream
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
 int
-d_flock_stream
-(
+d_file_lock_stream(
     FILE* _stream,
     int   _operation
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_stream;
     (void)_operation;
 
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_flock_stream",
+                         "d_file_lock_stream",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
-#else
-    int fd;
+}
 
+#else
+
+/*
+d_file_lock_stream
+  Deliberately does NOT flush first, unlike d_file_truncate_stream: a lock is
+about coordination, not about the bytes, and flushing here would make taking a
+lock perform I/O the caller did not ask for.
+*/
+int
+d_file_lock_stream(
+    FILE* _stream,
+    int   _operation
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_stream != NULL,
                             EINVAL,
-                            "d_flock_stream",
+                            "d_file_lock_stream",
                             NULL,
                             "stream is NULL",
                             -1);
 
-    #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    fd = _fileno(_stream);
-    #else
-    fd = fileno(_stream);
-    #endif
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    const int fd = _fileno(_stream);
+#else
+    const int fd = fileno(_stream);
+#endif
 
+    // a stream with no descriptor cannot be locked
     if (fd < 0)
     {
         D_INTERNAL_FILE_FAIL(EBADF,
-                             "d_flock_stream",
+                             "d_file_lock_stream",
                              NULL,
                              "stream has no descriptor",
                              -1);
     }
 
-    return d_flock(fd, _operation);
-#endif
+    return d_file_lock_fd(fd,
+                          _operation);
 }
+
+#endif  // D_FILE_BACKEND_IS_STDC
