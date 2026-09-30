@@ -1,53 +1,87 @@
-/******************************************************************************
-* djinterp [c]                                                     file_lock.h
+/*******************************************************************************
+* djinterp [c]                                                       file_lock.h
 *
 * Advisory file locking.
 *   ADVISORY, and the word is load-bearing: a lock here is a convention among
-* programs that agree to ask. A process that never calls d_flock writes the
-* file regardless, and nothing reports it. There is no portable mandatory
+* programs that agree to ask. A process that never calls d_file_lock_fd writes
+* the file regardless, and nothing reports it. There is no portable mandatory
 * locking; if that is what you need, this module cannot supply it.
-*
 *   The semantics depend on the backend, and they are not interchangeable --
 * see cfg_file_lock.h. In short: flock's lock lives on the open file
 * description, fcntl's lives on the process and is dropped when ANY descriptor
 * to the file closes. Query with D_FILE_LOCK_IS_PER_DESCRIPTION.
 *
+*
 * path:      /inc/djinterp/c/fs/file_lock.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    LOCKING
-      -------
-      1.  d_flock          (by descriptor)
-      2.  d_flock_stream   (by stream)
-
-   Operations (from file_common.h): D_LOCK_SH, D_LOCK_EX, D_LOCK_UN,
-   optionally OR'd with D_LOCK_NB to fail rather than block.
+1.  LOCKING
+    -------
+    1.  Advisory locks
 */
 
-#ifndef DJINTERP_FILE_LOCK_
-#define DJINTERP_FILE_LOCK_ 1
+#ifndef DJINTERP_C_FS_FILE_LOCK_H
+#define DJINTERP_C_FS_FILE_LOCK_H 1
 
+// std
+#include <stdio.h>  // FILE
 // djinterp
-#include "./file_common.h"
-#include "../../config/c/fs/cfg_file_lock.h"
+#include "./file_common.h"                    // fs foundation, D_LOCK_*
+#include "../../config/c/fs/cfg_file_lock.h"  // module configuration
 
 
 D_EXTERN_C_BEGIN
 
 
-// I.    Locking
-int d_flock(int _fd,
-            int _operation);
-int d_flock_stream(FILE* _stream,
-                   int   _operation);
+//==============================================================================
+// 1.  LOCKING
+//==============================================================================
+// Operations come from file_common.h: D_LOCK_SH, D_LOCK_EX or D_LOCK_UN,
+// optionally OR'd with D_LOCK_NB to fail rather than block. On the ISO C
+// backend, which has no descriptors, both functions fail with ENOSYS.
+
+
+// 1.1    Advisory locks
+//------------------------------------------------------------------------------
+/**
+ * @brief Takes or releases an advisory lock on a descriptor.
+ *
+ * @note Only processes that ask are coordinated. The lock's lifetime follows
+ *       the backend: with flock it belongs to the open file description,
+ *       with fcntl to the process, and closing ANY descriptor to the file
+ *       drops it. D_FILE_LOCK_IS_PER_DESCRIPTION says which.
+ *
+ * @param[in] _fd         an open descriptor.
+ * @param[in] _operation  exactly one of D_LOCK_SH, D_LOCK_EX or D_LOCK_UN,
+ *                        optionally OR'd with D_LOCK_NB.
+ * @return 0, or -1 on failure with errno set. Under D_LOCK_NB a conflict
+ *         returns -1 with errno EWOULDBLOCK, EAGAIN or EACCES -- an answer,
+ *         not a fault.
+ */
+int d_file_lock_fd(int _fd,
+                   int _operation);
+/**
+ * @brief Takes or releases an advisory lock through the stream that owns the
+ *        file.
+ *
+ * @note It does not flush. Flush before releasing a lock that guards data you
+ *       have written.
+ *
+ * @param[in] _stream     an open stream.
+ * @param[in] _operation  as for d_file_lock_fd.
+ * @return 0, or -1 on failure with errno set.
+ */
+int d_file_lock_stream(FILE* _stream,
+                       int   _operation);
 
 
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_FILE_LOCK_
+#endif  // DJINTERP_C_FS_FILE_LOCK_H

@@ -1,37 +1,51 @@
-/******************************************************************************
-* djinterp [c]                                                     file_path.c
+/*******************************************************************************
+* djinterp [c]                                                       file_path.c
+*
+* Implementation of the lexical path operations declared in file_path.h.
+*   Four file-local helpers carry every rule: which characters separate, how
+* long a root is, where a path's meaningful text ends, and how a result is
+* copied out -- where a result that does not fit is an ERANGE failure, never a
+* truncated path. The public functions compose them and make no system call.
+*
 *
 * path:      /src/djinterp/c/fs/file_path.c
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/fs/file_path.h"  // corresponding header
+// std
+#include <errno.h>   // EINVAL, ERANGE
+#include <stddef.h>  // NULL, size_t
+#include <string.h>  // memmove, strlen
 // djinterp
-#include "../../../../inc/djinterp/c/fs/file_path.h"
+#include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
+#include "../../../../inc/djinterp/config/c/fs/cfg_file_path.h"  // D_INTERNAL_FILE_PATH_*
 
 
-// Internal definitions
+//==============================================================================
+// FILE-LOCAL DEFINITIONS
+//==============================================================================
 
 /*
 d_internal_path_is_sep
-  Reports whether a character separates path components in this build.
-  On POSIX only '/' qualifies -- '\\' is an ordinary byte in a filename there,
-and treating it as a separator would silently corrupt legitimate names.
-
-Parameter(s):
-  _c: the character to classify.
-Return:
-  1 when _c is a separator, 0 otherwise.
+  On POSIX only '/' separates -- '\\' is an ordinary byte in a filename there,
+and treating it as a separator would silently corrupt legitimate names. The
+backslash separates only when this build parses Windows paths.
 */
 static int
-d_internal_path_is_sep
-(
+d_internal_path_is_sep(
     char _c
 )
 {
+    // the forward slash separates on every target
     if (_c == '/')
     {
         return 1;
     }
 
 #if (D_INTERNAL_FILE_PATH_ALT_SEP == 1)
+    // the backslash only where Windows syntax is understood
     if (_c == '\\')
     {
         return 1;
@@ -41,32 +55,22 @@ d_internal_path_is_sep
     return 0;
 }
 
-
 /*
 d_internal_path_copy
-  Copies a byte range into the caller's buffer, NUL-terminating it.
   One place for the truncation decision: a path that does not fit is a
 failure, not a shortened path. Silently handing back a prefix of a path is how
-a program deletes the wrong directory.
-
-Parameter(s):
-  _buf:     destination buffer.
-  _bufsize: size of _buf, in bytes.
-  _src:     source bytes; need not be NUL-terminated.
-  _length:  number of bytes to copy.
-Return:
-  _buf on success, or NULL when the result would not fit, with errno set to
-ERANGE.
+a program deletes the wrong directory. The source need not be NUL-terminated;
+the copy always is.
 */
 static char*
-d_internal_path_copy
-(
+d_internal_path_copy(
     char*       _buf,
     size_t      _bufsize,
     const char* _src,
     size_t      _length
 )
 {
+    // a result that does not fit is refused, never truncated
     if ((_length + 1) > _bufsize)
     {
         D_INTERNAL_FILE_SET_ERR(ERANGE);
@@ -79,9 +83,12 @@ d_internal_path_copy
         return NULL;
     }
 
+    // an empty result needs only its terminator
     if (_length > 0)
     {
-        memmove(_buf, _src, _length);
+        memmove(_buf,
+                _src,
+                _length);
     }
 
     _buf[_length] = '\0';
@@ -89,15 +96,13 @@ d_internal_path_copy
     return _buf;
 }
 
-
 /*
 d_internal_path_root_len
   Measures the root prefix of a path -- the leading run that names a starting
-point rather than a component, and that "..". may never climb above.
-  The forms recognised depend on configuration, not on the host, so a POSIX
-build can be told to parse Windows paths (a cross-compiler, an archiver) and a
-Windows build always parses its own.
-
+point rather than a component, and that ".." may never climb above. The forms
+recognised depend on configuration, not on the host, so a POSIX build can be
+told to parse Windows paths (a cross-compiler, an archiver) and a Windows
+build always parses its own:
   POSIX     "/"                    -> 1
             "//"                   -> 2   (POSIX reserves exactly two)
             "///"                  -> 1   (three or more is just root)
@@ -106,28 +111,20 @@ Windows build always parses its own.
             "\\\\server\\share"    -> whole prefix
             "\\\\?\\C:\\"          -> whole prefix
             "\\"                   -> 1   (rooted on the current drive)
-
-Parameter(s):
-  _path: the path to measure; must not be NULL.
-Return:
-  The number of leading bytes forming the root; 0 when the path is relative.
 */
 static size_t
-d_internal_path_root_len
-(
+d_internal_path_root_len(
     const char* _path
 )
 {
-#if (D_INTERNAL_FILE_PATH_HAS_UNC == 1)
-    size_t idx;
-#endif
-
 #if (D_INTERNAL_FILE_PATH_HAS_DRIVE == 1)
     // "C:" -- a drive letter followed by a colon
     if ( (_path[0] != '\0') &&
-         (_path[1] == ':') &&
-         ( ((_path[0] >= 'A') && (_path[0] <= 'Z')) ||
-           ((_path[0] >= 'a') && (_path[0] <= 'z')) ) )
+         (_path[1] == ':')  &&
+         ( ( (_path[0] >= 'A') &&
+             (_path[0] <= 'Z') ) ||
+           ( (_path[0] >= 'a') &&
+             (_path[0] <= 'z') ) ) )
     {
         // "C:\\" is anchored; bare "C:" means "wherever that drive is",
         // which is a root for climbing purposes but is NOT absolute
@@ -143,12 +140,12 @@ d_internal_path_root_len
 #if (D_INTERNAL_FILE_PATH_HAS_UNC == 1)
     // "\\\\server\\share" or "\\\\?\\..." -- two separators, then a name,
     // then optionally one more name
-    if ( d_internal_path_is_sep(_path[0]) &&
-         d_internal_path_is_sep(_path[1]) &&
-         (_path[2] != '\0') &&
+    if ( (d_internal_path_is_sep(_path[0])) &&
+         (d_internal_path_is_sep(_path[1])) &&
+         (_path[2] != '\0')                 &&
          (!d_internal_path_is_sep(_path[2])) )
     {
-        idx = 2;
+        size_t idx = 2;
 
         // server (or the "?" of an extended path)
         while ( (_path[idx] != '\0') &&
@@ -173,12 +170,13 @@ d_internal_path_root_len
     }
 #endif
 
+    // a leading separator roots the path on every target
     if (d_internal_path_is_sep(_path[0]))
     {
         // POSIX gives exactly two leading slashes an implementation-defined
         // meaning and three or more none at all, so "//" is preserved as a
         // root while "///" collapses to "/"
-        if ( d_internal_path_is_sep(_path[1]) &&
+        if ( (d_internal_path_is_sep(_path[1])) &&
              (!d_internal_path_is_sep(_path[2])) )
         {
             return 2;
@@ -190,34 +188,25 @@ d_internal_path_root_len
     return 0;
 }
 
-
 /*
 d_internal_path_end
-  Finds the end of a path's meaningful text, ignoring trailing separators.
-  "a/b/" and "a/b" have the same final component; this is what makes them
-agree. A root is never trimmed away -- "/" would otherwise become "".
-
-Parameter(s):
-  _path:     the path.
-  _length:   its length in bytes.
-  _root_len: the length of its root prefix.
-Return:
-  The index one past the last meaningful byte.
+  "a/b/" and "a/b" have the same final component; trimming trailing
+separators is what makes them agree. A root is never trimmed away -- "/" would
+otherwise become "". The result is the index one past the last meaningful
+byte.
 */
 static size_t
-d_internal_path_end
-(
+d_internal_path_end(
     const char* _path,
     size_t      _length,
     size_t      _root_len
 )
 {
-    size_t end;
+    size_t end = _length;
 
-    end = _length;
-
+    // trim trailing separators, but never into the root
     while ( (end > _root_len) &&
-            d_internal_path_is_sep(_path[end - 1]) )
+            (d_internal_path_is_sep(_path[end - 1])) )
     {
         --end;
     }
@@ -225,72 +214,67 @@ d_internal_path_end
     return end;
 }
 
-
-// I.    Decomposition
+//==============================================================================
+// 1.  PATHS
+//==============================================================================
 
 /*
-d_dirname
-  Extracts the directory component of a path.
+d_path_dirname
   Lexical: the result is what the path says its parent is, whether or not
-either exists. Trailing separators are ignored, so "a/b/" and "a/b" both give
-"a".
-
-  "/path/to/file.txt" -> "/path/to"      "file.txt" -> "."
-  "/file.txt"         -> "/"             ""         -> "."
-  "a/b/"              -> "a"             "/"        -> "/"
-
-Parameter(s):
-  _path:    the path to decompose.
-  _buf:     buffer to receive the directory component.
-  _bufsize: size of _buf, in bytes.
-Return:
-  _buf on success, or NULL on failure with errno set.
+either exists. From the meaningful end, the walk goes back to the separator
+that ends the parent and then past the separator run itself, never into the
+root. A path that is only a root is its own parent, and a relative path with
+no separator has "." as its parent.
 */
 char*
-d_dirname
-(
+d_path_dirname(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
 )
 {
-    size_t length;
-    size_t root_len;
-    size_t end;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_path != NULL,
                             EINVAL,
-                            "d_dirname",
+                            "d_path_dirname",
                             NULL,
                             "path is NULL",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_buf != NULL,
                             EINVAL,
-                            "d_dirname",
+                            "d_path_dirname",
                             _path,
                             "buffer is NULL",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_bufsize > 0,
                             EINVAL,
-                            "d_dirname",
+                            "d_path_dirname",
                             _path,
                             "buffer size is 0",
                             NULL);
 
-    length   = strlen(_path);
-    root_len = d_internal_path_root_len(_path);
-    end      = d_internal_path_end(_path, length, root_len);
+    const size_t length   = strlen(_path);
+    const size_t root_len = d_internal_path_root_len(_path);
+    size_t       end      = d_internal_path_end(_path,
+                                                length,
+                                                root_len);
 
     // a path that is nothing but its root is its own parent
     if (end <= root_len)
     {
+        // no root either: the parent is the current directory
         if (root_len == 0)
         {
-            return d_internal_path_copy(_buf, _bufsize, ".", 1);
+            return d_internal_path_copy(_buf,
+                                        _bufsize,
+                                        ".",
+                                        1);
         }
 
-        return d_internal_path_copy(_buf, _bufsize, _path, root_len);
+        return d_internal_path_copy(_buf,
+                                    _bufsize,
+                                    _path,
+                                    root_len);
     }
 
     // walk back to the separator that ends the parent
@@ -303,143 +287,128 @@ d_dirname
     // no separator at all: the parent is the current directory
     if (end <= root_len)
     {
+        // a relative path's parent is the current directory
         if (root_len == 0)
         {
-            return d_internal_path_copy(_buf, _bufsize, ".", 1);
+            return d_internal_path_copy(_buf,
+                                        _bufsize,
+                                        ".",
+                                        1);
         }
 
-        return d_internal_path_copy(_buf, _bufsize, _path, root_len);
+        return d_internal_path_copy(_buf,
+                                    _bufsize,
+                                    _path,
+                                    root_len);
     }
 
     // drop the separator itself, unless doing so would eat the root
     while ( (end > root_len) &&
-            d_internal_path_is_sep(_path[end - 1]) )
+            (d_internal_path_is_sep(_path[end - 1])) )
     {
         --end;
     }
 
+    // never shorter than the root
     if (end < root_len)
     {
         end = root_len;
     }
 
-    return d_internal_path_copy(_buf, _bufsize, _path, end);
+    return d_internal_path_copy(_buf,
+                                _bufsize,
+                                _path,
+                                end);
 }
 
-
 /*
-d_basename
-  Extracts the final component of a path.
-  Trailing separators are ignored, so "a/b/" gives "b" -- which is what a
-caller means by "the name of this thing", and what the shell's basename does.
-
-  "/path/to/file.txt" -> "file.txt"      "file.txt" -> "file.txt"
-  "a/b/"              -> "b"             "/"        -> "/"
-  ""                  -> ""
-
-Parameter(s):
-  _path:    the path to decompose.
-  _buf:     buffer to receive the final component.
-  _bufsize: size of _buf, in bytes.
-Return:
-  _buf on success, or NULL on failure with errno set.
+d_path_basename
+  The final component runs from the separator before the meaningful end up to
+that end; a path that is nothing but a root names itself.
 */
 char*
-d_basename
-(
+d_path_basename(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
 )
 {
-    size_t length;
-    size_t root_len;
-    size_t end;
-    size_t start;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_path != NULL,
                             EINVAL,
-                            "d_basename",
+                            "d_path_basename",
                             NULL,
                             "path is NULL",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_buf != NULL,
                             EINVAL,
-                            "d_basename",
+                            "d_path_basename",
                             _path,
                             "buffer is NULL",
                             NULL);
     D_INTERNAL_FILE_REQUIRE(_bufsize > 0,
                             EINVAL,
-                            "d_basename",
+                            "d_path_basename",
                             _path,
                             "buffer size is 0",
                             NULL);
 
-    length   = strlen(_path);
-    root_len = d_internal_path_root_len(_path);
-    end      = d_internal_path_end(_path, length, root_len);
+    const size_t length   = strlen(_path);
+    const size_t root_len = d_internal_path_root_len(_path);
+    const size_t end      = d_internal_path_end(_path,
+                                                length,
+                                                root_len);
 
     // nothing but a root: the root names itself
     if (end <= root_len)
     {
-        return d_internal_path_copy(_buf, _bufsize, _path, root_len);
+        return d_internal_path_copy(_buf,
+                                    _bufsize,
+                                    _path,
+                                    root_len);
     }
 
-    start = end;
+    size_t start = end;
 
+    // walk back to the separator that opens the final component
     while ( (start > root_len) &&
             (!d_internal_path_is_sep(_path[start - 1])) )
     {
         --start;
     }
 
-    return d_internal_path_copy(_buf, _bufsize, _path + start, end - start);
+    return d_internal_path_copy(_buf,
+                                _bufsize,
+                                _path + start,
+                                end - start);
 }
 
-
 /*
-d_get_extension
-  Returns the extension of a path's final component, including the dot.
-  A leading dot does NOT start an extension: ".bashrc" is a hidden file whose
-whole name is ".bashrc", not a file with a ".bashrc" extension. Nor does a dot
-in a parent directory count -- "/etc/x.d/file" has no extension.
-
-  "file.txt"     -> ".txt"       "archive.tar.gz" -> ".gz"
-  "filename"     -> NULL         ".bashrc"        -> NULL
-  "/a.d/file"    -> NULL         "file."          -> "."
-
-Parameter(s):
-  _path: the path to inspect.
-Return:
-  A pointer INTO _path at the dot, or NULL when there is no extension. The
-result is not a copy and lives exactly as long as _path does.
+d_path_extension
+  Two passes over the input and no copy: the first finds where the final
+component starts, the second finds its last dot. A dot that opens the name is
+hiding the file, not typing it, so it starts no extension.
 */
 const char*
-d_get_extension
-(
+d_path_extension(
     const char* _path
 )
 {
-    const char* dot;
-    const char* cursor;
-    const char* name;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_path != NULL,
                             EINVAL,
-                            "d_get_extension",
+                            "d_path_extension",
                             NULL,
                             "path is NULL",
                             NULL);
 
-    // find the start of the final component without copying it
-    name   = _path;
-    cursor = _path;
+    const char* name   = _path;
+    const char* cursor = _path;
 
+    // find the start of the final component without copying it
     while (*cursor != '\0')
     {
+        // the name starts after every separator
         if (d_internal_path_is_sep(*cursor))
         {
             name = cursor + 1;
@@ -448,12 +417,14 @@ d_get_extension
         ++cursor;
     }
 
+    const char* dot = NULL;
+
     // last dot within the final component only
-    dot = NULL;
     cursor = name;
 
     while (*cursor != '\0')
     {
+        // remember the latest dot
         if (*cursor == '.')
         {
             dot = cursor;
@@ -462,6 +433,7 @@ d_get_extension
         ++cursor;
     }
 
+    // no dot, no extension
     if (!dot)
     {
         return NULL;
@@ -476,35 +448,19 @@ d_get_extension
     return dot;
 }
 
-
 /*
 d_path_stem
-  Extracts the final component of a path with its extension removed.
-  The complement of d_get_extension, and it agrees with it by construction:
-stem + extension reconstructs the basename for every input, including hidden
-files (".bashrc" -> stem ".bashrc", extension none).
-
-  "/a/file.txt" -> "file"        ".bashrc"        -> ".bashrc"
-  "archive.tar.gz" -> "archive.tar"
-
-Parameter(s):
-  _path:    the path to decompose.
-  _buf:     buffer to receive the stem.
-  _bufsize: size of _buf, in bytes.
-Return:
-  _buf on success, or NULL on failure with errno set.
+  Built from the other two rather than re-deriving their rules: the basename
+is written into _buf, and d_path_extension on that copy says where to cut, so
+stem and extension can never disagree.
 */
 char*
-d_path_stem
-(
+d_path_stem(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
 )
 {
-    const char* ext;
-    size_t      length;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_path != NULL,
                             EINVAL,
@@ -520,62 +476,46 @@ d_path_stem
                             NULL);
 
     // reuse the basename rules rather than re-deriving them
-    if (!d_basename(_path, _buf, _bufsize))
+    if (!d_path_basename(_path,
+                         _buf,
+                         _bufsize))
     {
         return NULL;
     }
 
     // and the extension rules, so the two can never disagree
-    ext = d_get_extension(_buf);
+    const char* const ext = d_path_extension(_buf);
 
+    // cut the extension off where it starts
     if (ext)
     {
-        length = (size_t)(ext - _buf);
+        const size_t length = (size_t)(ext - _buf);
+
         _buf[length] = '\0';
     }
 
     return _buf;
 }
 
-
-// II.   Composition
-
 /*
 d_path_join
-  Joins two path components with exactly one separator between them.
-  A NULL or empty component is skipped rather than being an error, so a caller
-may pass an optional base directory straight through without branching.
-  When D_CFG_FILE_PATH_JOIN_ABSOLUTE_WINS is set (the default) an absolute
-second component discards the first, matching every other path library. The
-alternative silently builds "/base/etc/passwd" for code that meant to be
-handed an absolute override.
-
-  ("a", "b")     -> "a/b"        ("a/", "b")  -> "a/b"
-  (NULL, "b")    -> "b"          ("a", NULL)  -> "a"
-  ("a", "/b")    -> "/b"         ("", "")     -> ""
-
-Parameter(s):
-  _buf:     buffer to receive the joined path.
-  _bufsize: size of _buf, in bytes.
-  _path1:   first component; may be NULL or empty.
-  _path2:   second component; may be NULL or empty.
-Return:
-  _buf on success, or NULL on failure with errno set.
+  An absent component leaves the other standing alone. With
+D_CFG_FILE_PATH_JOIN_ABSOLUTE_WINS an absolute second component is a
+replacement, not a suffix -- the alternative silently builds
+"/base/etc/passwd" for code that meant to be handed an absolute override.
+Otherwise the first component's trailing separators and the second's leading
+ones are trimmed and exactly one is emitted between them, unless the first
+component was nothing but separators: then it was a root, and "/" joined with
+"b" is "/b", not "b".
 */
 char*
-d_path_join
-(
+d_path_join(
     char*       _buf,
     size_t      _bufsize,
     const char* _path1,
     const char* _path2
 )
 {
-    size_t len1;
-    size_t len2;
-    size_t out;
-    int    need_sep;
-
     // parameter validation: the components are optional, the buffer is not
     D_INTERNAL_FILE_REQUIRE(_buf != NULL,
                             EINVAL,
@@ -590,53 +530,64 @@ d_path_join
                             "buffer size is 0",
                             NULL);
 
-    len1 = _path1 ? strlen(_path1) : 0;
-    len2 = _path2 ? strlen(_path2) : 0;
+    size_t len1 = _path1 ? strlen(_path1) : 0;
+    size_t len2 = _path2 ? strlen(_path2) : 0;
 
     // an absent first component leaves the second standing alone
     if (len1 == 0)
     {
-        return d_internal_path_copy(_buf, _bufsize, _path2 ? _path2 : "", len2);
+        return d_internal_path_copy(_buf,
+                                    _bufsize,
+                                    _path2 ? _path2 : "",
+                                    len2);
     }
 
     // ...and vice versa
     if (len2 == 0)
     {
-        return d_internal_path_copy(_buf, _bufsize, _path1, len1);
+        return d_internal_path_copy(_buf,
+                                    _bufsize,
+                                    _path1,
+                                    len1);
     }
 
 #if D_CFG_IS_ON(D_CFG_FILE_PATH_JOIN_ABSOLUTE_WINS)
     // an absolute second component is not a suffix, it is a replacement
     if (d_path_is_absolute(_path2))
     {
-        return d_internal_path_copy(_buf, _bufsize, _path2, len2);
+        return d_internal_path_copy(_buf,
+                                    _bufsize,
+                                    _path2,
+                                    len2);
     }
 #endif
 
     // exactly one separator, however many the caller supplied
     while ( (len1 > 0) &&
-            d_internal_path_is_sep(_path1[len1 - 1]) )
+            (d_internal_path_is_sep(_path1[len1 - 1])) )
     {
         --len1;
     }
 
-    // ...unless trimming would eat the whole first component, which means it
-    // WAS a root ("/" joined with "b" is "/b", not "b")
-    need_sep = 1;
+    int need_sep = 1;
 
+    // ...unless trimming ate the whole first component, which means it WAS a
+    // root ("/" joined with "b" is "/b", not "b")
     if (len1 == 0)
     {
         len1     = 1;
         need_sep = 0;
     }
 
+    // the second component brings no separators of its own
     while ( (len2 > 0) &&
-            d_internal_path_is_sep(_path2[0]) )
+            (d_internal_path_is_sep(_path2[0])) )
     {
         ++_path2;
         --len2;
     }
 
+    // the joined path and its terminator must fit
     if ((len1 + (size_t)need_sep + len2 + 1) > _bufsize)
     {
         D_INTERNAL_FILE_SET_ERR(ERANGE);
@@ -649,17 +600,24 @@ d_path_join
         return NULL;
     }
 
-    memmove(_buf, _path1, len1);
-    out = len1;
+    memmove(_buf,
+            _path1,
+            len1);
 
+    size_t out = len1;
+
+    // one separator between the two, unless the first was a root
     if (need_sep)
     {
         _buf[out++] = D_INTERNAL_FILE_PATH_OUT_SEP;
     }
 
+    // a second component of nothing but separators adds nothing
     if (len2 > 0)
     {
-        memmove(_buf + out, _path2, len2);
+        memmove(_buf + out,
+                _path2,
+                len2);
         out += len2;
     }
 
@@ -668,30 +626,17 @@ d_path_join
     return _buf;
 }
 
-
-// III.  Inspection
-
 /*
 d_path_is_absolute
-  Reports whether a path names a fixed starting point.
-  Note the Windows subtlety this gets right and string comparison does not:
-"C:x" is NOT absolute. It means "x, relative to whatever the current directory
-on drive C happens to be" -- a per-drive cursor Win32 still maintains. Only
-"C:\\x" is anchored.
-
-Parameter(s):
-  _path: the path to inspect; may be NULL.
-Return:
-  Non-zero when the path is absolute, 0 when it is relative or NULL.
+  Absolute means having a root -- except a bare drive root, "C:", which is
+drive-relative: x relative to whatever the current directory on drive C
+happens to be, a per-drive cursor Win32 still maintains.
 */
 int
-d_path_is_absolute
-(
+d_path_is_absolute(
     const char* _path
 )
 {
-    size_t root_len;
-
     // a NULL path is not absolute; it is also not an error worth reporting,
     // since the answer "no" is meaningful and the caller asked a yes/no
     if (!_path)
@@ -699,8 +644,9 @@ d_path_is_absolute
         return 0;
     }
 
-    root_len = d_internal_path_root_len(_path);
+    const size_t root_len = d_internal_path_root_len(_path);
 
+    // no root, not absolute
     if (root_len == 0)
     {
         return 0;
@@ -718,25 +664,17 @@ d_path_is_absolute
     return 1;
 }
 
-
 /*
 d_path_root_length
-  Reports the length of a path's root prefix -- the leading bytes that name a
-starting point rather than a component.
-  Exposed because it is what a caller needs to split a path safely: ".." may
-never climb above it, and a join must never insert a separator inside it.
-
-Parameter(s):
-  _path: the path to inspect; may be NULL.
-Return:
-  The root's length in bytes, or 0 when the path is relative or NULL.
+  The public face of d_internal_path_root_len, with NULL answered as a path
+that has no root.
 */
 size_t
-d_path_root_length
-(
+d_path_root_length(
     const char* _path
 )
 {
+    // a NULL path has no root
     if (!_path)
     {
         return 0;
@@ -745,55 +683,24 @@ d_path_root_length
     return d_internal_path_root_len(_path);
 }
 
-
-// IV.   Canonicalization
-
 /*
 d_path_normalize
-  Cleans a path lexically: collapses separator runs, drops "." components,
-resolves ".." against the preceding component, and emits this build's
-separator.
-
-  READ THIS BEFORE USING IT ON A REAL PATH. Resolving ".." lexically is only
-equivalent to what the kernel does when no component is a symbolic link.
-Given /x/link -> /y/z, this function says "/x/link/.." is "/x"; the kernel
-says it is "/y". Both are defensible and they are not the same answer. If the
-path names something that exists and the difference matters, call d_realpath
-(file_dir), which asks the filesystem rather than guessing. Use this one for
-paths that do not exist yet, for untrusted input you want to bound, and for
-display.
-
-  "/path/to/../file.txt" -> "/path/file.txt"    "a//b" -> "a/b"
-  "./a/./b"              -> "a/b"               "a/b/" -> "a/b"
-  "../../a"              -> "../../a"   (kept: nothing to resolve against)
-  "/../a"                -> "/a"        (dropped: root has no parent)
-  ""                     -> "."
-
-Parameter(s):
-  _path:    the path to normalize.
-  _buf:     buffer to receive the normalized path.
-  _bufsize: size of _buf, in bytes.
-Return:
-  _buf on success, or NULL on failure with errno set.
+  One pass over the input, writing components into _buf as they survive. The
+root is copied through with only its separators respelled: they are structure,
+not punctuation, and normalizing "//" or a "\\?\" prefix would change their
+meaning. A separator run says nothing a single separator does not, and "."
+means "stay here". ".." removes the last emitted component unless there is
+nothing to climb over or that component is itself a ".." that had to be kept;
+directly above an absolute root it is dropped, as POSIX says "/.." is "/". A
+result with nothing left is ".", because "" is not a path.
 */
 char*
-d_path_normalize
-(
+d_path_normalize(
     const char* _path,
     char*       _buf,
     size_t      _bufsize
 )
 {
-    size_t root_len;
-    size_t idx;
-    size_t out;
-    size_t seg_start;
-    size_t seg_len;
-    size_t length;
-#if D_CFG_IS_ON(D_CFG_FILE_PATH_NORMALIZE_DOTDOT)
-    int    is_absolute;
-#endif
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_path != NULL,
                             EINVAL,
@@ -814,12 +721,14 @@ d_path_normalize
                             "buffer is too small to hold anything",
                             NULL);
 
-    length   = strlen(_path);
-    root_len = d_internal_path_root_len(_path);
+    const size_t length   = strlen(_path);
+    const size_t root_len = d_internal_path_root_len(_path);
+
 #if D_CFG_IS_ON(D_CFG_FILE_PATH_NORMALIZE_DOTDOT)
-    is_absolute = d_path_is_absolute(_path);
+    const int is_absolute = d_path_is_absolute(_path);
 #endif
 
+    // the result is never longer than the input, so the input must fit
     if ((length + 1) > _bufsize)
     {
         D_INTERNAL_FILE_SET_ERR(ERANGE);
@@ -832,10 +741,13 @@ d_path_normalize
         return NULL;
     }
 
+    size_t out = 0;
+
     // the root is copied through untouched -- its separators are structure,
     // not punctuation, and normalizing "//" or "\\\\?\\" would change meaning
-    for (out = 0; out < root_len; ++out)
+    for (; out < root_len; ++out)
     {
+        // respell a separator; copy anything else as it is
         if (d_internal_path_is_sep(_path[out]))
         {
             _buf[out] = D_INTERNAL_FILE_PATH_OUT_SEP;
@@ -846,8 +758,9 @@ d_path_normalize
         }
     }
 
-    idx = root_len;
+    size_t idx = root_len;
 
+    // walk the components after the root
     while (idx < length)
     {
         // skip the separators between components; a run of them says nothing
@@ -858,15 +771,16 @@ d_path_normalize
             continue;
         }
 
-        seg_start = idx;
+        const size_t seg_start = idx;
 
+        // measure the component
         while ( (idx < length) &&
                 (!d_internal_path_is_sep(_path[idx])) )
         {
             ++idx;
         }
 
-        seg_len = idx - seg_start;
+        const size_t seg_len = idx - seg_start;
 
         // "." is a component that means "stay here"
         if ( (seg_len == 1) &&
@@ -876,19 +790,18 @@ d_path_normalize
         }
 
 #if D_CFG_IS_ON(D_CFG_FILE_PATH_NORMALIZE_DOTDOT)
-        if ( (seg_len == 2) &&
-             (_path[seg_start] == '.') &&
+        // ".." climbs, where there is something to climb over
+        if ( (seg_len == 2)                &&
+             (_path[seg_start] == '.')     &&
              (_path[seg_start + 1] == '.') )
         {
             // climb, if there is anything above us to climb to
             if (out > root_len)
             {
-                size_t back;
-
-                back = out;
+                size_t back = out;
 
                 // do not climb over a ".." we already had to keep
-                if ( (back >= 2) &&
+                if ( (back >= 2)             &&
                      (_buf[back - 1] == '.') &&
                      (_buf[back - 2] == '.') &&
                      ( (back == 2) ||
@@ -898,12 +811,14 @@ d_path_normalize
                 }
                 else
                 {
+                    // back over the last component...
                     while ( (back > root_len) &&
                             (_buf[back - 1] != D_INTERNAL_FILE_PATH_OUT_SEP) )
                     {
                         --back;
                     }
 
+                    // ...and the separators before it
                     while ( (back > root_len) &&
                             (_buf[back - 1] == D_INTERNAL_FILE_PATH_OUT_SEP) )
                     {
@@ -930,14 +845,16 @@ d_path_normalize
             _buf[out++] = D_INTERNAL_FILE_PATH_OUT_SEP;
         }
 
-        memmove(_buf + out, _path + seg_start, seg_len);
+        memmove(_buf + out,
+                _path + seg_start,
+                seg_len);
         out += seg_len;
     }
 
 #if D_CFG_IS_ON(D_CFG_FILE_PATH_STRIP_TRAILING_SEP)
     // trim a trailing separator, but never the one that IS the root
     while ( (out > root_len) &&
-            (out > 1) &&
+            (out > 1)        &&
             (_buf[out - 1] == D_INTERNAL_FILE_PATH_OUT_SEP) )
     {
         --out;
@@ -947,7 +864,10 @@ d_path_normalize
     // everything cancelled out; "" is not a path, "." is
     if (out == 0)
     {
-        return d_internal_path_copy(_buf, _bufsize, ".", 1);
+        return d_internal_path_copy(_buf,
+                                    _bufsize,
+                                    ".",
+                                    1);
     }
 
     _buf[out] = '\0';

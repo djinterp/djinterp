@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [c]                                                    file_space.h
+/*******************************************************************************
+* djinterp [c]                                                      file_space.h
 *
 * Filesystem capacity.
 *   Three numbers, and the middle one is a trap. `free` is every unallocated
@@ -11,40 +11,50 @@
 * confidently runs out of disk.
 *   Unless you ARE root, you want `available`.
 *
+*
 * path:      /inc/djinterp/c/fs/file_space.h
-* link:      TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.15
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-I.    TYPES
-      -----
-      1.  d_space_t   (capacity / free / available)
-
-II.   QUERY
-      -----
-      1.  d_space
+1.  TYPES
+    -----
+    1.  Capacity
+         1.  d_space_t
+2.  QUERY
+    -----
+    1.  Filesystem capacity
 */
 
-#ifndef DJINTERP_FILE_SPACE_
-#define DJINTERP_FILE_SPACE_ 1
+#ifndef DJINTERP_C_FS_FILE_SPACE_H
+#define DJINTERP_C_FS_FILE_SPACE_H 1
 
+// std
+#include <stdint.h>  // uint64_t
 // djinterp
-#include "./file_common.h"
-#include "../../config/c/fs/cfg_file_space.h"
+#include "./file_common.h"                     // fs foundation, D_EXTERN_C_*
+#include "../../config/c/fs/cfg_file_space.h"  // module configuration
 
 
 D_EXTERN_C_BEGIN
 
 
-// I.    Types
+//==============================================================================
+// 1.  TYPES
+//==============================================================================
 
+
+// 1.1    Capacity
+//------------------------------------------------------------------------------
+// 1.1.1
 // d_space_t
-//   type: the capacity of the filesystem holding some path. Byte counts, not
-// blocks -- a caller should not have to know what f_frsize is to use this.
-//   The field order and meaning match std::filesystem::space_info
+//   struct: the capacity of the filesystem holding some path. Byte counts,
+// not blocks -- a caller should not have to know what f_frsize is to use
+// this. The field order and meaning match std::filesystem::space_info
 // deliberately, so the C++ layer is a copy rather than a translation.
 struct d_space_t
 {
@@ -54,12 +64,31 @@ struct d_space_t
 };
 
 
-// II.   Query
-int d_space(const char*       _path,
-            struct d_space_t* _out);
+//==============================================================================
+// 2.  QUERY
+//==============================================================================
+
+
+// 2.1    Filesystem capacity
+//------------------------------------------------------------------------------
+/**
+ * @brief Reports the capacity of the filesystem holding a path.
+ *
+ * @note The answer describes the whole filesystem, not the path. Unless the
+ *       caller is root, `available` -- not `free` -- says whether a write
+ *       will fit.
+ *
+ * @param[in]  _path  any existing path on the filesystem of interest.
+ * @param[out] _out   receives the capacity; zeroed on failure, so a caller
+ *                    who ignores the result cannot read a stale number.
+ * @return 0, or -1 on failure with errno set; ENOSYS where the platform
+ *         reports no capacity, which is never emulated.
+ */
+int d_file_space(const char*       _path,
+                 struct d_space_t* _out);
 
 
 D_EXTERN_C_END
 
 
-#endif  // DJINTERP_FILE_SPACE_
+#endif  // DJINTERP_C_FS_FILE_SPACE_H

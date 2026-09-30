@@ -1,54 +1,64 @@
-/******************************************************************************
-* djinterp [c]                                                     file_desc.c
+/*******************************************************************************
+* djinterp [c]                                                       file_desc.c
+*
+* Implementation of the descriptor lifecycle declared in file_desc.h.
+*   One policy function, d_internal_desc_flags, adds close-on-exec and (on
+* Windows) binary mode to every open, so no call site has to remember either.
+* On the ISO C backend there are no descriptors, and every function here is a
+* stub that reports ENOSYS.
+*
 *
 * path:      /src/djinterp/c/fs/file_desc.c
-******************************************************************************/
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.15
+*                                                            revised: 2026.09.28
+*******************************************************************************/
+#include "../../../../inc/djinterp/c/fs/file_desc.h"  // corresponding header
+// std
+#include <errno.h>   // errno, EBADF, EINVAL, ENOSYS
+#include <stdarg.h>  // va_list, va_start, va_arg, va_end
+#include <stdio.h>   // FILE, fileno
 // djinterp
-#include "../../../../inc/djinterp/c/fs/file_desc.h"
+#include "../../../../inc/djinterp/c/fs/file_common.h"  // D_INTERNAL_FILE_*
+#include "../../../../inc/djinterp/config/c/fs/cfg_file_desc.h"  // D_INTERNAL_FILE_DESC_*
 
 
-// Internal definitions
+//==============================================================================
+// FILE-LOCAL DEFINITIONS
+//==============================================================================
 
 #if !D_FILE_BACKEND_IS_STDC
-//   Not built on the ISO C backend: the only caller is in the non-STDC
-// branch below, so defining it there is an unused function and a warning.
 
 /*
 d_internal_desc_flags
-  Applies this build's open policy to a caller's flags.
-  Two additions, both of which close a hole the caller would otherwise have to
-remember at every call site:
-    O_CLOEXEC -- atomic with the open. Setting it afterwards with fcntl leaves
-                 a window in which another thread's fork+exec inherits the
-                 descriptor.
-    O_BINARY  -- Windows only. A text-mode descriptor translates line endings,
-                 so d_read of N bytes from an N-byte file returns fewer and
-                 the caller cannot tell why.
-  A caller who explicitly asked for the opposite is left alone.
-
-Parameter(s):
-  _flags: the caller's open flags.
-Return:
-  The flags to hand the platform.
+  Applies this build's open policy to a caller's flags. Two additions, each
+closing a hole the caller would otherwise have to remember at every call site:
+    O_CLOEXEC  atomic with the open. Setting it afterwards with fcntl leaves a
+               window in which another thread's fork+exec inherits the
+               descriptor.
+    O_BINARY   Windows only. A text-mode descriptor translates line endings,
+               so d_file_read_fd of N bytes from an N-byte file returns fewer,
+               and the caller cannot tell why.
+  A caller who explicitly asked for text mode is left alone. Only the non-ISO
+backends define this: the ISO C stubs never call it, and an unused static
+function is a warning.
 */
 static int
-d_internal_desc_flags
-(
+d_internal_desc_flags(
     int _flags
 )
 {
-    int flags;
-
-    flags = _flags;
+    int flags = _flags;
 
 #if (D_INTERNAL_FILE_DESC_CLOEXEC == 1)
     #ifdef O_CLOEXEC
     flags |= O_CLOEXEC;
-    #endif
+    #endif  // O_CLOEXEC
 #endif
 
 #if (D_INTERNAL_FILE_DESC_BINARY == 1)
-    #if ( defined(O_BINARY) && defined(O_TEXT) )
+    #if ( (defined(O_BINARY)) &&                                               \
+          (defined(O_TEXT)) )
     // honour an explicit O_TEXT; supply O_BINARY only where nothing was said
     if ((flags & O_TEXT) == 0)
     {
@@ -64,68 +74,71 @@ d_internal_desc_flags
 
 #endif  // !D_FILE_BACKEND_IS_STDC
 
+//==============================================================================
+// 1.  DESCRIPTORS
+//==============================================================================
 
-// I.    Acquisition
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_open
-  Opens a file and returns a descriptor (POSIX open equivalent).
-  The variadic third argument is the creation mode, and is read only when
-_flags contains O_CREAT. When O_CREAT is set and no mode is supplied, POSIX
-says the behaviour is undefined -- in practice it reads whatever is on the
-stack and creates a file with those permissions, which is a security bug
-wearing the costume of a typo. This substitutes D_CFG_FILE_DESC_CREATE_MODE
-instead, and cannot tell the two cases apart, so it always reads the argument
-when O_CREAT is present. Pass one.
-
-Parameter(s):
-  _path:  path to open.
-  _flags: O_RDONLY / O_WRONLY / O_RDWR, optionally OR'd with O_CREAT, O_TRUNC,
-          O_APPEND, O_EXCL, ...
-  ...:    mode_t creation mode; required when _flags contains O_CREAT.
-Return:
-  A descriptor on success, or -1 on failure with errno set.
+d_file_open
+  The ISO C backend has no descriptors, and none can be emulated, so this only
+reports ENOSYS.
 */
 int
-d_open
-(
+d_file_open(
     const char* _path,
     int         _flags,
     ...
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_path;
     (void)_flags;
 
-    // the ISO C backend has no descriptors; this cannot be emulated
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_open",
+                         "d_file_open",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
-#else
-    va_list args;
-    int     result;
-    int     flags;
-    int     mode;
+}
 
+#else
+
+/*
+d_file_open
+  POSIX leaves O_CREAT without a mode undefined, and in practice the call reads
+whatever is on the stack and creates a file with those permissions -- a
+security bug wearing the costume of a typo. So the mode is always read when
+O_CREAT is present, and a mode of 0 is taken for a forgotten argument and
+replaced with D_CFG_FILE_DESC_CREATE_MODE; the two cases cannot be told apart.
+*/
+int
+d_file_open(
+    const char* _path,
+    int         _flags,
+    ...
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_path != NULL,
                             EINVAL,
-                            "d_open",
+                            "d_file_open",
                             NULL,
                             "path is NULL",
                             -1);
 
-    flags = d_internal_desc_flags(_flags);
-    mode  = D_INTERNAL_FILE_DESC_CREATE_MODE;
+    const int flags = d_internal_desc_flags(_flags);
+    int       mode  = D_INTERNAL_FILE_DESC_CREATE_MODE;
 
     // the mode argument exists only when the call may create
     if ((_flags & O_CREAT) != 0)
     {
-        va_start(args, _flags);
-        mode = (int)va_arg(args, int);
+        va_list args;
+
+        va_start(args,
+                 _flags);
+        mode = (int)va_arg(args,
+                           int);
         va_end(args);
 
         // a caller who passed O_CREAT with mode 0 almost certainly forgot the
@@ -135,122 +148,143 @@ d_open
             mode = D_INTERNAL_FILE_DESC_CREATE_MODE;
             D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_WARN,
                                    0,
-                                   "d_open",
+                                   "d_file_open",
                                    D_INTERNAL_FILE_NOTIFY_PATH(_path),
                                    "O_CREAT with mode 0; using the configured "
                                    "default");
         }
     }
 
-    #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    D_INTERNAL_FILE_RETRY_EINTR(result, _open(_path, flags, mode));
-    #else
-    D_INTERNAL_FILE_RETRY_EINTR(result, open(_path, flags, (mode_t)mode));
-    #endif
+    int result = -1;
 
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    D_INTERNAL_FILE_RETRY_EINTR(result,
+                                _open(_path,
+                                      flags,
+                                      mode));
+#else
+    D_INTERNAL_FILE_RETRY_EINTR(result,
+                                open(_path,
+                                     flags,
+                                     (mode_t)mode));
+#endif
+
+    // report the failure; errno is the platform's
     if (result < 0)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_open",
+                               "d_file_open",
                                D_INTERNAL_FILE_NOTIFY_PATH(_path),
                                "open failed");
     }
 
     return result;
-#endif
 }
 
+#endif  // D_FILE_BACKEND_IS_STDC
+
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_fileno
-  Returns the descriptor a stream is built on.
-  Borrowed, not owned: the stream still owns it, closing it out from under the
-stream is undefined, and it dies with the stream. Use d_dup if you need one
-that outlives it.
-
-Parameter(s):
-  _stream: an open stream.
-Return:
-  The descriptor on success, or -1 on failure with errno set.
+d_file_descriptor_stream
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
 int
-d_fileno
-(
+d_file_descriptor_stream(
     FILE* _stream
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_stream;
 
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_fileno",
+                         "d_file_descriptor_stream",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
+}
+
 #else
+
+/*
+d_file_descriptor_stream
+  A lookup, not an acquisition: nothing is opened, and the stream keeps
+ownership of what is returned.
+*/
+int
+d_file_descriptor_stream(
+    FILE* _stream
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_stream != NULL,
                             EINVAL,
-                            "d_fileno",
+                            "d_file_descriptor_stream",
                             NULL,
                             "stream is NULL",
                             -1);
 
-    #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
     return _fileno(_stream);
-    #else
+#else
     return fileno(_stream);
-    #endif
 #endif
 }
 
+#endif  // D_FILE_BACKEND_IS_STDC
 
-// II.   Duplication
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_dup
-  Duplicates a descriptor onto the lowest free number.
-  The copy shares the file offset and status flags with the original -- it is
-a second handle on one open file description, not a second open.
-  It does NOT share close-on-exec: POSIX specifies that dup() clears the flag
-on the new descriptor, so a careful O_CLOEXEC open followed by a dup silently
-yields an inheritable descriptor. When D_CFG_FILE_DESC_DUP_CLOEXEC is set this
-uses F_DUPFD_CLOEXEC instead, which is atomic and gets it right.
-
-Parameter(s):
-  _fd: an open descriptor.
-Return:
-  The new descriptor on success, or -1 on failure with errno set.
+d_file_dup_fd
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
 int
-d_dup
-(
+d_file_dup_fd(
     int _fd
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_fd;
 
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_dup",
+                         "d_file_dup_fd",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
-#else
-    int result;
+}
 
+#else
+
+/*
+d_file_dup_fd
+  POSIX dup() clears close-on-exec on the copy, so a careful O_CLOEXEC open
+followed by a dup silently yields an inheritable descriptor. With
+D_CFG_FILE_DESC_DUP_CLOEXEC set this uses F_DUPFD_CLOEXEC, which is atomic. A
+kernel too old to know that command gets dup plus FD_CLOEXEC instead, which
+leaves a brief window but still ends in the right state.
+*/
+int
+d_file_dup_fd(
+    int _fd
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_fd >= 0,
                             EBADF,
-                            "d_dup",
+                            "d_file_dup_fd",
                             NULL,
                             "descriptor is negative",
                             -1);
 
-    #if ( (D_INTERNAL_FILE_DESC_DUP_CLOEXEC == 1) && defined(F_DUPFD_CLOEXEC) )
+    int result = -1;
+
+#if ( (D_INTERNAL_FILE_DESC_DUP_CLOEXEC == 1) &&                               \
+      (defined(F_DUPFD_CLOEXEC)) )
     // atomic: no window in which the copy is inheritable
-    D_INTERNAL_FILE_RETRY_EINTR(result, fcntl(_fd, F_DUPFD_CLOEXEC, 0));
+    D_INTERNAL_FILE_RETRY_EINTR(result,
+                                fcntl(_fd,
+                                      F_DUPFD_CLOEXEC,
+                                      0));
 
     // an old kernel may not know the command; fall back rather than fail
     if ( (result < 0) &&
@@ -258,86 +292,101 @@ d_dup
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_INFO,
                                0,
-                               "d_dup",
+                               "d_file_dup_fd",
                                NULL,
                                "F_DUPFD_CLOEXEC unsupported; falling back to "
                                "dup");
-        D_INTERNAL_FILE_RETRY_EINTR(result, dup(_fd));
+        D_INTERNAL_FILE_RETRY_EINTR(result,
+                                    dup(_fd));
 
+        // restore close-on-exec, which dup cleared
         if (result >= 0)
         {
-            (void)fcntl(result, F_SETFD, FD_CLOEXEC);
+            (void)fcntl(result,
+                        F_SETFD,
+                        FD_CLOEXEC);
         }
     }
-    #elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    D_INTERNAL_FILE_RETRY_EINTR(result, _dup(_fd));
-    #else
-    D_INTERNAL_FILE_RETRY_EINTR(result, dup(_fd));
-    #endif
+#elif D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    D_INTERNAL_FILE_RETRY_EINTR(result,
+                                _dup(_fd));
+#else
+    D_INTERNAL_FILE_RETRY_EINTR(result,
+                                dup(_fd));
+#endif
 
+    // report the failure; errno is the platform's
     if (result < 0)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_dup",
+                               "d_file_dup_fd",
                                NULL,
                                "dup failed");
     }
 
     return result;
-#endif
 }
 
+#endif  // D_FILE_BACKEND_IS_STDC
+
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_dup2
-  Duplicates a descriptor onto a chosen number, closing whatever was there.
-  Deliberately does NOT force close-on-exec, unlike d_dup: the usual reason to
-call dup2 is to install a descriptor onto 0/1/2 for a child to inherit, and
-making it close-on-exec would defeat the call.
-  dup2(fd, fd) with a valid fd is a documented no-op and is not an error.
-
-Parameter(s):
-  _fd:  an open descriptor.
-  _fd2: the descriptor number to install it onto.
-Return:
-  _fd2 on success, or -1 on failure with errno set.
+d_file_dup2_fd
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
 */
 int
-d_dup2
-(
+d_file_dup2_fd(
     int _fd,
     int _fd2
 )
 {
-#if D_FILE_BACKEND_IS_STDC
     (void)_fd;
     (void)_fd2;
 
     D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_dup2",
+                         "d_file_dup2_fd",
                          NULL,
                          "no descriptors on the ISO C backend",
                          -1);
-#else
-    int result;
+}
 
+#else
+
+/*
+d_file_dup2_fd
+  Close-on-exec is deliberately left alone: the usual reason to call dup2 is
+to install a descriptor on 0, 1 or 2 for a child to inherit, and forcing the
+flag would defeat the call. The CRT's _dup2 reports success as 0 rather than
+the new descriptor, so that is normalized to the POSIX contract.
+*/
+int
+d_file_dup2_fd(
+    int _fd,
+    int _fd2
+)
+{
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_fd >= 0,
                             EBADF,
-                            "d_dup2",
+                            "d_file_dup2_fd",
                             NULL,
                             "source descriptor is negative",
                             -1);
     D_INTERNAL_FILE_REQUIRE(_fd2 >= 0,
                             EBADF,
-                            "d_dup2",
+                            "d_file_dup2_fd",
                             NULL,
                             "target descriptor is negative",
                             -1);
 
-    #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    D_INTERNAL_FILE_RETRY_EINTR(result, _dup2(_fd, _fd2));
+    int result = -1;
+
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    D_INTERNAL_FILE_RETRY_EINTR(result,
+                                _dup2(_fd,
+                                      _fd2));
 
     // the CRT reports success as 0 rather than the new descriptor; normalize
     // to the POSIX contract so callers have one shape to test
@@ -345,82 +394,89 @@ d_dup2
     {
         result = _fd2;
     }
-    #else
-    D_INTERNAL_FILE_RETRY_EINTR(result, dup2(_fd, _fd2));
-    #endif
+#else
+    D_INTERNAL_FILE_RETRY_EINTR(result,
+                                dup2(_fd,
+                                     _fd2));
+#endif
 
+    // report the failure; errno is the platform's
     if (result < 0)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_dup2",
+                               "d_file_dup2_fd",
                                NULL,
                                "dup2 failed");
     }
 
     return result;
-#endif
 }
 
+#endif  // D_FILE_BACKEND_IS_STDC
 
-// III.  Release
+#if D_FILE_BACKEND_IS_STDC
 
 /*
-d_close
-  Closes a descriptor.
+d_file_close_fd
+  The ISO C backend has no descriptors, so this only reports ENOSYS.
+*/
+int
+d_file_close_fd(
+    int _fd
+)
+{
+    (void)_fd;
+
+    D_INTERNAL_FILE_FAIL(ENOSYS,
+                         "d_file_close_fd",
+                         NULL,
+                         "no descriptors on the ISO C backend",
+                         -1);
+}
+
+#else
+
+/*
+d_file_close_fd
   Note what is NOT here: an EINTR retry. On Linux a close that returns EINTR
 has already closed the descriptor, so retrying closes whatever a racing thread
 just opened onto the same number -- a use-after-free with a file handle. POSIX
 2008 made the state unspecified precisely because implementations disagreed.
 Closing once and reporting the error is the only defensible behaviour.
-
-Parameter(s):
-  _fd: the descriptor to close.
-Return:
-  0 on success, or -1 on failure with errno set.
 */
 int
-d_close
-(
+d_file_close_fd(
     int _fd
 )
 {
-#if D_FILE_BACKEND_IS_STDC
-    (void)_fd;
-
-    D_INTERNAL_FILE_FAIL(ENOSYS,
-                         "d_close",
-                         NULL,
-                         "no descriptors on the ISO C backend",
-                         -1);
-#else
-    int result;
-
     // parameter validation
     D_INTERNAL_FILE_REQUIRE(_fd >= 0,
                             EBADF,
-                            "d_close",
+                            "d_file_close_fd",
                             NULL,
                             "descriptor is negative",
                             -1);
 
     // deliberately not wrapped in D_INTERNAL_FILE_RETRY_EINTR -- see above
-    #if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
-    result = _close(_fd);
-    #else
-    result = close(_fd);
-    #endif
+#if D_CFG_IS_ON(D_CFG_FILE_HAS_WIN32)
+    const int result = _close(_fd);
+#else
+    const int result = close(_fd);
+#endif
 
+    // report the failure; the descriptor is released either way
     if (result < 0)
     {
         D_INTERNAL_FILE_NOTIFY(D_FILE_NOTIFY_ERROR,
                                errno,
-                               "d_close",
+                               "d_file_close_fd",
                                NULL,
                                "close failed; the descriptor is gone "
                                "regardless");
     }
 
     return result;
-#endif
 }
+
+#endif  // D_FILE_BACKEND_IS_STDC
