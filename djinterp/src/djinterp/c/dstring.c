@@ -5,6 +5,7 @@
 *   Implements the `d_string` safe string type and its operations, building on
 * the raw-buffer primitives in `string_fn.h`.
 *
+*
 * path:      /src/djinterp/c/dstring.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.30

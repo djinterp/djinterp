@@ -1,30 +1,42 @@
-#include "..\..\inc\c\dio.h"
+/*******************************************************************************
+* djinterp [c]                                                             dio.c
+*
+* Definitions for the declarations in `dio.h`.
+*   Each wrapper defers to the C library, choosing the Annex K / MSVC secure
+* variant where D_STUDIO_HAS_SCANF_S is set and a standard fallback elsewhere.
+*
+*
+* path:      /src/djinterp/c/dio.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.05.19
+*                                                            revised: 2026.09.24
+*******************************************************************************/
+#include "../../../inc/djinterp/c/dio.h"  // corresponding header
+// std
+#include <stdarg.h>                         // va_list, va_start, va_end
+#include <stdio.h>                          // vsscanf, vsnprintf, fgets, ...
+#include <string.h>                         // strlen
 
 
+// formatted input
 /*
 d_sscanf
-  Reads formatted data from a string.
-
-Parameter(s):
-  _buffer: string source to read from.
-  _format: format control string.
-  ...:     variable arguments for data storage.
-Return:
-  The number of fields successfully converted and assigned.
+  Collects the variadic arguments and defers to d_vsscanf.
 */
 int
-d_sscanf
-(
+d_sscanf(
     const char* _buffer,
     const char* _format,
     ...
 )
 {
     va_list args;
-    int     result;
 
-    va_start(args, _format);
-    result = d_vsscanf(_buffer, _format, args);
+    va_start(args,
+             _format);
+    const int result = d_vsscanf(_buffer,
+                                 _format,
+                                 args);
     va_end(args);
 
     return result;
@@ -32,39 +44,33 @@ d_sscanf
 
 /*
 d_sscanf_s
-  Secure variant of sscanf. Uses sscanf_s if Annex K or MSVC is available,
-  otherwise falls back to standard sscanf.
-
-Parameter(s):
-  _buffer: string source to read from.
-  _format: format control string.
-  ...:     variable arguments (including buffer sizes for %s, %c, and %[).
-Return:
-  The number of fields successfully converted and assigned.
+  Collects the variadic arguments and calls vsscanf_s where
+D_STUDIO_HAS_SCANF_S is set, vsscanf otherwise. vsscanf does not consume the
+buffer-size arguments the _s convention adds after each %s, %c, and %[, so on
+the fallback path such a call misreads its arguments.
 */
 int
-d_sscanf_s
-(
+d_sscanf_s(
     const char* _buffer,
     const char* _format,
     ...
 )
 {
     va_list args;
-    int     result;
 
-    va_start(args, _format);
+    va_start(args,
+             _format);
+
 #if D_STUDIO_HAS_SCANF_S
-#if defined(D_ENV_COMPILER_MSVC)
-    result = vsscanf_s(_buffer, _format, args);
+    const int result = vsscanf_s(_buffer,
+                                 _format,
+                                 args);
 #else
-    /* Standard C11 Annex K */
-    result = vsscanf_s(_buffer, _format, args);
+    const int result = vsscanf(_buffer,
+                               _format,
+                               args);
 #endif
-#else
-    /* Fallback for legacy compilers */
-    result = vsscanf(_buffer, _format, args);
-#endif
+
     va_end(args);
 
     return result;
@@ -72,77 +78,64 @@ d_sscanf_s
 
 /*
 d_vsscanf
-  Reads formatted data from a string using a variable argument list.
-
-Parameter(s):
-  _buffer: string source to read from.
-  _format: format control string.
-  _argptr: pointer to a list of arguments.
-Return:
-  The number of fields successfully converted and assigned.
+  Delegates to vsscanf.
 */
 int
-d_vsscanf
-(
+d_vsscanf(
     const char* _buffer,
     const char* _format,
     va_list     _argptr
 )
 {
-    return vsscanf(_buffer, _format, _argptr);
+    return vsscanf(_buffer,
+                   _format,
+                   _argptr);
 }
 
 /*
 d_vsscanf_s
-  Secure variant of vsscanf.
-
-Parameter(s):
-  _buffer: string source to read from.
-  _format: format control string.
-  _argptr: pointer to a list of arguments.
-Return:
-  The number of fields successfully converted and assigned.
+  vsscanf_s where D_STUDIO_HAS_SCANF_S is set, vsscanf otherwise, with the
+fallback caveat described at d_sscanf_s.
 */
 int
-d_vsscanf_s
-(
+d_vsscanf_s(
     const char* _buffer,
     const char* _format,
     va_list     _argptr
 )
 {
 #if D_STUDIO_HAS_SCANF_S
-    return vsscanf_s(_buffer, _format, _argptr);
+
+    return vsscanf_s(_buffer,
+                     _format,
+                     _argptr);
 #else
-    return vsscanf(_buffer, _format, _argptr);
+
+    return vsscanf(_buffer,
+                   _format,
+                   _argptr);
 #endif
 }
 
 /*
 d_fscanf
-  Reads formatted data from a stream.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-  _format: format control string.
-  ...:     variable arguments for data storage.
-Return:
-  The number of fields successfully converted and assigned.
+  Collects the variadic arguments and calls vfscanf.
 */
 int
-d_fscanf
-(
+d_fscanf(
     FILE*       _stream,
     const char* _format,
     ...
 )
 {
     va_list args;
-    int     result;
 
-    va_start(args, _format);
+    va_start(args,
+             _format);
 
-    result = vfscanf(_stream, _format, args);
+    const int result = vfscanf(_stream,
+                               _format,
+                               args);
 
     va_end(args);
 
@@ -151,33 +144,28 @@ d_fscanf
 
 /*
 d_fscanf_s
-  Secure variant of fscanf.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-  _format: format control string.
-  ...:     variable arguments (including buffer sizes for %s, %c, and %[).
-Return:
-  An integer value corresponding to the number of fields successfully converted
-and assigned.
+  As d_sscanf_s, over vfscanf_s and vfscanf, with the same fallback caveat.
 */
 int
-d_fscanf_s
-(
+d_fscanf_s(
     FILE*       _stream,
     const char* _format,
     ...
 )
 {
     va_list args;
-    int     result;
 
-    va_start(args, _format);
+    va_start(args,
+             _format);
 
 #if D_STUDIO_HAS_SCANF_S
-    result = vfscanf_s(_stream, _format, args);
+    const int result = vfscanf_s(_stream,
+                                 _format,
+                                 args);
 #else
-    result = vfscanf(_stream, _format, args);
+    const int result = vfscanf(_stream,
+                               _format,
+                               args);
 #endif
 
     va_end(args);
@@ -185,23 +173,13 @@ d_fscanf_s
     return result;
 }
 
+// formatted output
 /*
 d_sprintf_s
-  Secure variant of sprintf. Writes formatted data to a string buffer with
-  bounds checking.
-
-Parameter(s):
-  _buffer: pointer to the destination string buffer.
-  _size:   maximum number of characters to write (including null terminator).
-  _format: format control string.
-  ...:     variable arguments for formatting.
-Return:
-  The number of characters written (excluding null), or a negative value on 
-  failure.
+  Collects the variadic arguments and defers to d_vsprintf_s.
 */
 int
-d_sprintf_s
-(
+d_sprintf_s(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -209,11 +187,14 @@ d_sprintf_s
 )
 {
     va_list args;
-    int     result;
 
-    va_start(args, _format);
+    va_start(args,
+             _format);
 
-    result = d_vsprintf_s(_buffer, _size, _format, args);
+    const int result = d_vsprintf_s(_buffer,
+                                    _size,
+                                    _format,
+                                    args);
 
     va_end(args);
 
@@ -222,21 +203,11 @@ d_sprintf_s
 
 /*
 d_vsprintf_s
-  Secure variant of vsprintf. Uses vsprintf_s if Annex K or MSVC is available,
-  otherwise falls back to d_vsnprintf for safety.
-
-Parameter(s):
-  _buffer: pointer to the destination string buffer.
-  _size:   maximum number of characters to write (including null terminator).
-  _format: format control string.
-  _argptr: pointer to a list of arguments.
-Return:
-  The number of characters written (excluding null), or a negative value on 
-  failure.
+  vsprintf_s where D_STUDIO_HAS_SCANF_S is set; otherwise vsnprintf, which
+truncates where vsprintf_s would report the overflow.
 */
 int
-d_vsprintf_s
-(
+d_vsprintf_s(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -244,29 +215,27 @@ d_vsprintf_s
 )
 {
 #if D_STUDIO_HAS_SCANF_S
-    return vsprintf_s(_buffer, _size, _format, _argptr);
+
+    return vsprintf_s(_buffer,
+                      _size,
+                      _format,
+                      _argptr);
 #else
-    /* Fallback to vsnprintf as a safe alternative to prevent buffer overflow */
-    return vsnprintf(_buffer, _size, _format, _argptr);
+
+    // fallback: vsnprintf, which bounds the write to _size
+    return vsnprintf(_buffer,
+                     _size,
+                     _format,
+                     _argptr);
 #endif
 }
 
 /*
 d_snprintf
-  Writes formatted data to a string buffer with a specified size limit.
-
-Parameter(s):
-  _buffer: pointer to the destination string buffer.
-  _size:   maximum number of characters to write (including null terminator).
-  _format: format control string.
-  ...:     variable arguments for formatting.
-Return:
-  The number of characters that would have been written if _size was large 
-  enough.
+  Collects the variadic arguments and defers to d_vsnprintf.
 */
 int
-d_snprintf
-(
+d_snprintf(
     char*       _buffer,
     size_t      _size,
     const char* _format,
@@ -274,10 +243,13 @@ d_snprintf
 )
 {
     va_list args;
-    int     result;
 
-    va_start(args, _format);
-    result = d_vsnprintf(_buffer, _size, _format, args);
+    va_start(args,
+             _format);
+    const int result = d_vsnprintf(_buffer,
+                                   _size,
+                                   _format,
+                                   args);
     va_end(args);
 
     return result;
@@ -285,153 +257,151 @@ d_snprintf
 
 /*
 d_vsnprintf
-  Writes formatted data to a string buffer with a size limit using a variable
-  argument list.
-
-Parameter(s):
-  _buffer: pointer to the destination string buffer.
-  _size:   maximum number of characters to write (including null terminator).
-  _format: format control string.
-  _argptr: pointer to a list of arguments.
-Return:
-  The number of characters that would have been written if _size was large 
-  enough.
+  vsnprintf, except under MSVC before 2015, which has only _vsnprintf: that
+one returns -1 and leaves the buffer unterminated when the output does not
+fit.
 */
 int
-d_vsnprintf
-(
-    char* _buffer,
+d_vsnprintf(
+    char*       _buffer,
     size_t      _size,
     const char* _format,
     va_list     _argptr
 )
 {
 #if defined(D_ENV_COMPILER_MSVC) && (D_ENV_COMPILER_MAJOR < 14)
-    /* Legacy MSVC versions use _vsnprintf */
-    return _vsnprintf(_buffer, _size, _format, _argptr);
+
+    // MSVC before 2015 has only _vsnprintf
+    return _vsnprintf(_buffer,
+                      _size,
+                      _format,
+                      _argptr);
 #else
-    return vsnprintf(_buffer, _size, _format, _argptr);
+
+    return vsnprintf(_buffer,
+                     _size,
+                     _format,
+                     _argptr);
 #endif
 }
 
+// character and string I/O
+#if D_STUDIO_HAS_SCANF_S
+
 /*
 d_gets_s
-  Securely reads a line from stdin into a buffer. Enforces the buffer size to
-  prevent overflow.
-
-Parameter(s):
-  _buffer: pointer to the destination string buffer.
-  _size:   size of the buffer.
-Return:
-  A pointer to the buffer on success, or NULL on error or EOF.
+  gets_s, where D_STUDIO_HAS_SCANF_S is set.
 */
 char*
-d_gets_s
-(
-    char* _buffer,
+d_gets_s(
+    char*  _buffer,
     size_t _size
 )
 {
-    char* result;
-
     // parameter validation
-    if ( (!_buffer) || 
+    if ( (!_buffer) ||
          (_size == 0) )
     {
         return NULL;
     }
 
-#if D_STUDIO_HAS_SCANF_S
-    result = gets_s(_buffer, _size);
+    char* result = gets_s(_buffer,
+                          _size);
+
+    return result;
+}
+
 #else
+
+/*
+d_gets_s
+  Fallback: fgets from stdin, with the trailing newline stripped. Unlike
+gets_s, a line longer than the buffer is not an error: its first part is
+returned and the rest stays in stdin. _size is narrowed to int for fgets.
+*/
+char*
+d_gets_s(
+    char*  _buffer,
+    size_t _size
+)
+{
+    // parameter validation
+    if ( (!_buffer) ||
+         (_size == 0) )
+    {
+        return NULL;
+    }
+
     // safe fallback using fgets
-    result = fgets(_buffer, (int)_size, stdin);
+    char* result = fgets(_buffer,
+                         (int)_size,
+                         stdin);
 
     if (result)
     {
-        size_t len;
-        len = strlen(_buffer);
+        const size_t len = strlen(_buffer);
 
         // remove trailing newline if present, similar to gets behavior
-        if ( (len > 0) && 
+        if ( (len > 0) &&
              (_buffer[len - 1] == '\n') )
         {
             _buffer[len - 1] = '\0';
         }
     }
-#endif
 
     return result;
 }
 
+#endif
+
 /*
 d_fputs
-  Writes a string to the specified stream.
-
-Parameter(s):
-  _str:    null-terminated string to write.
-  _stream: pointer to a FILE object.
-Return:
-  A non-negative value on success, or EOF on error.
+  Delegates to fputs.
 */
 int
-d_fputs
-(
+d_fputs(
     const char* _str,
     FILE*       _stream
 )
 {
-    return fputs(_str, _stream);
+    return fputs(_str,
+                 _stream);
 }
 
 /*
 d_fgets
-  Reads a line from a stream into a buffer, stopping at a newline or when
-  the buffer is full.
-
-Parameter(s):
-  _str:    pointer to the destination buffer.
-  _num:    maximum number of characters to read (including null).
-  _stream: pointer to a FILE object.
-Return:
-  A pointer to the buffer on success, or NULL on error or EOF.
+  Delegates to fgets.
 */
 char*
-d_fgets
-(
+d_fgets(
     char* _str,
     int   _num,
     FILE* _stream
 )
 {
-    return fgets(_str, _num, _stream);
+    return fgets(_str,
+                 _num,
+                 _stream);
 }
 
+// stream positioning
 /*
 d_fgetpos
-  Gets the current file position of the stream.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-  _pos:    pointer to a d_off_t to store the current position.
-Return:
-  Zero on success, non-zero on failure.
+  Reads the position with d_file_tell_stream, as a 64-bit d_off_t rather than
+fgetpos's opaque fpos_t.
 */
 int
-d_fgetpos
-(
+d_fgetpos(
     FILE*    _stream,
     d_off_t* _pos
 )
 {
-    d_off_t result;
-
     if (!_pos)
     {
         return -1;
     }
 
-    result = d_ftello(_stream);
+    const d_off_t result = d_file_tell_stream(_stream);
 
     if (result == -1)
     {
@@ -445,17 +415,10 @@ d_fgetpos
 
 /*
 d_fsetpos
-  Sets the current file position of the stream.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-  _pos:    pointer to a d_off_t containing the position to set.
-Return:
-  Zero on success, non-zero on failure.
+  Seeks with d_file_seek_stream, measuring from the start of the stream.
 */
 int
-d_fsetpos
-(
+d_fsetpos(
     FILE*          _stream,
     const d_off_t* _pos
 )
@@ -465,42 +428,18 @@ d_fsetpos
         return -1;
     }
 
-    return d_fseeko(_stream, *_pos, SEEK_SET);
+    return d_file_seek_stream(_stream,
+                              *_pos,
+                              SEEK_SET);
 }
 
-/*
-d_rewind
-  Sets the file position to the beginning of the file and clears error 
-  indicators.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-Return:
-  none.
-*/
-void
-d_rewind
-(
-    FILE* _stream
-)
-{
-    rewind(_stream);
-
-    return;
-}
-
+// error handling
 /*
 d_perror
-  Prints a system error message to stderr.
-
-Parameter(s):
-  _s: string prefix to the error message.
-Return:
-  none.
+  Delegates to perror.
 */
 void
-d_perror
-(
+d_perror(
     const char* _s
 )
 {
@@ -511,16 +450,10 @@ d_perror
 
 /*
 d_feof
-  Tests the end-of-file indicator for the given stream.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-Return:
-  Non-zero if the end-of-file indicator is set, zero otherwise.
+  Delegates to feof.
 */
 int
-d_feof
-(
+d_feof(
     FILE* _stream
 )
 {
@@ -529,16 +462,10 @@ d_feof
 
 /*
 d_ferror
-  Tests the error indicator for the given stream.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-Return:
-  Non-zero if the error indicator is set, zero otherwise.
+  Delegates to ferror.
 */
 int
-d_ferror
-(
+d_ferror(
     FILE* _stream
 )
 {
@@ -547,16 +474,10 @@ d_ferror
 
 /*
 d_clearerr
-  Resets the error and end-of-file indicators for the stream.
-
-Parameter(s):
-  _stream: pointer to a FILE object.
-Return:
-  none.
+  Delegates to clearerr.
 */
 void
-d_clearerr
-(
+d_clearerr(
     FILE* _stream
 )
 {
@@ -564,4 +485,3 @@ d_clearerr
 
     return;
 }
-

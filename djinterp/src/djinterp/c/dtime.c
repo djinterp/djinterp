@@ -1,249 +1,414 @@
-#include "..\..\inc\c\dtime.h"
+/*******************************************************************************
+* djinterp [c]                                                           dtime.c
+*
+* Definitions for the declarations in `dtime.h`.
+*   Each platform-dependent function is defined once per platform -- Windows,
+* POSIX, and a portable fallback -- with the implementation selected at the
+* function level rather than by conditionals inside one body.
+*
+*
+* path:      /src/djinterp/c/dtime.c
+* link(s):   TBA
+* author(s): Samuel 'teer' Neal-Blim                         created: 2025.12.21
+*                                                            revised: 2026.09.23
+*******************************************************************************/
+#include "../../../inc/djinterp/c/dtime.h"      // corresponding header
+// std
+#include <errno.h>                                // errno, EINVAL
+#include <stddef.h>                               // size_t, NULL
+#include <stdint.h>                               // int64_t
+#include <string.h>                               // strlen
+#include <time.h>                                 // localtime_r, strftime, ...
+// djinterp
+#include "../../../inc/djinterp/c/dmemory.h"    // d_memcpy, d_memset
+#include "../../../inc/djinterp/c/string_fn.h"  // d_strncasecmp
+// platform
+#if defined(D_TIME_PLATFORM_WINDOWS)
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif  // WIN32_LEAN_AND_MEAN
+    #include <windows.h>  // QueryPerformanceCounter, Sleep, FILETIME, ...
+#endif
+#if defined(D_TIME_PLATFORM_POSIX)
+    #include <unistd.h>   // sleep, for the d_nanosleep fallback
+#endif
 
 
-///////////////////////////////////////////////////////////////////////////////
-///             III.  THREAD-SAFE TIME CONVERSION                           ///
-///////////////////////////////////////////////////////////////////////////////
+// thread-safe time conversion
+#if defined(D_TIME_PLATFORM_WINDOWS)
 
 /*
 d_localtime
-  Thread-safe local time conversion. Converts a time_t value to a broken-down
-local time representation.
-
-Parameter(s):
-  _timer:  pointer to the time_t value to convert.
-  _result: pointer to struct tm to store the result.
-Return:
-  A pointer to _result on success, or NULL on failure.
+  Windows: localtime_s, whose parameters are the reverse of localtime_r's and
+which reports failure as a nonzero errno_t rather than a NULL result.
 */
 struct tm*
-d_localtime
-(
-    const time_t* _timer, 
+d_localtime(
+    const time_t* _timer,
     struct tm*    _result
 )
 {
     // parameter validation
-    if ( (!_timer) || 
+    if ( (!_timer) ||
          (!_result) )
     {
         return NULL;
     }
 
-#if defined(D_TIME_PLATFORM_WINDOWS)
     // Windows uses localtime_s with reversed parameter order
-    if (localtime_s(_result, _timer) != 0)
-    {
-        return NULL;
-    }
-    
-    return _result;
-
-#elif defined(D_TIME_PLATFORM_POSIX)
-    // POSIX localtime_r
-    return localtime_r(_timer, _result);
-
-#else
-    // fallback: use non-thread-safe localtime and copy
-    struct tm* temp;
-    
-    temp = localtime(_timer);
-    if (!temp)
+    if (localtime_s(_result,
+                    _timer) != 0)
     {
         return NULL;
     }
 
-    d_memcpy(_result, temp, sizeof(struct tm));
-    
     return _result;
-#endif
 }
 
+#elif defined(D_TIME_PLATFORM_POSIX)
 
 /*
-d_gmtime
-  Thread-safe UTC time conversion. Converts a time_t value to a broken-down
-UTC time representation.
-
-Parameter(s):
-  _timer:  pointer to the time_t value to convert.
-  _result: pointer to struct tm to store the result.
-Return:
-  A pointer to _result on success, or NULL on failure.
+d_localtime
+  POSIX: delegates to localtime_r.
 */
 struct tm*
-d_gmtime
-(
-    const time_t* _timer, 
+d_localtime(
+    const time_t* _timer,
     struct tm*    _result
 )
 {
     // parameter validation
-    if ( (!_timer) || 
+    if ( (!_timer) ||
          (!_result) )
     {
         return NULL;
     }
 
-#if defined(D_TIME_PLATFORM_WINDOWS)
-    // Windows uses gmtime_s with reversed parameter order
-    if (gmtime_s(_result, _timer) != 0)
+    // POSIX localtime_r
+    return localtime_r(_timer,
+                       _result);
+}
+
+#else
+
+/*
+d_localtime
+  Fallback: copies out of localtime's shared static result. Not thread-safe:
+another thread's localtime or gmtime can overwrite that buffer between the
+call and the copy.
+*/
+struct tm*
+d_localtime(
+    const time_t* _timer,
+    struct tm*    _result
+)
+{
+    // parameter validation
+    if ( (!_timer) ||
+         (!_result) )
     {
         return NULL;
     }
-    
-    return _result;
 
-#elif defined(D_TIME_PLATFORM_POSIX)
-    // POSIX gmtime_r
-    return gmtime_r(_timer, _result);
-
-#else
-    // fallback: use non-thread-safe gmtime and copy
-    struct tm* temp;
-    
-    temp = gmtime(_timer);
+    // fallback: use non-thread-safe localtime and copy
+    struct tm* temp = localtime(_timer);
     if (!temp)
     {
         return NULL;
     }
 
-    d_memcpy(_result, temp, sizeof(struct tm));
-    
+    d_memcpy(_result,
+             temp,
+             sizeof(struct tm));
+
     return _result;
-#endif
 }
 
+#endif
+
+#if defined(D_TIME_PLATFORM_WINDOWS)
+
+/*
+d_gmtime
+  Windows: gmtime_s, whose parameters are the reverse of gmtime_r's and which
+reports failure as a nonzero errno_t rather than a NULL result.
+*/
+struct tm*
+d_gmtime(
+    const time_t* _timer,
+    struct tm*    _result
+)
+{
+    // parameter validation
+    if ( (!_timer) ||
+         (!_result) )
+    {
+        return NULL;
+    }
+
+    // Windows uses gmtime_s with reversed parameter order
+    if (gmtime_s(_result,
+                 _timer) != 0)
+    {
+        return NULL;
+    }
+
+    return _result;
+}
+
+#elif defined(D_TIME_PLATFORM_POSIX)
+
+/*
+d_gmtime
+  POSIX: delegates to gmtime_r.
+*/
+struct tm*
+d_gmtime(
+    const time_t* _timer,
+    struct tm*    _result
+)
+{
+    // parameter validation
+    if ( (!_timer) ||
+         (!_result) )
+    {
+        return NULL;
+    }
+
+    // POSIX gmtime_r
+    return gmtime_r(_timer,
+                    _result);
+}
+
+#else
+
+/*
+d_gmtime
+  Fallback: copies out of gmtime's shared static result. Not thread-safe:
+another thread's gmtime or localtime can overwrite that buffer between the
+call and the copy.
+*/
+struct tm*
+d_gmtime(
+    const time_t* _timer,
+    struct tm*    _result
+)
+{
+    // parameter validation
+    if ( (!_timer) ||
+         (!_result) )
+    {
+        return NULL;
+    }
+
+    // fallback: use non-thread-safe gmtime and copy
+    struct tm* temp = gmtime(_timer);
+    if (!temp)
+    {
+        return NULL;
+    }
+
+    d_memcpy(_result,
+             temp,
+             sizeof(struct tm));
+
+    return _result;
+}
+
+#endif
+
+#if defined(D_TIME_PLATFORM_WINDOWS)
 
 /*
 d_ctime
-  Thread-safe time-to-string conversion. Converts time_t to a string
-representation of local time.
-
-Parameter(s):
-  _timer: pointer to the time_t value to convert.
-  _buf:   buffer to store the result (must be at least 26 bytes).
-Return:
-  A pointer to _buf on success, or NULL on failure.
+  Windows: ctime_s, given the fixed 26 bytes the ctime format needs.
 */
 char*
-d_ctime
-(
-    const time_t* _timer, 
+d_ctime(
+    const time_t* _timer,
     char*         _buf
 )
 {
     // parameter validation
-    if ( (!_timer) || 
+    if ( (!_timer) ||
          (!_buf) )
     {
         return NULL;
     }
 
-#if defined(D_TIME_PLATFORM_WINDOWS)
     // Windows ctime_s requires buffer size (26 bytes for ctime format)
-    if (ctime_s(_buf, 26, _timer) != 0)
+    if (ctime_s(_buf,
+                26,
+                _timer) != 0)
     {
         return NULL;
     }
-    
+
     return _buf;
+}
 
 #elif defined(D_TIME_PLATFORM_POSIX)
+
+/*
+d_ctime
+  POSIX: delegates to ctime_r.
+*/
+char*
+d_ctime(
+    const time_t* _timer,
+    char*         _buf
+)
+{
+    // parameter validation
+    if ( (!_timer) ||
+         (!_buf) )
+    {
+        return NULL;
+    }
+
     // POSIX ctime_r
-    return ctime_r(_timer, _buf);
+    return ctime_r(_timer,
+                   _buf);
+}
 
 #else
+
+/*
+d_ctime
+  Fallback: copies 26 bytes out of ctime's shared static buffer. Not
+thread-safe, and the fixed length holds only for four-digit years.
+*/
+char*
+d_ctime(
+    const time_t* _timer,
+    char*         _buf
+)
+{
+    // parameter validation
+    if ( (!_timer) ||
+         (!_buf) )
+    {
+        return NULL;
+    }
+
     // fallback: use non-thread-safe ctime and copy
-    const char* temp;
-    
-    temp = ctime(_timer);
+    const char* temp = ctime(_timer);
     if (!temp)
     {
         return NULL;
     }
-    
+
     // ctime output is always 26 bytes including null terminator
-    d_memcpy(_buf, temp, 26);
-    
+    d_memcpy(_buf,
+             temp,
+             26);
+
     return _buf;
-#endif
 }
 
+#endif
+
+#if defined(D_TIME_PLATFORM_WINDOWS)
 
 /*
 d_asctime
-  Thread-safe tm-to-string conversion. Converts struct tm to a string
-representation.
-
-Parameter(s):
-  _tm:  pointer to the struct tm to convert.
-  _buf: buffer to store the result (must be at least 26 bytes).
-Return:
-  A pointer to _buf on success, or NULL on failure.
+  Windows: asctime_s, given the fixed 26 bytes the asctime format needs.
 */
 char*
-d_asctime
-(
-    const struct tm* _tm, 
+d_asctime(
+    const struct tm* _tm,
     char*            _buf
 )
 {
     // parameter validation
-    if ( (!_tm) || 
+    if ( (!_tm) ||
          (!_buf) )
     {
         return NULL;
     }
 
-#if defined(D_TIME_PLATFORM_WINDOWS)
     // Windows asctime_s requires buffer size
-    if (asctime_s(_buf, 26, _tm) != 0)
+    if (asctime_s(_buf,
+                  26,
+                  _tm) != 0)
     {
         return NULL;
     }
-    
+
     return _buf;
+}
 
 #elif defined(D_TIME_PLATFORM_POSIX)
+
+/*
+d_asctime
+  POSIX: delegates to asctime_r.
+*/
+char*
+d_asctime(
+    const struct tm* _tm,
+    char*            _buf
+)
+{
+    // parameter validation
+    if ( (!_tm) ||
+         (!_buf) )
+    {
+        return NULL;
+    }
+
     // POSIX asctime_r
-    return asctime_r(_tm, _buf);
+    return asctime_r(_tm,
+                     _buf);
+}
 
 #else
+
+/*
+d_asctime
+  Fallback: copies 26 bytes out of asctime's shared static buffer. Not
+thread-safe, and the fixed length holds only for four-digit years.
+*/
+char*
+d_asctime(
+    const struct tm* _tm,
+    char*            _buf
+)
+{
+    // parameter validation
+    if ( (!_tm) ||
+         (!_buf) )
+    {
+        return NULL;
+    }
+
     // fallback: use non-thread-safe asctime and copy
-    const char* temp;
-    
-    temp = asctime(_tm);
+    const char* temp = asctime(_tm);
     if (!temp)
     {
         return NULL;
     }
-    
-    d_memcpy(_buf, temp, 26);
-    
+
+    d_memcpy(_buf,
+             temp,
+             26);
+
     return _buf;
-#endif
 }
 
+#endif
 
-///////////////////////////////////////////////////////////////////////////////
-///             IV.   HIGH-RESOLUTION TIME                                  ///
-///////////////////////////////////////////////////////////////////////////////
+// high-resolution time
+#if ( (D_TIME_HAS_CLOCK_GETTIME) &&                                           \
+      defined(D_TIME_PLATFORM_POSIX) )
 
 /*
 d_clock_gettime
-  Get high-resolution time from the specified clock.
-
-Parameter(s):
-  _clock_id: the clock to query (CLOCK_REALTIME, CLOCK_MONOTONIC, etc.).
-  _tp:       pointer to struct timespec to store the result.
-Return:
-  0 on success, -1 on failure (with errno set).
+  POSIX: delegates to clock_gettime.
 */
 int
-d_clock_gettime
-(
-    clockid_t        _clock_id, 
+d_clock_gettime(
+    clockid_t        _clock_id,
     struct timespec* _tp
 )
 {
@@ -255,17 +420,38 @@ d_clock_gettime
         return -1;
     }
 
-#if D_TIME_HAS_CLOCK_GETTIME && defined(D_TIME_PLATFORM_POSIX)
     // use native clock_gettime
-    return clock_gettime(_clock_id, _tp);
+    return clock_gettime(_clock_id,
+                         _tp);
+}
 
 #elif defined(D_TIME_PLATFORM_WINDOWS)
+
+/*
+d_clock_gettime
+  Windows: CLOCK_MONOTONIC scales QueryPerformanceCounter by its frequency;
+CLOCK_REALTIME converts the system FILETIME (100 ns ticks since 1601) to the
+Unix epoch, using the precise variant from Windows 8 on; the CPU-time clocks
+add kernel and user time from GetProcessTimes or GetThreadTimes. Any other
+clock fails with EINVAL.
+*/
+int
+d_clock_gettime(
+    clockid_t        _clock_id,
+    struct timespec* _tp
+)
+{
+    // parameter validation
+    if (!_tp)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     // Windows implementation using QueryPerformanceCounter
     static LARGE_INTEGER frequency;
     static int           frequency_initialized;
-    LARGE_INTEGER        counter;
-    FILETIME             ft;
-    ULARGE_INTEGER       uli;
 
     frequency_initialized = 0;
 
@@ -278,10 +464,12 @@ d_clock_gettime
             frequency_initialized = 1;
         }
 
+        LARGE_INTEGER counter = {0};
+
         QueryPerformanceCounter(&counter);
-        
+
         _tp->tv_sec  = (time_t)(counter.QuadPart / frequency.QuadPart);
-        _tp->tv_nsec = (long)(((counter.QuadPart % frequency.QuadPart) * 
+        _tp->tv_nsec = (long)(((counter.QuadPart % frequency.QuadPart) *
                                D_TIME_NSEC_PER_SEC) / frequency.QuadPart);
 
         return 0;
@@ -289,11 +477,15 @@ d_clock_gettime
     else if (_clock_id == CLOCK_REALTIME)
     {
         // use GetSystemTimePreciseAsFileTime for wall-clock time
+        FILETIME ft = {0};
+
         #if (_WIN32_WINNT >= 0x0602)
             GetSystemTimePreciseAsFileTime(&ft);
         #else
             GetSystemTimeAsFileTime(&ft);
         #endif
+
+        ULARGE_INTEGER uli = {0};
 
         uli.LowPart  = ft.dwLowDateTime;
         uli.HighPart = ft.dwHighDateTime;
@@ -301,38 +493,32 @@ d_clock_gettime
         // convert from 100-nanosecond intervals since 1601 to Unix epoch
         // 11644473600 seconds between 1601 and 1970
         uli.QuadPart -= 116444736000000000ULL;
-        
+
         _tp->tv_sec  = (time_t)(uli.QuadPart / 10000000ULL);
         _tp->tv_nsec = (long)((uli.QuadPart % 10000000ULL) * 100);
 
         return 0;
     }
-    else if ( (_clock_id == CLOCK_PROCESS_CPUTIME_ID) || 
+    else if ( (_clock_id == CLOCK_PROCESS_CPUTIME_ID) ||
               (_clock_id == CLOCK_THREAD_CPUTIME_ID) )
     {
-        FILETIME creation_time;
-        FILETIME exit_time;
-        FILETIME kernel_time;
-        FILETIME user_time;
-        BOOL     success;
+        FILETIME creation_time = {0};
+        FILETIME exit_time     = {0};
+        FILETIME kernel_time   = {0};
+        FILETIME user_time     = {0};
 
         // get process or thread times
-        if (_clock_id == CLOCK_PROCESS_CPUTIME_ID)
-        {
-            success = GetProcessTimes(GetCurrentProcess(),
-                                       &creation_time,
-                                       &exit_time, 
-                                       &kernel_time,
-                                       &user_time);
-        }
-        else
-        {
-            success = GetThreadTimes(GetCurrentThread(),
-                                      &creation_time,
-                                      &exit_time, 
-                                      &kernel_time,
-                                      &user_time);
-        }
+        const BOOL success = (_clock_id == CLOCK_PROCESS_CPUTIME_ID)
+            ? GetProcessTimes(GetCurrentProcess(),
+                              &creation_time,
+                              &exit_time,
+                              &kernel_time,
+                              &user_time)
+            : GetThreadTimes(GetCurrentThread(),
+                             &creation_time,
+                             &exit_time,
+                             &kernel_time,
+                             &user_time);
 
         if (!success)
         {
@@ -342,6 +528,8 @@ d_clock_gettime
         }
 
         // combine kernel and user time
+        ULARGE_INTEGER uli = {0};
+
         uli.LowPart  = user_time.dwLowDateTime + kernel_time.dwLowDateTime;
         uli.HighPart = user_time.dwHighDateTime + kernel_time.dwHighDateTime;
 
@@ -354,8 +542,29 @@ d_clock_gettime
     errno = EINVAL;
 
     return -1;
+}
 
 #else
+
+/*
+d_clock_gettime
+  Fallback: only CLOCK_REALTIME, from time(), at one-second resolution; every
+other clock fails with EINVAL.
+*/
+int
+d_clock_gettime(
+    clockid_t        _clock_id,
+    struct timespec* _tp
+)
+{
+    // parameter validation
+    if (!_tp)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     // minimal fallback using time()
     if (_clock_id == CLOCK_REALTIME)
     {
@@ -368,24 +577,20 @@ d_clock_gettime
     errno = EINVAL;
 
     return -1;
-#endif
 }
 
+#endif
+
+#if ( (D_TIME_HAS_CLOCK_GETTIME) &&                                           \
+      defined(D_TIME_PLATFORM_POSIX) )
 
 /*
 d_clock_getres
-  Get the resolution of the specified clock.
-
-Parameter(s):
-  _clock_id: the clock to query.
-  _res:      pointer to struct timespec to store the resolution.
-Return:
-  0 on success, -1 on failure (with errno set).
+  POSIX: delegates to clock_getres.
 */
 int
-d_clock_getres
-(
-    clockid_t        _clock_id, 
+d_clock_getres(
+    clockid_t        _clock_id,
     struct timespec* _res
 )
 {
@@ -397,11 +602,33 @@ d_clock_getres
         return -1;
     }
 
-#if D_TIME_HAS_CLOCK_GETTIME && defined(D_TIME_PLATFORM_POSIX)
     // use native clock_getres
-    return clock_getres(_clock_id, _res);
+    return clock_getres(_clock_id,
+                        _res);
+}
 
 #elif defined(D_TIME_PLATFORM_WINDOWS)
+
+/*
+d_clock_getres
+  Windows: reports the tick of the source d_clock_gettime reads -- the
+performance counter's period for CLOCK_MONOTONIC (at least 1 ns), and the 100
+ns FILETIME tick for the realtime and CPU-time clocks.
+*/
+int
+d_clock_getres(
+    clockid_t        _clock_id,
+    struct timespec* _res
+)
+{
+    // parameter validation
+    if (!_res)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     // Windows implementation
     static LARGE_INTEGER frequency;
     static int           frequency_initialized;
@@ -435,7 +662,7 @@ d_clock_getres
 
         return 0;
     }
-    else if ( (_clock_id == CLOCK_PROCESS_CPUTIME_ID) || 
+    else if ( (_clock_id == CLOCK_PROCESS_CPUTIME_ID) ||
               (_clock_id == CLOCK_THREAD_CPUTIME_ID) )
     {
         // Process/thread times have 100ns resolution
@@ -448,8 +675,29 @@ d_clock_getres
     errno = EINVAL;
 
     return -1;
+}
 
 #else
+
+/*
+d_clock_getres
+  Fallback: time()'s one-second resolution, for CLOCK_REALTIME only, the one
+clock the fallback d_clock_gettime supports.
+*/
+int
+d_clock_getres(
+    clockid_t        _clock_id,
+    struct timespec* _res
+)
+{
+    // parameter validation
+    if (!_res)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
     // fallback: 1 second resolution
     if (_clock_id == CLOCK_REALTIME)
     {
@@ -462,24 +710,19 @@ d_clock_getres
     errno = EINVAL;
 
     return -1;
-#endif
 }
 
+#endif
+
+#if D_TIME_HAS_TIMESPEC_GET
 
 /*
 d_timespec_get
-  C11-style timespec retrieval.
-
-Parameter(s):
-  _ts:   pointer to struct timespec to store the result.
-  _base: time base (TIME_UTC is the only required base).
-Return:
-  The base value on success, 0 on failure.
+  Delegates to C11 timespec_get.
 */
 int
-d_timespec_get
-(
-    struct timespec* _ts, 
+d_timespec_get(
+    struct timespec* _ts,
     int              _base
 )
 {
@@ -489,44 +732,55 @@ d_timespec_get
         return 0;
     }
 
-#if D_TIME_HAS_TIMESPEC_GET
     // use native timespec_get
-    return timespec_get(_ts, _base);
+    return timespec_get(_ts,
+                        _base);
+}
 
 #else
+
+/*
+d_timespec_get
+  Fallback: TIME_UTC only, read through d_clock_gettime(CLOCK_REALTIME).
+*/
+int
+d_timespec_get(
+    struct timespec* _ts,
+    int              _base
+)
+{
+    // parameter validation
+    if (!_ts)
+    {
+        return 0;
+    }
+
     // fallback implementation
     if (_base == TIME_UTC)
     {
-        if (d_clock_gettime(CLOCK_REALTIME, _ts) == 0)
+        if (d_clock_gettime(CLOCK_REALTIME,
+                            _ts) == 0)
         {
             return _base;
         }
     }
 
     return 0;
-#endif
 }
 
+#endif
 
-///////////////////////////////////////////////////////////////////////////////
-///             V.    SLEEP FUNCTIONS                                       ///
-///////////////////////////////////////////////////////////////////////////////
+// sleep
+#if ( (D_TIME_HAS_NANOSLEEP) &&                                               \
+      defined(D_TIME_PLATFORM_POSIX) )
 
 /*
 d_nanosleep
-  High-resolution sleep function.
-
-Parameter(s):
-  _req: pointer to struct timespec specifying the sleep duration.
-  _rem: pointer to struct timespec to store remaining time if interrupted
-        (may be NULL).
-Return:
-  0 on success, -1 on failure or interruption (with errno set).
+  POSIX: checks the nanoseconds itself, then delegates to nanosleep.
 */
 int
-d_nanosleep
-(
-    const struct timespec* _req, 
+d_nanosleep(
+    const struct timespec* _req,
     struct timespec*       _rem
 )
 {
@@ -539,7 +793,7 @@ d_nanosleep
     }
 
     // validate timespec values
-    if ( (_req->tv_nsec < 0)                  || 
+    if ( (_req->tv_nsec < 0)                  ||
          (_req->tv_nsec >= D_TIME_NSEC_PER_SEC) )
     {
         errno = EINVAL;
@@ -547,30 +801,59 @@ d_nanosleep
         return -1;
     }
 
-#if D_TIME_HAS_NANOSLEEP && defined(D_TIME_PLATFORM_POSIX)
     // use native nanosleep
-    return nanosleep(_req, _rem);
+    return nanosleep(_req,
+                     _rem);
+}
 
 #elif defined(D_TIME_PLATFORM_WINDOWS)
-    // Windows implementation using Sleep
-    DWORD           milliseconds;
-    LARGE_INTEGER   start;
-    LARGE_INTEGER   end;
-    LARGE_INTEGER   frequency;
-    int64_t         elapsed_ns;
-    int64_t         requested_ns;
 
+/*
+d_nanosleep
+  Windows: Sleep has millisecond resolution, so the request is truncated to
+whole milliseconds, with a nonzero sub-millisecond request raised to 1 ms.
+When _rem is given, the performance counter measures the sleep, and the
+remainder is whatever part of the request it fell short of -- usually nothing.
+*/
+int
+d_nanosleep(
+    const struct timespec* _req,
+    struct timespec*       _rem
+)
+{
+    // parameter validation
+    if (!_req)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // validate timespec values
+    if ( (_req->tv_nsec < 0)                  ||
+         (_req->tv_nsec >= D_TIME_NSEC_PER_SEC) )
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // Windows implementation using Sleep
     // convert to milliseconds (Sleep only has ms resolution)
-    milliseconds = (DWORD)((_req->tv_sec * D_TIME_MSEC_PER_SEC) + 
-                           (_req->tv_nsec / D_TIME_NSEC_PER_MSEC));
+    DWORD milliseconds = (DWORD)((_req->tv_sec * D_TIME_MSEC_PER_SEC) +
+                                 (_req->tv_nsec / D_TIME_NSEC_PER_MSEC));
 
     // handle sub-millisecond requests
-    if ( (milliseconds == 0) && 
-         (_req->tv_sec == 0) && 
+    if ( (milliseconds == 0) &&
+         (_req->tv_sec == 0) &&
          (_req->tv_nsec > 0) )
     {
         milliseconds = 1;
     }
+
+    LARGE_INTEGER frequency = {0};
+    LARGE_INTEGER start     = {0};
+    LARGE_INTEGER end       = {0};
 
     if (_rem)
     {
@@ -583,14 +866,16 @@ d_nanosleep
     if (_rem)
     {
         QueryPerformanceCounter(&end);
-        
-        elapsed_ns = ((end.QuadPart - start.QuadPart) * D_TIME_NSEC_PER_SEC) / 
-                     frequency.QuadPart;
-        requested_ns = (_req->tv_sec * D_TIME_NSEC_PER_SEC) + _req->tv_nsec;
-        
+
+        const int64_t elapsed_ns   = ((end.QuadPart - start.QuadPart) *
+                                      D_TIME_NSEC_PER_SEC) /
+                                     frequency.QuadPart;
+        const int64_t requested_ns = (_req->tv_sec * D_TIME_NSEC_PER_SEC) +
+                                     _req->tv_nsec;
+
         if (elapsed_ns < requested_ns)
         {
-            int64_t remaining = requested_ns - elapsed_ns;
+            const int64_t remaining = requested_ns - elapsed_ns;
 
             _rem->tv_sec  = (time_t)(remaining / D_TIME_NSEC_PER_SEC);
             _rem->tv_nsec = (long)(remaining % D_TIME_NSEC_PER_SEC);
@@ -603,12 +888,40 @@ d_nanosleep
     }
 
     return 0;
+}
 
 #else
-    // minimal fallback using sleep()
-    unsigned int seconds;
 
-    seconds = (unsigned int)_req->tv_sec;
+/*
+d_nanosleep
+  Fallback: sleep(), with any fractional second rounded up to a whole one, and
+no remaining time reported.
+*/
+int
+d_nanosleep(
+    const struct timespec* _req,
+    struct timespec*       _rem
+)
+{
+    // parameter validation
+    if (!_req)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // validate timespec values
+    if ( (_req->tv_nsec < 0)                  ||
+         (_req->tv_nsec >= D_TIME_NSEC_PER_SEC) )
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    // minimal fallback using sleep()
+    unsigned int seconds = (unsigned int)_req->tv_sec;
     if (_req->tv_nsec > 0)
     {
         seconds += 1;  // round up
@@ -626,74 +939,58 @@ d_nanosleep
     }
 
     return 0;
-#endif
 }
 
+#endif
 
 /*
 d_usleep
-  Microsecond sleep function.
-
-Parameter(s):
-  _usec: microseconds to sleep.
-Return:
-  0 on success, -1 on failure.
+  Splits the microseconds into a timespec and delegates to d_nanosleep.
 */
 int
-d_usleep
-(
+d_usleep(
     unsigned int _usec
 )
 {
-    struct timespec ts;
+    const struct timespec ts =
+    {
+        .tv_sec  = _usec / D_TIME_USEC_PER_SEC,
+        .tv_nsec = (_usec % D_TIME_USEC_PER_SEC) * D_TIME_NSEC_PER_USEC
+    };
 
-    ts.tv_sec  = _usec / D_TIME_USEC_PER_SEC;
-    ts.tv_nsec = (_usec % D_TIME_USEC_PER_SEC) * D_TIME_NSEC_PER_USEC;
-
-    return d_nanosleep(&ts, NULL);
+    return d_nanosleep(&ts,
+                       NULL);
 }
-
 
 /*
 d_sleep_ms
-  Millisecond sleep function (convenience wrapper).
-
-Parameter(s):
-  _milliseconds: milliseconds to sleep.
-Return:
-  0 on success, -1 on failure.
+  Splits the milliseconds into a timespec and delegates to d_nanosleep.
 */
 int
-d_sleep_ms
-(
+d_sleep_ms(
     unsigned long _milliseconds
 )
 {
-    struct timespec ts;
+    const struct timespec ts =
+    {
+        .tv_sec  = (time_t)(_milliseconds / D_TIME_MSEC_PER_SEC),
+        .tv_nsec = (long)((_milliseconds % D_TIME_MSEC_PER_SEC) *
+                          D_TIME_NSEC_PER_MSEC)
+    };
 
-    ts.tv_sec  = _milliseconds / D_TIME_MSEC_PER_SEC;
-    ts.tv_nsec = (_milliseconds % D_TIME_MSEC_PER_SEC) * D_TIME_NSEC_PER_MSEC;
-
-    return d_nanosleep(&ts, NULL);
+    return d_nanosleep(&ts,
+                       NULL);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-///             VI.   TIMEZONE UTILITIES                                    ///
-///////////////////////////////////////////////////////////////////////////////
+// time zones
+#if D_TIME_HAS_TIMEGM
 
 /*
 d_timegm
-  Inverse of gmtime: convert struct tm (interpreted as UTC) to time_t.
-
-Parameter(s):
-  _tm: pointer to struct tm in UTC.
-Return:
-  The corresponding time_t value, or -1 on failure.
+  Delegates to timegm.
 */
 time_t
-d_timegm
-(
+d_timegm(
     struct tm* _tm
 )
 {
@@ -703,31 +1000,62 @@ d_timegm
         return (time_t)-1;
     }
 
-#if D_TIME_HAS_TIMEGM
     // use native timegm
     return timegm(_tm);
+}
 
 #elif defined(D_TIME_PLATFORM_WINDOWS)
+
+/*
+d_timegm
+  Windows: delegates to _mkgmtime.
+*/
+time_t
+d_timegm(
+    struct tm* _tm
+)
+{
+    // parameter validation
+    if (!_tm)
+    {
+        return (time_t)-1;
+    }
+
     // use Windows _mkgmtime
     return _mkgmtime(_tm);
+}
 
 #else
+
+/*
+d_timegm
+  Portable fallback: counts whole days from the epoch -- year by year, then
+month by month under the Gregorian leap rule -- and adds the time of day.
+Months outside 0..11 are folded into the year first; days, hours, minutes, and
+seconds are used as given, so out-of-range values carry naturally. Unlike
+timegm, it leaves _tm unmodified.
+*/
+time_t
+d_timegm(
+    struct tm* _tm
+)
+{
+    // parameter validation
+    if (!_tm)
+    {
+        return (time_t)-1;
+    }
+
     // portable fallback implementation
     // this algorithm is based on the public domain implementation
-    time_t result;
-    int    year;
-    int    month;
-    int    day;
-    int    i;
-
     // days in each month (non-leap year)
     static const int days_in_month[] = {
         31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
     };
 
-    year  = _tm->tm_year + 1900;
-    month = _tm->tm_mon;
-    day   = _tm->tm_mday;
+    int       year  = _tm->tm_year + 1900;
+    int       month = _tm->tm_mon;
+    const int day   = _tm->tm_mday;
 
     // normalize month
     while (month < 0)
@@ -743,14 +1071,14 @@ d_timegm
     }
 
     // calculate days since Unix epoch
-    result = 0;
-    
+    time_t result = 0;
+
     // years since 1970
-    for (i = 1970; i < year; i++)
+    for (int i = 1970; i < year; i++)
     {
         result += 365;
         // add leap day
-        if ( ((i % 4 == 0) && (i % 100 != 0)) || 
+        if ( ((i % 4 == 0) && (i % 100 != 0)) ||
              (i % 400 == 0) )
         {
             result += 1;
@@ -758,10 +1086,10 @@ d_timegm
     }
 
     // handle years before 1970
-    for (i = year; i < 1970; i++)
+    for (int i = year; i < 1970; i++)
     {
         result -= 365;
-        if ( ((i % 4 == 0) && (i % 100 != 0)) || 
+        if ( ((i % 4 == 0) && (i % 100 != 0)) ||
              (i % 400 == 0) )
         {
             result -= 1;
@@ -769,11 +1097,11 @@ d_timegm
     }
 
     // add days for each month
-    for (i = 0; i < month; i++)
+    for (int i = 0; i < month; i++)
     {
         result += days_in_month[i];
         // add leap day for February
-        if ( (i == 1) && 
+        if ( (i == 1) &&
              (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) )
         {
             result += 1;
@@ -790,22 +1118,16 @@ d_timegm
     result += _tm->tm_sec;
 
     return result;
-#endif
 }
 
+#endif
 
 /*
 d_tzset
-  Initialize timezone information from environment.
-
-Parameter(s):
-  (none)
-Return:
-  (none)
+  Delegates to _tzset on Windows and to tzset elsewhere.
 */
 void
-d_tzset
-(
+d_tzset(
     void
 )
 {
@@ -818,52 +1140,63 @@ d_tzset
     return;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-///             VII.  STRING PARSING AND FORMATTING                         ///
-///////////////////////////////////////////////////////////////////////////////
+// parsing and formatting
+#if D_TIME_HAS_STRPTIME
 
 /*
 d_strptime
-  Parse a time string according to a format string.
-
-Parameter(s):
-  _s:      the string to parse.
-  _format: format string (similar to strftime format).
-  _tm:     pointer to struct tm to store the result.
-Return:
-  Pointer to the first character not processed, or NULL on error.
+  Delegates to strptime.
 */
 char*
-d_strptime
-(
-    const char* _s, 
-    const char* _format, 
+d_strptime(
+    const char* _s,
+    const char* _format,
     struct tm*  _tm
 )
 {
     // parameter validation
-    if ( (!_s)      || 
-         (!_format) || 
+    if ( (!_s)      ||
+         (!_format) ||
          (!_tm) )
     {
         return NULL;
     }
 
-#if D_TIME_HAS_STRPTIME
     // use native strptime
-    return strptime(_s, _format, _tm);
+    return strptime(_s,
+                    _format,
+                    _tm);
+}
 
 #else
+
+/*
+d_strptime
+  Fallback parser. It zeroes _tm, then walks the format: a conversion reads at
+most its field's digits, names match case-insensitively in either abbreviated
+or full form, and %p adjusts the hour already parsed, so it must follow %I. A
+space in the format skips any run of spaces in the input, and any other
+character must match exactly. Parsing stops, without failing, when either
+string runs out; an unmatched name or an unsupported conversion is skipped
+rather than rejected.
+*/
+char*
+d_strptime(
+    const char* _s,
+    const char* _format,
+    struct tm*  _tm
+)
+{
+    // parameter validation
+    if ( (!_s)      ||
+         (!_format) ||
+         (!_tm) )
+    {
+        return NULL;
+    }
+
     // Windows/fallback implementation
     // supports common format specifiers including month and weekday names
-    const char* sp;
-    const char* fp;
-    int         value;
-    int         digits;
-    int         i;
-    int         matched;
-
     // month names (abbreviated and full)
     static const char* month_abbrev[12] = {
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -883,13 +1216,15 @@ d_strptime
         "Thursday", "Friday", "Saturday"
     };
 
-    sp = _s;
-    fp = _format;
+    const char* sp = _s;
+    const char* fp = _format;
 
     // initialize tm to zeros
-    d_memset(_tm, 0, sizeof(struct tm));
+    d_memset(_tm,
+             0,
+             sizeof(struct tm));
 
-    while ( (*fp) && 
+    while ( (*fp) &&
             (*sp) )
     {
         if (*fp == '%')
@@ -900,14 +1235,14 @@ d_strptime
                 break;
             }
 
-            value  = 0;
-            digits = 0;
+            int value  = 0;
+            int digits = 0;
 
             switch (*fp)
             {
                 case 'Y':  // 4-digit year
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 4) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -919,8 +1254,8 @@ d_strptime
                     break;
 
                 case 'y':  // 2-digit year
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 2) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -932,8 +1267,8 @@ d_strptime
                     break;
 
                 case 'm':  // month (01-12)
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 2) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -946,13 +1281,15 @@ d_strptime
 
                 case 'b':  // abbreviated month name (Jan, Feb, ...)
                 case 'h':  // same as %b
-                    matched = 0;
+                    int matched = 0;
 
-                    for (i = 0; i < 12; i++)
+                    for (int i = 0; i < 12; i++)
                     {
                         size_t len = strlen(month_abbrev[i]);
 
-                        if (d_strncasecmp(sp, month_abbrev[i], len) == 0)
+                        if (d_strncasecmp(sp,
+                                          month_abbrev[i],
+                                          len) == 0)
                         {
                             _tm->tm_mon = i;
                             sp += len;
@@ -964,11 +1301,13 @@ d_strptime
                     if (!matched)
                     {
                         // try full month names as fallback
-                        for (i = 0; i < 12; i++)
+                        for (int i = 0; i < 12; i++)
                         {
                             size_t len = strlen(month_full[i]);
 
-                            if (d_strncasecmp(sp, month_full[i], len) == 0)
+                            if (d_strncasecmp(sp,
+                                              month_full[i],
+                                              len) == 0)
                             {
                                 _tm->tm_mon = i;
                                 sp += len;
@@ -977,16 +1316,19 @@ d_strptime
                             }
                         }
                     }
+
                     break;
 
                 case 'B':  // full month name (January, February, ...)
                     matched = 0;
 
-                    for (i = 0; i < 12; i++)
+                    for (int i = 0; i < 12; i++)
                     {
                         size_t len = strlen(month_full[i]);
 
-                        if (d_strncasecmp(sp, month_full[i], len) == 0)
+                        if (d_strncasecmp(sp,
+                                          month_full[i],
+                                          len) == 0)
                         {
                             _tm->tm_mon = i;
                             sp += len;
@@ -998,11 +1340,13 @@ d_strptime
                     if (!matched)
                     {
                         // try abbreviated month names as fallback
-                        for (i = 0; i < 12; i++)
+                        for (int i = 0; i < 12; i++)
                         {
                             size_t len = strlen(month_abbrev[i]);
 
-                            if (d_strncasecmp(sp, month_abbrev[i], len) == 0)
+                            if (d_strncasecmp(sp,
+                                              month_abbrev[i],
+                                              len) == 0)
                             {
                                 _tm->tm_mon = i;
                                 sp += len;
@@ -1011,16 +1355,19 @@ d_strptime
                             }
                         }
                     }
+
                     break;
 
                 case 'a':  // abbreviated weekday name (Sun, Mon, ...)
                     matched = 0;
 
-                    for (i = 0; i < 7; i++)
+                    for (int i = 0; i < 7; i++)
                     {
                         size_t len = strlen(weekday_abbrev[i]);
 
-                        if (d_strncasecmp(sp, weekday_abbrev[i], len) == 0)
+                        if (d_strncasecmp(sp,
+                                          weekday_abbrev[i],
+                                          len) == 0)
                         {
                             _tm->tm_wday = i;
                             sp += len;
@@ -1032,11 +1379,13 @@ d_strptime
                     if (!matched)
                     {
                         // try full weekday names as fallback
-                        for (i = 0; i < 7; i++)
+                        for (int i = 0; i < 7; i++)
                         {
                             size_t len = strlen(weekday_full[i]);
 
-                            if (d_strncasecmp(sp, weekday_full[i], len) == 0)
+                            if (d_strncasecmp(sp,
+                                              weekday_full[i],
+                                              len) == 0)
                             {
                                 _tm->tm_wday = i;
                                 sp += len;
@@ -1045,16 +1394,19 @@ d_strptime
                             }
                         }
                     }
+
                     break;
 
                 case 'A':  // full weekday name (Sunday, Monday, ...)
                     matched = 0;
 
-                    for (i = 0; i < 7; i++)
+                    for (int i = 0; i < 7; i++)
                     {
                         size_t len = strlen(weekday_full[i]);
 
-                        if (d_strncasecmp(sp, weekday_full[i], len) == 0)
+                        if (d_strncasecmp(sp,
+                                          weekday_full[i],
+                                          len) == 0)
                         {
                             _tm->tm_wday = i;
                             sp += len;
@@ -1066,11 +1418,13 @@ d_strptime
                     if (!matched)
                     {
                         // try abbreviated weekday names as fallback
-                        for (i = 0; i < 7; i++)
+                        for (int i = 0; i < 7; i++)
                         {
                             size_t len = strlen(weekday_abbrev[i]);
 
-                            if (d_strncasecmp(sp, weekday_abbrev[i], len) == 0)
+                            if (d_strncasecmp(sp,
+                                              weekday_abbrev[i],
+                                              len) == 0)
                             {
                                 _tm->tm_wday = i;
                                 sp += len;
@@ -1079,6 +1433,7 @@ d_strptime
                             }
                         }
                     }
+
                     break;
 
                 case 'd':  // day of month (01-31)
@@ -1089,8 +1444,8 @@ d_strptime
                         sp++;
                     }
 
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 2) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -1108,8 +1463,8 @@ d_strptime
                         sp++;
                     }
 
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 2) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -1127,8 +1482,8 @@ d_strptime
                         sp++;
                     }
 
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 2) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -1140,8 +1495,8 @@ d_strptime
                     break;
 
                 case 'M':  // minute (00-59)
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 2) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -1153,8 +1508,8 @@ d_strptime
                     break;
 
                 case 'S':  // second (00-60)
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 2) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -1166,8 +1521,8 @@ d_strptime
                     break;
 
                 case 'j':  // day of year (001-366)
-                    while ( (*sp >= '0') && 
-                            (*sp <= '9') && 
+                    while ( (*sp >= '0') &&
+                            (*sp <= '9') &&
                             (digits < 3) )
                     {
                         value = value * 10 + (*sp - '0');
@@ -1179,12 +1534,13 @@ d_strptime
                     break;
 
                 case 'w':  // weekday as decimal (0-6, Sunday = 0)
-                    if ( (*sp >= '0') && 
+                    if ( (*sp >= '0') &&
                          (*sp <= '6') )
                     {
                         _tm->tm_wday = *sp - '0';
                         sp++;
                     }
+
                     break;
 
                 case 'p':  // AM/PM
@@ -1209,6 +1565,7 @@ d_strptime
 
                         sp += 2;
                     }
+
                     break;
 
                 case '%':  // literal %
@@ -1220,17 +1577,19 @@ d_strptime
                     {
                         return NULL;
                     }
+
                     break;
 
                 case 'n':  // newline
                 case 't':  // tab
                     // skip whitespace
-                    while ( (*sp == ' ')  || 
-                            (*sp == '\t') || 
+                    while ( (*sp == ' ')  ||
+                            (*sp == '\t') ||
                             (*sp == '\n') )
                     {
                         sp++;
                     }
+
                     break;
 
                 default:
@@ -1264,37 +1623,29 @@ d_strptime
     }
 
     return (char*)sp;
-#endif
 }
 
+#endif
 
 /*
 d_strftime_s
-  Safe time formatting with bounds checking.
-
-Parameter(s):
-  _s:       buffer to store the formatted string.
-  _maxsize: size of the buffer.
-  _format:  format string.
-  _tm:      pointer to struct tm with time values.
-Return:
-  The number of characters written (excluding null terminator), or 0 on error.
+  On an invalid argument the buffer is emptied whenever it has room for a
+terminator, so a caller that ignores the 0 still reads a terminated string.
+strftime_s is used where D_ENV_CRT_MSVC is set and strftime elsewhere, and its
+size_t count is narrowed to int.
 */
 int
-d_strftime_s
-(
-    char*            _s, 
-    size_t           _maxsize, 
-    const char*      _format, 
+d_strftime_s(
+    char*            _s,
+    size_t           _maxsize,
+    const char*      _format,
     const struct tm* _tm
 )
 {
-    size_t result;
-
     // parameter validation
-    if ( (!_s)      || 
-         (!_format) || 
-         (!_tm)     || 
+    if ( (!_s)      ||
+         (!_format) ||
+         (!_tm)     ||
          (_maxsize == 0) )
     {
         if ( (_s) &&
@@ -1307,41 +1658,37 @@ d_strftime_s
     }
 
 #if D_ENV_CRT_MSVC
-    result = strftime_s(_s, _maxsize, _format, _tm);
+    const size_t result = strftime_s(_s,
+                                     _maxsize,
+                                     _format,
+                                     _tm);
 #else
-    result = strftime(_s, _maxsize, _format, _tm);
+    const size_t result = strftime(_s,
+                                   _maxsize,
+                                   _format,
+                                   _tm);
 #endif
 
     return (int)result;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-///             VIII. TIME ARITHMETIC                                       ///
-///////////////////////////////////////////////////////////////////////////////
-
+// timespec arithmetic
 /*
 d_timespec_add
-  Add two timespec values.
-
-Parameter(s):
-  _a:      first timespec.
-  _b:      second timespec.
-  _result: pointer to store the sum.
-Return:
-  (none)
+  Adds seconds and nanoseconds separately, then carries one second if the
+nanoseconds reach a full second. A single carry repairs only normalized
+operands.
 */
 void
-d_timespec_add
-(
-    const struct timespec* _a, 
-    const struct timespec* _b, 
+d_timespec_add(
+    const struct timespec* _a,
+    const struct timespec* _b,
     struct timespec*       _result
 )
 {
     // parameter validation
-    if ( (!_a)      || 
-         (!_b)      || 
+    if ( (!_a)      ||
+         (!_b)      ||
          (!_result) )
     {
         return;
@@ -1360,29 +1707,21 @@ d_timespec_add
     return;
 }
 
-
 /*
 d_timespec_sub
-  Subtract two timespec values (_a - _b).
-
-Parameter(s):
-  _a:      first timespec (minuend).
-  _b:      second timespec (subtrahend).
-  _result: pointer to store the difference.
-Return:
-  (none)
+  Subtracts seconds and nanoseconds separately, then borrows one second if the
+nanoseconds went negative. A single borrow repairs only normalized operands.
 */
 void
-d_timespec_sub
-(
-    const struct timespec* _a, 
-    const struct timespec* _b, 
+d_timespec_sub(
+    const struct timespec* _a,
+    const struct timespec* _b,
     struct timespec*       _result
 )
 {
     // parameter validation
-    if ( (!_a)      || 
-         (!_b)      || 
+    if ( (!_a)      ||
+         (!_b)      ||
          (!_result) )
     {
         return;
@@ -1401,26 +1740,19 @@ d_timespec_sub
     return;
 }
 
-
 /*
 d_timespec_cmp
-  Compare two timespec values.
-
-Parameter(s):
-  _a: first timespec.
-  _b: second timespec.
-Return:
-  Negative value if _a < _b, zero if _a == _b, positive if _a > _b.
+  Compares seconds, then nanoseconds. Either argument alone being NULL yields
+-1, whichever it is, so the ordering is not symmetric around NULL.
 */
 int
-d_timespec_cmp
-(
-    const struct timespec* _a, 
+d_timespec_cmp(
+    const struct timespec* _a,
     const struct timespec* _b
 )
 {
     // parameter validation - treat NULL as zero
-    if ( (!_a) && 
+    if ( (!_a) &&
          (!_b) )
     {
         return 0;
@@ -1436,7 +1768,7 @@ d_timespec_cmp
     if (_a->tv_sec != _b->tv_sec)
     {
         return (_a->tv_sec < _b->tv_sec)
-            ? -1 
+            ? -1
             : 1;
     }
 
@@ -1444,7 +1776,7 @@ d_timespec_cmp
     if (_a->tv_nsec != _b->tv_nsec)
     {
         return (_a->tv_nsec < _b->tv_nsec)
-            ? -1 
+            ? -1
             : 1;
     }
 
@@ -1453,16 +1785,11 @@ d_timespec_cmp
 
 /*
 d_timespec_to_ms
-  Convert timespec to milliseconds.
-
-Parameter(s):
-  _ts: pointer to timespec.
-Return:
-  Total time in milliseconds.
+  Widens the seconds to int64_t before scaling, so a 32-bit time_t cannot
+overflow the multiply; the nanoseconds are truncated toward zero.
 */
 int64_t
-d_timespec_to_ms
-(
+d_timespec_to_ms(
     const struct timespec* _ts
 )
 {
@@ -1471,23 +1798,17 @@ d_timespec_to_ms
         return 0;
     }
 
-    return ((int64_t)_ts->tv_sec * D_TIME_MSEC_PER_SEC) + 
+    return ((int64_t)_ts->tv_sec * D_TIME_MSEC_PER_SEC) +
            (_ts->tv_nsec / D_TIME_NSEC_PER_MSEC);
 }
 
-
 /*
 d_timespec_to_us
-  Convert timespec to microseconds.
-
-Parameter(s):
-  _ts: pointer to timespec.
-Return:
-  Total time in microseconds.
+  Widens the seconds to int64_t before scaling, so a 32-bit time_t cannot
+overflow the multiply; the nanoseconds are truncated toward zero.
 */
 int64_t
-d_timespec_to_us
-(
+d_timespec_to_us(
     const struct timespec* _ts
 )
 {
@@ -1496,23 +1817,17 @@ d_timespec_to_us
         return 0;
     }
 
-    return ((int64_t)_ts->tv_sec * D_TIME_USEC_PER_SEC) + 
+    return ((int64_t)_ts->tv_sec * D_TIME_USEC_PER_SEC) +
            (_ts->tv_nsec / D_TIME_NSEC_PER_USEC);
 }
 
-
 /*
 d_timespec_to_ns
-  Convert timespec to nanoseconds.
-
-Parameter(s):
-  _ts: pointer to timespec.
-Return:
-  Total time in nanoseconds.
+  Widens the seconds to int64_t before scaling, so a 32-bit time_t cannot
+overflow the multiply.
 */
 int64_t
-d_timespec_to_ns
-(
+d_timespec_to_ns(
     const struct timespec* _ts
 )
 {
@@ -1526,18 +1841,12 @@ d_timespec_to_ns
 
 /*
 d_ms_to_timespec
-  Convert milliseconds to timespec.
-
-Parameter(s):
-  _milliseconds: time in milliseconds.
-  _ts:           pointer to timespec to store the result.
-Return:
-  (none)
+  Splits with / and %, which truncate toward zero, so a negative input yields
+a negative tv_nsec rather than a normalized timespec.
 */
 void
-d_ms_to_timespec
-(
-    int64_t          _milliseconds, 
+d_ms_to_timespec(
+    int64_t          _milliseconds,
     struct timespec* _ts
 )
 {
@@ -1547,7 +1856,7 @@ d_ms_to_timespec
     }
 
     _ts->tv_sec  = (time_t)(_milliseconds / D_TIME_MSEC_PER_SEC);
-    _ts->tv_nsec = (long)((_milliseconds % D_TIME_MSEC_PER_SEC) * 
+    _ts->tv_nsec = (long)((_milliseconds % D_TIME_MSEC_PER_SEC) *
                           D_TIME_NSEC_PER_MSEC);
 
     return;
@@ -1555,18 +1864,12 @@ d_ms_to_timespec
 
 /*
 d_us_to_timespec
-  Convert microseconds to timespec.
-
-Parameter(s):
-  _microseconds: time in microseconds.
-  _ts:           pointer to timespec to store the result.
-Return:
-  (none)
+  Splits with / and %, which truncate toward zero, so a negative input yields
+a negative tv_nsec rather than a normalized timespec.
 */
 void
-d_us_to_timespec
-(
-    int64_t          _microseconds, 
+d_us_to_timespec(
+    int64_t          _microseconds,
     struct timespec* _ts
 )
 {
@@ -1576,7 +1879,7 @@ d_us_to_timespec
     }
 
     _ts->tv_sec  = (time_t)(_microseconds / D_TIME_USEC_PER_SEC);
-    _ts->tv_nsec = (long)((_microseconds % D_TIME_USEC_PER_SEC) * 
+    _ts->tv_nsec = (long)((_microseconds % D_TIME_USEC_PER_SEC) *
                           D_TIME_NSEC_PER_USEC);
 
     return;
@@ -1584,18 +1887,12 @@ d_us_to_timespec
 
 /*
 d_ns_to_timespec
-  Convert nanoseconds to timespec.
-
-Parameter(s):
-  _nanoseconds: time in nanoseconds.
-  _ts:          pointer to timespec to store the result.
-Return:
-  (none)
+  Splits with / and %, which truncate toward zero, so a negative input yields
+a negative tv_nsec rather than a normalized timespec.
 */
 void
-d_ns_to_timespec
-(
-    int64_t          _nanoseconds, 
+d_ns_to_timespec(
+    int64_t          _nanoseconds,
     struct timespec* _ts
 )
 {
@@ -1610,34 +1907,28 @@ d_ns_to_timespec
     return;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///             IX.   MONOTONIC TIME UTILITIES                              ///
-///////////////////////////////////////////////////////////////////////////////
-
+// monotonic time
 /*
 d_monotonic_time_ms
-  Get monotonic (non-decreasing) time in milliseconds.
-
-Parameter(s):
-  (none)
-Return:
-  Monotonic time in milliseconds.
+  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
+monotonic -- when the monotonic clock cannot be read.
 */
 int64_t
-d_monotonic_time_ms
-(
+d_monotonic_time_ms(
     void
 )
 {
-    struct timespec ts;
+    struct timespec ts = {0};
 
-    if (d_clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+    if (d_clock_gettime(CLOCK_MONOTONIC,
+                        &ts) == 0)
     {
         return d_timespec_to_ms(&ts);
     }
 
     // fallback to realtime if monotonic not available
-    if (d_clock_gettime(CLOCK_REALTIME, &ts) == 0)
+    if (d_clock_gettime(CLOCK_REALTIME,
+                        &ts) == 0)
     {
         return d_timespec_to_ms(&ts);
     }
@@ -1645,30 +1936,26 @@ d_monotonic_time_ms
     return 0;
 }
 
-
 /*
 d_monotonic_time_us
-  Get monotonic time in microseconds.
-
-Parameter(s):
-  (none)
-Return:
-  Monotonic time in microseconds.
+  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
+monotonic -- when the monotonic clock cannot be read.
 */
 int64_t
-d_monotonic_time_us
-(
+d_monotonic_time_us(
     void
 )
 {
-    struct timespec ts;
+    struct timespec ts = {0};
 
-    if (d_clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+    if (d_clock_gettime(CLOCK_MONOTONIC,
+                        &ts) == 0)
     {
         return d_timespec_to_us(&ts);
     }
 
-    if (d_clock_gettime(CLOCK_REALTIME, &ts) == 0)
+    if (d_clock_gettime(CLOCK_REALTIME,
+                        &ts) == 0)
     {
         return d_timespec_to_us(&ts);
     }
@@ -1676,30 +1963,26 @@ d_monotonic_time_us
     return 0;
 }
 
-
 /*
 d_monotonic_time_ns
-  Get monotonic time in nanoseconds.
-
-Parameter(s):
-  (none)
-Return:
-  Monotonic time in nanoseconds.
+  Reads CLOCK_MONOTONIC, falling back to CLOCK_REALTIME -- which is not
+monotonic -- when the monotonic clock cannot be read.
 */
 int64_t
-d_monotonic_time_ns
-(
+d_monotonic_time_ns(
     void
 )
 {
-    struct timespec ts;
+    struct timespec ts = {0};
 
-    if (d_clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+    if (d_clock_gettime(CLOCK_MONOTONIC,
+                        &ts) == 0)
     {
         return d_timespec_to_ns(&ts);
     }
 
-    if (d_clock_gettime(CLOCK_REALTIME, &ts) == 0)
+    if (d_clock_gettime(CLOCK_REALTIME,
+                        &ts) == 0)
     {
         return d_timespec_to_ns(&ts);
     }
@@ -1707,23 +1990,15 @@ d_monotonic_time_ns
     return 0;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-///             X.    TIMESPEC NORMALIZATION                                ///
-///////////////////////////////////////////////////////////////////////////////
-
+// normalization and validation
 /*
 d_timespec_normalize
-  Normalize a timespec so that tv_nsec is in [0, 999999999].
-
-Parameter(s):
-  _ts: pointer to timespec to normalize (modified in place).
-Return:
-  (none)
+  Moves whole seconds between tv_nsec and tv_sec in 64-bit arithmetic, since
+tv_nsec may be a 32-bit long. Negative nanoseconds borrow with a ceiling
+division, and a final range check catches its edge cases.
 */
 void
-d_timespec_normalize
-(
+d_timespec_normalize(
     struct timespec* _ts
 )
 {
@@ -1754,14 +2029,14 @@ d_timespec_normalize
         // for negative values, we need to borrow from seconds
         // example: -300000000 ns -> borrow 1 sec, get 700000000 ns
         // example: -2500000000 ns -> borrow 3 sec, get 500000000 ns
-        
+
         // calculate how many seconds to borrow (ceiling division for negatives)
         // we want sec_adj to be positive, representing seconds to subtract
         sec_adj = (-nsec_ll + D_TIME_NSEC_PER_SEC - 1) / D_TIME_NSEC_PER_SEC;
-        
+
         _ts->tv_sec -= (time_t)sec_adj;
         _ts->tv_nsec = (long)(nsec_ll + sec_adj * D_TIME_NSEC_PER_SEC);
-        
+
         // ensure tv_nsec is in valid range [0, 999999999]
         // this handles edge cases from the ceiling division
         if (_ts->tv_nsec < 0)
@@ -1779,19 +2054,12 @@ d_timespec_normalize
     return;
 }
 
-
 /*
 d_timespec_is_valid
-  Check if a timespec has valid values.
-
-Parameter(s):
-  _ts: pointer to timespec to check.
-Return:
-  Non-zero if valid, zero if invalid.
+  Checks tv_nsec only; any tv_sec, negative included, is accepted.
 */
 int
-d_timespec_is_valid
-(
+d_timespec_is_valid(
     const struct timespec* _ts
 )
 {
@@ -1801,7 +2069,7 @@ d_timespec_is_valid
     }
 
     // tv_nsec must be in range [0, 999999999]
-    if ( (_ts->tv_nsec < 0) || 
+    if ( (_ts->tv_nsec < 0) ||
          (_ts->tv_nsec >= D_TIME_NSEC_PER_SEC) )
     {
         return 0;
@@ -1812,4 +2080,3 @@ d_timespec_is_valid
 
     return 1;
 }
-
