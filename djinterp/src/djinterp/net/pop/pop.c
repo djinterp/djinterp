@@ -7,6 +7,7 @@
 * only I/O is through the d_pop_transport and d_pack_sink the caller passes
 * in.
 *
+*
 * path:      /src/djinterp/net/pop/pop.c
 * link(s):   TBA
 * author(s): Samuel 'teer' Neal-Blim                         created: 2026.09.25

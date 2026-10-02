@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [net]                                                   reactor.hpp
+/*******************************************************************************
+* djinterp [net]                                                     reactor.hpp
 *
 *   Non-blocking, event-driven backend for the net subframework, built on the
 * readiness mechanism env_net.h selects (epoll on Linux). Where the blocking
@@ -29,19 +29,21 @@
 *   Requires:  net.hpp, tcp.hpp, env_net.h, and epoll (D_ENV_NET_HAS_EPOLL). A
 *              kqueue backend would be a sibling of the same shape.
 *
+*
 * path:      /inc/djinterp/net/reactor.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_NET_REACTOR_
-#define DJINTERP_NET_REACTOR_ 1
+#ifndef DJINTERP_NET_REACTOR_HPP
+#define DJINTERP_NET_REACTOR_HPP 1
 
 // djinterp
 #include "./net.hpp"
 #include "./tcp.hpp"
 #include "../core/container/buffer/byte_buffer.hpp"
-#include "../core/env/net/env_net.h"
+#include "../env/net/env_net.h"
 
 
 #if !D_ENV_NET_HAS_EPOLL
@@ -1208,4 +1210,4 @@ NS_END  // net
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_NET_REACTOR_
+#endif  // DJINTERP_NET_REACTOR_HPP

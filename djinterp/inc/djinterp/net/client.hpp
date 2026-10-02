@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [net]                                                    client.hpp
+/*******************************************************************************
+* djinterp [net]                                                      client.hpp
 *
 *   Foundational client-side module for the net subframework. A client is, at
 * its core, a factory that produces a live connection to an endpoint. This
@@ -20,13 +20,15 @@
 *
 *   Requires:  net.hpp (C++20).
 *
+*
 * path:      /inc/djinterp/net/client.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_NET_CLIENT_
-#define DJINTERP_NET_CLIENT_ 1
+#ifndef DJINTERP_NET_CLIENT_HPP
+#define DJINTERP_NET_CLIENT_HPP 1
 
 // std
 #include <chrono>
@@ -286,4 +288,4 @@ NS_END  // net
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_NET_CLIENT_
+#endif  // DJINTERP_NET_CLIENT_HPP

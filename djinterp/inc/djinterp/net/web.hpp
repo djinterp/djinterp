@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [web]                                                       web.hpp
+/*******************************************************************************
+* djinterp [net]                                                         web.hpp
 *
 *   Foundational, library-agnostic web module for the djinterp framework. It
 * is the backbone every web backend (libcurl, and future transports) builds
@@ -25,13 +25,15 @@
 * inline on C++11, and the string-building utilities are ordinary inline
 * functions. Requires C++11 or later.
 *
-* path:      /inc/djinterp/web/web.hpp
+*
+* path:      /inc/djinterp/net/web.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.16
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.16
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_WEB_
-#define DJINTERP_WEB_ 1
+#ifndef DJINTERP_NET_WEB_HPP
+#define DJINTERP_NET_WEB_HPP 1
 
 // std
 #include <cstddef>
@@ -40,8 +42,8 @@
 #include <utility>
 #include <vector>
 // djinterp
-#include "../core/djinterp.hpp"
-#include "../core/env/web/env_web.h"
+#include "../djinterp.hpp"
+#include "../env/net/env_net.h"
 #include "../core/container/buffer/byte_buffer.hpp"
 
 
@@ -1210,4 +1212,4 @@ NS_END  // web
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_WEB_
+#endif  // DJINTERP_NET_WEB_HPP

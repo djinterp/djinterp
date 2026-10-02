@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [web]                                                  http/http.hpp
+/*******************************************************************************
+* djinterp [net]                                                        http.hpp
 *
 *   A native HTTP/1.1 client built on the net subframework's transport rather
 * than on an external library. Where web/curl/curl.hpp delegates the protocol
@@ -27,18 +27,20 @@
 *   Requires:  web.hpp (HTTP vocabulary), net/tcp.hpp + net/tls.hpp (transport).
 *              Link (for https): -lssl -lcrypto.
 *
-* path:      /inc/djinterp/web/http/http.hpp
+*
+* path:      /inc/djinterp/net/http.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_WEB_HTTP_
-#define DJINTERP_WEB_HTTP_ 1
+#ifndef DJINTERP_NET_HTTP_HPP
+#define DJINTERP_NET_HTTP_HPP 1
 
 // djinterp
-#include "../web.hpp"
-#include "../../net/tcp.hpp"
-#include "../../net/tls.hpp"
+#include "./web.hpp"
+#include "./tcp.hpp"
+#include "./tls.hpp"
 
 
 // std
@@ -1116,4 +1118,4 @@ NS_END  // web
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_WEB_HTTP_
+#endif  // DJINTERP_NET_HTTP_HPP

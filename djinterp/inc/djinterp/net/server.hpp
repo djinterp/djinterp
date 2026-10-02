@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [web]                                                http/server.hpp
+/*******************************************************************************
+* djinterp [net]                                                      server.hpp
 *
 *   A native HTTP/1.1 server, the counterpart to http/http.hpp's client. It
 * runs on the net subframework's generic server: net::server accepts and
@@ -30,17 +30,19 @@
 *              net/server.hpp (+ net/tcp.hpp, net/tls.hpp via http.hpp).
 *              Link (for https): -lssl -lcrypto.
 *
-* path:      /inc/djinterp/web/http/server.hpp
+*
+* path:      /inc/djinterp/net/server.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_WEB_HTTP_SERVER_
-#define DJINTERP_WEB_HTTP_SERVER_ 1
+#ifndef DJINTERP_NET_SERVER_HPP
+#define DJINTERP_NET_SERVER_HPP 1
 
 // djinterp
 #include "./http.hpp"
-#include "../../net/server.hpp"
+#include "./server.hpp"
 
 
 // std
@@ -539,4 +541,4 @@ NS_END  // web
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_WEB_HTTP_SERVER_
+#endif  // DJINTERP_NET_SERVER_HPP

@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [net]                                                       tls.hpp
+/*******************************************************************************
+* djinterp [net]                                                         tls.hpp
 *
 *   TLS backend for the net subframework (OpenSSL family). It layers TLS over
 * an arbitrary net transport rather than over a raw descriptor: a tls_connection
@@ -27,18 +27,20 @@
 *   Requires:  net.hpp, tcp.hpp (default transport), env_tls.h, and the OpenSSL
 *              API family (D_ENV_TLS_HAS_OPENSSL). Link: -lssl -lcrypto.
 *
+*
 * path:      /inc/djinterp/net/tls.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.07.17
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.07.17
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_NET_TLS_
-#define DJINTERP_NET_TLS_ 1
+#ifndef DJINTERP_NET_TLS_HPP
+#define DJINTERP_NET_TLS_HPP 1
 
 // djinterp
 #include "./net.hpp"
 #include "./tcp.hpp"
-#include "../core/env/net/env_tls.h"
+#include "../env/net/env_tls.h"
 
 
 #if !D_ENV_TLS_HAS_OPENSSL
@@ -1299,4 +1301,4 @@ NS_END  // net
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_NET_TLS_
+#endif  // DJINTERP_NET_TLS_HPP
