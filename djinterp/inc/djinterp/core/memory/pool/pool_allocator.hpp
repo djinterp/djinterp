@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [memory]                                         pool_allocator.hpp
+/*******************************************************************************
+* djinterp [core]                                             pool_allocator.hpp
 *
 * STL-conforming allocator backed by a pool_resource.
 *   pool_allocator<T> satisfies the C++ named requirements for Allocator
@@ -31,19 +31,25 @@
 *
 * path:      /inc/djinterp/core/memory/pool/pool_allocator.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    pool_allocator
+      --------------
+
 II.   equality operators
+      ------------------
+
 III.  convenience sliases
+      -------------------
 */
 
-#ifndef DJINTERP_MEMORY_POOL_ALLOCATOR_
-#define DJINTERP_MEMORY_POOL_ALLOCATOR_ 1
+#ifndef DJINTERP_MEMORY_POOL_POOL_ALLOCATOR_HPP
+#define DJINTERP_MEMORY_POOL_POOL_ALLOCATOR_HPP 1
 
 // std
 #include <cstddef>
@@ -52,7 +58,7 @@ III.  convenience sliases
 #include <new>
 #include <type_traits>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
 #include "./pool.hpp"
 
 
@@ -302,7 +308,7 @@ public:
     size_type
     max_size() const noexcept
     {
-        return ( std::numeric_limits<size_type>::max() / sizeof(_Type) )
+        return ( std::numeric_limits<size_type>::max() / sizeof(_Type) );
     }
 
     // --------------------------------------------------------
@@ -400,4 +406,4 @@ using monotonic_pool_allocator = pool_allocator<_Type,
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_POOL_ALLOCATOR_
+#endif  // DJINTERP_MEMORY_POOL_POOL_ALLOCATOR_HPP

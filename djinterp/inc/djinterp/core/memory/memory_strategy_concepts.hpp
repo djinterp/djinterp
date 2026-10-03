@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [memory]                               memory_strategy_concepts.hpp
+/*******************************************************************************
+* djinterp [core]                                   memory_strategy_concepts.hpp
 *
 *  djinterp memory-strategy classification concepts  (CORE)
 *   C++20 concepts layered on top of memory_strategy_traits.hpp.  Strategy- and
@@ -11,26 +11,36 @@
 *
 * path:      /inc/djinterp/core/memory/memory_strategy_concepts.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
-1.   feature gate
-2.   membership concepts
-3.   typing concepts
-4.   storage-discipline concepts
-5.   stability and release concepts
+1.    feature gate
+      ------------
+
+2.    membership concepts
+      -------------------
+
+3.    typing concepts
+      ---------------
+
+4.    storage-discipline concepts
+      ---------------------------
+
+5.    stability and release concepts
+      ------------------------------
 */
 
-#ifndef DJINTERP_MEMORY_STRATEGY_CONCEPTS_
-#define DJINTERP_MEMORY_STRATEGY_CONCEPTS_ 1
+#ifndef DJINTERP_MEMORY_MEMORY_STRATEGY_CONCEPTS_HPP
+#define DJINTERP_MEMORY_MEMORY_STRATEGY_CONCEPTS_HPP 1
 
 // std
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "./memory_strategy_traits.hpp"
 
 #if !defined(__cpp_concepts) || (__cpp_concepts < 201907L)
@@ -139,4 +149,4 @@ concept generational_strategy =
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_STRATEGY_CONCEPTS_
+#endif  // DJINTERP_MEMORY_MEMORY_STRATEGY_CONCEPTS_HPP

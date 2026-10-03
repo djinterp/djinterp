@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [memory]                                   static_buffer_strategy.hpp
+/*******************************************************************************
+* djinterp [core]                                     static_buffer_strategy.hpp
 *
 * Concrete element-typed memory strategy over compile-time-fixed inline storage.
 *   A SPECIFIC strategy module.  static_buffer_strategy<T, N> owns an in-object,
@@ -17,13 +17,14 @@
 *   storage_strategy_traits.hpp  - core contract + storage_kind
 *
 *
-* path:      /inc/djinterp/core/memory/strategy/static_buffer_strategy.hpp
+* path:      /inc/djinterp/core/memory/static_buffer_strategy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MEMORY_STATIC_BUFFER_STRATEGY_
-#define DJINTERP_MEMORY_STATIC_BUFFER_STRATEGY_ 1
+#ifndef DJINTERP_MEMORY_STATIC_BUFFER_STRATEGY_HPP
+#define DJINTERP_MEMORY_STATIC_BUFFER_STRATEGY_HPP 1
 
 // std
 #include <cstddef>
@@ -31,8 +32,7 @@
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
-#include "./storage_strategy_traits.hpp"
+#include "../meta/type_traits.hpp"
 
 
 NS_DJINTERP
@@ -177,7 +177,7 @@ private:
 
 public:
     static constexpr bool value =
-        ( is_storage_strategy<clean_type>::value &&
+        ( //is_storage_strategy<clean_type>::value &&
           is_static_strategy<clean_type>::value &&
           internal::has_extent_member<clean_type>::value );
 };
@@ -199,4 +199,4 @@ public:
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_STATIC_BUFFER_STRATEGY_
+#endif  // DJINTERP_MEMORY_STATIC_BUFFER_STRATEGY_HPP

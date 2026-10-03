@@ -1,74 +1,63 @@
-/******************************************************************************
-* djinterp [memory]                                                   pool.hpp
+/*******************************************************************************
+* djinterp [core]                                                       pool.hpp
 *
-* Memory pool resource for the djinterp container framework.
-*   A pool is a block-structured, fixed-slot-size memory resource that
-* provides O(1) allocation and (policy-dependent) O(1) deallocation of
-* uniform-sized elements.  Pools are the engine behind pool_allocator
-* and can serve as the underlying resource for any node-based or
-* slot-based container.
-*   The design is policy-based along three orthogonal axes:
-*     RELEASE POLICY - what happens when a slot is returned:
-*       monotonic_release_policy     - individual release is a no-op;
-*                                      all slots reclaimed on reset()
-*       free_list_release_policy     - freed slots are threaded into an
-*                                      intrusive free list for O(1) reuse
-*       generational_release_policy  - slots are grouped by generation;
-*                                      entire generations can be swept
-*     BLOCK POLICY - how the pool acquires backing memory:
-*       contiguous_block_policy      - single growable allocation; may
-*                                      invalidate pointers on growth
-*       chunked_block_policy         - linked list of fixed-size blocks;
-*                                      pointers are stable across growth
+* Block-structured, fixed-slot memory resource with compile-time policy
+* selection, its structural classification traits, and its C++20 concept faces.
 *
-*     GROWTH POLICY - how much new memory to acquire when exhausted:
-*       (reuses buffer.hpp growth policies: fixed, linear, exponential,
-*        page-aligned)
+*   pool_resource<T, Release, Block, Growth> vends fixed-size slots in O(1) via
+* acquire()/release(), threading freed slots onto an intrusive free list when
+* the release policy permits.  Three orthogonal, stateless policy axes shape it:
 *
-* THREAD SAFETY:
-*   pool_resource is NOT thread-safe.  External synchronization or a
-*   threadsafe wrapper (using the lock policies from threadsafe.hpp)
-*   is required for concurrent access.
+*     Release : monotonic | free_list | generational   (what release() does)
+*     Block   : contiguous | chunked<N>                 (backing-store layout)
+*     Growth  : buffer.hpp growth policies              (grow-on-exhaustion)
+*
+* Chunked backing keeps pointers stable across growth; contiguous trades that
+* for linear iteration.  The resource deals in raw aligned storage only - it
+* never constructs or destroys objects; lifetime is the caller's / allocator's.
+* It is movable, non-copyable, and NOT thread-safe (wrap it externally).
+*
+*   The trait layer (is_pool_resource, the stability/release classifiers, the
+* accounting and allocator predicates, the resource-type extractor, and the
+* aggregate pool_class / pool_allocator_class) is purely structural - it
+* duck-types the protocol and the policy constants on the clean_t form; no
+* tagging, no base classes.  The concept layer is a thin C++20 face over those
+* traits and appears only where concepts are available.
 *
 * DEPENDENCIES:
-*   djinterp.hpp   - namespace macros, clean_t
-*   buffer.hpp     - growth policies
-*   dmemory.h      - d_memset (optional, for debug zeroing)
+*   djinterp.hpp                     - namespace macros, language gate
+*   meta/type_traits.hpp            - clean_t, void_t, D_TYPE_TRAIT_TRUE
+*   container/buffer/buffer.hpp     - growth policies
 *
 *
 * path:      /inc/djinterp/core/memory/pool/pool.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.03.30
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.03.30
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-/*
-TABLE OF CONTENTS
-=================
-I.     release strategy enum
-II.    block layout enum
-III.   release policies
-IV.    block policies
-V.     pool_block (internal)
-VI.    pool_resource
-VII.   policy selection
-VIII.  default aliases
-*/
-
-#ifndef DJINTERP_MEMORY_POOL_
-#define DJINTERP_MEMORY_POOL_ 1
+#ifndef DJINTERP_MEMORY_POOL_POOL_HPP
+#define DJINTERP_MEMORY_POOL_POOL_HPP 1
 
 // std
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <memory>
 #include <new>
 #include <type_traits>
 #include <utility>
 // djinterp
-#include "../../djinterp.hpp"
+#include "../../../djinterp.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../../../re_std/type_traits/bool_constant.hpp"  // portable, C++11+
 #include "../../container/buffer/buffer.hpp"
+// pool classification traits (extracted from this file); pool.hpp re-includes
+// them so its concept faces and every consumer of pool.hpp keep the full
+// surface unchanged.
+#include "./pool_traits.hpp"
 
 
 NS_DJINTERP
@@ -333,6 +322,43 @@ NS_END  // internal
 //   _BlockPolicy   - contiguous vs. chunked storage
 //   _GrowthPolicy  - how much to grow when exhausted
 
+NS_INTERNAL
+
+    // no_generation_state
+    //   empty stand-in for a pool whose release policy is not generational.
+    struct no_generation_state
+    {};
+
+    // generation_state_of
+    //   defers the generation_type lookup.  std::conditional_t NAMES BOTH ARMS,
+    // so writing
+    //
+    //     conditional_t<RP::supports_generational_sweep,
+    //                   typename RP::generation_type,
+    //                   no_generation_state>
+    //
+    // hard-requires RP::generation_type even when the flag is false -- and
+    // monotonic_release_policy and free_list_release_policy do not have one.
+    // That made default_pool_resource, monotonic_pool_resource and
+    // flat_pool_resource ALL fail to instantiate: every pool in the header
+    // except the generational one. A specialized helper only ever names the arm
+    // it takes. (This is the fix the FIXME at the old site described.)
+    template<typename _RP,
+             bool = _RP::supports_generational_sweep>
+    struct generation_state_of
+    {
+        using type = no_generation_state;
+    };
+
+    template<typename _RP>
+    struct generation_state_of<_RP, true>
+    {
+        using type = typename _RP::generation_type;
+    };
+
+NS_END  // internal
+
+
 template<typename _Type,
          typename _ReleasePolicy = free_list_release_policy,
          typename _BlockPolicy   = chunked_block_policy<>,
@@ -464,7 +490,7 @@ public:
     acquire()
     {
         // 1. try the free list (if release policy uses one)
-        if constexpr (_ReleasePolicy::supports_individual_release)
+        if (_ReleasePolicy::supports_individual_release)
         {
             if (m_free_head)
             {
@@ -487,7 +513,7 @@ public:
         }
 
         // 3. grow and retry
-        if constexpr (!_GrowthPolicy::can_grow)
+        if (!_GrowthPolicy::can_grow)
         {
             return nullptr;
         }
@@ -536,7 +562,7 @@ public:
             return;
         }
 
-        if constexpr (_ReleasePolicy::supports_individual_release)
+        if (_ReleasePolicy::supports_individual_release)
         {
             auto* node = static_cast<internal::free_node*>(_ptr);
             node->next  = m_free_head;
@@ -757,41 +783,84 @@ private:
     // --- generational state ---
     // Only present when the release policy is generational.
 
-    struct no_generation_state
-    {};
-
-    using generation_state = std::conditional_t<
-        _ReleasePolicy::supports_generational_sweep,
-        typename _ReleasePolicy::generation_type,
-        no_generation_state
-    >;
+    // generation_state
+    //   the generational bookkeeping, or an empty struct when the release
+    // policy is not generational.  Deferred through internal::
+    // generation_state_of so the non-taken arm is never named -- see the note
+    // there.  Written with std::conditional_t, this line hard-required
+    // generation_type from every policy and no ordinary pool would instantiate.
+    using generation_state =
+        typename internal::generation_state_of<_ReleasePolicy>::type;
 
     // --------------------------------------------------------
     //  init_block_state
     // --------------------------------------------------------
 
+    // init_block_state_impl / init_generation
+    //   TAG DISPATCH, not if-constexpr.  These two branches are LOAD-BEARING:
+    // the untaken arm names members that exist only on the OTHER state struct
+    // (contiguous_state has no .head; chunked_state has no .data; a
+    // non-generational pool's generation_state is an EMPTY struct), so a plain
+    // 'if' does not merely run dead code -- it fails to compile.
+    //
+    //   Tag dispatch gets the same guarantee without the C++17 keyword: an
+    // overload of a class-template member that is never selected is never
+    // instantiated, and so is never checked.  Available since C++11, which is
+    // what lets this header build below C++17 again.
+    void
+    init_block_state_impl(
+        re_std::bool_constant<true>   /*contiguous*/
+    ) noexcept
+    {
+        m_blocks.data        = nullptr;
+        m_blocks.bump_offset = 0;
+
+        return;
+    }
+
+    void
+    init_block_state_impl(
+        re_std::bool_constant<false>  /*chunked*/
+    ) noexcept
+    {
+        m_blocks.head        = nullptr;
+        m_blocks.current     = nullptr;
+        m_blocks.last        = nullptr;
+        m_blocks.block_count = 0;
+        m_blocks.bump_offset = 0;
+
+        return;
+    }
+
+    void
+    init_generation(
+        re_std::bool_constant<true>   /*generational*/
+    ) noexcept
+    {
+        m_generation = 0;
+
+        return;
+    }
+
+    void
+    init_generation(
+        re_std::bool_constant<false>  /*not generational*/
+    ) noexcept
+    {
+        return;
+    }
+
     void
     init_block_state() noexcept
     {
-        if constexpr (_BlockPolicy::layout ==
-                      pool_block_layout::contiguous)
-        {
-            m_blocks.data        = nullptr;
-            m_blocks.bump_offset = 0;
-        }
-        else
-        {
-            m_blocks.head        = nullptr;
-            m_blocks.current     = nullptr;
-            m_blocks.last        = nullptr;
-            m_blocks.block_count = 0;
-            m_blocks.bump_offset = 0;
-        }
+        init_block_state_impl(
+            re_std::bool_constant<
+                _BlockPolicy::layout ==
+                pool_block_layout::contiguous>());
 
-        if constexpr (_ReleasePolicy::supports_generational_sweep)
-        {
-            m_generation = 0;
-        }
+        init_generation(
+            re_std::bool_constant<
+                _ReleasePolicy::supports_generational_sweep>());
 
         return;
     }
@@ -899,7 +968,7 @@ private:
         {
             // rewrite free list pointers - they are
             // now in the new allocation
-            if constexpr (_ReleasePolicy::supports_individual_release)
+            if (_ReleasePolicy::supports_individual_release)
             {
                 rebase_free_list(m_blocks.data, new_data);
             }
@@ -975,7 +1044,7 @@ private:
     void
     reset_bump_state() noexcept
     {
-        if constexpr (_BlockPolicy::layout ==
+        if (_BlockPolicy::layout ==
                       pool_block_layout::contiguous)
         {
             m_blocks.bump_offset = 0;
@@ -1075,7 +1144,7 @@ private:
     size_type
     block_overhead() const noexcept
     {
-        if constexpr (_BlockPolicy::layout ==
+        if (_BlockPolicy::layout ==
                       pool_block_layout::contiguous)
         {
             return 0;
@@ -1195,7 +1264,240 @@ using flat_pool_resource = pool_resource<_Type,
                                          exponential_growth_policy>;
 
 
+// ===========================================================================
+// C++20 concept faces  (present only where concepts are available)
+// ===========================================================================
+#if defined(__cpp_concepts) && (__cpp_concepts >= 201907L)
+
+// ===========================================================================
+// XV.   Pool Resource Concepts
+// ===========================================================================
+
+// pool_resource
+//   concept: constrains types satisfying the minimum pool resource protocol.
+template<typename _Type>
+concept pool_resource_c = is_pool_resource_v<clean_t<_Type>>;
+
+// non_pool_resource
+//   concept: constrains types that do not satisfy the pool resource protocol.
+template<typename _Type>
+concept non_pool_resource = !pool_resource_c<_Type>;
+
+// acquiring_pool
+//   concept: constrains pool-like types exposing acquire().
+template<typename _Type>
+concept acquiring_pool =
+    has_acquire_v<clean_t<_Type>>;
+
+// releasing_pool
+//   concept: constrains pool-like types exposing release(void*).
+template<typename _Type>
+concept releasing_pool =
+    has_release_v<clean_t<_Type>>;
+
+// sized_pool
+//   concept: constrains pool-like types exposing size().
+template<typename _Type>
+concept sized_pool = has_size_accessor_v<clean_t<_Type>>;
+
+// typed_pool
+//   concept: constrains pool-like types exposing value_type.
+template<typename _Type>
+concept typed_pool = has_value_type_v<clean_t<_Type>>;
+
+// classified_pool
+//   concept: constrains types recognized by the pool trait layer.
+template<typename _Type>
+concept classified_pool =
+    ( pool_resource_c<_Type>                     ||
+      is_pointer_stable_pool_v<clean_t<_Type>> ||
+      supports_individual_release_v<clean_t<_Type>> ||
+      has_generational_sweep_v<clean_t<_Type>> ||
+      has_memory_accounting_v<clean_t<_Type>> );
+
+
+// ===========================================================================
+// XVI.  Pool Stability and Release Concepts
+// ===========================================================================
+
+// pointer_stable_pool
+//   concept: constrains pools guaranteeing pointer stability across growth.
+template<typename _Type>
+concept pointer_stable_pool =
+    is_pointer_stable_pool_v<clean_t<_Type>>;
+
+// relocatable_pool
+//   concept: constrains pools that do not guarantee pointer stability.
+template<typename _Type>
+concept relocatable_pool =
+    ( pool_resource_c<_Type> &&
+      !pointer_stable_pool<_Type> );
+
+// individually_releasing_pool
+//   concept: constrains pools supporting per-slot release.
+template<typename _Type>
+concept individually_releasing_pool =
+    supports_individual_release_v<clean_t<_Type>>;
+
+// monotonic_pool
+//   concept: constrains pools reclaiming memory only on reset or destruction.
+template<typename _Type>
+concept monotonic_pool =
+    is_monotonic_pool_v<clean_t<_Type>>;
+
+// generational_pool
+//   concept: constrains pools supporting generational reclamation.
+template<typename _Type>
+concept generational_pool =
+    has_generational_sweep_v<clean_t<_Type>>;
+
+
+// ===========================================================================
+// XVII. Pool Capability Concepts
+// ===========================================================================
+
+// resettable_pool
+//   concept: constrains pools exposing reset().
+template<typename _Type>
+concept resettable_pool =
+    has_pool_reset_v<clean_t<_Type>>;
+
+// reservable_pool
+//   concept: constrains pools exposing reserve(size_t).
+template<typename _Type>
+concept reservable_pool =
+    has_pool_reserve_v<clean_t<_Type>>;
+
+// slot_sized_pool
+//   concept: constrains pools exposing bytes_per_slot().
+template<typename _Type>
+concept slot_sized_pool =
+    has_bytes_per_slot_v<clean_t<_Type>>;
+
+// slot_aligned_pool
+//   concept: constrains pools exposing alignment().
+template<typename _Type>
+concept slot_aligned_pool =
+    has_slot_alignment_v<clean_t<_Type>>;
+
+// generation_tracked_pool
+//   concept: constrains pools exposing current_generation().
+template<typename _Type>
+concept generation_tracked_pool =
+    has_current_generation_v<clean_t<_Type>>;
+
+// generation_advancing_pool
+//   concept: constrains pools exposing advance_generation().
+template<typename _Type>
+concept generation_advancing_pool =
+    has_advance_generation_v<clean_t<_Type>>;
+
+// memory_accounting_pool
+//   concept: constrains pools exposing byte-level accounting.
+template<typename _Type>
+concept memory_accounting_pool =
+    has_memory_accounting_v<clean_t<_Type>>;
+
+// bytes_allocated_pool
+//   concept: constrains pools exposing bytes_allocated().
+template<typename _Type>
+concept bytes_allocated_pool =
+    has_bytes_allocated_v<clean_t<_Type>>;
+
+// bytes_in_use_pool
+//   concept: constrains pools exposing bytes_in_use().
+template<typename _Type>
+concept bytes_in_use_pool =
+    has_bytes_in_use_v<clean_t<_Type>>;
+
+// utilization_reporting_pool
+//   concept: constrains pools exposing utilization().
+template<typename _Type>
+concept utilization_reporting_pool =
+    has_utilization_v<clean_t<_Type>>;
+
+
+// ===========================================================================
+// XVIII.  Allocator and Container Concepts
+// ===========================================================================
+
+// pool_allocator
+//   concept: constrains allocators backed by a pool resource.
+template<typename _Type>
+concept pool_allocator =
+    is_pool_allocator_v<clean_t<_Type>>;
+
+// non_pool_allocator
+//   concept: constrains allocators not backed by a pool resource.
+template<typename _Type>
+concept non_pool_allocator =
+    !pool_allocator<_Type>;
+
+// resource_exposing_pool_allocator
+//   concept: constrains pool allocators exposing resource().
+template<typename _Type>
+concept resource_exposing_pool_allocator =
+    has_resource_method_v<clean_t<_Type>>;
+
+// pool_backed_container
+//   concept: constrains containers whose allocator is pool-backed.
+template<typename _Type>
+concept pool_backed_container =
+    is_pool_backed_container_v<clean_t<_Type>>;
+
+// non_pool_backed_container
+//   concept: constrains containers whose allocator is not pool-backed.
+template<typename _Type>
+concept non_pool_backed_container =
+    !pool_backed_container<_Type>;
+
+// allocator_aware_pool_container
+//   concept: constrains pool-backed containers exposing allocator_type.
+template<typename _Type>
+concept allocator_aware_pool_container =
+    ( pool_backed_container<_Type> &&
+      has_allocator_type_v<clean_t<_Type>> );
+
+
+// ===========================================================================
+// XIX.   Resource Extraction Concepts
+// ===========================================================================
+
+// pool_allocator_with_resource
+//   concept: constrains pool allocators whose resource type can be extracted.
+template<typename _Type>
+concept pool_allocator_with_resource =
+    ( pool_allocator<_Type> &&
+      !std::is_void_v<pool_resource_type_t<clean_t<_Type>>> );
+
+// stable_pool_allocator
+//   concept: constrains pool allocators backed by pointer-stable pools.
+template<typename _Type>
+concept stable_pool_allocator =
+    ( pool_allocator_with_resource<_Type> &&
+      is_pointer_stable_pool_v<
+          pool_resource_type_t<clean_t<_Type>>> );
+
+// monotonic_pool_allocator
+//   concept: constrains pool allocators backed by monotonic pools.
+template<typename _Type>
+concept monotonic_pool_allocator =
+    ( pool_allocator_with_resource<_Type> &&
+      is_monotonic_pool_v<
+          pool_resource_type_t<clean_t<_Type>>> );
+
+// generational_pool_allocator
+//   concept: constrains pool allocators backed by generational pools.
+template<typename _Type>
+concept generational_pool_allocator =
+    ( pool_allocator_with_resource<_Type> &&
+      has_generational_sweep_v<
+          pool_resource_type_t<clean_t<_Type>>> );
+
+#endif  // __cpp_concepts
+
+
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_POOL_
+#endif  // DJINTERP_MEMORY_POOL_POOL_HPP
