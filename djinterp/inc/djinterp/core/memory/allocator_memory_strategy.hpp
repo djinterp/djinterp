@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [memory]                                allocator_memory_strategy.hpp
+/*******************************************************************************
+* djinterp [core]                                  allocator_memory_strategy.hpp
 *
 * Concrete element-typed memory strategy backed by a standard Allocator.
 *   A SPECIFIC strategy module adapting any type satisfying the C++ Allocator
@@ -14,13 +14,14 @@
 *   memory_strategy_traits.hpp  - core contract + storage_kind
 *
 *
-* path:      /inc/djinterp/core/memory/strategy/allocator_memory_strategy.hpp
+* path:      /inc/djinterp/core/memory/allocator_memory_strategy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MEMORY_ALLOCATOR_STRATEGY_
-#define DJINTERP_MEMORY_ALLOCATOR_STRATEGY_ 1
+#ifndef DJINTERP_MEMORY_ALLOCATOR_MEMORY_STRATEGY_HPP
+#define DJINTERP_MEMORY_ALLOCATOR_MEMORY_STRATEGY_HPP 1
 
 // std
 #include <cstddef>
@@ -28,7 +29,7 @@
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
+#include "../meta/type_traits.hpp"
 #include "./memory_strategy_traits.hpp"
 
 
@@ -153,4 +154,4 @@ make_allocator_strategy(
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_ALLOCATOR_STRATEGY_
+#endif  // DJINTERP_MEMORY_ALLOCATOR_MEMORY_STRATEGY_HPP

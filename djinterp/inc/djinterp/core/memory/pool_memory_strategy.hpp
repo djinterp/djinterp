@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [memory]                                     pool_memory_strategy.hpp
+/*******************************************************************************
+* djinterp [core]                                       pool_memory_strategy.hpp
 *
 * Concrete element-typed memory strategy backed by a pool_resource.
 *   This is a SPECIFIC strategy module: it adapts the djinterp pool layer to
@@ -20,18 +20,19 @@
 *
 * path:      /inc/djinterp/core/memory/pool_memory_strategy.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MEMORY_POOL_STRATEGY_
-#define DJINTERP_MEMORY_POOL_STRATEGY_ 1
+#ifndef DJINTERP_MEMORY_POOL_MEMORY_STRATEGY_HPP
+#define DJINTERP_MEMORY_POOL_MEMORY_STRATEGY_HPP 1
 
 // std
 #include <cstddef>
 #include <new>
 #include <type_traits>
 // djinterp
-#include "../djinterp.hpp"
+#include "../../djinterp.hpp"
 #include "../meta/type_traits.hpp"
 #include "./pool/pool_traits.hpp"
 #include "./memory_strategy_traits.hpp"
@@ -194,4 +195,4 @@ make_pool_strategy(
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_POOL_STRATEGY_
+#endif  // DJINTERP_MEMORY_POOL_MEMORY_STRATEGY_HPP

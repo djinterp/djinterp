@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [memory]                                    monotonic_byte_arena.hpp
+/*******************************************************************************
+* djinterp [core]                                       monotonic_byte_arena.hpp
 *
 * Concrete BYTE-typed memory strategy: a monotonic, aligned bump arena.
 *   A SPECIFIC strategy module demonstrating that byte-typed strategies are
@@ -21,13 +21,14 @@
 *   storage_strategy_traits.hpp  - core contract + storage_kind
 *
 *
-* path:      /inc/djinterp/core/memory/strategy/monotonic_byte_arena.hpp
+* path:      /inc/djinterp/core/memory/monotonic_byte_arena.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
-#ifndef DJINTERP_MEMORY_MONOTONIC_BYTE_ARENA_
-#define DJINTERP_MEMORY_MONOTONIC_BYTE_ARENA_ 1
+#ifndef DJINTERP_MEMORY_MONOTONIC_BYTE_ARENA_HPP
+#define DJINTERP_MEMORY_MONOTONIC_BYTE_ARENA_HPP 1
 
 // std
 #include <cstddef>
@@ -36,8 +37,8 @@
 #include <type_traits>
 // djinterp
 #include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
-#include "./storage_strategy_traits.hpp"
+#include "../meta/type_traits.hpp"
+#include "./memory_strategy_traits.hpp"
 
 
 NS_DJINTERP
@@ -71,8 +72,7 @@ public:
     using value_type = void;
 
     // --- descriptive constants (core contract) ---
-    static constexpr storage_kind strategy_storage_kind =
-        storage_kind::static_storage;
+    static constexpr storage_kind strategy_storage_kind       = storage_kind::static_storage;
     static constexpr bool         pointer_stable              = true;
     static constexpr bool         supports_individual_release = false;
 
@@ -228,4 +228,4 @@ private:
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_MONOTONIC_BYTE_ARENA_
+#endif  // DJINTERP_MEMORY_MONOTONIC_BYTE_ARENA_HPP

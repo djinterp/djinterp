@@ -1,5 +1,5 @@
-/******************************************************************************
-* djinterp [memory]                                  memory_strategy_traits.hpp
+/*******************************************************************************
+* djinterp [core]                                     memory_strategy_traits.hpp
 *
 * SFINAE structural traits for the memory-strategy axis  (CORE).
 *   A "memory strategy" is any type that DECLARES - and optionally SUPPLIES -
@@ -56,26 +56,46 @@ THE CONTRACT (two layers, mirroring the pool-trait layering):
 *
 * path:      /inc/djinterp/core/memory/memory_strategy_traits.hpp
 * link(s):   TBA
-* author(s): Samuel 'teer' Neal-Blim                       created: 2026.05.29
-******************************************************************************/
+* author(s): Samuel 'teer' Neal-Blim                         created: 2026.05.29
+*                                                            revised: 2026.09.21
+*******************************************************************************/
 
 /*
 TABLE OF CONTENTS
 =================
 I.    storage_kind vocabulary
+      -----------------------
+
 II.   constant detection
+      ------------------
+
 III.  typed-surface detection
+      -----------------------
+
 IV.   typing classification
+      ---------------------
+
 V.    descriptive / operational classification
+      ----------------------------------------
+
 VI.   storage-discipline confirmation
+      -------------------------------
+
 VII.  stability and release refinements
+      ---------------------------------
+
 VIII. element <-> byte bridges
+      ------------------------
+
 IX.   uniform accessor (customization point)
+      --------------------------------------
+
 X.    aggregate snapshot
+      ------------------
 */
 
-#ifndef DJINTERP_MEMORY_STRATEGY_TRAITS_
-#define DJINTERP_MEMORY_STRATEGY_TRAITS_ 1
+#ifndef DJINTERP_MEMORY_MEMORY_STRATEGY_TRAITS_HPP
+#define DJINTERP_MEMORY_MEMORY_STRATEGY_TRAITS_HPP 1
 
 // std
 #include <cstddef>
@@ -83,7 +103,7 @@ X.    aggregate snapshot
 #include <utility>
 // djinterp
 #include "../../djinterp.hpp"
-#include "../../meta/type_traits.hpp"
+#include "../meta/type_traits.hpp"
 #include "../../env/cpp/env_cpp_features.h"
 
 
@@ -122,27 +142,27 @@ NS_END  // internal
 
 // has_strategy_kind_constant
 //   trait: detects the mandatory `strategy_storage_kind` constant.
-D_TRAIT_IS_DETECTED(has_strategy_kind_constant,
-                    decltype(_Type::strategy_storage_kind))
+D_TYPE_TRAIT_DETECTED(has_strategy_kind_constant,
+                      decltype(_Type::strategy_storage_kind == storage_kind::unknown))
 
 // has_strategy_pointer_stable_constant
 //   trait: detects the optional `pointer_stable` constant.
-D_TRAIT_IS_DETECTED(has_strategy_pointer_stable_constant,
-                    decltype(_Type::pointer_stable))
+D_TYPE_TRAIT_DETECTED(has_strategy_pointer_stable_constant,
+                      decltype(_Type::pointer_stable))
 
 // has_strategy_individual_release_constant
 //   trait: detects the optional `supports_individual_release` constant.
-D_TRAIT_IS_DETECTED(has_strategy_individual_release_constant,
-                    decltype(_Type::supports_individual_release))
+D_TYPE_TRAIT_DETECTED(has_strategy_individual_release_constant,
+                      decltype(_Type::supports_individual_release))
 
 // has_strategy_generational_constant
 //   trait: detects the optional `supports_generational_sweep` constant.
-D_TRAIT_IS_DETECTED(has_strategy_generational_constant,
-                    decltype(_Type::supports_generational_sweep))
+D_TYPE_TRAIT_DETECTED(has_strategy_generational_constant,
+                      decltype(_Type::supports_generational_sweep))
 
 // has_strategy_value_type
 //   trait: detects a nested `value_type` alias.
-D_TRAIT_HAS_TYPE(has_strategy_value_type, value_type)
+D_TYPE_TRAIT_HAS_TYPE(has_strategy_value_type, value_type)
 
 
 // ===========================================================================
@@ -153,9 +173,9 @@ D_TRAIT_HAS_TYPE(has_strategy_value_type, value_type)
 
 // has_element_allocate
 //   trait: detects allocate(size_t) - the one-argument element supply verb.
-D_TRAIT_IS_DETECTED(has_element_allocate,
-                    decltype(std::declval<_Type&>().allocate(
-                        std::declval<std::size_t>())))
+D_TYPE_TRAIT_DETECTED(has_element_allocate,
+                      decltype(std::declval<_Type&>().allocate(
+                          std::declval<std::size_t>())))
 
 // has_element_deallocate
 //   trait: detects deallocate(value_type*, size_t).  Probed only for types
@@ -186,15 +206,15 @@ struct has_element_deallocate
 // has_byte_allocate
 //   trait: detects allocate(size_t bytes, size_t align) -> the two-argument
 // byte supply verb (pmr-shaped).
-D_TRAIT_IS_DETECTED(has_byte_allocate,
-                    decltype(std::declval<_Type&>().allocate(
+D_TYPE_TRAIT_DETECTED(has_byte_allocate,
+                      decltype(std::declval<_Type&>().allocate(
                         std::declval<std::size_t>(),
                         std::declval<std::size_t>())))
 
 // has_byte_deallocate
 //   trait: detects deallocate(void*, size_t bytes, size_t align).
-D_TRAIT_IS_DETECTED(has_byte_deallocate,
-                    decltype(std::declval<_Type&>().deallocate(
+D_TYPE_TRAIT_DETECTED(has_byte_deallocate,
+                      decltype(std::declval<_Type&>().deallocate(
                         std::declval<void*>(),
                         std::declval<std::size_t>(),
                         std::declval<std::size_t>())))
@@ -231,8 +251,8 @@ private:
 public:
     static constexpr bool value =
         ( has_strategy_value_type<clean_type>::value &&
-            !is_void<detected_or_t<void,
-                                   internal::value_type_of_alias, clean_type>>::value &&
+            !std::is_void<detected_or_t<void,
+                                        internal::value_type_of_alias, clean_type>>::value &&
             has_element_allocate<clean_type>::value &&
             has_element_deallocate<clean_type>::value );
 };
@@ -270,9 +290,9 @@ private:
 
 public:
     static constexpr strategy_typing value =
-        ( is_element_strategy<clean_type>::value 
+        ( is_element_strategy<clean_type>::value
               ? strategy_typing::element_typed
-              : is_byte_strategy<clean_type>::value 
+              : is_byte_strategy<clean_type>::value
                   ? strategy_typing::byte_typed
                   : strategy_typing::none );
 };
@@ -329,7 +349,7 @@ public:
     static constexpr bool value =
         ( is_memory_strategy<clean_type>::value &&
             (  is_element_strategy<clean_type>::value ||
-               is_byte_strategy<clean_type>::value ) 
+               is_byte_strategy<clean_type>::value )
         );
 };
 
@@ -610,6 +630,10 @@ public:
         memory_strategy_kind_of<element_type>::value;
     static constexpr bool pointer_stable =
         is_pointer_stable_strategy<element_type>::value;
+    static constexpr bool supports_individual_release =
+        supports_individual_release_strategy<element_type>::value;
+    static constexpr bool supports_generational_sweep =
+        is_generational_strategy<element_type>::value;
 
     explicit
     byte_strategy_view(
@@ -731,4 +755,4 @@ public:
 NS_END  // djinterp
 
 
-#endif  // DJINTERP_MEMORY_STRATEGY_TRAITS_
+#endif  // DJINTERP_MEMORY_MEMORY_STRATEGY_TRAITS_HPP
